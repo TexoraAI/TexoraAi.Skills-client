@@ -1,1431 +1,51 @@
-// import {
-//   ArrowRight,
-//   Award,
-//   BookOpen,
-//   Linkedin,
-//   Mail,
-//   MapPin,
-//   Moon,
-//   Play,
-//   Star,
-//   Sun,
-//   TrendingUp,
-//   Users,
-//   Youtube,
-//   X, // ✅ Added for modal close
-//   MessageCircle, // ✅ WhatsApp icon
-// } from "lucide-react";
-// import React, { useState } from "react";
-// import { useNavigate } from "react-router-dom";
 
-// export default function LMSHomepage({ theme, toggleTheme }) {
-//   const [activeTab, setActiveTab] = useState("product");
-//   const [selectedCourse, setSelectedCourse] = useState(null); // ✅ Modal state
-//   const navigate = useNavigate();
-
-//   const isDark = theme === "dark";
-
-//   // Companies array (unchanged)
-//   const companies = [
-//     {
-//       name: "Capgemini",
-//       colors: "from-blue-600 to-cyan-400",
-//       bgGradient:
-//         "bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30",
-//     },
-//     {
-//       name: "Microsoft",
-//       colors: "from-blue-600 to-blue-400",
-//       bgGradient:
-//         "bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30",
-//     },
-//     {
-//       name: "Google",
-//       colors: "from-blue-500 to-green-400",
-//       bgGradient:
-//         "bg-gradient-to-br from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30",
-//     },
-//     {
-//       name: "Texora",
-//       colors: "from-orange-500 to-amber-500",
-//       bgGradient:
-//         "bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30",
-//     },
-//     {
-//       name: "Amazon",
-//       colors: "from-orange-400 to-yellow-400",
-//       bgGradient:
-//         "bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-orange-950/30 dark:to-yellow-950/30",
-//     },
-//     {
-//       name: "UFS",
-//       colors: "from-blue-700 to-indigo-500",
-//       bgGradient:
-//         "bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30",
-//     },
-//     {
-//       name: "Apple",
-//       colors: "from-gray-400 to-gray-200",
-//       bgGradient:
-//         "bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/30 dark:to-gray-800/30",
-//     },
-//     {
-//       name: "Cognizant",
-//       colors: "from-blue-600 to-indigo-500",
-//       bgGradient:
-//         "bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30",
-//     },
-//   ];
-
-//   // ✅ FULL COURSES DATA with details
-//   const courses = {
-//     product: [
-//       {
-//         id: 1,
-//         title: "Product Management Mastery",
-//         instructor: "Ex-Google PM",
-//         duration: "8 weeks",
-//         students: "2,500+",
-//         rating: 4.9,
-//         description:
-//           "Master product lifecycle from ideation to launch. Learn roadmapping, prioritization, stakeholder management & metrics that matter.",
-//         modules: [
-//           "Discovery & Research",
-//           "Roadmapping",
-//           "Prioritization Frameworks",
-//           "Launch Strategy",
-//           "Metrics & Analytics",
-//         ],
-//         price: "₹49,000",
-//         highlights: [
-//           "Live sessions with Google PMs",
-//           "Real case studies",
-//           "1:1 mentorship",
-//           "Job referral support",
-//         ],
-//       },
-//       {
-//         id: 2,
-//         title: "Product Analytics",
-//         instructor: "Ex-Amazon",
-//         duration: "6 weeks",
-//         students: "1,800+",
-//         rating: 4.8,
-//         description:
-//           "Data-driven product decisions. Master A/B testing, cohort analysis, funnel optimization & retention strategies.",
-//         modules: [
-//           "SQL for Product Managers",
-//           "Experimentation",
-//           "Funnel Analysis",
-//           "Retention Metrics",
-//           "Customer Segmentation",
-//         ],
-//         price: "₹39,000",
-//         highlights: [
-//           "Amazon case studies",
-//           "Live SQL projects",
-//           "Advanced Mixpanel",
-//           "Retention frameworks",
-//         ],
-//       },
-//       {
-//         id: 3,
-//         title: "Product Strategy",
-//         instructor: "Ex-Meta",
-//         duration: "10 weeks",
-//         students: "2,100+",
-//         rating: 4.9,
-//         description:
-//           "Strategic frameworks for product success. Positioning, competitive analysis, growth strategies & portfolio management.",
-//         modules: [
-//           "Market Analysis",
-//           "Competitive Strategy",
-//           "Growth Playbooks",
-//           "Portfolio Management",
-//           "Pricing Strategy",
-//         ],
-//         price: "₹59,000",
-//         highlights: [
-//           "Meta growth case studies",
-//           "Strategy templates",
-//           "Live workshops",
-//           "Executive simulations",
-//         ],
-//       },
-//     ],
-//     design: [
-//       {
-//         id: 4,
-//         title: "UI/UX Design Bootcamp",
-//         instructor: "Ex-Airbnb Designer",
-//         duration: "12 weeks",
-//         students: "3,200+",
-//         rating: 5.0,
-//         description:
-//           "Complete UI/UX journey from research to prototype. Figma mastery, design systems & portfolio projects.",
-//         modules: [
-//           "User Research",
-//           "Wireframing",
-//           "Prototyping",
-//           "Design Systems",
-//           "Portfolio Building",
-//         ],
-//         price: "₹69,000",
-//         highlights: [
-//           "Airbnb case studies",
-//           "Figma certification",
-//           "Live design reviews",
-//           "Job ready portfolio",
-//         ],
-//       },
-//       {
-//         id: 5,
-//         title: "Design Systems",
-//         instructor: "Ex-Netflix",
-//         duration: "8 weeks",
-//         students: "1,500+",
-//         rating: 4.8,
-//         description:
-//           "Build scalable design systems like Netflix. Components, tokens, documentation & developer handoff.",
-//         modules: [
-//           "Component Libraries",
-//           "Design Tokens",
-//           "Documentation",
-//           "Dev Handoff",
-//           "Scale Patterns",
-//         ],
-//         price: "₹45,000",
-//         highlights: [
-//           "Netflix system breakdown",
-//           "Figma + Storybook",
-//           "Live system audits",
-//           "Enterprise patterns",
-//         ],
-//       },
-//       {
-//         id: 6,
-//         title: "User Research Pro",
-//         instructor: "Ex-Microsoft",
-//         duration: "6 weeks",
-//         students: "1,900+",
-//         rating: 4.7,
-//         description:
-//           "Research methods that drive product decisions. Interviews, surveys, usability testing & synthesis.",
-//         modules: [
-//           "Interview Techniques",
-//           "Survey Design",
-//           "Usability Testing",
-//           "Synthesis Methods",
-//           "Stakeholder Reports",
-//         ],
-//         price: "₹35,000",
-//         highlights: [
-//           "Microsoft research frameworks",
-//           "Live user testing",
-//           "Report templates",
-//           "Stakeholder presentations",
-//         ],
-//       },
-//     ],
-//     growth: [
-//       {
-//         id: 7,
-//         title: "Growth Marketing",
-//         instructor: "Ex-Uber Growth",
-//         duration: "8 weeks",
-//         students: "2,800+",
-//         rating: 4.9,
-//         description:
-//           "Growth loops, viral mechanics & acquisition strategies that scale businesses.",
-//         modules: [
-//           "Growth Frameworks",
-//           "Viral Loops",
-//           "Acquisition Channels",
-//           "Experimentation",
-//           "Scaling",
-//         ],
-//         price: "₹49,000",
-//         highlights: [
-//           "Uber growth case studies",
-//           "Live experiments",
-//           "Channel deep dives",
-//           "Scaling frameworks",
-//         ],
-//       },
-//       {
-//         id: 8,
-//         title: "SEO & Content Strategy",
-//         instructor: "Ex-Spotify",
-//         duration: "10 weeks",
-//         students: "2,300+",
-//         rating: 4.8,
-//         description:
-//           "Organic growth mastery. Technical SEO, content systems & link building at scale.",
-//         modules: [
-//           "Technical SEO",
-//           "Content Systems",
-//           "Link Building",
-//           "Analytics",
-//           "Scaling Organic",
-//         ],
-//         price: "₹55,000",
-//         highlights: [
-//           "Spotify SEO case studies",
-//           "Live audits",
-//           "Content calendars",
-//           "Enterprise SEO",
-//         ],
-//       },
-//       {
-//         id: 9,
-//         title: "Performance Marketing",
-//         instructor: "Ex-Swiggy",
-//         duration: "8 weeks",
-//         students: "2,600+",
-//         rating: 4.9,
-//         description:
-//           "Paid acquisition at scale. Facebook, Google, creative testing & LTV optimization.",
-//         modules: [
-//           "Facebook Ads",
-//           "Google Ads",
-//           "Creative Strategy",
-//           "LTV Optimization",
-//           "Scaling",
-//         ],
-//         price: "₹47,000",
-//         highlights: [
-//           "Swiggy ad case studies",
-//           "Live campaign builds",
-//           "Creative testing",
-//           "ROAS frameworks",
-//         ],
-//       },
-//     ],
-//   };
-
-//   const testimonials = [
-//     {
-//       name: "Priya Sharma",
-//       role: "Product Manager @ Flipkart",
-//       text: "LMS helped me transition from engineering to PM. The mentorship was invaluable!",
-//       rating: 5,
-//     },
-//     {
-//       name: "Rahul Verma",
-//       role: "UX Designer @ Zomato",
-//       text: "Best investment in my career. Landed my dream job within 3 months of completing the course.",
-//       rating: 5,
-//     },
-//     {
-//       name: "Ananya Singh",
-//       role: "Growth Lead @ CRED",
-//       text: "The practical insights and real-world case studies made all the difference.",
-//       rating: 5,
-//     },
-//   ];
-
-//   const socialLinks = [
-//     {
-//       name: "YouTube",
-//       icon: Youtube,
-//       href: "https://www.youtube.com/@Texoraai",
-//     },
-//     {
-//       name: "LinkedIn",
-//       icon: Linkedin,
-//       href: "https://www.linkedin.com/company/105596104",
-//     },
-//     {
-//       name: "WhatsApp",
-//       icon: MessageCircle,
-//       href: "https://api.whatsapp.com/send?phone=919210970334",
-//     },
-//   ];
-
-//   // CompanyLogo component (unchanged)
-//   const CompanyLogo = ({ company }) => {
-//     const logoImages = {
-//       Capgemini: (
-//         <img
-//           src="/cap.jpg"
-//           alt="Capgemini"
-//           className="w-full h-full object-contain"
-//         />
-//       ),
-//       Microsoft: (
-//         <img
-//           src="/Micrososft.jpg"
-//           alt="Microsoft"
-//           className="w-full h-full object-contain"
-//         />
-//       ),
-//       Google: (
-//         <img
-//           src="/Google.jpg"
-//           alt="Google"
-//           className="w-full h-full object-contain"
-//         />
-//       ),
-//       Texora: (
-//         <img
-//           src="/Picture1.jpg"
-//           alt="Texora"
-//           className="w-full h-full object-contain"
-//         />
-//       ),
-//       Amazon: (
-//         <img
-//           src="/Amazone.jpg"
-//           alt="Amazon"
-//           className="w-full h-full object-contain"
-//         />
-//       ),
-//       UFS: (
-//         <img
-//           src="/UFS-Logo.jpg"
-//           alt="UFS"
-//           className="w-full h-full object-contain"
-//         />
-//       ),
-//       Apple: (
-//         <img
-//           src="/Apple.jpg"
-//           alt="Apple"
-//           className="w-full h-full object-contain"
-//         />
-//       ),
-//       Cognizant: (
-//         <img
-//           src="/cognizant.jpg"
-//           alt="Cognizant"
-//           className="w-full h-full object-contain"
-//         />
-//       ),
-//     };
-//     return logoImages[company.name] || null;
-//   };
-
-//   // ✅ Modal handlers
-//   const handleViewDetails = (course) => {
-//     setSelectedCourse(course);
-//   };
-
-//   const closeModal = () => {
-//     setSelectedCourse(null);
-//   };
-
-//   return (
-//     <div className="min-h-screen bg-white text-black dark:bg-black dark:text-white">
-//       {/* Navigation (unchanged) */}
-//       <nav className="fixed top-0 w-full bg-white/80 dark:bg-black/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 z-50">
-//         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-//           <div className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-emerald-500 bg-clip-text text-transparent">
-//             TexoraAi.skills
-//           </div>
-//           <div className="flex items-center gap-4">
-//             <button
-//               onClick={toggleTheme}
-//               className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-900 transition"
-//               aria-label="Toggle theme"
-//             >
-//               {isDark ? (
-//                 <Sun className="w-5 h-5 text-yellow-400" />
-//               ) : (
-//                 <Moon className="w-5 h-5 text-slate-900" />
-//               )}
-//             </button>
-//             <div className="hidden md:flex items-center gap-8">
-//               <button
-//                 onClick={() => {
-//                   navigate("/explore-programs");
-//                   setMobileMenuOpen(false);
-//                 }}
-//                 className="block w-full text-left py-2 hover:text-blue-500 transition"
-//               >
-//                 ExploreFreeServices
-//               </button>
-//               <a href="#mentors" className="hover:text-blue-500 transition">
-//                 Mentors
-//               </a>
-//               <a href="#success" className="hover:text-blue-500 transition">
-//                 Success Stories
-//               </a>
-//               <a href="#courses" className="hover:text-blue-500 transition">
-//                 Courses
-//               </a>
-//               <button
-//                 onClick={() => navigate("/login")}
-//                 className="bg-gradient-to-r from-blue-600 to-emerald-600 px-6 py-2 rounded-full font-medium hover:shadow-lg hover:shadow-blue-500/50 transition text-white"
-//               >
-//                 Get Started
-//               </button>
-//             </div>
-//           </div>
-//         </div>
-//       </nav>
-
-//       {/* Hero (unchanged) */}
-//       <section className="pt-32 pb-20 px-6 bg-gray-50 dark:bg-black">
-//         <div className="max-w-7xl mx-auto text-center">
-//           <div className="inline-block mb-6 px-4 py-2 bg-gradient-to-r from-blue-500/10 to-emerald-500/10 border border-blue-500/20 rounded-full text-blue-500 dark:text-blue-400 text-sm">
-//             🎉 Advanced TexoraAi.skills for Modern Education
-//           </div>
-//           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-//             Become the{" "}
-//             <span className="bg-gradient-to-r from-blue-400 via-cyan-500 to-emerald-500 bg-clip-text text-transparent">
-//               Top 1%
-//             </span>
-//           </h1>
-//           <p className="text-xl text-gray-700 dark:text-gray-400 mb-8 max-w-3xl mx-auto">
-//             Learn Product, Design, Growth & Marketing from industry experts at
-//             Google, Amazon, Meta & top startups.
-//           </p>
-//           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-//             <button
-//               onClick={() => navigate("/watch-demo")}
-//               className="border border-gray-300 dark:border-gray-700 px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-100 dark:hover:bg-gray-900 transition flex items-center gap-2"
-//             >
-//               <Play size={20} /> Watch now
-//             </button>
-//           </div>
-//         </div>
-//       </section>
-
-//       {/* Stats (unchanged) */}
-//       <section className="py-10 px-6 bg-white dark:bg-black">
-//         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-//           <div>
-//             <p className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-emerald-500 bg-clip-text text-transparent">
-//               50K+
-//             </p>
-//             <p className="text-gray-600 dark:text-gray-400">Learners</p>
-//           </div>
-//           <div>
-//             <p className="text-3xl font-bold bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">
-//               95%
-//             </p>
-//             <p className="text-gray-600 dark:text-gray-400">Success Rate</p>
-//           </div>
-//           <div>
-//             <p className="text-3xl font-bold bg-gradient-to-r from-cyan-500 to-blue-500 bg-clip-text text-transparent">
-//               100+
-//             </p>
-//             <p className="text-gray-600 dark:text-gray-400">Expert Mentors</p>
-//           </div>
-//           <div>
-//             <p className="text-3xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-//               4.9
-//             </p>
-//             <p className="text-gray-600 dark:text-gray-400">Avg Rating</p>
-//           </div>
-//         </div>
-//       </section>
-
-//       {/* Companies (unchanged) */}
-//       <section className="py-16 px-6 bg-gradient-to-br from-gray-50 via-blue-50 to-emerald-50 dark:from-zinc-950 dark:via-blue-950/20 dark:to-emerald-950/20">
-//         <div className="max-w-7xl mx-auto">
-//           <div className="text-center mb-10">
-//             <p className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
-//               Trusted By
-//             </p>
-//             <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
-//               Learners Placed At Top Companies
-//             </h2>
-//           </div>
-//           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-6">
-//             {companies.map((company) => (
-//               <div
-//                 key={company.name}
-//                 className={`${company.bgGradient} rounded-2xl p-8 flex flex-col items-center justify-center gap-4 border border-gray-200/50 dark:border-gray-700/50 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-300 group`}
-//               >
-//                 <div className="w-20 h-20 flex items-center justify-center group-hover:scale-110 transition-transform bg-white/80 dark:bg-black/80 rounded-xl p-2 shadow-lg">
-//                   <CompanyLogo company={company} />
-//                 </div>
-//                 <span
-//                   className={`text-sm font-bold bg-gradient-to-r ${company.colors} bg-clip-text text-transparent`}
-//                 >
-//                   {company.name}
-//                 </span>
-//               </div>
-//             ))}
-//           </div>
-//         </div>
-//       </section>
-
-//       {/* ✅ Programs tabs - UPDATED View Details */}
-//       <section className="py-16 px-6 bg-white dark:bg-black">
-//         <div className="max-w-7xl mx-auto">
-//           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-//             <h2 className="text-2xl md:text-3xl font-bold">
-//               Programs built for modern careers
-//             </h2>
-//             <div className="inline-flex rounded-full bg-gradient-to-r from-blue-500/10 to-emerald-500/10 p-1 border border-blue-500/20">
-//               {["product", "design", "growth"].map((tab) => (
-//                 <button
-//                   key={tab}
-//                   onClick={() => setActiveTab(tab)}
-//                   className={`px-4 py-2 rounded-full text-sm font-medium capitalize ${
-//                     activeTab === tab
-//                       ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white shadow-lg"
-//                       : "text-gray-600 dark:text-gray-400 hover:text-blue-500"
-//                   } transition-all`}
-//                 >
-//                   {tab === "product"
-//                     ? "Product"
-//                     : tab === "design"
-//                     ? "Design"
-//                     : "Growth & Marketing"}
-//                 </button>
-//               ))}
-//             </div>
-//           </div>
-
-//           <div className="grid md:grid-cols-3 gap-6">
-//             {courses[activeTab].map((course) => (
-//               <div
-//                 key={course.id}
-//                 className="border border-gray-200 dark:border-gray-800 rounded-2xl p-5 bg-gradient-to-br from-white/50 to-blue-50 dark:from-black/50 dark:to-zinc-950 flex flex-col justify-between hover:shadow-xl hover:shadow-blue-500/10 transition-all"
-//               >
-//                 <div>
-//                   <h3 className="text-lg font-semibold mb-1">{course.title}</h3>
-//                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-//                     {course.instructor}
-//                   </p>
-//                   <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-4">
-//                     <span className="flex items-center gap-1">
-//                       <BookOpen size={14} /> {course.duration}
-//                     </span>
-//                     <span className="flex items-center gap-1">
-//                       <Users size={14} /> {course.students}
-//                     </span>
-//                     <span className="flex items-center gap-1">
-//                       <Star size={14} className="text-yellow-400" />
-//                       {course.rating}
-//                     </span>
-//                   </div>
-//                 </div>
-//                 {/* ✅ MODAL OPENS HERE */}
-//                 <button
-//                   onClick={() => handleViewDetails(course)}
-//                   className="mt-2 w-full text-sm font-medium bg-gradient-to-r from-blue-600 to-emerald-600 text-white py-2 px-4 rounded-xl hover:shadow-lg hover:shadow-blue-500/50 transition-all"
-//                 >
-//                   View details <ArrowRight size={14} />
-//                 </button>
-//               </div>
-//             ))}
-//           </div>
-//         </div>
-//       </section>
-
-//       {/* ✅ NEW COURSE DETAILS MODAL */}
-//       {selectedCourse && (
-//         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-//           <div className="bg-white dark:bg-black rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-800 shadow-2xl">
-//             {/* Modal Header */}
-//             <div className="p-6 border-b border-gray-200 dark:border-gray-800 sticky top-0 bg-white/80 dark:bg-black/80 backdrop-blur-sm">
-//               <div className="flex items-center justify-between">
-//                 <div>
-//                   <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
-//                     {selectedCourse.title}
-//                   </h2>
-//                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-//                     {selectedCourse.instructor}
-//                   </p>
-//                 </div>
-//                 <button
-//                   onClick={closeModal}
-//                   className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-//                 >
-//                   <X size={24} className="text-gray-500" />
-//                 </button>
-//               </div>
-//             </div>
-
-//             {/* Modal Content */}
-//             <div className="p-6 space-y-6">
-//               {/* Description */}
-//               <div>
-//                 <h3 className="font-semibold text-lg mb-3">
-//                   About this program
-//                 </h3>
-//                 <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-//                   {selectedCourse.description}
-//                 </p>
-//               </div>
-
-//               {/* Stats */}
-//               <div className="grid grid-cols-3 gap-4 text-center p-4 bg-gradient-to-br from-blue-50 to-emerald-50 dark:from-blue-950/30 dark:to-emerald-950/30 rounded-2xl">
-//                 <div>
-//                   <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-//                     {selectedCourse.duration}
-//                   </p>
-//                   <p className="text-xs text-gray-600 dark:text-gray-400">
-//                     Duration
-//                   </p>
-//                 </div>
-//                 <div>
-//                   <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-//                     {selectedCourse.students}
-//                   </p>
-//                   <p className="text-xs text-gray-600 dark:text-gray-400">
-//                     Students
-//                   </p>
-//                 </div>
-//                 <div>
-//                   <div className="flex justify-center gap-1 mb-1">
-//                     {[...Array(5)].map((_, i) => (
-//                       <Star
-//                         key={i}
-//                         size={16}
-//                         className={`${
-//                           i < Math.floor(selectedCourse.rating)
-//                             ? "text-yellow-400 fill-yellow-400"
-//                             : "text-gray-300"
-//                         }`}
-//                       />
-//                     ))}
-//                   </div>
-//                   <p className="text-sm font-semibold">
-//                     {selectedCourse.rating}
-//                   </p>
-//                 </div>
-//               </div>
-
-//               {/* Price */}
-//               <div className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white p-6 rounded-2xl text-center">
-//                 <p className="text-3xl font-bold">{selectedCourse.price}</p>
-//                 <p className="text-emerald-100">Limited time offer</p>
-//               </div>
-
-//               {/* Modules */}
-//               <div>
-//                 <h3 className="font-semibold text-lg mb-4">
-//                   What you'll learn
-//                 </h3>
-//                 <div className="space-y-2">
-//                   {selectedCourse.modules.map((module, index) => (
-//                     <div
-//                       key={index}
-//                       className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-xl"
-//                     >
-//                       <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-lg flex items-center justify-center mt-0.5 flex-shrink-0">
-//                         <span className="text-white font-bold text-xs">
-//                           {index + 1}
-//                         </span>
-//                       </div>
-//                       <span className="text-gray-700 dark:text-gray-300">
-//                         {module}
-//                       </span>
-//                     </div>
-//                   ))}
-//                 </div>
-//               </div>
-
-//               {/* Highlights */}
-//               <div>
-//                 <h3 className="font-semibold text-lg mb-4">
-//                   Program Highlights
-//                 </h3>
-//                 <div className="grid md:grid-cols-2 gap-3">
-//                   {selectedCourse.highlights.map((highlight, index) => (
-//                     <div
-//                       key={index}
-//                       className="flex items-start gap-3 p-3 bg-gradient-to-r from-blue-500/10 to-emerald-500/10 rounded-xl border border-blue-500/20"
-//                     >
-//                       <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-lg flex items-center justify-center mt-0.5 flex-shrink-0">
-//                         <Award size={12} className="text-white" />
-//                       </div>
-//                       <span className="text-gray-700 dark:text-gray-300">
-//                         {highlight}
-//                       </span>
-//                     </div>
-//                   ))}
-//                 </div>
-//               </div>
-
-//               {/* Action Buttons */}
-//               <div className="flex flex-col sm:flex-row gap-4 pt-4">
-//                 <button
-//                   onClick={() => navigate("/explore-programs")}
-//                   className="flex-1 bg-gradient-to-r from-blue-600 to-emerald-600 text-white py-4 px-6 rounded-2xl font-semibold hover:shadow-2xl hover:shadow-blue-500/50 transition-all flex items-center justify-center gap-2"
-//                 >
-//                   Enroll Now <ArrowRight size={20} />
-//                 </button>
-//                 <button
-//                   onClick={closeModal}
-//                   className="flex-1 border border-gray-300 dark:border-gray-700 py-4 px-6 rounded-2xl font-semibold hover:bg-gray-100 dark:hover:bg-gray-900 transition"
-//                 >
-//                   Close
-//                 </button>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-
-//       {/* Mentors (unchanged) */}
-//       <section
-//         id="mentors"
-//         className="py-16 px-6 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-zinc-950 dark:to-gray-900"
-//       >
-//         <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-10 items-center">
-//           <div>
-//             <h2 className="text-2xl md:text-3xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
-//               Learn from mentors who have done it before
-//             </h2>
-//             <p className="text-gray-600 dark:text-gray-400 mb-4">
-//               Sessions led by operators from top product companies so you
-//               understand how work happens in the real world.
-//             </p>
-//             <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
-//               <li className="flex items-center gap-2">
-//                 <div className="w-5 h-5 bg-gradient-to-tr from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-//                   <Award size={12} className="text-white" />
-//                 </div>
-//                 1:1 mentorship and small cohort learning.
-//               </li>
-//               <li className="flex items-center gap-2">
-//                 <div className="w-5 h-5 bg-gradient-to-tr from-emerald-400 to-teal-500 rounded-full flex items-center justify-center">
-//                   <TrendingUp size={12} className="text-white" />
-//                 </div>
-//                 Project reviews with detailed feedback.
-//               </li>
-//               <li className="flex items-center gap-2">
-//                 <div className="w-5 h-5 bg-gradient-to-tr from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
-//                   <Users size={12} className="text-white" />
-//                 </div>
-//                 Peer community for accountability and networking.
-//               </li>
-//             </ul>
-//           </div>
-//           <div className="grid grid-cols-2 gap-4">
-//             {testimonials.map((t) => (
-//               <div
-//                 key={t.name}
-//                 className="border border-gray-200 dark:border-gray-800 rounded-2xl p-4 bg-gradient-to-br from-white to-blue-50/50 dark:from-black dark:to-zinc-900 shadow-lg"
-//               >
-//                 <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-//                   "{t.text}"
-//                 </p>
-//                 <p className="text-sm font-semibold">{t.name}</p>
-//                 <p className="text-xs text-gray-500 dark:text-gray-400">
-//                   {t.role}
-//                 </p>
-//               </div>
-//             ))}
-//           </div>
-//         </div>
-//       </section>
-
-//       {/* Success Stories (unchanged) */}
-//       <section
-//         id="success"
-//         className="py-16 px-6 bg-gradient-to-br from-white to-gray-50 dark:from-black dark:to-zinc-950 border-t border-gray-200 dark:border-gray-800"
-//       >
-//         <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-8">
-//           <div className="md:col-span-2">
-//             <h2 className="text-2xl md:text-3xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
-//               Career support that doesn't stop at certificates
-//             </h2>
-//             <p className="text-gray-600 dark:text-gray-400 mb-6">
-//               Get help with interview prep, portfolios, referrals and role
-//               mapping so you can actually break into the roles you want.
-//             </p>
-//             <div className="grid sm:grid-cols-3 gap-4 text-sm text-gray-600 dark:text-gray-400">
-//               <div className="border border-gray-200 dark:border-gray-800 rounded-xl p-4 bg-gradient-to-br from-blue-500/5 to-emerald-500/5 hover:shadow-lg hover:shadow-blue-500/20 transition-all">
-//                 <p className="font-semibold mb-1 text-blue-600 dark:text-blue-400">
-//                   Portfolio support
-//                 </p>
-//                 <p>
-//                   Turn your projects into case studies hiring managers love.
-//                 </p>
-//               </div>
-//               <div className="border border-gray-200 dark:border-gray-800 rounded-xl p-4 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 hover:shadow-lg hover:shadow-emerald-500/20 transition-all">
-//                 <p className="font-semibold mb-1 text-emerald-600 dark:text-emerald-400">
-//                   Interview prep
-//                 </p>
-//                 <p>
-//                   Mock interviews, feedback and guidance on role expectations.
-//                 </p>
-//               </div>
-//               <div className="border border-gray-200 dark:border-gray-800 rounded-xl p-4 bg-gradient-to-br from-cyan-500/5 to-blue-500/5 hover:shadow-lg hover:shadow-cyan-500/20 transition-all">
-//                 <p className="font-semibold mb-1 text-cyan-600 dark:text-cyan-400">
-//                   Referrals & network
-//                 </p>
-//                 <p>Warm intros to hiring teams and community-led referrals.</p>
-//               </div>
-//             </div>
-//           </div>
-//           <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-5 bg-gradient-to-br from-blue-500/10 to-emerald-500/10 shadow-xl">
-//             <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-//               "The career support team pushed me beyond just completing
-//               assignments. They helped me position my experience the right way."
-//             </p>
-//             <p className="text-sm font-semibold mb-1">Anonymous Learner</p>
-//             <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-//               Transitioned to PM role from QA
-//             </p>
-//             <button
-//               onClick={() => navigate("/explore-programs")}
-//               className="w-full px-4 py-2 rounded-full bg-gradient-to-r from-blue-600 to-emerald-600 text-white text-sm font-medium hover:shadow-2xl hover:shadow-blue-500/50 transition-all"
-//             >
-//               Explore programs
-//             </button>
-//           </div>
-//         </div>
-//       </section>
-
-//       {/* Footer (unchanged) */}
-//       <footer className="py-12 px-6 bg-gradient-to-br from-blue-600 via-emerald-600 to-teal-600 dark:from-blue-900 dark:via-emerald-900 dark:to-teal-900 border-t border-blue-500/30">
-//         <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-8">
-//           <div>
-//             <p className="text-2xl font-bold bg-gradient-to-r from-white via-blue-100 to-emerald-100 bg-clip-text text-transparent mb-4">
-//               TexoraAi.skills
-//             </p>
-//             <p className="text-blue-100 dark:text-blue-200 text-sm">
-//               Modern learning platform for ambitious professionals who want to
-//               break into product, design and growth roles.
-//             </p>
-//           </div>
-//           <div className="text-blue-100 dark:text-blue-200 text-sm space-y-3">
-//             <p className="font-semibold text-white mb-2">Contact</p>
-//             <div className="flex items-center gap-2">
-//               <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-//                 <Mail className="w-4 h-4 text-white" />
-//               </div>
-//               <a
-//                 href="mailto:support@texoraai.skills"
-//                 className="hover:text-white transition"
-//               >
-//                 support@texoraai.skills
-//               </a>
-//             </div>
-//             <div className="flex items-center gap-2">
-//               <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-//                 <MapPin className="w-4 h-4 text-white" />
-//               </div>
-//               <span>Skalholtsgatan 2, Kista, Stockholm, Sweden - 164 40</span>
-//             </div>
-//           </div>
-//           <div className="text-blue-100 dark:text-blue-200">
-//             <p className="font-semibold text-white mb-4">Connect</p>
-//             <div className="flex gap-3">
-//               {socialLinks.map((link) => {
-//                 const Icon = link.icon;
-//                 return (
-//                   <a
-//                     key={link.name}
-//                     href={link.href}
-//                     target="_blank"
-//                     rel="noreferrer"
-//                     className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl border border-white/30 flex items-center justify-center hover:bg-white/30 hover:scale-105 transition-all shadow-xl hover:shadow-2xl"
-//                   >
-//                     {Icon ? (
-//                       <Icon size={20} className="text-white" />
-//                     ) : (
-//                       <span className="text-white font-bold text-lg">WA</span>
-//                     )}
-//                   </a>
-//                 );
-//               })}
-//             </div>
-//           </div>
-//         </div>
-//         <div className="max-w-7xl mx-auto mt-8 pt-8 border-t border-white/20 text-center">
-//           <p className="text-blue-200 dark:text-blue-300 text-sm">
-//             © {new Date().getFullYear()} TexoraAi.skills. All rights reserved.
-//           </p>
-//         </div>
-//       </footer>
-//     </div>
-//   );
-// }
-
-// // import {
-// //   ArrowRight,
-// //   Award,
-// //   BookOpen,
-// //   Linkedin,
-// //   Mail,
-// //   MapPin,
-// //   Moon,
-// //   Play,
-// //   Star,
-// //   Sun,
-// //   TrendingUp,
-// //   Users,
-// //   Youtube,
-// //   X,
-// //   MessageCircle,
-// //   CheckCircle,
-// // } from "lucide-react";
-// // import React, { useState } from "react";
-// // import { useNavigate, useLocation } from "react-router-dom";
-
-// // export default function LMSHomepage({ theme, toggleTheme }) {
-// //   const [activeTab, setActiveTab] = useState("product");
-// //   const [selectedCourse, setSelectedCourse] = useState(null);
-// //   const navigate = useNavigate();
-// //   const location = useLocation();
-
-// //   const isDark = theme === "dark";
-
-// //   // Companies (unchanged)
-// //   const companies = [
-// //     {
-// //       name: "Capgemini",
-// //       colors: "from-blue-600 to-cyan-400",
-// //       bgGradient:
-// //         "bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30",
-// //     },
-// //     {
-// //       name: "Microsoft",
-// //       colors: "from-blue-600 to-blue-400",
-// //       bgGradient:
-// //         "bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30",
-// //     },
-// //     {
-// //       name: "Google",
-// //       colors: "from-blue-500 to-green-400",
-// //       bgGradient:
-// //         "bg-gradient-to-br from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30",
-// //     },
-// //     {
-// //       name: "Texora",
-// //       colors: "from-orange-500 to-amber-500",
-// //       bgGradient:
-// //         "bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30",
-// //     },
-// //     {
-// //       name: "Amazon",
-// //       colors: "from-orange-400 to-yellow-400",
-// //       bgGradient:
-// //         "bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-orange-950/30 dark:to-yellow-950/30",
-// //     },
-// //     {
-// //       name: "UFS",
-// //       colors: "from-blue-700 to-indigo-500",
-// //       bgGradient:
-// //         "bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30",
-// //     },
-// //     {
-// //       name: "Apple",
-// //       colors: "from-gray-400 to-gray-200",
-// //       bgGradient:
-// //         "bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/30 dark:to-gray-800/30",
-// //     },
-// //     {
-// //       name: "Cognizant",
-// //       colors: "from-blue-600 to-indigo-500",
-// //       bgGradient:
-// //         "bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30",
-// //     },
-// //   ];
-
-// //   // Courses data (unchanged)
-// //   const courses = {
-// //     product: [
-// //       {
-// //         id: 1,
-// //         title: "Product Management Mastery",
-// //         instructor: "Ex-Google PM",
-// //         duration: "8 weeks",
-// //         students: "2,500+",
-// //         rating: 4.9,
-// //         description:
-// //           "Master product lifecycle from ideation to launch. Learn roadmapping, prioritization, stakeholder management & metrics that matter.",
-// //         modules: [
-// //           "Discovery & Research",
-// //           "Roadmapping",
-// //           "Prioritization Frameworks",
-// //           "Launch Strategy",
-// //           "Metrics & Analytics",
-// //         ],
-// //         price: "₹49,000",
-// //         highlights: [
-// //           "Live sessions with Google PMs",
-// //           "Real case studies",
-// //           "1:1 mentorship",
-// //           "Job referral support",
-// //         ],
-// //       },
-// //       // ... other product courses
-// //     ],
-// //     design: [
-// //       // ... design courses (same as original)
-// //     ],
-// //     growth: [
-// //       // ... growth courses (same as original)
-// //     ],
-// //   };
-
-// //   const testimonials = [
-// //     {
-// //       name: "Priya Sharma",
-// //       role: "Product Manager @ Flipkart",
-// //       text: "LMS helped me transition from engineering to PM. The mentorship was invaluable!",
-// //       rating: 5,
-// //     },
-// //     {
-// //       name: "Rahul Verma",
-// //       role: "UX Designer @ Zomato",
-// //       text: "Best investment in my career. Landed my dream job within 3 months of completing the course.",
-// //       rating: 5,
-// //     },
-// //     {
-// //       name: "Ananya Singh",
-// //       role: "Growth Lead @ CRED",
-// //       text: "The practical insights and real-world case studies made all the difference.",
-// //       rating: 5,
-// //     },
-// //   ];
-
-// //   const socialLinks = [
-// //     {
-// //       name: "YouTube",
-// //       icon: Youtube,
-// //       href: "https://www.youtube.com/@Texoraai",
-// //     },
-// //     {
-// //       name: "LinkedIn",
-// //       icon: Linkedin,
-// //       href: "https://www.linkedin.com/company/105596104",
-// //     },
-// //     {
-// //       name: "WhatsApp",
-// //       icon: MessageCircle,
-// //       href: "https://api.whatsapp.com/send?phone=919210970334",
-// //     },
-// //   ];
-
-// //   // ✅ USER PERSONALIZATION FROM LOCALSTORAGE
-// //   const userData = localStorage.getItem("texoraUser")
-// //     ? JSON.parse(localStorage.getItem("texoraUser"))
-// //     : null;
-
-// //   // CompanyLogo component (unchanged)
-// //   const CompanyLogo = ({ company }) => {
-// //     const logoImages = {
-// //       Capgemini: (
-// //         <img
-// //           src="/cap.jpg"
-// //           alt="Capgemini"
-// //           className="w-full h-full object-contain"
-// //         />
-// //       ),
-// //       Microsoft: (
-// //         <img
-// //           src="/Micrososft.jpg"
-// //           alt="Microsoft"
-// //           className="w-full h-full object-contain"
-// //         />
-// //       ),
-// //       Google: (
-// //         <img
-// //           src="/Google.jpg"
-// //           alt="Google"
-// //           className="w-full h-full object-contain"
-// //         />
-// //       ),
-// //       Texora: (
-// //         <img
-// //           src="/Picture1.jpg"
-// //           alt="Texora"
-// //           className="w-full h-full object-contain"
-// //         />
-// //       ),
-// //       Amazon: (
-// //         <img
-// //           src="/Amazone.jpg"
-// //           alt="Amazon"
-// //           className="w-full h-full object-contain"
-// //         />
-// //       ),
-// //       UFS: (
-// //         <img
-// //           src="/UFS-Logo.jpg"
-// //           alt="UFS"
-// //           className="w-full h-full object-contain"
-// //         />
-// //       ),
-// //       Apple: (
-// //         <img
-// //           src="/Apple.jpg"
-// //           alt="Apple"
-// //           className="w-full h-full object-contain"
-// //         />
-// //       ),
-// //       Cognizant: (
-// //         <img
-// //           src="/cognizant.jpg"
-// //           alt="Cognizant"
-// //           className="w-full h-full object-contain"
-// //         />
-// //       ),
-// //     };
-// //     return logoImages[company.name] || null;
-// //   };
-
-// //   const handleViewDetails = (course) => {
-// //     setSelectedCourse(course);
-// //   };
-
-// //   const closeModal = () => {
-// //     setSelectedCourse(null);
-// //   };
-
-// //   return (
-// //     <div className="min-h-screen bg-white text-black dark:bg-black dark:text-white">
-// //       {/* Navigation (unchanged) */}
-// //       <nav className="fixed top-0 w-full bg-white/80 dark:bg-black/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 z-50">
-// //         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-// //           <div className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-emerald-500 bg-clip-text text-transparent">
-// //             TexoraAi.skills
-// //           </div>
-// //           <div className="flex items-center gap-4">
-// //             <button
-// //               onClick={toggleTheme}
-// //               className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-900 transition"
-// //               aria-label="Toggle theme"
-// //             >
-// //               {isDark ? (
-// //                 <Sun className="w-5 h-5 text-yellow-400" />
-// //               ) : (
-// //                 <Moon className="w-5 h-5 text-slate-900" />
-// //               )}
-// //             </button>
-// //             <div className="hidden md:flex items-center gap-8">
-// //               <button
-// //                 onClick={() => navigate("/explore-programs")}
-// //                 className="hover:text-blue-500 transition"
-// //               >
-// //                 Programs
-// //               </button>
-// //               <a href="#mentors" className="hover:text-blue-500 transition">
-// //                 Mentors
-// //               </a>
-// //               <a href="#success" className="hover:text-blue-500 transition">
-// //                 Success Stories
-// //               </a>
-// //               <button
-// //                 onClick={() => navigate("/welcome")}
-// //                 className="bg-gradient-to-r from-blue-600 to-emerald-600 px-6 py-2 rounded-full font-medium hover:shadow-lg hover:shadow-blue-500/50 transition text-white"
-// //               >
-// //                 Get Started
-// //               </button>
-// //             </div>
-// //           </div>
-// //         </div>
-// //       </nav>
-
-// //       {/* ✅ PERSONALIZED WELCOME - NEW! */}
-// //       {userData && (
-// //         <div className="max-w-4xl mx-auto mt-32 mb-12 p-8 bg-gradient-to-r from-emerald-500/10 via-blue-500/10 to-emerald-500/10 border border-emerald-500/30 rounded-3xl backdrop-blur-sm shadow-2xl animate-in slide-in-from-top-4 duration-500">
-// //           <div className="text-center">
-// //             <CheckCircle className="w-20 h-20 text-emerald-500 mx-auto mb-6 animate-bounce" />
-// //             <h2 className="text-4xl font-bold bg-gradient-to-r from-emerald-600 via-blue-600 to-emerald-600 bg-clip-text text-transparent mb-4">
-// //               Welcome Back, {userData.name}! 🎉
-// //             </h2>
-// //             <p className="text-2xl mb-6 text-gray-700 dark:text-gray-300">
-// //               Ready for{" "}
-// //               <span className="font-black bg-emerald-100 dark:bg-emerald-900/50 px-4 py-2 rounded-full text-emerald-800 dark:text-emerald-200">
-// //                 {userData.course}
-// //               </span>
-// //               ?
-// //             </p>
-// //             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-2xl mx-auto">
-// //               <button
-// //                 onClick={() => navigate("/syllabus")}
-// //                 className="flex-1 bg-gradient-to-r from-emerald-600 to-blue-600 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:shadow-2xl hover:shadow-emerald-500/50 transition-all flex items-center justify-center gap-3"
-// //               >
-// //                 Continue Learning <TrendingUp className="w-5 h-5" />
-// //               </button>
-// //               <button
-// //                 onClick={() => localStorage.removeItem("texoraUser")}
-// //                 className="px-8 py-4 border-2 border-gray-300 dark:border-gray-700 rounded-2xl font-semibold hover:bg-gray-100 dark:hover:bg-gray-900 transition"
-// //               >
-// //                 Not Me
-// //               </button>
-// //             </div>
-// //           </div>
-// //         </div>
-// //       )}
-
-// //       {/* Hero Section */}
-// //       <section className="pt-32 pb-20 px-6 bg-gray-50 dark:bg-black">
-// //         <div className="max-w-7xl mx-auto text-center">
-// //           <div className="inline-block mb-6 px-4 py-2 bg-gradient-to-r from-blue-500/10 to-emerald-500/10 border border-blue-500/20 rounded-full text-blue-500 dark:text-blue-400 text-sm">
-// //             🎉 Advanced TexoraAi.skills for Modern Education
-// //           </div>
-// //           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-// //             Become the{" "}
-// //             <span className="bg-gradient-to-r from-blue-400 via-cyan-500 to-emerald-500 bg-clip-text text-transparent">
-// //               Top 1%
-// //             </span>
-// //           </h1>
-// //           <p className="text-xl text-gray-700 dark:text-gray-400 mb-8 max-w-3xl mx-auto">
-// //             Learn Product, Design, Growth & Marketing from industry experts at
-// //             Google, Amazon, Meta & top startups.
-// //           </p>
-// //           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-// //             <button
-// //               onClick={() => navigate("/welcome")}
-// //               className="bg-gradient-to-r from-blue-600 to-emerald-600 px-8 py-4 rounded-full font-semibold text-lg hover:shadow-2xl hover:shadow-blue-500/50 transition flex items-center gap-2 text-white"
-// //             >
-// //               Start Learning <ArrowRight size={20} />
-// //             </button>
-// //             <button
-// //               onClick={() => navigate("/watch-demo")}
-// //               className="border border-gray-300 dark:border-gray-700 px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-100 dark:hover:bg-gray-900 transition flex items-center gap-2"
-// //             >
-// //               <Play size={20} /> Watch Demo
-// //             </button>
-// //           </div>
-// //         </div>
-// //       </section>
-
-// //       {/* Stats, Companies, Programs sections - SAME AS ORIGINAL */}
-// //       {/* ... (copy all other sections from your original code) ... */}
-
-// //       {/* ✅ UPDATED COURSE MODAL - Syllabus redirect */}
-// //       {selectedCourse && (
-// //         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-// //           <div className="bg-white dark:bg-black rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-800 shadow-2xl">
-// //             {/* Modal header/content - SAME AS ORIGINAL */}
-
-// //             {/* ✅ UPDATED ACTION BUTTONS */}
-// //             <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-black/50 p-6 rounded-b-3xl sticky bottom-0">
-// //               <button
-// //                 onClick={() => {
-// //                   navigate("/syllabus", { state: { course: selectedCourse } });
-// //                   closeModal();
-// //                 }}
-// //                 className="flex-1 bg-gradient-to-r from-blue-600 to-emerald-600 text-white py-4 px-6 rounded-2xl font-semibold hover:shadow-2xl hover:shadow-blue-500/50 transition-all flex items-center justify-center gap-2"
-// //               >
-// //                 View Syllabus <BookOpen size={20} />
-// //               </button>
-// //               <button
-// //                 onClick={() => navigate("/welcome")}
-// //                 className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-4 px-6 rounded-2xl font-semibold hover:shadow-2xl hover:shadow-emerald-500/50 transition-all"
-// //               >
-// //                 Enroll Now <ArrowRight size={20} />
-// //               </button>
-// //             </div>
-// //           </div>
-// //         </div>
-// //       )}
-// //       {/* Footer (unchanged) */}
-// //       <footer className="py-12 px-6 bg-gradient-to-br from-blue-600 via-emerald-600 to-teal-600 dark:from-blue-900 dark:via-emerald-900 dark:to-teal-900 border-t border-blue-500/30">
-// //         <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-8">
-// //           <div>
-// //             <p className="text-2xl font-bold bg-gradient-to-r from-white via-blue-100 to-emerald-100 bg-clip-text text-transparent mb-4">
-// //               TexoraAi.skills
-// //             </p>
-// //             <p className="text-blue-100 dark:text-blue-200 text-sm">
-// //               Modern learning platform for ambitious professionals who want to
-// //               break into product, design and growth roles.
-// //             </p>
-// //           </div>
-// //           <div className="text-blue-100 dark:text-blue-200 text-sm space-y-3">
-// //             <p className="font-semibold text-white mb-2">Contact</p>
-// //             <div className="flex items-center gap-2">
-// //               <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-// //                 <Mail className="w-4 h-4 text-white" />
-// //               </div>
-// //               <a
-// //                 href="mailto:support@texoraai.skills"
-// //                 className="hover:text-white transition"
-// //               >
-// //                 support@texoraai.skills
-// //               </a>
-// //             </div>
-// //             <div className="flex items-center gap-2">
-// //               <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-// //                 <MapPin className="w-4 h-4 text-white" />
-// //               </div>
-// //               <span>Skalholtsgatan 2, Kista, Stockholm, Sweden - 164 40</span>
-// //             </div>
-// //           </div>
-// //           <div className="text-blue-100 dark:text-blue-200">
-// //             <p className="font-semibold text-white mb-4">Connect</p>
-// //             <div className="flex gap-3">
-// //               {socialLinks.map((link) => {
-// //                 const Icon = link.icon;
-// //                 return (
-// //                   <a
-// //                     key={link.name}
-// //                     href={link.href}
-// //                     target="_blank"
-// //                     rel="noreferrer"
-// //                     className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl border border-white/30 flex items-center justify-center hover:bg-white/30 hover:scale-105 transition-all shadow-xl hover:shadow-2xl"
-// //                   >
-// //                     {Icon ? (
-// //                       <Icon size={20} className="text-white" />
-// //                     ) : (
-// //                       <span className="text-white font-bold text-lg">WA</span>
-// //                     )}
-// //                   </a>
-// //                 );
-// //               })}
-// //             </div>
-// //           </div>
-// //         </div>
-// //         <div className="max-w-7xl mx-auto mt-8 pt-8 border-t border-white/20 text-center">
-// //           <p className="text-blue-200 dark:text-blue-300 text-sm">
-// //             © {new Date().getFullYear()} TexoraAi.skills. All rights reserved.
-// //           </p>
-// //         </div>
-// //       </footer>
-// //     </div>
-// //   );
-// // }
-// // //new lms page
-
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  ArrowRight,
-  Award,
+  ArrowRight, Award,
+  BarChart3,
   BookOpen,
-  Linkedin,
-  Mail,
-  MapPin,
-  Moon,
-  Play,
-  Star,
-  Sun,
-  TrendingUp,
-  Users,
-  Youtube,
-  X,
-  MessageCircle,
-  Menu,
+  CheckCircle,
   ChevronDown,
-  User,
-  LogOut,
+  Clock,
   GraduationCap,
+  LogOut,
+  Menu,
+  Moon,
+  Sparkles,
+  Star, Sun,
+  Target,
+  TrendingUp,
+  Trophy,
+  User,
+  Users,
+  Zap
 } from "lucide-react";
-import React, { useState, useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
+import { FaLinkedinIn, FaWhatsapp, FaYoutube } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import logo from "../../assets/logo.png";
 
-export default function LMSHomepage() {
+export default function LMSHomepage({ theme, toggleTheme }) {
   const [activeTab, setActiveTab] = useState("product");
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
-  const navigate = useNavigate();
-  const [dark, setDark] = useState(
-    () => localStorage.getItem("theme") === "dark",
-  );
-  // ✅ APPLY DARK CLASS TO <html>
-  useEffect(() => {
-    if (dark) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [dark]);
-  // ✅ User Authentication State
+  const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     const userData = sessionStorage.getItem("user");
@@ -1439,1091 +59,521 @@ export default function LMSHomepage() {
     }
   }, []);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setUserDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   const handleLogout = () => {
     sessionStorage.removeItem("user");
     setUser(null);
-    setUserDropdownOpen(false);
     navigate("/login");
   };
-  const handleCourseClick = (course) => {
-    navigate("/course-details", { state: { course } });
+
+  const scrollToSection = (sectionId, tabName = null) => {
+    // Check if we're on the explore-programs page
+    if (window.location.pathname === '/explore-programs') {
+      // Navigate to home first, then scroll
+      navigate('/');
+      setTimeout(() => {
+        if (tabName) {
+          setActiveTab(tabName);
+        }
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 150);
+      return;
+    }
+
+    // First navigate to home if not already there
+    if (window.location.pathname !== '/') {
+      navigate('/');
+      // Wait for navigation then scroll
+      setTimeout(() => {
+        if (tabName) {
+          setActiveTab(tabName);
+        }
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 150);
+    } else {
+      // Already on home page, just scroll
+      if (tabName) {
+        setActiveTab(tabName);
+      }
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
   };
 
   const companies = [
-    {
-      name: "Capgemini",
-      colors: "from-blue-600 to-cyan-400",
-      bgGradient:
-        "bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30",
-    },
-    {
-      name: "Microsoft",
-      colors: "from-blue-600 to-blue-400",
-      bgGradient:
-        "bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30",
-    },
-    {
-      name: "Google",
-      colors: "from-blue-500 to-green-400",
-      bgGradient:
-        "bg-gradient-to-br from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30",
-    },
-    {
-      name: "Texora",
-      colors: "from-orange-500 to-amber-500",
-      bgGradient:
-        "bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30",
-    },
-    {
-      name: "Amazon",
-      colors: "from-orange-400 to-yellow-400",
-      bgGradient:
-        "bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-orange-950/30 dark:to-yellow-950/30",
-    },
-    {
-      name: "UFS",
-      colors: "from-blue-700 to-indigo-500",
-      bgGradient:
-        "bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30",
-    },
-    {
-      name: "Apple",
-      colors: "from-gray-400 to-gray-200",
-      bgGradient:
-        "bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/30 dark:to-gray-800/30",
-    },
-    {
-      name: "Cognizant",
-      colors: "from-blue-600 to-indigo-500",
-      bgGradient:
-        "bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30",
-    },
+    { name: "Capgemini", colors: "from-blue-600 to-cyan-400", bgGradient: "bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30" },
+    { name: "Microsoft", colors: "from-blue-600 to-blue-400", bgGradient: "bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30" },
+    { name: "Google", colors: "from-blue-500 to-green-400", bgGradient: "bg-gradient-to-br from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30" },
+    { name: "Texora", colors: "from-orange-500 to-amber-500", bgGradient: "bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30" },
+    { name: "Amazon", colors: "from-orange-400 to-yellow-400", bgGradient: "bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-orange-950/30 dark:to-yellow-950/30" },
+    { name: "UFS", colors: "from-blue-700 to-indigo-500", bgGradient: "bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30" },
+    { name: "Apple", colors: "from-gray-400 to-gray-200", bgGradient: "bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/30 dark:to-gray-800/30" },
+    { name: "Cognizant", colors: "from-blue-600 to-indigo-500", bgGradient: "bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30" },
   ];
 
   const courses = {
     product: [
-      {
-        id: 1,
-        title: "Product Management Mastery",
-        instructor: "Ex-Google PM",
-        duration: "8 weeks",
-        students: "2,500+",
-        rating: 4.9,
-        description:
-          "Master product lifecycle from ideation to launch. Learn roadmapping, prioritization, stakeholder management & metrics that matter.",
-        modules: [
-          "Discovery & Research",
-          "Roadmapping",
-          "Prioritization Frameworks",
-          "Launch Strategy",
-          "Metrics & Analytics",
-        ],
-        price: "₹49,000",
-        highlights: [
-          "Live sessions with Google PMs",
-          "Real case studies",
-          "1:1 mentorship",
-          "Job referral support",
-        ],
-      },
-      {
-        id: 2,
-        title: "Product Analytics",
-        instructor: "Ex-Amazon",
-        duration: "6 weeks",
-        students: "1,800+",
-        rating: 4.8,
-        description:
-          "Data-driven product decisions. Master A/B testing, cohort analysis, funnel optimization & retention strategies.",
-        modules: [
-          "SQL for Product Managers",
-          "Experimentation",
-          "Funnel Analysis",
-          "Retention Metrics",
-          "Customer Segmentation",
-        ],
-        price: "₹39,000",
-        highlights: [
-          "Amazon case studies",
-          "Live SQL projects",
-          "Advanced Mixpanel",
-          "Retention frameworks",
-        ],
-      },
-      {
-        id: 3,
-        title: "Product Strategy",
-        instructor: "Ex-Meta",
-        duration: "10 weeks",
-        students: "2,100+",
-        rating: 4.9,
-        description:
-          "Strategic frameworks for product success. Positioning, competitive analysis, growth strategies & portfolio management.",
-        modules: [
-          "Market Analysis",
-          "Competitive Strategy",
-          "Growth Playbooks",
-          "Portfolio Management",
-          "Pricing Strategy",
-        ],
-        price: "₹59,000",
-        highlights: [
-          "Meta growth case studies",
-          "Strategy templates",
-          "Live workshops",
-          "Executive simulations",
-        ],
-      },
+      { id: 1, title: "Product Management Mastery", instructor: "Ex-Google PM", duration: "8 weeks", students: "2,500+", rating: 4.9, level: "Intermediate", description: "Master product lifecycle from ideation to launch. Learn roadmapping, prioritization, stakeholder management & metrics that matter.", modules: ["Discovery & Research", "Roadmapping", "Prioritization Frameworks", "Launch Strategy", "Metrics & Analytics"], price: "₹49,000", highlights: ["Live sessions with Google PMs", "Real case studies", "1:1 mentorship", "Job referral support"] },
+      { id: 2, title: "Product Analytics", instructor: "Ex-Amazon", duration: "6 weeks", students: "1,800+", rating: 4.8, level: "Advanced", description: "Data-driven product decisions. Master A/B testing, cohort analysis, funnel optimization & retention strategies.", modules: ["SQL for Product Managers", "Experimentation", "Funnel Analysis", "Retention Metrics", "Customer Segmentation"], price: "₹39,000", highlights: ["Amazon case studies", "Live SQL projects", "Advanced Mixpanel", "Retention frameworks"] },
+      { id: 3, title: "Product Strategy", instructor: "Ex-Meta", duration: "10 weeks", students: "2,100+", rating: 4.9, level: "Advanced", description: "Strategic frameworks for product success. Positioning, competitive analysis, growth strategies & portfolio management.", modules: ["Market Analysis", "Competitive Strategy", "Growth Playbooks", "Portfolio Management", "Pricing Strategy"], price: "₹59,000", highlights: ["Meta growth case studies", "Strategy templates", "Live workshops", "Executive simulations"] },
     ],
     design: [
-      {
-        id: 4,
-        title: "UI/UX Design Bootcamp",
-        instructor: "Ex-Airbnb Designer",
-        duration: "12 weeks",
-        students: "3,200+",
-        rating: 5.0,
-        description:
-          "Complete UI/UX journey from research to prototype. Figma mastery, design systems & portfolio projects.",
-        modules: [
-          "User Research",
-          "Wireframing",
-          "Prototyping",
-          "Design Systems",
-          "Portfolio Building",
-        ],
-        price: "₹69,000",
-        highlights: [
-          "Airbnb case studies",
-          "Figma certification",
-          "Live design reviews",
-          "Job ready portfolio",
-        ],
-      },
-      {
-        id: 5,
-        title: "Design Systems",
-        instructor: "Ex-Netflix",
-        duration: "8 weeks",
-        students: "1,500+",
-        rating: 4.8,
-        description:
-          "Build scalable design systems like Netflix. Components, tokens, documentation & developer handoff.",
-        modules: [
-          "Component Libraries",
-          "Design Tokens",
-          "Documentation",
-          "Dev Handoff",
-          "Scale Patterns",
-        ],
-        price: "₹45,000",
-        highlights: [
-          "Netflix system breakdown",
-          "Figma + Storybook",
-          "Live system audits",
-          "Enterprise patterns",
-        ],
-      },
-      {
-        id: 6,
-        title: "User Research Pro",
-        instructor: "Ex-Microsoft",
-        duration: "6 weeks",
-        students: "1,900+",
-        rating: 4.7,
-        description:
-          "Research methods that drive product decisions. Interviews, surveys, usability testing & synthesis.",
-        modules: [
-          "Interview Techniques",
-          "Survey Design",
-          "Usability Testing",
-          "Synthesis Methods",
-          "Stakeholder Reports",
-        ],
-        price: "₹35,000",
-        highlights: [
-          "Microsoft research frameworks",
-          "Live user testing",
-          "Report templates",
-          "Stakeholder presentations",
-        ],
-      },
+      { id: 4, title: "UI/UX Design Bootcamp", instructor: "Ex-Airbnb Designer", duration: "12 weeks", students: "3,200+", rating: 5.0, level: "Beginner", description: "Complete UI/UX journey from research to prototype. Figma mastery, design systems & portfolio projects.", modules: ["User Research", "Wireframing", "Prototyping", "Design Systems", "Portfolio Building"], price: "₹69,000", highlights: ["Airbnb case studies", "Figma certification", "Live design reviews", "Job ready portfolio"] },
+      { id: 5, title: "Design Systems", instructor: "Ex-Netflix", duration: "8 weeks", students: "1,500+", rating: 4.8, level: "Advanced", description: "Build scalable design systems like Netflix. Components, tokens, documentation & developer handoff.", modules: ["Component Libraries", "Design Tokens", "Documentation", "Dev Handoff", "Scale Patterns"], price: "₹45,000", highlights: ["Netflix system breakdown", "Figma + Storybook", "Live system audits", "Enterprise patterns"] },
+      { id: 6, title: "User Research Pro", instructor: "Ex-Microsoft", duration: "6 weeks", students: "1,900+", rating: 4.7, level: "Intermediate", description: "Research methods that drive product decisions. Interviews, surveys, usability testing & synthesis.", modules: ["Interview Techniques", "Survey Design", "Usability Testing", "Synthesis Methods", "Stakeholder Reports"], price: "₹35,000", highlights: ["Microsoft research frameworks", "Live user testing", "Report templates", "Stakeholder presentations"] },
     ],
     growth: [
-      {
-        id: 7,
-        title: "Growth Marketing",
-        instructor: "Ex-Uber Growth",
-        duration: "8 weeks",
-        students: "2,800+",
-        rating: 4.9,
-        description:
-          "Growth loops, viral mechanics & acquisition strategies that scale businesses.",
-        modules: [
-          "Growth Frameworks",
-          "Viral Loops",
-          "Acquisition Channels",
-          "Experimentation",
-          "Scaling",
-        ],
-        price: "₹49,000",
-        highlights: [
-          "Uber growth case studies",
-          "Live experiments",
-          "Channel deep dives",
-          "Scaling frameworks",
-        ],
-      },
-      {
-        id: 8,
-        title: "SEO & Content Strategy",
-        instructor: "Ex-Spotify",
-        duration: "10 weeks",
-        students: "2,300+",
-        rating: 4.8,
-        description:
-          "Organic growth mastery. Technical SEO, content systems & link building at scale.",
-        modules: [
-          "Technical SEO",
-          "Content Systems",
-          "Link Building",
-          "Analytics",
-          "Scaling Organic",
-        ],
-        price: "₹55,000",
-        highlights: [
-          "Spotify SEO case studies",
-          "Live audits",
-          "Content calendars",
-          "Enterprise SEO",
-        ],
-      },
-      {
-        id: 9,
-        title: "Performance Marketing",
-        instructor: "Ex-Swiggy",
-        duration: "8 weeks",
-        students: "2,600+",
-        rating: 4.9,
-        description:
-          "Paid acquisition at scale. Facebook, Google, creative testing & LTV optimization.",
-        modules: [
-          "Facebook Ads",
-          "Google Ads",
-          "Creative Strategy",
-          "LTV Optimization",
-          "Scaling",
-        ],
-        price: "₹47,000",
-        highlights: [
-          "Swiggy ad case studies",
-          "Live campaign builds",
-          "Creative testing",
-          "ROAS frameworks",
-        ],
-      },
+      { id: 7, title: "Growth Marketing", instructor: "Ex-Uber Growth", duration: "8 weeks", students: "2,800+", rating: 4.9, level: "Intermediate", description: "Growth loops, viral mechanics & acquisition strategies that scale businesses.", modules: ["Growth Frameworks", "Viral Loops", "Acquisition Channels", "Experimentation", "Scaling"], price: "₹49,000", highlights: ["Uber growth case studies", "Live experiments", "Channel deep dives", "Scaling frameworks"] },
+      { id: 8, title: "SEO & Content Strategy", instructor: "Ex-Spotify", duration: "10 weeks", students: "2,300+", rating: 4.8, level: "Intermediate", description: "Organic growth mastery. Technical SEO, content systems & link building at scale.", modules: ["Technical SEO", "Content Systems", "Link Building", "Analytics", "Scaling Organic"], price: "₹55,000", highlights: ["Spotify SEO case studies", "Live audits", "Content calendars", "Enterprise SEO"] },
+      { id: 9, title: "Performance Marketing", instructor: "Ex-Swiggy", duration: "8 weeks", students: "2,600+", rating: 4.9, level: "Advanced", description: "Paid acquisition at scale. Facebook, Google, creative testing & LTV optimization.", modules: ["Facebook Ads", "Google Ads", "Creative Strategy", "LTV Optimization", "Scaling"], price: "₹47,000", highlights: ["Swiggy ad case studies", "Live campaign builds", "Creative testing", "ROAS frameworks"] },
     ],
   };
 
   const testimonials = [
-    {
-      name: "Priya Sharma",
-      role: "Product Manager @ Flipkart",
-      text: "LMS helped me transition from engineering to PM. The mentorship was invaluable!",
-      rating: 5,
-    },
-    {
-      name: "Rahul Verma",
-      role: "UX Designer @ Zomato",
-      text: "Best investment in my career. Landed my dream job within 3 months of completing the course.",
-      rating: 5,
-    },
-    {
-      name: "Ananya Singh",
-      role: "Growth Lead @ CRED",
-      text: "The practical insights and real-world case studies made all the difference.",
-      rating: 5,
-    },
+    { name: "Priya Sharma", role: "Product Manager @ Flipkart", text: "LMS helped me transition from engineering to PM. The mentorship was invaluable!", rating: 5, image: null },
+    { name: "Rahul Verma", role: "UX Designer @ Zomato", text: "Best investment in my career. Landed my dream job within 3 months of completing the course.", rating: 5, image: null },
+    { name: "Ananya Singh", role: "Growth Lead @ CRED", text: "The practical insights and real-world case studies made all the difference.", rating: 5, image: null },
   ];
 
   const socialLinks = [
-    {
-      name: "YouTube",
-      icon: Youtube,
-      href: "https://www.youtube.com/@Texoraai",
-    },
-    {
-      name: "LinkedIn",
-      icon: Linkedin,
-      href: "https://www.linkedin.com/company/105596104",
-    },
-    {
-      name: "WhatsApp",
-      icon: MessageCircle,
-      href: "https://api.whatsapp.com/send?phone=919210970334",
-    },
+    { name: "YouTube", icon: FaYoutube, href: "https://www.youtube.com/@Texoraai", hover: "hover:bg-red-600" },
+    { name: "LinkedIn", icon: FaLinkedinIn, href: "https://www.linkedin.com/company/105596104", hover: "hover:bg-blue-600" },
+    { name: "WhatsApp", icon: FaWhatsapp, href: "https://api.whatsapp.com/send?phone=919210970334", hover: "hover:bg-green-600" },
   ];
 
-  const CompanyLogo = ({ company }) => {
-    const logoImages = {
-      Capgemini: (
-        <img
-          src="/cap.jpg"
-          alt="Capgemini"
-          className="w-full h-full object-contain"
-        />
-      ),
-      Microsoft: (
-        <img
-          src="/Micrososft.jpg"
-          alt="Microsoft"
-          className="w-full h-full object-contain"
-        />
-      ),
-      Google: (
-        <img
-          src="/Google.jpg"
-          alt="Google"
-          className="w-full h-full object-contain"
-        />
-      ),
-      Texora: (
-        <img
-          src="/Picture1.jpg"
-          alt="Texora"
-          className="w-full h-full object-contain"
-        />
-      ),
-      Amazon: (
-        <img
-          src="/Amazone.jpg"
-          alt="Amazon"
-          className="w-full h-full object-contain"
-        />
-      ),
-      UFS: (
-        <img
-          src="/UFS-Logo.jpg"
-          alt="UFS"
-          className="w-full h-full object-contain"
-        />
-      ),
-      Apple: (
-        <img
-          src="/Apple.jpg"
-          alt="Apple"
-          className="w-full h-full object-contain"
-        />
-      ),
-      Cognizant: (
-        <img
-          src="/cognizant.jpg"
-          alt="Cognizant"
-          className="w-full h-full object-contain"
-        />
-      ),
-    };
-    return logoImages[company.name] || null;
-  };
+  const features = [
+    { icon: Target, title: "Project-Based Learning", description: "Build real-world projects that showcase your skills", gradient: "from-blue-500 to-cyan-500" },
+    { icon: Users, title: "Expert Mentorship", description: "Learn from professionals at top tech companies", gradient: "from-emerald-500 to-teal-500" },
+    { icon: Trophy, title: "Career Support", description: "Get help with resumes, interviews & job referrals", gradient: "from-purple-500 to-pink-500" },
+    { icon: Zap, title: "Live Sessions", description: "Interactive workshops with industry experts", gradient: "from-orange-500 to-red-500" },
+  ];
 
-  const handleViewDetails = (course) => {
-    setSelectedCourse(course);
-  };
+  const stats = [
+    { value: "50K+", label: "Active Learners", gradient: "from-blue-600 to-cyan-500" },
+    { value: "95%", label: "Success Rate", gradient: "from-emerald-600 to-teal-500" },
+    { value: "100+", label: "Expert Mentors", gradient: "from-purple-600 to-pink-500" },
+    { value: "4.9★", label: "Average Rating", gradient: "from-orange-500 to-red-500" },
+  ];
 
-  const closeModal = () => {
-    setSelectedCourse(null);
-  };
+  const mentorBenefits = [
+    { icon: Award, text: "1:1 mentorship and small cohort learning", gradient: "from-yellow-500 to-orange-500" },
+    { icon: TrendingUp, text: "Project reviews with detailed feedback", gradient: "from-emerald-500 to-teal-500" },
+    { icon: Users, text: "Peer community for accountability and networking", gradient: "from-blue-500 to-cyan-500" },
+  ];
+
+  const careerSupport = [
+    { icon: Target, title: "Portfolio Support", description: "Turn your projects into case studies hiring managers love", gradient: "from-blue-600 to-cyan-500" },
+    { icon: Award, title: "Interview Prep", description: "Mock interviews, feedback and guidance on role expectations", gradient: "from-emerald-600 to-teal-500" },
+    { icon: Users, title: "Referrals & Network", description: "Warm intros to hiring teams and community-led referrals", gradient: "from-purple-600 to-pink-500" },
+  ];
+
+  const logoImages = { Capgemini: "/cap.jpg", Microsoft: "/Micrososft.jpg", Google: "/Google.jpg", Texora: "/Picture1.jpg", Amazon: "/Amazone.jpg", UFS: "/UFS-Logo.jpg", Apple: "/Apple.jpg", Cognizant: "/cognizant.jpg" };
+  
+  const CompanyLogo = ({ company }) => logoImages[company.name] ? <img src={logoImages[company.name]} alt={company.name} className="w-full h-full object-contain" /> : null;
+
+  const getLevelColor = (level) => ({ Beginner: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400", Intermediate: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400", Advanced: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400" }[level] || "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400");
+
+  const navLinks = [
+    { text: "Courses", href: "#courses" },
+    { text: "Mentors", href: "#mentors" },
+    { text: "Success Stories", href: "#successstories" }
+  ];
 
   return (
-    <div className="min-h-screen bg-white text-black dark:bg-black dark:text-white">
+    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-blue-50/30 dark:from-gray-950 dark:via-black dark:to-blue-950/20 text-gray-900 dark:text-white">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-white/80 dark:bg-black/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div
-            className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-emerald-500 bg-clip-text text-transparent cursor-pointer"
-            onClick={() => navigate("/")}
-          >
-            TexoraAi.skills
-          </div>
-
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => {
-                const next = !dark;
-                setDark(next);
-                localStorage.setItem("theme", next ? "dark" : "light");
-              }}
-              className="w-10 h-10 flex items-center justify-center rounded-full
-             border border-gray-300 dark:border-gray-700
-             hover:bg-gray-100 dark:hover:bg-gray-900 transition"
-              aria-label="Toggle theme"
-            >
-              {dark ? (
-                <Sun className="w-5 h-5 text-yellow-400" />
-              ) : (
-                <Moon className="w-5 h-5 text-slate-900 dark:text-slate-200" />
-              )}
-            </button>
-
-            {/* Desktop Menu */}
-            <div className="hidden md:flex items-center gap-6">
-              <button
-                onClick={() => navigate("/explore-programs")}
-                className="
-      text-gray-800 dark:text-white
-      font-medium
-      hover:text-blue-500
-      transition
-    "
-              >
-                Explore Free Services
-              </button>
-
-              <a href="#mentors" className="hover:text-blue-500 transition">
-                Mentors
-              </a>
-              <a href="#success" className="hover:text-blue-500 transition">
-                Success Stories
-              </a>
-              <a href="#courses" className="hover:text-blue-500 transition">
-                Courses
-              </a>
-
-              {/* ✅ User Dropdown Menu */}
-              {user ? (
-                <div className="relative" ref={dropdownRef}>
-                  <button
-                    onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-900 transition"
-                  >
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-200 dark:bg-gray-700 overflow-hidden">
-                      {user.picture ? (
-                        <img
-                          src={user.picture}
-                          alt={user.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <User className="w-4 h-4" />
-                      )}
-                    </div>
-                    <ChevronDown
-                      className={`w-4 h-4 transition-transform ${userDropdownOpen ? "rotate-180" : ""}`}
-                    />
-                  </button>
-
-                  {/* Dropdown Menu */}
-                  {userDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl overflow-hidden">
-                      {/* User Info */}
-                      <div className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                        <p className="font-medium text-sm truncate">
-                          {user.email}
-                        </p>
-                      </div>
-
-                      {/* Menu Items */}
-                      <div className="py-2">
-                        {/* My Learning */}
-                        <button
-                          onClick={() => {
-                            navigate("/my-learning");
-                            setUserDropdownOpen(false);
-                          }}
-                          className="w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
-                        >
-                          <GraduationCap className="w-5 h-5 text-blue-500" />
-                          <span className="text-sm">My learning</span>
-                        </button>
-
-                        {/* Edit Profile */}
-                        <button
-                          onClick={() => {
-                            navigate("/edit-profile");
-                            setUserDropdownOpen(false);
-                          }}
-                          className="w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
-                        >
-                          <User className="w-5 h-5 text-emerald-500" />
-                          <span className="text-sm">Edit profile</span>
-                        </button>
-
-                        <div className="my-2 border-t border-gray-200 dark:border-gray-700"></div>
-
-                        <button
-                          onClick={handleLogout}
-                          className="w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition text-red-500"
-                        >
-                          <LogOut className="w-5 h-5" />
-                          <span className="text-sm">Logout</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <button
-                  onClick={() => navigate("/login")}
-                  className="bg-gradient-to-r from-blue-600 to-emerald-600 px-6 py-2 rounded-full font-medium hover:shadow-lg hover:shadow-blue-500/50 transition text-white"
-                >
-                  Get Started
-                </button>
-              )}
+      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? "bg-white/95 dark:bg-gray-950/95 backdrop-blur-xl shadow-lg shadow-gray-200/50 dark:shadow-gray-900/50" : "bg-white/80 dark:bg-gray-950/80 backdrop-blur-md"} border-b border-gray-200 dark:border-gray-800`}>
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            <div className="flex items-center gap-2 cursor-pointer hover:scale-105 transition-transform" onClick={() => navigate("/")}>
+              <img src={logo} alt="TexoraAi.skills Logo" className="h-10 w-auto object-contain" />
+              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-600 bg-clip-text text-transparent">TexoraAi.skills</span>
             </div>
 
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900 transition"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
+            <div className="hidden lg:flex items-center gap-8">
+              {navLinks.map(link => <a key={link.text} href={link.href} className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">{link.text}</a>)}
+              <Button variant="ghost" onClick={() => navigate("/explore-programs")} className="font-medium">Free Services</Button>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <Button onClick={toggleTheme} size="icon" className="relative overflow-hidden rounded-full w-10 h-10 bg-white/70 dark:bg-black/40 backdrop-blur-md border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-110 active:scale-95">
+                <span className={`absolute transition-all duration-500 ${theme === "dark" ? "rotate-0 scale-100 opacity-100" : "rotate-90 scale-0 opacity-0"}`}><Sun className="w-5 h-5 text-yellow-500" /></span>
+                <span className={`absolute transition-all duration-500 ${theme === "dark" ? "rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"}`}><Moon className="w-5 h-5 text-gray-800 dark:text-gray-200" /></span>
+              </Button>
+
+              {user ? (
+                <div className="hidden lg:block">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="gap-3 rounded-xl">
+                        <Avatar className="w-8 h-8"><AvatarImage src={user.picture} alt={user.name} /><AvatarFallback className="bg-gradient-to-br from-blue-500 to-emerald-500 text-white">{user.name?.charAt(0) || <User className="w-4 h-4" />}</AvatarFallback></Avatar>
+                        <ChevronDown className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-72">
+                      <div className="px-2 py-3 bg-gradient-to-br from-blue-50 to-emerald-50 dark:from-blue-950/30 dark:to-emerald-950/30">
+                        <p className="font-semibold text-sm truncate">{user.name || "User"}</p>
+                        <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                      </div>
+                      <DropdownMenuSeparator />
+                      {[{ icon: GraduationCap, label: "My Learning", desc: "View your courses", color: "blue", path: "/my-learning" }, { icon: User, label: "Edit Profile", desc: "Update your info", color: "emerald", path: "/edit-profile" }].map(item => (
+                        <DropdownMenuItem key={item.label} onClick={() => navigate(item.path)} className="gap-3 cursor-pointer">
+                          <div className={`w-8 h-8 rounded-lg bg-${item.color}-100 dark:bg-${item.color}-900/30 flex items-center justify-center`}><item.icon className={`w-4 h-4 text-${item.color}-600 dark:text-${item.color}-400`} /></div>
+                          <div><p className="text-sm font-medium">{item.label}</p><p className="text-xs text-muted-foreground">{item.desc}</p></div>
+                        </DropdownMenuItem>
+                      ))}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleLogout} className="gap-3 text-red-600 dark:text-red-400 cursor-pointer"><LogOut className="w-4 h-4" /><span className="text-sm font-medium">Logout</span></DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              ) : (
+                <Button onClick={() => navigate("/login")} className="hidden lg:flex items-center gap-2 px-6 h-11 rounded-full font-semibold text-white bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-600 shadow-md shadow-blue-500/20 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-blue-500/40 active:scale-95 relative overflow-hidden">
+                  <span className="absolute inset-0 bg-white/20 opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-full" />
+                  <Sparkles className="w-4 h-4 relative z-10" /><span className="relative z-10">Get Started</span>
+                </Button>
+              )}
+
+              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                <SheetTrigger asChild className="lg:hidden"><Button variant="ghost" size="icon" className="rounded-xl"><Menu className="w-6 h-6" /></Button></SheetTrigger>
+                <SheetContent>
+                  <div className="flex flex-col gap-4 mt-8">
+                    {navLinks.map(link => <a key={link.text} href={link.href} className="text-lg font-medium hover:text-blue-600 transition-colors" onClick={() => setMobileMenuOpen(false)}>{link.text}</a>)}
+                    <Button variant="ghost" onClick={() => { navigate("/explore-programs"); setMobileMenuOpen(false); }} className="justify-start text-lg font-medium">Free Services</Button>
+                    <Separator className="my-4" />
+                    {user ? (<><Button onClick={() => { navigate("/my-learning"); setMobileMenuOpen(false); }} className="w-full">My Learning</Button><Button variant="destructive" onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className="w-full">Logout</Button></>) : (<Button onClick={() => { navigate("/login"); setMobileMenuOpen(false); }} className="w-full bg-gradient-to-r from-blue-600 to-emerald-600">Get Started</Button>)}
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
         </div>
-
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-black">
-            <div className="px-6 py-4 space-y-4">
-              <button
-                onClick={() => {
-                  navigate("/explore-programs");
-                  setMobileMenuOpen(false);
-                }}
-                className="block w-full text-left py-2 hover:text-blue-500 transition"
-              >
-                Programs
-              </button>
-
-              <a
-                href="#mentors"
-                className="block w-full text-left py-2 hover:text-blue-500 transition"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Mentors
-              </a>
-
-              <a
-                href="#success"
-                className="block w-full text-left py-2 hover:text-blue-500 transition"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Success Stories
-              </a>
-
-              <a
-                href="#courses"
-                className="block w-full text-left py-2 hover:text-blue-500 transition"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Courses
-              </a>
-
-              {user ? (
-                <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
-                  <button
-                    onClick={() => {
-                      handleLogout();
-                      setMobileMenuOpen(false);
-                    }}
-                    className="w-full bg-red-600 hover:bg-red-700 px-4 py-3 rounded-lg font-medium transition text-white"
-                  >
-                    Logout
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => {
-                    navigate("/login");
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full bg-gradient-to-r from-blue-600 to-emerald-600 px-6 py-3 rounded-full font-medium transition text-white"
-                >
-                  Get Started
-                </button>
-              )}
-            </div>
-          </div>
-        )}
       </nav>
 
-      {/* Hero */}
-      <section className="pt-32 pb-20 px-6 bg-gray-50 dark:bg-black">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="inline-block mb-6 px-4 py-2 bg-gradient-to-r from-blue-500/10 to-emerald-500/10 border border-blue-500/20 rounded-full text-blue-500 dark:text-blue-400 text-sm">
-            🎉 Advanced TexoraAi.skills for Modern Education
-          </div>
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-            Become the{" "}
-            <span className="bg-gradient-to-r from-blue-400 via-cyan-500 to-emerald-500 bg-clip-text text-transparent">
-              Top 1%
-            </span>
-          </h1>
-          <p className="text-xl text-gray-700 dark:text-gray-400 mb-8 max-w-3xl mx-auto">
-            Learn Product, Design, Growth & Marketing from industry experts at
-            Google, Amazon, Meta & top startups.
-          </p>
+      {/* Hero Section */}
+      <section className="pt-32 pb-24 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl"></div>
+        </div>
+        <div className="max-w-7xl mx-auto text-center relative z-10">
+          <Badge variant="outline" className="mb-8 px-5 py-2.5 bg-gradient-to-r from-blue-500/10 via-cyan-500/10 to-emerald-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400">
+            <Sparkles className="w-4 h-4 mr-2" />Advanced Learning Platform for Modern Professionals
+          </Badge>
+          <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold mb-8 leading-tight">Become the <span className="bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-600 bg-clip-text text-transparent">Top 1%</span></h1>
+          <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-12 max-w-4xl mx-auto leading-relaxed">Learn Product, Design, Growth & Marketing from industry experts at Google, Amazon, Meta & top startups.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <button
-              onClick={() => navigate("/watch-demo")}
-              className="border border-gray-300 dark:border-gray-700 px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-100 dark:hover:bg-gray-900 transition flex items-center gap-2"
-            >
-              <Play size={20} /> Watch now
-            </button>
+            <Button size="lg" onClick={() => navigate("/explore-programs")} className="bg-gradient-to-r from-blue-600 to-emerald-600 hover:shadow-2xl hover:shadow-blue-500/40 text-lg rounded-xl group">
+              Start Learning<ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </div>
+          <div className="mt-16 flex flex-wrap items-center justify-center gap-8 text-sm text-gray-600 dark:text-gray-400">
+            {["50,000+ Learners", "95% Success Rate", "4.9★ Average Rating"].map(text => <div key={text} className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-green-500" /><span>{text}</span></div>)}
           </div>
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="py-10 px-6 bg-white dark:bg-black">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-          <div>
-            <p className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-emerald-500 bg-clip-text text-transparent">
-              50K+
-            </p>
-            <p className="text-gray-600 dark:text-gray-400">Learners</p>
-          </div>
-          <div>
-            <p className="text-3xl font-bold bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">
-              95%
-            </p>
-            <p className="text-gray-600 dark:text-gray-400">Success Rate</p>
-          </div>
-          <div>
-            <p className="text-3xl font-bold bg-gradient-to-r from-cyan-500 to-blue-500 bg-clip-text text-transparent">
-              100+
-            </p>
-            <p className="text-gray-600 dark:text-gray-400">Expert Mentors</p>
-          </div>
-          <div>
-            <p className="text-3xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-              4.9
-            </p>
-            <p className="text-gray-600 dark:text-gray-400">Avg Rating</p>
-          </div>
+      {/* Stats Section */}
+      <section className="py-16 px-6 bg-white dark:bg-gray-900/50 border-y border-gray-200 dark:border-gray-800">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
+          {stats.map((stat, i) => <div key={i} className="text-center group hover:scale-105 transition-transform"><div className={`text-5xl font-bold bg-gradient-to-r ${stat.gradient} bg-clip-text text-transparent mb-2`}>{stat.value}</div><p className="text-gray-600 dark:text-gray-400 font-medium">{stat.label}</p></div>)}
         </div>
       </section>
 
-      {/* Companies */}
-      <section className="py-16 px-6 bg-gradient-to-br from-gray-50 via-blue-50 to-emerald-50 dark:from-zinc-950 dark:via-blue-950/20 dark:to-emerald-950/20">
+      {/* Features Section */}
+      <section className="py-20 px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-10">
-            <p className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
-              Trusted By
-            </p>
-            <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
-              Learners Placed At Top Companies
-            </h2>
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">Why Choose <span className="bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">TexoraAi.skills</span></h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">Everything you need to accelerate your career growth</p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {features.map((feature, i) => (
+              <Card key={i} className="group hover:shadow-2xl hover:shadow-blue-500/10 transition-all hover:-translate-y-2 border-gray-200 dark:border-gray-800">
+                <CardHeader>
+                  <div className={`w-14 h-14 bg-gradient-to-br ${feature.gradient} rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}><feature.icon className="w-7 h-7 text-white" /></div>
+                  <CardTitle className="text-xl">{feature.title}</CardTitle>
+                </CardHeader>
+                <CardContent><p className="text-gray-600 dark:text-gray-400">{feature.description}</p></CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Companies Section */}
+      <section className="py-20 px-6 bg-gradient-to-br from-gray-50 via-blue-50 to-emerald-50 dark:from-gray-950 dark:via-blue-950/20 dark:to-emerald-950/20">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3 font-semibold">Trusted By Professionals At</p>
+            <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">Top Global Companies</h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-6">
-            {companies.map((company) => (
-              <div
-                key={company.name}
-                className={`${company.bgGradient} rounded-2xl p-8 flex flex-col items-center justify-center gap-4 border border-gray-200/50 dark:border-gray-700/50 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-300 group`}
-              >
-                <div className="w-20 h-20 flex items-center justify-center group-hover:scale-110 transition-transform bg-white/80 dark:bg-black/80 rounded-xl p-2 shadow-lg">
-                  <CompanyLogo company={company} />
-                </div>
-                <span
-                  className={`text-sm font-bold bg-gradient-to-r ${company.colors} bg-clip-text text-transparent`}
-                >
-                  {company.name}
-                </span>
+            {companies.map(company => (
+              <div key={company.name} className={`${company.bgGradient} rounded-2xl p-6 flex flex-col items-center justify-center gap-4 border border-gray-200/50 dark:border-gray-700/50 hover:scale-110 hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-300 group cursor-pointer`}>
+                <div className="w-16 h-16 flex items-center justify-center group-hover:scale-110 transition-transform bg-white/90 dark:bg-black/90 rounded-xl p-2 shadow-lg"><CompanyLogo company={company} /></div>
+                <span className={`text-xs font-bold bg-gradient-to-r ${company.colors} bg-clip-text text-transparent`}>{company.name}</span>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Programs */}
-      <section
-        id="courses"
-        className="py-16 px-6 bg-white dark:bg-black scroll-mt-28"
-      >
+      {/* Courses Section */}
+      <section id="courses" className="py-20 px-6 scroll-mt-20">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-            <h2 className="text-2xl md:text-3xl font-bold">
-              Build Your Career with the Right Skills
-            </h2>
-            <div className="inline-flex rounded-full bg-gradient-to-r from-blue-500/10 to-emerald-500/10 p-1 border border-blue-500/20">
-              {["product", "design", "growth"].map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium capitalize ${
-                    activeTab === tab
-                      ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white shadow-lg"
-                      : "text-gray-600 dark:text-gray-400 hover:text-blue-500"
-                  } transition-all`}
-                >
-                  {tab === "product"
-                    ? "Product"
-                    : tab === "design"
-                      ? "Design"
-                      : "Growth & Marketing"}
-                </button>
-              ))}
-            </div>
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">Featured <span className="bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">Programs</span></h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">Choose your path and start building skills that matter</p>
           </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {courses[activeTab].map((course) => (
-              <div
-                key={course.id}
-                className="border border-gray-200 dark:border-gray-800 rounded-2xl p-5 bg-gradient-to-br from-white/50 to-blue-50 dark:from-black/50 dark:to-zinc-950 flex flex-col justify-between hover:shadow-xl hover:shadow-blue-500/10 transition-all cursor-pointer group"
-                onClick={() => handleCourseClick(course)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) =>
-                  e.key === "Enter" && handleCourseClick(course)
-                }
-              >
-                <div>
-                  <h3 className="text-lg font-semibold mb-1">{course.title}</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                    {course.instructor}
-                  </p>
-                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-4">
-                    <span className="flex items-center gap-1">
-                      <BookOpen size={14} /> {course.duration}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Users size={14} /> {course.students}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Star size={14} className="text-yellow-400" />
-                      {course.rating}
-                    </span>
-                  </div>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-12 h-auto p-1.5">
+              {["product", "design", "growth"].map(tab => <TabsTrigger key={tab} value={tab} className="rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-emerald-600 data-[state=active]:text-white capitalize">{tab}</TabsTrigger>)}
+            </TabsList>
+            {Object.entries(courses).map(([category, categoryCourses]) => (
+              <TabsContent key={category} value={category}>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {categoryCourses.map(course => (
+                    <Card key={course.id} className="group hover:shadow-2xl hover:shadow-blue-500/20 transition-all hover:-translate-y-2 cursor-pointer overflow-hidden" onClick={() => setSelectedCourse(course)}>
+                      <CardHeader className="bg-gradient-to-br from-blue-50 to-emerald-50 dark:from-blue-950/30 dark:to-emerald-950/30">
+                        <div className="flex items-start justify-between mb-4">
+                          <Badge className={getLevelColor(course.level)}>{course.level}</Badge>
+                          <Badge variant="outline" className="bg-white dark:bg-gray-900"><Star className="w-3 h-3 fill-yellow-400 text-yellow-400 mr-1" />{course.rating}</Badge>
+                        </div>
+                        <CardTitle className="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{course.title}</CardTitle>
+                        <CardDescription>{course.instructor}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="pt-6">
+                        <p className="text-gray-600 dark:text-gray-400 mb-6 line-clamp-2">{course.description}</p>
+                        <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-6">
+                          {[{ icon: Clock, text: course.duration }, { icon: Users, text: course.students }, { icon: BookOpen, text: course.modules.length }].map((item, i) => <div key={i} className="flex items-center gap-2"><item.icon className="w-4 h-4" /><span>{item.text}</span></div>)}
+                        </div>
+                      </CardContent>
+                      <CardFooter className="pt-0">
+                        <Button className="w-full bg-gradient-to-r from-blue-600 to-emerald-600 hover:shadow-lg hover:shadow-blue-500/30 rounded-xl group/btn">View Details<ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" /></Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
                 </div>
-              </div>
+              </TabsContent>
             ))}
-          </div>
+          </Tabs>
         </div>
       </section>
 
       {/* Course Details Modal */}
-      {selectedCourse && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-black rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-800 shadow-2xl">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-800 sticky top-0 bg-white/80 dark:bg-black/80 backdrop-blur-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
-                    {selectedCourse.title}
-                  </h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    {selectedCourse.instructor}
-                  </p>
+      <Dialog open={!!selectedCourse} onOpenChange={() => setSelectedCourse(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100 border border-gray-200 dark:border-gray-800">
+          {selectedCourse && (
+            <>
+              <DialogHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <Badge className={getLevelColor(selectedCourse.level)}>{selectedCourse.level}</Badge>
+                  <Badge variant="outline"><Star className="w-3 h-3 fill-yellow-400 text-yellow-400 mr-1" />{selectedCourse.rating}</Badge>
                 </div>
-                <button
-                  onClick={closeModal}
-                  className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-                >
-                  <X size={24} className="text-gray-500" />
-                </button>
-              </div>
-            </div>
-
-            <div className="p-6 space-y-6">
-              <div>
-                <h3 className="font-semibold text-lg mb-3">
-                  About this program
-                </h3>
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                  {selectedCourse.description}
-                </p>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4 text-center p-4 bg-gradient-to-br from-blue-50 to-emerald-50 dark:from-blue-950/30 dark:to-emerald-950/30 rounded-2xl">
+                <DialogTitle className="text-3xl bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">{selectedCourse.title}</DialogTitle>
+                <DialogDescription>{selectedCourse.instructor}</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-8 py-4">
                 <div>
-                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                    {selectedCourse.duration}
-                  </p>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    Duration
-                  </p>
+                  <h3 className="text-xl font-bold mb-3 flex items-center gap-2"><BarChart3 className="w-5 h-5 text-blue-600" />About This Program</h3>
+                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{selectedCourse.description}</p>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                    {selectedCourse.students}
-                  </p>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    Students
-                  </p>
+                <div className="grid grid-cols-3 gap-4 p-6 bg-gradient-to-br from-blue-50 to-emerald-50 dark:from-blue-950/30 dark:to-emerald-950/30 rounded-2xl border border-blue-200/50 dark:border-blue-800/50">
+                  {[{ icon: Clock, value: selectedCourse.duration, label: "Duration", color: "blue" }, { icon: Users, value: selectedCourse.students, label: "Students", color: "emerald" }, { icon: Star, value: selectedCourse.rating, label: "Rating", color: "yellow", fill: true }].map((stat, i) => (
+                    <div key={i} className="text-center">
+                      <stat.icon className={`w-6 h-6 text-${stat.color}-${stat.color === "yellow" ? "500" : "600"} dark:text-${stat.color}-400 mx-auto mb-2 ${stat.fill ? "fill-yellow-500" : ""}`} />
+                      <p className={`text-2xl font-bold text-${stat.color}-${stat.color === "yellow" ? "600" : "600"} dark:text-${stat.color}-400`}>{stat.value}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">{stat.label}</p>
+                    </div>
+                  ))}
                 </div>
+                <Card className="bg-gradient-to-r from-blue-600 to-emerald-600 text-white border-0">
+                  <CardContent className="p-6 text-center">
+                    <p className="text-sm font-medium mb-2 text-blue-100">Investment</p>
+                    <p className="text-4xl font-bold mb-1">{selectedCourse.price}</p>
+                    <p className="text-sm text-blue-100">Limited time offer • Full access included</p>
+                  </CardContent>
+                </Card>
                 <div>
-                  <div className="flex justify-center gap-1 mb-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        size={16}
-                        className={`${
-                          i < Math.floor(selectedCourse.rating)
-                            ? "text-yellow-400 fill-yellow-400"
-                            : "text-gray-300"
-                        }`}
-                      />
+                  <h3 className="text-xl font-bold mb-4 flex items-center gap-2"><BookOpen className="w-5 h-5 text-blue-600" />What You'll Learn</h3>
+                  <div className="space-y-3">
+                    {selectedCourse.modules.map((module, i) => (
+                      <div key={i} className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-blue-500 dark:hover:border-blue-500 transition-colors">
+                        <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-emerald-600 rounded-lg flex items-center justify-center flex-shrink-0"><span className="text-white font-bold text-sm">{i + 1}</span></div>
+                        <span className="text-gray-700 dark:text-gray-300 font-medium">{module}</span>
+                      </div>
                     ))}
                   </div>
-                  <p className="text-sm font-semibold">
-                    {selectedCourse.rating}
-                  </p>
                 </div>
-              </div>
-
-              <div className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white p-6 rounded-2xl text-center">
-                <p className="text-3xl font-bold">{selectedCourse.price}</p>
-                <p className="text-emerald-100">Limited time offer</p>
-              </div>
-
-              <div>
-                <h3 className="font-semibold text-lg mb-4">
-                  What you'll learn
-                </h3>
-                <div className="space-y-2">
-                  {selectedCourse.modules.map((module, index) => (
-                    <div
-                      key={index}
-                      className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-xl"
-                    >
-                      <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-lg flex items-center justify-center mt-0.5 flex-shrink-0">
-                        <span className="text-white font-bold text-xs">
-                          {index + 1}
-                        </span>
+                <div>
+                  <h3 className="text-xl font-bold mb-4 flex items-center gap-2"><Trophy className="w-5 h-5 text-blue-600" />Program Highlights</h3>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    {selectedCourse.highlights.map((highlight, i) => (
+                      <div key={i} className="flex items-start gap-3 p-4 bg-gradient-to-r from-blue-50 to-emerald-50 dark:from-blue-950/30 dark:to-emerald-950/30 rounded-xl border border-blue-200/50 dark:border-blue-800/50">
+                        <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-700 dark:text-gray-300 text-sm font-medium">{highlight}</span>
                       </div>
-                      <span className="text-gray-700 dark:text-gray-300">
-                        {module}
-                      </span>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                  <Button onClick={() => navigate("/explore-programs")} className="flex-1 bg-gradient-to-r from-blue-600 to-emerald-600 hover:shadow-2xl hover:shadow-blue-500/40 rounded-2xl h-12">Enroll Now<ArrowRight className="w-5 h-5 ml-2" /></Button>
+                  <Button variant="outline" onClick={() => setSelectedCourse(null)} className="flex-1 rounded-2xl h-12">Close</Button>
                 </div>
               </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
-              <div>
-                <h3 className="font-semibold text-lg mb-4">
-                  Program Highlights
-                </h3>
-                <div className="grid md:grid-cols-2 gap-3">
-                  {selectedCourse.highlights.map((highlight, index) => (
-                    <div
-                      key={index}
-                      className="flex items-start gap-3 p-3 bg-gradient-to-r from-blue-500/10 to-emerald-500/10 rounded-xl border border-blue-500/20"
-                    >
-                      <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-lg flex items-center justify-center mt-0.5 flex-shrink-0">
-                        <Award size={12} className="text-white" />
-                      </div>
-                      <span className="text-gray-700 dark:text-gray-300">
-                        {highlight}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <button
-                  onClick={() => navigate("/explore-programs")}
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-emerald-600 text-white py-4 px-6 rounded-2xl font-semibold hover:shadow-2xl hover:shadow-blue-500/50 transition-all flex items-center justify-center gap-2"
-                >
-                  Enroll Now <ArrowRight size={20} />
-                </button>
-                <button
-                  onClick={closeModal}
-                  className="flex-1 border border-gray-300 dark:border-gray-700 py-4 px-6 rounded-2xl font-semibold hover:bg-gray-100 dark:hover:bg-gray-900 transition"
-                >
-                  Close
-                </button>
+      {/* Mentors Section */}
+      <section id="mentors" className="py-20 px-6 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-950 dark:to-blue-950/20 scroll-mt-20">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6">Learn from <span className="bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">Industry Experts</span></h2>
+              <p className="text-xl text-gray-600 dark:text-gray-400 mb-8">Sessions led by operators from top product companies so you understand how work happens in the real world.</p>
+              <div className="space-y-4">
+                {mentorBenefits.map((item, i) => (
+                  <Card key={i} className="hover:shadow-lg transition-shadow">
+                    <CardContent className="flex items-start gap-4 p-4">
+                      <div className={`w-10 h-10 bg-gradient-to-br ${item.gradient} rounded-lg flex items-center justify-center flex-shrink-0`}><item.icon className="w-5 h-5 text-white" /></div>
+                      <p className="text-gray-700 dark:text-gray-300 font-medium pt-1.5">{item.text}</p>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Mentors */}
-      <section
-        id="mentors"
-        className="py-16 px-6 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-zinc-950 dark:to-gray-900"
-      >
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-10 items-center">
-          <div>
-            <h2 className="text-2xl md:text-3xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
-              Learn from mentors who have done it before
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Sessions led by operators from top product companies so you
-              understand how work happens in the real world.
-            </p>
-            <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
-              <li className="flex items-center gap-2">
-                <div className="w-5 h-5 bg-gradient-to-tr from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-                  <Award size={12} className="text-white" />
-                </div>
-                1:1 mentorship and small cohort learning.
-              </li>
-              <li className="flex items-center gap-2">
-                <div className="w-5 h-5 bg-gradient-to-tr from-emerald-400 to-teal-500 rounded-full flex items-center justify-center">
-                  <TrendingUp size={12} className="text-white" />
-                </div>
-                Project reviews with detailed feedback.
-              </li>
-              <li className="flex items-center gap-2">
-                <div className="w-5 h-5 bg-gradient-to-tr from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
-                  <Users size={12} className="text-white" />
-                </div>
-                Peer community for accountability and networking.
-              </li>
-            </ul>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            {testimonials.map((t) => (
-              <div
-                key={t.name}
-                className="border border-gray-200 dark:border-gray-800 rounded-2xl p-4 bg-gradient-to-br from-white to-blue-50/50 dark:from-black dark:to-zinc-900 shadow-lg"
-              >
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                  "{t.text}"
-                </p>
-                <p className="text-sm font-semibold">{t.name}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {t.role}
-                </p>
-              </div>
-            ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {testimonials.map((testimonial, i) => (
+                <Card key={i} className="hover:shadow-xl hover:shadow-blue-500/10 transition-all hover:-translate-y-1">
+                  <CardHeader><div className="flex items-center gap-1 mb-2">{[...Array(5)].map((_, j) => <Star key={j} className="w-4 h-4 fill-yellow-400 text-yellow-400" />)}</div></CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600 dark:text-gray-300 mb-4 italic">"{testimonial.text}"</p>
+                    <div className="flex items-center gap-3">
+                      <Avatar><AvatarFallback className="bg-gradient-to-br from-blue-500 to-emerald-500 text-white font-bold">{testimonial.name.charAt(0)}</AvatarFallback></Avatar>
+                      <div><p className="font-semibold">{testimonial.name}</p><p className="text-sm text-muted-foreground">{testimonial.role}</p></div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* Success Stories */}
-      <section
-        id="success"
-        className="py-16 px-6 bg-gradient-to-br from-white to-gray-50 dark:from-black dark:to-zinc-950 border-t border-gray-200 dark:border-gray-800"
-      >
-        <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-8">
-          <div className="md:col-span-2">
-            <h2 className="text-2xl md:text-3xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
-              Career support that doesn't stop at certificates
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
-              Get help with interview prep, portfolios, referrals and role
-              mapping so you can actually break into the roles you want.
-            </p>
-            <div className="grid sm:grid-cols-3 gap-4 text-sm text-gray-600 dark:text-gray-400">
-              <div className="border border-gray-200 dark:border-gray-800 rounded-xl p-4 bg-gradient-to-br from-blue-500/5 to-emerald-500/5 hover:shadow-lg hover:shadow-blue-500/20 transition-all">
-                <p className="font-semibold mb-1 text-blue-600 dark:text-blue-400">
-                  Portfolio support
-                </p>
-                <p>
-                  Turn your projects into case studies hiring managers love.
-                </p>
-              </div>
-              <div className="border border-gray-200 dark:border-gray-800 rounded-xl p-4 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 hover:shadow-lg hover:shadow-emerald-500/20 transition-all">
-                <p className="font-semibold mb-1 text-emerald-600 dark:text-emerald-400">
-                  Interview prep
-                </p>
-                <p>
-                  Mock interviews, feedback and guidance on role expectations.
-                </p>
-              </div>
-              <div className="border border-gray-200 dark:border-gray-800 rounded-xl p-4 bg-gradient-to-br from-cyan-500/5 to-blue-500/5 hover:shadow-lg hover:shadow-cyan-500/20 transition-all">
-                <p className="font-semibold mb-1 text-cyan-600 dark:text-cyan-400">
-                  Referrals & network
-                </p>
-                <p>Warm intros to hiring teams and community-led referrals.</p>
-              </div>
-            </div>
+      <section id="successstories" className="py-20 px-6 scroll-mt-20">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">Career Support That <span className="bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">Delivers Results</span></h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">Get help with interview prep, portfolios, referrals and role mapping</p>
           </div>
-          <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-5 bg-gradient-to-br from-blue-500/10 to-emerald-500/10 shadow-xl">
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-              "The career support team pushed me beyond just completing
-              assignments. They helped me position my experience the right way."
-            </p>
-            <p className="text-sm font-semibold mb-1">Anonymous Learner</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-              Transitioned to PM role from QA
-            </p>
-            <button
-              onClick={() => navigate("/explore-programs")}
-              className="w-full px-4 py-2 rounded-full bg-gradient-to-r from-blue-600 to-emerald-600 text-white text-sm font-medium hover:shadow-2xl hover:shadow-blue-500/50 transition-all"
-            >
-              Explore Free Services
-            </button>
+          <div className="grid lg:grid-cols-3 gap-8">
+            {careerSupport.map((item, i) => (
+              <Card key={i} className="group hover:shadow-2xl hover:shadow-blue-500/20 transition-all hover:-translate-y-2">
+                <CardHeader>
+                  <div className={`w-16 h-16 bg-gradient-to-br ${item.gradient} rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}><item.icon className="w-8 h-8 text-white" /></div>
+                  <CardTitle className="text-2xl">{item.title}</CardTitle>
+                </CardHeader>
+                <CardContent><p className="text-gray-600 dark:text-gray-400 leading-relaxed">{item.description}</p></CardContent>
+              </Card>
+            ))}
           </div>
+          <Card className="mt-12 bg-gradient-to-br from-blue-600 to-emerald-600 text-white border-0">
+            <CardContent className="p-8">
+              <div className="max-w-3xl mx-auto text-center">
+                <h3 className="text-3xl font-bold mb-4">Ready to Transform Your Career?</h3>
+                <p className="text-xl text-blue-100 mb-8">Join 50,000+ professionals who've already taken the leap</p>
+                <Button size="lg" onClick={() => navigate("/explore-programs")} className="bg-white text-blue-600 hover:bg-white/90 hover:shadow-2xl rounded-xl">Explore Free Services<ArrowRight className="w-5 h-5 ml-2" /></Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-6 bg-gradient-to-br from-blue-600 via-emerald-600 to-teal-600 dark:from-blue-900 dark:via-emerald-900 dark:to-teal-900 border-t border-blue-500/30">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-8">
-          <div>
-            <p className="text-2xl font-bold bg-gradient-to-r from-white via-blue-100 to-emerald-100 bg-clip-text text-transparent mb-4">
-              TexoraAi.skills
-            </p>
-            <p className="text-blue-100 dark:text-blue-200 text-sm">
-              Modern learning platform for ambitious professionals who want to
-              break into product, design and growth roles.
-            </p>
-          </div>
-          <div className="text-blue-100 dark:text-blue-200 text-sm space-y-3">
-            <p className="font-semibold text-white mb-2">Contact</p>
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                <Mail className="w-4 h-4 text-white" />
-              </div>
-              <a
-                href="mailto:support@texoraai.skills"
-                className="hover:text-white transition"
-              >
-                support@texoraai.skills
-              </a>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                <MapPin className="w-4 h-4 text-white" />
-              </div>
-              <span>Skalholtsgatan 2, Kista, Stockholm, Sweden - 164 40</span>
-            </div>
-          </div>
-          <div className="text-blue-100 dark:text-blue-200">
-            <p className="font-semibold text-white mb-4">Connect</p>
-            <div className="flex gap-3">
-              {socialLinks.map((link) => {
-                const Icon = link.icon;
-                return (
-                  <a
-                    key={link.name}
-                    href={link.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl border border-white/30 flex items-center justify-center hover:bg-white/30 hover:scale-105 transition-all shadow-xl hover:shadow-2xl"
-                  >
-                    {Icon ? (
-                      <Icon size={20} className="text-white" />
-                    ) : (
-                      <span className="text-white font-bold text-lg">WA</span>
-                    )}
-                  </a>
-                );
-              })}
-            </div>
-          </div>
+      <footer className="relative overflow-hidden bg-gradient-to-br from-[#0B0F1A] via-[#0F172A] to-black text-gray-300">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-40 left-0 h-[500px] w-[500px] rounded-full bg-blue-600/10 blur-3xl" />
+          <div className="absolute bottom-0 right-0 h-[500px] w-[500px] rounded-full bg-emerald-600/10 blur-3xl" />
         </div>
-        <div className="max-w-7xl mx-auto mt-8 pt-8 border-t border-white/20 text-center">
-          <p className="text-blue-200 dark:text-blue-300 text-sm">
-            © {new Date().getFullYear()} TexoraAi.skills. All rights reserved.
-          </p>
+        <div className="relative mx-auto max-w-7xl px-6 py-20">
+          <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-5">
+            <div className="lg:col-span-2 space-y-4">
+              <h3 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">TexoraAi.skills</h3>
+              <p className="text-sm text-gray-400 leading-relaxed max-w-sm">Modern learning platform for ambitious professionals who want to break into product, design and growth roles.</p>
+              <div className="flex gap-3 pt-2">
+                {socialLinks.map(link => {
+                  const Icon = link.icon;
+                  return <a key={link.name} href={link.href} target="_blank" rel="noreferrer" aria-label={link.name} className={`h-9 w-9 rounded-full flex items-center justify-center bg-white/10 transition-all duration-300 hover:scale-110 ${link.hover}`}><Icon className="h-4.5 w-4.5" /></a>;
+                })}
+              </div>
+            </div>
+            {[
+              { 
+                title: "Programs", 
+                items: [
+                  { label: "Product Management", action: () => scrollToSection('courses', 'product') },
+                  { label: "Growth Marketing", action: () => scrollToSection('courses', 'growth') },
+                  { label: "UI / UX Design", action: () => scrollToSection('courses', 'design') }
+                ]
+              },
+              { 
+                title: "Resources", 
+                items: [
+                  { label: "Success Stories", action: () => scrollToSection('successstories') },
+                  { 
+                    label: "Free Services", 
+                    action: () => {
+                      navigate("/explore-programs");
+                      setTimeout(() => {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }, 100);
+                    }
+                  }
+                ]
+              },
+              { 
+                title: "Company", 
+                items: [
+                  { label: "About Us", action: () => navigate("/about") },
+                  { label: "Careers", action: () => navigate("/careers") },
+                  { label: "Privacy Policy", action: () => navigate("/privacy-policy") },
+                  { label: "Terms of Service", action: () => navigate("/terms-of-service") }
+                ]
+              }
+              
+            ].map((section, i) => (
+              <div key={i} className="space-y-4">
+                <h4 className="text-sm font-semibold text-white">{section.title}</h4>
+                <ul className="space-y-2 text-sm">
+                  {section.items.map(item => (
+                    <li 
+                      key={item.label} 
+                      onClick={item.action}
+                      className="hover:text-white cursor-pointer transition-colors"
+                    >
+                      {item.label}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <Separator className="my-14 bg-white/10" />
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-400">
+            <span>© {new Date().getFullYear()} TexoraAi.skills. All rights reserved.</span>
+            <span className="text-xs text-gray-500">Built with passion for modern learners 🚀</span>
+          </div>
         </div>
       </footer>
     </div>

@@ -336,8 +336,9 @@
 //                   </span>
 //                 </div>
 
+//                 {/* ✅ ONLY CHANGE HERE */}
 //                 <button
-//                   onClick={() => navigate("/watch-demo")}
+//                   onClick={() => navigate(`/watch-demo/${service.id}`)}
 //                   className="w-full bg-gradient-to-r from-blue-600 to-teal-600 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 hover:shadow-lg transition-all group-hover:scale-105"
 //                 >
 //                   <Play className="w-4 h-4" />
@@ -513,102 +514,6 @@ const ExploreFreeServices = () => {
       status: "ON DEMAND",
       topics: ["AI Product Development", "No-Code Tools", "Product Strategy"],
     },
-    {
-      id: 2,
-      category: "product",
-      title: "AI Prototyping for Product Managers in 2025",
-      instructors: ["Colin Matthews: Sold my first SaaS in 2021"],
-      students: "8,456 students",
-      rating: 4.8,
-      duration: "4 weeks",
-      level: "Intermediate",
-      status: "ON DEMAND",
-      topics: ["AI/ML", "Prototyping", "Product Design"],
-    },
-    {
-      id: 3,
-      category: "product",
-      title: "How top companies evaluate PM candidates in 2025",
-      instructors: [
-        "Ben Erez: Former Meta PM",
-        "Nickey Skarstad: Director of Product",
-      ],
-      students: "7,849 students",
-      rating: 4.7,
-      duration: "3 weeks",
-      level: "All Levels",
-      status: "ON DEMAND",
-      topics: ["Interview Prep", "PM Skills", "Career Growth"],
-    },
-    {
-      id: 4,
-      category: "design",
-      title: "Create AI-Powered Prototypes as a Product Designer",
-      instructors: ["Xinran Ma: Founder of Design with AI"],
-      students: "6,809 students",
-      rating: 4.9,
-      duration: "5 weeks",
-      level: "Intermediate",
-      status: "ON DEMAND",
-      topics: ["AI Design Tools", "Figma", "Prototyping"],
-    },
-    {
-      id: 5,
-      category: "tech",
-      title: "Building Agentic AI Applications in 2025",
-      instructors: [
-        "Aishwarya Naresh Reganti: Tech Lead AI",
-        "Sai Kirti Badam: Founding Engineer",
-      ],
-      students: "6,490 students",
-      rating: 4.8,
-      duration: "8 weeks",
-      level: "Advanced",
-      status: "ON DEMAND",
-      topics: ["AI/ML", "Python", "LLMs"],
-    },
-    {
-      id: 6,
-      category: "tech",
-      title: "Build AI product sense: vibe code your personal OS",
-      instructors: [
-        "Aman Khan: AI Product leader at Arize AI",
-        "Tai Raviv: Gen AI PM",
-      ],
-      students: "5,691 students",
-      rating: 4.7,
-      duration: "6 weeks",
-      level: "Intermediate",
-      status: "ON DEMAND",
-      topics: ["AI Development", "Product Thinking", "Coding"],
-    },
-    {
-      id: 7,
-      category: "growth",
-      title: "Growth Marketing Strategies for Startups",
-      instructors: [
-        "Sarah Johnson: Former Growth Lead Meta",
-        "Mike Chen: Ex-Marketing Director Amazon",
-      ],
-      students: "9,234 students",
-      rating: 4.8,
-      duration: "5 weeks",
-      level: "Intermediate",
-      status: "ON DEMAND",
-      topics: ["Growth Hacking", "Analytics", "User Acquisition"],
-    },
-    {
-      id: 8,
-      category: "growth",
-      title: "Data-Driven Marketing in 2025",
-      instructors: ["David Smith: Marketing Analytics Expert Google"],
-      students: "7,123 students",
-      rating: 4.6,
-      duration: "4 weeks",
-      level: "Beginner",
-      status: "ON DEMAND",
-      topics: ["Analytics", "A/B Testing", "Marketing ROI"],
-    },
   ];
 
   const filteredServices =
@@ -617,7 +522,7 @@ const ExploreFreeServices = () => {
       : services.filter((s) => s.category === activeCategory);
 
   const stats = [
-    { value: "50K+", label: "Active Learners" },
+    { value: "10K+", label: "Active Learners" },
     { value: "95%", label: "Success Rate" },
     { value: "100+", label: "Expert Mentors" },
     { value: "4.9", label: "Average Rating" },
@@ -709,7 +614,7 @@ const ExploreFreeServices = () => {
         </div>
 
         {/* Services Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
           {filteredServices.map((service) => (
             <div
               key={service.id}

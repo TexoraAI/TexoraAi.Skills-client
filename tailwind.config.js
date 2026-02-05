@@ -1,32 +1,41 @@
-
-/** @type {import('tailwindcss').Config} */
 export default {
-  darkMode: "class", // 👈 important line
-
+  darkMode: "class",
   content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        brand: {
-          DEFAULT: "#6366F1",
-          soft: "#4F46E5",
-          subtle: "#EEF2FF",
-        },
-        surface: {
-          DEFAULT: "#020617",
-          card: "#020617",
-          muted: "#0F172A",
-          border: "#1E293B",
-        },
-      },
-      fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-      },
-      boxShadow: {
-        card: "0 18px 45px rgba(15, 23, 42, 0.55)",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+
+        card: "hsl(var(--card))",
+        "card-foreground": "hsl(var(--card-foreground))",
+
+        popover: "hsl(var(--popover))",
+        "popover-foreground": "hsl(var(--popover-foreground))",
+
+        primary: "hsl(var(--primary))",
+        "primary-foreground": "hsl(var(--primary-foreground))",
+
+        secondary: "hsl(var(--secondary))",
+        "secondary-foreground": "hsl(var(--secondary-foreground))",
+
+        muted: "hsl(var(--muted))",
+        "muted-foreground": "hsl(var(--muted-foreground))",
+
+        accent: "hsl(var(--accent))",
+        "accent-foreground": "hsl(var(--accent-foreground))",
+
+        destructive: "hsl(var(--destructive))",
+        "destructive-foreground": "hsl(var(--destructive-foreground))",
+
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
       },
       borderRadius: {
-        xl: "1rem",
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
       },
     },
   },

@@ -1,135 +1,91 @@
-// // // import React from "react";
-// // // import AdminVideoList from "./AdminVideoList";
-// // // import AdminFileList from "./AdminFileList";
 
-// // // const AdminResources = () => {
-// // //   return (
-// // //     <div className="space-y-10 p-6">
-// // //       <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-50">
-// // //         Resources
-// // //       </h1>
-
-// // //       {/* 🎥 VIDEOS */}
-// // //       <AdminVideoList />
-
-// // //       {/* 📄 FILES */}
-// // //       <AdminFileList />
-// // //     </div>
-// // //   );
-// // // };
-
-// // // export default AdminResources;
-
-// // import React from "react";
-// // import AdminVideoList from "./AdminVideoList";
-// // import AdminFileList from "./AdminFileList";
-
-// // const AdminResources = () => {
-// //   return (
-// //     <div className="space-y-8 p-6">
-// //       <AdminVideoList />
-// //       <AdminFileList />
-// //     </div>
-// //   );
-// // };
-
-// // export default AdminResources;
-
-// import React, { useEffect, useState } from "react";
-// import videoService from "../services/videoService";
-// import fileService from "../services/fileService";
+// import React from "react";
+// import ResourceUploadAdmin from "./ResourceUploadAdmin";
+// import AdminVideoList from "./AdminVideoList";
+// import AdminFileList from "./AdminFileList";
 
 // const AdminResources = () => {
-//   const [videos, setVideos] = useState([]);
-//   const [files, setFiles] = useState([]);
-
-//   useEffect(() => {
-//     loadResources();
-//   }, []);
-
-//   const loadResources = async () => {
-//     try {
-//       const [videoRes, fileRes] = await Promise.all([
-//         videoService.getAllVideos(),
-//         fileService.getFiles(0, 100),
-//       ]);
-
-//       setVideos(videoRes.data || []);
-//       setFiles(fileRes.data.content || []);
-//     } catch (err) {
-//       console.error("Failed to load resources", err);
-//     }
-//   };
-
 //   return (
-//     <div className="space-y-8">
-//       {/* VIDEOS */}
-//       <div>
-//         <h2 className="text-xl font-semibold text-slate-100 mb-4">Videos</h2>
+//     <div className="space-y-10 p-6">
+//       {/* 🔼 UPLOAD SECTION (TOP) */}
+//       <ResourceUploadAdmin />
 
-//         {videos.length === 0 && (
-//           <p className="text-slate-400 text-sm">No videos uploaded</p>
-//         )}
+//       {/* 🎥 VIDEOS */}
+//       <AdminVideoList />
 
-//         {videos.map((v) => (
-//           <div
-//             key={v.id}
-//             className="rounded-xl bg-slate-900 border border-slate-700 p-4 mb-4"
-//           >
-//             <p className="text-slate-100 font-medium">{v.originalFileName}</p>
-//             <video
-//               controls
-//               className="mt-3 w-full rounded-lg"
-//               src={videoService.getVideoStreamUrl(v.storedFileName)}
-//             />
-//           </div>
-//         ))}
-//       </div>
-
-//       {/* DOCUMENTS & IMAGES */}
-//       <div>
-//         <h2 className="text-xl font-semibold text-slate-100 mb-4">
-//           Documents & Images
-//         </h2>
-
-//         {files.length === 0 && (
-//           <p className="text-slate-400 text-sm">No files uploaded</p>
-//         )}
-
-//         {files.map((f) => (
-//           <div
-//             key={f.id}
-//             className="rounded-xl bg-slate-900 border border-slate-700 p-4 mb-3"
-//           >
-//             <p className="text-slate-100 font-medium">{f.originalName}</p>
-//             <p className="text-xs text-slate-400">
-//               {f.contentType} · {Math.round(f.size / 1024)} KB
-//             </p>
-//           </div>
-//         ))}
-//       </div>
+//       {/* 📄 DOCUMENTS & IMAGES */}
+//       <AdminFileList />
 //     </div>
 //   );
 // };
 
 // export default AdminResources;
 
+
+// src/Admin/AdminResources.jsx
 import React from "react";
+import { UploadCloud, Video, FileText } from "lucide-react";
+
 import ResourceUploadAdmin from "./ResourceUploadAdmin";
 import AdminVideoList from "./AdminVideoList";
 import AdminFileList from "./AdminFileList";
 
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "@/components/ui/card";
+
 const AdminResources = () => {
   return (
-    <div className="space-y-10 p-6">
-      {/* 🔼 UPLOAD SECTION (TOP) */}
-      <ResourceUploadAdmin />
+    <div className="space-y-10">
+      {/* HERO */}
+      <div className="rounded-3xl p-8 text-white shadow-xl bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600">
+        <h1 className="text-3xl font-bold">Learning Resources</h1>
+        <p className="mt-2 text-sm opacity-90">
+          Upload and manage videos, documents and learning materials
+        </p>
+      </div>
 
-      {/* 🎥 VIDEOS */}
-      <AdminVideoList />
+      {/* UPLOAD */}
+      <Card>
+        <CardHeader className="flex flex-row items-center gap-3">
+          <UploadCloud className="h-5 w-5 text-muted-foreground" />
+          <CardTitle className="text-sm">
+            Upload New Resource
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResourceUploadAdmin />
+        </CardContent>
+      </Card>
 
-      {/* 📄 DOCUMENTS & IMAGES */}
-      <AdminFileList />
+      {/* VIDEOS */}
+      <Card>
+        <CardHeader className="flex flex-row items-center gap-3">
+          <Video className="h-5 w-5 text-muted-foreground" />
+          <CardTitle className="text-sm">
+            Uploaded Videos
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AdminVideoList />
+        </CardContent>
+      </Card>
+
+      {/* FILES */}
+      <Card>
+        <CardHeader className="flex flex-row items-center gap-3">
+          <FileText className="h-5 w-5 text-muted-foreground" />
+          <CardTitle className="text-sm">
+            Documents & Images
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AdminFileList />
+        </CardContent>
+      </Card>
     </div>
   );
 };

@@ -1,86 +1,133 @@
-import { Send } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { Send, User, GraduationCap } from "lucide-react";
+import { sendMessage, getConversation } from "@/services/chatService";
 
 const Doubts = () => {
-const [message, setMessage] = useState("");
+  const [message, setMessage] = useState("");
+  const [chat, setChat] = useState([]);
+  const chatEndRef = useRef(null);
 
-const [chat, setChat] = useState([
-    {
-    sender: "student",
-    text: "Sir, I am confused in React useState. Please explain?",
-    time: "10:10 AM",
-    },
-    {
-    sender: "teacher",
-    text: "Sure! useState is used to store and update values inside a component.",
-    time: "10:12 AM",
-    },
-]);
+  // ✅ logged-in student
+  const currentUser = JSON.parse(localStorage.getItem("lms_user"));
+  const studentEmail = currentUser?.email;
 
-const sendMessage = () => {
+  // 🔒 hardcoded trainer (as requested)
+  const trainerEmail = "saleem77987@gmail.com";
+
+  // ================= LOAD CONVERSATION =================
+  useEffect(() => {
+    if (!studentEmail) return;
+
+    getConversation(studentEmail, trainerEmail)
+      .then((res) => {
+        setChat(
+          res.data.map((m) => ({
+            sender: m.senderRole === "STUDENT" ? "student" : "teacher",
+            text: m.message,
+            time: new Date(m.sentAt).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          })),
+        );
+      })
+      .catch(() => console.log("No messages yet"));
+  }, [studentEmail]);
+
+  // ================= AUTO SCROLL =================
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chat]);
+
+  // ================= SEND MESSAGE =================
+  const sendMessageHandler = async () => {
     if (!message.trim()) return;
 
-    setChat([
-    ...chat,
-    {
-        sender: "student",
-        text: message,
-        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-    },
-    ]);
+    await sendMessage({
+      receiverEmail: trainerEmail,
+      senderRole: "STUDENT",
+      message,
+    });
 
     setMessage("");
-};
 
-return (
-    <div className="p-6 flex flex-col h-full max-h-screen">
+    const res = await getConversation(studentEmail, trainerEmail);
+    setChat(
+      res.data.map((m) => ({
+        sender: m.senderRole === "STUDENT" ? "student" : "teacher",
+        text: m.message,
+        time: new Date(m.sentAt).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      })),
+    );
+  };
 
-    <h1 className="text-2xl font-bold mb-4">Doubts / Chat</h1>
-
-      {/* Chat Box */}
-    <div className="flex-1 bg-white rounded-xl shadow p-4 overflow-y-auto">
-        {chat.map((msg, idx) => (
-        <div
-            key={idx}
-            className={`mb-4 flex ${
-            msg.sender === "student" ? "justify-end" : "justify-start"
-            }`}
-        >
+  return (
+    <div className="min-h-screen bg-slate-100 p-6">
+      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow flex flex-col h-[600px]">
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {chat.map((msg, idx) => (
             <div
-            className={`p-3 max-w-xs rounded-xl shadow ${
-                msg.sender === "student"
-                ? "bg-blue-600 text-white rounded-br-none"
-                : "bg-gray-200 text-gray-800 rounded-bl-none"
-            }`}
+              key={idx}
+              className={`flex ${
+                msg.sender === "student" ? "justify-end" : "justify-start"
+              }`}
             >
-            <p>{msg.text}</p>
-            <span className="text-xs opacity-70 block mt-1">{msg.time}</span>
+              <div className="flex gap-2 items-end max-w-md">
+                {msg.sender === "teacher" && (
+                  <GraduationCap className="w-5 h-5 text-indigo-600" />
+                )}
+
+                <div
+                  className={`px-4 py-2 rounded-xl text-sm ${
+                    msg.sender === "student"
+                      ? "bg-rose-500 text-white"
+                      : "bg-slate-200"
+                  }`}
+                >
+                  {msg.text}
+                  <div className="text-xs opacity-70 mt-1">{msg.time}</div>
+                </div>
+
+                {msg.sender === "student" && (
+                  <User className="w-5 h-5 text-rose-600" />
+                )}
+              </div>
             </div>
+          ))}
+          <div ref={chatEndRef} />
         </div>
-        ))}
-    </div>
 
-      {/* Input Box */}
-    <div className="flex items-center gap-3 mt-4">
-        <input
-        type="text"
-        placeholder="Type your doubt..."
-        className="flex-1 border px-4 py-2 rounded-xl focus:ring-2 focus:ring-blue-600"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-        />
+        {/* Input */}
+        <div className="border-t p-4 flex gap-3">
+          <textarea
+            rows="2"
+            placeholder="Type your doubt..."
+            className="flex-1 border rounded-lg p-2"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendMessageHandler();
+              }
+            }}
+          />
 
-        <button
-        onClick={sendMessage}
-        className="bg-blue-600 text-white p-3 rounded-xl hover:bg-blue-700 transition"
-        >
-        <Send size={20} />
-        </button>
+          <button
+            onClick={sendMessageHandler}
+            disabled={!message.trim()}
+            className="bg-rose-600 text-white px-4 rounded-lg"
+          >
+            <Send />
+          </button>
+        </div>
+      </div>
     </div>
-
-    </div>
-);
+  );
 };
 
 export default Doubts;

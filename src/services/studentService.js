@@ -1,32 +1,3 @@
-// import axios from "axios";
-
-// const API_BASE = "http://localhost:9000/api/students";
-
-// export const listStudents = async () => {
-//   const res = await axios.get(API_BASE);
-//   return res.data;
-// };
-
-// export const createStudent = async (userId) => {
-//   const res = await axios.post(API_BASE, { userId });
-//   return res.data;
-// };
-
-// export const updateStudentStatus = async (id, status) => {
-//   const res = await axios.put(`${API_BASE}/${id}/status`, null, {
-//     params: { status },
-//   });
-//   return res.data;
-// };
-
-// export const touchStudent = async (id) => {
-//   await axios.put(`${API_BASE}/${id}/touch`);
-// };
-
-// export const deleteStudent = async (id) => {
-//   await axios.delete(`${API_BASE}/${id}`);
-// };
-
 import axios from "axios";
 
 const API_BASE = "http://localhost:9000/api/students";

@@ -95,7 +95,7 @@ import StudentReports from "./Trainer/StudentReports";
 import TrainerSettings from "./Trainer/TrainerSettings";
 import UploadDocuments from "./Trainer/UploadDocuments";
 import UploadVideos from "./Trainer/UploadVideos";
-import CourseManagement from "./Trainer/TrainerCourseManagement";
+import CourseManagement from "./Trainer/TrainerCourseManagement.jsx";
 import CourseModules from "./Trainer/TrainerCourseModules";
 
 /* ================= ADMIN ================= */

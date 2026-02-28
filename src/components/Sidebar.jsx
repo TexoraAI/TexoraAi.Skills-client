@@ -38,7 +38,8 @@ import {
   PlayCircle,
   Mic,
   Upload,
-  List
+  List,
+  Star,
 } from "lucide-react";
 
 
@@ -206,7 +207,22 @@ const adminMenus = [
       { name: "Categories", path: "/admin/categories", icon: FolderOpen },
     ],
   },
-
+  {
+    name: "Free Learning Hub",
+    icon: GraduationCap,
+    children: [
+      { 
+        name: "Upload Course", 
+        path: "/admin/course-upload", 
+        icon: Upload 
+      },
+      { 
+        name: "Upload Featured Course", 
+        path: "/admin/featured-course-upload", 
+        icon: Star 
+      },
+    ],
+  },
   // ✅ NEW DROPDOWN ADDED HERE
   {
     name: "Live & Recorded Control",

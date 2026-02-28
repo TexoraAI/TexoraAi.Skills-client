@@ -136,6 +136,8 @@ import BatchStudentsPage from "./Admin/BatchStudentsPage";
 import BatchTrainerOverviewPage from "./Admin/BatchTrainerOverviewPage";
 import AdminLiveSessions from "./Admin/AdminLiveSessions";
 import AdminRecordedVideos from "./Admin/AdminRecordedVideos";
+import Featuredcourseuploadform from "./Admin/Featuredcourseuploadform";
+import Admincourseuploadform from "./Admin/Admincourseuploadform";
 /* ================= BUSINESS ================= */
 import BusinessDashboard from "./Business/BusinessDashboard";
 import JobOpenings from "./Business/Hiring Manager/JobOpenings.jsx";
@@ -361,6 +363,9 @@ export default function App() {
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="edit-profile" element={<EditProfile />} />
+          <Route path="featured-course-upload" element={<Featuredcourseuploadform />} />
+           <Route path="course-upload" element={<Admincourseuploadform />} />
+          
         </Route>
 
         {/* ================= BUSINESS ================= */}

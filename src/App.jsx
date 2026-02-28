@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
@@ -65,7 +64,6 @@ import EditProfile from "./pages/common/EditProfile";
 import DashboardPage from "./Student/DashboardPage.jsx";
 import VideoLectures from "./Student/videolecctures.jsx";
 import Documents from "./Student/Documents.jsx";
-import Resources from "./Student/Resources.jsx";
 import MyCourses from "./Student/MyCourses.jsx";
 import StudentCourseView from "./Student/StudentCourseView";
 import Assessments from "./Student/Assessments.jsx";
@@ -78,8 +76,11 @@ import Overview from "./Student/overview.jsx";
 import Settings from "./Student/Settings.jsx";
 import TwoFactorAuth from "./Student/TwoFactorAuth";
 import UpdateEmail from "./Student/UpdateEmail";
-// import StudentAssignments from "./Student/StudentAssignments.jsx";
-
+import StudentAssignments from "./Student/StudentAssignments.jsx";
+import AssignmentDetail from "./Student/AssignmentDetail";
+import StudentClassroomPage from "./Student/StudentClassroomPage";
+import LiveClasses from "./Student/LiveClasses.jsx";
+import RecordedClasses from "./Student/RecordedClasses.jsx";
 /* ================= TRAINER ================= */
 import TrainerDashboard from "./Trainer/Dashboard";
 import TrainerBatches from "./Trainer/Batches";
@@ -87,6 +88,10 @@ import TrainerAssessments from "./Trainer/Assessments";
 import TrainerAttendance from "./Trainer/Attendance";
 import BatchReports from "./Trainer/BatchReports";
 import CreateAssignments from "./Trainer/CreateAssignments";
+import ViewAssignments from "./trainer/ViewAssignments";
+import ViewSubmissions from "./trainer/ViewSubmissions";
+import EditAssignment from "./Trainer/EditAssignment";
+import MyAssignments from "./trainer/MyAssignments";
 import CreateQuiz from "./Trainer/CreateQuiz";
 import MyQuizzes from "./Trainer/MyQuizzes";
 import DoubtsManagement from "./Trainer/DoubtsManagement";
@@ -97,9 +102,22 @@ import UploadDocuments from "./Trainer/UploadDocuments";
 import UploadVideos from "./Trainer/UploadVideos";
 import CourseManagement from "./Trainer/TrainerCourseManagement.jsx";
 import CourseModules from "./Trainer/TrainerCourseModules";
+import TrainerBatchesPage from "./Trainer/TrainerBatchesPage";
+import TrainerClassroomPage from "./Trainer/TrainerClassroomPage";
+import TrainerFiles from "./Trainer/TrainerFiles";
+import EditRecordedClass from "./Trainer/EditRecordedClass";
 
+/* ================= NEW LIVE + RECORDED ================= */
+import TrainerLiveClasses from "./Trainer/TrainerLiveClasses";
+import StartLiveSession from "./Trainer/StartLiveSession";
+import LiveSessionControls from "./Trainer/LiveSessionControls";
+import LiveSessionHistory from "./Trainer/LiveSessionHistory";
+import UploadRecordedVideo from "./Trainer/UploadRecordedVideo";
+import RecordedClassList from "./Trainer/RecordedClassList";
+import LiveAttendanceReport from "./Trainer/LiveAttendanceReport";
 /* ================= ADMIN ================= */
 import AdminDashboard from "./Admin/AdminDashboard";
+import AssignTrainerPage from "./Admin/AssignTrainerPage";
 import OrgSettings from "./Admin/OrgSettings";
 import Branches from "./Admin/Branches";
 import AdminBatches from "./Admin/AdminBatches";
@@ -110,12 +128,14 @@ import AllCourses from "./Admin/AllCourses";
 import Categories from "./Admin/Categories";
 import CertificatesAdmin from "./Admin/CertificatesAdmin";
 import OrgReports from "./Admin/OrgReports";
-import AdminResources from "./Admin/AdminResources";
 import DepartmentList from "./Admin/DepartmentList";
 import UsageAnalytics from "./Admin/UsageAnalytics";
 import FeedbackAdmin from "./Admin/FeedbackAdmin";
 import PendingUsers from "./Admin/PendingUsers.jsx";
-
+import BatchStudentsPage from "./Admin/BatchStudentsPage";
+import BatchTrainerOverviewPage from "./Admin/BatchTrainerOverviewPage";
+import AdminLiveSessions from "./Admin/AdminLiveSessions";
+import AdminRecordedVideos from "./Admin/AdminRecordedVideos";
 /* ================= BUSINESS ================= */
 import BusinessDashboard from "./Business/BusinessDashboard";
 import JobOpenings from "./Business/Hiring Manager/JobOpenings.jsx";
@@ -207,16 +227,21 @@ export default function App() {
           {/* DASHBOARD */}
           <Route index element={<DashboardPage />} />
 
+          <Route path="classroom" element={<StudentClassroomPage />} />
           {/* LEARNING */}
           <Route path="videos" element={<VideoLectures />} />
           <Route path="documents" element={<Documents />} />
-          <Route path="resources" element={<Resources />} />
+
+          {/* 🔥 NEW ADDED */}
+        <Route path="live-classes" element={<LiveClasses />} />
+        <Route path="recorded-classes" element={<RecordedClasses />} />
 
           {/* COURSES */}
           <Route path="courses" element={<MyCourses />} />
           <Route path="course/:id" element={<StudentCourseView />} />
           <Route path="assessments" element={<Assessments />} />
-          {/* <Route path="assignments" element={<StudentAssignments />} /> */}
+          <Route path="assignments" element={<StudentAssignments />} />|
+          <Route path="assignments/:id" element={<AssignmentDetail />} />
           <Route path="quiz/:quizId" element={<AttemptQuiz />} />
           <Route path="my-quizzes" element={<MyQuizHistory />} />
 
@@ -233,7 +258,7 @@ export default function App() {
             <Route path="update-email" element={<UpdateEmail />} />
           </Route>
 
-          {/* 🔔 COMMON TOP BAR ROUTES */}
+          {/*  COMMON TOP BAR ROUTES */}
           <Route path="search" element={<SearchPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="profile" element={<ProfilePage />} />
@@ -241,37 +266,55 @@ export default function App() {
         </Route>
 
         {/* ================= TRAINER ================= */}
-        <Route
-          path="/trainer"
-          element={
-            <ProtectedRoute>
-              <RoleGuard allowedRoles={["TRAINER", "ADMIN"]}>
-                <TrainerPanel />
-              </RoleGuard>
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<TrainerDashboard />} />
-          <Route path="batches" element={<TrainerBatches />} />
-          <Route path="upload-videos" element={<UploadVideos />} />
-          <Route path="upload-docs" element={<UploadDocuments />} />
-          <Route path="create-quiz" element={<CreateQuiz />} />
-          <Route path="my-quizzes" element={<MyQuizzes />} />
-          <Route path="create-assignments" element={<CreateAssignments />} />
-          <Route path="course-management" element={<CourseManagement />} />
-          <Route path="course/:courseId/modules" element={<CourseModules />} />
-          <Route path="assessments" element={<TrainerAssessments />} />
-          <Route path="attendance" element={<TrainerAttendance />} />
-          <Route path="doubts-management" element={<DoubtsManagement />} />
-          <Route path="student-reports" element={<StudentReports />} />
-          <Route path="batch-reports" element={<BatchReports />} />
-          <Route path="performance" element={<PerformanceAnalysis />} />
-          <Route path="settings" element={<TrainerSettings />} />
-          <Route path="search" element={<SearchPage />} />
-          <Route path="notifications" element={<NotificationsPage />} />
-          <Route path="profile" element={<ProfilePage />} />
-          <Route path="edit-profile" element={<EditProfile />} />
-        </Route>
+<Route
+  path="/trainer"
+  element={
+    <ProtectedRoute>
+      <RoleGuard allowedRoles={["TRAINER", "ADMIN"]}>
+        <TrainerPanel />
+      </RoleGuard>
+    </ProtectedRoute>
+  }
+>
+  <Route index element={<TrainerDashboard />} />
+
+  {/* Existing Routes */}
+  <Route path="batches" element={<TrainerBatchesPage />} />
+  <Route path="batches/:batchId/students" element={<TrainerClassroomPage />} />
+  <Route path="trainerfiles" element={<TrainerFiles />} />
+  <Route path="upload-videos" element={<UploadVideos />} />
+  <Route path="upload-docs" element={<UploadDocuments />} />
+  <Route path="create-quiz" element={<CreateQuiz />} />
+  <Route path="my-quizzes" element={<MyQuizzes />} />
+  <Route path="create-assignments" element={<CreateAssignments />} />
+  <Route path="course-management" element={<CourseManagement />} />
+  <Route path="course/:courseId/modules" element={<CourseModules />} />
+  <Route path="assessments" element={<TrainerAssessments />} />
+  <Route path="attendance" element={<TrainerAttendance />} />
+  <Route path="doubts-management" element={<DoubtsManagement />} />
+  <Route path="student-reports" element={<StudentReports />} />
+  <Route path="batch-reports" element={<BatchReports />} />
+  <Route path="performance" element={<PerformanceAnalysis />} />
+
+  {/* ================= LIVE CLASSES ================= */}
+  <Route path="live" element={<TrainerLiveClasses />} />
+  <Route path="start-live" element={<StartLiveSession />} />
+  <Route path="live-controls" element={<LiveSessionControls />} />
+  <Route path="live-history" element={<LiveSessionHistory />} />
+  <Route path="live-attendance" element={<LiveAttendanceReport />} />
+
+  {/* ================= RECORDED CLASSES ================= */}
+  <Route path="upload-recorded" element={<UploadRecordedVideo />} />
+  <Route path="recorded-list" element={<RecordedClassList />} />
+  <Route path="edit-recorded/:id" element={<EditRecordedClass />} />
+  {/* Settings */}
+  <Route path="settings" element={<TrainerSettings />} />
+  <Route path="search" element={<SearchPage />} />
+  <Route path="notifications" element={<NotificationsPage />} />
+  <Route path="profile" element={<ProfilePage />} />
+  <Route path="edit-profile" element={<EditProfile />} />
+</Route>
+
 
         {/* ================= ADMIN ================= */}
         <Route
@@ -288,6 +331,19 @@ export default function App() {
           <Route path="settings" element={<OrgSettings />} />
           <Route path="branches" element={<Branches />} />
           <Route path="batches" element={<AdminBatches />} />
+          <Route
+            path="batches/:batchId/assign-trainer"
+            element={<AssignTrainerPage />}
+          />
+          <Route
+            path="batches/:batchId/students/:trainerEmail"
+            element={<BatchStudentsPage />}
+          />
+          <Route
+            path="batches/:batchId/trainers"
+            element={<BatchTrainerOverviewPage />}
+          />
+
           <Route path="users" element={<AllUsers />} />
           <Route path="students" element={<StudentsAdmin />} />
           <Route path="trainers" element={<TrainersAdmin />} />
@@ -296,10 +352,11 @@ export default function App() {
           <Route path="categories" element={<Categories />} />
           <Route path="certificates" element={<CertificatesAdmin />} />
           <Route path="reports" element={<OrgReports />} />
-          <Route path="resources" element={<AdminResources />} />
           <Route path="departmentlist" element={<DepartmentList />} />
           <Route path="usage" element={<UsageAnalytics />} />
           <Route path="feedback" element={<FeedbackAdmin />} />
+          <Route path="live-sessions" element={<AdminLiveSessions />} />
+          <Route path="recorded-videos" element={<AdminRecordedVideos />} />
           <Route path="search" element={<SearchPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="profile" element={<ProfilePage />} />

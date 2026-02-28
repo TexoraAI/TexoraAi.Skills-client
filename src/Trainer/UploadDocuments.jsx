@@ -1,225 +1,236 @@
 // import React, { useEffect, useState } from "react";
 // import fileService from "../services/fileService";
-
+// import videoService from "../services/videoService";
 // import {
-//   Upload,
-//   FileText,
+//   UploadCloud,
 //   Loader2,
-//   File,
 //   CheckCircle,
-//   AlertCircle,
 //   X,
 //   Folder,
-//   Download,
-//   Eye,
-//   Trash2,
-//   Search,
-//   Filter,
-//   FileType,
-//   Calendar,
-//   HardDrive,
 //   Sparkles,
 // } from "lucide-react";
-
 // import { Card } from "@/components/ui/card";
 // import { Button } from "@/components/ui/button";
 
 // const UploadDocuments = () => {
 //   const [file, setFile] = useState(null);
-//   const [files, setFiles] = useState([]); // ✅ REAL DATA
+//   const [files, setFiles] = useState([]);
+//   const [batches, setBatches] = useState([]);
 //   const [loading, setLoading] = useState(false);
-//   const [uploadProgress, setUploadProgress] = useState(0);
 //   const [message, setMessage] = useState("");
 //   const [messageType, setMessageType] = useState("");
 //   const [isDragging, setIsDragging] = useState(false);
 
-//   const role = localStorage.getItem("lms_role"); // ADMIN / TRAINER
+//   const [title, setTitle] = useState("");
+//   const [description, setDescription] = useState("");
+//   const [batchId, setBatchId] = useState("");
 
-//   /* ================= FETCH FILES (RECENT UPLOADS) ================= */
 //   useEffect(() => {
 //     loadFiles();
+//     loadBatches();
 //   }, []);
 
 //   const loadFiles = async () => {
 //     try {
-//       const res = await fileService.getFiles(0, 20); // backend API
-//       setFiles(res.data.content || []);
+//       const res = await fileService.getTrainerFiles();
+//       setFiles(res.data || []);
 //     } catch (err) {
-//       console.error("Failed to load files", err);
+//       console.error(err);
 //     }
 //   };
 
-//   /* ================= FILE VALIDATION ================= */
-//   const handleFileChange = (e) => {
-//     const selectedFile = e.target.files[0];
-//     if (selectedFile) validateAndSetFile(selectedFile);
+//   const loadBatches = async () => {
+//     try {
+//       const res = await videoService.getTrainerBatches();
+//       setBatches(res.data || []);
+//     } catch (err) {
+//       console.error("Failed to load batches", err);
+//     }
 //   };
 
-//   const validateAndSetFile = (selectedFile) => {
-//     const validTypes = [
-//       "application/pdf",
-//       "application/msword",
-//       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-//       "application/vnd.ms-powerpoint",
-//       "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-//       "text/plain",
-//     ];
+//   // ✅ ALLOW PDF + WORD + PPT
+//   const allowedTypes = [
+//     "application/pdf",
 
-//     if (!validTypes.includes(selectedFile.type)) {
-//       setMessage("Please upload a valid document (PDF, DOC, DOCX, PPT, PPTX, TXT)");
+//     // WORD
+//     "application/msword",
+//     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+
+//     // PPT
+//     "application/vnd.ms-powerpoint",
+//     "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+//   ];
+
+//   const validateAndSetFile = (selectedFile) => {
+//     if (!selectedFile) return;
+
+//     if (!allowedTypes.includes(selectedFile.type)) {
+//       setMessage("Only PDF, Word, or PPT files are allowed");
 //       setMessageType("error");
+//       setFile(null);
 //       return;
 //     }
 
-//     if (selectedFile.size > 52428800) {
-//       setMessage("File size exceeds 50MB limit");
+//     if (selectedFile.size > 100 * 1024 * 1024) {
+//       setMessage("File exceeds 100MB");
 //       setMessageType("error");
+//       setFile(null);
 //       return;
 //     }
 
 //     setFile(selectedFile);
 //     setMessage("");
-//     setMessageType("");
 //   };
-
-//   /* ================= DRAG & DROP ================= */
-//   const handleDragOver = (e) => {
-//     e.preventDefault();
-//     setIsDragging(true);
-//   };
-
-//   const handleDragLeave = () => setIsDragging(false);
 
 //   const handleDrop = (e) => {
 //     e.preventDefault();
 //     setIsDragging(false);
-//     const droppedFile = e.dataTransfer.files[0];
-//     if (droppedFile) validateAndSetFile(droppedFile);
+//     validateAndSetFile(e.dataTransfer.files[0]);
 //   };
 
-//   /* ================= UPLOAD API ================= */
 //   const handleUpload = async () => {
-//     if (!file) {
-//       setMessage("Please select a document");
+//     if (!file || !batchId) {
+//       setMessage("Select batch and file");
 //       setMessageType("error");
 //       return;
 //     }
 
 //     try {
 //       setLoading(true);
-//       setMessage("");
-//       setMessageType("");
-//       setUploadProgress(0);
+//       await fileService.uploadFile(file, batchId);
 
-//       const progressInterval = setInterval(() => {
-//         setUploadProgress((prev) => (prev >= 90 ? 90 : prev + 10));
-//       }, 200);
+//       setMessage("File uploaded successfully");
+//       setMessageType("success");
 
-//       await fileService.uploadFile(file, role); // ✅ UPLOAD API
-
-//       clearInterval(progressInterval);
-//       setUploadProgress(100);
-
-//       setTimeout(async () => {
-//         setMessage("Document uploaded successfully!");
-//         setMessageType("success");
-//         setFile(null);
-//         setUploadProgress(0);
-//         await loadFiles(); // ✅ REFRESH RECENT UPLOADS
-//       }, 400);
-//     } catch (err) {
-//       console.error(err);
-//       setMessage("Upload failed. Please try again.");
+//       setFile(null);
+//       setTitle("");
+//       setDescription("");
+//       setBatchId("");
+//       loadFiles();
+//     } catch {
+//       setMessage("Upload failed");
 //       setMessageType("error");
-//       setUploadProgress(0);
 //     } finally {
 //       setLoading(false);
 //     }
 //   };
 
-//   const formatFileSize = (bytes) => {
-//     const k = 1024;
-//     const sizes = ["Bytes", "KB", "MB", "GB"];
-//     const i = Math.floor(Math.log(bytes) / Math.log(k));
-//     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + " " + sizes[i];
-//   };
-
 //   return (
-//     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
-//       <div className="max-w-7xl mx-auto space-y-8">
-
-//         {/* ================= HEADER ================= */}
-//         <div className="rounded-3xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-10 text-white shadow-xl">
-//           <div className="flex items-center gap-4">
-//             <Folder className="w-8 h-8" />
-//             <h1 className="text-4xl font-bold">Upload Documents</h1>
+//     <div className="min-h-screen bg-slate-100 dark:bg-slate-950 transition-colors p-6">
+//       <div className="max-w-5xl mx-auto space-y-6">
+//         <div className="rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 p-6 text-white shadow-lg">
+//           <div className="flex items-center gap-3">
+//             <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow">
+//               <Folder className="w-5 h-5 text-blue-600" />
+//             </div>
+//             <div>
+//               <h1 className="text-xl font-semibold">Document Studio</h1>
+//               <p className="text-sm text-white/90">
+//                 Upload training PDFs with details
+//               </p>
+//             </div>
 //           </div>
 //         </div>
 
-//         {/* ================= UPLOAD CARD ================= */}
-//         <Card className="p-8 rounded-3xl">
-//           <h2 className="text-2xl font-bold mb-6">Upload New Document</h2>
+//         <Card className="rounded-2xl p-6 shadow-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+//           <div className="flex items-center gap-2 mb-5">
+//             <Sparkles className="text-blue-500 w-4 h-4" />
+//             <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+//               Upload Document
+//             </h2>
+//           </div>
 
 //           <div
-//             onDragOver={handleDragOver}
-//             onDragLeave={handleDragLeave}
+//             onDragOver={(e) => {
+//               e.preventDefault();
+//               setIsDragging(true);
+//             }}
+//             onDragLeave={() => setIsDragging(false)}
 //             onDrop={handleDrop}
-//             className={`border-2 border-dashed rounded-xl p-10 text-center ${
-//               isDragging ? "border-blue-500 bg-blue-50" : "border-slate-300"
-//             }`}
+//             className={`rounded-xl border-2 border-dashed p-8 text-center transition-all
+//             ${isDragging ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" : "border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800"}`}
 //           >
 //             {!file ? (
 //               <>
-//                 <FileText className="w-12 h-12 mx-auto text-blue-500" />
-//                 <input type="file" onChange={handleFileChange} className="mt-4" />
+//                 <UploadCloud className="w-10 h-10 mx-auto text-blue-500 mb-3" />
+//                 <p className="text-sm text-slate-600 dark:text-slate-300">
+//                   Drag & drop document here
+//                 </p>
+
+//                 {/* ✅ only change here */}
+//                 <label className="inline-block mt-4 px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold cursor-pointer transition">
+//                   Browse File
+//                   <input
+//                     type="file"
+//                     hidden
+//                     accept=".pdf,.doc,.docx,.ppt,.pptx"
+//                     onChange={(e) => validateAndSetFile(e.target.files[0])}
+//                   />
+//                 </label>
 //               </>
 //             ) : (
-//               <>
-//                 <CheckCircle className="w-12 h-12 mx-auto text-green-500" />
-//                 <p className="mt-2">{file.name}</p>
-//                 <p className="text-sm">{formatFileSize(file.size)}</p>
-//                 <Button variant="outline" size="sm" onClick={() => setFile(null)}>
+//               <div className="space-y-2">
+//                 <CheckCircle className="w-9 h-9 mx-auto text-emerald-500" />
+//                 <p className="font-semibold text-slate-900 dark:text-slate-100">
+//                   {file.name}
+//                 </p>
+//                 <Button
+//                   size="sm"
+//                   variant="outline"
+//                   onClick={() => setFile(null)}
+//                 >
 //                   <X className="w-4 h-4 mr-1" /> Remove
 //                 </Button>
-//               </>
+//               </div>
 //             )}
 //           </div>
 
-//           {loading && <p className="mt-3">Uploading... {uploadProgress}%</p>}
+//           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+//             <input
+//               value={title}
+//               onChange={(e) => setTitle(e.target.value)}
+//               placeholder="Title"
+//               className="rounded-lg border px-4 py-2 text-sm"
+//             />
 
-//           <Button onClick={handleUpload} disabled={loading || !file} className="mt-4 w-full">
-//             {loading ? <Loader2 className="animate-spin" /> : <Upload className="mr-2" />}
-//             Upload Document
+//             <select
+//               value={batchId}
+//               onChange={(e) => setBatchId(e.target.value)}
+//               className="rounded-lg border px-4 py-2 text-sm"
+//             >
+//               <option value="">Select Batch</option>
+//               {batches.map((b) => (
+//                 <option key={b.id} value={b.id}>
+//                   {b.name || "Batch"} (ID: {b.id})
+//                 </option>
+//               ))}
+//             </select>
+
+//             <textarea
+//               rows={3}
+//               value={description}
+//               onChange={(e) => setDescription(e.target.value)}
+//               placeholder="Description"
+//               className="rounded-lg border px-4 py-2 text-sm md:col-span-2"
+//             />
+//           </div>
+
+//           <Button
+//             onClick={handleUpload}
+//             disabled={!file || loading}
+//             className="mt-6 w-full bg-emerald-600 text-white"
+//           >
+//             {loading ? <Loader2 className="animate-spin" /> : "Upload File"}
 //           </Button>
 
 //           {message && (
-//             <p className={`mt-3 ${messageType === "success" ? "text-green-600" : "text-red-600"}`}>
+//             <p
+//               className={`mt-3 text-sm ${messageType === "success" ? "text-emerald-500" : "text-red-500"}`}
+//             >
 //               {message}
 //             </p>
 //           )}
 //         </Card>
-
-//         {/* ================= RECENT UPLOADS (API) ================= */}
-//         <Card className="p-8 rounded-3xl">
-//           <h2 className="text-2xl font-bold mb-4">Recent Uploads</h2>
-
-//           {files.length === 0 ? (
-//             <p className="text-sm text-slate-500">No documents uploaded yet</p>
-//           ) : (
-//             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-//               {files.map((doc) => (
-//                 <Card key={doc.id} className="p-4">
-//                   <p className="font-semibold truncate">{doc.originalName}</p>
-//                   <p className="text-xs text-slate-500">
-//                     {formatFileSize(doc.size)} ·{" "}
-//                     {new Date(doc.uploadedAt).toLocaleDateString()}
-//                   </p>
-//                 </Card>
-//               ))}
-//             </div>
-//           )}
-//         </Card>
-
 //       </div>
 //     </div>
 //   );
@@ -227,20 +238,19 @@
 
 // export default UploadDocuments;
 
-
-
 import React, { useEffect, useState } from "react";
 import fileService from "../services/fileService";
+import videoService from "../services/videoService";
 import {
   UploadCloud,
-  FileText,
   Loader2,
   CheckCircle,
   X,
   Folder,
-  Calendar,
-  HardDrive,
   Sparkles,
+  Eye,
+  Download,
+  Trash2,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -248,48 +258,62 @@ import { Button } from "@/components/ui/button";
 const UploadDocuments = () => {
   const [file, setFile] = useState(null);
   const [files, setFiles] = useState([]);
+  const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
   const [isDragging, setIsDragging] = useState(false);
 
-  const role = localStorage.getItem("lms_role");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [batchId, setBatchId] = useState("");
 
-  /* ================= LOAD FILES ================= */
   useEffect(() => {
     loadFiles();
+    loadBatches();
   }, []);
 
   const loadFiles = async () => {
     try {
-      const res = await fileService.getFiles(0, 20);
-      setFiles(res.data.content || []);
+      const res = await fileService.getTrainerFiles();
+      console.log(res.data); // debugging
+      setFiles(res.data || []);
     } catch (err) {
       console.error(err);
     }
   };
 
-  /* ================= FILE VALIDATION ================= */
-  const validateAndSetFile = (selectedFile) => {
-    const validTypes = [
-      "application/pdf",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "application/vnd.ms-powerpoint",
-      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-      "text/plain",
-    ];
+  const loadBatches = async () => {
+    try {
+      const res = await videoService.getTrainerBatches();
+      setBatches(res.data || []);
+    } catch (err) {
+      console.error("Failed to load batches", err);
+    }
+  };
 
-    if (!validTypes.includes(selectedFile.type)) {
-      setMessage("Only PDF, DOC, DOCX, PPT, PPTX, TXT allowed");
+  const allowedTypes = [
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.ms-powerpoint",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  ];
+
+  const validateAndSetFile = (selectedFile) => {
+    if (!selectedFile) return;
+
+    if (!allowedTypes.includes(selectedFile.type)) {
+      setMessage("Only PDF, Word, or PPT files are allowed");
       setMessageType("error");
+      setFile(null);
       return;
     }
 
-    if (selectedFile.size > 52428800) {
-      setMessage("File size exceeds 50MB");
+    if (selectedFile.size > 100 * 1024 * 1024) {
+      setMessage("File exceeds 100MB");
       setMessageType("error");
+      setFile(null);
       return;
     }
 
@@ -297,78 +321,91 @@ const UploadDocuments = () => {
     setMessage("");
   };
 
-  /* ================= DRAG DROP ================= */
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
-    const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile) validateAndSetFile(droppedFile);
+    validateAndSetFile(e.dataTransfer.files[0]);
   };
 
-  /* ================= UPLOAD ================= */
   const handleUpload = async () => {
-    if (!file) return;
+    if (!file || !batchId) {
+      setMessage("Select batch and file");
+      setMessageType("error");
+      return;
+    }
 
     try {
       setLoading(true);
-      setUploadProgress(10);
+      await fileService.uploadFile(file, batchId, title, description);
 
-      const interval = setInterval(() => {
-        setUploadProgress((p) => (p >= 90 ? 90 : p + 10));
-      }, 200);
+      setMessage("File uploaded successfully");
+      setMessageType("success");
 
-      await fileService.uploadFile(file, role);
-
-      clearInterval(interval);
-      setUploadProgress(100);
-
-      setTimeout(async () => {
-        setMessage("Document uploaded successfully");
-        setMessageType("success");
-        setFile(null);
-        setUploadProgress(0);
-        await loadFiles();
-      }, 400);
+      setFile(null);
+      setTitle("");
+      setDescription("");
+      setBatchId("");
+      loadFiles();
     } catch {
       setMessage("Upload failed");
       setMessageType("error");
-      setUploadProgress(0);
     } finally {
       setLoading(false);
     }
   };
 
-  const formatFileSize = (bytes) =>
-    Math.round(bytes / 1024 / 1024) + " MB";
+  const handleDelete = async (id) => {
+    try {
+      await fileService.deleteFile(id);
+      setFiles(files.filter((f) => f.id !== id));
+      setMessage("File deleted successfully");
+      setMessageType("success");
+    } catch {
+      setMessage("Delete failed");
+      setMessageType("error");
+    }
+  };
+
+  const handlePreview = async (fileItem) => {
+    try {
+      const res = await fileService.viewFileBlob(fileItem.id);
+
+      const blob = new Blob([res.data], {
+        type: res.headers["content-type"],
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch (err) {
+      console.error(err);
+      alert("Preview failed");
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 p-6">
-      <div className="max-w-7xl mx-auto space-y-10">
-
-        {/* ================= HERO ================= */}
-        <div className="rounded-3xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-10 text-white shadow-xl relative overflow-hidden">
-          <div className="absolute inset-0 bg-white/5 backdrop-blur-sm" />
-          <div className="relative flex items-center gap-4">
-            <Folder className="w-10 h-10" />
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 transition-colors p-6">
+      <div className="max-w-5xl mx-auto space-y-6">
+        <div className="rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 p-6 text-white shadow-lg">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow">
+              <Folder className="w-5 h-5 text-blue-600" />
+            </div>
             <div>
-              <h1 className="text-4xl font-bold">Document Studio</h1>
-              <p className="text-white/80 mt-1">
-                Upload & manage learning resources for your students
+              <h1 className="text-xl font-semibold">Document Studio</h1>
+              <p className="text-sm text-white/90">
+                Upload training PDFs with details
               </p>
             </div>
           </div>
         </div>
 
-        {/* ================= UPLOAD ================= */}
-        <Card className="rounded-3xl p-8 shadow-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
-          <div className="flex items-center gap-3 mb-6">
-            <Sparkles className="text-indigo-500" />
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-              Upload New Document
-            </h2>
+        <Card className="rounded-2xl p-6 shadow-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+          {/* Upload Section */}
+          <div className="flex items-center gap-2 mb-5">
+            <Sparkles className="text-blue-500 w-4 h-4" />
+            <h2 className="text-lg font-semibold">Upload Document</h2>
           </div>
 
-          {/* DROP ZONE */}
           <div
             onDragOver={(e) => {
               e.preventDefault();
@@ -376,99 +413,138 @@ const UploadDocuments = () => {
             }}
             onDragLeave={() => setIsDragging(false)}
             onDrop={handleDrop}
-            className={`rounded-2xl border-2 border-dashed p-10 text-center transition-all
-              ${
-                isDragging
-                  ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-950"
-                  : "border-slate-300 dark:border-slate-700"
-              }`}
+            className={`rounded-xl border-2 border-dashed p-8 text-center transition-all
+            ${isDragging ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" : "border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800"}`}
           >
             {!file ? (
               <>
-                <UploadCloud className="w-12 h-12 mx-auto text-indigo-500 mb-4" />
-                <p className="text-sm text-slate-600 dark:text-slate-400">
-                  Drag & drop your document here
+                <UploadCloud className="w-10 h-10 mx-auto text-blue-500 mb-3" />
+                <p className="text-sm text-slate-600 dark:text-slate-300">
+                  Drag & drop document here
                 </p>
-
-                <label className="inline-block mt-4 px-6 py-2 rounded-lg bg-indigo-600 text-white font-semibold cursor-pointer hover:bg-indigo-700">
+                <label className="inline-block mt-4 px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold cursor-pointer transition">
                   Browse File
-                  <input type="file" hidden onChange={(e) => validateAndSetFile(e.target.files[0])} />
+                  <input
+                    type="file"
+                    hidden
+                    accept=".pdf,.doc,.docx,.ppt,.pptx"
+                    onChange={(e) => validateAndSetFile(e.target.files[0])}
+                  />
                 </label>
               </>
             ) : (
-              <div className="space-y-3">
-                <CheckCircle className="w-10 h-10 mx-auto text-emerald-500" />
+              <div className="space-y-2">
+                <CheckCircle className="w-9 h-9 mx-auto text-emerald-500" />
                 <p className="font-semibold">{file.name}</p>
-                <p className="text-xs text-slate-500">
-                  {formatFileSize(file.size)}
-                </p>
-                <Button size="sm" variant="outline" onClick={() => setFile(null)}>
-                  <X className="w-4 h-4 mr-1" /> Remove
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handlePreview(fileItem)}
+                >
+                  <Eye className="w-4 h-4" />
                 </Button>
               </div>
             )}
           </div>
 
-          {/* PROGRESS */}
-          {loading && (
-            <div className="mt-4">
-              <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                <div
-                  style={{ width: `${uploadProgress}%` }}
-                  className="h-full bg-indigo-600 transition-all"
-                />
-              </div>
-              <p className="text-xs mt-1 text-slate-500">
-                Uploading… {uploadProgress}%
-              </p>
-            </div>
-          )}
+          {/* Inputs */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Title"
+              className="rounded-lg border px-4 py-2 text-sm"
+            />
+
+            <select
+              value={batchId}
+              onChange={(e) => setBatchId(e.target.value)}
+              className="rounded-lg border px-4 py-2 text-sm"
+            >
+              <option value="">Select Batch</option>
+              {batches.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name || "Batch"} (ID: {b.id})
+                </option>
+              ))}
+            </select>
+
+            <textarea
+              rows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Description"
+              className="rounded-lg border px-4 py-2 text-sm md:col-span-2"
+            />
+          </div>
 
           <Button
             onClick={handleUpload}
             disabled={!file || loading}
-            className="mt-6 w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+            className="mt-6 w-full bg-emerald-600 text-white"
           >
-            {loading ? <Loader2 className="animate-spin" /> : "Upload Document"}
+            {loading ? <Loader2 className="animate-spin" /> : "Upload File"}
           </Button>
 
           {message && (
             <p
-              className={`mt-3 text-sm ${
-                messageType === "success"
-                  ? "text-emerald-600"
-                  : "text-red-600"
-              }`}
+              className={`mt-3 text-sm ${messageType === "success" ? "text-emerald-500" : "text-red-500"}`}
             >
               {message}
             </p>
           )}
-        </Card>
 
-        {/* ================= RECENT FILES ================= */}
-        <Card className="rounded-3xl p-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl">
-          <h2 className="text-2xl font-bold mb-6 text-slate-900 dark:text-white">
-            Recent Uploads
-          </h2>
+          {/* Uploaded Files */}
+          {files.length > 0 && (
+            <div className="mt-6 space-y-4">
+              <h3 className="text-md font-semibold">Uploaded Documents</h3>
 
-          {files.length === 0 ? (
-            <p className="text-sm text-slate-500">
-              No documents uploaded yet
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {files.map((doc) => (
+              {files.map((fileItem) => (
                 <div
-                  key={doc.id}
-                  className="rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:shadow-md transition"
+                  key={fileItem.id}
+                  className="flex items-center justify-between p-4 rounded-xl border bg-slate-50 dark:bg-slate-800"
                 >
-                  <FileText className="text-indigo-500 mb-2" />
-                  <p className="font-semibold truncate">{doc.originalName}</p>
-                  <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
-                    <Calendar className="w-3 h-3" />
-                    {new Date(doc.uploadedAt).toLocaleDateString()}
-                    <HardDrive className="w-3 h-3 ml-2" />
-                    {formatFileSize(doc.size)}
+                  <div className="flex flex-col">
+                    <p className="font-semibold text-sm">
+                      {fileItem.title || fileItem.fileName || "No Title"}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {fileItem.description || "No Description"}
+                    </p>
+                    <p className="text-xs text-blue-500">
+                      Batch ID: {fileItem.batchId || "N/A"}
+                    </p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handlePreview(fileItem)}
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Button>
+
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        const link = document.createElement("a");
+                        link.href = fileItem.fileUrl;
+                        link.download = fileItem.fileName || "document";
+                        link.click();
+                      }}
+                    >
+                      <Download className="w-4 h-4" />
+                    </Button>
+
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDelete(fileItem.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
                 </div>
               ))}

@@ -1,63 +1,85 @@
+import React from "react";
 
 import {
-  Award,
-  BookOpen,
-  BookOpenText,
-  CalendarCheck,
-  ClipboardList,
-  Cpu,
+  LayoutDashboard,
+  GraduationCap,
+  Video,
   FileText,
   FolderOpen,
-  HelpCircle,
-  LayoutDashboard,
-  Moon,
-  PlayCircle,
-  Sun,
+  BookOpen,
+  ClipboardCheck,
+  ClipboardEdit,
+  History,
+  CalendarDays,
+  MessageCircleQuestion,
+  Award,
+  Users,
+  UserCog,
+  ShieldCheck,
+  BarChart3,
+  Activity,
+  TrendingUp,
+  LineChart,
+  Briefcase,
+  Building2,
+  Layers,
+  Target,
+  DollarSign,
+  Receipt,
   Settings,
-  LogOut,
+  Mail,
+  FileSearch,
   ChevronDown,
   ChevronRight,
+  Sun,
+  Moon,
+  LogOut,
+  Radio,
+  PlayCircle,
+  Mic,
+  Upload,
+  List
 } from "lucide-react";
-import React from "react";
+
+
 import { useLocation, useNavigate } from "react-router-dom";
 import auth from "../auth";
 
-// ---------------- MENUS ----------------
+/* ================= MENUS ================= */
 
 // STUDENT MENUS
 const studentMenus = [
   { name: "Dashboard", path: "/student", icon: LayoutDashboard },
+
   {
-    name: "Learning Materials",
-    icon: PlayCircle,
+    name: "Live & Recorded",
+    icon: Radio,
     children: [
-      { name: "Video Lectures", path: "/student/videos", icon: PlayCircle },
-      { name: "Documents", path: "/student/documents", icon: FileText },
-      { name: "Resources", path: "/student/resources", icon: FolderOpen },
+      { name: "Live Classes", path: "/student/live-classes", icon: Radio },
+      { name: "Recorded Classes", path: "/student/recorded-classes", icon: PlayCircle },
     ],
   },
+
+  {
+    name: "Learning Materials",
+    icon: GraduationCap,
+    children: [
+      { name: "Video Lectures", path: "/student/videos", icon: Video },
+      { name: "Documents", path: "/student/documents", icon: FileText },
+      
+    ],
+  },
+
   {
     name: "My Courses",
-    icon: BookOpenText,
+    icon: BookOpen,
     children: [
-      { name: "My Courses", path: "/student/courses", icon: BookOpenText },
-      {
-        name: "Assessments",
-        path: "/student/assessments",
-        icon: ClipboardList,
-      },
-      {
-        name: "Assignments", // ✅ NEW
-        path: "/Student/Assignments",
-        icon: FileText,
-      },
-      {
-        name: "My Quiz History",
-        path: "/student/my-quizzes",
-        icon: ClipboardList,
-      },
-      { name: "Attendance", path: "/student/attendance", icon: CalendarCheck },
-      { name: "Doubts", path: "/student/doubts", icon: HelpCircle },
+      { name: "My Courses", path: "/student/courses", icon: BookOpen },
+      { name: "Assessments", path: "/student/assessments", icon: ClipboardCheck },
+      { name: "Assignments", path: "/student/assignments", icon: ClipboardEdit },
+      { name: "My Quiz History", path: "/student/my-quizzes", icon: History },
+      { name: "Attendance", path: "/student/attendance", icon: CalendarDays },
+      { name: "Doubts", path: "/student/doubts", icon: MessageCircleQuestion },
       { name: "Certificates", path: "/student/certificates", icon: Award },
     ],
   },
@@ -66,119 +88,150 @@ const studentMenus = [
 // TRAINER MENUS
 const trainerMenus = [
   { name: "Dashboard", path: "/trainer", icon: LayoutDashboard },
-  { name: "Batch Management", path: "/trainer/batches", icon: BookOpenText },
+
+  { name: "Batch Management", path: "/trainer/batches", icon: Layers },
+
+  //  LIVE CLASSES MODULE
+  {
+    name: "Live Classes",
+    icon: Video,
+    children: [
+      { 
+        name: "Live Dashboard", 
+        path: "/trainer/live", 
+        icon: LayoutDashboard 
+      },
+      { 
+        name: "Start Live Session", 
+        path: "/trainer/start-live", 
+        icon: Video 
+      },
+      { 
+        name: "Live Session Controls", 
+        path: "/trainer/live-controls", 
+        icon: Mic 
+      },
+      { 
+        name: "Live Session History", 
+        path: "/trainer/live-history", 
+        icon: History 
+      },
+      { 
+        name: "Live Attendance Report", 
+        path: "/trainer/live-attendance", 
+        icon: Users 
+      },
+    ],
+  },
+
+  //  RECORDED CLASSES MODULE
+  {
+    name: "Recorded Classes",
+    icon: PlayCircle,
+    children: [
+      { 
+        name: "Upload Recorded Video", 
+        path: "/trainer/upload-recorded", 
+        icon: Upload 
+      },
+      { 
+        name: "Recorded Classes List", 
+        path: "/trainer/recorded-list", 
+        icon: List
+      },
+    ],
+  },
+
+  //  CONTENT MANAGEMENT
   {
     name: "Content Management",
     icon: FileText,
     children: [
-      {
-        name: "Upload Videos",
-        path: "/trainer/upload-videos",
-        icon: PlayCircle,
-      },
-      {
-        name: "Upload Documents",
-        path: "/trainer/upload-docs",
-        icon: FileText,
-      },
-      {
-        name: "Create Quiz",
-        path: "/trainer/create-quiz",
-        icon: ClipboardList,
-      },
-      {
-        name: "My Quizzes",
-        path: "/trainer/my-quizzes",
-        icon: ClipboardList,
-      },
-      {
-        name: "Create Assignments",
-        path: "/trainer/create-assignments",
-        icon: ClipboardList,
-      },
-      {
-        name: "Course Management",
-        path: "/trainer/course-management",
-        icon: ClipboardList,
-      },
+      { name: "Upload Videos", path: "/trainer/upload-videos", icon: Video },
+      { name: "Upload Documents", path: "/trainer/upload-docs", icon: FileText },
+      { name: "Create Quiz", path: "/trainer/create-quiz", icon: ClipboardEdit },
+      { name: "My Quizzes", path: "/trainer/my-quizzes", icon: ClipboardCheck },
+      { name: "Create Assignments", path: "/trainer/create-assignments", icon: ClipboardEdit },
+      { name: "Course Management", path: "/trainer/course-management", icon: BookOpen },
+      { name: "Assessments", path: "/trainer/assessments", icon: ClipboardCheck },
+      { name: "Attendance", path: "/trainer/attendance", icon: CalendarDays },
+      { name: "Doubts Management", path: "/trainer/doubts-management", icon: MessageCircleQuestion },
     ],
   },
-  { name: "Assessments", path: "/trainer/assessments", icon: ClipboardList },
-  { name: "Attendance", path: "/trainer/attendance", icon: CalendarCheck },
-  {
-    name: "Doubts Management",
-    path: "/trainer/doubts-management",
-    icon: HelpCircle,
-  },
+
+  //  REPORTS
   {
     name: "Reports & Analytics",
-    icon: Cpu,
+    icon: BarChart3,
     children: [
-      {
-        name: "Student Reports",
-        path: "/trainer/student-reports",
-        icon: FileText,
-      },
+      { name: "Student Reports", path: "/trainer/student-reports", icon: FileSearch },
       { name: "Batch Reports", path: "/trainer/batch-reports", icon: FileText },
-      { name: "Performance Analysis", path: "/trainer/performance", icon: Cpu },
+      { name: "Performance Analysis", path: "/trainer/performance", icon: TrendingUp },
     ],
   },
 ];
 
+
 // ADMIN MENUS
 const adminMenus = [
   { name: "Dashboard", path: "/admin", icon: LayoutDashboard },
+
   {
     name: "Organisation Manager",
-    icon: BookOpenText,
+    icon: Building2,
     children: [
-      { name: "Settings", path: "/admin/settings", icon: Cpu },
-      {
-        name: "DepartmentList",
-        path: "/admin/departmentlist",
-        icon: FolderOpen,
-      },
-      { name: "Branches", path: "/admin/branches", icon: FolderOpen },
-      { name: "Batches", path: "/admin/batches", icon: FolderOpen },
+      { name: "Settings", path: "/admin/settings", icon: Settings },
+      { name: "DepartmentList", path: "/admin/departmentlist", icon: Layers },
+      { name: "Branches", path: "/admin/branches", icon: Building2 },
+      { name: "Batches", path: "/admin/batches", icon: Layers },
     ],
   },
+
   {
     name: "User Management",
-    icon: BookOpenText,
+    icon: Users,
     children: [
-      { name: "All Users", path: "/admin/users", icon: BookOpenText },
-      { name: "Students", path: "/admin/students", icon: BookOpenText },
-      { name: "Trainers", path: "/admin/trainers", icon: BookOpenText },
-      {
-        name: "Pending Users",
-        path: "/admin/pending-users",
-        icon: BookOpenText,
-      },
+      { name: "All Users", path: "/admin/users", icon: Users },
+      { name: "Students", path: "/admin/students", icon: GraduationCap },
+      { name: "Trainers", path: "/admin/trainers", icon: UserCog },
+      { name: "Pending Users", path: "/admin/pending-users", icon: ClipboardCheck },
     ],
   },
+
   {
     name: "Course Management",
     icon: BookOpen,
     children: [
-      { name: "All Courses", path: "/admin/courses", icon: BookOpenText },
+      { name: "All Courses", path: "/admin/courses", icon: BookOpen },
       { name: "Categories", path: "/admin/categories", icon: FolderOpen },
     ],
   },
+
+  // ✅ NEW DROPDOWN ADDED HERE
+  {
+    name: "Live & Recorded Control",
+    icon: Video,
+    children: [
+      { name: "Admin Live Sessions", path: "/admin/live-sessions", icon: Radio },
+      { name: "Admin Recorded Videos", path: "/admin/recorded-videos", icon: Video },
+    ],
+  },
+
   {
     name: "Document Generator",
     icon: FileText,
     children: [
       { name: "Certificates", path: "/admin/certificates", icon: Award },
       { name: "Reports", path: "/admin/reports", icon: FileText },
-      { name: "Resources", path: "/admin/resources", icon: FolderOpen },
     ],
   },
+
   {
     name: "Insight Review",
-    icon: Cpu,
+    icon: BarChart3,
     children: [
-      { name: "Usage Analytics", path: "/admin/usage", icon: Cpu },
-      { name: "Feedback", path: "/admin/feedback", icon: HelpCircle },
+      { name: "Usage Analytics", path: "/admin/usage", icon: LineChart },
+      { name: "Feedback", path: "/admin/feedback", icon: MessageCircleQuestion },
     ],
   },
 ];
@@ -188,49 +241,21 @@ const superAdminMenus = [
   { name: "Dashboard", path: "/super-admin/dashboard", icon: LayoutDashboard },
   {
     name: "Controls",
-    icon: Cpu,
+    icon: ShieldCheck,
     children: [
-      {
-        name: "Admin Control",
-        path: "/super-admin/admin-control",
-        icon: Settings,
-      },
-      {
-        name: "Business Control",
-        path: "/super-admin/business-control",
-        icon: Cpu,
-      },
-      {
-        name: "Trainer Control",
-        path: "/super-admin/trainer-control",
-        icon: ClipboardList,
-      },
-      {
-        name: "Student Control",
-        path: "/super-admin/student-control",
-        icon: BookOpenText,
-      },
+      { name: "Admin Control", path: "/super-admin/admin-control", icon: UserCog },
+      { name: "Business Control", path: "/super-admin/business-control", icon: Briefcase },
+      { name: "Trainer Control", path: "/super-admin/trainer-control", icon: Users },
+      { name: "Student Control", path: "/super-admin/student-control", icon: GraduationCap },
     ],
   },
   {
     name: "Settings",
     icon: Settings,
     children: [
-      {
-        name: "Role Page Matrix",
-        path: "/super-admin/settings/role-matrix",
-        icon: Settings,
-      },
-      {
-        name: "Send Email",
-        path: "/super-admin/settings/send-email",
-        icon: FileText,
-      },
-      {
-        name: "Audit Logs",
-        path: "/super-admin/settings/audit-logs",
-        icon: FileText,
-      },
+      { name: "Role Page Matrix", path: "/super-admin/settings/role-matrix", icon: ShieldCheck },
+      { name: "Send Email", path: "/super-admin/settings/send-email", icon: Mail },
+      { name: "Audit Logs", path: "/super-admin/settings/audit-logs", icon: FileSearch },
     ],
   },
 ];
@@ -240,63 +265,55 @@ const businessMenus = [
   { name: "Dashboard", path: "/business", icon: LayoutDashboard },
   {
     name: "Hiring Manager",
-    icon: BookOpenText,
+    icon: Briefcase,
     children: [
-      { name: "Job Openings", path: "/business/jobs", icon: FileText },
-      {
-        name: "Applications",
-        path: "/business/applications",
-        icon: ClipboardList,
-      },
+      { name: "Job Openings", path: "/business/jobs", icon: Briefcase },
+      { name: "Applications", path: "/business/applications", icon: ClipboardCheck },
     ],
   },
   {
     name: "Lead Management",
-    icon: Cpu,
+    icon: Target,
     children: [
-      { name: "All Leads", path: "/business/leads", icon: BookOpenText },
-      { name: "Follow Ups", path: "/business/followups", icon: ClipboardList },
+      { name: "All Leads", path: "/business/leads", icon: Users },
+      { name: "Follow Ups", path: "/business/followups", icon: TrendingUp },
     ],
   },
   {
     name: "Enrollments",
-    icon: BookOpenText,
+    icon: BookOpen,
     children: [
-      {
-        name: "New Enrollments",
-        path: "/business/enrollments",
-        icon: BookOpenText,
-      },
-      { name: "Renewals", path: "/business/renewals", icon: BookOpenText },
+      { name: "New Enrollments", path: "/business/enrollments", icon: BookOpen },
+      { name: "Renewals", path: "/business/renewals", icon: BookOpen },
     ],
   },
   {
     name: "Financial",
-    icon: FileText,
+    icon: DollarSign,
     children: [
-      { name: "Invoices", path: "/business/invoices", icon: FileText },
-      { name: "Payments", path: "/business/payments", icon: FileText },
+      { name: "Invoices", path: "/business/invoices", icon: Receipt },
+      { name: "Payments", path: "/business/payments", icon: DollarSign },
     ],
   },
   {
     name: "Marketing",
-    icon: Cpu,
+    icon: BarChart3,
     children: [
-      { name: "Campaigns", path: "/business/campaigns", icon: Cpu },
+      { name: "Campaigns", path: "/business/campaigns", icon: Activity },
       { name: "Sources", path: "/business/sources", icon: FolderOpen },
     ],
   },
   {
     name: "Team Targets",
-    icon: ClipboardList,
+    icon: Target,
     children: [
-      { name: "Targets", path: "/business/targets", icon: ClipboardList },
-      { name: "Performance", path: "/business/performance", icon: Cpu },
+      { name: "Targets", path: "/business/targets", icon: Target },
+      { name: "Performance", path: "/business/performance", icon: TrendingUp },
     ],
   },
 ];
 
-// --------------- SIDEBAR COMPONENT ---------------
+/* ================= SIDEBAR ================= */
 
 const Sidebar = () => {
   const location = useLocation();
@@ -314,39 +331,20 @@ const Sidebar = () => {
   else if (isBusiness) menus = businessMenus;
 
   const [openGroups, setOpenGroups] = React.useState({});
-  const [dark, setDark] = React.useState(() =>
+  const [dark, setDark] = React.useState(
     document.documentElement.classList.contains("dark"),
   );
-
-  const toggleGroup = (name) => {
-    setOpenGroups((prev) => ({ ...prev, [name]: !prev[name] }));
-  };
 
   const toggleTheme = () => {
     setDark((prev) => {
       const next = !prev;
-      if (next) document.documentElement.classList.add("dark");
-      else document.documentElement.classList.remove("dark");
+      document.documentElement.classList.toggle("dark", next);
       return next;
     });
   };
 
-  const handleRoleChange = (value) => {
-    navigate(value);
-  };
-
-  const handleLogout = () => {
-    let role = "student";
-    const path = location.pathname;
-
-    if (path.startsWith("/super-admin")) role = "super-admin";
-    else if (path.startsWith("/trainer")) role = "trainer";
-    else if (path.startsWith("/admin")) role = "admin";
-    else if (path.startsWith("/business")) role = "business";
-
-    auth.logout();
-    navigate(`/login?role=${role}`);
-  };
+  const currentRole = localStorage.getItem("role");
+  const showRoleDropdown = currentRole === "ADMIN";
 
   const currentRolePath = isSuperAdmin
     ? "/super-admin/dashboard"
@@ -358,110 +356,87 @@ const Sidebar = () => {
           ? "/business"
           : "/student";
 
-  const currentRole = localStorage.getItem("role");
-  const showRoleDropdown = currentRole === "ADMIN";
+  const handleRoleChange = (value) => {
+    navigate(value);
+  };
+
+  const handleLogout = () => {
+    auth.logout();
+    navigate("/login");
+  };
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-slate-950">
       {/* HEADER */}
-      <div className="p-4 border-b border-gray-200 dark:border-slate-800">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg">
-              <BookOpen className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-gray-900 dark:text-white">
-                TexoraAi.skills
-              </p>
-              <p className="text-[10px] text-gray-500 dark:text-slate-500">
-                Learning Platform
-              </p>
-            </div>
+      <div className="p-4 border-b border-slate-200 dark:border-slate-800">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <p className="text-sm font-bold">TexoraAi<span className="text-blue-600">.skills</span></p>
+            <p className="text-xs text-slate-500">Learning Platform</p>
           </div>
-
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
-          >
-            {dark ? (
-              <Sun className="w-4 h-4 text-gray-600 dark:text-slate-400" />
-            ) : (
-              <Moon className="w-4 h-4 text-gray-600" />
-            )}
+          <button onClick={toggleTheme} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
+            {dark ? <Sun size={16} /> : <Moon size={16} />}
           </button>
         </div>
 
-        {/* ROLE DROPDOWN */}
+        {/* ADMIN ROLE DROPDOWN */}
         {showRoleDropdown && (
           <select
             value={currentRolePath}
             onChange={(e) => handleRoleChange(e.target.value)}
-            className="w-full text-sm rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-200 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
+            className="w-full text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2"
           >
             <option value="/student">Student</option>
             <option value="/trainer">Trainer</option>
             <option value="/admin">Admin</option>
-            <option value="/business">Business Team</option>
+            <option value="/business">Business</option>
             <option value="/super-admin/dashboard">Super Admin</option>
           </select>
         )}
       </div>
 
-      {/* MENU ITEMS */}
+      {/* MENUS */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
         {menus.map((item) => {
           const Icon = item.icon;
+          const isOpen = openGroups[item.name] ?? true;
 
           if (item.children) {
-            const isOpen = openGroups[item.name] ?? true;
-
             return (
-              <div key={item.name} className="space-y-1">
+              <div key={item.name}>
                 <button
-                  type="button"
-                  onClick={() => toggleGroup(item.name)}
-                  className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-gray-600 dark:text-slate-500 uppercase tracking-wider hover:text-gray-900 dark:hover:text-slate-300 transition-colors"
+                  onClick={() =>
+                    setOpenGroups((p) => ({ ...p, [item.name]: !isOpen }))
+                  }
+                  className="w-full flex items-center justify-between px-3 py-2.5 text-sm hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
                 >
-                  <span className="flex items-center gap-2">
-                    {Icon && <Icon className="w-3.5 h-3.5" />}
+                  <span className="flex items-center gap-3">
+                    <Icon size={16} />
                     {item.name}
                   </span>
-                  {isOpen ? (
-                    <ChevronDown className="w-3.5 h-3.5" />
-                  ) : (
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  )}
+                  {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                 </button>
 
-                {isOpen && (
-                  <div className="space-y-0.5 ml-2">
-                    {item.children.map((child) => {
-                      const ChildIcon = child.icon;
-                      const isActive = location.pathname === child.path;
+                {isOpen &&
+                  item.children.map((child) => {
+                    const active = location.pathname === child.path;
+                    const ChildIcon = child.icon;
 
-                      return (
-                        <button
-                          key={child.name}
-                          onClick={() => navigate(child.path)}
-                          className={`w-full flex items-center gap-3 text-left text-sm px-3 py-2.5 rounded-lg font-medium transition-all ${
-                            isActive
-                              ? "bg-indigo-600 text-white shadow-md"
-                              : "text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800"
-                          }`}
-                        >
-                          {ChildIcon && (
-                            <ChildIcon
-                              className={`w-4 h-4 ${isActive ? "text-white" : "text-gray-400 dark:text-slate-500"}`}
-                            />
-                          )}
-                          <span className="truncate">{child.name}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
+                    return (
+                      <button
+                        key={child.name}
+                        onClick={() => navigate(child.path)}
+                        className={`ml-3 w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg ${
+                          active
+                            ? "bg-blue-600 text-white"
+                            : "hover:bg-slate-100 dark:hover:bg-slate-800"
+                        }`}
+                      >
+                        <ChildIcon size={15} />
+                        {child.name}
+                      </button>
+                    );
+                  })}
               </div>
             );
           }
@@ -472,38 +447,27 @@ const Sidebar = () => {
             <button
               key={item.name}
               onClick={() => navigate(item.path)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg ${
                 active
-                  ? "bg-indigo-600 text-white shadow-md"
-                  : "text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800"
+                  ? "bg-blue-600 text-white"
+                  : "hover:bg-slate-100 dark:hover:bg-slate-800"
               }`}
             >
-              {Icon && (
-                <Icon
-                  className={`w-4 h-4 ${active ? "text-white" : "text-gray-400 dark:text-slate-500"}`}
-                />
-              )}
-              <span>{item.name}</span>
+              <Icon size={16} />
+              {item.name}
             </button>
           );
         })}
       </nav>
 
-      {/* FOOTER ACTIONS */}
-      <div className="border-t border-gray-200 dark:border-slate-800 p-3 space-y-1">
-        <button
-          onClick={() => navigate(`${currentRolePath}/settings`)}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
-        >
-          <Settings className="w-4 h-4 text-gray-400 dark:text-slate-500" />
-          <span>Settings</span>
-        </button>
+      {/* FOOTER */}
+      <div className="border-t border-slate-200 dark:border-slate-800 p-3">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg"
         >
-          <LogOut className="w-4 h-4" />
-          <span>Logout</span>
+          <LogOut size={16} />
+          Logout
         </button>
       </div>
     </div>

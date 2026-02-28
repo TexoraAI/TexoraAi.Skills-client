@@ -2,134 +2,129 @@ import axios from "axios";
 
 const BASE_URL = "http://localhost:9000/api";
 
-/**
- * Helper to build Authorization header
- */
-const authHeader = () => {
-  const token = localStorage.getItem("lms_token");
+/* ================= AUTH ================= */
+
+const authHeader = () => ({
+  Authorization: `Bearer ${localStorage.getItem("lms_token")}`,
+});
+
+const api = axios.create({
+  baseURL: BASE_URL,
+  headers: authHeader(),
+});
+
+/* =====================================================
+   BRANCH APIs  (BranchController)
+   ===================================================== */
+
+export const getBranches = () => api.get("/branch");
+
+export const createBranch = (data) => api.post("/branch", data);
+
+export const deleteBranch = (branchId) => api.delete(`/branch/${branchId}`);
+
+export const updateBranch = (id, data) => api.put(`/branch/${id}`, data);
+
+/* =====================================================
+   BATCH APIs (BatchController)
+   ===================================================== */
+
+/* CREATE BATCH */
+export const createBatch = (payload) =>
+  api.post("/batch/admin/batches", payload);
+
+export const deleteBatch = (batchId) =>
+  api.delete(`/batch/admin/batches/${batchId}`);
+
+export const getAllBatches = () =>
+  axios.get(`${BASE_URL}/batch/admin/batches`, { headers: authHeader() });
+
+/* =====================================================
+   TRAINER – STUDENT MAPPING
+   ===================================================== */
+
+/* Get trainer -> students map inside batch */
+export const getTrainerStudents = async (batchId) => {
+  const res = await api.get(`/batch/admin/batches/${batchId}/trainer-students`);
+  return res.data;
+};
+
+/* Assign students under trainer */
+export const assignStudentsToTrainer = (batchId, trainerEmail, emails) =>
+  api.post(
+    `/batch/admin/batches/${batchId}/trainers/${trainerEmail}/students`,
+    { studentEmails: emails },
+  );
+export const getAvailableStudents = (batchId, trainerEmail) =>
+  axios.get(
+    `${BASE_URL}/batch/admin/batches/${batchId}/trainers/${encodeURIComponent(trainerEmail)}/available-students`,
+    { headers: authHeader() },
+  );
+
+// /* Remove trainer from batch */
+export const removeTrainerFromBatch = (batchId, trainerEmail) =>
+  api.delete(`/batch/admin/batches/${batchId}/trainer`, {
+    params: { trainerEmail },
+  });
+
+/* =====================================================
+   TRAINER DASHBOARD
+   ===================================================== */
+
+export const getTrainerBatches = async () => {
+  const res = await api.get("/batch/trainer");
+  return res.data;
+};
+
+/* =====================================================
+   STUDENT DASHBOARD
+   ===================================================== */
+
+export const getStudentBatch = async () => {
+  const res = await api.get("/batch/student");
+  return res.data;
+};
+
+export const getAvailableTrainers = (batchId) =>
+  axios.get(`${BASE_URL}/batch/admin/batches/${batchId}/available-trainers`, {
+    headers: authHeader(),
+  });
+
+export const removeTrainer = (batchId, trainerEmail) =>
+  api.delete(`/batch/admin/batches/${batchId}/trainers/${trainerEmail}`);
+
+export const assignTrainer = (batchId, trainerEmail) =>
+  axios.put(
+    `${BASE_URL}/batch/admin/batches/${batchId}/trainers/${trainerEmail}`,
+    {},
+    { headers: authHeader() },
+  );
+
+// export const removeStudentFromTrainer = (batchId, trainerEmail, studentEmail) =>
+//   api.delete(`/batch/admin/batches/${batchId}/trainer/student`, {
+//     params: {
+//       trainerEmail,
+//       studentEmail,
+//     },
+//   });
+export const removeStudentFromTrainer = (batchId, trainerEmail, studentEmail) =>
+  api.delete(
+    `/batch/admin/batches/${batchId}/trainers/${encodeURIComponent(trainerEmail)}/students/${encodeURIComponent(studentEmail)}`,
+  );
+
+export const getTrainerDashboard = async () => {
+  const batches = await api.get("/batch/trainer");
+  const students = await api.get("/batch/trainer/students");
+
   return {
-    Authorization: `Bearer ${token}`,
+    batches: batches.data || [],
+    students: students.data || [],
   };
 };
 
-/* =================================================
-   ADMIN APIs
-   ================================================= */
+/* TRAINER — STUDENTS IN A BATCH */
+export const getTrainerBatchStudents = (batchId) =>
+  api.get(`/batch/trainer/batches/${batchId}/students`);
+// ================= STUDENT CLASSROOM =================
 
-/**
- * ADMIN → Create new batch
- */
-export const createBatch = async (payload) => {
-  return axios.post(`${BASE_URL}/admin/batches`, payload, {
-    headers: authHeader(),
-  });
-};
-
-/* =================================================
-   TRAINER APIs
-   ================================================= */
-
-/**
- * TRAINER → Get my batches
- */
-export const getTrainerBatches = async () => {
-  return axios.get(`${BASE_URL}/trainer/batches`, {
-    headers: authHeader(),
-  });
-};
-
-/**
- * TRAINER → Get batch reports
- */
-export const getBatchReports = async () => {
-  return axios.get(`${BASE_URL}/trainer/batch-reports`, {
-    headers: authHeader(),
-  });
-};
-
-/* =================================================
-   STUDENT APIs
-   ================================================= */
-
-/**
- * STUDENT → Get assigned batch
- */
-export const getStudentBatch = async () => {
-  return axios.get(`${BASE_URL}/student/batch`, {
-    headers: authHeader(),
-  });
-};
-
-/* =================================================
-   ADMIN – UPDATE / GET SINGLE BATCH
-   ================================================= */
-
-/**
- * ADMIN → Get batch by ID (for edit form)
- */
-export const getBatchById = async (batchId) => {
-  return axios.get(`${BASE_URL}/admin/batches/${batchId}`, {
-    headers: authHeader(),
-  });
-};
-
-/**
- * ADMIN → Update existing batch
- */
-export const updateBatch = async (batchId, payload) => {
-  return axios.put(`${BASE_URL}/admin/batches/${batchId}`, payload, {
-    headers: authHeader(),
-  });
-};
-
-/**
- * ADMIN → Get all branches
- */
-export const getBranches = async () => {
-  return axios.get(`${BASE_URL}/admin/branches`, {
-    headers: authHeader(),
-  });
-};
-
-/**
- * ADMIN → Create branch
- */
-export const createBranch = async (payload) => {
-  return axios.post(`${BASE_URL}/admin/branches`, payload, {
-    headers: authHeader(),
-  });
-};
-
-/* =================================================
-   ADMIN → BATCH APIs
-   ================================================= */
-
-export const getAdminBatches = async () => {
-  return axios.get(`${BASE_URL}/admin/batches`, {
-    headers: authHeader(),
-  });
-};
-
-export const getAllBatches = async () => {
-  return axios.get(`${BASE_URL}/admin/batches`, {
-    headers: authHeader(),
-  });
-};
-
-/**
- * ADMIN → Update branch
- */
-export const updateBranch = async (id, payload) => {
-  return axios.put(`${BASE_URL}/admin/branches/${id}`, payload, {
-    headers: authHeader(),
-  });
-};
-
-/**
- * ADMIN → Delete batch
- */
-export const deleteBatch = async (batchId) => {
-  return axios.delete(`${BASE_URL}/admin/batches/${batchId}`, {
-    headers: authHeader(),
-  });
-};
+export const getStudentClassroom = () => api.get("/batch/student/classroom");

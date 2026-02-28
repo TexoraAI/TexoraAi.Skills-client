@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -48,7 +47,8 @@ const Assessments = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       {/* Premium Hero Header */}
-      <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-900 dark:via-purple-900 dark:to-pink-900">
+      <div className="bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 dark:from-sky-700 dark:via-blue-800 dark:to-indigo-900">
+
         <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-white/20 backdrop-blur-sm rounded-lg">

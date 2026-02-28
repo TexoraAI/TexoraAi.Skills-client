@@ -1,28 +1,43 @@
+// import { Pencil, Plus } from "lucide-react";
+// import { useEffect, useState } from "react";
 
-// import React, { useEffect, useState } from "react";
 // import {
-//   getBranches,
 //   createBranch,
+//   getBranches,
 //   updateBranch,
 // } from "../services/batchService";
+
+// import { Badge } from "@/components/ui/badge";
+// import { Button } from "@/components/ui/button";
+// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogFooter,
+//   DialogHeader,
+//   DialogOverlay,
+//   DialogTitle,
+// } from "@/components/ui/dialog";
+// import { Input } from "@/components/ui/input";
+// import {
+//   Table,
+//   TableBody,
+//   TableCell,
+//   TableHead,
+//   TableHeader,
+//   TableRow,
+// } from "@/components/ui/table";
 
 // const Branches = () => {
 //   const [branches, setBranches] = useState([]);
 //   const [search, setSearch] = useState("");
-//   const [showModal, setShowModal] = useState(false);
 //   const [loading, setLoading] = useState(true);
 
-//   // 🔥 NEW: track edit mode
+//   const [showModal, setShowModal] = useState(false);
 //   const [editingId, setEditingId] = useState(null);
+//   const [form, setForm] = useState({ name: "", city: "" });
 
-//   const [form, setForm] = useState({
-//     name: "",
-//     city: "",
-//   });
-
-//   /* ===============================
-//      LOAD FROM BACKEND
-//      =============================== */
+//   /* LOAD FROM BACKEND */
 //   useEffect(() => {
 //     loadBranches();
 //   }, []);
@@ -30,54 +45,17 @@
 //   const loadBranches = async () => {
 //     try {
 //       const res = await getBranches();
-//       setBranches(res.data);
-//     } catch (err) {
-//       console.error("Failed to load branches", err);
+//       setBranches(res.data || []);
+//     } catch (e) {
+//       console.error("Failed to load branches", e);
 //     } finally {
 //       setLoading(false);
 //     }
 //   };
 
 //   const filteredBranches = branches.filter((b) =>
-//     b.name.toLowerCase().includes(search.toLowerCase())
+//     b.name.toLowerCase().includes(search.toLowerCase()),
 //   );
-
-//   /* ===============================
-//      FORM HANDLERS
-//      =============================== */
-//   const handleChange = (e) => {
-//     setForm({ ...form, [e.target.name]: e.target.value });
-//   };
-
-//   // 🔥 SAVE = CREATE or UPDATE (same modal)
-//   const handleSave = async () => {
-//     if (!form.name.trim() || !form.city.trim()) return;
-
-//     try {
-//       if (editingId) {
-//         // 🔥 EDIT
-//         await updateBranch(editingId, form);
-//       } else {
-//         // 🔥 CREATE
-//         await createBranch(form);
-//       }
-
-//       resetModal();
-//       loadBranches();
-//     } catch (err) {
-//       console.error("Failed to save branch", err);
-//     }
-//   };
-
-//   // 🔥 OPEN EDIT MODAL
-//   const handleEdit = (branch) => {
-//     setEditingId(branch.id);
-//     setForm({
-//       name: branch.name,
-//       city: branch.city,
-//     });
-//     setShowModal(true);
-//   };
 
 //   const resetModal = () => {
 //     setShowModal(false);
@@ -85,157 +63,179 @@
 //     setForm({ name: "", city: "" });
 //   };
 
+//   const handleSave = async () => {
+//     if (!form.name.trim() || !form.city.trim()) return;
+
+//     try {
+//       editingId
+//         ? await updateBranch(editingId, form)
+//         : await createBranch(form);
+
+//       resetModal();
+//       loadBranches();
+//     } catch (e) {
+//       console.error("Save failed", e);
+//     }
+//   };
+
+//   const handleEdit = (branch) => {
+//     setEditingId(branch.id);
+//     setForm({ name: branch.name, city: branch.city });
+//     setShowModal(true);
+//   };
+
 //   return (
 //     <div className="space-y-6">
-//       {/* Header */}
-//       <div>
-//         <h1 className="text-xl font-semibold text-slate-100">Branches</h1>
-//         <p className="mt-1 text-sm text-slate-400">
-//           Manage different branches / centres of your organisation.
+//       <div className="rounded-2xl p-6 text-white shadow-lg bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600">
+//         <h1 className="text-2xl font-bold">Branches</h1>
+//         <p className="mt-1 text-sm opacity-90">
+//           Manage organisation branches & locations
 //         </p>
 //       </div>
 
-//       {/* Actions */}
 //       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-//         <button
+//         <Button
+//           className="h-9 px-4 bg-gradient-to-r from-cyan-500 to-blue-600"
 //           onClick={() => {
 //             resetModal();
 //             setShowModal(true);
 //           }}
-//           className="px-4 py-2 rounded-md bg-violet-600 text-sm font-medium text-white hover:bg-violet-500"
 //         >
-//           + Add Branch
-//         </button>
+//           <Plus className="h-4 w-4 mr-1.5" />
+//           Add Branch
+//         </Button>
 
-//         <input
-//           type="text"
+//         <Input
 //           placeholder="Search branches..."
 //           value={search}
 //           onChange={(e) => setSearch(e.target.value)}
-//           className="w-full md:w-64 rounded-md bg-slate-950 border border-slate-700 px-3 py-2 text-sm text-slate-100"
+//           className="md:w-56 h-9"
 //         />
 //       </div>
 
-//       {/* Table */}
-//       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
-//         <div className="flex text-xs font-semibold text-slate-400 border-b border-slate-800 pb-2 mb-3">
-//           <div className="w-2/6">Branch name</div>
-//           <div className="w-2/6">City / location</div>
-//           <div className="w-1/6">Students</div>
-//           <div className="w-1/6 text-right">Actions</div>
-//         </div>
+//       <Card className="border border-slate-200 dark:border-slate-800">
+//         <CardHeader className="py-3">
+//           <CardTitle className="text-sm">Branch List</CardTitle>
+//         </CardHeader>
 
-//         {loading ? (
-//           <p className="text-sm text-slate-400">Loading...</p>
-//         ) : filteredBranches.length === 0 ? (
-//           <p className="text-sm text-slate-400">No branches found.</p>
-//         ) : (
-//           filteredBranches.map((branch) => (
-//             <div
-//               key={branch.id}
-//               className="flex items-center text-sm text-slate-200 py-2 border-b border-slate-800 last:border-0"
-//             >
-//               <div className="w-2/6">{branch.name}</div>
-//               <div className="w-2/6">{branch.city}</div>
-//               <div className="w-1/6">{branch.students ?? 0}</div>
-//               <div className="w-1/6 text-right">
-//                 <button
-//                   onClick={() => handleEdit(branch)}
-//                   className="text-xs px-3 py-1 rounded-md border border-slate-700 hover:bg-slate-800"
-//                 >
-//                   Edit
-//                 </button>
-//               </div>
-//             </div>
-//           ))
-//         )}
-//       </div>
+//         <CardContent className="p-0">
+//           <Table>
+//             <TableHeader>
+//               <TableRow className="text-xs">
+//                 <TableHead>Branch</TableHead>
+//                 <TableHead>City</TableHead>
+//                 <TableHead>Students</TableHead>
+//                 <TableHead className="text-right">Actions</TableHead>
+//               </TableRow>
+//             </TableHeader>
 
-//       {/* ================= MODAL ================= */}
-//       {showModal && (
-//         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-//           <div className="bg-slate-900 rounded-xl p-6 w-full max-w-md border border-slate-700">
-//             <h2 className="text-lg font-semibold text-slate-100 mb-4">
+//             <TableBody>
+//               {loading ? (
+//                 <TableRow>
+//                   <TableCell colSpan={4} className="py-6 text-sm">
+//                     Loading...
+//                   </TableCell>
+//                 </TableRow>
+//               ) : filteredBranches.length === 0 ? (
+//                 <TableRow>
+//                   <TableCell colSpan={4} className="py-6 text-center text-sm">
+//                     No branches found
+//                   </TableCell>
+//                 </TableRow>
+//               ) : (
+//                 filteredBranches.map((b) => (
+//                   <TableRow key={b.id} className="text-sm">
+//                     <TableCell className="font-medium">{b.name}</TableCell>
+//                     <TableCell>{b.city}</TableCell>
+//                     <TableCell>
+//                       <Badge variant="secondary">—</Badge>
+//                     </TableCell>
+//                     <TableCell className="text-right">
+//                       <Button
+//                         size="icon"
+//                         variant="ghost"
+//                         onClick={() => handleEdit(b)}
+//                       >
+//                         <Pencil className="h-4 w-4 text-blue-600" />
+//                       </Button>
+//                     </TableCell>
+//                   </TableRow>
+//                 ))
+//               )}
+//             </TableBody>
+//           </Table>
+//         </CardContent>
+//       </Card>
+
+//       {/* MODAL unchanged */}
+//       <Dialog open={showModal} onOpenChange={setShowModal}>
+//         <DialogOverlay className="bg-slate-900/30 dark:bg-black/60 backdrop-blur-sm" />
+//         <DialogContent className="max-w-sm rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl">
+//           <DialogHeader>
+//             <DialogTitle className="text-base font-semibold">
 //               {editingId ? "Edit Branch" : "Add Branch"}
-//             </h2>
+//             </DialogTitle>
+//           </DialogHeader>
 
-//             <div className="space-y-4">
-//               <input
-//                 name="name"
-//                 value={form.name}
-//                 onChange={handleChange}
-//                 placeholder="Branch name"
-//                 className="w-full rounded-md bg-slate-950 border border-slate-700 px-3 py-2 text-sm text-slate-100"
-//               />
-
-//               <input
-//                 name="city"
-//                 value={form.city}
-//                 onChange={handleChange}
-//                 placeholder="City / Location"
-//                 className="w-full rounded-md bg-slate-950 border border-slate-700 px-3 py-2 text-sm text-slate-100"
-//               />
-//             </div>
-
-//             <div className="flex justify-end gap-3 mt-6">
-//               <button
-//                 onClick={resetModal}
-//                 className="px-4 py-2 text-sm rounded-md border border-slate-600 text-slate-300 hover:bg-slate-800"
-//               >
-//                 Cancel
-//               </button>
-
-//               <button
-//                 onClick={handleSave}
-//                 className="px-4 py-2 text-sm rounded-md bg-violet-600 text-white hover:bg-violet-500"
-//               >
-//                 Save
-//               </button>
-//             </div>
+//           <div className="space-y-3 mt-4">
+//             <Input
+//               placeholder="Branch name"
+//               value={form.name}
+//               onChange={(e) => setForm({ ...form, name: e.target.value })}
+//             />
+//             <Input
+//               placeholder="City / Location"
+//               value={form.city}
+//               onChange={(e) => setForm({ ...form, city: e.target.value })}
+//             />
 //           </div>
-//         </div>
-//       )}
+
+//           <DialogFooter className="mt-5">
+//             <Button size="sm" variant="secondary" onClick={resetModal}>
+//               Cancel
+//             </Button>
+//             <Button size="sm" onClick={handleSave}>
+//               Save
+//             </Button>
+//           </DialogFooter>
+//         </DialogContent>
+//       </Dialog>
 //     </div>
 //   );
 // };
 
 // export default Branches;
 
-
-
-import React, { useEffect, useState } from "react";
-import { Plus, Pencil } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import {
-  getBranches,
   createBranch,
+  getBranches,
   updateBranch,
+  deleteBranch, // 🔥 added import
 } from "../services/batchService";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogFooter,
+  DialogHeader,
+  DialogOverlay,
+  DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
   Table,
-  TableHeader,
-  TableRow,
-  TableHead,
   TableBody,
   TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 
 const Branches = () => {
   const [branches, setBranches] = useState([]);
@@ -244,10 +244,9 @@ const Branches = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
-
   const [form, setForm] = useState({ name: "", city: "" });
 
-  /* ================= LOAD ================= */
+  /* LOAD FROM BACKEND */
   useEffect(() => {
     loadBranches();
   }, []);
@@ -255,7 +254,7 @@ const Branches = () => {
   const loadBranches = async () => {
     try {
       const res = await getBranches();
-      setBranches(res.data);
+      setBranches(res.data || []);
     } catch (e) {
       console.error("Failed to load branches", e);
     } finally {
@@ -264,12 +263,8 @@ const Branches = () => {
   };
 
   const filteredBranches = branches.filter((b) =>
-    b.name.toLowerCase().includes(search.toLowerCase())
+    b.name.toLowerCase().includes(search.toLowerCase()),
   );
-
-  /* ================= FORM ================= */
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
 
   const resetModal = () => {
     setShowModal(false);
@@ -298,26 +293,42 @@ const Branches = () => {
     setShowModal(true);
   };
 
+  /* 🔥 DELETE HANDLER (ADDED ONLY THIS) */
+  const handleDelete = async (branch) => {
+    if (
+      !confirm(
+        `Delete branch "${branch.name}"?\nAll batches will also be removed.`,
+      )
+    )
+      return;
+
+    try {
+      await deleteBranch(branch.id);
+      loadBranches();
+    } catch (e) {
+      console.error("Delete failed", e);
+      alert("Failed to delete branch");
+    }
+  };
+
   return (
-    <div className="space-y-8">
-      {/* HERO */}
-      <div className="rounded-3xl p-8 text-white shadow-xl bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600">
-        <h1 className="text-3xl font-bold">Branches</h1>
-        <p className="mt-2 text-sm opacity-90">
+    <div className="space-y-6">
+      <div className="rounded-2xl p-6 text-white shadow-lg bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600">
+        <h1 className="text-2xl font-bold">Branches</h1>
+        <p className="mt-1 text-sm opacity-90">
           Manage organisation branches & locations
         </p>
       </div>
 
-      {/* ACTION BAR */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <Button
-          className="bg-indigo-600 hover:bg-indigo-500 w-fit"
+          className="h-9 px-4 bg-gradient-to-r from-cyan-500 to-blue-600"
           onClick={() => {
             resetModal();
             setShowModal(true);
           }}
         >
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="h-4 w-4 mr-1.5" />
           Add Branch
         </Button>
 
@@ -325,20 +336,19 @@ const Branches = () => {
           placeholder="Search branches..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="md:w-64"
+          className="md:w-56 h-9"
         />
       </div>
 
-      {/* TABLE */}
-      <Card>
-        <CardHeader>
+      <Card className="border border-slate-200 dark:border-slate-800">
+        <CardHeader className="py-3">
           <CardTitle className="text-sm">Branch List</CardTitle>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="p-0">
           <Table>
             <TableHeader>
-              <TableRow>
+              <TableRow className="text-xs">
                 <TableHead>Branch</TableHead>
                 <TableHead>City</TableHead>
                 <TableHead>Students</TableHead>
@@ -349,38 +359,41 @@ const Branches = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-muted-foreground">
+                  <TableCell colSpan={4} className="py-6 text-sm">
                     Loading...
                   </TableCell>
                 </TableRow>
               ) : filteredBranches.length === 0 ? (
                 <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    className="text-center text-muted-foreground"
-                  >
+                  <TableCell colSpan={4} className="py-6 text-center text-sm">
                     No branches found
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredBranches.map((b) => (
-                  <TableRow key={b.id}>
-                    <TableCell className="font-medium">
-                      {b.name}
-                    </TableCell>
+                  <TableRow key={b.id} className="text-sm">
+                    <TableCell className="font-medium">{b.name}</TableCell>
                     <TableCell>{b.city}</TableCell>
                     <TableCell>
-                      <Badge variant="secondary">
-                        {b.students ?? 0}
-                      </Badge>
+                      <Badge variant="secondary">—</Badge>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right flex justify-end gap-1">
+                      {/* EDIT (existing) */}
                       <Button
                         size="icon"
                         variant="ghost"
                         onClick={() => handleEdit(b)}
                       >
-                        <Pencil className="h-4 w-4" />
+                        <Pencil className="h-4 w-4 text-blue-600" />
+                      </Button>
+
+                      {/* 🔥 DELETE (ADDED) */}
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => handleDelete(b)}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-600" />
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -391,38 +404,34 @@ const Branches = () => {
         </CardContent>
       </Card>
 
-      {/* MODAL */}
+      {/* MODAL unchanged */}
       <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent>
+        <DialogOverlay className="bg-slate-900/30 dark:bg-black/60 backdrop-blur-sm" />
+        <DialogContent className="max-w-sm rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-base font-semibold">
               {editingId ? "Edit Branch" : "Add Branch"}
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-3 mt-4">
             <Input
-              name="name"
               placeholder="Branch name"
               value={form.name}
-              onChange={handleChange}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
             <Input
-              name="city"
               placeholder="City / Location"
               value={form.city}
-              onChange={handleChange}
+              onChange={(e) => setForm({ ...form, city: e.target.value })}
             />
           </div>
 
-          <DialogFooter>
-            <Button variant="secondary" onClick={resetModal}>
+          <DialogFooter className="mt-5">
+            <Button size="sm" variant="secondary" onClick={resetModal}>
               Cancel
             </Button>
-            <Button
-              className="bg-indigo-600 hover:bg-indigo-500"
-              onClick={handleSave}
-            >
+            <Button size="sm" onClick={handleSave}>
               Save
             </Button>
           </DialogFooter>

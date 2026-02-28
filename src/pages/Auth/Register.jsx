@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
-import authService from "../../services/authService"; // ✅ update path if needed
+import authService from "../../services/authService"; 
 
 const colors = {
   primary: "from-blue-600 to-emerald-600",

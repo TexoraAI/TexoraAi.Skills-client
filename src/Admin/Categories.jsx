@@ -1,55 +1,6 @@
-// // src/Admin/Categories.jsx
-// import React from "react";
-
-// const Categories = () => {
-//   return (
-//     <div className="space-y-6">
-//       {/* Header */}
-//       <div>
-//         <h1 className="text-xl font-semibold text-slate-100">
-//           Course categories
-//         </h1>
-//         <p className="mt-1 text-sm text-slate-400">
-//           Group courses into categories like Web Dev, Data Science, etc.
-//         </p>
-//       </div>
-
-//       {/* Actions row */}
-//       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-//         <input
-//           type="text"
-//           placeholder="Search categories..."
-//           className="w-full md:w-72 rounded-md bg-slate-950 border border-slate-700 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
-//         />
-//         <button className="px-4 py-2 rounded-md bg-violet-600 text-sm font-medium text-white hover:bg-violet-500">
-//           + Add category
-//         </button>
-//       </div>
-
-//       {/* Table placeholder */}
-//       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
-//         <div className="flex text-xs font-semibold text-slate-400 border-b border-slate-800 pb-2 mb-3">
-//           <div className="w-3/6">Category name</div>
-//           <div className="w-2/6">Total courses</div>
-//           <div className="w-1/6 text-right">Actions</div>
-//         </div>
-
-//         <p className="text-sm text-slate-400">
-          
-//         </p>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Categories;
-
-
-
-
 // src/Admin/Categories.jsx
 import React, { useState } from "react";
-import { Layers, Plus, Search } from "lucide-react";
+import { Layers, Plus, Search, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -68,10 +19,17 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
 
 const Categories = () => {
-  // 🔹 dummy state (future backend)
   const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
 
   const categories = []; // API se aayega
 
@@ -93,19 +51,24 @@ const Categories = () => {
             placeholder="Search categories..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+            className="pl-9 h-9"
           />
         </div>
 
-        <Button className="bg-indigo-600 hover:bg-indigo-500">
-          <Plus className="h-4 w-4 mr-2" />
+        {/* ✅ SAME HERO COLOR + COMPACT BUTTON */}
+        {/* <Button
+          size="sm"
+          className="h-9 px-4 bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600"
+          onClick={() => setOpen(true)}
+        >
+          <Plus className="h-4 w-4 mr-1.5" />
           Add Category
-        </Button>
+        </Button> */}
       </div>
 
       {/* TABLE */}
       <Card>
-        <CardHeader>
+        <CardHeader className="py-3">
           <CardTitle className="text-sm">Category List</CardTitle>
         </CardHeader>
 
@@ -137,9 +100,7 @@ const Categories = () => {
                       {c.name}
                     </TableCell>
 
-                    <TableCell>
-                      {c.courseCount}
-                    </TableCell>
+                    <TableCell>{c.courseCount}</TableCell>
 
                     <TableCell className="text-right">
                       <Badge
@@ -157,6 +118,61 @@ const Categories = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* ================= ADD CATEGORY MODAL ================= */}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent
+          className="
+            fixed left-1/2 top-1/2
+            -translate-x-1/2 -translate-y-1/2
+            rounded-2xl max-w-sm w-full
+            bg-white dark:bg-slate-900
+            border border-slate-200 dark:border-slate-700
+            shadow-xl
+          "
+        >
+          <DialogHeader>
+            <DialogTitle>Add Category</DialogTitle>
+
+            <DialogClose
+              className="
+                absolute right-4 top-4
+                rounded-md p-1
+                text-slate-500 hover:text-slate-900
+                hover:bg-slate-100
+                dark:text-slate-400 dark:hover:text-white
+                dark:hover:bg-slate-800
+                outline-none ring-0
+                focus:outline-none focus:ring-0
+                transition
+              "
+            >
+              <X className="h-4 w-4" />
+            </DialogClose>
+          </DialogHeader>
+
+          {/* UI only */}
+          <div className="space-y-4 mt-4">
+            <Input placeholder="Category name" />
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => setOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                className="bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600"
+              >
+                Create
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

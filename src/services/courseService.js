@@ -29,8 +29,27 @@ export const courseService = {
     });
   },
 
+  getStudentCourses() {
+    return axios.get(`${API}/api/courses/student`, {
+      headers: authHeader(),
+    });
+  },
+
   deleteCourse(id) {
     return axios.delete(`${API}/api/courses/${id}`, {
+      headers: authHeader(),
+    });
+  },
+  // 🔐 ADMIN - Get All Courses
+  getAllCoursesForAdmin() {
+    return axios.get(`${API}/api/courses/admin`, {
+      headers: authHeader(),
+    });
+  },
+
+  // 🔐 ADMIN - Get Courses By Category
+  getCoursesByCategory(category) {
+    return axios.get(`${API}/api/courses/admin/category/${category}`, {
       headers: authHeader(),
     });
   },

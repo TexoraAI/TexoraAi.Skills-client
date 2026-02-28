@@ -1,6 +1,5 @@
-
 import React, { useEffect, useState } from "react";
-import { getBatchReports } from "../services/batchService";
+// import { getBatchReports } from "../services/batchService";
 import {
   Loader2,
   BarChart3,
@@ -36,7 +35,7 @@ const BatchReports = () => {
 
   // Filter batches
   const filteredReports = reports.filter((report) =>
-    report.batchName.toLowerCase().includes(searchQuery.toLowerCase())
+    report.batchName.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   // Calculate overall stats
@@ -47,7 +46,8 @@ const BatchReports = () => {
       : 0;
   const avgCompletion =
     reports.length > 0
-      ? reports.reduce((acc, r) => acc + (r.completion || 0), 0) / reports.length
+      ? reports.reduce((acc, r) => acc + (r.completion || 0), 0) /
+        reports.length
       : 0;
   const topBatches = reports.filter((r) => (r.avgScore || 0) >= 80).length;
 
@@ -265,18 +265,18 @@ const BatchReports = () => {
                         <div className="flex items-center gap-2">
                           <div
                             className={`p-1.5 rounded-lg ${getScoreBgColor(
-                              report.avgScore || 0
+                              report.avgScore || 0,
                             )}`}
                           >
                             <Award
                               className={`w-4 h-4 ${getScoreColor(
-                                report.avgScore || 0
+                                report.avgScore || 0,
                               )}`}
                             />
                           </div>
                           <span
                             className={`font-semibold ${getScoreColor(
-                              report.avgScore || 0
+                              report.avgScore || 0,
                             )}`}
                           >
                             {report.avgScore || 0}%
@@ -300,7 +300,7 @@ const BatchReports = () => {
                           <div className="w-32 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                             <div
                               className={`h-full ${getProgressColor(
-                                report.completion || 0
+                                report.completion || 0,
                               )} transition-all`}
                               style={{ width: `${report.completion || 0}%` }}
                             />
@@ -356,8 +356,8 @@ const BatchReports = () => {
                     •
                   </span>
                   <span>
-                    <strong>Outstanding (90%+):</strong> Batches with exceptional
-                    overall performance across all metrics
+                    <strong>Outstanding (90%+):</strong> Batches with
+                    exceptional overall performance across all metrics
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
@@ -365,8 +365,8 @@ const BatchReports = () => {
                     •
                   </span>
                   <span>
-                    <strong>Excellent (80-89%):</strong> Strong batch performance
-                    with consistent student engagement
+                    <strong>Excellent (80-89%):</strong> Strong batch
+                    performance with consistent student engagement
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
@@ -374,8 +374,8 @@ const BatchReports = () => {
                     •
                   </span>
                   <span>
-                    <strong>Good (70-79%):</strong> Satisfactory performance with
-                    opportunities for growth
+                    <strong>Good (70-79%):</strong> Satisfactory performance
+                    with opportunities for growth
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
@@ -383,8 +383,8 @@ const BatchReports = () => {
                     •
                   </span>
                   <span>
-                    <strong>Needs Improvement (&lt;70%):</strong> Batches that may
-                    benefit from additional instructor support
+                    <strong>Needs Improvement (&lt;70%):</strong> Batches that
+                    may benefit from additional instructor support
                   </span>
                 </li>
               </ul>

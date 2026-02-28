@@ -1,130 +1,13 @@
-// // src/Admin/CertificatesAdmin.jsx
-// import React from "react";
-
-// const templates = [
-//   {
-//     id: 1,
-//     name: "Classic Purple",
-//     bg: "bg-violet-900",
-//     badge: "bg-violet-500",
-//     font: "Serif",
-//     theme: "#7C3AED",
-//     linkedCourses: 4,
-//   },
-//   {
-//     id: 2,
-//     name: "Elegant Dark",
-//     bg: "bg-slate-900",
-//     badge: "bg-slate-500",
-//     font: "Sans",
-//     theme: "#0F172A",
-//     linkedCourses: 2,
-//   },
-//   {
-//     id: 3,
-//     name: "Gold Accent",
-//     bg: "bg-amber-900",
-//     badge: "bg-amber-500",
-//     font: "Serif",
-//     theme: "#F59E0B",
-//     linkedCourses: 3,
-//   },
-// ];
-
-// const CertificatesAdmin = () => {
-//   return (
-//     <div className="space-y-6">
-//       {/* Header */}
-//       <div>
-//         <h1 className="text-xl font-semibold text-slate-100">Certificates</h1>
-//         <p className="mt-1 text-sm text-slate-400">
-//           Manage certificate templates and configure theme colors and fonts.
-//         </p>
-//       </div>
-
-//       {/* Actions row */}
-//       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-//         <button className="px-4 py-2 rounded-md bg-violet-600 text-sm font-medium text-white hover:bg-violet-500">
-//           + New template
-//         </button>
-//         <input
-//           type="text"
-//           placeholder="Search templates..."
-//           className="w-full md:w-72 rounded-md bg-slate-950 border border-slate-700 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
-//         />
-//       </div>
-
-//       {/* Template cards */}
-//       <div className="grid gap-4 md:grid-cols-3">
-//         {templates.map((tpl) => (
-//           <div
-//             key={tpl.id}
-//             className={`relative rounded-2xl border border-slate-800 overflow-hidden ${tpl.bg} p-4 flex flex-col justify-between`}
-//           >
-//             <div className="flex items-center justify-between mb-3">
-//               <h2 className="text-sm font-semibold text-slate-50">
-//                 {tpl.name}
-//               </h2>
-//               <span className="px-2 py-0.5 text-[10px] rounded-full bg-slate-900/40 text-slate-300">
-//                 Font: {tpl.font}
-//               </span>
-//             </div>
-
-//             {/* fake preview band */}
-//             <div className="h-20 rounded-xl bg-slate-900/40 border border-slate-800 flex items-center justify-center">
-//               <span className="text-[10px] text-slate-200">
-//                 Preview area (BG + theme color)
-//               </span>
-//             </div>
-
-//             <div className="mt-3 flex items-center justify-between">
-//               <div className="flex items-center gap-2">
-//                 <span
-//                   className={`w-4 h-4 rounded-full border border-white/40 ${tpl.badge}`}
-//                 />
-//                 <p className="text-[11px] text-slate-200">
-//                   Theme color: <span className="font-mono">{tpl.theme}</span>
-//                 </p>
-//               </div>
-//               <p className="text-[11px] text-slate-300">
-//                 {tpl.linkedCourses} courses
-//               </p>
-//             </div>
-
-//             <div className="mt-3 flex items-center justify-end gap-2">
-//               <button className="px-3 py-1 rounded-md text-[11px] bg-slate-900/60 text-slate-100 hover:bg-slate-800">
-//                 Edit
-//               </button>
-//               <button className="px-3 py-1 rounded-md text-[11px] bg-emerald-600 text-white hover:bg-emerald-500">
-//                 Use template
-//               </button>
-//             </div>
-//           </div>
-//         ))}
-//       </div>
-
-//       {/* Issue history placeholder */}
-//       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
-//         <h2 className="text-sm font-semibold text-slate-100 mb-2">
-//           Recent certificate issues
-//         </h2>
-//         <p className="text-sm text-slate-400">
-//           Yahan baad me issued certificates ka history (student, course, date)
-//           dikhayenge.
-//         </p>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default CertificatesAdmin;
-
-
-
-
 // src/Admin/CertificatesAdmin.jsx
 import React, { useState } from "react";
-import { Award, Plus, Search, Palette, FileText } from "lucide-react";
+import {
+  Award,
+  Plus,
+  Search,
+  Palette,
+  FileText,
+  X,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -135,145 +18,294 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import axios from "axios";
 
-/* ===== DUMMY DATA (BACKEND READY) ===== */
+const API_GATEWAY = "http://localhost:9000";
+
+/* ===== CERTIFICATE TEMPLATES ===== */
 const templates = [
   {
     id: 1,
-    name: "Classic Purple",
+    name: "Completion Certificate",
     bg: "from-violet-600 to-indigo-700",
     font: "Serif",
     theme: "#7C3AED",
     linkedCourses: 4,
+    type: "COMPLETION",
   },
   {
     id: 2,
-    name: "Elegant Dark",
+    name: "Excellence Certificate",
     bg: "from-slate-800 to-slate-950",
     font: "Sans",
     theme: "#0F172A",
     linkedCourses: 2,
+    type: "EXCELLENCE",
   },
   {
     id: 3,
-    name: "Gold Accent",
+    name: "Internship Certificate",
     bg: "from-amber-600 to-amber-800",
     font: "Serif",
     theme: "#F59E0B",
     linkedCourses: 3,
+    type: "INTERNSHIP",
   },
 ];
 
 const CertificatesAdmin = () => {
   const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
+
+  const [mode, setMode] = useState("GENERATE");
+  const [studentEmail, setStudentEmail] = useState("");
+  const [studentName, setStudentName] = useState("");
+  const [courseName, setCourseName] = useState("");
+  const [certificateType, setCertificateType] = useState("COMPLETION");
+  const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const filtered = templates.filter((t) =>
     t.name.toLowerCase().includes(search.toLowerCase())
   );
 
+  /* ================= SUBMIT ================= */
+  const handleSubmit = async () => {
+    if (!studentEmail || !courseName) {
+      alert("Student email & course name required");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      if (mode === "GENERATE") {
+        if (!studentName) {
+          alert("Student name required");
+          return;
+        }
+
+        await axios.post(
+          `${API_GATEWAY}/api/files/certificates/generate`,
+          null,
+          {
+            params: {
+              email: studentEmail,
+              studentName,
+              courseName,
+              type: certificateType,
+            },
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("lms_token")}`,
+            },
+          }
+        );
+      } else {
+        if (!file) {
+          alert("Please select certificate file");
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("email", studentEmail);
+        formData.append("courseName", courseName);
+
+        await axios.post(
+          `${API_GATEWAY}/api/files/certificates/upload`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("lms_token")}`,
+            },
+          }
+        );
+      }
+
+      alert("Certificate processed successfully");
+      setOpen(false);
+      resetForm();
+    } catch (err) {
+      alert("Operation failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetForm = () => {
+    setStudentEmail("");
+    setStudentName("");
+    setCourseName("");
+    setFile(null);
+    setMode("GENERATE");
+    setCertificateType("COMPLETION");
+  };
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* HERO */}
-      <div className="rounded-3xl p-8 text-white shadow-xl bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600">
-        <h1 className="text-3xl font-bold">Certificates</h1>
-        <p className="mt-2 text-sm opacity-90">
-          Manage certificate templates, branding & issuance
+      <div className="rounded-2xl px-6 py-5 text-white shadow-lg bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600">
+        <h1 className="text-2xl font-semibold">Certificates</h1>
+        <p className="text-sm opacity-90">
+          Issue or upload certificates for students
         </p>
       </div>
 
       {/* ACTION BAR */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <div className="relative md:w-72">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+        <div className="relative md:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search templates..."
+            className="h-8 pl-9 text-sm"
+            placeholder="Search certificate..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
           />
         </div>
 
-        <Button className="bg-indigo-600 hover:bg-indigo-500">
-          <Plus className="h-4 w-4 mr-2" />
-          New Template
+        <Button
+          size="sm"
+          className="h-8 px-3 text-sm bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600"
+          onClick={() => setOpen(true)}
+        >
+          <Plus className="h-4 w-4 mr-1" />
+          Issue Certificate
         </Button>
       </div>
 
       {/* TEMPLATE GRID */}
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-3">
         {filtered.map((tpl) => (
-          <Card
-            key={tpl.id}
-            className="overflow-hidden hover:shadow-xl transition"
-          >
-            {/* PREVIEW */}
+          <Card key={tpl.id} className="overflow-hidden">
             <div
-              className={`h-28 bg-gradient-to-br ${tpl.bg} flex items-center justify-center`}
+              className={`h-24 bg-gradient-to-br ${tpl.bg} flex items-center justify-center`}
             >
-              <Award className="h-10 w-10 text-white/90" />
+              <Award className="h-8 w-8 text-white/90" />
             </div>
 
-            <CardContent className="space-y-3 p-4">
+            <CardContent className="p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <p className="font-semibold">{tpl.name}</p>
-                <Badge variant="secondary">{tpl.font}</Badge>
+                <p className="text-sm font-semibold">{tpl.name}</p>
+                <Badge variant="secondary" className="text-xs">
+                  {tpl.font}
+                </Badge>
               </div>
 
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Palette className="h-3.5 w-3.5" />
-                Theme:
-                <span className="font-mono text-foreground">
-                  {tpl.theme}
-                </span>
+                {tpl.theme}
               </div>
 
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <FileText className="h-3.5 w-3.5" />
-                Linked courses:{" "}
-                <span className="text-foreground">
-                  {tpl.linkedCourses}
-                </span>
+                {tpl.linkedCourses} courses
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex justify-end pt-1">
                 <Button
                   size="sm"
-                  variant="outline"
+                  className="h-7 px-3 text-xs bg-emerald-600"
+                  onClick={() => {
+                    setCertificateType(tpl.type);
+                    setOpen(true);
+                  }}
                 >
-                  Edit
-                </Button>
-                <Button
-                  size="sm"
-                  className="bg-emerald-600 hover:bg-emerald-500"
-                >
-                  Use
+                  Issue
                 </Button>
               </div>
             </CardContent>
           </Card>
         ))}
-
-        {filtered.length === 0 && (
-          <div className="col-span-full text-center text-muted-foreground py-12">
-            No certificate templates found
-          </div>
-        )}
       </div>
 
-      {/* HISTORY PLACEHOLDER */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">
-            Recent Certificate Issues
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Issued certificates history (student, course, date)
-            will appear here.
-          </p>
-        </CardContent>
-      </Card>
+      {/* MODAL */}
+      {open && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="relative w-full max-w-md rounded-xl bg-white dark:bg-slate-900 p-5 space-y-3">
+            <h3 className="text-base font-semibold">Issue Certificate</h3>
+
+            <button
+              onClick={() => setOpen(false)}
+              className="absolute right-3 top-3 text-slate-500 hover:text-slate-900"
+            >
+              <X className="h-4 w-4" />
+            </button>
+
+            {/* MODE */}
+            <div className="flex gap-5 text-sm">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  className="accent-indigo-600"
+                  checked={mode === "GENERATE"}
+                  onChange={() => setMode("GENERATE")}
+                />
+                Generate
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  className="accent-emerald-600"
+                  checked={mode === "UPLOAD"}
+                  onChange={() => setMode("UPLOAD")}
+                />
+                Upload
+              </label>
+            </div>
+
+            <Input
+              className="h-8 text-sm"
+              placeholder="Student Email"
+              value={studentEmail}
+              onChange={(e) => setStudentEmail(e.target.value)}
+            />
+
+            {mode === "GENERATE" && (
+              <Input
+                className="h-8 text-sm"
+                placeholder="Student Name"
+                value={studentName}
+                onChange={(e) => setStudentName(e.target.value)}
+              />
+            )}
+
+            <Input
+              className="h-8 text-sm"
+              placeholder="Course Name"
+              value={courseName}
+              onChange={(e) => setCourseName(e.target.value)}
+            />
+
+            {mode === "UPLOAD" && (
+              <Input
+                type="file"
+                accept=".pdf,.png,.jpg,.jpeg"
+                onChange={(e) => setFile(e.target.files[0])}
+                className="h-8 text-sm"
+              />
+            )}
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button size="sm" variant="outline" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                className="bg-emerald-600"
+                onClick={handleSubmit}
+                disabled={loading}
+              >
+                {loading
+                  ? "Processing..."
+                  : mode === "UPLOAD"
+                  ? "Upload"
+                  : "Issue"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

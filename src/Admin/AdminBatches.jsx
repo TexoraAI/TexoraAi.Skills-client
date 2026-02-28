@@ -1,16 +1,21 @@
-
 // import React, { useEffect, useState } from "react";
+// import { Plus } from "lucide-react";
+// import { useNavigate } from "react-router-dom";
+
 // import CreateBatchModal from "./CreateBatchModal";
-// import {
-//   getAllBatches,
-//   deleteBatch, // ✅ ADDED
-// } from "../services/batchService";
+// import { getAllBatches } from "../services/batchService";
+
+// import { Button } from "@/components/ui/button";
+// import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 // const AdminBatches = () => {
-//   const [showModal, setShowModal] = useState(false);
-//   const [batches, setBatches] = useState([]);
-//   const [editBatch, setEditBatch] = useState(null); // ✅ ADDED
+//   const navigate = useNavigate();
 
+//   const [showModal, setShowModal] = useState(false);
+//   const [createdBatchId, setCreatedBatchId] = useState(null);
+//   const [batches, setBatches] = useState([]);
+
+//   /* ================= LOAD EXISTING BATCHES ================= */
 //   const loadBatches = async () => {
 //     try {
 //       const res = await getAllBatches();
@@ -24,101 +29,113 @@
 //     loadBatches();
 //   }, []);
 
-//   // ✅ ADDED – DELETE HANDLER
-//   const handleDelete = async (id) => {
-//     if (!window.confirm("Delete this batch?")) return;
-
-//     try {
-//       await deleteBatch(id);
-//       loadBatches();
-//     } catch (err) {
-//       console.error("Failed to delete batch", err);
-//     }
-//   };
-
 //   return (
 //     <div className="space-y-6">
-//       {/* Header */}
-//       <div className="flex items-center justify-between">
-//         <div>
-//           <h1 className="text-xl font-semibold text-slate-100">Batches</h1>
-//           <p className="text-sm text-slate-400">
-//             Create and manage batches across branches.
-//           </p>
-//         </div>
+//       {/* HERO */}
+//       <div className="rounded-2xl p-6 text-white shadow-lg bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600">
+//         <h1 className="text-2xl font-bold">Batch Management</h1>
+//         <p className="mt-1 text-sm opacity-90">
+//           Create batch and assign trainer & students
+//         </p>
+//       </div>
 
-//         <button
+//       {/* ACTION */}
+//       <div className="flex justify-end">
+//         <Button
+//           className="h-9 px-4 bg-gradient-to-r from-cyan-500 to-blue-600"
 //           onClick={() => setShowModal(true)}
-//           className="px-4 py-2 rounded-md bg-violet-600 text-white text-sm hover:bg-violet-500"
 //         >
-//           + Create Batch
-//         </button>
+//           <Plus className="h-4 w-4 mr-1.5" />
+//           Create Batch
+//         </Button>
 //       </div>
 
-//       {/* Batch Table */}
-//       <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
-//         {batches.length === 0 ? (
-//           <p className="text-sm text-slate-400">No batches created yet.</p>
-//         ) : (
-//           <table className="w-full text-sm text-slate-200">
-//             <thead className="text-xs text-slate-400 border-b border-slate-800">
-//               <tr>
-//                 <th className="py-2 text-left">Name</th>
-//                 <th className="py-2 text-left">Course</th>
-//                 <th className="py-2 text-left">Trainer</th>
-//                 <th className="py-2 text-left">Start</th>
-//                 <th className="py-2 text-left">End</th>
-//                 <th className="py-2 text-right">Actions</th> {/* ✅ ADDED */}
-//               </tr>
-//             </thead>
-//             <tbody>
-//               {batches.map((b) => (
-//                 <tr key={b.id} className="border-b border-slate-800">
-//                   <td className="py-2">{b.name}</td>
-//                   <td className="py-2">{b.courseName}</td>
-//                   <td className="py-2">{b.trainerName}</td>
-//                   <td className="py-2">{b.startDate}</td>
-//                   <td className="py-2">{b.endDate}</td>
+//       {/* WORKFLOW CARD */}
+//       <Card>
+//         <CardHeader>
+//           <CardTitle>Workflow</CardTitle>
+//         </CardHeader>
 
-//                   {/* ✅ ADDED – ACTION BUTTONS */}
-//                   <td className="py-2 text-right space-x-2">
-//                     <button
-//                       onClick={() => setEditBatch(b)}
-//                       className="px-3 py-1 text-xs rounded-md border border-slate-700 hover:bg-slate-800"
-//                     >
-//                       Edit
-//                     </button>
+//         <CardContent className="space-y-2 text-sm text-muted-foreground">
+//           <p>1️⃣ Create a batch</p>
+//           <p>2️⃣ Assign trainer to batch</p>
+//           <p>3️⃣ Assign students under trainer</p>
 
-//                     <button
-//                       onClick={() => handleDelete(b.id)}
-//                       className="px-3 py-1 text-xs rounded-md border border-red-700 text-red-400 hover:bg-red-900/30"
-//                     >
-//                       Delete
-//                     </button>
-//                   </td>
-//                 </tr>
-//               ))}
-//             </tbody>
-//           </table>
-//         )}
-//       </div>
+//           {createdBatchId && (
+//             <div className="pt-4">
+//               <Button
+//                 onClick={() =>
+//                   navigate(`/admin/batches/${createdBatchId}/assign-trainer`)
+//                 }
+//               >
+//                 Go to Assign Trainer
+//               </Button>
+//             </div>
+//           )}
+//         </CardContent>
+//       </Card>
 
-//       {/* CREATE MODAL */}
+//       {/* EXISTING BATCHES */}
+//       <Card>
+//         <CardHeader>
+//           <CardTitle>Existing Batches</CardTitle>
+//         </CardHeader>
+//         <CardContent className="space-y-3">
+//           {batches.length === 0 ? (
+//             <p className="text-sm text-muted-foreground">
+//               No batches created yet
+//             </p>
+//           ) : (
+//             batches.map((b) => (
+//               <div
+//                 key={b.id}
+//                 className="flex items-center justify-between border rounded-xl p-4"
+//               >
+//                 <div className="space-y-1">
+//                   <p className="font-semibold">{b.batchName}</p>
+//                   <p className="text-xs text-muted-foreground">
+//                     Batch ID: {b.id}
+//                   </p>
+//                   <p className="text-xs text-muted-foreground">
+//                     Branch ID: {b.branchId}
+//                   </p>
+//                   <p className="text-xs text-muted-foreground">
+//                     Trainer: {b.trainerEmail || "Not Assigned"}
+//                   </p>
+//                 </div>
+
+//                 <div className="flex gap-2">
+//                   {/* EXISTING BUTTON */}
+//                   <Button
+//                     variant="outline"
+//                     onClick={() =>
+//                       navigate(`/admin/batches/${b.id}/assign-trainer`)
+//                     }
+//                   >
+//                     {b.trainerEmail ? "Manage Students" : "Assign Trainer"}
+//                   </Button>
+
+//                   {/* 🔥 NEW BUTTON (ADDED ONLY THIS) */}
+//                   <Button
+//                     variant="secondary"
+//                     onClick={() => navigate(`/admin/batches/${b.id}/trainers`)}
+//                   >
+//                     View Trainers
+//                   </Button>
+//                 </div>
+//               </div>
+//             ))
+//           )}
+//         </CardContent>
+//       </Card>
+
+//       {/* MODAL */}
 //       {showModal && (
 //         <CreateBatchModal
 //           onClose={() => setShowModal(false)}
-//           onSuccess={loadBatches}
-//         />
-//       )}
-
-//       {/* EDIT MODAL */}
-//       {editBatch && (
-//         <CreateBatchModal
-//           isEdit={true}
-//           initialData={editBatch}
-//           onClose={() => setEditBatch(null)}
-//           onSuccess={() => {
-//             setEditBatch(null);
+//           onSuccess={(newBatch) => {
+//             setShowModal(false);
+//             setCreatedBatchId(newBatch.id);
 //             loadBatches();
 //           }}
 //         />
@@ -129,49 +146,30 @@
 
 // export default AdminBatches;
 
-
-
-
-
-
-
-
-
 import React, { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import CreateBatchModal from "./CreateBatchModal";
 import { getAllBatches, deleteBatch } from "../services/batchService";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 const AdminBatches = () => {
+  const navigate = useNavigate();
+
   const [showModal, setShowModal] = useState(false);
-  const [editBatch, setEditBatch] = useState(null);
+  const [createdBatchId, setCreatedBatchId] = useState(null);
   const [batches, setBatches] = useState([]);
 
-  /* ================= LOAD ================= */
+  /* ================= LOAD EXISTING BATCHES ================= */
   const loadBatches = async () => {
     try {
       const res = await getAllBatches();
       setBatches(res.data || []);
-    } catch (e) {
-      console.error("Failed to load batches", e);
+    } catch (err) {
+      console.error("Failed to load batches", err);
     }
   };
 
@@ -179,123 +177,132 @@ const AdminBatches = () => {
     loadBatches();
   }, []);
 
-  /* ================= DELETE ================= */
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this batch?")) return;
-
-    try {
-      await deleteBatch(id);
-      loadBatches();
-    } catch (e) {
-      console.error("Delete failed", e);
-    }
-  };
-
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* HERO */}
-      <div className="rounded-3xl p-8 text-white shadow-xl bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600">
-        <h1 className="text-3xl font-bold">Batches</h1>
-        <p className="mt-2 text-sm opacity-90">
-          Create and manage batches across branches
+      <div className="rounded-2xl p-6 text-white shadow-lg bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600">
+        <h1 className="text-2xl font-bold">Batch Management</h1>
+        <p className="mt-1 text-sm opacity-90">
+          Create batch and assign trainer & students
         </p>
       </div>
 
-      {/* ACTION BAR */}
+      {/* ACTION */}
       <div className="flex justify-end">
         <Button
-          className="bg-indigo-600 hover:bg-indigo-500"
+          className="h-9 px-4 bg-gradient-to-r from-cyan-500 to-blue-600"
           onClick={() => setShowModal(true)}
         >
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="h-4 w-4 mr-1.5" />
           Create Batch
         </Button>
       </div>
 
-      {/* TABLE */}
+      {/* WORKFLOW CARD */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Batch List</CardTitle>
+          <CardTitle>Workflow</CardTitle>
         </CardHeader>
 
-        <CardContent>
-          {batches.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No batches created yet.
-            </p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Course</TableHead>
-                  <TableHead>Trainer</TableHead>
-                  <TableHead>Start</TableHead>
-                  <TableHead>End</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
+        <CardContent className="space-y-2 text-sm text-muted-foreground">
+          <p>1️⃣ Create a batch</p>
+          <p>2️⃣ Assign trainer to batch</p>
+          <p>3️⃣ Assign students under trainer</p>
 
-              <TableBody>
-                {batches.map((b) => (
-                  <TableRow key={b.id}>
-                    <TableCell className="font-medium">
-                      {b.name}
-                    </TableCell>
-
-                    <TableCell>
-                      <Badge variant="secondary">
-                        {b.courseName}
-                      </Badge>
-                    </TableCell>
-
-                    <TableCell>{b.trainerName}</TableCell>
-
-                    <TableCell>{b.startDate}</TableCell>
-
-                    <TableCell>{b.endDate}</TableCell>
-
-                    <TableCell className="text-right space-x-2">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => setEditBatch(b)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleDelete(b.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          {createdBatchId && (
+            <div className="pt-4">
+              <Button
+                onClick={() =>
+                  navigate(`/admin/batches/${createdBatchId}/assign-trainer`)
+                }
+              >
+                Go to Assign Trainer
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>
 
-      {/* CREATE MODAL */}
+      {/* EXISTING BATCHES */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Existing Batches</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {batches.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No batches created yet
+            </p>
+          ) : (
+            batches.map((b) => (
+              <div
+                key={b.id}
+                className="flex items-center justify-between border rounded-xl p-4"
+              >
+                <div className="space-y-1">
+                  <p className="font-semibold">{b.batchName}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Batch ID: {b.id}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Branch ID: {b.branchId}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Trainer: {b.trainerEmail || "Not Assigned"}
+                  </p>
+                </div>
+
+                <div className="flex gap-2">
+                  {/* EXISTING BUTTON */}
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      navigate(`/admin/batches/${b.id}/assign-trainer`)
+                    }
+                  >
+                    {b.trainerEmail ? "Manage Students" : "Assign Trainer"}
+                  </Button>
+
+                  {/* EXISTING BUTTON */}
+                  <Button
+                    variant="secondary"
+                    onClick={() => navigate(`/admin/batches/${b.id}/trainers`)}
+                  >
+                    View Trainers
+                  </Button>
+
+                  {/* 🧨 DELETE BUTTON (ADDED) */}
+                  <Button
+                    variant="destructive"
+                    onClick={async () => {
+                      if (!window.confirm("Delete this batch permanently?"))
+                        return;
+
+                      try {
+                        await deleteBatch(b.id);
+                        loadBatches();
+                      } catch (e) {
+                        console.error("Delete failed", e);
+                        alert("Failed to delete batch");
+                      }
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
+
+      {/* MODAL */}
       {showModal && (
         <CreateBatchModal
           onClose={() => setShowModal(false)}
-          onSuccess={loadBatches}
-        />
-      )}
-
-      {/* EDIT MODAL */}
-      {editBatch && (
-        <CreateBatchModal
-          isEdit
-          initialData={editBatch}
-          onClose={() => setEditBatch(null)}
-          onSuccess={() => {
-            setEditBatch(null);
+          onSuccess={(newBatch) => {
+            setShowModal(false);
+            setCreatedBatchId(newBatch.id);
             loadBatches();
           }}
         />

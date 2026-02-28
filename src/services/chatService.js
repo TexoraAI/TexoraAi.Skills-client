@@ -4,28 +4,44 @@ const API = axios.create({
   baseURL: "http://localhost:9000/api/chat",
 });
 
-// ✅ Attach JWT automatically
+// attach JWT automatically
 API.interceptors.request.use((req) => {
   const token = localStorage.getItem("lms_token");
-  if (token) {
-    req.headers.Authorization = `Bearer ${token}`;
-  }
+  if (token) req.headers.Authorization = `Bearer ${token}`;
   return req;
 });
 
-// ================= API METHODS =================
+/* =====================================================
+   TRAINER → GET STUDENTS IN A BATCH
+   GET /api/chat/trainer/students?batchId=
+   ===================================================== */
+export const getTrainerStudents = (batchId) =>
+  API.get(`/trainer/students?batchId=${batchId}`);
 
-// 🔹 Send message
-export const sendMessage = (data) => {
-  return API.post("/send", data);
-};
+/* =====================================================
+   STUDENT → GET TRAINER
+   GET /api/chat/student/trainer?batchId=
+   ===================================================== */
+export const getStudentTrainer = (batchId) =>
+  API.get(`/student/trainer?batchId=${batchId}`);
 
-// 🔹 Get conversation between TWO users (MANDATORY)
-export const getConversation = (user1, user2) => {
-  return API.get(`/conversation?user1=${user1}&user2=${user2}`);
-};
+/* =====================================================
+   GET CONVERSATION
+   GET /api/chat/conversation?batchId=&otherUser=
+   ===================================================== */
+export const getConversation = (batchId, otherUser) =>
+  API.get(
+    `/conversation?batchId=${batchId}&otherUser=${encodeURIComponent(otherUser)}`,
+  );
 
-// 🔹 Trainer inbox
-export const getTrainerInbox = (trainerEmail) => {
-  return API.get(`/trainer/inbox?trainerEmail=${trainerEmail}`);
-};
+/* =====================================================
+   SEND MESSAGE
+   POST /api/chat/send
+   ===================================================== */
+export const sendMessage = (data) => API.post("/send", data);
+
+/* =====================================================
+   STUDENT → GET CHAT CONTEXT (batch + trainer)
+   GET /api/chat/student/context
+   ===================================================== */
+export const getStudentContext = () => API.get("/student/context");

@@ -101,7 +101,7 @@ import TrainerFiles from "./Trainer/TrainerFiles";
 import TrainerSettings from "./Trainer/TrainerSettings";
 import UploadDocuments from "./Trainer/UploadDocuments";
 import UploadVideos from "./Trainer/UploadVideos";
-import ViewAssignments from "./trainer/ViewAssignments";
+import ViewAssignments from "./Trainer/ViewAssignments";
 
 /* ================= NEW LIVE + RECORDED ================= */
 import LiveAttendanceReport from "./Trainer/LiveAttendanceReport";

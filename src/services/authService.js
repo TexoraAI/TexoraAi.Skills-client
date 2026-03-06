@@ -15,8 +15,6 @@ const authService = {
 
   // ================= GOOGLE LOGIN =================
   googleLogin({ idToken, role }) {
-    console.log(idToken);
-    console.log(role);
     return axios.post(
       `${API_BASE_URL}/api/auth/google`,
       {

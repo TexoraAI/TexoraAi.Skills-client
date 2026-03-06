@@ -1,7 +1,7 @@
 import axios from "axios";
 import auth from "../auth"; // ✅ use existing auth.js
 
-const BASE_URL = "http://localhost:9000/api";
+const BASE_URL =   import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api";
 
 // 🔐 Token only from auth (NO localStorage direct access)
 const getAuthHeader = () => {

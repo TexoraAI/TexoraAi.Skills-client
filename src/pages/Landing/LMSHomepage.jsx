@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 import { FaLinkedinIn, FaWhatsapp, FaYoutube } from "react-icons/fa";
 import { FaInstagram, FaXTwitter } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
-import logo from "../../assets/logo.png";
+// import logo from "../../assets/logo.png";
 
 export default function LMSHomepage({ theme, toggleTheme }) {
   const [activeTab, setActiveTab] = useState("product");
@@ -137,15 +137,17 @@ export default function LMSHomepage({ theme, toggleTheme }) {
 
       {/* ── Nav ── */}
       <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? "bg-white/95 dark:bg-black/95 backdrop-blur-xl shadow-md" : "bg-white/80 dark:bg-black/80 backdrop-blur-md"} border-b border-[#F97316]/20 dark:border-gray-800`}>
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-0">
           <div className="flex items-center justify-between h-20">
-
-            <div className="flex items-center gap-3 cursor-pointer hover:scale-105 transition-transform" onClick={() => navigate("/")}>
-              <img src={logo} alt="TexoraAi.skills" className="h-10 w-auto object-contain" />
-              <span className="text-2xl font-bold text-[#1E293B] dark:text-white">
-                TexoraAi<span className="text-[#F97316]">.skills</span>
-              </span>
-            </div>
+           <div
+  className="flex items-center justify-start cursor-pointer hover:scale-105 transition-transform"
+  onClick={() => navigate("/")}
+>
+  <span className="text-4xl font-extrabold tracking-wider font-serif">
+    <span className="text-green-600">ILM</span>
+    <span className="text-[#F97316] ml-2">ORA</span>
+  </span>
+</div>
 
             <div className="hidden lg:flex items-center gap-8">
               {navLinks.map(link => (
@@ -297,7 +299,13 @@ export default function LMSHomepage({ theme, toggleTheme }) {
       <section className="py-24 px-6 bg-[#F6EDE6] dark:bg-black">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-[#1E293B] dark:text-white">Why Choose <span className="text-[#F97316]">TexoraAi.skills</span></h2>
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-[#1E293B] dark:text-white">
+  Why Choose 
+  <span className="ml-2">
+    <span className="text-green-600">ILM</span>{" "}
+    <span className="text-[#F97316]">ORA</span>
+  </span>
+</h2>
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">Everything you need to accelerate your career growth</p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -465,7 +473,10 @@ export default function LMSHomepage({ theme, toggleTheme }) {
         <div className="max-w-7xl mx-auto px-6 py-20">
           <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-5">
             <div className="lg:col-span-2 space-y-5">
-              <h3 className="text-2xl font-bold">TexoraAi.skills</h3>
+            <h3 className="text-3xl font-extrabold">
+  <span className="text-green-600">ILM</span>{" "}
+  <span className="text-[#F97316]">ORA</span>
+</h3>
               <p className="text-sm text-gray-600 max-w-sm leading-relaxed">Modern learning platform for ambitious professionals who want to break into product, design and growth roles.</p>
               <div className="flex gap-3 pt-2">
                 <a href="https://www.youtube.com/@Texoraai" target="_blank" rel="noreferrer" className="h-8 w-8 rounded-full flex items-center justify-center text-white bg-red-600 hover:scale-110 transition-all shadow-md">
@@ -528,7 +539,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
             ))}
           </div>
           <div className="border-t border-gray-200 mt-16 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
-            <span>© {new Date().getFullYear()} TexoraAi.skills. All rights reserved.</span>
+            <span>© {new Date().getFullYear()} ILM ORA All rights reserved.</span>
             <span>Built with passion for modern learners 🚀</span>
           </div>
         </div>
@@ -537,3 +548,16 @@ export default function LMSHomepage({ theme, toggleTheme }) {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

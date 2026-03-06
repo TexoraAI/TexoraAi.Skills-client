@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { useEffect, useState } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
 
 /* ================= AUTH ================= */
 import auth from "./auth";
@@ -17,36 +17,36 @@ import TrainerPanel from "./Trainer/TrainerPanel";
 /* ================= APPLY ================= */
 import ApplyAdmin from "./Admin/ApplyAdmin.jsx";
 import ApplyBusiness from "./Business/ApplyBusiness.jsx";
-import ApplyTrainer from "./Trainer/ApplyTrainer.jsx";
 import StudentApplicationForm from "./Student/StudentApplicationForm.jsx";
+import ApplyTrainer from "./Trainer/ApplyTrainer.jsx";
 
 /* ================= SUPER ADMIN ================= */
-import SuperAdminLayout from "./SuperAdmin/SuperAdminLayout";
 import SuperAdminDashboard from "./SuperAdmin/SuperAdminDashboard";
+import SuperAdminLayout from "./SuperAdmin/SuperAdminLayout";
 import AdminOrganisationControl from "./SuperAdmin/admin-control/AdminOrganisationControl";
 import BusinessDashboardControl from "./SuperAdmin/admin-control/business-control/BusinessDashboardControl";
-import TrainerDashboardControl from "./SuperAdmin/trainer-control/TrainerDashboardControl";
-import StudentDashboardControl from "./SuperAdmin/student-control/StudentDashboardControl";
+import SuperAdminProfile from "./SuperAdmin/profile/SuperAdminProfile";
+import AuditLogs from "./SuperAdmin/settings/AuditLogs";
 import RolePageMatrix from "./SuperAdmin/settings/RolePageMatrix";
 import SendEmail from "./SuperAdmin/settings/SendEmail";
-import AuditLogs from "./SuperAdmin/settings/AuditLogs";
-import SuperAdminProfile from "./SuperAdmin/profile/SuperAdminProfile";
+import StudentDashboardControl from "./SuperAdmin/student-control/StudentDashboardControl";
+import TrainerDashboardControl from "./SuperAdmin/trainer-control/TrainerDashboardControl";
 
 /* ================= AUTH PAGES ================= */
+import ApprovalPending from "./pages/Auth/ApprovalPending.jsx";
+import ForgotPassword from "./pages/Auth/ForgotPassword.jsx";
 import Login from "./pages/Auth/Login.jsx";
 import Signup from "./pages/Auth/Register.jsx";
-import ForgotPassword from "./pages/Auth/ForgotPassword.jsx";
 import ResetPassword from "./pages/Auth/ResetPassword.jsx";
-import ApprovalPending from "./pages/Auth/ApprovalPending.jsx";
 import VerifyEmail from "./pages/Auth/VerifyEmail.jsx";
 
 /* ================= LANDING ================= */
-import LMSHomepage from "./pages/Landing/LMSHomepage";
-import ExploreFreeServices from "./pages/Landing/ExploreFreeServices";
-import Watchnow from "./pages/Landing/Watchnow";
-import SyllabusPage from "./pages/Landing/Syllabus.jsx";
-import CourseDetail from "./pages/Landing/CourseDetailsPage";
 import CoursePreview from "./pages/CoursePreview";
+import CourseDetail from "./pages/Landing/CourseDetailsPage";
+import ExploreFreeServices from "./pages/Landing/ExploreFreeServices";
+import LMSHomepage from "./pages/Landing/LMSHomepage";
+import SyllabusPage from "./pages/Landing/Syllabus.jsx";
+import Watchnow from "./pages/Landing/Watchnow";
 
 /* ================= COMPANY ================= */
 import AboutTexoraSkills from "./pages/About/AboutTexoraSkills";
@@ -55,104 +55,100 @@ import PrivacyPolicy from "./pages/Company/PrivacyPolicy";
 import TermsOfService from "./pages/Company/TermsOfService";
 
 /* ================= COMMON ================= */
-import SearchPage from "./pages/SearchPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import ProfilePage from "./pages/ProfilePage";
+import SearchPage from "./pages/SearchPage";
 import EditProfile from "./pages/common/EditProfile";
 
 /* ================= STUDENT ================= */
-import DashboardPage from "./Student/DashboardPage.jsx";
-import VideoLectures from "./Student/videolecctures.jsx";
-import Documents from "./Student/Documents.jsx";
-import MyCourses from "./Student/MyCourses.jsx";
-import StudentCourseView from "./Student/StudentCourseView";
 import Assessments from "./Student/Assessments.jsx";
+import AssignmentDetail from "./Student/AssignmentDetail";
 import AttemptQuiz from "./Student/AttemptQuiz.jsx";
-import MyQuizHistory from "./Student/MyQuizHistory";
 import Attendance from "./Student/Attendance.jsx";
+import DashboardPage from "./Student/DashboardPage.jsx";
+import Documents from "./Student/Documents.jsx";
 import Doubts from "./Student/Doubts.jsx";
-import Certificates from "./Student/certificates.jsx";
-import Overview from "./Student/overview.jsx";
+import LiveClasses from "./Student/LiveClasses.jsx";
+import MyCourses from "./Student/MyCourses.jsx";
+import MyQuizHistory from "./Student/MyQuizHistory";
+import RecordedClasses from "./Student/RecordedClasses.jsx";
 import Settings from "./Student/Settings.jsx";
+import StudentAssignments from "./Student/StudentAssignments.jsx";
+import StudentClassroomPage from "./Student/StudentClassroomPage";
+import StudentCourseView from "./Student/StudentCourseView";
 import TwoFactorAuth from "./Student/TwoFactorAuth";
 import UpdateEmail from "./Student/UpdateEmail";
-import StudentAssignments from "./Student/StudentAssignments.jsx";
-import AssignmentDetail from "./Student/AssignmentDetail";
-import StudentClassroomPage from "./Student/StudentClassroomPage";
-import LiveClasses from "./Student/LiveClasses.jsx";
-import RecordedClasses from "./Student/RecordedClasses.jsx";
+import Certificates from "./Student/certificates.jsx";
+import Overview from "./Student/overview.jsx";
+import VideoLectures from "./Student/videolecctures.jsx";
 /* ================= TRAINER ================= */
-import TrainerDashboard from "./Trainer/Dashboard";
-import TrainerBatches from "./Trainer/Batches";
 import TrainerAssessments from "./Trainer/Assessments";
 import TrainerAttendance from "./Trainer/Attendance";
 import BatchReports from "./Trainer/BatchReports";
 import CreateAssignments from "./Trainer/CreateAssignments";
-import ViewAssignments from "./trainer/ViewAssignments";
-import ViewSubmissions from "./trainer/ViewSubmissions";
-import EditAssignment from "./Trainer/EditAssignment";
-import MyAssignments from "./trainer/MyAssignments";
 import CreateQuiz from "./Trainer/CreateQuiz";
-import MyQuizzes from "./Trainer/MyQuizzes";
+import TrainerDashboard from "./Trainer/Dashboard";
 import DoubtsManagement from "./Trainer/DoubtsManagement";
+import EditRecordedClass from "./Trainer/EditRecordedClass";
+import MyQuizzes from "./Trainer/MyQuizzes";
 import PerformanceAnalysis from "./Trainer/PerformanceAnalysis";
 import StudentReports from "./Trainer/StudentReports";
+import TrainerBatchesPage from "./Trainer/TrainerBatchesPage";
+import TrainerClassroomPage from "./Trainer/TrainerClassroomPage";
+import CourseManagement from "./Trainer/TrainerCourseManagement.jsx";
+import CourseModules from "./Trainer/TrainerCourseModules";
+import TrainerFiles from "./Trainer/TrainerFiles";
 import TrainerSettings from "./Trainer/TrainerSettings";
 import UploadDocuments from "./Trainer/UploadDocuments";
 import UploadVideos from "./Trainer/UploadVideos";
-import CourseManagement from "./Trainer/TrainerCourseManagement.jsx";
-import CourseModules from "./Trainer/TrainerCourseModules";
-import TrainerBatchesPage from "./Trainer/TrainerBatchesPage";
-import TrainerClassroomPage from "./Trainer/TrainerClassroomPage";
-import TrainerFiles from "./Trainer/TrainerFiles";
-import EditRecordedClass from "./Trainer/EditRecordedClass";
+import ViewAssignments from "./trainer/ViewAssignments";
 
 /* ================= NEW LIVE + RECORDED ================= */
-import TrainerLiveClasses from "./Trainer/TrainerLiveClasses";
-import StartLiveSession from "./Trainer/StartLiveSession";
+import LiveAttendanceReport from "./Trainer/LiveAttendanceReport";
 import LiveSessionControls from "./Trainer/LiveSessionControls";
 import LiveSessionHistory from "./Trainer/LiveSessionHistory";
-import UploadRecordedVideo from "./Trainer/UploadRecordedVideo";
 import RecordedClassList from "./Trainer/RecordedClassList";
-import LiveAttendanceReport from "./Trainer/LiveAttendanceReport";
+import StartLiveSession from "./Trainer/StartLiveSession";
+import TrainerLiveClasses from "./Trainer/TrainerLiveClasses";
+import UploadRecordedVideo from "./Trainer/UploadRecordedVideo";
 /* ================= ADMIN ================= */
-import AdminDashboard from "./Admin/AdminDashboard";
-import AssignTrainerPage from "./Admin/AssignTrainerPage";
-import OrgSettings from "./Admin/OrgSettings";
-import Branches from "./Admin/Branches";
 import AdminBatches from "./Admin/AdminBatches";
-import AllUsers from "./Admin/AllUsers";
-import StudentsAdmin from "./Admin/StudentsAdmin";
-import TrainersAdmin from "./Admin/TrainersAdmin";
-import AllCourses from "./Admin/AllCourses";
-import Categories from "./Admin/Categories";
-import CertificatesAdmin from "./Admin/CertificatesAdmin";
-import OrgReports from "./Admin/OrgReports";
-import DepartmentList from "./Admin/DepartmentList";
-import UsageAnalytics from "./Admin/UsageAnalytics";
-import FeedbackAdmin from "./Admin/FeedbackAdmin";
-import PendingUsers from "./Admin/PendingUsers.jsx";
-import BatchStudentsPage from "./Admin/BatchStudentsPage";
-import BatchTrainerOverviewPage from "./Admin/BatchTrainerOverviewPage";
+import AdminDashboard from "./Admin/AdminDashboard";
 import AdminLiveSessions from "./Admin/AdminLiveSessions";
 import AdminRecordedVideos from "./Admin/AdminRecordedVideos";
-import Featuredcourseuploadform from "./Admin/Featuredcourseuploadform";
 import Admincourseuploadform from "./Admin/Admincourseuploadform";
+import AllCourses from "./Admin/AllCourses";
+import AllUsers from "./Admin/AllUsers";
+import AssignTrainerPage from "./Admin/AssignTrainerPage";
+import BatchStudentsPage from "./Admin/BatchStudentsPage";
+import BatchTrainerOverviewPage from "./Admin/BatchTrainerOverviewPage";
+import Branches from "./Admin/Branches";
+import Categories from "./Admin/Categories";
+import CertificatesAdmin from "./Admin/CertificatesAdmin";
+import DepartmentList from "./Admin/DepartmentList";
+import Featuredcourseuploadform from "./Admin/Featuredcourseuploadform";
+import FeedbackAdmin from "./Admin/FeedbackAdmin";
+import OrgReports from "./Admin/OrgReports";
+import OrgSettings from "./Admin/OrgSettings";
+import PendingUsers from "./Admin/PendingUsers.jsx";
+import StudentsAdmin from "./Admin/StudentsAdmin";
+import TrainersAdmin from "./Admin/TrainersAdmin";
+import UsageAnalytics from "./Admin/UsageAnalytics";
 /* ================= BUSINESS ================= */
 import BusinessDashboard from "./Business/BusinessDashboard";
-import JobOpenings from "./Business/Hiring Manager/JobOpenings.jsx";
-import Applications from "./Business/Hiring Manager/Applications.jsx";
-import AllLeads from "./Business/Lead Management/AllLeads.jsx";
-import FollowUps from "./Business/Lead Management/FollowUps.jsx";
 import NewEnrollments from "./Business/Enrollments/NewEnrollments.jsx";
 import Renewals from "./Business/Enrollments/Renewals.jsx";
 import Invoices from "./Business/Financial/Invoices.jsx";
 import Payments from "./Business/Financial/Payments.jsx";
+import Applications from "./Business/Hiring Manager/Applications.jsx";
+import JobOpenings from "./Business/Hiring Manager/JobOpenings.jsx";
+import AllLeads from "./Business/Lead Management/AllLeads.jsx";
+import FollowUps from "./Business/Lead Management/FollowUps.jsx";
 import Campaigns from "./Business/Marketing/Campaigns.jsx";
 import Sources from "./Business/Marketing/Sources.jsx";
-import Targets from "./Business/Team Targets/Targets.jsx";
-import Performance from "./Business/Team Targets/Performance.jsx";
 import BusinessSettings from "./Business/Settings.jsx";
+import Performance from "./Business/Team Targets/Performance.jsx";
+import Targets from "./Business/Team Targets/Targets.jsx";
 
 /* ================= PROTECTED ================= */
 const ProtectedRoute = ({ children }) => {
@@ -297,7 +293,7 @@ export default function App() {
   <Route path="student-reports" element={<StudentReports />} />
   <Route path="batch-reports" element={<BatchReports />} />
   <Route path="performance" element={<PerformanceAnalysis />} />
-  <Route path="/trainer/view-assignments" element={<ViewAssignments />} />
+  <Route path="view-assignments" element={<ViewAssignments />} />
   {/* ================= LIVE CLASSES ================= */}
   <Route path="live" element={<TrainerLiveClasses />} />
   <Route path="start-live" element={<StartLiveSession />} />

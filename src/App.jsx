@@ -297,7 +297,7 @@ export default function App() {
   <Route path="student-reports" element={<StudentReports />} />
   <Route path="batch-reports" element={<BatchReports />} />
   <Route path="performance" element={<PerformanceAnalysis />} />
-
+  <Route path="/trainer/view-assignments" element={<ViewAssignments />} />
   {/* ================= LIVE CLASSES ================= */}
   <Route path="live" element={<TrainerLiveClasses />} />
   <Route path="start-live" element={<StartLiveSession />} />

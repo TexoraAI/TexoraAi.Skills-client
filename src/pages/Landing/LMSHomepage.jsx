@@ -4,16 +4,15 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import heroStudent from "../../assets/hero-student.png";
 import {
-  ArrowRight, Award, BookOpen, CheckCircle, ChevronDown, Clock,
+  ArrowRight, Award, BookOpen,
+  ChevronDown, Clock,
   GraduationCap, LogOut, Menu, Moon, Sparkles, Star, Sun,
-  Target, TrendingUp, Trophy, User, Users, Zap,
+  Target, TrendingUp, Trophy, User, Users, Zap
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { FaLinkedinIn, FaWhatsapp, FaYoutube } from "react-icons/fa";
-import { FaInstagram, FaXTwitter } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
+import heroStudent from "../../assets/hero-student.png";
 // import logo from "../../assets/logo.png";
 
 export default function LMSHomepage({ theme, toggleTheme }) {
@@ -475,7 +474,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
             <div className="lg:col-span-2 space-y-5">
             <h3 className="text-3xl font-extrabold">
   <span className="text-green-600">ILM</span>{" "}
-  <span className="text-[#F97316]">ORA</span>
+  <span className="text-[#F97316]">ORAS</span>
 </h3>
               <p className="text-sm text-gray-600 max-w-sm leading-relaxed">Modern learning platform for ambitious professionals who want to break into product, design and growth roles.</p>
               <div className="flex gap-3 pt-2">

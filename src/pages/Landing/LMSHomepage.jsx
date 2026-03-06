@@ -474,7 +474,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
             <div className="lg:col-span-2 space-y-5">
             <h3 className="text-3xl font-extrabold">
   <span className="text-green-600">ILM</span>{" "}
-  <span className="text-[#F97316]">ORAS</span>
+  <span className="text-[#F97316]">ORA</span>
 </h3>
               <p className="text-sm text-gray-600 max-w-sm leading-relaxed">Modern learning platform for ambitious professionals who want to break into product, design and growth roles.</p>
               <div className="flex gap-3 pt-2">

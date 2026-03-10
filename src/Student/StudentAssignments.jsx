@@ -21,20 +21,33 @@ export default function StudentAssignments() {
 
   const loadAssignments = async () => {
     try {
-      const assignmentRes = await getStudentAssignments(); // ✅ using new endpoint
-      const submissionRes = await getMySubmissions();
+      const assignmentRes = await getStudentAssignments();
+const submissionRes = await getMySubmissions();
 
-      const submissionMap = {};
-      submissionRes.data.forEach((s) => {
-        submissionMap[s.assignmentId] = s;
-      });
+const submissionMap = {};
 
-      const mergedAssignments = assignmentRes.data.map((a) => ({
-        ...a,
-        submission: submissionMap[a.id] || null,
-      }));
+const submissions =
+  submissionRes?.data?.data ||
+  submissionRes?.data?.submissions ||
+  submissionRes?.data ||
+  [];
 
-      setAssignments(mergedAssignments);
+submissions.forEach((s) => {
+  submissionMap[s.assignmentId] = s;
+});
+
+const assignmentList =
+  assignmentRes?.data?.data ||
+  assignmentRes?.data?.assignments ||
+  assignmentRes?.data ||
+  [];
+
+const mergedAssignments = assignmentList.map((a) => ({
+  ...a,
+  submission: submissionMap[a.id] || null,
+}));
+
+setAssignments(Array.isArray(mergedAssignments) ? mergedAssignments : []);
     } catch (error) {
       console.error("Error loading assignments:", error);
     } finally {

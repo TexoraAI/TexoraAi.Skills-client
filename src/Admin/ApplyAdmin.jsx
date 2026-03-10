@@ -106,7 +106,7 @@ const ApplyAdmin = () => {
       className={`min-h-screen transition-colors duration-300 ${
         darkMode
           ? "bg-gradient-to-br from-gray-900 via-gray-800 to-black"
-          : "bg-gradient-to-br from-blue-50 via-white to-emerald-50"
+          : "bg-gradient-to-br from-orange-50 via-white to-orange-100"
       }`}
     >
       <header
@@ -117,9 +117,10 @@ const ApplyAdmin = () => {
         }`}
       >
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
-            TexoraAI.skills
-          </div>
+        <div className="text-2xl font-bold tracking-wider font-serif">
+  <span className="text-green-600">ILM</span>
+  <span className="text-[#F97316] ml-1">ORA</span>
+</div>
 
           <div className="flex items-center gap-4">
             <button
@@ -127,7 +128,7 @@ const ApplyAdmin = () => {
               className={`p-2 rounded-lg transition-all duration-300 ${
                 darkMode
                   ? "bg-gray-800 text-yellow-400 hover:bg-gray-700"
-                  : "bg-blue-100 text-blue-600 hover:bg-blue-200"
+                  : "bg-orange-100 text-orange-600 hover:bg-orange-200"
               } hover:scale-110`}
             >
               {darkMode ? <Sun size={20} /> : <Moon size={20} />}
@@ -143,7 +144,7 @@ const ApplyAdmin = () => {
             : "bg-white border border-gray-100"
         }`}
       >
-        <div className="bg-gradient-to-r from-blue-600 to-emerald-600 p-8 text-white">
+        <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-8 text-white">
           <h2 className="text-3xl font-bold">Apply for Admin Role</h2>
           <p className="text-blue-100 mt-1">Complete the process in 3 steps</p>
         </div>
@@ -247,7 +248,7 @@ const ApplyAdmin = () => {
 
               <button
                 onClick={nextStep}
-                className="w-full bg-gradient-to-r from-blue-600 to-emerald-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-transform"
+                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-transform"
               >
                 Next →
               </button>

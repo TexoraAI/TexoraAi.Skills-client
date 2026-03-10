@@ -26,9 +26,9 @@ export default function ApplyTrainer() {
   const [loading, setLoading] = useState(false);
 
   const colors = {
-    primary: "from-blue-600 to-emerald-600",
-    primarySolid: "bg-blue-600",
-    accent: "from-yellow-400 to-orange-500",
+    primary: "from-orange-500 to-orange-600",
+    primarySolid: "bg-orange-500",
+    accent: "from-orange-400 to-orange-600",
     muted: "text-gray-600 dark:text-gray-400",
     surface: "bg-white dark:bg-black",
   };
@@ -139,11 +139,10 @@ export default function ApplyTrainer() {
         >
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div
-                className={`text-2xl font-bold bg-gradient-to-r ${colors.primary} bg-clip-text text-transparent`}
-              >
-                TexoraAI.skills
-              </div>
+            <div className="text-2xl font-bold tracking-wider font-serif">
+  <span className="text-green-600">ILM</span>
+  <span className="text-[#F97316] ml-1">ORA</span>
+</div>
             </div>
             <div className="flex items-center gap-4">
               <button
@@ -268,7 +267,7 @@ export default function ApplyTrainer() {
                         darkMode
                           ? "bg-black/50 border-gray-700 text-white"
                           : "bg-gray-50 border-gray-300 text-gray-900"
-                      } border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
+                      } border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition`}
                     />
                   </div>
 
@@ -420,7 +419,7 @@ export default function ApplyTrainer() {
                             type="checkbox"
                             checked={formData.shareExpertise.includes(option)}
                             onChange={() => handleCheckboxChange(option)}
-                            className="w-4 h-4 accent-blue-600"
+                            className="w-4 h-4 accent-orange-500"
                           />
                           <span
                             className={

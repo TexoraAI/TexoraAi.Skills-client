@@ -197,9 +197,10 @@ export default function StudentApplicationForm() {
       {/* Header */}
       <div className={`${cardBg} shadow-sm border-b ${borderClass}`}>
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className={`text-2xl md:text-3xl font-bold ${textClass}`}>
-            Texora<span className="text-cyan-500">AI</span>.skills
-          </h1>
+        <h1 className={`text-2xl md:text-3xl font-bold ${textClass}`}>
+  <span className="text-green-600">ILM</span>
+  <span className="text-[#F97316] ml-1">ORA</span>
+</h1>
 
           <div className="flex items-center gap-3">
             <button
@@ -225,7 +226,7 @@ export default function StudentApplicationForm() {
                 <div
                   className={`w-12 h-12 rounded-full flex items-center justify-center font-bold ${
                     currentStep >= step
-                      ? "bg-cyan-500 text-white"
+                    ? "bg-orange-500 text-white"
                       : darkMode
                         ? "bg-gray-700 text-gray-400"
                         : "bg-gray-200 text-gray-500"
@@ -242,7 +243,7 @@ export default function StudentApplicationForm() {
                 <div
                   className={`w-16 md:w-24 h-1 mx-2 ${
                     currentStep > step
-                      ? "bg-cyan-500"
+                      ? "bg-orange-500"
                       : darkMode
                         ? "bg-gray-700"
                         : "bg-gray-300"
@@ -275,7 +276,7 @@ export default function StudentApplicationForm() {
             {currentStep === 1 && (
               <div className="space-y-4">
                 <div className="flex items-center gap-2 mb-4">
-                  <User className="text-cyan-500" size={24} />
+                <User className="text-orange-500" size={24} />
                   <h3 className={`text-xl font-semibold ${textClass}`}>
                     Personal Details
                   </h3>
@@ -290,7 +291,7 @@ export default function StudentApplicationForm() {
                     name="fullName"
                     value={formData.fullName}
                     onChange={handleInputChange}
-                    className={`w-full ${inputBg} px-4 py-3 rounded-lg border ${borderClass} focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent`}
+                    className={`w-full ${inputBg} px-4 py-3 rounded-lg border ${borderClass} focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent`}
                     placeholder="Enter your full name"
                   />
                   {errors.fullName && (
@@ -464,7 +465,7 @@ export default function StudentApplicationForm() {
             {currentStep === 2 && (
               <div className="space-y-4">
                 <div className="flex items-center gap-2 mb-4">
-                  <GraduationCap className="text-cyan-500" size={24} />
+                <GraduationCap className="text-orange-500" size={24} />
                   <h3 className={`text-xl font-semibold ${textClass}`}>
                     Educational Details
                   </h3>
@@ -551,8 +552,7 @@ export default function StudentApplicationForm() {
                             value={status}
                             checked={formData.currentStatus === status}
                             onChange={handleInputChange}
-                            className="w-4 h-4 text-cyan-500"
-                          />
+                            className="w-4 h-4 text-orange-500"/>
                           <span className={textClass}>{status}</span>
                         </label>
                       ),
@@ -571,7 +571,7 @@ export default function StudentApplicationForm() {
             {currentStep === 3 && (
               <div className="space-y-6">
                 <div className="flex items-center gap-2 mb-4">
-                  <CheckCircle className="text-cyan-500" size={24} />
+                <CheckCircle className="text-orange-500" size={24} />
                   <h3 className={`text-xl font-semibold ${textClass}`}>
                     Review & Submit
                   </h3>
@@ -676,7 +676,7 @@ export default function StudentApplicationForm() {
                 <button
                   onClick={nextStep}
                   disabled={loading}
-                  className="flex items-center gap-2 bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-3 rounded-lg font-semibold transition"
+                  className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold transition"
                 >
                   Next
                   <ChevronRight size={20} />
@@ -699,7 +699,7 @@ export default function StudentApplicationForm() {
         <div className="text-center mt-6">
           <button
             onClick={() => navigate("/")}
-            className="text-cyan-500 hover:text-cyan-600 underline font-medium"
+            className="text-orange-500 hover:text-orange-600 underline font-medium"
           >
             ← Back to Home
           </button>

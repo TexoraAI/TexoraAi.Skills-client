@@ -144,7 +144,7 @@ const ApplyBusiness = () => {
       className={`min-h-screen transition-colors duration-300 ${
         darkMode
           ? "bg-gradient-to-br from-gray-900 via-gray-800 to-black"
-          : "bg-gradient-to-br from-blue-50 via-white to-emerald-50"
+          : "bg-gradient-to-br from-orange-50 via-white to-orange-100"
       }`}
     >
       <header
@@ -155,9 +155,10 @@ const ApplyBusiness = () => {
         }`}
       >
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
-            TexoraAI.skills
-          </div>
+        <div className="text-2xl font-bold tracking-wider font-serif">
+  <span className="text-green-600">ILM</span>
+  <span className="text-[#F97316] ml-1">ORA</span>
+</div>
 
           <div className="flex items-center gap-4">
             <button
@@ -165,7 +166,7 @@ const ApplyBusiness = () => {
               className={`p-2 rounded-lg transition-all duration-300 ${
                 darkMode
                   ? "bg-gray-800 text-yellow-400 hover:bg-gray-700"
-                  : "bg-blue-100 text-blue-600 hover:bg-blue-200"
+                  :"bg-orange-100 text-orange-600 hover:bg-orange-200"
               } hover:scale-110`}
             >
               {darkMode ? <Sun size={20} /> : <Moon size={20} />}
@@ -181,7 +182,7 @@ const ApplyBusiness = () => {
             : "bg-white border border-gray-100"
         }`}
       >
-        <div className="bg-gradient-to-r from-blue-600 to-emerald-600 p-8 text-white">
+        <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-8 text-white">
           <div className="flex items-center gap-3 mb-2">
             <Briefcase size={32} />
             <h2 className="text-3xl font-bold">Apply for Business</h2>
@@ -210,7 +211,7 @@ const ApplyBusiness = () => {
                 placeholder="Business / Company Name"
                 value={formData.businessName}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`w-full px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 ${
                   darkMode
                     ? "border-gray-600 bg-gray-700 text-white placeholder-gray-400"
                     : "border-gray-300 bg-white text-gray-800 placeholder-gray-500"
@@ -319,7 +320,7 @@ const ApplyBusiness = () => {
               <button
                 onClick={nextStep}
                 disabled={!isStep1Valid}
-                className="w-full bg-gradient-to-r from-blue-600 to-emerald-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 Next →
               </button>

@@ -238,7 +238,7 @@ export default function App() {
           <Route path="courses" element={<MyCourses />} />
           <Route path="course/:id" element={<StudentCourseView />} />
           <Route path="assessments" element={<Assessments />} />
-          <Route path="assignments" element={<StudentAssignments />} />|
+          <Route path="assignments" element={<StudentAssignments />} />
           <Route path="assignments/:id" element={<AssignmentDetail />} />
           <Route path="quiz/:quizId" element={<AttemptQuiz />} />
           <Route path="my-quizzes" element={<MyQuizHistory />} />

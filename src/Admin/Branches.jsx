@@ -295,7 +295,10 @@ const Branches = () => {
   const loadBranches = async () => {
     try {
       const res = await getBranches();
-      setBranches(res.data || []);
+  
+      const list = res.data?.data || res.data || [];
+      setBranches(Array.isArray(list) ? list : []);
+  
     } catch (e) {
       console.error("Failed to load branches", e);
     } finally {
@@ -303,9 +306,11 @@ const Branches = () => {
     }
   };
 
-  const filteredBranches = branches.filter((b) =>
-    b.name.toLowerCase().includes(search.toLowerCase()),
-  );
+  const filteredBranches = Array.isArray(branches)
+  ? branches.filter((b) =>
+      (b.name || "").toLowerCase().includes(search.toLowerCase())
+    )
+  : [];
 
   const resetModal = () => {
     setShowModal(false);

@@ -1,10 +1,12 @@
-// import { Pencil, Plus } from "lucide-react";
+
+// import { Pencil, Plus, Trash2 } from "lucide-react";
 // import { useEffect, useState } from "react";
 
 // import {
 //   createBranch,
 //   getBranches,
 //   updateBranch,
+//   deleteBranch, // 🔥 added import
 // } from "../services/batchService";
 
 // import { Badge } from "@/components/ui/badge";
@@ -84,6 +86,24 @@
 //     setShowModal(true);
 //   };
 
+//   /* 🔥 DELETE HANDLER (ADDED ONLY THIS) */
+//   const handleDelete = async (branch) => {
+//     if (
+//       !confirm(
+//         `Delete branch "${branch.name}"?\nAll batches will also be removed.`,
+//       )
+//     )
+//       return;
+
+//     try {
+//       await deleteBranch(branch.id);
+//       loadBranches();
+//     } catch (e) {
+//       console.error("Delete failed", e);
+//       alert("Failed to delete branch");
+//     }
+//   };
+
 //   return (
 //     <div className="space-y-6">
 //       <div className="rounded-2xl p-6 text-white shadow-lg bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600">
@@ -150,13 +170,23 @@
 //                     <TableCell>
 //                       <Badge variant="secondary">—</Badge>
 //                     </TableCell>
-//                     <TableCell className="text-right">
+//                     <TableCell className="text-right flex justify-end gap-1">
+//                       {/* EDIT (existing) */}
 //                       <Button
 //                         size="icon"
 //                         variant="ghost"
 //                         onClick={() => handleEdit(b)}
 //                       >
 //                         <Pencil className="h-4 w-4 text-blue-600" />
+//                       </Button>
+
+//                       {/* 🔥 DELETE (ADDED) */}
+//                       <Button
+//                         size="icon"
+//                         variant="ghost"
+//                         onClick={() => handleDelete(b)}
+//                       >
+//                         <Trash2 className="h-4 w-4 text-red-600" />
 //                       </Button>
 //                     </TableCell>
 //                   </TableRow>
@@ -205,6 +235,17 @@
 // };
 
 // export default Branches;
+
+
+
+
+
+
+
+
+
+
+
 
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";

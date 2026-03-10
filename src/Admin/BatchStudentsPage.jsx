@@ -78,36 +78,38 @@ const assigned = Array.isArray(assignedList)
       <h1 className="text-2xl font-bold">Students under {decodedEmail}</h1>
 
       {/* ASSIGNED STUDENTS */}
-      {assignedStudents.map((email) => (
-        <Card key={email}>
-          <CardContent className="flex justify-between items-center p-4">
-            <div>
-              <p className="font-semibold">{email.split("@")[0]}</p>
-              <p className="text-sm text-muted-foreground">{email}</p>
-            </div>
+      {Array.isArray(assignedStudents) &&
+  assignedStudents.map((email) => (
+    <Card key={email}>
+      <CardContent className="flex justify-between items-center p-4">
+        <div>
+          <p className="font-semibold">{email.split("@")[0]}</p>
+          <p className="text-sm text-muted-foreground">{email}</p>
+        </div>
 
-            <Button variant="destructive" onClick={() => removeStudent(email)}>
-              Remove
-            </Button>
-          </CardContent>
-        </Card>
-      ))}
+        <Button variant="destructive" onClick={() => removeStudent(email)}>
+          Remove
+        </Button>
+      </CardContent>
+    </Card>
+  ))}
 
       {/* AVAILABLE STUDENTS */}
-      {availableStudents.map((s) => (
-        <Card key={s.email}>
-          <CardContent className="flex justify-between items-center p-4">
-            <div>
-              <p className="font-semibold">
-                {s.displayName || s.email.split("@")[0]}
-              </p>
-              <p className="text-sm text-muted-foreground">{s.email}</p>
-            </div>
+      {Array.isArray(availableStudents) &&
+  availableStudents.map((s) => (
+    <Card key={s.email}>
+      <CardContent className="flex justify-between items-center p-4">
+        <div>
+          <p className="font-semibold">
+            {s.displayName || s.email.split("@")[0]}
+          </p>
+          <p className="text-sm text-muted-foreground">{s.email}</p>
+        </div>
 
-            <Button onClick={() => assignStudent(s.email)}>Assign</Button>
-          </CardContent>
-        </Card>
-      ))}
+        <Button onClick={() => assignStudent(s.email)}>Assign</Button>
+      </CardContent>
+    </Card>
+  ))}
     </div>
   );
 };

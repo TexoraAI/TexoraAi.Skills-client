@@ -1,26 +1,35 @@
-// import React, { useEffect, useState } from "react";
-// import axios from "axios";
-// import { Trash2, RefreshCcw, UserPlus } from "lucide-react";
 
+
+
+
+
+
+
+
+
+// import axios from "axios";
+// import { RefreshCcw, Trash2, UserPlus } from "lucide-react";
+// import { useEffect, useState } from "react";
+
+// import { Badge } from "@/components/ui/badge";
 // import { Button } from "@/components/ui/button";
 // import {
 //   Card,
+//   CardContent,
 //   CardHeader,
 //   CardTitle,
-//   CardContent,
 // } from "@/components/ui/card";
 // import { Input } from "@/components/ui/input";
-// import { Badge } from "@/components/ui/badge";
 // import {
 //   Table,
-//   TableHeader,
-//   TableRow,
-//   TableHead,
 //   TableBody,
 //   TableCell,
+//   TableHead,
+//   TableHeader,
+//   TableRow,
 // } from "@/components/ui/table";
 
-// const API_BASE = "http://localhost:9000/api/students";
+// const API_BASE = "http://localhost:9000/api";
 
 // const authHeaders = () => ({
 //   Authorization: `Bearer ${localStorage.getItem("lms_token")}`,
@@ -37,7 +46,7 @@
 //   const loadStudents = async () => {
 //     try {
 //       setLoading(true);
-//       const res = await axios.get(API_BASE, { headers: authHeaders() });
+//       const res = await axios.get(API_BASE/students, { headers: authHeaders() });
 //       setStudents(res.data);
 //     } catch (err) {
 //       if (err.response?.status === 401) {
@@ -61,7 +70,7 @@
 
 //     try {
 //       await axios.post(
-//         API_BASE,
+//         API_BASE/students,
 //         { userId: Number(userId), email },
 //         { headers: authHeaders() }
 //       );
@@ -80,7 +89,7 @@
 
 //     try {
 //       await axios.put(
-//         `${API_BASE}/${id}/status`,
+//         `${API_BASE}/students/${id}/status`,
 //         null,
 //         { params: { status: next }, headers: authHeaders() }
 //       );
@@ -95,7 +104,7 @@
 //     if (!window.confirm("Delete this student?")) return;
 
 //     try {
-//       await axios.delete(`${API_BASE}/${id}`, {
+//       await axios.delete(`${API_BASE}/students/${id}`, {
 //         headers: authHeaders(),
 //       });
 //       loadStudents();
@@ -109,31 +118,37 @@
 //   );
 
 //   return (
-//     <div className="space-y-8">
-//       {/* HERO */}
-//       <div className="rounded-3xl p-8 text-white shadow-xl bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600">
-//         <h1 className="text-3xl font-bold">Students</h1>
-//         <p className="mt-2 text-sm opacity-90">
+//     <div
+//       className="space-y-6 min-h-screen p-6
+//       bg-slate-50 dark:bg-gradient-to-br dark:from-[#05070d] dark:to-[#0b1220]"
+//     >
+//       {/* ================= HERO ================= */}
+//       <div
+//         className="rounded-2xl p-6 text-white shadow-lg
+//         bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600"
+//       >
+//         <h1 className="text-2xl font-bold">Students</h1>
+//         <p className="mt-1 text-sm opacity-90">
 //           Manage student access, status and activity
 //         </p>
 //       </div>
 
-//       {/* ACTION BAR */}
-//       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+//       {/* ================= ACTION BAR ================= */}
+//       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
 //         <Input
 //           placeholder="Search by User ID..."
 //           value={search}
 //           onChange={(e) => setSearch(e.target.value)}
-//           className="md:w-72"
+//           className="lg:w-64 h-9"
 //         />
 
-//         <div className="flex gap-2">
+//         <div className="flex flex-wrap gap-2">
 //           <Input
 //             type="number"
 //             placeholder="User ID"
 //             value={userId}
 //             onChange={(e) => setUserId(e.target.value)}
-//             className="w-32"
+//             className="w-28 h-9"
 //           />
 
 //           <Input
@@ -141,36 +156,38 @@
 //             placeholder="Email"
 //             value={email}
 //             onChange={(e) => setEmail(e.target.value)}
-//             className="w-56"
+//             className="w-56 h-9"
 //           />
 
 //           <Button
-//             className="bg-indigo-600 hover:bg-indigo-500"
+//             className="h-9 px-4 bg-gradient-to-r from-cyan-500 to-blue-600"
 //             onClick={addStudent}
 //           >
-//             <UserPlus className="h-4 w-4 mr-2" />
+//             <UserPlus className="h-4 w-4 mr-1.5" />
 //             Add
 //           </Button>
 //         </div>
 //       </div>
 
-//       {/* TABLE */}
-//       <Card>
-//         <CardHeader>
+//       {/* ================= TABLE ================= */}
+//       <Card className="border border-slate-200 dark:border-slate-800">
+//         <CardHeader className="py-3">
 //           <CardTitle className="text-sm">Student List</CardTitle>
 //         </CardHeader>
 
-//         <CardContent>
+//         <CardContent className="p-0">
 //           {loading ? (
-//             <p className="text-sm text-muted-foreground">Loading...</p>
+//             <p className="p-4 text-sm text-muted-foreground">
+//               Loading...
+//             </p>
 //           ) : filtered.length === 0 ? (
-//             <p className="text-sm text-muted-foreground">
+//             <p className="p-4 text-sm text-muted-foreground">
 //               No students found
 //             </p>
 //           ) : (
 //             <Table>
 //               <TableHeader>
-//                 <TableRow>
+//                 <TableRow className="text-xs">
 //                   <TableHead>User ID</TableHead>
 //                   <TableHead>Email</TableHead>
 //                   <TableHead>Joined</TableHead>
@@ -182,7 +199,7 @@
 
 //               <TableBody>
 //                 {filtered.map((s) => (
-//                   <TableRow key={s.id}>
+//                   <TableRow key={s.id} className="text-sm">
 //                     <TableCell>{s.userId}</TableCell>
 //                     <TableCell>{s.email}</TableCell>
 //                     <TableCell>
@@ -200,18 +217,21 @@
 //                             ? "secondary"
 //                             : "destructive"
 //                         }
+//                         className="text-xs"
 //                       >
 //                         {s.status}
 //                       </Badge>
 //                     </TableCell>
 
-//                     <TableCell className="text-right space-x-2">
+//                     <TableCell className="text-right space-x-1">
 //                       <Button
 //                         size="icon"
 //                         variant="ghost"
-//                         onClick={() => toggleStatus(s.id, s.status)}
+//                         onClick={() =>
+//                           toggleStatus(s.id, s.status)
+//                         }
 //                       >
-//                         <RefreshCcw className="h-4 w-4" />
+//                         <RefreshCcw className="h-4 w-4 text-blue-600" />
 //                       </Button>
 
 //                       <Button
@@ -234,6 +254,7 @@
 // };
 
 // export default StudentsAdmin;
+
 
 
 
@@ -281,8 +302,14 @@ const StudentsAdmin = () => {
   const loadStudents = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(API_BASE/students, { headers: authHeaders() });
-      setStudents(res.data);
+
+      const res = await axios.get(`${API_BASE}/students`, {
+        headers: authHeaders(),
+      });
+
+      const data = res?.data;
+
+      setStudents(Array.isArray(data) ? data : data?.data || []);
     } catch (err) {
       if (err.response?.status === 401) {
         alert("Unauthorized. Please login again.");
@@ -305,13 +332,14 @@ const StudentsAdmin = () => {
 
     try {
       await axios.post(
-        API_BASE/students,
+        `${API_BASE}/students`,
         { userId: Number(userId), email },
         { headers: authHeaders() }
       );
 
       setUserId("");
       setEmail("");
+
       loadStudents();
     } catch {
       alert("Student already exists or error occurred");
@@ -328,6 +356,7 @@ const StudentsAdmin = () => {
         null,
         { params: { status: next }, headers: authHeaders() }
       );
+
       loadStudents();
     } catch {
       alert("Failed to update status");
@@ -342,22 +371,24 @@ const StudentsAdmin = () => {
       await axios.delete(`${API_BASE}/students/${id}`, {
         headers: authHeaders(),
       });
+
       loadStudents();
     } catch {
       alert("Failed to delete student");
     }
   };
 
-  const filtered = students.filter((s) =>
-    s.userId.toString().includes(search)
-  );
+  const filtered = Array.isArray(students)
+    ? students.filter((s) =>
+        s?.userId?.toString().includes(search)
+      )
+    : [];
 
   return (
     <div
       className="space-y-6 min-h-screen p-6
       bg-slate-50 dark:bg-gradient-to-br dark:from-[#05070d] dark:to-[#0b1220]"
     >
-      {/* ================= HERO ================= */}
       <div
         className="rounded-2xl p-6 text-white shadow-lg
         bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600"
@@ -368,7 +399,6 @@ const StudentsAdmin = () => {
         </p>
       </div>
 
-      {/* ================= ACTION BAR ================= */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
         <Input
           placeholder="Search by User ID..."
@@ -404,7 +434,6 @@ const StudentsAdmin = () => {
         </div>
       </div>
 
-      {/* ================= TABLE ================= */}
       <Card className="border border-slate-200 dark:border-slate-800">
         <CardHeader className="py-3">
           <CardTitle className="text-sm">Student List</CardTitle>

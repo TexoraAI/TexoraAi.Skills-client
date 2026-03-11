@@ -1,6 +1,6 @@
 
-import React, { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { createBatch, getBranches } from "../services/batchService";
 
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,16 @@ const CreateBatchModal = ({ onClose, onSuccess }) => {
   });
 
   useEffect(() => {
-    getBranches().then((res) => setBranches(res.data || []));
+    getBranches().then((res) => {
+  
+      const list =
+        res?.data?.data ||
+        res?.data?.branches ||
+        res?.data ||
+        [];
+  
+      setBranches(Array.isArray(list) ? list : []);
+    });
   }, []);
 
   const handleSubmit = async () => {
@@ -74,7 +83,8 @@ const CreateBatchModal = ({ onClose, onSuccess }) => {
                 className="w-full rounded-md px-3 py-2 text-sm bg-slate-800 text-white border border-slate-600"
               >
                 <option value="">Select branch</option>
-                {branches.map((b) => (
+                {Array.isArray(branches) &&
+                branches.map((b) => (
                   <option key={b.id} value={b.id}>
                     {b.name}
                   </option>

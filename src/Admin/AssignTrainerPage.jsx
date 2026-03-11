@@ -1,3 +1,5 @@
+
+
 // import { useEffect, useState } from "react";
 // import { useParams, useNavigate } from "react-router-dom";
 // import {
@@ -19,14 +21,10 @@
 //   const load = async () => {
 //     try {
 //       const t = await getAvailableTrainers(batchId);
-
-//       // 🔥 FIX
-//       setTrainers(t.data?.data || t.data || []);
+//       setTrainers(t.data || []);
 
 //       const map = await getTrainerStudents(batchId);
-
-//       // 🔥 FIX
-//       setAssignedMap(map.data?.data || map.data || {});
+//       setAssignedMap(map || {});
 //     } catch (e) {
 //       console.error("Failed to load trainers", e);
 //     }
@@ -110,14 +108,18 @@
 
 // export default AssignTrainerPage;
 
+
+
+
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
-  getAvailableTrainers,
   assignTrainer,
+  getAvailableTrainers,
   getTrainerStudents,
   removeTrainerFromBatch,
 } from "../services/batchService";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -131,7 +133,9 @@ const AssignTrainerPage = () => {
   const load = async () => {
     try {
       const t = await getAvailableTrainers(batchId);
-      setTrainers(t.data || []);
+
+      const trainerList = t?.data;
+      setTrainers(Array.isArray(trainerList) ? trainerList : []);
 
       const map = await getTrainerStudents(batchId);
       setAssignedMap(map || {});
@@ -154,7 +158,9 @@ const AssignTrainerPage = () => {
       await assignTrainer(batchId, trainer.email);
 
       navigate(
-        `/admin/batches/${batchId}/students/${encodeURIComponent(trainer.email)}`,
+        `/admin/batches/${batchId}/students/${encodeURIComponent(
+          trainer.email
+        )}`
       );
     } catch (e) {
       console.error(e);
@@ -165,8 +171,12 @@ const AssignTrainerPage = () => {
   const removeTrainer = async (email) => {
     if (!window.confirm("Remove trainer and all his students?")) return;
 
-    await removeTrainerFromBatch(batchId, email);
-    load();
+    try {
+      await removeTrainerFromBatch(batchId, email);
+      load();
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   return (
@@ -191,7 +201,9 @@ const AssignTrainerPage = () => {
                   <Button
                     onClick={() =>
                       navigate(
-                        `/admin/batches/${batchId}/students/${encodeURIComponent(t.email)}`,
+                        `/admin/batches/${batchId}/students/${encodeURIComponent(
+                          t.email
+                        )}`
                       )
                     }
                   >
@@ -206,7 +218,9 @@ const AssignTrainerPage = () => {
                   </Button>
                 </div>
               ) : (
-                <Button onClick={() => addTrainer(t)}>Assign To Batch</Button>
+                <Button onClick={() => addTrainer(t)}>
+                  Assign To Batch
+                </Button>
               )}
             </CardContent>
           </Card>

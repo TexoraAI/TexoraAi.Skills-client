@@ -242,29 +242,29 @@
 
 
 
-import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Trash2, RefreshCcw, UserPlus } from "lucide-react";
+import { RefreshCcw, Trash2, UserPlus } from "lucide-react";
+import { useEffect, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
+  CardContent,
   CardHeader,
   CardTitle,
-  CardContent,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
-  TableHeader,
-  TableRow,
-  TableHead,
   TableBody,
   TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 
-const API_BASE = "http://localhost:9000/api/students";
+const API_BASE = "http://localhost:9000/api";
 
 const authHeaders = () => ({
   Authorization: `Bearer ${localStorage.getItem("lms_token")}`,
@@ -281,7 +281,7 @@ const StudentsAdmin = () => {
   const loadStudents = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(API_BASE, { headers: authHeaders() });
+      const res = await axios.get(API_BASE/students, { headers: authHeaders() });
       setStudents(res.data);
     } catch (err) {
       if (err.response?.status === 401) {
@@ -305,7 +305,7 @@ const StudentsAdmin = () => {
 
     try {
       await axios.post(
-        API_BASE,
+        API_BASE/students,
         { userId: Number(userId), email },
         { headers: authHeaders() }
       );
@@ -324,7 +324,7 @@ const StudentsAdmin = () => {
 
     try {
       await axios.put(
-        `${API_BASE}/${id}/status`,
+        `${API_BASE}/students/${id}/status`,
         null,
         { params: { status: next }, headers: authHeaders() }
       );
@@ -339,7 +339,7 @@ const StudentsAdmin = () => {
     if (!window.confirm("Delete this student?")) return;
 
     try {
-      await axios.delete(`${API_BASE}/${id}`, {
+      await axios.delete(`${API_BASE}/students/${id}`, {
         headers: authHeaders(),
       });
       loadStudents();

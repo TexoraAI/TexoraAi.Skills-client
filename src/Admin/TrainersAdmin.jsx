@@ -1,23 +1,23 @@
-import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Trash2, RefreshCcw, UserPlus } from "lucide-react";
+import { RefreshCcw, Trash2, UserPlus } from "lucide-react";
+import { useEffect, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
+  CardContent,
   CardHeader,
   CardTitle,
-  CardContent,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
-  TableHeader,
-  TableRow,
-  TableHead,
   TableBody,
   TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 
 const API_BASE = "http://localhost:9000/api/trainers";
@@ -41,7 +41,7 @@ const TrainersAdmin = () => {
   const loadTrainers = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(API_BASE, { headers: authHeaders() });
+      const res = await axios.get(API_BASE/trainers, { headers: authHeaders() });
       setTrainers(res.data);
     } catch (err) {
       if (err.response?.status === 401) {
@@ -64,7 +64,7 @@ const TrainersAdmin = () => {
     }
 
     try {
-      await axios.post(API_BASE, form, { headers: authHeaders() });
+      await axios.post(API_BASE/trainers, form, { headers: authHeaders() });
       setForm({ name: "", email: "", expertise: "" });
       loadTrainers();
     } catch (err) {
@@ -78,7 +78,7 @@ const TrainersAdmin = () => {
 
     try {
       await axios.put(
-        `${API_BASE}/${id}/status`,
+        `${API_BASE}/trainers/${id}/status`,
         null,
         { params: { status: next }, headers: authHeaders() }
       );
@@ -93,7 +93,7 @@ const TrainersAdmin = () => {
     if (!window.confirm("Delete trainer?")) return;
 
     try {
-      await axios.delete(`${API_BASE}/${id}`, {
+      await axios.delete(`${API_BASE}/trainers/${id}`, {
         headers: authHeaders(),
       });
       loadTrainers();

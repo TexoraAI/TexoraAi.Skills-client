@@ -2,7 +2,7 @@
 
 import axios from "axios";
 
-const API_GATEWAY =   import.meta.env.VITE_API_BASE_URL || "http://localhost:9000";
+const API_GATEWAY =   import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api";
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem("lms_token");
@@ -22,7 +22,7 @@ const videoService = {
     formData.append("description", description || "");
     formData.append("batchId", batchId); // ⭐ REQUIRED FOR BACKEND
 
-    return axios.post(`${API_GATEWAY}/api/video/upload`, formData, {
+    return axios.post(`${API_GATEWAY}/video/upload`, formData, {
       headers: {
         ...getAuthHeaders(),
         "Content-Type": "multipart/form-data",
@@ -32,7 +32,7 @@ const videoService = {
 
   // 🎓 STUDENT VIDEOS
   getStudentVideos() {
-    return axios.get(`${API_GATEWAY}/api/video/student`, {
+    return axios.get(`${API_GATEWAY}/video/student`, {
       headers: {
         ...getAuthHeaders(),
       },
@@ -41,7 +41,7 @@ const videoService = {
 
   // Trainer/Admin list
   getAllVideos() {
-    return axios.get(`${API_GATEWAY}/api/video`, {
+    return axios.get(`${API_GATEWAY}/video`, {
       headers: {
         ...getAuthHeaders(),
       },
@@ -50,7 +50,7 @@ const videoService = {
 
   // 🔥 GET TRAINER ASSIGNED BATCHES
   getTrainerBatches() {
-    return axios.get(`${API_GATEWAY}/api/batch/trainer`, {
+    return axios.get(`${API_GATEWAY}/batch/trainer`, {
       headers: {
         ...getAuthHeaders(),
       },
@@ -58,7 +58,7 @@ const videoService = {
   },
   //only trainer uploaded videos are visible okay
   getTrainerVideos() {
-    return axios.get(`${API_GATEWAY}/api/video/trainer`, {
+    return axios.get(`${API_GATEWAY}/video/trainer`, {
       headers: {
         ...getAuthHeaders(),
       },
@@ -67,7 +67,7 @@ const videoService = {
 
   // Play video
   getVideoBlob(fileName) {
-    return axios.get(`${API_GATEWAY}/api/video/play/${fileName}`, {
+    return axios.get(`${API_GATEWAY}/video/play/${fileName}`, {
       headers: {
         ...getAuthHeaders(),
       },
@@ -77,7 +77,7 @@ const videoService = {
 
   // Delete
   deleteVideo(id) {
-    return axios.delete(`${API_GATEWAY}/api/video/${id}`, {
+    return axios.delete(`${API_GATEWAY}/video/${id}`, {
       headers: {
         ...getAuthHeaders(),
       },
@@ -95,7 +95,7 @@ const videoService = {
     formData.append("moduleId", moduleId);
     formData.append("batchId", batchId);
 
-    return axios.post(`${API_GATEWAY}/api/course-videos/upload`, formData, {
+    return axios.post(`${API_GATEWAY}/course-videos/upload`, formData, {
       headers: {
         ...getAuthHeaders(),
         "Content-Type": "multipart/form-data",
@@ -104,17 +104,17 @@ const videoService = {
   },
 
   getCourseVideos(courseId) {
-    return axios.get(`${API_GATEWAY}/api/course-videos/course/${courseId}`, {
+    return axios.get(`${API_GATEWAY}/course-videos/course/${courseId}`, {
       headers: getAuthHeaders(),
     });
   },
 
   getCourseVideoStreamUrl(fileName) {
-    return `${API_GATEWAY}/api/course-videos/stream/${encodeURIComponent(fileName)}`;
+    return `${API_GATEWAY}/course-videos/stream/${encodeURIComponent(fileName)}`;
   },
 
   deleteCourseVideo(id) {
-    return axios.delete(`${API_GATEWAY}/api/course-videos/${id}`, {
+    return axios.delete(`${API_GATEWAY}/course-videos/${id}`, {
       headers: getAuthHeaders(),
     });
   },

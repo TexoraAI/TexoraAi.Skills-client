@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL:  import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api/chat",
+  baseURL:  import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api",
 });
 
 // attach JWT automatically
@@ -16,14 +16,14 @@ API.interceptors.request.use((req) => {
    GET /api/chat/trainer/students?batchId=
    ===================================================== */
 export const getTrainerStudents = (batchId) =>
-  API.get(`/trainer/students?batchId=${batchId}`);
+  API.get(`/chat/trainer/students?batchId=${batchId}`);
 
 /* =====================================================
    STUDENT → GET TRAINER
    GET /api/chat/student/trainer?batchId=
    ===================================================== */
 export const getStudentTrainer = (batchId) =>
-  API.get(`/student/trainer?batchId=${batchId}`);
+  API.get(`/chat/student/trainer?batchId=${batchId}`);
 
 /* =====================================================
    GET CONVERSATION
@@ -31,17 +31,17 @@ export const getStudentTrainer = (batchId) =>
    ===================================================== */
 export const getConversation = (batchId, otherUser) =>
   API.get(
-    `/conversation?batchId=${batchId}&otherUser=${encodeURIComponent(otherUser)}`,
+    `/chat/conversation?batchId=${batchId}&otherUser=${encodeURIComponent(otherUser)}`,
   );
 
 /* =====================================================
    SEND MESSAGE
    POST /api/chat/send
    ===================================================== */
-export const sendMessage = (data) => API.post("/send", data);
+export const sendMessage = (data) => API.post("/chat/send", data);
 
 /* =====================================================
    STUDENT → GET CHAT CONTEXT (batch + trainer)
    GET /api/chat/student/context
    ===================================================== */
-export const getStudentContext = () => API.get("/student/context");
+export const getStudentContext = () => API.get("/chat/student/context");

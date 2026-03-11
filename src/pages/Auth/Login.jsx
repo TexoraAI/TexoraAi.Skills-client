@@ -21,6 +21,7 @@ const TexoraLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [mobileMenu, setMobileMenu] = useState(false);
 
   const redirectByRole = (role) => {
     switch (role.toUpperCase()) {
@@ -95,50 +96,116 @@ const TexoraLogin = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F5E9E0] via-orange-50 to-orange-100 dark:from-gray-900 dark:via-gray-800 dark:to-black">
 
-      {/* HEADER */}
-      <header className="bg-white/80 dark:bg-black/70 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800">
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+     {/* HEADER */}
+<header className="bg-white/80 dark:bg-black/70 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800">
 
-    {/* Logo */}
-    <div
-      className="flex items-center cursor-pointer"
-      onClick={() => navigate("/")}
+<div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+
+  {/* Logo */}
+  <div
+    className="flex items-center cursor-pointer"
+    onClick={() => navigate("/")}
+  >
+    <span className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-wide font-serif whitespace-nowrap">
+      <span className="text-green-600">ILM</span>
+      <span className="text-[#F97316] ml-1 sm:ml-2">ORA</span>
+    </span>
+  </div>
+
+  
+{/* Desktop Menu */}
+<div className="hidden md:flex items-center gap-8 text-sm font-medium">
+
+  <button
+    className={`${colors.muted} hover:text-[#F97316] transition`}
+    onClick={() => navigate("/apply-admin")}
+  >
+    Apply to Admin
+  </button>
+
+  <button
+    className={`${colors.muted} hover:text-[#F97316] transition`}
+    onClick={() => navigate("/apply-business")}
+  >
+    Apply to Business
+  </button>
+
+  <button
+    className={`${colors.muted} hover:text-[#F97316] transition`}
+    onClick={() => navigate("/apply-trainer")}
+  >
+    Apply to Trainer
+  </button>
+
+  <button
+    className={`${colors.muted} hover:text-[#F97316] transition`}
+    onClick={() => navigate("/apply-student")}
+  >
+    Apply to Student
+  </button>
+
+</div>
+
+  {/* Mobile Menu Button */}
+  <div className="md:hidden">
+    <button
+      onClick={() => setMobileMenu(!mobileMenu)}
+      className="text-gray-700 dark:text-white text-2xl"
     >
-      <span className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-wide font-serif whitespace-nowrap">
-        <span className="text-green-600">ILM</span>
-        <span className="text-[#F97316] ml-1 sm:ml-2">ORA</span>
-      </span>
-    </div>
+      {mobileMenu ? "✕" : "☰"}
+    </button>
+  </div>
 
-    {/* Desktop Menu */}
-    <div className="hidden md:flex items-center gap-8 text-sm font-medium">
-      <button className={`${colors.muted} hover:text-[#F97316]`} onClick={() => navigate("/apply-admin")}>
-        Apply to Admin
-      </button>
+</div>
 
-      <button className={`${colors.muted} hover:text-[#F97316]`} onClick={() => navigate("/apply-business")}>
-        Apply to Business
-      </button>
+{/* Mobile Menu */}
+{mobileMenu && (
+  <div className="md:hidden bg-white dark:bg-black border-t border-gray-200 dark:border-gray-800 px-6 py-4 space-y-4">
 
-      <button className={`${colors.muted} hover:text-[#F97316]`} onClick={() => navigate("/apply-trainer")}>
-        Apply to Trainer
-      </button>
+    <button
+      className="block w-full text-left text-gray-700 dark:text-gray-300 hover:text-orange-500"
+      onClick={() => {
+        navigate("/apply-admin");
+        setMobileMenu(false);
+      }}
+    >
+      Apply to Admin
+    </button>
 
-      <button className={`${colors.muted} hover:text-[#F97316]`} onClick={() => navigate("/apply-student")}>
-        Apply to Student
-      </button>
-    </div>
+    <button
+      className="block w-full text-left text-gray-700 dark:text-gray-300 hover:text-orange-500"
+      onClick={() => {
+        navigate("/apply-business");
+        setMobileMenu(false);
+      }}
+    >
+      Apply to Business
+    </button>
 
-    {/* Mobile Menu Icon */}
-    <div className="md:hidden">
-      <button className="text-gray-700 dark:text-white text-2xl">
-        ☰
-      </button>
-    </div>
+    <button
+      className="block w-full text-left text-gray-700 dark:text-gray-300 hover:text-orange-500"
+      onClick={() => {
+        navigate("/apply-trainer");
+        setMobileMenu(false);
+      }}
+    >
+      Apply to Trainer
+    </button>
+
+    <button
+      className="block w-full text-left text-gray-700 dark:text-gray-300 hover:text-orange-500"
+      onClick={() => {
+        navigate("/apply-student");
+        setMobileMenu(false);
+      }}
+    >
+      Apply to Student
+    </button>
 
   </div>
-</header>
+)}
 
+</header>
       {/* MAIN */}
       <div className="flex items-center justify-center px-4 py-16">
 
@@ -154,7 +221,7 @@ const TexoraLogin = () => {
 
 Welcome back <br className="hidden sm:block" />
 
-<span className="text-4xl font-extrabold tracking-wider font-serif">
+<span className="text-3xl sm:text-4xl font-extrabold tracking-wider font-serif">
   <span className="text-green-600">ILM</span>
   <span className="text-[#F97316] ml-2">ORA</span>
 </span>

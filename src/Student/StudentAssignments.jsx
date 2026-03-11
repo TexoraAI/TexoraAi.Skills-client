@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
-import { Calendar, FileText, ArrowRight } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowRight, Calendar, FileText } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
-  getStudentAssignments, // ✅ ADDED
   getMySubmissions,
+  getStudentAssignments, // ✅ ADDED
 } from "@/services/assessmentService";
 
 export default function StudentAssignments() {
@@ -26,21 +26,25 @@ const submissionRes = await getMySubmissions();
 
 const submissionMap = {};
 
-const submissions =
+const submissionsRaw =
   submissionRes?.data?.data ||
   submissionRes?.data?.submissions ||
   submissionRes?.data ||
   [];
 
+const submissions = Array.isArray(submissionsRaw) ? submissionsRaw : [];
+
 submissions.forEach((s) => {
   submissionMap[s.assignmentId] = s;
 });
 
-const assignmentList =
+const assignmentRaw =
   assignmentRes?.data?.data ||
   assignmentRes?.data?.assignments ||
   assignmentRes?.data ||
   [];
+
+const assignmentList = Array.isArray(assignmentRaw) ? assignmentRaw : [];
 
 const mergedAssignments = assignmentList.map((a) => ({
   ...a,

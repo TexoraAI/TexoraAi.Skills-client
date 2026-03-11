@@ -135,18 +135,26 @@ export default function LMSHomepage({ theme, toggleTheme }) {
     <div className="min-h-screen bg-[#F6EDE6] dark:bg-black text-[#1E293B] dark:text-white">
 
       {/* ── Nav ── */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? "bg-white/95 dark:bg-black/95 backdrop-blur-xl shadow-md" : "bg-white/80 dark:bg-black/80 backdrop-blur-md"} border-b border-[#F97316]/20 dark:border-gray-800`}>
-      <div className="max-w-7xl mx-auto px-0">
-          <div className="flex items-center justify-between h-20">
-           <div
-  className="flex items-center justify-start cursor-pointer hover:scale-105 transition-transform"
-  onClick={() => navigate("/")}
+<nav
+  className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+    scrolled
+      ? "bg-white/95 dark:bg-black/95 backdrop-blur-xl shadow-md"
+      : "bg-white/80 dark:bg-black/80 backdrop-blur-md"
+  } border-b border-[#F97316]/20 dark:border-gray-800`}
 >
-  <span className="text-4xl font-extrabold tracking-wider font-serif">
-    <span className="text-green-600">ILM</span>
-    <span className="text-[#F97316] ml-2">ORA</span>
-  </span>
-</div>
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="flex items-center justify-between h-16 sm:h-20">
+
+      {/* Logo */}
+      <div
+        className="flex items-center cursor-pointer hover:scale-105 transition-transform"
+        onClick={() => navigate("/")}
+      >
+        <span className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-wide font-serif whitespace-nowrap">
+          <span className="text-green-600">ILM</span>
+          <span className="text-[#F97316] ml-1 sm:ml-2">ORA</span>
+        </span>
+      </div>
 
             <div className="hidden lg:flex items-center gap-8">
               {navLinks.map(link => (

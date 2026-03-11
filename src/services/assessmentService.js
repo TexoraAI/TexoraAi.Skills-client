@@ -159,4 +159,5 @@ export default {
   getAssignmentFiles,
   submitAssignment,
   getSubmissionsByAssignment,
+  getStudentAssignments,
 };

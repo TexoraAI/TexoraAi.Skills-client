@@ -4,13 +4,13 @@
 
 // /* ================= AUTH ================= */
 
-// const authHeader = () => ({
-//   Authorization: `Bearer ${localStorage.getItem("lms_token")}`,
-// });
+// // ✅ REPLACE WITH THIS
+// const api = axios.create({ baseURL: BASE_URL });
 
-// const api = axios.create({
-//   baseURL: BASE_URL,
-//   headers: authHeader(),
+// api.interceptors.request.use((config) => {
+//   const token = localStorage.getItem("lms_token");
+//   if (token) config.headers.Authorization = `Bearer ${token}`;
+//   return config;
 // });
 
 // /* =====================================================
@@ -125,52 +125,35 @@
 
 
 
-
-
-
-
-
-
-
 import axios from "axios";
 
-const BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api";
 
-/* ================= AXIOS INSTANCE ================= */
+/* ================= AUTH ================= */
 
-const api = axios.create({
-  baseURL: BASE_URL,
-});
+const api = axios.create({ baseURL: BASE_URL });
 
-/* Attach token dynamically */
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("lms_token");
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
 /* =====================================================
-   BRANCH APIs
-===================================================== */
+   BRANCH APIs  (BranchController)
+   ===================================================== */
 
 export const getBranches = () => api.get("/branch");
 
 export const createBranch = (data) => api.post("/branch", data);
 
-export const deleteBranch = (branchId) =>
-  api.delete(`/branch/${branchId}`);
+export const deleteBranch = (branchId) => api.delete(`/branch/${branchId}`);
 
-export const updateBranch = (id, data) =>
-  api.put(`/branch/${id}`, data);
+export const updateBranch = (id, data) => api.put(`/branch/${id}`, data);
 
 /* =====================================================
-   BATCH APIs
-===================================================== */
+   BATCH APIs (BatchController)
+   ===================================================== */
 
 export const createBatch = (payload) =>
   api.post("/batch/admin/batches", payload);
@@ -183,33 +166,23 @@ export const getAllBatches = () =>
 
 /* =====================================================
    TRAINER – STUDENT MAPPING
-===================================================== */
+   ===================================================== */
 
 export const getTrainerStudents = async (batchId) => {
-  const res = await api.get(
-    `/batch/admin/batches/${batchId}/trainer-students`
-  );
+  const res = await api.get(`/batch/admin/batches/${batchId}/trainer-students`);
   return res.data;
 };
 
-export const assignStudentsToTrainer = (
-  batchId,
-  trainerEmail,
-  emails
-) =>
+export const assignStudentsToTrainer = (batchId, trainerEmail, emails) =>
   api.post(
     `/batch/admin/batches/${batchId}/trainers/${trainerEmail}/students`,
-    { studentEmails: emails }
+    { studentEmails: emails },
   );
 
 export const getAvailableStudents = (batchId, trainerEmail) =>
   api.get(
-    `/batch/admin/batches/${batchId}/trainers/${encodeURIComponent(
-      trainerEmail
-    )}/available-students`
+    `/batch/admin/batches/${batchId}/trainers/${encodeURIComponent(trainerEmail)}/available-students`,
   );
-
-/* REMOVE TRAINER FROM BATCH */
 
 export const removeTrainerFromBatch = (batchId, trainerEmail) =>
   api.delete(`/batch/admin/batches/${batchId}/trainer`, {
@@ -218,7 +191,7 @@ export const removeTrainerFromBatch = (batchId, trainerEmail) =>
 
 /* =====================================================
    TRAINER DASHBOARD
-===================================================== */
+   ===================================================== */
 
 export const getTrainerBatches = async () => {
   const res = await api.get("/batch/trainer");
@@ -227,36 +200,28 @@ export const getTrainerBatches = async () => {
 
 /* =====================================================
    STUDENT DASHBOARD
-===================================================== */
+   ===================================================== */
 
 export const getStudentBatch = async () => {
   const res = await api.get("/batch/student");
   return res.data;
 };
 
-/* =====================================================
-   TRAINERS FOR BATCH ASSIGN
-===================================================== */
-
 export const getAvailableTrainers = (batchId) =>
   api.get(`/batch/admin/batches/${batchId}/available-trainers`);
 
+export const removeTrainer = (batchId, trainerEmail) =>
+  api.delete(`/batch/admin/batches/${batchId}/trainers/${trainerEmail}`);
+
 export const assignTrainer = (batchId, trainerEmail) =>
-  api.put(`/batch/admin/batches/${batchId}/trainers/${trainerEmail}`);
+  api.put(
+    `/batch/admin/batches/${batchId}/trainers/${trainerEmail}`,
+    {},
+  );
 
-/* =====================================================
-   TRAINER STUDENT REMOVE
-===================================================== */
-
-export const removeStudentFromTrainer = (
-  batchId,
-  trainerEmail,
-  studentEmail
-) =>
+export const removeStudentFromTrainer = (batchId, trainerEmail, studentEmail) =>
   api.delete(
-    `/batch/admin/batches/${batchId}/trainers/${encodeURIComponent(
-      trainerEmail
-    )}/students/${encodeURIComponent(studentEmail)}`
+    `/batch/admin/batches/${batchId}/trainers/${encodeURIComponent(trainerEmail)}/students/${encodeURIComponent(studentEmail)}`,
   );
 
 export const getTrainerDashboard = async () => {
@@ -269,12 +234,10 @@ export const getTrainerDashboard = async () => {
   };
 };
 
-/* TRAINER — STUDENTS IN BATCH */
-
+/* TRAINER — STUDENTS IN A BATCH */
 export const getTrainerBatchStudents = (batchId) =>
   api.get(`/batch/trainer/batches/${batchId}/students`);
 
-/* STUDENT CLASSROOM */
+// ================= STUDENT CLASSROOM =================
 
-export const getStudentClassroom = () =>
-  api.get("/batch/student/classroom");
+export const getStudentClassroom = () => api.get("/batch/student/classroom");

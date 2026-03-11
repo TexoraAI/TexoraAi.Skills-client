@@ -177,29 +177,29 @@
 
 
 
-import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { Check, Users, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import authService from "../services/authService";
-import { Check, X, Users } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
+  CardContent,
   CardHeader,
   CardTitle,
-  CardContent,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:9000";
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api";
 
 export default function PendingUsers() {
   const [selectedRole, setSelectedRole] = useState("students");
@@ -208,24 +208,24 @@ export default function PendingUsers() {
 
   /* ================= MAPS ================= */
   const endpointMap = {
-    students: "/api/admin/approval/students/pending",
-    trainers: "/api/admin/approval/trainers/pending",
-    business: "/api/admin/approval/business/pending",
-    admins: "/api/admin/approval/admins/pending",
+    students: "/admin/approval/students/pending",
+    trainers: "/admin/approval/trainers/pending",
+    business: "/admin/approval/business/pending",
+    admins: "/admin/approval/admins/pending",
   };
 
   const approveMap = {
-    students: "/api/admin/approval/students/approve",
-    trainers: "/api/admin/approval/trainers/approve",
-    business: "/api/admin/approval/business/approve",
-    admins: "/api/admin/approval/admins/approve",
+    students: "/admin/approval/students/approve",
+    trainers: "/admin/approval/trainers/approve",
+    business: "/admin/approval/business/approve",
+    admins: "/admin/approval/admins/approve",
   };
 
   const rejectMap = {
-    students: "/api/admin/approval/students/reject",
-    trainers: "/api/admin/approval/trainers/reject",
-    business: "/api/admin/approval/business/reject",
-    admins: "/api/admin/approval/admins/reject",
+    students: "/admin/approval/students/reject",
+    trainers: "/admin/approval/trainers/reject",
+    business: "/admin/approval/business/reject",
+    admins: "/admin/approval/admins/reject",
   };
 
   const titleMap = {

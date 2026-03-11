@@ -296,8 +296,14 @@ const Branches = () => {
     try {
       const res = await getBranches();
   
-      const list = res.data?.data || res.data || [];
-      setBranches(Array.isArray(list) ? list : []);
+      const list =
+  res?.data?.data?.branches ||
+  res?.data?.branches ||
+  res?.data?.data ||
+  res?.data ||
+  [];
+
+setBranches(Array.isArray(list) ? list : []);
   
     } catch (e) {
       console.error("Failed to load branches", e);

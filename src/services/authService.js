@@ -2,12 +2,12 @@ import axios from "axios";
 
 // ✅ Use Vercel env when deployed, fallback to localhost for local dev
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:9000";
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api";
 
 const authService = {
   // ================= LOGIN =================
   login(email, password) {
-    return axios.post(`${API_BASE_URL}/api/auth/login`, {
+    return axios.post(`${API_BASE_URL}/auth/login`, {
       email,
       password,
     });
@@ -16,7 +16,7 @@ const authService = {
   // ================= GOOGLE LOGIN =================
   googleLogin({ idToken, role }) {
     return axios.post(
-      `${API_BASE_URL}/api/auth/google`,
+      `${API_BASE_URL}/auth/google`,
       {
         idToken,
         role,
@@ -29,7 +29,7 @@ const authService = {
 
   // ================= REGISTER =================
   register({ name, email, password, role }) {
-    return axios.post(`${API_BASE_URL}/api/auth/register`, {
+    return axios.post(`${API_BASE_URL}/auth/register`, {
       name,
       email,
       password,
@@ -39,7 +39,7 @@ const authService = {
 
   // ================= FORGOT PASSWORD =================
   forgotPassword(email) {
-    return axios.post(`${API_BASE_URL}/api/auth/forgot-password`, {
+    return axios.post(`${API_BASE_URL}/auth/forgot-password`, {
       email,
     });
   },
@@ -54,7 +54,7 @@ const authService = {
 
   // ================= VERIFY EMAIL =================
   verifyEmail(token, email) {
-    return axios.post(`${API_BASE_URL}/api/auth/verify-email`, {
+    return axios.post(`${API_BASE_URL}/auth/verify-email`, {
       token,
       email,
     });
@@ -62,7 +62,7 @@ const authService = {
 
   // ================= RESEND VERIFICATION =================
   resendVerification(email) {
-    return axios.post(`${API_BASE_URL}/api/auth/resend-verification`, {
+    return axios.post(`${API_BASE_URL}/auth/resend-verification`, {
       email,
     });
   },

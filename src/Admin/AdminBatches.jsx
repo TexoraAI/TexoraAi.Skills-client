@@ -90,17 +90,16 @@ useEffect(() => {
           <CardTitle>Existing Batches</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {batches.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No batches created yet
-            </p>
-          ) : (
-            Array.isArray(batches) &&
-            batches.map((b) => (
-              <div
-                key={b.id}
-                className="flex items-center justify-between border rounded-xl p-4"
-              >
+        {!Array.isArray(batches) || batches.length === 0 ? (
+  <p className="text-sm text-muted-foreground">
+    No batches created yet
+  </p>
+) : (
+  batches.map((b) => (
+    <div
+      key={b.id}
+      className="flex items-center justify-between border rounded-xl p-4"
+    >
                 <div className="space-y-1">
                   <p className="font-semibold">{b.batchName}</p>
                   <p className="text-xs text-muted-foreground">

@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { deleteBatch, getAllBatches } from "../services/batchService";
 import CreateBatchModal from "./CreateBatchModal";
-import { getAllBatches, deleteBatch } from "../services/batchService";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const AdminBatches = () => {
   const navigate = useNavigate();
@@ -16,22 +16,23 @@ const AdminBatches = () => {
   const [batches, setBatches] = useState([]);
 
   /* ================= LOAD EXISTING BATCHES ================= */
-const loadBatches = async () => {
-  try {
-    const res = await getAllBatches();
-
-    const list =
-      res?.data?.data ||
-      res?.data?.batches ||
-      res?.data ||
-      [];
-
-    setBatches(Array.isArray(list) ? list : []);
-
-  } catch (err) {
-    console.error("Failed to load batches", err);
-  }
-};
+  const loadBatches = async () => {
+    try {
+      const res = await getAllBatches();
+  
+      const list =
+        res?.data?.data ||
+        res?.data?.batches ||
+        res?.data ||
+        [];
+  
+      setBatches(Array.isArray(list) ? list : []);
+  
+    } catch (err) {
+      console.error("Failed to load batches", err);
+      setBatches([]);
+    }
+  };
 
 useEffect(() => {
   loadBatches();
@@ -94,6 +95,7 @@ useEffect(() => {
               No batches created yet
             </p>
           ) : (
+            Array.isArray(batches) &&
             batches.map((b) => (
               <div
                 key={b.id}

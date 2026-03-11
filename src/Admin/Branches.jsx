@@ -1,4 +1,3 @@
-
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -39,7 +38,7 @@ const Branches = () => {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({ name: "", city: "" });
 
-  /* LOAD FROM BACKEND */
+  /* ================= LOAD FROM BACKEND ================= */
   useEffect(() => {
     loadBranches();
   }, []);
@@ -47,17 +46,32 @@ const Branches = () => {
   const loadBranches = async () => {
     try {
       const res = await getBranches();
-      setBranches(res.data || []);
+
+      const data = res?.data;
+
+      // 🔥 SAFE ARRAY CHECK (FIX)
+      if (Array.isArray(data)) {
+        setBranches(data);
+      } else if (Array.isArray(data?.data)) {
+        setBranches(data.data);
+      } else {
+        setBranches([]);
+      }
+
     } catch (e) {
       console.error("Failed to load branches", e);
+      setBranches([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredBranches = branches.filter((b) =>
-    b.name.toLowerCase().includes(search.toLowerCase()),
-  );
+  /* ================= SAFE FILTER ================= */
+  const filteredBranches = Array.isArray(branches)
+    ? branches.filter((b) =>
+        b?.name?.toLowerCase().includes(search.toLowerCase())
+      )
+    : [];
 
   const resetModal = () => {
     setShowModal(false);
@@ -69,9 +83,11 @@ const Branches = () => {
     if (!form.name.trim() || !form.city.trim()) return;
 
     try {
-      editingId
-        ? await updateBranch(editingId, form)
-        : await createBranch(form);
+      if (editingId) {
+        await updateBranch(editingId, form);
+      } else {
+        await createBranch(form);
+      }
 
       resetModal();
       loadBranches();
@@ -86,11 +102,11 @@ const Branches = () => {
     setShowModal(true);
   };
 
-  /* 🔥 DELETE HANDLER (ADDED ONLY THIS) */
+  /* ================= DELETE ================= */
   const handleDelete = async (branch) => {
     if (
       !confirm(
-        `Delete branch "${branch.name}"?\nAll batches will also be removed.`,
+        `Delete branch "${branch.name}"?\nAll batches will also be removed.`
       )
     )
       return;
@@ -171,7 +187,6 @@ const Branches = () => {
                       <Badge variant="secondary">—</Badge>
                     </TableCell>
                     <TableCell className="text-right flex justify-end gap-1">
-                      {/* EDIT (existing) */}
                       <Button
                         size="icon"
                         variant="ghost"
@@ -180,7 +195,6 @@ const Branches = () => {
                         <Pencil className="h-4 w-4 text-blue-600" />
                       </Button>
 
-                      {/* 🔥 DELETE (ADDED) */}
                       <Button
                         size="icon"
                         variant="ghost"
@@ -197,7 +211,6 @@ const Branches = () => {
         </CardContent>
       </Card>
 
-      {/* MODAL unchanged */}
       <Dialog open={showModal} onOpenChange={setShowModal}>
         <DialogOverlay className="bg-slate-900/30 dark:bg-black/60 backdrop-blur-sm" />
         <DialogContent className="max-w-sm rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl">

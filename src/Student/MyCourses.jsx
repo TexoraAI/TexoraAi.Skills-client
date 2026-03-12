@@ -217,22 +217,22 @@
 
 
 
-import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 // ICONS
 import {
-  FaSearch,
-  FaBookOpen,
-  FaUser,
   FaAward,
+  FaBookOpen,
   FaChartLine,
-  FaGraduationCap,
   FaChevronRight,
+  FaGraduationCap,
+  FaSearch,
+  FaUser,
 } from "react-icons/fa";
 
-const API = "http://localhost:9000";
+const API =   import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api";
 
 const authHeader = () => ({
   Authorization: `Bearer ${localStorage.getItem("lms_token")}`,
@@ -245,7 +245,7 @@ const MyCourses = () => {
 
   useEffect(() => {
     axios
-      .get(`${API}/api/courses`, { headers: authHeader() })
+      .get(`${API}/courses`, { headers: authHeader() })
       .then((res) => setCourses(res.data))
       .catch(console.error);
   }, []);

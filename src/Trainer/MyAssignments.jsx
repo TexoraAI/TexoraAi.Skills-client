@@ -2,15 +2,15 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
-  getTrainerAssignments,
   deleteAssignment,
+  getTrainerAssignments,
 } from "@/services/assessmentService";
 
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
-import { Calendar, Pencil, Trash2, Plus } from "lucide-react";
+import { Calendar, Pencil, Plus, Trash2 } from "lucide-react";
 
 export default function MyAssignments() {
   const [assignments, setAssignments] = useState([]);

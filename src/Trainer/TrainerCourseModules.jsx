@@ -106,7 +106,7 @@ export default function TrainerCourseModules() {
           formData.append("file", file);
 
           const uploadRes = await axios.post(
-            `${API}files/upload`,
+            `${API}/files/upload`,
             formData,
             {
               headers: {
@@ -121,7 +121,7 @@ export default function TrainerCourseModules() {
       }
 
       await axios.post(
-        `${API}/content`,
+        `${API/content}`,
         {
           courseId,
           title,

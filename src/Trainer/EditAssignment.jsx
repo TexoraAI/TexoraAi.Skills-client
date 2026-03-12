@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import {
   getTrainerAssignments,
   updateAssignment,
 } from "@/services/assessmentService";
 
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 
-import { Calendar, Award, Save } from "lucide-react";
+import { Award, Calendar, Save } from "lucide-react";
 
 export default function EditAssignment() {
   const { id } = useParams();

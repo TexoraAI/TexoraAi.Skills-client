@@ -1,20 +1,20 @@
-import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
 import axios from "axios";
-import { Plus, Trash2, FileText, Video } from "lucide-react";
+import { FileText, Plus, Trash2, Video } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import {
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 
-const API = "http://localhost:9000";
+const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api";
 
 const authHeader = () => ({
   Authorization: `Bearer ${localStorage.getItem("lms_token")}`,
@@ -45,21 +45,21 @@ export default function TrainerCourseModules() {
   }, [courseId]);
 
   const loadModules = async () => {
-    const res = await axios.get(`${API}/api/content/course/${courseId}`, {
+    const res = await axios.get(`${API}/content/course/${courseId}`, {
       headers: authHeader(),
     });
     setModules(res.data);
   };
 
   const loadVideoLibrary = async () => {
-    const res = await axios.get(`${API}/api/video`, {
+    const res = await axios.get(`${API}/video`, {
       headers: authHeader(),
     });
     setVideoLibrary(res.data);
   };
 
   const loadPdfLibrary = async () => {
-    const res = await axios.get(`${API}/api/files`, {
+    const res = await axios.get(`${API}/files`, {
       headers: {
         ...authHeader(),
         "X-ROLE": JSON.parse(localStorage.getItem("lms_user"))?.role,
@@ -86,7 +86,7 @@ export default function TrainerCourseModules() {
           formData.append("file", file);
 
           const uploadRes = await axios.post(
-            `${API}/api/video/upload`,
+            `${API}/video/upload`,
             formData,
             { headers: authHeader() }
           );
@@ -106,7 +106,7 @@ export default function TrainerCourseModules() {
           formData.append("file", file);
 
           const uploadRes = await axios.post(
-            `${API}/api/files/upload`,
+            `${API}files/upload`,
             formData,
             {
               headers: {
@@ -121,7 +121,7 @@ export default function TrainerCourseModules() {
       }
 
       await axios.post(
-        `${API}/api/content`,
+        `${API}/content`,
         {
           courseId,
           title,
@@ -149,7 +149,7 @@ export default function TrainerCourseModules() {
 
   const deleteModule = async (id) => {
     if (!window.confirm("Delete this module?")) return;
-    await axios.delete(`${API}/api/content/${id}`, {
+    await axios.delete(`${API}/content/${id}`, {
       headers: authHeader(),
     });
     loadModules();

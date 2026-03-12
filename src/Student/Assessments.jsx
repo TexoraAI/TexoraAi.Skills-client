@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { FileText, Calendar, Award, Clock } from "lucide-react";
-import assessmentService from "../services/assessmentService";
-import { useNavigate } from "react-router-dom";
 
-import { Card } from "@/components/ui/card";
+import { Award, Calendar, Clock, FileText } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import assessmentService from "../services/assessmentService";
+
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 const Assessments = () => {
   const [assessments, setAssessments] = useState([]);
@@ -13,21 +14,13 @@ const Assessments = () => {
   useEffect(() => {
     const loadQuizzes = async () => {
       try {
-        const res = await assessmentService.getAllQuizzes();
-  
-        const list =
-          res?.data?.data ||
-          res?.data?.quizzes ||
-          res?.data ||
-          [];
-  
-        setAssessments(Array.isArray(list) ? list : []);
-  
+        // ✅ FIXED: use student endpoint
+        const res = await assessmentService.getStudentQuizzes();
+        setAssessments(res.data);
       } catch (err) {
         console.error("Failed to load quizzes", err);
       }
     };
-  
     loadQuizzes();
   }, []);
 
@@ -36,8 +29,6 @@ const Assessments = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-
-      {/* ================= LIGHT BLUE HERO ================= */}
       <header
         className="relative overflow-hidden
         bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400
@@ -47,8 +38,6 @@ const Assessments = () => {
 
         <div className="relative max-w-7xl mx-auto px-6 py-5">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-
-            {/* LEFT */}
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <div className="p-2 rounded-md bg-white/30 backdrop-blur shadow">
@@ -59,15 +48,12 @@ const Assessments = () => {
                 </span>
               </div>
 
-              <h1 className="text-xl font-bold text-white">
-                Your Assessments
-              </h1>
+              <h1 className="text-xl font-bold text-white">Your Assessments</h1>
               <p className="text-sm text-white/85">
                 Track your progress and attempt quizzes
               </p>
             </div>
 
-            {/* RIGHT STATS */}
             <div className="flex gap-3">
               <Stat
                 icon={<FileText className="h-4 w-4" />}
@@ -80,12 +66,10 @@ const Assessments = () => {
                 value={assessments.length}
               />
             </div>
-
           </div>
         </div>
       </header>
 
-      {/* ================= ASSESSMENT CARDS ================= */}
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {assessments.map((item) => (
@@ -97,12 +81,13 @@ const Assessments = () => {
                          hover:shadow-xl transition-all duration-300
                          hover:-translate-y-1"
             >
-              {/* TITLE */}
               <div className="flex items-start justify-between mb-4">
-                <h2 className="text-lg font-semibold
+                <h2
+                  className="text-lg font-semibold
                                text-slate-900 dark:text-slate-100
                                group-hover:text-blue-600 dark:group-hover:text-blue-400
-                               transition-colors">
+                               transition-colors"
+                >
                   {item.title}
                 </h2>
                 <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
@@ -110,10 +95,11 @@ const Assessments = () => {
                 </div>
               </div>
 
-              {/* QUIZ INFO */}
-              <div className="flex items-center gap-2 text-sm
+              <div
+                className="flex items-center gap-2 text-sm
                               text-slate-500 dark:text-slate-400
-                              mb-4 pb-4 border-b border-slate-200 dark:border-slate-700">
+                              mb-4 pb-4 border-b border-slate-200 dark:border-slate-700"
+              >
                 <Calendar className="h-4 w-4" />
                 Quiz ID:
                 <span className="font-medium text-slate-900 dark:text-slate-100">
@@ -121,7 +107,6 @@ const Assessments = () => {
                 </span>
               </div>
 
-              {/* STATUS */}
               <span
                 className={`inline-block w-fit rounded-full px-3 py-1.5
                             text-xs font-semibold ${statusClass} mb-4`}
@@ -129,7 +114,6 @@ const Assessments = () => {
                 Pending
               </span>
 
-              {/* ACTION */}
               <Button
                 className="w-full bg-blue-600 hover:bg-blue-700
                            text-white shadow-md transition"
@@ -142,9 +126,11 @@ const Assessments = () => {
 
           {assessments.length === 0 && (
             <div className="col-span-full text-center py-16">
-              <div className="inline-flex items-center justify-center
+              <div
+                className="inline-flex items-center justify-center
                               w-20 h-20 rounded-full
-                              bg-blue-100 dark:bg-blue-900/20 mb-4">
+                              bg-blue-100 dark:bg-blue-900/20 mb-4"
+              >
                 <Award className="h-10 w-10 text-blue-600 dark:text-blue-400" />
               </div>
               <p className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">
@@ -163,11 +149,12 @@ const Assessments = () => {
 
 export default Assessments;
 
-/* ================= STAT ================= */
 const Stat = ({ icon, label, value }) => (
-  <div className="flex items-center gap-2 px-4 py-2
+  <div
+    className="flex items-center gap-2 px-4 py-2
                   rounded-xl bg-white/30 backdrop-blur
-                  border border-white/30 text-white shadow">
+                  border border-white/30 text-white shadow"
+  >
     {icon}
     <div>
       <p className="text-base font-bold leading-none">{value}</p>

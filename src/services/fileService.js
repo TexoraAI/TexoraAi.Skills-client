@@ -31,11 +31,11 @@ const fileService = {
     formData.append("batchId", batchId);
     formData.append("title", title || "");
     formData.append("description", description || "");
-
+  
     return axios.post(`${API_GATEWAY}/file/upload`, formData, {
       headers: {
         ...authHeader(),
-        "Content-Type": "multipart/form-data",
+        // ✅ No Content-Type here — axios sets multipart/form-data + boundary automatically
       },
     });
   },

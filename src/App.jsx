@@ -89,6 +89,7 @@ import CreateAssignments from "./Trainer/CreateAssignments";
 import CreateQuiz from "./Trainer/CreateQuiz";
 import TrainerDashboard from "./Trainer/Dashboard";
 import DoubtsManagement from "./Trainer/DoubtsManagement";
+import EditAssignment from "./Trainer/EditAssignment";
 import EditRecordedClass from "./Trainer/EditRecordedClass";
 import MyQuizzes from "./Trainer/MyQuizzes";
 import PerformanceAnalysis from "./Trainer/PerformanceAnalysis";
@@ -103,7 +104,7 @@ import UploadDocuments from "./Trainer/UploadDocuments";
 import UploadVideos from "./Trainer/UploadVideos";
 import ViewAssignments from "./Trainer/ViewAssignments";
 import MyAssignments from "./trainer/MyAssignments";
-
+import ViewSubmissions from "./trainer/ViewSubmissions";
 /* ================= NEW LIVE + RECORDED ================= */
 import LiveAttendanceReport from "./Trainer/LiveAttendanceReport";
 import LiveSessionControls from "./Trainer/LiveSessionControls";
@@ -285,6 +286,8 @@ export default function App() {
   <Route path="upload-docs" element={<UploadDocuments />} />
   <Route path="create-quiz" element={<CreateQuiz />} />
   <Route path="my-quizzes" element={<MyQuizzes />} />
+  <Route path="edit-assignment/:id" element={<EditAssignment />} />
+  <Route path="submissions/:id" element={<ViewSubmissions />} />
   <Route path="create-assignments" element={<CreateAssignments />} />
   <Route path="my-assignments" element={<MyAssignments />} />
   <Route path="course-management" element={<CourseManagement />} />

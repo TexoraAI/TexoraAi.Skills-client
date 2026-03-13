@@ -1,166 +1,68 @@
-// // src/Admin/AllCourses.jsx
-// import React, { useState } from "react";
-// import { BookOpen, Plus, Search } from "lucide-react";
+import { courseService } from "@/services/courseService";
+import { BookOpen, Search, X } from "lucide-react";
+import { useEffect, useState } from "react";
 
-// import { Button } from "@/components/ui/button";
-// import {
-//   Card,
-//   CardHeader,
-//   CardTitle,
-//   CardContent,
-// } from "@/components/ui/card";
-// import { Input } from "@/components/ui/input";
-// import { Badge } from "@/components/ui/badge";
-// import {
-//   Table,
-//   TableHeader,
-//   TableRow,
-//   TableHead,
-//   TableBody,
-//   TableCell,
-// } from "@/components/ui/table";
-
-// const AllCourses = () => {
-//   // 🔹 dummy state (future backend)
-//   const [search, setSearch] = useState("");
-
-//   const courses = []; // backend se aayega
-
-//   return (
-//     <div className="space-y-8">
-//       {/* HERO */}
-//       <div className="rounded-3xl p-8 text-white shadow-xl bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600">
-//         <h1 className="text-3xl font-bold">All Courses</h1>
-//         <p className="mt-2 text-sm opacity-90">
-//           Approve, publish and manage all courses on the platform
-//         </p>
-//       </div>
-
-//       {/* ACTION BAR */}
-//       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-//         <div className="relative md:w-72">
-//           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-//           <Input
-//             placeholder="Search courses..."
-//             value={search}
-//             onChange={(e) => setSearch(e.target.value)}
-//             className="pl-9"
-//           />
-//         </div>
-
-//         <Button className="bg-indigo-600 hover:bg-indigo-500">
-//           <Plus className="h-4 w-4 mr-2" />
-//           Create Course
-//         </Button>
-//       </div>
-
-//       {/* TABLE */}
-//       <Card>
-//         <CardHeader>
-//           <CardTitle className="text-sm">Course List</CardTitle>
-//         </CardHeader>
-
-//         <CardContent>
-//           {courses.length === 0 ? (
-//             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-//               <BookOpen className="h-10 w-10 mb-3 opacity-40" />
-//               <p className="text-sm">No courses available</p>
-//               <p className="text-xs">
-//                 Courses created by trainers will appear here
-//               </p>
-//             </div>
-//           ) : (
-//             <Table>
-//               <TableHeader>
-//                 <TableRow>
-//                   <TableHead>Course Name</TableHead>
-//                   <TableHead>Category</TableHead>
-//                   <TableHead>Trainer</TableHead>
-//                   <TableHead>Status</TableHead>
-//                   <TableHead className="text-right">
-//                     Enrollments
-//                   </TableHead>
-//                 </TableRow>
-//               </TableHeader>
-
-//               <TableBody>
-//                 {courses.map((c) => (
-//                   <TableRow key={c.id}>
-//                     <TableCell className="font-medium">
-//                       {c.name}
-//                     </TableCell>
-//                     <TableCell>{c.category}</TableCell>
-//                     <TableCell>{c.trainerName}</TableCell>
-//                     <TableCell>
-//                       <Badge
-//                         variant={
-//                           c.status === "PUBLISHED"
-//                             ? "secondary"
-//                             : "outline"
-//                         }
-//                       >
-//                         {c.status}
-//                       </Badge>
-//                     </TableCell>
-//                     <TableCell className="text-right">
-//                       {c.enrollments}
-//                     </TableCell>
-//                   </TableRow>
-//                 ))}
-//               </TableBody>
-//             </Table>
-//           )}
-//         </CardContent>
-//       </Card>
-//     </div>
-//   );
-// };
-
-// export default AllCourses;
-
-
-
-
-
-
-
-
-
-
-// src/Admin/AllCourses.jsx
-import React, { useState } from "react";
-import { BookOpen, Plus, Search, X } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogClose,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const AllCourses = () => {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const courses = []; // backend se aayega
+  // ===============================
+  // LOAD ADMIN COURSES
+  // ===============================
+  useEffect(() => {
+    loadCourses();
+  }, []);
+
+  const loadCourses = () => {
+    courseService
+      .getAllCoursesForAdmin()
+      .then((res) => {
+        // map backend fields to UI expected fields
+        const mapped = res.data.map((c) => ({
+          id: c.id,
+          name: c.title,
+          category: c.category,
+          trainerName: c.ownerEmail,
+          status: "PUBLISHED", // default (since not in entity yet)
+          enrollments: 0, // placeholder until enrollment service added
+        }));
+
+        setCourses(mapped);
+      })
+      .catch((err) => {
+        console.error("Failed to load courses", err);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  // ===============================
+  // SEARCH FILTER
+  // ===============================
+  const filteredCourses = courses.filter((c) =>
+    c.name.toLowerCase().includes(search.toLowerCase()),
+  );
 
   return (
     <div className="space-y-8">
@@ -183,14 +85,6 @@ const AllCourses = () => {
             className="pl-9"
           />
         </div>
-
-        {/* <Button
-          className="bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600"
-          onClick={() => setOpen(true)}
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Create Course
-        </Button> */}
       </div>
 
       {/* TABLE */}
@@ -200,7 +94,11 @@ const AllCourses = () => {
         </CardHeader>
 
         <CardContent>
-          {courses.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-8 text-muted-foreground">
+              Loading courses...
+            </div>
+          ) : filteredCourses.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <BookOpen className="h-10 w-10 mb-3 opacity-40" />
               <p className="text-sm">No courses available</p>
@@ -216,26 +114,20 @@ const AllCourses = () => {
                   <TableHead>Category</TableHead>
                   <TableHead>Trainer</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="text-right">
-                    Enrollments
-                  </TableHead>
+                  <TableHead className="text-right">Enrollments</TableHead>
                 </TableRow>
               </TableHeader>
 
               <TableBody>
-                {courses.map((c) => (
+                {filteredCourses.map((c) => (
                   <TableRow key={c.id}>
-                    <TableCell className="font-medium">
-                      {c.name}
-                    </TableCell>
+                    <TableCell className="font-medium">{c.name}</TableCell>
                     <TableCell>{c.category}</TableCell>
                     <TableCell>{c.trainerName}</TableCell>
                     <TableCell>
                       <Badge
                         variant={
-                          c.status === "PUBLISHED"
-                            ? "secondary"
-                            : "outline"
+                          c.status === "PUBLISHED" ? "secondary" : "outline"
                         }
                       >
                         {c.status}
@@ -252,7 +144,7 @@ const AllCourses = () => {
         </CardContent>
       </Card>
 
-      {/* ================= CREATE COURSE MODAL ================= */}
+      {/* CREATE COURSE MODAL (UI unchanged) */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
           className="
@@ -305,4 +197,3 @@ const AllCourses = () => {
 };
 
 export default AllCourses;
-

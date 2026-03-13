@@ -1,37 +1,81 @@
-// src/Admin/Categories.jsx
-import React, { useState } from "react";
-import { Layers, Plus, Search, X } from "lucide-react";
+import { courseService } from "@/services/courseService";
+import { Layers, Search, X } from "lucide-react";
+import { useEffect, useState } from "react";
 
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogClose,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const Categories = () => {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const categories = []; // API se aayega
+  // ===============================
+  // LOAD CATEGORIES FROM COURSES
+  // ===============================
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadCategories = () => {
+    courseService
+      .getAllCoursesForAdmin()
+      .then((res) => {
+        const courses = res.data;
+
+        // Group courses by category
+        const grouped = {};
+
+        courses.forEach((course) => {
+          const category = course.category || "Uncategorized";
+
+          if (!grouped[category]) {
+            grouped[category] = 0;
+          }
+
+          grouped[category]++;
+        });
+
+        // Convert to array format for table
+        const formatted = Object.keys(grouped).map((categoryName, index) => ({
+          id: index + 1,
+          name: categoryName,
+          courseCount: grouped[categoryName],
+          active: true, // default since no status column
+        }));
+
+        setCategories(formatted);
+      })
+      .catch((err) => {
+        console.error("Failed to load categories", err);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  // ===============================
+  // SEARCH FILTER
+  // ===============================
+  const filteredCategories = categories.filter((c) =>
+    c.name.toLowerCase().includes(search.toLowerCase()),
+  );
 
   return (
     <div className="space-y-8">
@@ -54,16 +98,6 @@ const Categories = () => {
             className="pl-9 h-9"
           />
         </div>
-
-        {/* ✅ SAME HERO COLOR + COMPACT BUTTON */}
-        {/* <Button
-          size="sm"
-          className="h-9 px-4 bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600"
-          onClick={() => setOpen(true)}
-        >
-          <Plus className="h-4 w-4 mr-1.5" />
-          Add Category
-        </Button> */}
       </div>
 
       {/* TABLE */}
@@ -73,13 +107,15 @@ const Categories = () => {
         </CardHeader>
 
         <CardContent>
-          {categories.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-8 text-muted-foreground">
+              Loading categories...
+            </div>
+          ) : filteredCategories.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <Layers className="h-10 w-10 mb-3 opacity-40" />
               <p className="text-sm">No categories created</p>
-              <p className="text-xs">
-                Create categories to organize courses
-              </p>
+              <p className="text-xs">Create categories to organize courses</p>
             </div>
           ) : (
             <Table>
@@ -87,27 +123,19 @@ const Categories = () => {
                 <TableRow>
                   <TableHead>Category Name</TableHead>
                   <TableHead>Total Courses</TableHead>
-                  <TableHead className="text-right">
-                    Status
-                  </TableHead>
+                  <TableHead className="text-right">Status</TableHead>
                 </TableRow>
               </TableHeader>
 
               <TableBody>
-                {categories.map((c) => (
+                {filteredCategories.map((c) => (
                   <TableRow key={c.id}>
-                    <TableCell className="font-medium">
-                      {c.name}
-                    </TableCell>
+                    <TableCell className="font-medium">{c.name}</TableCell>
 
                     <TableCell>{c.courseCount}</TableCell>
 
                     <TableCell className="text-right">
-                      <Badge
-                        variant={
-                          c.active ? "secondary" : "outline"
-                        }
-                      >
+                      <Badge variant={c.active ? "secondary" : "outline"}>
                         {c.active ? "Active" : "Inactive"}
                       </Badge>
                     </TableCell>
@@ -119,7 +147,7 @@ const Categories = () => {
         </CardContent>
       </Card>
 
-      {/* ================= ADD CATEGORY MODAL ================= */}
+      {/* ADD CATEGORY MODAL (UI unchanged) */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
           className="
@@ -151,7 +179,6 @@ const Categories = () => {
             </DialogClose>
           </DialogHeader>
 
-          {/* UI only */}
           <div className="space-y-4 mt-4">
             <Input placeholder="Category name" />
 

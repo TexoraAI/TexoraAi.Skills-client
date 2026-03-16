@@ -222,9 +222,10 @@ export default function TexoraAISkills() {
             <div className="w-10 h-10 bg-[#F97316] rounded-xl flex items-center justify-center shadow-md">
               <Sparkles className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold text-[#1E293B] dark:text-white">
-              TexoraAI<span className="text-[#F97316]">.skills</span>
-            </span>
+            <span className="text-2xl font-bold">
+  <span className="text-green-600 dark:text-green-400">ILM</span>{" "}
+  <span className="text-[#F97316]">ORA</span>
+</span>
           </div>
           <nav className="flex gap-4 items-center">
             <button
@@ -582,7 +583,10 @@ export default function TexoraAISkills() {
           <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-5">
             {/* Brand Section */}
             <div className="lg:col-span-2 space-y-5">
-              <h3 className="text-2xl font-bold text-[#1E293B]">TexoraAi.skills</h3>
+            <h3 className="text-2xl font-bold">
+  <span className="text-green-600">ILM</span>{" "}
+  <span className="text-[#F97316]">ORA</span>
+</h3>
               <p className="text-sm text-gray-600 max-w-sm">
                 Modern learning platform for ambitious professionals who want to break into product, design and growth roles.
               </p>
@@ -663,7 +667,7 @@ export default function TexoraAISkills() {
           </div>
 
           <div className="border-t border-gray-300 mt-16 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
-            <span>© {new Date().getFullYear()} TexoraAi.skills. All rights reserved.</span>
+            <span>© {new Date().getFullYear()} ILM ORA. All rights reserved.</span>
             <span>Built for modern learners</span>
           </div>
         </div>

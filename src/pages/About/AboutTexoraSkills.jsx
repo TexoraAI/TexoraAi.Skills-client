@@ -18,17 +18,18 @@ const AboutTexoraSkills = () => {
       {/* Top container */}
       <div className="max-w-6xl mx-auto px-4 pt-10 pb-16">
         {/* Badge */}
-        <div className="inline-flex items-center px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/40 text-xs font-medium text-indigo-300 mb-6">
-          <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 mr-2" />
-          Texora.skills · Future-ready LMS
-        </div>
+        
 
         {/* Heading + intro */}
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-3">
-          About <span className="text-indigo-400">Texora.skills</span>
-        </h1>
+  About 
+  <span className="ml-2">
+    <span className="text-green-600">ILM</span>{" "}
+    <span className="text-[#F97316]">ORA</span>
+  </span>
+</h1>
         <p className="text-lg text-slate-300 max-w-3xl">
-          Texora.skills is built to centralize courses, assessments, and
+        ILM ORA is built to centralize courses, assessments, and
           performance tracking into one intuitive platform.
         </p>
 

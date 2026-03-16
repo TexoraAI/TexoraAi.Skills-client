@@ -34,17 +34,27 @@ const Careers = () => {
       <div className="max-w-5xl mx-auto px-4 pt-12 pb-20">
         {/* Badge */}
         <div className="inline-flex items-center px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/40 text-xs font-medium text-indigo-300 mb-6">
-          <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 mr-2" />
-          Texora.skills · Careers
-        </div>
+  <span className="h-1.5 w-1.5 rounded-full bg-[#F97316] mr-2" />
+
+  <span className="text-green-600 font-semibold">ILM</span>
+  <span className="text-[#F97316] font-semibold ml-1">ORA</span>
+
+  <span className="mx-2">·</span>
+
+  <span>Careers</span>
+</div>
 
         {/* Heading */}
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
-          Careers at <span className="text-indigo-400">Texora.skills</span>
-        </h1>
+  Careers at 
+  <span className="ml-2">
+    <span className="text-green-600">ILM</span>{" "}
+    <span className="text-[#F97316]">ORA</span>
+  </span>
+</h1>
 
         <p className="text-lg md:text-xl text-slate-300 mb-12 max-w-3xl leading-relaxed">
-          Texora.skills is building the learning platform of tomorrow. We’re
+        ILM ORA is building the learning platform of tomorrow. We’re
           empowering students, trainers, and institutions with modern,
           cohort-based learning experiences.
         </p>
@@ -95,7 +105,7 @@ const Careers = () => {
                 href="mailto:careers@texora.skills"
                 className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4"
               >
-                careers@texora.skills
+                careers@ilmora.ai
               </a>
             </span>
           </p>

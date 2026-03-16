@@ -19,9 +19,15 @@ const PrivacyPolicy = () => {
       <div className="max-w-4xl mx-auto px-4 pt-10 pb-16">
         {/* Badge */}
         <div className="inline-flex items-center px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/40 text-xs font-medium text-indigo-300 mb-6">
-          <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 mr-2" />
-          Texora.skills · Legal
-        </div>
+  <span className="h-1.5 w-1.5 rounded-full bg-[#F97316] mr-2" />
+
+  <span className="text-green-600 font-semibold">ILM</span>
+  <span className="text-[#F97316] font-semibold ml-1">ORA</span>
+
+  <span className="mx-2">·</span>
+
+  <span>Legal</span>
+</div>
 
         {/* Heading */}
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-3">
@@ -35,10 +41,7 @@ const PrivacyPolicy = () => {
         {/* Intro card */}
         <section className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 md:p-7 mb-8 shadow-lg shadow-indigo-500/10">
           <p className="text-slate-300 leading-relaxed">
-            Texora.skills ("Texora," "we," "our," and/or "us") values the privacy
-            of individuals who use our learning platform. This Privacy Policy
-            explains how we collect, use, and protect information from users of
-            our Services.
+          ILM ORA ("we," "our," or "us") values the privacy of individuals who use our learning platform. This Privacy Policy explains how we collect, use, disclose, and safeguard information from users of our services.
           </p>
         </section>
 
@@ -86,14 +89,14 @@ const PrivacyPolicy = () => {
           <section className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 md:p-7">
             <h2 className="text-xl font-semibold mb-3">Contact Us</h2>
             <p className="text-slate-300 leading-relaxed">
-              Questions? Reach us at{" "}
-              <a
-                href="mailto:privacy@texora.skills"
-                className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4"
-              >
-                privacy@texora.skills
-              </a>
-            </p>
+  If you have any questions about this Privacy Policy, please contact us at{" "}
+  <a
+    href="mailto:privacy@ilmora.ai"
+    className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4"
+  >
+    privacy@ilmora.ai
+  </a>.
+</p>
           </section>
         </div>
       </div>

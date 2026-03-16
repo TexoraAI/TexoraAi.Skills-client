@@ -19,9 +19,15 @@ const TermsOfService = () => {
       <div className="max-w-4xl mx-auto px-4 pt-10 pb-16">
         {/* Badge */}
         <div className="inline-flex items-center px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/40 text-xs font-medium text-indigo-300 mb-6">
-          <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 mr-2" />
-          Texora.skills · Legal
-        </div>
+  <span className="h-1.5 w-1.5 rounded-full bg-[#F97316] mr-2" />
+
+  <span className="text-green-600 font-semibold">ILM</span>
+  <span className="text-[#F97316] font-semibold ml-1">ORA</span>
+
+  <span className="mx-2">·</span>
+
+  <span>Legal</span>
+</div>
 
         {/* Heading */}
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-3">
@@ -34,16 +40,17 @@ const TermsOfService = () => {
 
         {/* Intro */}
         <section className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 md:p-7 mb-8 shadow-lg shadow-indigo-500/10">
-          <p className="text-slate-300 leading-relaxed mb-4">
-            Welcome to Texora.skills. These Terms of Service form a legally
-            binding agreement between you and Texora.skills governing your use
-            of our learning platform.
-          </p>
-          <p className="text-slate-200 font-semibold leading-relaxed">
-            By accessing or using Texora.skills, you agree to comply with these
-            terms. If you do not agree, please discontinue use of the Service.
-          </p>
-        </section>
+  <p className="text-slate-300 leading-relaxed mb-4">
+    Welcome to ILM ORA. These Terms of Service form a legally
+    binding agreement between you and ILM ORA governing your use
+    of our learning platform.
+  </p>
+
+  <p className="text-slate-200 font-semibold leading-relaxed">
+    By accessing or using ILM ORA, you agree to comply with these
+    terms. If you do not agree, please discontinue use of the Service.
+  </p>
+</section>
 
         {/* Sections */}
         <div className="space-y-8">
@@ -108,7 +115,7 @@ const TermsOfService = () => {
                 href="mailto:legal@texora.skills"
                 className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4"
               >
-                legal@texora.skills
+                legal@ilmora.ai
               </a>
             </p>
           </section>

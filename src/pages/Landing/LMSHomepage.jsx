@@ -467,9 +467,19 @@ export default function LMSHomepage({ theme, toggleTheme }) {
             <div className="relative max-w-3xl mx-auto">
               <h3 className="text-3xl md:text-5xl font-bold mb-6 text-white">Ready to Transform Your Career?</h3>
               <p className="text-lg text-gray-300 mb-10">Join 50,000+ professionals who've already taken the leap</p>
-              <button onClick={() => navigate("/explore-programs")} className="group inline-flex items-center gap-2 bg-[#F97316] hover:bg-[#ea6c0a] text-white px-10 py-4 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5">
-                Explore Free Services <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </button>
+              <button
+  onClick={() => {
+    navigate("/explore-programs");
+
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, 200);
+  }}
+  className="group inline-flex items-center gap-2 bg-[#F97316] hover:bg-[#ea6c0a] text-white px-10 py-4 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
+>
+  Explore Free Services
+  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+</button>
             </div>
           </div>
         </div>

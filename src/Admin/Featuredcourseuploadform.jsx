@@ -177,8 +177,8 @@ export default function FeaturedCourseUploadForm({ onSubmit, onClose }) {
   // ── Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title.trim()) { setErrorMsg("Course title zaroori hai!"); return; }
-    if (!instructors[0].name.trim()) { setErrorMsg("Kam se kam ek instructor zaroori hai!"); return; }
+    if (!title.trim()) { setErrorMsg("Course title is required"); return; }
+    if (!instructors[0].name.trim()) { setErrorMsg("At least one instructor is required"); return; }
 
     setStatus("uploading"); setErrorMsg("");
     const formData = new FormData();
@@ -199,7 +199,7 @@ export default function FeaturedCourseUploadForm({ onSubmit, onClose }) {
       setStatus("success");
     } catch {
       setStatus("error");
-      setErrorMsg("Submit fail ho gaya.");
+      setErrorMsg("Submission failed. Please try again.");
     }
   };
 
@@ -221,10 +221,10 @@ export default function FeaturedCourseUploadForm({ onSubmit, onClose }) {
             <CheckCircle className="w-10 h-10 text-green-500" />
           </div>
           <h3 className="text-2xl font-bold text-[#1E293B] mb-2">Course Published! 🎉</h3>
-          <p className="text-gray-500 mb-8">"{title}" explore page par live ho gaya.</p>
+          <p className="text-gray-500 mb-8">"{title}" is now live on the explore page.</p>
           <div className="flex gap-3 justify-center">
-            <button onClick={reset} className="px-6 py-3 bg-[#F97316] text-white rounded-xl font-semibold hover:bg-orange-600 transition">Naya Course</button>
-            {onClose && <button onClick={onClose} className="px-6 py-3 bg-[#1E293B] text-white rounded-xl font-semibold hover:bg-gray-800 transition">Band Karo</button>}
+            <button onClick={reset} className="px-6 py-3 bg-[#F97316] text-white rounded-xl font-semibold hover:bg-orange-600 transition">Create New Course</button>
+            {onClose && <button onClick={onClose} className="px-6 py-3 bg-[#1E293B] text-white rounded-xl font-semibold hover:bg-gray-800 transition">Close</button>}
           </div>
         </div>
       </div>
@@ -244,7 +244,7 @@ export default function FeaturedCourseUploadForm({ onSubmit, onClose }) {
               <Sparkles className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-[#1E293B]">Featured Course Upload</h1>
+              <h1 className="text-2xl font-bold text-[#1E293B]">Create Featured Course</h1>
               <p className="text-sm text-gray-500">Admin Panel • Explore Programs</p>
             </div>
           </div>
@@ -273,7 +273,7 @@ export default function FeaturedCourseUploadForm({ onSubmit, onClose }) {
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
                   <div>
                     <p className="font-semibold text-[#1E293B] text-sm">ON DEMAND Badge</p>
-                    <p className="text-xs text-gray-400">Card pe orange badge dikhao</p>
+                    <p className="text-xs text-gray-400">Show an orange badge on the card</p>
                   </div>
                   <button type="button" onClick={() => setOnDemand(!onDemand)}
                     className={`w-12 h-6 rounded-full transition-all relative ${onDemand ? "bg-[#F97316]" : "bg-gray-300"}`}>
@@ -284,7 +284,7 @@ export default function FeaturedCourseUploadForm({ onSubmit, onClose }) {
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
                   <div>
                     <p className="font-semibold text-[#1E293B] text-sm">⭐ Featured Badge</p>
-                    <p className="text-xs text-gray-400">Top-right mein star dikhao</p>
+                    <p className="text-xs text-gray-400">Display a star badge at the top-right</p>
                   </div>
                   <button type="button" onClick={() => setFeatured(!featured)}
                     className={`w-12 h-6 rounded-full transition-all relative ${featured ? "bg-[#F97316]" : "bg-gray-300"}`}>
@@ -320,7 +320,7 @@ export default function FeaturedCourseUploadForm({ onSubmit, onClose }) {
                       <span className="text-xs text-gray-400">Add Thumbnail</span>
                     </div>
                   )}
-                  <p className="text-xs text-gray-500 leading-relaxed">JPG, PNG ya WebP<br />Recommended: 16:9<br />Min: 640×360px</p>
+                  <p className="text-xs text-gray-500 leading-relaxed">JPG, PNG or WebP<br />Recommended: 16:9<br />Min: 640×360px</p>
                 </div>
                 <input ref={thumbRef} type="file" accept="image/*" className="hidden" onChange={handleThumbnail} />
               </Field>
@@ -352,7 +352,7 @@ export default function FeaturedCourseUploadForm({ onSubmit, onClose }) {
               </div>
               <button type="button" onClick={addTag}
                 className="w-full py-2.5 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-[#F97316] hover:text-[#F97316] transition flex items-center justify-center gap-2 text-sm font-semibold">
-                <Plus className="w-4 h-4" /> Tag Add Karo
+                <Plus className="w-4 h-4" /> Add Tag
               </button>
             </Section>
 
@@ -390,7 +390,7 @@ export default function FeaturedCourseUploadForm({ onSubmit, onClose }) {
               </div>
               <button type="button" onClick={addInstructor}
                 className="w-full py-2.5 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-[#F97316] hover:text-[#F97316] transition flex items-center justify-center gap-2 text-sm font-semibold">
-                <Plus className="w-4 h-4" /> Instructor Add Karo
+                <Plus className="w-4 h-4" /> Add Instructor
               </button>
             </Section>
 
@@ -435,7 +435,7 @@ export default function FeaturedCourseUploadForm({ onSubmit, onClose }) {
                 className="flex-1 py-4 bg-[#F97316] hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold text-lg rounded-2xl transition-all shadow-lg hover:shadow-orange-200 flex items-center justify-center gap-2">
                 {status === "uploading"
                   ? <><Loader className="w-5 h-5 animate-spin" /> Uploading...</>
-                  : <><Upload className="w-5 h-5" /> Course Publish Karo</>
+                  : <><Upload className="w-5 h-5" /> Publish Course</>
                 }
               </button>
               {onClose && status !== "uploading" && (
@@ -454,7 +454,7 @@ export default function FeaturedCourseUploadForm({ onSubmit, onClose }) {
                 <Eye className="w-3.5 h-3.5" /> Live Preview
               </p>
               <PreviewCard data={previewData} />
-              <p className="text-xs text-gray-400 text-center mt-3">Form fill karte jao — card update hota rahega</p>
+              <p className="text-xs text-gray-400 text-center mt-3">Fill the form — the card updates in real time</p>
             </div>
           </div>
 

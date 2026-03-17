@@ -91,7 +91,7 @@ export default function AdminCourseUploadForm({ onSubmit, onClose }) {
   const handleVideoSelect = (file) => {
     if (!file) return;
     const allowed = ["video/mp4", "video/webm", "video/ogg", "video/quicktime"];
-    if (!allowed.includes(file.type)) { setErrorMsg("Sirf MP4, WebM ya MOV allowed!"); return; }
+    if (!allowed.includes(file.type)) { setErrorMsg("Only MP4, WebM, or MOV files are allowed"); return; }
     if (file.size > 500 * 1024 * 1024) { setErrorMsg("Max 500MB allowed!"); return; }
     setErrorMsg(""); setVideoFile(file); setVideoUrl("");
   };
@@ -112,9 +112,20 @@ export default function AdminCourseUploadForm({ onSubmit, onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!videoTitle.trim()) { setErrorMsg("Video title zaroori hai!"); return; }
-    if (!videoFile && !videoUrl.trim()) { setErrorMsg("Video file ya URL zaroori hai!"); return; }
-    if (!instructorName.trim()) { setErrorMsg("Instructor name zaroori hai!"); return; }
+    if (!videoTitle.trim()) { 
+      setErrorMsg("Please enter a video title"); 
+      return; 
+    }
+    
+    if (!videoFile && !videoUrl.trim()) { 
+      setErrorMsg("Please provide a video file or URL"); 
+      return; 
+    }
+    
+    if (!instructorName.trim()) { 
+      setErrorMsg("Please enter the instructor name"); 
+      return; 
+    }
 
     setStatus("uploading"); setErrorMsg("");
     const formData = new FormData();
@@ -156,7 +167,7 @@ export default function AdminCourseUploadForm({ onSubmit, onClose }) {
       setStatus("success");
     } catch {
       setStatus("error");
-      setErrorMsg("Submit fail ho gaya. Dobara try karo.");
+      setErrorMsg("Something went wrong. Please try again.");
     }
   };
 
@@ -177,15 +188,15 @@ export default function AdminCourseUploadForm({ onSubmit, onClose }) {
           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="w-10 h-10 text-green-500" />
           </div>
-          <h3 className="text-2xl font-bold text-[#1E293B] mb-2">Course Live Ho Gaya! 🎉</h3>
-          <p className="text-gray-500 mb-8">"{videoTitle}" successfully publish ho gaya.</p>
+          <h3 className="text-2xl font-bold text-[#1E293B] mb-2">Course is Live! 🎉</h3>
+          <p className="text-gray-500 mb-8">"{videoTitle}"  has been successfully published.</p>
           <div className="flex gap-3 justify-center">
             <button onClick={reset} className="px-6 py-3 bg-[#F97316] text-white rounded-xl font-semibold hover:bg-orange-600 transition">
-              Naya Course
+            Create New Course
             </button>
             {onClose && (
               <button onClick={onClose} className="px-6 py-3 bg-[#1E293B] text-white rounded-xl font-semibold hover:bg-gray-800 transition">
-                Band Karo
+                Close
               </button>
             )}
           </div>
@@ -206,7 +217,7 @@ export default function AdminCourseUploadForm({ onSubmit, onClose }) {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-[#1E293B]">Course Upload</h1>
-              <p className="text-sm text-gray-500">Admin Panel • Recorded Videos</p>
+              <p className="text-sm text-gray-500">Admin Panel • Course Management</p>
             </div>
           </div>
           {onClose && (
@@ -249,7 +260,7 @@ export default function AdminCourseUploadForm({ onSubmit, onClose }) {
             </Field>
 
             {/* Video Upload OR URL */}
-            <Field label="Video File" required hint="File upload ya URL — ek choose karo">
+            <Field label="Video File" required hint="Upload a file or provide a URL — choose one">
               <div className="space-y-3">
                 {/* File Upload */}
                 {!videoFile ? (
@@ -261,7 +272,7 @@ export default function AdminCourseUploadForm({ onSubmit, onClose }) {
                     className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${dragOver ? "border-[#F97316] bg-orange-50" : "border-gray-300 hover:border-[#F97316] hover:bg-orange-50/30"}`}
                   >
                     <Upload className={`w-8 h-8 mx-auto mb-2 ${dragOver ? "text-[#F97316]" : "text-gray-400"}`} />
-                    <p className="font-semibold text-[#1E293B] text-sm">Drag & drop karo ya click karo</p>
+                    <p className="font-semibold text-[#1E293B] text-sm">Drag & drop or click to upload</p>
                     <p className="text-xs text-gray-400 mt-1">MP4, WebM, MOV • Max 500MB</p>
                   </div>
                 ) : (
@@ -283,12 +294,12 @@ export default function AdminCourseUploadForm({ onSubmit, onClose }) {
                 {/* OR Divider */}
                 <div className="flex items-center gap-3">
                   <div className="flex-1 h-px bg-gray-200" />
-                  <span className="text-xs text-gray-400 font-semibold">YA</span>
+                  <span className="text-xs text-gray-400 font-semibold">OR</span>
                   <div className="flex-1 h-px bg-gray-200" />
                 </div>
 
                 <input value={videoUrl} onChange={e => { setVideoUrl(e.target.value); if (e.target.value) setVideoFile(null); }}
-                  placeholder="Video URL paste karo (https://...)" className={inputCls}
+                  placeholder="Paste video URL(https://...)" className={inputCls}
                   disabled={!!videoFile} />
               </div>
             </Field>
@@ -311,7 +322,7 @@ export default function AdminCourseUploadForm({ onSubmit, onClose }) {
                     <span className="text-xs text-gray-400">Add Image</span>
                   </div>
                 )}
-                <p className="text-xs text-gray-500">JPG, PNG ya WebP<br />Recommended: 16:9 ratio</p>
+                <p className="text-xs text-gray-500">JPG, PNG or WebP<br />Recommended: 16:9 ratio</p>
               </div>
               <input ref={thumbInputRef} type="file" accept="image/*" className="hidden" onChange={handleThumbnailChange} />
             </Field>
@@ -320,7 +331,7 @@ export default function AdminCourseUploadForm({ onSubmit, onClose }) {
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
               <div>
                 <p className="font-semibold text-[#1E293B] text-sm">Instructor Live Badge</p>
-                <p className="text-xs text-gray-400">Video player mein top-right badge dikhao</p>
+                <p className="text-xs text-gray-400">Show a badge at the top-right corner of the video player</p>
               </div>
               <button type="button" onClick={() => setShowInstructorLive(!showInstructorLive)}
                 className={`w-12 h-6 rounded-full transition-all relative ${showInstructorLive ? "bg-[#F97316]" : "bg-gray-300"}`}>
@@ -367,13 +378,13 @@ export default function AdminCourseUploadForm({ onSubmit, onClose }) {
           <Section icon={BookOpen} number="4" title="Description Section">
             <Field label="Full Description">
               <textarea value={description} onChange={e => setDescription(e.target.value)}
-                placeholder="Course ke baare mein likho..."
+                placeholder="Write about the course..."
                 rows={5} className={`${inputCls} resize-none`} />
             </Field>
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
               <div>
                 <p className="font-semibold text-[#1E293B] text-sm">"Show More" Toggle</p>
-                <p className="text-xs text-gray-400">Description ke neeche "Show more" button dikhao</p>
+                <p className="text-xs text-gray-400">Show a "Show more" button below the description</p>
               </div>
               <button type="button" onClick={() => setShowMoreEnabled(!showMoreEnabled)}
                 className={`w-12 h-6 rounded-full transition-all relative ${showMoreEnabled ? "bg-[#F97316]" : "bg-gray-300"}`}>
@@ -394,7 +405,7 @@ export default function AdminCourseUploadForm({ onSubmit, onClose }) {
                     <input
                       value={point.title}
                       onChange={e => updateLearnPoint(point.id, "title", e.target.value)}
-                      placeholder={`Point ${idx + 1} ka title...`}
+                      placeholder={`Point ${idx + 1} Title...`}
                       className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-[#F97316] focus:outline-none text-sm font-semibold text-[#1E293B] placeholder-gray-400"
                     />
                     <input
@@ -415,7 +426,7 @@ export default function AdminCourseUploadForm({ onSubmit, onClose }) {
             </div>
             <button type="button" onClick={addLearnPoint}
               className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-[#F97316] hover:text-[#F97316] transition flex items-center justify-center gap-2 font-semibold text-sm">
-              <Plus className="w-4 h-4" /> Aur Point Add Karo
+              <Plus className="w-4 h-4" /> Add Another Point
             </button>
           </Section>
 
@@ -440,7 +451,7 @@ export default function AdminCourseUploadForm({ onSubmit, onClose }) {
               className="flex-1 py-4 bg-[#F97316] hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold text-lg rounded-2xl transition-all shadow-lg hover:shadow-orange-200 flex items-center justify-center gap-2">
               {status === "uploading"
                 ? <><Loader className="w-5 h-5 animate-spin" /> Uploading...</>
-                : <><Upload className="w-5 h-5" /> Course Publish Karo</>
+                : <><Upload className="w-5 h-5" />  Publish Course</>
               }
             </button>
             {onClose && status !== "uploading" && (

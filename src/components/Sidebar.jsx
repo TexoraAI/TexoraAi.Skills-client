@@ -183,8 +183,8 @@ const adminMenus = [
     children: [
       { name: "Settings", path: "/admin/settings", icon: Settings },
       { name: "DepartmentList", path: "/admin/departmentlist", icon: Layers },
-      { name: "Branches", path: "/admin/branches", icon: Building2 },
-      { name: "Batches", path: "/admin/batches", icon: Layers },
+      // { name: "Branches", path: "/admin/branches", icon: Building2 },
+      // { name: "Batches", path: "/admin/batches", icon: Layers },
     ],
   },
 
@@ -193,9 +193,9 @@ const adminMenus = [
     icon: Users,
     children: [
       { name: "All Users", path: "/admin/users", icon: Users },
-      { name: "Students", path: "/admin/students", icon: GraduationCap },
-      { name: "Trainers", path: "/admin/trainers", icon: UserCog },
-      { name: "Pending Users", path: "/admin/pending-users", icon: ClipboardCheck },
+      // { name: "Students", path: "/admin/students", icon: GraduationCap },
+      // { name: "Trainers", path: "/admin/trainers", icon: UserCog },
+      // { name: "Pending Users", path: "/admin/pending-users", icon: ClipboardCheck },
     ],
   },
 
@@ -204,7 +204,7 @@ const adminMenus = [
     icon: BookOpen,
     children: [
       { name: "All Courses", path: "/admin/courses", icon: BookOpen },
-      { name: "Categories", path: "/admin/categories", icon: FolderOpen },
+      // { name: "Categories", path: "/admin/categories", icon: FolderOpen },
     ],
   },
   {
@@ -491,3 +491,9 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
+
+
+
+
+
+

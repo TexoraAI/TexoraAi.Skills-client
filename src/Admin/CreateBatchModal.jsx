@@ -67,12 +67,13 @@ const CreateBatchModal = ({ onClose, onSuccess }) => {
             <div>
               <Label>Batch Name</Label>
               <Input
-                value={form.batchName}
-                onChange={(e) =>
-                  setForm({ ...form, batchName: e.target.value })
-                }
-                className="bg-slate-800 border-slate-600 text-white"
-              />
+  value={form.batchName}
+  onChange={(e) =>
+    setForm({ ...form, batchName: e.target.value })
+  }
+  placeholder="Enter batch name"
+  className="bg-slate-800 border-slate-600 text-Black placeholder:text-slate-400"
+/>
             </div>
 
             <div>

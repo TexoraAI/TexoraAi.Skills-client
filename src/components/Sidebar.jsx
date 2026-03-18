@@ -386,10 +386,15 @@ const Sidebar = () => {
       {/* HEADER */}
       <div className="p-4 border-b border-slate-200 dark:border-slate-800">
         <div className="flex items-center justify-between mb-3">
-          <div>
-            <p className="text-sm font-bold">TexoraAi<span className="text-blue-600">.skills</span></p>
-            <p className="text-xs text-slate-500">Learning Platform</p>
-          </div>
+        <div>
+  <p className="text-sm font-bold">
+    <span className="text-green-600">ILM</span>{" "}
+    <span className="text-orange-500">ORA</span>
+  </p>
+  <p className="text-xs text-slate-500">
+    Intelligent Learning Management
+  </p>
+</div>
           <button onClick={toggleTheme} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
             {dark ? <Sun size={16} /> : <Moon size={16} />}
           </button>

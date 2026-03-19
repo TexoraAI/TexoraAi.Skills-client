@@ -59,6 +59,7 @@ import NotificationsPage from "./pages/NotificationsPage";
 import ProfilePage from "./pages/ProfilePage";
 import SearchPage from "./pages/SearchPage";
 import EditProfile from "./pages/common/EditProfile";
+import ApplyForm from "./pages/common/ApplyForm";
 
 /* ================= STUDENT ================= */
 import Assessments from "./Student/Assessments.jsx";
@@ -207,7 +208,10 @@ export default function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/approval-pending" element={<ApprovalPending />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        
 
+        {/* ================= APPLY ================= */}
+<Route path="/apply" element={<ApplyForm />} />
         {/* ================= APPLY ================= */}
         <Route path="/apply-admin" element={<ApplyAdmin />} />
         <Route path="/apply-business" element={<ApplyBusiness />} />
@@ -263,6 +267,7 @@ export default function App() {
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="edit-profile" element={<EditProfile />} />
+          
         </Route>
 
         {/* ================= TRAINER ================= */}

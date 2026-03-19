@@ -1,14 +1,682 @@
 
 
-import React, { useState } from "react";
-import { ChevronRight, ChevronLeft, Moon, Sun } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+// import React, { useState } from "react";
+// import { ChevronRight, ChevronLeft, Moon, Sun } from "lucide-react";
+// import { useNavigate } from "react-router-dom";
+// import authService from "../services/authService";
+
+// export default function ApplyTrainer() {
+//   const [currentPage, setCurrentPage] = useState(1);
+//   const [darkMode, setDarkMode] = useState(true);
+//   const navigate = useNavigate();
+
+//   const [formData, setFormData] = useState({
+//     name: "",
+//     email: "",
+//     password: "",
+//     confirmPassword: "",
+//     linkedin: "",
+//     country: "",
+//     shareExpertise: [],
+//     audienceSize: "",
+//     fullTimeRole: "",
+//     howHeard: "",
+//   });
+
+//   const [loading, setLoading] = useState(false);
+
+//   const colors = {
+//     primary: "from-orange-500 to-orange-600",
+//     primarySolid: "bg-orange-500",
+//     accent: "from-orange-400 to-orange-600",
+//     muted: "text-gray-600 dark:text-gray-400",
+//     surface: "bg-white dark:bg-black",
+//   };
+
+//   const handleInputChange = (e) => {
+//     const { name, value } = e.target;
+//     setFormData((prev) => ({ ...prev, [name]: value }));
+//   };
+
+//   const handleCheckboxChange = (value) => {
+//     setFormData((prev) => ({
+//       ...prev,
+//       shareExpertise: prev.shareExpertise.includes(value)
+//         ? prev.shareExpertise.filter((item) => item !== value)
+//         : [...prev.shareExpertise, value],
+//     }));
+//   };
+
+//   const handleNext = () => {
+//     if (currentPage < 3) setCurrentPage(currentPage + 1);
+//   };
+
+//   const handleBack = () => {
+//     if (currentPage > 1) setCurrentPage(currentPage - 1);
+//   };
+
+//   const handleSubmit = async () => {
+//     // ✅ password match check
+//     if (formData.password !== formData.confirmPassword) {
+//       alert("❌ Password and Confirm Password do not match");
+//       return;
+//     }
+
+//     try {
+//       setLoading(true);
+
+//       // ✅ Register trainer using same backend auth register API
+//       await authService.register({
+//         name: formData.name,
+//         email: formData.email,
+//         password: formData.password,
+//         role: "TRAINER",
+//       });
+
+//       alert(
+//         "✅ Application Submitted!\n\n" +
+//           "Step 1: Verify your email first 📩\n" +
+//           "Step 2: After verification, admin will approve your account ⏳\n\n" +
+//           "You can login only after approval.",
+//       );
+
+//       // ✅ Redirect to verify email page (email comes from form)
+//       navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+//     } catch (err) {
+//       console.log("Trainer apply error:", err);
+
+//       const msg =
+//         err?.response?.data?.message ||
+//         err?.response?.data?.error ||
+//         "❌ Failed to submit application";
+
+//       alert(msg);
+
+//       // If already registered but not verified
+//       if (msg.toLowerCase().includes("verify")) {
+//         navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+//         return;
+//       }
+
+//       // If already registered but not approved
+//       if (msg.toLowerCase().includes("not approved")) {
+//         navigate(
+//           `/approval-pending?email=${encodeURIComponent(formData.email)}`,
+//         );
+//         return;
+//       }
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const isPage1Valid =
+//     formData.name &&
+//     formData.email &&
+//     formData.password &&
+//     formData.linkedin &&
+//     formData.country &&
+//     formData.shareExpertise.length > 0 &&
+//     formData.audienceSize &&
+//     formData.fullTimeRole;
+
+//   return (
+//     <div className={darkMode ? "dark" : ""}>
+//       <div
+//         className={`min-h-screen ${
+//           darkMode
+//             ? "bg-gradient-to-br from-gray-900 via-black to-gray-900"
+//             : "bg-gradient-to-br from-gray-50 via-white to-gray-50"
+//         } transition-colors duration-300`}
+//       >
+//         {/* Header */}
+//         <header
+//           className={`border-b ${
+//             darkMode
+//               ? "border-gray-800 bg-black/50"
+//               : "border-gray-200 bg-white/50"
+//           } backdrop-blur`}
+//         >
+//           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+//             <div className="flex items-center gap-3">
+//             <div className="text-2xl font-bold tracking-wider font-serif">
+//   <span className="text-green-600">ILM</span>
+//   <span className="text-[#F97316] ml-1">ORA</span>
+// </div>
+//             </div>
+//             <div className="flex items-center gap-4">
+//               <button
+//                 onClick={() => setDarkMode(!darkMode)}
+//                 className={`p-2 rounded-lg ${
+//                   darkMode
+//                     ? "bg-gray-800 text-yellow-400"
+//                     : "bg-gray-200 text-gray-700"
+//                 } hover:scale-110 transition-transform`}
+//               >
+//                 {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+//               </button>
+//             </div>
+//           </div>
+//         </header>
+
+//         {/* Main Content */}
+//         <div className="max-w-3xl mx-auto px-6 py-12">
+//           {/* Progress Steps */}
+//           <div className="flex items-center justify-center mb-8">
+//             <div className="flex items-center gap-2">
+//               <div
+//                 className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
+//                   currentPage >= 1
+//                     ? `bg-gradient-to-r ${colors.primary} border-transparent text-white`
+//                     : darkMode
+//                       ? "border-gray-700 text-gray-500"
+//                       : "border-gray-300 text-gray-400"
+//                 }`}
+//               >
+//                 <span className="font-semibold">1</span>
+//               </div>
+//               <div
+//                 className={`h-0.5 w-16 ${
+//                   currentPage >= 2
+//                     ? `bg-gradient-to-r ${colors.primary}`
+//                     : darkMode
+//                       ? "bg-gray-700"
+//                       : "bg-gray-300"
+//                 }`}
+//               />
+//               <div
+//                 className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
+//                   currentPage >= 2
+//                     ? `bg-gradient-to-r ${colors.primary} border-transparent text-white`
+//                     : darkMode
+//                       ? "border-gray-700 text-gray-500"
+//                       : "border-gray-300 text-gray-400"
+//                 }`}
+//               >
+//                 <span className="font-semibold">2</span>
+//               </div>
+//               <div
+//                 className={`h-0.5 w-16 ${
+//                   currentPage >= 3
+//                     ? `bg-gradient-to-r ${colors.primary}`
+//                     : darkMode
+//                       ? "bg-gray-700"
+//                       : "bg-gray-300"
+//                 }`}
+//               />
+//               <div
+//                 className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
+//                   currentPage >= 3
+//                     ? `bg-gradient-to-r ${colors.primary} border-transparent text-white`
+//                     : darkMode
+//                       ? "border-gray-700 text-gray-500"
+//                       : "border-gray-300 text-gray-400"
+//                 }`}
+//               >
+//                 <span className="font-semibold">3</span>
+//               </div>
+//             </div>
+//           </div>
+
+//           <div className="text-center mb-8">
+//             <div className={`text-sm ${colors.muted} mb-2`}>
+//               {currentPage === 1 && "1. You"}
+//               {currentPage === 2 && "2. Your topic"}
+//               {currentPage === 3 && "3. Submit"}
+//             </div>
+//           </div>
+
+//           {/* Form Container */}
+//           <div
+//             className={`${
+//               darkMode
+//                 ? "bg-gray-900/50 border-gray-800"
+//                 : "bg-white border-gray-200"
+//             } backdrop-blur border rounded-2xl p-8 shadow-2xl transition-colors duration-300`}
+//           >
+//             {currentPage === 1 && (
+//               <div>
+//                 <div className="mb-8">
+//                   <h1
+//                     className={`text-2xl font-bold mb-3 ${
+//                       darkMode ? "text-white" : "text-gray-900"
+//                     }`}
+//                   >
+//                     Thank you for your interest in teaching on TexoraAI.skills!
+//                   </h1>
+//                   <p className={colors.muted}>
+//                     Tell us a bit about you and your area of expertise.
+//                   </p>
+//                 </div>
+
+//                 <div className="space-y-6">
+//                   <div>
+//                     <label
+//                       className={`block text-sm font-medium mb-2 ${
+//                         darkMode ? "text-gray-300" : "text-gray-700"
+//                       }`}
+//                     >
+//                       Your name <span className="text-red-500">*</span>
+//                     </label>
+//                     <input
+//                       type="text"
+//                       name="name"
+//                       value={formData.name}
+//                       onChange={handleInputChange}
+//                       className={`w-full px-4 py-3 ${
+//                         darkMode
+//                           ? "bg-black/50 border-gray-700 text-white"
+//                           : "bg-gray-50 border-gray-300 text-gray-900"
+//                       } border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition`}
+//                     />
+//                   </div>
+
+//                   <div>
+//                     <label
+//                       className={`block text-sm font-medium mb-2 ${
+//                         darkMode ? "text-gray-300" : "text-gray-700"
+//                       }`}
+//                     >
+//                       Your email <span className="text-red-500">*</span>
+//                     </label>
+//                     <input
+//                       type="email"
+//                       name="email"
+//                       value={formData.email}
+//                       onChange={handleInputChange}
+//                       className={`w-full px-4 py-3 ${
+//                         darkMode
+//                           ? "bg-black/50 border-gray-700 text-white"
+//                           : "bg-gray-50 border-gray-300 text-gray-900"
+//                       } border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
+//                     />
+//                   </div>
+
+//                   <div>
+//                     <label
+//                       className={`block text-sm font-medium mb-2 ${
+//                         darkMode ? "text-gray-300" : "text-gray-700"
+//                       }`}
+//                     >
+//                       Create password <span className="text-red-500">*</span>
+//                     </label>
+//                     <input
+//                       type="password"
+//                       name="password"
+//                       placeholder="Enter password (min 11 characters)"
+//                       value={formData.password}
+//                       onChange={handleInputChange}
+//                       className={`w-full px-4 py-3 ${
+//                         darkMode
+//                           ? "bg-black/50 border-gray-700 text-white placeholder:text-gray-600"
+//                           : "bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-400"
+//                       } border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
+//                     />
+//                     {formData.password && formData.password.length < 8 && (
+//                       <p className="text-orange-500 text-xs mt-1 flex items-center gap-1">
+//                         <span>⚠️</span> Password must be at least 11 characters
+//                       </p>
+//                     )}
+//                   </div>
+
+//                   <div>
+//                     <label
+//                       className={`block text-sm font-medium mb-2 ${
+//                         darkMode ? "text-gray-300" : "text-gray-700"
+//                       }`}
+//                     >
+//                       Confirm password <span className="text-red-500">*</span>
+//                     </label>
+//                     <input
+//                       type="password"
+//                       name="confirmPassword"
+//                       value={formData.confirmPassword}
+//                       onChange={handleInputChange}
+//                       className={`w-full px-4 py-3 ${
+//                         darkMode
+//                           ? "bg-black/50 border-gray-700 text-white"
+//                           : "bg-gray-50 border-gray-300 text-gray-900"
+//                       } border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
+//                     />
+//                   </div>
+
+//                   <div>
+//                     <label
+//                       className={`block text-sm font-medium mb-2 ${
+//                         darkMode ? "text-gray-300" : "text-gray-700"
+//                       }`}
+//                     >
+//                       Your Linkedin URL <span className="text-red-500">*</span>
+//                     </label>
+//                     <input
+//                       type="url"
+//                       name="linkedin"
+//                       value={formData.linkedin}
+//                       onChange={handleInputChange}
+//                       placeholder="https://linkedin.com/in/yourprofile"
+//                       className={`w-full px-4 py-3 ${
+//                         darkMode
+//                           ? "bg-black/50 border-gray-700 text-white placeholder:text-gray-600"
+//                           : "bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-400"
+//                       } border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
+//                     />
+//                   </div>
+
+//                   <div>
+//                     <label
+//                       className={`block text-sm font-medium mb-2 ${
+//                         darkMode ? "text-gray-300" : "text-gray-700"
+//                       }`}
+//                     >
+//                       What country do you live in?{" "}
+//                       <span className="text-red-500">*</span>
+//                     </label>
+//                     <select
+//                       name="country"
+//                       value={formData.country}
+//                       onChange={handleInputChange}
+//                       className={`w-full px-4 py-3 ${
+//                         darkMode
+//                           ? "bg-black/50 border-gray-700 text-white"
+//                           : "bg-gray-50 border-gray-300 text-gray-900"
+//                       } border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
+//                     >
+//                       <option value="">Select a country</option>
+//                       <option value="US">United States</option>
+//                       <option value="UK">United Kingdom</option>
+//                       <option value="CA">Canada</option>
+//                       <option value="IN">India</option>
+//                     </select>
+//                   </div>
+
+//                   <div>
+//                     <label
+//                       className={`block text-sm font-medium mb-3 ${
+//                         darkMode ? "text-gray-300" : "text-gray-700"
+//                       }`}
+//                     >
+//                       Where do you currently share your expertise?{" "}
+//                       <span className="text-red-500">*</span>
+//                     </label>
+//                     <div className="space-y-2">
+//                       {[
+//                         "Blog",
+//                         "Newsletter",
+//                         "YouTube",
+//                         "Podcast",
+//                         "Social Media",
+//                         "Online courses",
+//                       ].map((option) => (
+//                         <label
+//                           key={option}
+//                           className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg ${
+//                             darkMode
+//                               ? "hover:bg-gray-800/50"
+//                               : "hover:bg-gray-100"
+//                           } transition`}
+//                         >
+//                           <input
+//                             type="checkbox"
+//                             checked={formData.shareExpertise.includes(option)}
+//                             onChange={() => handleCheckboxChange(option)}
+//                             className="w-4 h-4 accent-orange-500"
+//                           />
+//                           <span
+//                             className={
+//                               darkMode ? "text-gray-300" : "text-gray-700"
+//                             }
+//                           >
+//                             {option}
+//                           </span>
+//                         </label>
+//                       ))}
+//                     </div>
+//                   </div>
+
+//                   <div>
+//                     <label
+//                       className={`block text-sm font-medium mb-2 ${
+//                         darkMode ? "text-gray-300" : "text-gray-700"
+//                       }`}
+//                     >
+//                       Audience size <span className="text-red-500">*</span>
+//                     </label>
+//                     <select
+//                       name="audienceSize"
+//                       value={formData.audienceSize}
+//                       onChange={handleInputChange}
+//                       className={`w-full px-4 py-3 ${
+//                         darkMode
+//                           ? "bg-black/50 border-gray-700 text-white"
+//                           : "bg-gray-50 border-gray-300 text-gray-900"
+//                       } border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
+//                     >
+//                       <option value="">Select audience size</option>
+//                       <option value="0-500">0 - 500</option>
+//                       <option value="500-2000">500 - 2,000</option>
+//                       <option value="2000-5000">2,000 - 5,000</option>
+//                       <option value="5000+">5,000+</option>
+//                     </select>
+//                   </div>
+
+//                   <div>
+//                     <label
+//                       className={`block text-sm font-medium mb-2 ${
+//                         darkMode ? "text-gray-300" : "text-gray-700"
+//                       }`}
+//                     >
+//                       Full time role? <span className="text-red-500">*</span>
+//                     </label>
+//                     <div className="space-y-2">
+//                       {["Yes", "No"].map((option) => (
+//                         <label
+//                           key={option}
+//                           className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg ${
+//                             darkMode
+//                               ? "hover:bg-gray-800/50"
+//                               : "hover:bg-gray-100"
+//                           } transition`}
+//                         >
+//                           <input
+//                             type="radio"
+//                             name="fullTimeRole"
+//                             value={option}
+//                             checked={formData.fullTimeRole === option}
+//                             onChange={handleInputChange}
+//                             className="w-4 h-4 accent-blue-600"
+//                           />
+//                           <span
+//                             className={
+//                               darkMode ? "text-gray-300" : "text-gray-700"
+//                             }
+//                           >
+//                             {option}
+//                           </span>
+//                         </label>
+//                       ))}
+//                     </div>
+//                   </div>
+//                 </div>
+
+//                 <div
+//                   className={`flex items-center justify-end mt-8 pt-6 border-t ${
+//                     darkMode ? "border-gray-800" : "border-gray-200"
+//                   }`}
+//                 >
+//                   <button
+//                     onClick={handleNext}
+//                     disabled={!isPage1Valid}
+//                     className={`flex items-center gap-2 px-8 py-3 bg-gradient-to-r ${colors.primary} hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition font-medium text-white`}
+//                   >
+//                     Next
+//                     <ChevronRight size={18} />
+//                   </button>
+//                 </div>
+//               </div>
+//             )}
+
+//             {currentPage === 2 && (
+//               <div>
+//                 <div className="mb-8">
+//                   <h1
+//                     className={`text-2xl font-bold mb-3 ${
+//                       darkMode ? "text-white" : "text-gray-900"
+//                     }`}
+//                   >
+//                     Tell us about your topic
+//                   </h1>
+//                 </div>
+
+//                 <div className="space-y-6">
+//                   <div>
+//                     <label
+//                       className={`block text-sm font-medium mb-2 ${
+//                         darkMode ? "text-gray-300" : "text-gray-700"
+//                       }`}
+//                     >
+//                       Course topic
+//                     </label>
+//                     <input
+//                       type="text"
+//                       placeholder="e.g., Product Management, Data Science"
+//                       className={`w-full px-4 py-3 ${
+//                         darkMode
+//                           ? "bg-black/50 border-gray-700 text-white placeholder:text-gray-600"
+//                           : "bg-gray-50 border-gray-300 text-gray-900"
+//                       } border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
+//                     />
+//                   </div>
+//                 </div>
+
+//                 <div
+//                   className={`flex items-center justify-between mt-8 pt-6 border-t ${
+//                     darkMode ? "border-gray-800" : "border-gray-200"
+//                   }`}
+//                 >
+//                   <button
+//                     onClick={handleBack}
+//                     className={`flex items-center gap-2 px-6 py-3 ${
+//                       darkMode
+//                         ? "bg-gray-800 hover:bg-gray-700"
+//                         : "bg-gray-200 hover:bg-gray-300"
+//                     } rounded-lg transition ${
+//                       darkMode ? "text-white" : "text-gray-900"
+//                     }`}
+//                   >
+//                     <ChevronLeft size={18} />
+//                     Back
+//                   </button>
+
+//                   <button
+//                     onClick={handleNext}
+//                     className={`flex items-center gap-2 px-8 py-3 bg-gradient-to-r ${colors.primary} hover:shadow-lg rounded-lg transition font-medium text-white`}
+//                   >
+//                     Next
+//                     <ChevronRight size={18} />
+//                   </button>
+//                 </div>
+//               </div>
+//             )}
+
+//             {currentPage === 3 && (
+//               <div>
+//                 <div className="mb-8 text-center">
+//                   <h1
+//                     className={`text-2xl font-bold mb-3 ${
+//                       darkMode ? "text-white" : "text-gray-900"
+//                     }`}
+//                   >
+//                     Review and Submit
+//                   </h1>
+//                 </div>
+
+//                 <div
+//                   className={`${
+//                     darkMode ? "bg-black/50" : "bg-gray-50"
+//                   } rounded-lg p-6 space-y-4 mb-6`}
+//                 >
+//                   <div>
+//                     <div className={`text-sm ${colors.muted} mb-1`}>Name</div>
+//                     <div
+//                       className={`font-medium ${
+//                         darkMode ? "text-white" : "text-gray-900"
+//                       }`}
+//                     >
+//                       {formData.name || "—"}
+//                     </div>
+//                   </div>
+//                   <div>
+//                     <div className={`text-sm ${colors.muted} mb-1`}>Email</div>
+//                     <div
+//                       className={`font-medium ${
+//                         darkMode ? "text-white" : "text-gray-900"
+//                       }`}
+//                     >
+//                       {formData.email || "—"}
+//                     </div>
+//                   </div>
+//                 </div>
+
+//                 <div
+//                   className={`flex items-center justify-between pt-6 border-t ${
+//                     darkMode ? "border-gray-800" : "border-gray-200"
+//                   }`}
+//                 >
+//                   <button
+//                     onClick={handleBack}
+//                     disabled={loading}
+//                     className={`flex items-center gap-2 px-6 py-3 ${
+//                       darkMode
+//                         ? "bg-gray-800 hover:bg-gray-700"
+//                         : "bg-gray-200 hover:bg-gray-300"
+//                     } rounded-lg transition ${
+//                       darkMode ? "text-white" : "text-gray-900"
+//                     } ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
+//                   >
+//                     <ChevronLeft size={18} />
+//                     Back
+//                   </button>
+
+//                   <button
+//                     onClick={handleSubmit}
+//                     disabled={loading}
+//                     className={`flex items-center gap-2 px-8 py-3 bg-gradient-to-r ${colors.accent} hover:shadow-lg rounded-lg transition font-medium text-white ${
+//                       loading ? "opacity-60 cursor-not-allowed" : ""
+//                     }`}
+//                   >
+//                     {loading ? "Submitting..." : "Submit Application"}
+//                   </button>
+//                 </div>
+//               </div>
+//             )}
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }old1
+
+
+
+
+
+
+
+
+
+
+
+
+import React, { useState, useEffect } from "react";
+import { ChevronRight, ChevronLeft } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 import authService from "../services/authService";
 
 export default function ApplyTrainer() {
   const [currentPage, setCurrentPage] = useState(1);
-  const [darkMode, setDarkMode] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
+  const isGoogleUser = location.state?.isGoogleUser || false;
 
   const [formData, setFormData] = useState({
     name: "",
@@ -25,13 +693,15 @@ export default function ApplyTrainer() {
 
   const [loading, setLoading] = useState(false);
 
-  const colors = {
-    primary: "from-orange-500 to-orange-600",
-    primarySolid: "bg-orange-500",
-    accent: "from-orange-400 to-orange-600",
-    muted: "text-gray-600 dark:text-gray-400",
-    surface: "bg-white dark:bg-black",
-  };
+  useEffect(() => {
+    if (location.state) {
+      setFormData((prev) => ({
+        ...prev,
+        name: location.state.name || "",
+        email: location.state.email || "",
+      }));
+    }
+  }, [location.state]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -56,53 +726,43 @@ export default function ApplyTrainer() {
   };
 
   const handleSubmit = async () => {
-    // ✅ password match check
-    if (formData.password !== formData.confirmPassword) {
+    if (!isGoogleUser && formData.password !== formData.confirmPassword) {
       alert("❌ Password and Confirm Password do not match");
       return;
     }
-
+    if (!isGoogleUser && formData.password.length < 11) {
+      alert("❌ Password must be at least 11 characters");
+      return;
+    }
     try {
       setLoading(true);
-
-      // ✅ Register trainer using same backend auth register API
       await authService.register({
         name: formData.name,
         email: formData.email,
-        password: formData.password,
+        password: isGoogleUser ? null : formData.password,
         role: "TRAINER",
+        isGoogleUser: isGoogleUser,
       });
-
       alert(
         "✅ Application Submitted!\n\n" +
           "Step 1: Verify your email first 📩\n" +
           "Step 2: After verification, admin will approve your account ⏳\n\n" +
-          "You can login only after approval.",
+          "You can login only after approval."
       );
-
-      // ✅ Redirect to verify email page (email comes from form)
       navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`);
     } catch (err) {
       console.log("Trainer apply error:", err);
-
       const msg =
         err?.response?.data?.message ||
         err?.response?.data?.error ||
         "❌ Failed to submit application";
-
       alert(msg);
-
-      // If already registered but not verified
       if (msg.toLowerCase().includes("verify")) {
         navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`);
         return;
       }
-
-      // If already registered but not approved
       if (msg.toLowerCase().includes("not approved")) {
-        navigate(
-          `/approval-pending?email=${encodeURIComponent(formData.email)}`,
-        );
+        navigate(`/approval-pending?email=${encodeURIComponent(formData.email)}`);
         return;
       }
     } finally {
@@ -113,545 +773,947 @@ export default function ApplyTrainer() {
   const isPage1Valid =
     formData.name &&
     formData.email &&
-    formData.password &&
+    (isGoogleUser ||
+      (formData.password &&
+        formData.confirmPassword &&
+        formData.password === formData.confirmPassword)) &&
     formData.linkedin &&
     formData.country &&
     formData.shareExpertise.length > 0 &&
     formData.audienceSize &&
     formData.fullTimeRole;
 
+  // Shared styles
+  const input =
+    "w-full px-3 py-2 text-sm bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition";
+  const label = "block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300";
+
   return (
-    <div className={darkMode ? "dark" : ""}>
-      <div
-        className={`min-h-screen ${
-          darkMode
-            ? "bg-gradient-to-br from-gray-900 via-black to-gray-900"
-            : "bg-gradient-to-br from-gray-50 via-white to-gray-50"
-        } transition-colors duration-300`}
-      >
-        {/* Header */}
-        <header
-          className={`border-b ${
-            darkMode
-              ? "border-gray-800 bg-black/50"
-              : "border-gray-200 bg-white/50"
-          } backdrop-blur`}
-        >
-          <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-            <div className="text-2xl font-bold tracking-wider font-serif">
-  <span className="text-green-600">ILM</span>
-  <span className="text-[#F97316] ml-1">ORA</span>
-</div>
-            </div>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => setDarkMode(!darkMode)}
-                className={`p-2 rounded-lg ${
-                  darkMode
-                    ? "bg-gray-800 text-yellow-400"
-                    : "bg-gray-200 text-gray-700"
-                } hover:scale-110 transition-transform`}
-              >
-                {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-              </button>
-            </div>
-          </div>
-        </header>
+    <div className="w-full max-w-lg mx-auto py-6 px-4">
 
-        {/* Main Content */}
-        <div className="max-w-3xl mx-auto px-6 py-12">
-          {/* Progress Steps */}
-          <div className="flex items-center justify-center mb-8">
-            <div className="flex items-center gap-2">
+      {/* Progress Steps */}
+      <div className="flex items-center justify-center mb-5">
+        {[1, 2, 3].map((step, idx) => (
+          <React.Fragment key={step}>
+            <div
+              className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
+                currentPage >= step
+                  ? "bg-orange-500 text-white"
+                  : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
+              }`}
+            >
+              {step}
+            </div>
+            {idx < 2 && (
               <div
-                className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
-                  currentPage >= 1
-                    ? `bg-gradient-to-r ${colors.primary} border-transparent text-white`
-                    : darkMode
-                      ? "border-gray-700 text-gray-500"
-                      : "border-gray-300 text-gray-400"
-                }`}
-              >
-                <span className="font-semibold">1</span>
-              </div>
-              <div
-                className={`h-0.5 w-16 ${
-                  currentPage >= 2
-                    ? `bg-gradient-to-r ${colors.primary}`
-                    : darkMode
-                      ? "bg-gray-700"
-                      : "bg-gray-300"
+                className={`w-16 h-0.5 mx-2 transition-colors ${
+                  currentPage > step
+                    ? "bg-orange-500"
+                    : "bg-gray-300 dark:bg-gray-600"
                 }`}
               />
-              <div
-                className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
-                  currentPage >= 2
-                    ? `bg-gradient-to-r ${colors.primary} border-transparent text-white`
-                    : darkMode
-                      ? "border-gray-700 text-gray-500"
-                      : "border-gray-300 text-gray-400"
-                }`}
-              >
-                <span className="font-semibold">2</span>
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+
+      {/* Step label */}
+      <p className="text-center text-xs text-gray-500 dark:text-gray-400 mb-5">
+        {currentPage === 1 && "1. You"}
+        {currentPage === 2 && "2. Your topic"}
+        {currentPage === 3 && "3. Submit"}
+      </p>
+
+      {/* ── Page 1 ── */}
+      {currentPage === 1 && (
+        <div className="space-y-4">
+          <div className="mb-2">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+              Thank you for your interest in teaching!
+            </h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              Tell us a bit about you and your area of expertise.
+            </p>
+          </div>
+
+          <div>
+            <label className={label}>Your name <span className="text-red-500">*</span></label>
+            <input type="text" name="name" value={formData.name}
+              onChange={handleInputChange} className={input} />
+          </div>
+
+          <div>
+            <label className={label}>Your email <span className="text-red-500">*</span></label>
+            <input type="email" name="email" value={formData.email}
+              onChange={handleInputChange} disabled={isGoogleUser}
+              className={`${input} ${isGoogleUser ? "opacity-70 cursor-not-allowed" : ""}`} />
+          </div>
+
+          {!isGoogleUser && (
+            <>
+              <div>
+                <label className={label}>Create password <span className="text-red-500">*</span></label>
+                <input type="password" name="password"
+                  placeholder="Min 11 characters"
+                  value={formData.password} onChange={handleInputChange}
+                  className={input} />
+                {formData.password && formData.password.length < 11 && (
+                  <p className="text-orange-500 text-xs mt-1">⚠️ Password must be at least 11 characters</p>
+                )}
               </div>
-              <div
-                className={`h-0.5 w-16 ${
-                  currentPage >= 3
-                    ? `bg-gradient-to-r ${colors.primary}`
-                    : darkMode
-                      ? "bg-gray-700"
-                      : "bg-gray-300"
-                }`}
-              />
-              <div
-                className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
-                  currentPage >= 3
-                    ? `bg-gradient-to-r ${colors.primary} border-transparent text-white`
-                    : darkMode
-                      ? "border-gray-700 text-gray-500"
-                      : "border-gray-300 text-gray-400"
-                }`}
-              >
-                <span className="font-semibold">3</span>
+              <div>
+                <label className={label}>Confirm password <span className="text-red-500">*</span></label>
+                <input type="password" name="confirmPassword"
+                  value={formData.confirmPassword} onChange={handleInputChange}
+                  className={input} />
               </div>
+            </>
+          )}
+
+          <div>
+            <label className={label}>LinkedIn URL <span className="text-red-500">*</span></label>
+            <input type="url" name="linkedin" value={formData.linkedin}
+              onChange={handleInputChange}
+              placeholder="https://linkedin.com/in/yourprofile"
+              className={input} />
+          </div>
+
+          <div>
+            <label className={label}>Country <span className="text-red-500">*</span></label>
+            <select name="country" value={formData.country}
+              onChange={handleInputChange} className={input}>
+              <option value="">Select a country</option>
+              <option value="US">United States</option>
+              <option value="UK">United Kingdom</option>
+              <option value="CA">Canada</option>
+              <option value="IN">India</option>
+            </select>
+          </div>
+
+          <div>
+            <label className={label}>
+              Where do you share your expertise? <span className="text-red-500">*</span>
+            </label>
+            <div className="space-y-1 mt-1">
+              {["Blog", "Newsletter", "YouTube", "Podcast", "Social Media", "Online courses"].map((option) => (
+                <label key={option}
+                  className="flex items-center gap-3 cursor-pointer px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+                  <input type="checkbox"
+                    checked={formData.shareExpertise.includes(option)}
+                    onChange={() => handleCheckboxChange(option)}
+                    className="w-4 h-4 accent-orange-500" />
+                  <span className="text-sm text-gray-700 dark:text-gray-300">{option}</span>
+                </label>
+              ))}
             </div>
           </div>
 
-          <div className="text-center mb-8">
-            <div className={`text-sm ${colors.muted} mb-2`}>
-              {currentPage === 1 && "1. You"}
-              {currentPage === 2 && "2. Your topic"}
-              {currentPage === 3 && "3. Submit"}
+          <div>
+            <label className={label}>Audience size <span className="text-red-500">*</span></label>
+            <select name="audienceSize" value={formData.audienceSize}
+              onChange={handleInputChange} className={input}>
+              <option value="">Select audience size</option>
+              <option value="0-500">0 – 500</option>
+              <option value="500-2000">500 – 2,000</option>
+              <option value="2000-5000">2,000 – 5,000</option>
+              <option value="5000+">5,000+</option>
+            </select>
+          </div>
+
+          <div>
+            <label className={label}>Full time role? <span className="text-red-500">*</span></label>
+            <div className="space-y-1 mt-1">
+              {["Yes", "No"].map((option) => (
+                <label key={option}
+                  className="flex items-center gap-3 cursor-pointer px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+                  <input type="radio" name="fullTimeRole" value={option}
+                    checked={formData.fullTimeRole === option}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 accent-orange-500" />
+                  <span className="text-sm text-gray-700 dark:text-gray-300">{option}</span>
+                </label>
+              ))}
             </div>
           </div>
 
-          {/* Form Container */}
-          <div
-            className={`${
-              darkMode
-                ? "bg-gray-900/50 border-gray-800"
-                : "bg-white border-gray-200"
-            } backdrop-blur border rounded-2xl p-8 shadow-2xl transition-colors duration-300`}
-          >
-            {currentPage === 1 && (
-              <div>
-                <div className="mb-8">
-                  <h1
-                    className={`text-2xl font-bold mb-3 ${
-                      darkMode ? "text-white" : "text-gray-900"
-                    }`}
-                  >
-                    Thank you for your interest in teaching on TexoraAI.skills!
-                  </h1>
-                  <p className={colors.muted}>
-                    Tell us a bit about you and your area of expertise.
-                  </p>
-                </div>
-
-                <div className="space-y-6">
-                  <div>
-                    <label
-                      className={`block text-sm font-medium mb-2 ${
-                        darkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
-                    >
-                      Your name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 ${
-                        darkMode
-                          ? "bg-black/50 border-gray-700 text-white"
-                          : "bg-gray-50 border-gray-300 text-gray-900"
-                      } border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition`}
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      className={`block text-sm font-medium mb-2 ${
-                        darkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
-                    >
-                      Your email <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 ${
-                        darkMode
-                          ? "bg-black/50 border-gray-700 text-white"
-                          : "bg-gray-50 border-gray-300 text-gray-900"
-                      } border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      className={`block text-sm font-medium mb-2 ${
-                        darkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
-                    >
-                      Create password <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="password"
-                      name="password"
-                      placeholder="Enter password (min 11 characters)"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 ${
-                        darkMode
-                          ? "bg-black/50 border-gray-700 text-white placeholder:text-gray-600"
-                          : "bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-400"
-                      } border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
-                    />
-                    {formData.password && formData.password.length < 8 && (
-                      <p className="text-orange-500 text-xs mt-1 flex items-center gap-1">
-                        <span>⚠️</span> Password must be at least 11 characters
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label
-                      className={`block text-sm font-medium mb-2 ${
-                        darkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
-                    >
-                      Confirm password <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="password"
-                      name="confirmPassword"
-                      value={formData.confirmPassword}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 ${
-                        darkMode
-                          ? "bg-black/50 border-gray-700 text-white"
-                          : "bg-gray-50 border-gray-300 text-gray-900"
-                      } border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      className={`block text-sm font-medium mb-2 ${
-                        darkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
-                    >
-                      Your Linkedin URL <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="url"
-                      name="linkedin"
-                      value={formData.linkedin}
-                      onChange={handleInputChange}
-                      placeholder="https://linkedin.com/in/yourprofile"
-                      className={`w-full px-4 py-3 ${
-                        darkMode
-                          ? "bg-black/50 border-gray-700 text-white placeholder:text-gray-600"
-                          : "bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-400"
-                      } border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      className={`block text-sm font-medium mb-2 ${
-                        darkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
-                    >
-                      What country do you live in?{" "}
-                      <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      name="country"
-                      value={formData.country}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 ${
-                        darkMode
-                          ? "bg-black/50 border-gray-700 text-white"
-                          : "bg-gray-50 border-gray-300 text-gray-900"
-                      } border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
-                    >
-                      <option value="">Select a country</option>
-                      <option value="US">United States</option>
-                      <option value="UK">United Kingdom</option>
-                      <option value="CA">Canada</option>
-                      <option value="IN">India</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label
-                      className={`block text-sm font-medium mb-3 ${
-                        darkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
-                    >
-                      Where do you currently share your expertise?{" "}
-                      <span className="text-red-500">*</span>
-                    </label>
-                    <div className="space-y-2">
-                      {[
-                        "Blog",
-                        "Newsletter",
-                        "YouTube",
-                        "Podcast",
-                        "Social Media",
-                        "Online courses",
-                      ].map((option) => (
-                        <label
-                          key={option}
-                          className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg ${
-                            darkMode
-                              ? "hover:bg-gray-800/50"
-                              : "hover:bg-gray-100"
-                          } transition`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={formData.shareExpertise.includes(option)}
-                            onChange={() => handleCheckboxChange(option)}
-                            className="w-4 h-4 accent-orange-500"
-                          />
-                          <span
-                            className={
-                              darkMode ? "text-gray-300" : "text-gray-700"
-                            }
-                          >
-                            {option}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label
-                      className={`block text-sm font-medium mb-2 ${
-                        darkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
-                    >
-                      Audience size <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      name="audienceSize"
-                      value={formData.audienceSize}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 ${
-                        darkMode
-                          ? "bg-black/50 border-gray-700 text-white"
-                          : "bg-gray-50 border-gray-300 text-gray-900"
-                      } border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
-                    >
-                      <option value="">Select audience size</option>
-                      <option value="0-500">0 - 500</option>
-                      <option value="500-2000">500 - 2,000</option>
-                      <option value="2000-5000">2,000 - 5,000</option>
-                      <option value="5000+">5,000+</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label
-                      className={`block text-sm font-medium mb-2 ${
-                        darkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
-                    >
-                      Full time role? <span className="text-red-500">*</span>
-                    </label>
-                    <div className="space-y-2">
-                      {["Yes", "No"].map((option) => (
-                        <label
-                          key={option}
-                          className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg ${
-                            darkMode
-                              ? "hover:bg-gray-800/50"
-                              : "hover:bg-gray-100"
-                          } transition`}
-                        >
-                          <input
-                            type="radio"
-                            name="fullTimeRole"
-                            value={option}
-                            checked={formData.fullTimeRole === option}
-                            onChange={handleInputChange}
-                            className="w-4 h-4 accent-blue-600"
-                          />
-                          <span
-                            className={
-                              darkMode ? "text-gray-300" : "text-gray-700"
-                            }
-                          >
-                            {option}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div
-                  className={`flex items-center justify-end mt-8 pt-6 border-t ${
-                    darkMode ? "border-gray-800" : "border-gray-200"
-                  }`}
-                >
-                  <button
-                    onClick={handleNext}
-                    disabled={!isPage1Valid}
-                    className={`flex items-center gap-2 px-8 py-3 bg-gradient-to-r ${colors.primary} hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition font-medium text-white`}
-                  >
-                    Next
-                    <ChevronRight size={18} />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {currentPage === 2 && (
-              <div>
-                <div className="mb-8">
-                  <h1
-                    className={`text-2xl font-bold mb-3 ${
-                      darkMode ? "text-white" : "text-gray-900"
-                    }`}
-                  >
-                    Tell us about your topic
-                  </h1>
-                </div>
-
-                <div className="space-y-6">
-                  <div>
-                    <label
-                      className={`block text-sm font-medium mb-2 ${
-                        darkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
-                    >
-                      Course topic
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g., Product Management, Data Science"
-                      className={`w-full px-4 py-3 ${
-                        darkMode
-                          ? "bg-black/50 border-gray-700 text-white placeholder:text-gray-600"
-                          : "bg-gray-50 border-gray-300 text-gray-900"
-                      } border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
-                    />
-                  </div>
-                </div>
-
-                <div
-                  className={`flex items-center justify-between mt-8 pt-6 border-t ${
-                    darkMode ? "border-gray-800" : "border-gray-200"
-                  }`}
-                >
-                  <button
-                    onClick={handleBack}
-                    className={`flex items-center gap-2 px-6 py-3 ${
-                      darkMode
-                        ? "bg-gray-800 hover:bg-gray-700"
-                        : "bg-gray-200 hover:bg-gray-300"
-                    } rounded-lg transition ${
-                      darkMode ? "text-white" : "text-gray-900"
-                    }`}
-                  >
-                    <ChevronLeft size={18} />
-                    Back
-                  </button>
-
-                  <button
-                    onClick={handleNext}
-                    className={`flex items-center gap-2 px-8 py-3 bg-gradient-to-r ${colors.primary} hover:shadow-lg rounded-lg transition font-medium text-white`}
-                  >
-                    Next
-                    <ChevronRight size={18} />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {currentPage === 3 && (
-              <div>
-                <div className="mb-8 text-center">
-                  <h1
-                    className={`text-2xl font-bold mb-3 ${
-                      darkMode ? "text-white" : "text-gray-900"
-                    }`}
-                  >
-                    Review and Submit
-                  </h1>
-                </div>
-
-                <div
-                  className={`${
-                    darkMode ? "bg-black/50" : "bg-gray-50"
-                  } rounded-lg p-6 space-y-4 mb-6`}
-                >
-                  <div>
-                    <div className={`text-sm ${colors.muted} mb-1`}>Name</div>
-                    <div
-                      className={`font-medium ${
-                        darkMode ? "text-white" : "text-gray-900"
-                      }`}
-                    >
-                      {formData.name || "—"}
-                    </div>
-                  </div>
-                  <div>
-                    <div className={`text-sm ${colors.muted} mb-1`}>Email</div>
-                    <div
-                      className={`font-medium ${
-                        darkMode ? "text-white" : "text-gray-900"
-                      }`}
-                    >
-                      {formData.email || "—"}
-                    </div>
-                  </div>
-                </div>
-
-                <div
-                  className={`flex items-center justify-between pt-6 border-t ${
-                    darkMode ? "border-gray-800" : "border-gray-200"
-                  }`}
-                >
-                  <button
-                    onClick={handleBack}
-                    disabled={loading}
-                    className={`flex items-center gap-2 px-6 py-3 ${
-                      darkMode
-                        ? "bg-gray-800 hover:bg-gray-700"
-                        : "bg-gray-200 hover:bg-gray-300"
-                    } rounded-lg transition ${
-                      darkMode ? "text-white" : "text-gray-900"
-                    } ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
-                  >
-                    <ChevronLeft size={18} />
-                    Back
-                  </button>
-
-                  <button
-                    onClick={handleSubmit}
-                    disabled={loading}
-                    className={`flex items-center gap-2 px-8 py-3 bg-gradient-to-r ${colors.accent} hover:shadow-lg rounded-lg transition font-medium text-white ${
-                      loading ? "opacity-60 cursor-not-allowed" : ""
-                    }`}
-                  >
-                    {loading ? "Submitting..." : "Submit Application"}
-                  </button>
-                </div>
-              </div>
-            )}
+          <div className="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
+            <button onClick={handleNext} disabled={!isPage1Valid}
+              className="flex items-center gap-2 px-6 py-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg transition">
+              Next <ChevronRight size={16} />
+            </button>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* ── Page 2 ── */}
+      {currentPage === 2 && (
+        <div className="space-y-4">
+          <div className="mb-2">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">Tell us about your topic</h2>
+          </div>
+
+          <div>
+            <label className={label}>Course topic</label>
+            <input type="text"
+              placeholder="e.g., Product Management, Data Science"
+              className={input} />
+          </div>
+
+          <div className="flex justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+            <button onClick={handleBack}
+              className="flex items-center gap-2 px-5 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white text-sm font-semibold rounded-lg transition">
+              <ChevronLeft size={16} /> Back
+            </button>
+            <button onClick={handleNext}
+              className="flex items-center gap-2 px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-lg transition">
+              Next <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Page 3 ── */}
+      {currentPage === 3 && (
+        <div className="space-y-4">
+          <div className="text-center mb-2">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">Review & Submit</h2>
+          </div>
+
+          <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 space-y-3 text-sm">
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Name</p>
+              <p className="font-medium text-gray-900 dark:text-white">{formData.name || "—"}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Email</p>
+              <p className="font-medium text-gray-900 dark:text-white">{formData.email || "—"}</p>
+            </div>
+          </div>
+
+          <div className="flex justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+            <button onClick={handleBack} disabled={loading}
+              className={`flex items-center gap-2 px-5 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white text-sm font-semibold rounded-lg transition ${loading ? "opacity-60 cursor-not-allowed" : ""}`}>
+              <ChevronLeft size={16} /> Back
+            </button>
+            <button onClick={handleSubmit} disabled={loading}
+              className={`flex items-center gap-2 px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-lg transition ${loading ? "opacity-60 cursor-not-allowed" : ""}`}>
+              {loading ? "Submitting..." : "Submit Application"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useState } from "react"; old2
+// import { ChevronRight, ChevronLeft, Moon, Sun } from "lucide-react";
+// import { useNavigate } from "react-router-dom";
+// import authService from "../services/authService";
+// import { useLocation } from "react-router-dom";
+// import { useEffect } from "react";
+// export default function ApplyTrainer() {
+//   const [currentPage, setCurrentPage] = useState(1);
+//   const [darkMode, setDarkMode] = useState(true);
+//   const navigate = useNavigate();
+//   const location = useLocation();
+// const isGoogleUser = location.state?.isGoogleUser || false;
+
+//   const [formData, setFormData] = useState({
+//     name: "",
+//     email: "",
+//     password: "",
+//     confirmPassword: "",
+//     linkedin: "",
+//     country: "",
+//     shareExpertise: [],
+//     audienceSize: "",
+//     fullTimeRole: "",
+//     howHeard: "",
+//   });
+
+//   const [loading, setLoading] = useState(false);
+//   useEffect(() => {
+//     if (location.state) {
+//       setFormData((prev) => ({
+//         ...prev,
+//         name: location.state.name || "",
+//         email: location.state.email || "",
+//       }));
+//     }
+//   }, [location.state]);
+//   const colors = {
+//     primary: "from-orange-500 to-orange-600",
+//     primarySolid: "bg-orange-500",
+//     accent: "from-orange-400 to-orange-600",
+//     muted: "text-gray-600 dark:text-gray-400",
+//     surface: "bg-white dark:bg-black",
+//   };
+
+//   const handleInputChange = (e) => {
+//     const { name, value } = e.target;
+//     setFormData((prev) => ({ ...prev, [name]: value }));
+//   };
+
+//   const handleCheckboxChange = (value) => {
+//     setFormData((prev) => ({
+//       ...prev,
+//       shareExpertise: prev.shareExpertise.includes(value)
+//         ? prev.shareExpertise.filter((item) => item !== value)
+//         : [...prev.shareExpertise, value],
+//     }));
+//   };
+
+//   const handleNext = () => {
+//     if (currentPage < 3) setCurrentPage(currentPage + 1);
+//   };
+
+//   const handleBack = () => {
+//     if (currentPage > 1) setCurrentPage(currentPage - 1);
+//   };
+
+//   const handleSubmit = async () => {
+//     // ✅ password match check
+//     if (!isGoogleUser && formData.password !== formData.confirmPassword) {
+//       alert("❌ Password and Confirm Password do not match");
+//       return;
+//     }
+    
+//     if (!isGoogleUser && formData.password.length < 11) {
+//       alert("❌ Password must be at least 11 characters");
+//       return;
+//     }
+
+//     try {
+//       setLoading(true);
+
+//       // ✅ Register trainer using same backend auth register API
+//       await authService.register({
+//         name: formData.name,
+//         email: formData.email,
+//         password: isGoogleUser ? null : formData.password,
+//         role: "TRAINER",
+//         isGoogleUser: isGoogleUser,
+//       });
+
+//       alert(
+//         "✅ Application Submitted!\n\n" +
+//           "Step 1: Verify your email first 📩\n" +
+//           "Step 2: After verification, admin will approve your account ⏳\n\n" +
+//           "You can login only after approval.",
+//       );
+
+//       // ✅ Redirect to verify email page (email comes from form)
+//       navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+//     } catch (err) {
+//       console.log("Trainer apply error:", err);
+
+//       const msg =
+//         err?.response?.data?.message ||
+//         err?.response?.data?.error ||
+//         "❌ Failed to submit application";
+
+//       alert(msg);
+
+//       // If already registered but not verified
+//       if (msg.toLowerCase().includes("verify")) {
+//         navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+//         return;
+//       }
+
+//       // If already registered but not approved
+//       if (msg.toLowerCase().includes("not approved")) {
+//         navigate(
+//           `/approval-pending?email=${encodeURIComponent(formData.email)}`,
+//         );
+//         return;
+//       }
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const isPage1Valid =
+//   formData.name &&
+//   formData.email &&
+//   (isGoogleUser ||
+//     (formData.password &&
+//       formData.confirmPassword &&
+//       formData.password === formData.confirmPassword)) &&
+//   formData.linkedin &&
+//   formData.country &&
+//   formData.shareExpertise.length > 0 &&
+//   formData.audienceSize &&
+//   formData.fullTimeRole;
+
+//   return (
+//     <div className={darkMode ? "dark" : ""}>
+//       <div
+//         className={`min-h-screen ${
+//           darkMode
+//             ? "bg-gradient-to-br from-gray-900 via-black to-gray-900"
+//             : "bg-gradient-to-br from-gray-50 via-white to-gray-50"
+//         } transition-colors duration-300`}
+//       >
+//         {/* Header */}
+//         <header
+//           className={`border-b ${
+//             darkMode
+//               ? "border-gray-800 bg-black/50"
+//               : "border-gray-200 bg-white/50"
+//           } backdrop-blur`}
+//         >
+//           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+//             <div className="flex items-center gap-3">
+//             <div className="text-2xl font-bold tracking-wider font-serif">
+//   <span className="text-green-600">ILM</span>
+//   <span className="text-[#F97316] ml-1">ORA</span>
+// </div>
+//             </div>
+//             <div className="flex items-center gap-4">
+//               <button
+//                 onClick={() => setDarkMode(!darkMode)}
+//                 className={`p-2 rounded-lg ${
+//                   darkMode
+//                     ? "bg-gray-800 text-yellow-400"
+//                     : "bg-gray-200 text-gray-700"
+//                 } hover:scale-110 transition-transform`}
+//               >
+//                 {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+//               </button>
+//             </div>
+//           </div>
+//         </header>
+
+//         {/* Main Content */}
+//         <div className="max-w-3xl mx-auto px-6 py-12">
+//           {/* Progress Steps */}
+//           <div className="flex items-center justify-center mb-8">
+//             <div className="flex items-center gap-2">
+//               <div
+//                 className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
+//                   currentPage >= 1
+//                     ? `bg-gradient-to-r ${colors.primary} border-transparent text-white`
+//                     : darkMode
+//                       ? "border-gray-700 text-gray-500"
+//                       : "border-gray-300 text-gray-400"
+//                 }`}
+//               >
+//                 <span className="font-semibold">1</span>
+//               </div>
+//               <div
+//                 className={`h-0.5 w-16 ${
+//                   currentPage >= 2
+//                     ? `bg-gradient-to-r ${colors.primary}`
+//                     : darkMode
+//                       ? "bg-gray-700"
+//                       : "bg-gray-300"
+//                 }`}
+//               />
+//               <div
+//                 className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
+//                   currentPage >= 2
+//                     ? `bg-gradient-to-r ${colors.primary} border-transparent text-white`
+//                     : darkMode
+//                       ? "border-gray-700 text-gray-500"
+//                       : "border-gray-300 text-gray-400"
+//                 }`}
+//               >
+//                 <span className="font-semibold">2</span>
+//               </div>
+//               <div
+//                 className={`h-0.5 w-16 ${
+//                   currentPage >= 3
+//                     ? `bg-gradient-to-r ${colors.primary}`
+//                     : darkMode
+//                       ? "bg-gray-700"
+//                       : "bg-gray-300"
+//                 }`}
+//               />
+//               <div
+//                 className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
+//                   currentPage >= 3
+//                     ? `bg-gradient-to-r ${colors.primary} border-transparent text-white`
+//                     : darkMode
+//                       ? "border-gray-700 text-gray-500"
+//                       : "border-gray-300 text-gray-400"
+//                 }`}
+//               >
+//                 <span className="font-semibold">3</span>
+//               </div>
+//             </div>
+//           </div>
+
+//           <div className="text-center mb-8">
+//             <div className={`text-sm ${colors.muted} mb-2`}>
+//               {currentPage === 1 && "1. You"}
+//               {currentPage === 2 && "2. Your topic"}
+//               {currentPage === 3 && "3. Submit"}
+//             </div>
+//           </div>
+
+//           {/* Form Container */}
+//           <div
+//             className={`${
+//               darkMode
+//                 ? "bg-gray-900/50 border-gray-800"
+//                 : "bg-white border-gray-200"
+//             } backdrop-blur border rounded-2xl p-8 shadow-2xl transition-colors duration-300`}
+//           >
+//             {currentPage === 1 && (
+//               <div>
+//                 <div className="mb-8">
+//                   <h1
+//                     className={`text-2xl font-bold mb-3 ${
+//                       darkMode ? "text-white" : "text-gray-900"
+//                     }`}
+//                   >
+//                     Thank you for your interest in teaching on TexoraAI.skills!
+//                   </h1>
+//                   <p className={colors.muted}>
+//                     Tell us a bit about you and your area of expertise.
+//                   </p>
+//                 </div>
+
+//                 <div className="space-y-6">
+//                   <div>
+//                     <label
+//                       className={`block text-sm font-medium mb-2 ${
+//                         darkMode ? "text-gray-300" : "text-gray-700"
+//                       }`}
+//                     >
+//                       Your name <span className="text-red-500">*</span>
+//                     </label>
+//                     <input
+//                       type="text"
+//                       name="name"
+//                       value={formData.name}
+//                       onChange={handleInputChange}
+//                       className={`w-full px-4 py-3 ${
+//                         darkMode
+//                           ? "bg-black/50 border-gray-700 text-white"
+//                           : "bg-gray-50 border-gray-300 text-gray-900"
+//                       } border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition`}
+//                     />
+//                   </div>
+
+//                   <div>
+//                     <label
+//                       className={`block text-sm font-medium mb-2 ${
+//                         darkMode ? "text-gray-300" : "text-gray-700"
+//                       }`}
+//                     >
+//                       Your email <span className="text-red-500">*</span>
+//                     </label>
+//                     <input
+//   type="email"
+//   name="email"
+//   value={formData.email}
+//   onChange={handleInputChange}
+//   disabled={isGoogleUser}
+//   className={`w-full px-4 py-3 ${
+//     darkMode
+//       ? "bg-black/50 border-gray-700 text-white"
+//       : "bg-gray-50 border-gray-300 text-gray-900"
+//   } border rounded-lg ${
+//     isGoogleUser ? "opacity-70 cursor-not-allowed" : ""
+//   } focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
+// />
+//                   </div>
+
+//                   {!isGoogleUser && (
+//   <>
+//     <div>
+//       <label
+//         className={`block text-sm font-medium mb-2 ${
+//           darkMode ? "text-gray-300" : "text-gray-700"
+//         }`}
+//       >
+//         Create password <span className="text-red-500">*</span>
+//       </label>
+//       <input
+//         type="password"
+//         name="password"
+//         placeholder="Enter password (min 11 characters)"
+//         value={formData.password}
+//         onChange={handleInputChange}
+//         className={`w-full px-4 py-3 ${
+//           darkMode
+//             ? "bg-black/50 border-gray-700 text-white placeholder:text-gray-600"
+//             : "bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-400"
+//         } border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
+//       />
+//       {formData.password && formData.password.length < 11 && (
+//         <p className="text-orange-500 text-xs mt-1 flex items-center gap-1">
+//           <span>⚠️</span> Password must be at least 11 characters
+//         </p>
+//       )}
+//     </div>
+
+//     <div>
+//       <label
+//         className={`block text-sm font-medium mb-2 ${
+//           darkMode ? "text-gray-300" : "text-gray-700"
+//         }`}
+//       >
+//         Confirm password <span className="text-red-500">*</span>
+//       </label>
+//       <input
+//         type="password"
+//         name="confirmPassword"
+//         value={formData.confirmPassword}
+//         onChange={handleInputChange}
+//         className={`w-full px-4 py-3 ${
+//           darkMode
+//             ? "bg-black/50 border-gray-700 text-white"
+//             : "bg-gray-50 border-gray-300 text-gray-900"
+//         } border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
+//       />
+//     </div>
+//   </>
+// )}
+//                   <div>
+//                     <label
+//                       className={`block text-sm font-medium mb-2 ${
+//                         darkMode ? "text-gray-300" : "text-gray-700"
+//                       }`}
+//                     >
+//                       Your Linkedin URL <span className="text-red-500">*</span>
+//                     </label>
+//                     <input
+//                       type="url"
+//                       name="linkedin"
+//                       value={formData.linkedin}
+//                       onChange={handleInputChange}
+//                       placeholder="https://linkedin.com/in/yourprofile"
+//                       className={`w-full px-4 py-3 ${
+//                         darkMode
+//                           ? "bg-black/50 border-gray-700 text-white placeholder:text-gray-600"
+//                           : "bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-400"
+//                       } border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
+//                     />
+//                   </div>
+
+//                   <div>
+//                     <label
+//                       className={`block text-sm font-medium mb-2 ${
+//                         darkMode ? "text-gray-300" : "text-gray-700"
+//                       }`}
+//                     >
+//                       What country do you live in?{" "}
+//                       <span className="text-red-500">*</span>
+//                     </label>
+//                     <select
+//                       name="country"
+//                       value={formData.country}
+//                       onChange={handleInputChange}
+//                       className={`w-full px-4 py-3 ${
+//                         darkMode
+//                           ? "bg-black/50 border-gray-700 text-white"
+//                           : "bg-gray-50 border-gray-300 text-gray-900"
+//                       } border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
+//                     >
+//                       <option value="">Select a country</option>
+//                       <option value="US">United States</option>
+//                       <option value="UK">United Kingdom</option>
+//                       <option value="CA">Canada</option>
+//                       <option value="IN">India</option>
+//                     </select>
+//                   </div>
+
+//                   <div>
+//                     <label
+//                       className={`block text-sm font-medium mb-3 ${
+//                         darkMode ? "text-gray-300" : "text-gray-700"
+//                       }`}
+//                     >
+//                       Where do you currently share your expertise?{" "}
+//                       <span className="text-red-500">*</span>
+//                     </label>
+//                     <div className="space-y-2">
+//                       {[
+//                         "Blog",
+//                         "Newsletter",
+//                         "YouTube",
+//                         "Podcast",
+//                         "Social Media",
+//                         "Online courses",
+//                       ].map((option) => (
+//                         <label
+//                           key={option}
+//                           className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg ${
+//                             darkMode
+//                               ? "hover:bg-gray-800/50"
+//                               : "hover:bg-gray-100"
+//                           } transition`}
+//                         >
+//                           <input
+//                             type="checkbox"
+//                             checked={formData.shareExpertise.includes(option)}
+//                             onChange={() => handleCheckboxChange(option)}
+//                             className="w-4 h-4 accent-orange-500"
+//                           />
+//                           <span
+//                             className={
+//                               darkMode ? "text-gray-300" : "text-gray-700"
+//                             }
+//                           >
+//                             {option}
+//                           </span>
+//                         </label>
+//                       ))}
+//                     </div>
+//                   </div>
+
+//                   <div>
+//                     <label
+//                       className={`block text-sm font-medium mb-2 ${
+//                         darkMode ? "text-gray-300" : "text-gray-700"
+//                       }`}
+//                     >
+//                       Audience size <span className="text-red-500">*</span>
+//                     </label>
+//                     <select
+//                       name="audienceSize"
+//                       value={formData.audienceSize}
+//                       onChange={handleInputChange}
+//                       className={`w-full px-4 py-3 ${
+//                         darkMode
+//                           ? "bg-black/50 border-gray-700 text-white"
+//                           : "bg-gray-50 border-gray-300 text-gray-900"
+//                       } border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
+//                     >
+//                       <option value="">Select audience size</option>
+//                       <option value="0-500">0 - 500</option>
+//                       <option value="500-2000">500 - 2,000</option>
+//                       <option value="2000-5000">2,000 - 5,000</option>
+//                       <option value="5000+">5,000+</option>
+//                     </select>
+//                   </div>
+
+//                   <div>
+//                     <label
+//                       className={`block text-sm font-medium mb-2 ${
+//                         darkMode ? "text-gray-300" : "text-gray-700"
+//                       }`}
+//                     >
+//                       Full time role? <span className="text-red-500">*</span>
+//                     </label>
+//                     <div className="space-y-2">
+//                       {["Yes", "No"].map((option) => (
+//                         <label
+//                           key={option}
+//                           className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg ${
+//                             darkMode
+//                               ? "hover:bg-gray-800/50"
+//                               : "hover:bg-gray-100"
+//                           } transition`}
+//                         >
+//                           <input
+//                             type="radio"
+//                             name="fullTimeRole"
+//                             value={option}
+//                             checked={formData.fullTimeRole === option}
+//                             onChange={handleInputChange}
+//                             className="w-4 h-4 accent-blue-600"
+//                           />
+//                           <span
+//                             className={
+//                               darkMode ? "text-gray-300" : "text-gray-700"
+//                             }
+//                           >
+//                             {option}
+//                           </span>
+//                         </label>
+//                       ))}
+//                     </div>
+//                   </div>
+//                 </div>
+
+//                 <div
+//                   className={`flex items-center justify-end mt-8 pt-6 border-t ${
+//                     darkMode ? "border-gray-800" : "border-gray-200"
+//                   }`}
+//                 >
+//                   <button
+//                     onClick={handleNext}
+//                     disabled={!isPage1Valid}
+//                     className={`flex items-center gap-2 px-8 py-3 bg-gradient-to-r ${colors.primary} hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition font-medium text-white`}
+//                   >
+//                     Next
+//                     <ChevronRight size={18} />
+//                   </button>
+//                 </div>
+//               </div>
+//             )}
+
+//             {currentPage === 2 && (
+//               <div>
+//                 <div className="mb-8">
+//                   <h1
+//                     className={`text-2xl font-bold mb-3 ${
+//                       darkMode ? "text-white" : "text-gray-900"
+//                     }`}
+//                   >
+//                     Tell us about your topic
+//                   </h1>
+//                 </div>
+
+//                 <div className="space-y-6">
+//                   <div>
+//                     <label
+//                       className={`block text-sm font-medium mb-2 ${
+//                         darkMode ? "text-gray-300" : "text-gray-700"
+//                       }`}
+//                     >
+//                       Course topic
+//                     </label>
+//                     <input
+//                       type="text"
+//                       placeholder="e.g., Product Management, Data Science"
+//                       className={`w-full px-4 py-3 ${
+//                         darkMode
+//                           ? "bg-black/50 border-gray-700 text-white placeholder:text-gray-600"
+//                           : "bg-gray-50 border-gray-300 text-gray-900"
+//                       } border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
+//                     />
+//                   </div>
+//                 </div>
+
+//                 <div
+//                   className={`flex items-center justify-between mt-8 pt-6 border-t ${
+//                     darkMode ? "border-gray-800" : "border-gray-200"
+//                   }`}
+//                 >
+//                   <button
+//                     onClick={handleBack}
+//                     className={`flex items-center gap-2 px-6 py-3 ${
+//                       darkMode
+//                         ? "bg-gray-800 hover:bg-gray-700"
+//                         : "bg-gray-200 hover:bg-gray-300"
+//                     } rounded-lg transition ${
+//                       darkMode ? "text-white" : "text-gray-900"
+//                     }`}
+//                   >
+//                     <ChevronLeft size={18} />
+//                     Back
+//                   </button>
+
+//                   <button
+//                     onClick={handleNext}
+//                     className={`flex items-center gap-2 px-8 py-3 bg-gradient-to-r ${colors.primary} hover:shadow-lg rounded-lg transition font-medium text-white`}
+//                   >
+//                     Next
+//                     <ChevronRight size={18} />
+//                   </button>
+//                 </div>
+//               </div>
+//             )}
+
+//             {currentPage === 3 && (
+//               <div>
+//                 <div className="mb-8 text-center">
+//                   <h1
+//                     className={`text-2xl font-bold mb-3 ${
+//                       darkMode ? "text-white" : "text-gray-900"
+//                     }`}
+//                   >
+//                     Review and Submit
+//                   </h1>
+//                 </div>
+
+//                 <div
+//                   className={`${
+//                     darkMode ? "bg-black/50" : "bg-gray-50"
+//                   } rounded-lg p-6 space-y-4 mb-6`}
+//                 >
+//                   <div>
+//                     <div className={`text-sm ${colors.muted} mb-1`}>Name</div>
+//                     <div
+//                       className={`font-medium ${
+//                         darkMode ? "text-white" : "text-gray-900"
+//                       }`}
+//                     >
+//                       {formData.name || "—"}
+//                     </div>
+//                   </div>
+//                   <div>
+//                     <div className={`text-sm ${colors.muted} mb-1`}>Email</div>
+//                     <div
+//                       className={`font-medium ${
+//                         darkMode ? "text-white" : "text-gray-900"
+//                       }`}
+//                     >
+//                       {formData.email || "—"}
+//                     </div>
+//                   </div>
+//                 </div>
+
+//                 <div
+//                   className={`flex items-center justify-between pt-6 border-t ${
+//                     darkMode ? "border-gray-800" : "border-gray-200"
+//                   }`}
+//                 >
+//                   <button
+//                     onClick={handleBack}
+//                     disabled={loading}
+//                     className={`flex items-center gap-2 px-6 py-3 ${
+//                       darkMode
+//                         ? "bg-gray-800 hover:bg-gray-700"
+//                         : "bg-gray-200 hover:bg-gray-300"
+//                     } rounded-lg transition ${
+//                       darkMode ? "text-white" : "text-gray-900"
+//                     } ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
+//                   >
+//                     <ChevronLeft size={18} />
+//                     Back
+//                   </button>
+
+//                   <button
+//                     onClick={handleSubmit}
+//                     disabled={loading}
+//                     className={`flex items-center gap-2 px-8 py-3 bg-gradient-to-r ${colors.accent} hover:shadow-lg rounded-lg transition font-medium text-white ${
+//                       loading ? "opacity-60 cursor-not-allowed" : ""
+//                     }`}
+//                   >
+//                     {loading ? "Submitting..." : "Submit Application"}
+//                   </button>
+//                 </div>
+//               </div>
+//             )}
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }

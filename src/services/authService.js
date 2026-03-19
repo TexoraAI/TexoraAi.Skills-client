@@ -45,10 +45,9 @@ const authService = {
   },
 
   // ================= RESET PASSWORD =================
-  // ⚠️ BACKEND EXPECTS @RequestParam
   resetPassword(token, newPassword) {
     return axios.post(
-      `${API_BASE_URL}/api/auth/reset-password?token=${token}&newPassword=${newPassword}`,
+      `${API_BASE_URL}/auth/reset-password?token=${token}&newPassword=${newPassword}`,
     );
   },
 

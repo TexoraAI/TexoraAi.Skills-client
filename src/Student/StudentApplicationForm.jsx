@@ -1518,7 +1518,7 @@ export default function StudentApplicationForm() {
   const [currentStep, setCurrentStep] = useState(1);
 
   const API_BASE_URL =
-    import.meta.env.VITE_API_BASE_URL || "http://localhost:9000";
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api";
 
   const [formData, setFormData] = useState({
     fullName: "",

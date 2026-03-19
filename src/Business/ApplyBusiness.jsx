@@ -652,7 +652,7 @@ import { Briefcase } from "lucide-react";
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:9000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api";
 
 const ApplyBusiness = () => {
   const navigate = useNavigate();

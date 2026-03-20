@@ -229,7 +229,7 @@ const adminMenus = [
     icon: Video,
     children: [
       { name: "Admin Live Sessions", path: "/admin/live-sessions", icon: Radio },
-      { name: "Admin Recorded Videos", path: "/admin/recorded-videos", icon: Video },
+      
     ],
   },
 

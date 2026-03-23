@@ -1,11 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  ArrowLeft,
-  UploadCloud,
-  X,
-  Video,
-} from "lucide-react";
+import { uploadRecording } from "@/services/liveSessionService";
+import { ArrowLeft, UploadCloud, X, Video } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,8 +31,7 @@ const UploadRecordedVideo = () => {
     batchName: "",
   });
 
-  const set = (key, value) =>
-    setForm((prev) => ({ ...prev, [key]: value }));
+  const set = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
   // Fetch batches
   useEffect(() => {
@@ -65,21 +60,32 @@ const UploadRecordedVideo = () => {
     }));
   };
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (!form.lectureTitle || !form.batchId) {
       alert("Lecture Title and Batch are required");
       return;
     }
 
-    console.log("Submitting Data:", {
-      ...form,
-      file,
-    });
+    try {
+      const formData = new FormData();
+
+      formData.append("file", file);
+      formData.append("title", form.lectureTitle);
+      formData.append("description", form.shortDescription);
+      formData.append("batchId", form.batchId);
+
+      await uploadRecording(formData);
+
+      alert("Video uploaded successfully");
+
+      navigate("/trainer/recorded-list");
+    } catch (error) {
+      console.error("Upload failed", error);
+    }
   };
 
   return (
     <div className="min-h-screen p-6 bg-gray-100 dark:bg-[#0B1120] dark:text-white">
-
       {/* HEADER */}
       <div className="px-8 py-6 rounded-2xl mb-8 bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg flex items-center gap-4">
         <button
@@ -89,26 +95,19 @@ const UploadRecordedVideo = () => {
           <ArrowLeft size={18} />
         </button>
 
-        <h2 className="text-2xl font-semibold">
-          Upload Recorded Video
-        </h2>
+        <h2 className="text-2xl font-semibold">Upload Recorded Video</h2>
       </div>
 
       <div className="max-w-2xl mx-auto space-y-6">
-
         {!file ? (
           <div
             onClick={() => fileRef.current.click()}
             className="rounded-3xl border-2 border-dashed p-16 text-center cursor-pointer bg-gray-50 dark:bg-[#1F2937] border-gray-300 dark:border-white/10"
           >
             <UploadCloud size={48} className="mx-auto mb-4 text-blue-500" />
-            <p className="font-semibold mb-3">
-              Choose your video
-            </p>
+            <p className="font-semibold mb-3">Choose your video</p>
 
-            <Button className="bg-blue-600 text-white">
-              Select File
-            </Button>
+            <Button className="bg-blue-600 text-white">Select File</Button>
 
             <input
               ref={fileRef}
@@ -138,15 +137,12 @@ const UploadRecordedVideo = () => {
             {/* FORM */}
             <Card className="bg-white dark:bg-[#1F2937] border dark:border-white/10">
               <CardContent className="p-6 space-y-4">
-
                 {/* Lecture Title */}
                 <div>
                   <Label>Lecture Title</Label>
                   <Input
                     value={form.lectureTitle}
-                    onChange={(e) =>
-                      set("lectureTitle", e.target.value)
-                    }
+                    onChange={(e) => set("lectureTitle", e.target.value)}
                     placeholder="Enter Lecture Title"
                   />
                 </div>
@@ -157,9 +153,7 @@ const UploadRecordedVideo = () => {
                   <Textarea
                     rows={3}
                     value={form.shortDescription}
-                    onChange={(e) =>
-                      set("shortDescription", e.target.value)
-                    }
+                    onChange={(e) => set("shortDescription", e.target.value)}
                     placeholder="Enter short description"
                   />
                 </div>
@@ -176,9 +170,7 @@ const UploadRecordedVideo = () => {
                     >
                       <SelectValue
                         placeholder={
-                          loadingBatches
-                            ? "Loading batches..."
-                            : "Select Batch"
+                          loadingBatches ? "Loading batches..." : "Select Batch"
                         }
                       />
                     </SelectTrigger>
@@ -200,7 +192,6 @@ const UploadRecordedVideo = () => {
                     </SelectContent>
                   </Select>
                 </div>
-
               </CardContent>
             </Card>
 

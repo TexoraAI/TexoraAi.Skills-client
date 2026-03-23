@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getBatchSessions } from "@/services/liveSessionService";
 import {
   Video,
   History,
@@ -30,11 +31,20 @@ const TrainerLiveClasses = () => {
   const [activeTab, setActiveTab] = useState("all");
 
   useEffect(() => {
-    setSessions([]);
-    setStats({ live: 0, viewers: 0, scheduled: 0, completed: 0 });
-    setLoading(false);
-  }, []);
+    const loadSessions = async () => {
+      try {
+        const res = await getBatchSessions(1);
 
+        setSessions(res.data);
+      } catch (err) {
+        console.error("Failed to load sessions", err);
+      }
+
+      setLoading(false);
+    };
+
+    loadSessions();
+  }, []);
   const filtered =
     activeTab === "all"
       ? sessions
@@ -79,7 +89,6 @@ const TrainerLiveClasses = () => {
 
   return (
     <div className="min-h-screen p-6 bg-gray-100 dark:bg-[#0B1120] dark:text-white">
-
       {/* HEADER */}
       <div className="px-8 py-6 rounded-2xl mb-8 bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
         <div className="flex justify-between items-center">
@@ -134,12 +143,8 @@ const TrainerLiveClasses = () => {
             <CardContent className="p-5 flex items-center gap-4">
               {s.icon}
               <div>
-                <p className={`text-2xl font-bold ${s.color}`}>
-                  {s.value}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {s.label}
-                </p>
+                <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+                <p className="text-xs text-gray-500">{s.label}</p>
               </div>
             </CardContent>
           </Card>
@@ -154,9 +159,7 @@ const TrainerLiveClasses = () => {
             onClick={() => navigate(q.path)}
             className="flex items-center gap-3 p-4 rounded-2xl border bg-white dark:bg-[#111827] hover:shadow-md transition text-left"
           >
-            <div className={`p-3 rounded-xl ${q.bg} ${q.color}`}>
-              {q.icon}
-            </div>
+            <div className={`p-3 rounded-xl ${q.bg} ${q.color}`}>{q.icon}</div>
             <div>
               <p className="font-semibold text-sm">{q.label}</p>
               <p className="text-xs text-gray-500">{q.desc}</p>

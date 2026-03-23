@@ -58,8 +58,8 @@ import TermsOfService from "./pages/Company/TermsOfService";
 import NotificationsPage from "./pages/NotificationsPage";
 import ProfilePage from "./pages/ProfilePage";
 import SearchPage from "./pages/SearchPage";
-import EditProfile from "./pages/common/EditProfile";
 import ApplyForm from "./pages/common/ApplyForm";
+import EditProfile from "./pages/common/EditProfile";
 
 /* ================= STUDENT ================= */
 import Assessments from "./Student/Assessments.jsx";
@@ -82,6 +82,7 @@ import UpdateEmail from "./Student/UpdateEmail";
 import Certificates from "./Student/certificates.jsx";
 import Overview from "./Student/overview.jsx";
 import VideoLectures from "./Student/videolecctures.jsx";
+
 /* ================= TRAINER ================= */
 import TrainerAssessments from "./Trainer/Assessments";
 import TrainerAttendance from "./Trainer/Attendance";
@@ -92,6 +93,7 @@ import TrainerDashboard from "./Trainer/Dashboard";
 import DoubtsManagement from "./Trainer/DoubtsManagement";
 import EditAssignment from "./Trainer/EditAssignment";
 import EditRecordedClass from "./Trainer/EditRecordedClass";
+import MyAssignments from "./Trainer/MyAssignments";
 import MyQuizzes from "./Trainer/MyQuizzes";
 import PerformanceAnalysis from "./Trainer/PerformanceAnalysis";
 import StudentReports from "./Trainer/StudentReports";
@@ -104,7 +106,6 @@ import TrainerSettings from "./Trainer/TrainerSettings";
 import UploadDocuments from "./Trainer/UploadDocuments";
 import UploadVideos from "./Trainer/UploadVideos";
 import ViewAssignments from "./Trainer/ViewAssignments";
-import MyAssignments from "./Trainer/MyAssignments";
 import ViewSubmissions from "./Trainer/ViewSubmissions";
 /* ================= NEW LIVE + RECORDED ================= */
 import LiveAttendanceReport from "./Trainer/LiveAttendanceReport";
@@ -305,12 +306,19 @@ export default function App() {
   <Route path="performance" element={<PerformanceAnalysis />} />
   <Route path="view-assignments" element={<ViewAssignments />} />
   {/* ================= LIVE CLASSES ================= */}
-  <Route path="live" element={<TrainerLiveClasses />} />
-  <Route path="start-live" element={<StartLiveSession />} />
+  {/* <Route path="live" element={<TrainerLiveClasses />} /> */}
+  {/* <Route path="start-live" element={<StartLiveSession />} />
   <Route path="live-controls" element={<LiveSessionControls />} />
   <Route path="live-history" element={<LiveSessionHistory />} />
-  <Route path="live-attendance" element={<LiveAttendanceReport />} />
+  <Route path="live-attendance" element={<LiveAttendanceReport />} /> */}
 
+{/* ================= LIVE CLASSES ================= */}
+          <Route path="live" element={<TrainerLiveClasses />} />
+          <Route path="start-live" element={<StartLiveSession />} />
+          {/* <Route path="live-controls" element={<LiveSessionControls />} /> */}
+          <Route path="live-controls/:id" element={<LiveSessionControls />} />
+          <Route path="live-history" element={<LiveSessionHistory />} />
+          <Route path="live-attendance" element={<LiveAttendanceReport />} />
   {/* ================= RECORDED CLASSES ================= */}
   <Route path="upload-recorded" element={<UploadRecordedVideo />} />
   <Route path="recorded-list" element={<RecordedClassList />} />

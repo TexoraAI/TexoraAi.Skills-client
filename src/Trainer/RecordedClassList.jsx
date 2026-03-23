@@ -22,11 +22,14 @@ const RecordedClassList = () => {
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        const res = await fetch("/api/recorded-videos"); // Backend API
-        const data = await res.json();
-        setVideos(data);
+        const res = await fetch("/api/recorded-videos");
+        if (!res.ok) { setVideos([]); return; }
+        const text = await res.text();
+        const data = text ? JSON.parse(text) : [];
+        setVideos(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Failed to fetch videos", error);
+        setVideos([]);
       } finally {
         setLoading(false);
       }

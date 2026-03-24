@@ -16,7 +16,7 @@ const stats = [
     ),
   },
   {
-    title: "Active Admins",
+    title: "Active Manager",
     value: "364",
     change: "+8%",
     up: true,

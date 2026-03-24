@@ -28,7 +28,7 @@ const AdminDashboard = () => {
         <p className="text-xs uppercase tracking-wide opacity-90">
           Admin Portal
         </p>
-        <h1 className="text-2xl font-bold mt-1">Admin Dashboard</h1>
+        <h1 className="text-2xl font-bold mt-1">Manager</h1>
         <p className="text-sm opacity-90 mt-1">
           Manage users, courses & performance
         </p>

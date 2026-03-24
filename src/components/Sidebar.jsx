@@ -92,6 +92,23 @@ const trainerMenus = [
 
   { name: "Batch Management", path: "/trainer/batches", icon: Layers },
 
+  //  CONTENT MANAGEMENT
+  {
+    name: "Content Management",
+    icon: FileText,
+    children: [
+      { name: "Upload Videos", path: "/trainer/upload-videos", icon: Video },
+      { name: "Upload Documents", path: "/trainer/upload-docs", icon: FileText },
+      { name: "Create Quiz", path: "/trainer/create-quiz", icon: ClipboardEdit },
+      { name: "My Quizzes", path: "/trainer/my-quizzes", icon: ClipboardCheck },
+      { name: "Create Assignments", path: "/trainer/create-assignments", icon: ClipboardEdit },
+      { name: "Course Management", path: "/trainer/course-management", icon: BookOpen },
+      { name: "Assessments", path: "/trainer/assessments", icon: ClipboardCheck },
+      { name: "Attendance", path: "/trainer/attendance", icon: CalendarDays },
+      { name: "Doubts Management", path: "/trainer/doubts-management", icon: MessageCircleQuestion },
+    ],
+  },
+
   //  LIVE CLASSES MODULE
   {
     name: "Live Classes",
@@ -143,22 +160,6 @@ const trainerMenus = [
     ],
   },
 
-  //  CONTENT MANAGEMENT
-  {
-    name: "Content Management",
-    icon: FileText,
-    children: [
-      { name: "Upload Videos", path: "/trainer/upload-videos", icon: Video },
-      { name: "Upload Documents", path: "/trainer/upload-docs", icon: FileText },
-      { name: "Create Quiz", path: "/trainer/create-quiz", icon: ClipboardEdit },
-      { name: "My Quizzes", path: "/trainer/my-quizzes", icon: ClipboardCheck },
-      { name: "Create Assignments", path: "/trainer/create-assignments", icon: ClipboardEdit },
-      { name: "Course Management", path: "/trainer/course-management", icon: BookOpen },
-      { name: "Assessments", path: "/trainer/assessments", icon: ClipboardCheck },
-      { name: "Attendance", path: "/trainer/attendance", icon: CalendarDays },
-      { name: "Doubts Management", path: "/trainer/doubts-management", icon: MessageCircleQuestion },
-    ],
-  },
 
   //  REPORTS
   {
@@ -257,10 +258,10 @@ const superAdminMenus = [
     name: "Controls",
     icon: ShieldCheck,
     children: [
-      { name: "Admin Control", path: "/super-admin/admin-control", icon: UserCog },
-      { name: "Business Control", path: "/super-admin/business-control", icon: Briefcase },
-      { name: "Trainer Control", path: "/super-admin/trainer-control", icon: Users },
-      { name: "Student Control", path: "/super-admin/student-control", icon: GraduationCap },
+      { name: "Manager", path: "/super-admin/Manager", icon: UserCog },
+      { name: "Tenant Admin", path: "/super-admin/Tenant Admin", icon: Briefcase },
+      { name: "Trainer ", path: "/super-admin/trainer", icon: Users },
+      { name: "Student ", path: "/super-admin/student", icon: GraduationCap },
     ],
   },
   {
@@ -407,8 +408,8 @@ const Sidebar = () => {
           >
             <option value="/student">Student</option>
             <option value="/trainer">Trainer</option>
-            <option value="/admin">Admin</option>
-            <option value="/business">Business</option>
+            <option value="/admin">Manager</option>
+            <option value="/business">Tenant Admin</option>
             <option value="/super-admin/dashboard">Super Admin</option>
           </select>
         )}

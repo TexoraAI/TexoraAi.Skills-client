@@ -1,7 +1,10 @@
-// import { useState } from "react";
+
+// import { useState, useEffect } from "react";
 // import { useNavigate } from "react-router-dom";
 // import { ArrowLeft, Video, Circle } from "lucide-react";
 // import { createLiveSession } from "@/services/liveSessionService";
+// import { getTrainerBatches } from "@/services/batchService";
+
 // import { Card, CardContent } from "@/components/ui/card";
 // import { Button } from "@/components/ui/button";
 // import { Input } from "@/components/ui/input";
@@ -31,6 +34,9 @@
 //     notifications: true,
 //   });
 
+//   // ✅ NEW: batches state
+//   const [batches, setBatches] = useState([]);
+
 //   const updateField = (key, value) => {
 //     setForm((prev) => ({
 //       ...prev,
@@ -38,21 +44,40 @@
 //     }));
 //   };
 
-//   const batches = [{ id: "1", name: "Full Stack Development - Batch 1" }];
+//   // ❌ REMOVED HARDCODED BATCHES
+//   // const batches = [{ id: "1", name: "Full Stack Development - Batch 1" }];
 
 //   const durations = ["15", "30", "45", "60", "75", "90"];
+
+//   // ✅ NEW: load batches from backend
+//   useEffect(() => {
+//     const loadBatches = async () => {
+//       try {
+//         const data = await getTrainerBatches(); // already res.data
+//         setBatches(data || []);
+//       } catch (err) {
+//         console.error("Failed to load batches", err);
+//       }
+//     };
+
+//     loadBatches();
+//   }, []);
 
 //   const handleGoLive = async () => {
 //     try {
 //       const payload = {
 //         title: form.title,
 //         description: form.description,
-//         batchId: form.batchId,
-//         date: form.date,
-//         time: form.time,
-//         duration: form.duration,
+//         batchId: Number(form.batchId),
+
+//         scheduledDate: form.date, // ✅ FIX
+//         scheduledTime: form.time, // ✅ FIX
+
+//         duration: Number(form.duration),
+
 //         chatEnabled: form.chat,
-//         recordingEnabled: form.recording,
+//         autoRecord: form.recording, // ✅ FIX
+//         notifyStudents: form.notifications, // ✅ ADD THIS
 //       };
 
 //       const res = await createLiveSession(payload);
@@ -116,11 +141,16 @@
 //                 </SelectTrigger>
 
 //                 <SelectContent>
-//                   {batches.map((b) => (
-//                     <SelectItem key={b.id} value={b.id}>
-//                       {b.name}
-//                     </SelectItem>
-//                   ))}
+//                   {Array.isArray(batches) &&
+//                     batches.map((b, index) => {
+//                       const id = b.id ?? b.batchId ?? b.batch_id;
+
+//                       return (
+//                         <SelectItem key={index} value={String(id)}>
+//                           Batch (ID: {id})
+//                         </SelectItem>
+//                       );
+//                     })}
 //                 </SelectContent>
 //               </Select>
 //             </div>
@@ -212,6 +242,21 @@
 // };
 
 // export default StartLiveSession;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Video, Circle } from "lucide-react";
@@ -247,64 +292,62 @@ const StartLiveSession = () => {
     notifications: true,
   });
 
-  // ✅ NEW: batches state
+  // ✅ Batches from backend (not hardcoded)
   const [batches, setBatches] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
 
   const updateField = (key, value) => {
-    setForm((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+    setForm((prev) => ({ ...prev, [key]: value }));
   };
-
-  // ❌ REMOVED HARDCODED BATCHES
-  // const batches = [{ id: "1", name: "Full Stack Development - Batch 1" }];
 
   const durations = ["15", "30", "45", "60", "75", "90"];
 
-  // ✅ NEW: load batches from backend
+  /* ================= LOAD BATCHES FROM BACKEND ================= */
   useEffect(() => {
     const loadBatches = async () => {
       try {
-        const data = await getTrainerBatches(); // already res.data
+        const data = await getTrainerBatches();
         setBatches(data || []);
       } catch (err) {
-        console.error("Failed to load batches", err);
+        console.error("Failed to load batches:", err);
       }
     };
 
     loadBatches();
   }, []);
 
+  /* ================= GO LIVE ================= */
   const handleGoLive = async () => {
     try {
+      setSubmitting(true);
+
       const payload = {
         title: form.title,
         description: form.description,
         batchId: Number(form.batchId),
-
-        scheduledDate: form.date, // ✅ FIX
-        scheduledTime: form.time, // ✅ FIX
-
+        scheduledDate: form.date,
+        scheduledTime: form.time,
         duration: Number(form.duration),
-
         chatEnabled: form.chat,
-        autoRecord: form.recording, // ✅ FIX
-        notifyStudents: form.notifications, // ✅ ADD THIS
+        autoRecord: form.recording,
+        notifyStudents: form.notifications,
       };
 
       const res = await createLiveSession(payload);
-
       const session = res.data;
 
       navigate(`/trainer/live-controls/${session.id}`);
     } catch (error) {
-      console.error("Failed to create session", error);
+      console.error("Failed to create session:", error);
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
     <div className="min-h-screen p-6 bg-gray-100 text-black dark:bg-[#0B1120] dark:text-white">
+
+      {/* ================= HEADER ================= */}
       <div className="px-8 py-6 rounded-2xl mb-8 bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
         <div className="flex items-center gap-4">
           <button
@@ -324,8 +367,12 @@ const StartLiveSession = () => {
       </div>
 
       <div className="max-w-2xl mx-auto space-y-6">
+
+        {/* ================= SESSION DETAILS ================= */}
         <Card className="bg-white dark:bg-[#111827] border border-gray-200 dark:border-white/10">
           <CardContent className="p-6 space-y-5">
+
+            {/* TITLE */}
             <div className="space-y-2">
               <Label>Session Title</Label>
               <Input
@@ -334,6 +381,7 @@ const StartLiveSession = () => {
               />
             </div>
 
+            {/* DESCRIPTION */}
             <div className="space-y-2">
               <Label>Description</Label>
               <Textarea
@@ -343,31 +391,32 @@ const StartLiveSession = () => {
               />
             </div>
 
+            {/* BATCH SELECT — loaded from backend */}
             <div className="space-y-2">
               <Label>Select Batch</Label>
               <Select
                 value={form.batchId}
                 onValueChange={(v) => updateField("batchId", v)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-white text-black border-gray-300 dark:bg-[#1F2937] dark:text-white dark:border-white/10">
                   <SelectValue placeholder="Select batch" />
                 </SelectTrigger>
 
-                <SelectContent>
-                  {Array.isArray(batches) &&
-                    batches.map((b, index) => {
-                      const id = b.id ?? b.batchId ?? b.batch_id;
-
-                      return (
-                        <SelectItem key={index} value={String(id)}>
-                          Batch (ID: {id})
-                        </SelectItem>
-                      );
-                    })}
+                <SelectContent className="z-50 bg-white text-black border border-gray-200 dark:bg-[#111827] dark:text-white dark:border-white/10">
+                  {Array.isArray(batches) && batches.map((b, index) => {
+                    const id = b.id ?? b.batchId ?? b.batch_id;
+                    const name = b.name ?? b.batchName ?? `Batch (ID: ${id})`;
+                    return (
+                      <SelectItem key={index} value={String(id)}>
+                        {name}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
 
+            {/* DATE & TIME */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Date</Label>
@@ -388,17 +437,18 @@ const StartLiveSession = () => {
               </div>
             </div>
 
+            {/* DURATION */}
             <div className="space-y-2">
               <Label>Duration (minutes)</Label>
               <Select
                 value={form.duration}
                 onValueChange={(v) => updateField("duration", v)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-white text-black border-gray-300 dark:bg-[#1F2937] dark:text-white dark:border-white/10">
                   <SelectValue placeholder="Select duration" />
                 </SelectTrigger>
 
-                <SelectContent>
+                <SelectContent className="z-50 bg-white text-black border border-gray-200 dark:bg-[#111827] dark:text-white dark:border-white/10">
                   {durations.map((d) => (
                     <SelectItem key={d} value={d}>
                       {d} minutes
@@ -407,9 +457,11 @@ const StartLiveSession = () => {
                 </SelectContent>
               </Select>
             </div>
+
           </CardContent>
         </Card>
 
+        {/* ================= SESSION SETTINGS ================= */}
         <Card className="bg-white dark:bg-[#111827] border border-gray-200 dark:border-white/10">
           <CardContent className="p-6 space-y-6">
             <h3 className="font-semibold text-lg">Session Settings</h3>
@@ -434,21 +486,22 @@ const StartLiveSession = () => {
               <Label>Notify Students</Label>
               <Switch
                 checked={form.notifications}
-                onCheckedChange={(checked) =>
-                  updateField("notifications", checked)
-                }
+                onCheckedChange={(checked) => updateField("notifications", checked)}
               />
             </div>
           </CardContent>
         </Card>
 
+        {/* ================= GO LIVE BUTTON ================= */}
         <Button
           onClick={handleGoLive}
-          className="w-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center gap-2"
+          disabled={submitting}
+          className="w-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center gap-2 disabled:opacity-50"
         >
           <Circle size={10} className="animate-pulse" />
-          Go Live Now
+          {submitting ? "Starting..." : "Go Live Now"}
         </Button>
+
       </div>
     </div>
   );

@@ -617,11 +617,11 @@ const TexoraLogin = () => {
       }
     } catch (err) {
       console.error(err);
-      alert("Google login failed!");
+      alert("pls fill the Apply form!");
     }
   };
 
-  const handleGoogleError = () => alert("Google Login Failed");
+  const handleGoogleError = () => alert("pls fill the Apply form!");
 
   // Popup CTA: go to /apply immediately
   const handleFillForm = () => {

@@ -38,6 +38,13 @@ export const endLiveSession = async (sessionId) => {
   );
 };
 
+export const deleteLiveSession = async (sessionId) => {
+  return axios.delete(
+    `${API_BASE}/live-sessions/${sessionId}`,
+    getAuthHeader(),
+  );
+};
+
 // Get sessions for batch
 export const getBatchSessions = async (batchId) => {
   return axios.get(

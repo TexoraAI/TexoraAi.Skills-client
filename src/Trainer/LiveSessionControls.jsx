@@ -1,247 +1,384 @@
 // /**
-//  * LiveSessionControls.jsx
+//  * LiveSessionControls.jsx  — TRAINER SIDE
 //  *
-//  * FIXES:
-//  *  ✅ Chat  — LiveKit DataChannel (useDataChannel hook) — real-time to all participants
-//  *  ✅ People — useParticipants() hook — live list from room, no backend needed
-//  *  ✅ Screen share — VideoConference built-in, layout fills correctly
-//  *  ✅ UI cut — position:fixed, z-index above sidebar/navbar, inset-0
-//  *  ✅ LIVE timer, REC badge, participant count all wired
+//  * FIXES vs old version:
+//  *  ✅ Single LiveKit Room (raw SDK) — no duplicate LiveKitRoom wrappers
+//  *  ✅ People list — shows all remote participants in real time
+//  *  ✅ Chat — DataChannel send/receive working bidirectionally
+//  *  ✅ Screen share — published to room, students receive it
+//  *  ✅ No UI cutting — position:fixed, inset:0, zIndex:9999
+//  *  ✅ LIVE timer, REC badge, participant count wired
 //  */
 
-// import { useState, useEffect, useRef, useCallback } from "react";
+// import { useEffect, useRef, useState, useCallback } from "react";
 // import { useNavigate, useParams } from "react-router-dom";
-
-// import {
-//   LiveKitRoom,
-//   VideoConference,
-//   RoomAudioRenderer,
-//   useParticipants,
-//   useDataChannel,
-//   useLocalParticipant,
-// } from "@livekit/components-react";
-// import "@livekit/components-styles";
+// import { Room, RoomEvent, Track, createLocalTracks } from "livekit-client";
 
 // import { startLiveSession, endLiveSession } from "@/services/liveSessionService";
 
-// import { FaPhoneSlash, FaTimes, FaDotCircle, FaUsers, FaComments, FaPaperPlane } from "react-icons/fa";
+// import {
+//   FaPhoneSlash, FaTimes, FaDotCircle, FaUsers,
+//   FaPaperPlane, FaMicrophone, FaMicrophoneSlash,
+//   FaVideo, FaVideoSlash, FaDesktop,
+// } from "react-icons/fa";
+
+// /* ─────────────────────────────────────────────────────────────
+//    HELPERS
+// ───────────────────────────────────────────────────────────── */
+// const getTime = () =>
+//   new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+// const attachTrack = (track, container) => {
+//   if (!container || !track) return;
+//   const el = track.attach();
+//   if (track.kind === Track.Kind.Video) {
+//     Object.assign(el.style, {
+//       width: "100%", height: "100%",
+//       objectFit: "cover", display: "block",
+//     });
+//   }
+//   container.appendChild(el);
+// };
 
 // /* ─────────────────────────────────────────────────────────────
 //    LIVE TIMER
 // ───────────────────────────────────────────────────────────── */
-// const useLiveTimer = () => {
+// const useLiveTimer = (running) => {
 //   const [secs, setSecs] = useState(0);
 //   useEffect(() => {
-//     const t = setInterval(() => setSecs((s) => s + 1), 1000);
-//     return () => clearInterval(t);
-//   }, []);
-//   const h = String(Math.floor(secs / 3600)).padStart(2, "0");
-//   const m = String(Math.floor((secs % 3600) / 60)).padStart(2, "0");
-//   const s = String(secs % 60).padStart(2, "0");
-//   return `${h}:${m}:${s}`;
+//     if (!running) return;
+//     const id = setInterval(() => setSecs((s) => s + 1), 1000);
+//     return () => clearInterval(id);
+//   }, [running]);
+//   const hh = String(Math.floor(secs / 3600)).padStart(2, "0");
+//   const mm = String(Math.floor((secs % 3600) / 60)).padStart(2, "0");
+//   const ss = String(secs % 60).padStart(2, "0");
+//   return `${hh}:${mm}:${ss}`;
 // };
 
-// const getTime = () =>
-//   new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+// /* ═════════════════════════════════════════════════════════════
+//    MAIN COMPONENT
+// ═════════════════════════════════════════════════════════════ */
+// const LiveSessionControls = () => {
+//   const navigate = useNavigate();
+//   const { id }   = useParams();
 
-// /* ─────────────────────────────────────────────────────────────
-//    INNER PANEL — must be inside <LiveKitRoom> to use hooks
-// ───────────────────────────────────────────────────────────── */
-// const InnerPanel = ({ sessionTitle, sidebarOpen, sidebarTab }) => {
-//   /* ── People: live from room ── */
-//   const participants = useParticipants();
-//   const { localParticipant } = useLocalParticipant();
+//   /* ── Refs ── */
+//   const roomRef            = useRef(null);
+//   const remoteGridRef      = useRef(null);   // container for all remote video tiles
+//   const localPreviewRef    = useRef(null);   // trainer's own cam PIP
+//   const localVideoTrackRef = useRef(null);
+//   const localAudioTrackRef = useRef(null);
+//   const screenTrackRef     = useRef(null);
+//   const chatEndRef         = useRef(null);
 
-//   /* ── Chat: DataChannel ── */
-//   const [messages, setMessages] = useState(() => [
+//   /* ── State ── */
+//   const [connected,    setConnected]    = useState(false);
+//   const [micOn,        setMicOn]        = useState(true);
+//   const [camOn,        setCamOn]        = useState(true);
+//   const [screenOn,     setScreenOn]     = useState(false);
+//   const [recording,    setRecording]    = useState(true);
+//   const [sidebarOpen,  setSidebarOpen]  = useState(true);
+//   const [sidebarTab,   setSidebarTab]   = useState("chat");
+//   const [participants, setParticipants] = useState([]);
+//   const [messages,     setMessages]     = useState(() => [
 //     { id: 0, user: "System", text: "Session started. Welcome!", time: getTime(), system: true },
 //   ]);
-//   const [input, setInput] = useState("");
-//   const chatEndRef = useRef(null);
+//   const [input,        setInput]        = useState("");
+//   const [sessionTitle, setSessionTitle] = useState(`Session ${id}`);
 
-//   /* receive messages from students */
-//   const onMessage = useCallback((msg) => {
-//     try {
-//       const data = JSON.parse(new TextDecoder().decode(msg.payload));
-//       setMessages((prev) => [
-//         ...prev,
-//         {
-//           id:   Date.now(),
-//           user: data.name || msg.from?.identity || "Student",
-//           text: data.text,
-//           time: getTime(),
-//         },
-//       ]);
-//     } catch (_) {}
+//   const timer = useLiveTimer(connected);
+
+//   /* ── stable helpers ── */
+//   const pushSystem = useCallback((text) => {
+//     setMessages((prev) => [
+//       ...prev,
+//       { id: Date.now(), user: "System", text, time: getTime(), system: true },
+//     ]);
 //   }, []);
 
-//   const { send } = useDataChannel("chat", onMessage);
+//   const refreshParticipants = useCallback(() => {
+//     const room = roomRef.current;
+//     if (!room) return;
+//     const list = [
+//       {
+//         id:     room.localParticipant.identity,
+//         name:   room.localParticipant.name || "You (Trainer)",
+//         self:   true,
+//         isHost: true,
+//       },
+//     ];
+//     room.remoteParticipants.forEach((p) => {
+//       list.push({ id: p.identity, name: p.name || p.identity, self: false, isHost: false });
+//     });
+//     setParticipants(list);
+//   }, []);
 
+//   /* ══════════════════════════════════════════════════════════
+//      START SESSION + CONNECT TO LIVEKIT
+//   ══════════════════════════════════════════════════════════ */
+//   useEffect(() => {
+//     if (!id) return;
+//     const serverUrl = import.meta.env.VITE_LIVEKIT_URL || "ws://localhost:7880";
+
+//     const start = async () => {
+//       /* 1. get token from backend */
+//       let token;
+//       try {
+//         const res  = await startLiveSession(id);
+//         token = res?.data?.token || res?.data?.data?.token || res?.data?.body?.token;
+//         setSessionTitle(res?.data?.title || `Session ${id}`);
+//         if (!token) { console.error("No token returned"); return; }
+//       } catch (err) {
+//         console.error("startLiveSession failed:", err);
+//         return;
+//       }
+
+//       /* 2. create room */
+//       const room = new Room({ adaptiveStream: true, dynacast: true });
+//       roomRef.current = room;
+
+//       /* 3. connect */
+//       try {
+//         await room.connect(serverUrl, token);
+//         setConnected(true);
+//         refreshParticipants();
+//       } catch (err) {
+//         console.error("LiveKit connect failed:", err);
+//         return;
+//       }
+
+//       /* 4. publish local cam + mic */
+//       try {
+//         const tracks = await createLocalTracks({ audio: true, video: true });
+//         for (const track of tracks) {
+//           await room.localParticipant.publishTrack(track);
+//           if (track.kind === Track.Kind.Video) {
+//             localVideoTrackRef.current = track;
+//             if (localPreviewRef.current) {
+//               const el = track.attach();
+//               Object.assign(el.style, {
+//                 width: "100%", height: "100%",
+//                 objectFit: "cover", display: "block",
+//                 transform: "scaleX(-1)",
+//               });
+//               localPreviewRef.current.innerHTML = "";
+//               localPreviewRef.current.appendChild(el);
+//             }
+//           }
+//           if (track.kind === Track.Kind.Audio) {
+//             localAudioTrackRef.current = track;
+//           }
+//         }
+//       } catch (err) {
+//         console.error("createLocalTracks failed:", err);
+//       }
+
+//       /* 5. attach already-present remote tracks */
+//       room.remoteParticipants.forEach((participant) => {
+//         participant.trackPublications.forEach((pub) => {
+//           if (pub.isSubscribed && pub.track) {
+//             attachTrack(pub.track, remoteGridRef.current);
+//           }
+//         });
+//       });
+
+//       /* 6. room events */
+//       room.on(RoomEvent.TrackSubscribed, (track) => {
+//         attachTrack(track, remoteGridRef.current);
+//       });
+
+//       room.on(RoomEvent.TrackUnsubscribed, (track) => {
+//         track.detach().forEach((el) => el.remove());
+//       });
+
+//       room.on(RoomEvent.ParticipantConnected, (p) => {
+//         refreshParticipants();
+//         pushSystem(`${p.name || p.identity} joined`);
+//       });
+
+//       room.on(RoomEvent.ParticipantDisconnected, (p) => {
+//         refreshParticipants();
+//         pushSystem(`${p.name || p.identity} left`);
+//       });
+
+//       /* 7. receive chat messages via DataChannel */
+//       room.on(RoomEvent.DataReceived, (payload, participant) => {
+//         try {
+//           const decoded = new TextDecoder().decode(payload);
+//           const msg     = JSON.parse(decoded);
+//           if (msg.text) {
+//             setMessages((prev) => [
+//               ...prev,
+//               {
+//                 id:   Date.now(),
+//                 user: participant?.name || participant?.identity || "Student",
+//                 text: msg.text,
+//                 time: getTime(),
+//                 self: false,
+//               },
+//             ]);
+//           }
+//         } catch (_) {}
+//       });
+
+//       room.on(RoomEvent.Disconnected, () => setConnected(false));
+//     };
+
+//     start();
+//     return () => { roomRef.current?.disconnect(); };
+//     // eslint-disable-next-line react-hooks/exhaustive-deps
+//   }, [id]);
+
+//   /* auto-scroll chat */
 //   useEffect(() => {
 //     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
 //   }, [messages, sidebarTab, sidebarOpen]);
 
+//   /* ══════════════════════════════════════════════════════════
+//      CONTROLS
+//   ══════════════════════════════════════════════════════════ */
+
+//   /* MIC */
+//   const toggleMic = useCallback(async () => {
+//     const track = localAudioTrackRef.current;
+//     if (!track) return;
+//     if (micOn) await track.mute();
+//     else        await track.unmute();
+//     setMicOn((v) => !v);
+//   }, [micOn]);
+
+//   /* CAM */
+//   const toggleCam = useCallback(async () => {
+//     const track = localVideoTrackRef.current;
+//     if (!track) return;
+//     if (camOn) {
+//       await track.mute();
+//       if (localPreviewRef.current) localPreviewRef.current.style.visibility = "hidden";
+//     } else {
+//       await track.unmute();
+//       if (localPreviewRef.current) localPreviewRef.current.style.visibility = "visible";
+//     }
+//     setCamOn((v) => !v);
+//   }, [camOn]);
+
+//   /* SCREEN SHARE */
+//   const toggleScreen = useCallback(async () => {
+//     const room = roomRef.current;
+//     if (!room) return;
+
+//     if (screenOn) {
+//       try { await room.localParticipant.setScreenShareEnabled(false); } catch (_) {}
+//       screenTrackRef.current = null;
+//       setScreenOn(false);
+
+//       /* restore cam in PIP */
+//       if (localVideoTrackRef.current && camOn && localPreviewRef.current) {
+//         const el = localVideoTrackRef.current.attach();
+//         Object.assign(el.style, {
+//           width: "100%", height: "100%",
+//           objectFit: "cover", display: "block",
+//           transform: "scaleX(-1)",
+//         });
+//         localPreviewRef.current.innerHTML = "";
+//         localPreviewRef.current.appendChild(el);
+//         localPreviewRef.current.style.visibility = "visible";
+//       }
+//     } else {
+//       try {
+//         const pub = await room.localParticipant.setScreenShareEnabled(true);
+//         if (!pub) return; // user cancelled
+
+//         const screenTrack = pub.track;
+//         screenTrackRef.current = screenTrack;
+
+//         /* preview in PIP */
+//         if (screenTrack && localPreviewRef.current) {
+//           const el = screenTrack.attach();
+//           Object.assign(el.style, {
+//             width: "100%", height: "100%",
+//             objectFit: "contain", display: "block",
+//           });
+//           localPreviewRef.current.innerHTML = "";
+//           localPreviewRef.current.appendChild(el);
+//           localPreviewRef.current.style.visibility = "visible";
+//         }
+//         setScreenOn(true);
+
+//         /* handle browser "Stop sharing" button */
+//         const mediaTrack = screenTrack?.mediaStreamTrack;
+//         if (mediaTrack) {
+//           mediaTrack.addEventListener("ended", () => {
+//             room.localParticipant.setScreenShareEnabled(false).catch(() => {});
+//             screenTrackRef.current = null;
+//             setScreenOn(false);
+//             if (localVideoTrackRef.current && camOn && localPreviewRef.current) {
+//               const el2 = localVideoTrackRef.current.attach();
+//               Object.assign(el2.style, {
+//                 width: "100%", height: "100%",
+//                 objectFit: "cover", display: "block",
+//                 transform: "scaleX(-1)",
+//               });
+//               localPreviewRef.current.innerHTML = "";
+//               localPreviewRef.current.appendChild(el2);
+//             }
+//           });
+//         }
+//       } catch (err) {
+//         console.warn("Screen share failed/cancelled:", err);
+//       }
+//     }
+//   }, [screenOn, camOn]);
+
+//   /* CHAT SEND */
 //   const sendMessage = useCallback(() => {
 //     const text = input.trim();
 //     if (!text) return;
-//     /* optimistic local add */
+
+//     /* optimistic */
 //     setMessages((prev) => [
 //       ...prev,
 //       { id: Date.now(), user: "You (Trainer)", text, time: getTime(), self: true },
 //     ]);
+//     setInput("");
+
 //     /* broadcast via DataChannel */
 //     try {
-//       const payload = new TextEncoder().encode(
-//         JSON.stringify({ text, name: localParticipant?.name || "Trainer" })
-//       );
-//       send(payload, { reliable: true });
-//     } catch (e) { console.warn("send failed:", e); }
-//     setInput("");
-//   }, [input, send, localParticipant]);
+//       const payload = new TextEncoder().encode(JSON.stringify({ text, name: "Trainer" }));
+//       roomRef.current?.localParticipant?.publishData(payload, { reliable: true });
+//     } catch (e) { console.warn("data send failed:", e); }
+//   }, [input]);
 
-//   /* ── render ── */
-//   return (
-//     <>
-//       {/* Chat */}
-//       {sidebarTab === "chat" && (
-//         <>
-//           <div style={S.msgList}>
-//             {messages.map((m) => (
-//               <div key={m.id} style={m.system ? S.sysRow : m.self ? { ...S.msgBlock, alignItems: "flex-end" } : S.msgBlock}>
-//                 {m.system ? (
-//                   <div style={S.sysBubble}>{m.text}</div>
-//                 ) : (
-//                   <>
-//                     <span style={S.msgUser}>{m.user} · {m.time}</span>
-//                     <div style={{ ...S.msgBubble, ...(m.self ? S.bubbleSelf : S.bubbleOther) }}>
-//                       {m.text}
-//                     </div>
-//                   </>
-//                 )}
-//               </div>
-//             ))}
-//             <div ref={chatEndRef} />
-//           </div>
-
-//           <div style={S.inputRow}>
-//             <input
-//               style={S.chatInput}
-//               value={input}
-//               onChange={(e) => setInput(e.target.value)}
-//               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-//               placeholder="Message students…"
-//             />
-//             <button style={S.sendBtn} onClick={sendMessage}>
-//               <FaPaperPlane size={13} />
-//             </button>
-//           </div>
-//         </>
-//       )}
-
-//       {/* People */}
-//       {sidebarTab === "participants" && (
-//         <div style={S.peopleList}>
-//           {/* local (trainer) */}
-//           <PersonRow
-//             name={localParticipant?.name || localParticipant?.identity || "You (Trainer)"}
-//             isHost
-//             self
-//           />
-//           {/* remote participants */}
-//           {participants
-//             .filter((p) => p.identity !== localParticipant?.identity)
-//             .map((p) => (
-//               <PersonRow key={p.identity} name={p.name || p.identity} />
-//             ))
-//           }
-//           {participants.length === 0 && (
-//             <div style={S.emptyPeople}>
-//               <FaUsers size={28} style={{ opacity: 0.3 }} />
-//               <p style={{ fontSize: 12, color: "#475569", marginTop: 8 }}>No participants yet</p>
-//             </div>
-//           )}
-//         </div>
-//       )}
-//     </>
-//   );
-// };
-
-// /* ─────────────────────────────────────────────────────────────
-//    PARTICIPANT COUNT BADGE — inside LiveKitRoom
-// ───────────────────────────────────────────────────────────── */
-// const ParticipantCount = ({ onUpdate }) => {
-//   const participants = useParticipants();
-//   useEffect(() => { onUpdate(participants.length); }, [participants.length, onUpdate]);
-//   return null;
-// };
-
-// /* ─────────────────────────────────────────────────────────────
-//    MAIN COMPONENT
-// ───────────────────────────────────────────────────────────── */
-// const LiveSessionControls = () => {
-//   const navigate = useNavigate();
-//   const { id }   = useParams();
-//   const timer    = useLiveTimer();
-
-//   const [token,        setToken]        = useState(null);
-//   const [sessionInfo,  setSessionInfo]  = useState(null);
-//   const [pCount,       setPCount]       = useState(0);
-//   const [recording,    setRecording]    = useState(true);
-//   const [sidebarOpen,  setSidebarOpen]  = useState(true);
-//   const [sidebarTab,   setSidebarTab]   = useState("chat");
-
-//   const serverUrl = import.meta.env.VITE_LIVEKIT_URL || "ws://localhost:7880";
-
-//   /* start session */
-//   useEffect(() => {
-//     const start = async () => {
-//       try {
-//         if (!id) return;
-//         const res = await startLiveSession(id);
-//         const liveToken =
-//           res?.data?.token || res?.data?.data?.token || res?.data?.body?.token;
-//         if (liveToken) setToken(liveToken);
-//         setSessionInfo({ title: res?.data?.title || `Session ${id}` });
-//       } catch (err) {
-//         console.error("Live start failed:", err);
-//       }
-//     };
-//     start();
-//   }, [id]);
-
-//   const handleEndSession = async () => {
+//   /* END SESSION */
+//   const handleEndSession = useCallback(async () => {
 //     try { await endLiveSession(id); } catch (_) {}
+//     roomRef.current?.disconnect();
 //     navigate("/trainer/live");
-//   };
+//   }, [id, navigate]);
 
 //   /* ══════════════════════════════════════════════════════════
 //      RENDER
 //   ══════════════════════════════════════════════════════════ */
 //   return (
-//     /*
-//       position:fixed + inset:0 + zIndex:9999
-//       → completely escapes the sidebar/navbar layout
-//       → no UI cutting
-//     */
 //     <div style={S.root}>
 
-//       {/* TOP BAR */}
+//       {/* ── TOP BAR ── */}
 //       <div style={S.topBar}>
-//         {/* left */}
 //         <div style={S.topLeft}>
 //           <div style={S.liveBadge}><span style={S.liveDot} />LIVE</div>
 //           <span style={S.timerText}>{timer}</span>
-//           <span style={S.sessionTitle}>{sessionInfo?.title || `Session ${id}`}</span>
+//           <span style={S.sessionTitle}>{sessionTitle}</span>
 //           {recording && (
-//             <div style={S.recBadge}><FaDotCircle size={8} style={{ animation: "recBlink 1.5s infinite" }} /> REC</div>
+//             <div style={S.recBadge}>
+//               <FaDotCircle size={8} style={{ animation: "recBlink 1.5s infinite" }} /> REC
+//             </div>
 //           )}
 //         </div>
 
-//         {/* right */}
 //         <div style={S.topRight}>
 //           <div style={S.pCountBadge}>
 //             <FaUsers size={11} />
-//             <span>{pCount} Participants</span>
+//             <span>{participants.length} Participants</span>
 //           </div>
 
 //           <button
@@ -263,32 +400,74 @@
 //         </div>
 //       </div>
 
-//       {/* BODY */}
+//       {/* ── BODY ── */}
 //       <div style={S.body}>
 
 //         {/* VIDEO AREA */}
 //         <div style={S.videoArea}>
-//           {token ? (
-//             <LiveKitRoom
-//               token={token}
-//               serverUrl={serverUrl}
-//               connect={true}
-//               video={true}
-//               audio={true}
-//               style={{ height: "100%", width: "100%" }}
-//             >
-//               {/* invisible hook to count participants */}
-//               <ParticipantCount onUpdate={setPCount} />
+//           {connected ? (
+//             <>
+//               {/* Remote participants grid */}
+//               <div ref={remoteGridRef} style={S.remoteGrid} />
 
-//               {/*
-//                 VideoConference renders:
-//                   ✅ Camera tiles (trainer + students)
-//                   ✅ Screen share layout
-//                   ✅ Control bar: mic, cam, screen share, chat, people, leave
-//               */}
-//               <VideoConference />
-//               <RoomAudioRenderer />
-//             </LiveKitRoom>
+//               {/* Trainer PIP (bottom-right) */}
+//               <div style={S.pip}>
+//                 <div
+//                   ref={localPreviewRef}
+//                   style={{
+//                     width: "100%", height: "100%",
+//                     visibility: camOn || screenOn ? "visible" : "hidden",
+//                   }}
+//                 />
+//                 {!camOn && !screenOn && (
+//                   <div style={S.pipOff}>
+//                     <FaVideoSlash size={18} color="#64748b" />
+//                     <span style={S.pipOffTxt}>Cam Off</span>
+//                   </div>
+//                 )}
+//                 <span style={S.pipLabel}>You (Trainer){screenOn ? " · Sharing" : ""}</span>
+//               </div>
+
+//               {/* CONTROL BAR */}
+//               <div style={S.ctrlBar}>
+//                 <CtrlBtn
+//                   icon={micOn ? <FaMicrophone /> : <FaMicrophoneSlash />}
+//                   label={micOn ? "Mute" : "Unmute"}
+//                   danger={!micOn}
+//                   onClick={toggleMic}
+//                 />
+//                 <CtrlBtn
+//                   icon={camOn ? <FaVideo /> : <FaVideoSlash />}
+//                   label={camOn ? "Stop Cam" : "Start Cam"}
+//                   danger={!camOn}
+//                   onClick={toggleCam}
+//                 />
+//                 <CtrlBtn
+//                   icon={<FaDesktop />}
+//                   label={screenOn ? "Stop Share" : "Share Screen"}
+//                   active={screenOn}
+//                   onClick={toggleScreen}
+//                 />
+//                 <CtrlBtn
+//                   icon={<span style={{ fontSize: 16 }}>💬</span>}
+//                   label="Chat"
+//                   active={sidebarOpen && sidebarTab === "chat"}
+//                   onClick={() => {
+//                     if (sidebarOpen && sidebarTab === "chat") setSidebarOpen(false);
+//                     else { setSidebarTab("chat"); setSidebarOpen(true); }
+//                   }}
+//                 />
+//                 <CtrlBtn
+//                   icon={<FaUsers />}
+//                   label="People"
+//                   active={sidebarOpen && sidebarTab === "participants"}
+//                   onClick={() => {
+//                     if (sidebarOpen && sidebarTab === "participants") setSidebarOpen(false);
+//                     else { setSidebarTab("participants"); setSidebarOpen(true); }
+//                   }}
+//                 />
+//               </div>
+//             </>
 //           ) : (
 //             <div style={S.loadingBox}>
 //               <div style={S.spinner} />
@@ -298,11 +477,15 @@
 //         </div>
 
 //         {/* DRAG HANDLE */}
-//         <div style={S.handle} onClick={() => setSidebarOpen((o) => !o)} title="Toggle panel">
+//         <div
+//           style={S.handle}
+//           onClick={() => setSidebarOpen((o) => !o)}
+//           title="Toggle panel"
+//         >
 //           <div style={S.handlePill}>
 //             {sidebarOpen
 //               ? <><Chevron dir="right" /><div style={S.handleLine} /><Chevron dir="left" /></>
-//               : <><Chevron dir="left" /><div style={S.handleLine} /><Chevron dir="right" /></>
+//               : <><Chevron dir="left"  /><div style={S.handleLine} /><Chevron dir="right" /></>
 //             }
 //           </div>
 //         </div>
@@ -311,29 +494,89 @@
 //         <div style={{ ...S.sidebar, width: sidebarOpen ? 340 : 0 }}>
 //           {sidebarOpen && (
 //             <>
-//               {/* tabs */}
+//               {/* Tabs */}
 //               <div style={S.tabRow}>
-//                 <TabBtn active={sidebarTab === "chat"}         label="💬 Chat"   onClick={() => setSidebarTab("chat")} />
-//                 <TabBtn active={sidebarTab === "participants"} label="👥 People" onClick={() => setSidebarTab("participants")} />
+//                 <TabBtn
+//                   active={sidebarTab === "chat"}
+//                   label="💬 Chat"
+//                   onClick={() => setSidebarTab("chat")}
+//                 />
+//                 <TabBtn
+//                   active={sidebarTab === "participants"}
+//                   label="👥 People"
+//                   onClick={() => setSidebarTab("participants")}
+//                 />
 //               </div>
 
-//               {/* content — must be inside LiveKitRoom for hooks to work */}
-//               {token ? (
-//                 <LiveKitRoom
-//                   token={token}
-//                   serverUrl={serverUrl}
-//                   connect={false}   /* already connected above — this just provides context */
-//                   style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", background: "transparent" }}
-//                 >
-//                   <InnerPanel
-//                     sessionTitle={sessionInfo?.title}
-//                     sidebarOpen={sidebarOpen}
-//                     sidebarTab={sidebarTab}
-//                   />
-//                 </LiveKitRoom>
-//               ) : (
-//                 <div style={S.emptyPeople}>
-//                   <p style={{ fontSize: 12, color: "#475569" }}>Waiting for session…</p>
+//               {/* ── CHAT TAB ── */}
+//               {sidebarTab === "chat" && (
+//                 <>
+//                   <div style={S.msgList}>
+//                     {messages.map((m) => (
+//                       <div
+//                         key={m.id}
+//                         style={
+//                           m.system
+//                             ? S.sysRow
+//                             : m.self
+//                               ? { ...S.msgBlock, alignItems: "flex-end" }
+//                               : S.msgBlock
+//                         }
+//                       >
+//                         {m.system ? (
+//                           <div style={S.sysBubble}>{m.text}</div>
+//                         ) : (
+//                           <>
+//                             <span style={S.msgUser}>{m.user} · {m.time}</span>
+//                             <div style={{ ...S.msgBubble, ...(m.self ? S.bubbleSelf : S.bubbleOther) }}>
+//                               {m.text}
+//                             </div>
+//                           </>
+//                         )}
+//                       </div>
+//                     ))}
+//                     <div ref={chatEndRef} />
+//                   </div>
+
+//                   <div style={S.inputRow}>
+//                     <input
+//                       style={S.chatInput}
+//                       value={input}
+//                       onChange={(e) => setInput(e.target.value)}
+//                       onKeyDown={(e) => {
+//                         if (e.key === "Enter" && !e.shiftKey) {
+//                           e.preventDefault();
+//                           sendMessage();
+//                         }
+//                       }}
+//                       placeholder="Message students…"
+//                     />
+//                     <button style={S.sendBtn} onClick={sendMessage}>
+//                       <FaPaperPlane size={13} />
+//                     </button>
+//                   </div>
+//                 </>
+//               )}
+
+//               {/* ── PEOPLE TAB ── */}
+//               {sidebarTab === "participants" && (
+//                 <div style={S.peopleList}>
+//                   {participants.length === 0 && (
+//                     <div style={S.emptyPeople}>
+//                       <FaUsers size={28} style={{ opacity: 0.3 }} />
+//                       <p style={{ fontSize: 12, color: "#475569", marginTop: 8 }}>
+//                         No participants yet
+//                       </p>
+//                     </div>
+//                   )}
+//                   {participants.map((p) => (
+//                     <PersonRow
+//                       key={p.id}
+//                       name={p.name}
+//                       isHost={p.isHost}
+//                       self={p.self}
+//                     />
+//                   ))}
 //                 </div>
 //               )}
 //             </>
@@ -345,26 +588,13 @@
 //         @keyframes livePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.5)} }
 //         @keyframes recBlink  { 0%,100%{opacity:1} 50%{opacity:.2} }
 //         @keyframes spin      { to{transform:rotate(360deg)} }
-
-//         /* ── Force VideoConference to fill its container ── */
-//         .lk-room-container,
-//         [data-lk-theme="default"] {
-//           height: 100% !important;
-//           width: 100% !important;
-//           min-height: 0 !important;
-//           background: #07090f !important;
-//         }
-//         .lk-control-bar      { flex-shrink: 0 !important; z-index: 50 !important; }
-//         .lk-focus-layout,
-//         .lk-grid-layout      { flex: 1 !important; min-height: 0 !important; }
-//         .lk-participant-tile { min-height: 0 !important; }
 //       `}</style>
 //     </div>
 //   );
 // };
 
 // /* ─────────────────────────────────────────────────────────────
-//    TINY SUB-COMPONENTS
+//    SUB-COMPONENTS
 // ───────────────────────────────────────────────────────────── */
 // const Chevron = ({ dir }) => (
 //   <svg width="5" height="10" viewBox="0 0 6 12" fill="none">
@@ -407,11 +637,41 @@
 //   </div>
 // );
 
+// const CtrlBtn = ({ icon, label, active, danger, onClick }) => {
+//   const [hov, setHov] = useState(false);
+//   const bg  = danger ? (hov ? "#991b1b" : "#7f1d1d")
+//             : active ? (hov ? "rgba(59,130,246,.38)" : "rgba(59,130,246,.22)")
+//                      : (hov ? "rgba(255,255,255,.14)" : "rgba(255,255,255,.07)");
+//   const col = danger ? "#fca5a5"
+//             : active ? "#93c5fd"
+//                      : "#cbd5e1";
+//   return (
+//     <button
+//       onClick={onClick}
+//       onMouseEnter={() => setHov(true)}
+//       onMouseLeave={() => setHov(false)}
+//       style={{
+//         display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
+//         background: bg, color: col,
+//         border: danger ? "1px solid rgba(239,68,68,.3)"
+//               : active ? "1px solid rgba(59,130,246,.35)"
+//                        : "1px solid transparent",
+//         borderRadius: 14, padding: "10px 20px",
+//         cursor: "pointer", fontSize: 11, fontWeight: 600,
+//         fontFamily: "inherit", letterSpacing: 0.3, transition: "all .18s",
+//         minWidth: 68,
+//       }}
+//     >
+//       <span style={{ fontSize: 18 }}>{icon}</span>
+//       <span>{label}</span>
+//     </button>
+//   );
+// };
+
 // /* ─────────────────────────────────────────────────────────────
 //    STYLES
 // ───────────────────────────────────────────────────────────── */
 // const S = {
-//   /* ROOT — escapes all parent layout */
 //   root: {
 //     position: "fixed", inset: 0, zIndex: 9999,
 //     display: "flex", flexDirection: "column",
@@ -449,7 +709,6 @@
 //     background: "rgba(239,68,68,.1)", border: "1px solid rgba(239,68,68,.2)",
 //     fontSize: 10, fontWeight: 700, letterSpacing: 1, color: "#fca5a5",
 //   },
-
 //   pCountBadge: {
 //     display: "flex", alignItems: "center", gap: 6,
 //     padding: "5px 12px", borderRadius: 10,
@@ -465,7 +724,6 @@
 //   },
 //   recBtnOn:  { background: "rgba(239,68,68,.15)", border: "1px solid rgba(239,68,68,.3)", color: "#f87171" },
 //   recBtnOff: { background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.09)", color: "#94a3b8" },
-
 //   endBtn: {
 //     display: "flex", alignItems: "center", gap: 6,
 //     padding: "7px 16px", borderRadius: 10, border: "none",
@@ -481,14 +739,56 @@
 //   },
 
 //   /* BODY */
-//   body: { flex: 1, display: "flex", overflow: "hidden", minHeight: 0 },
+//   body:      { flex: 1, display: "flex", overflow: "hidden", minHeight: 0 },
 
 //   /* VIDEO */
-//   videoArea: { flex: 1, position: "relative", overflow: "hidden", minWidth: 0 },
+//   videoArea: { flex: 1, position: "relative", overflow: "hidden", minWidth: 0, background: "#05070d" },
+
+//   /* Remote participants — simple CSS grid that auto-fills tiles */
+//   remoteGrid: {
+//     position: "absolute", inset: 0,
+//     display: "grid",
+//     gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+//     gap: 4, padding: 4,
+//     alignContent: "center",
+//     paddingBottom: 80,   /* leave room for control bar */
+//   },
+
+//   /* Trainer PIP */
+//   pip: {
+//     position: "absolute", bottom: 90, right: 16,
+//     width: 176, height: 118, borderRadius: 14,
+//     overflow: "hidden", border: "2px solid rgba(255,255,255,.13)",
+//     background: "#0d1117", boxShadow: "0 8px 32px rgba(0,0,0,.7)", zIndex: 10,
+//   },
+//   pipOff: {
+//     position: "absolute", inset: 0,
+//     display: "flex", flexDirection: "column",
+//     alignItems: "center", justifyContent: "center", gap: 5, background: "#0f172a",
+//   },
+//   pipOffTxt: { fontSize: 10, color: "#475569" },
+//   pipLabel: {
+//     position: "absolute", bottom: 6, left: 8,
+//     fontSize: 10, color: "#fff",
+//     background: "rgba(0,0,0,.6)", padding: "1px 7px", borderRadius: 5,
+//     pointerEvents: "none",
+//   },
+
+//   /* Control bar — overlaid at bottom of video area */
+//   ctrlBar: {
+//     position: "absolute", bottom: 0, left: 0, right: 0,
+//     display: "flex", alignItems: "center", justifyContent: "center",
+//     gap: 8, padding: "10px 24px",
+//     background: "rgba(13,17,23,.92)",
+//     backdropFilter: "blur(12px)",
+//     borderTop: "1px solid rgba(255,255,255,.07)",
+//     zIndex: 20,
+//   },
+
 //   loadingBox: {
 //     position: "absolute", inset: 0,
-//     display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-//     gap: 14,
+//     display: "flex", flexDirection: "column",
+//     alignItems: "center", justifyContent: "center", gap: 14,
 //   },
 //   spinner: {
 //     width: 40, height: 40,
@@ -524,7 +824,7 @@
 //     display: "flex", borderBottom: "1px solid rgba(255,255,255,.07)",
 //   },
 
-//   /* CHAT MESSAGES */
+//   /* CHAT */
 //   msgList: {
 //     flex: 1, overflowY: "auto",
 //     padding: "12px 14px", display: "flex", flexDirection: "column", gap: 10,
@@ -543,7 +843,6 @@
 //   },
 //   bubbleSelf:  { background: "linear-gradient(135deg,#1d4ed8,#3b82f6)", alignSelf: "flex-end", borderBottomRightRadius: 2 },
 //   bubbleOther: { background: "#1e293b", borderBottomLeftRadius: 2 },
-
 //   inputRow: {
 //     flexShrink: 0,
 //     display: "flex", gap: 8, padding: "10px 12px",
@@ -587,6 +886,37 @@
 // };
 
 // export default LiveSessionControls;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -871,37 +1201,48 @@ const LiveSessionControls = () => {
     setCamOn((v) => !v);
   }, [camOn]);
 
+  /* ── helper: restore cam into PIP after screen share stops ── */
+  const restoreCamPip = useCallback(() => {
+    if (localVideoTrackRef.current && camOn && localPreviewRef.current) {
+      const el = localVideoTrackRef.current.attach();
+      Object.assign(el.style, {
+        width: "100%", height: "100%",
+        objectFit: "cover", display: "block",
+        transform: "scaleX(-1)",
+      });
+      localPreviewRef.current.innerHTML = "";
+      localPreviewRef.current.appendChild(el);
+      localPreviewRef.current.style.visibility = "visible";
+    }
+  }, [camOn]);
+
   /* SCREEN SHARE */
   const toggleScreen = useCallback(async () => {
     const room = roomRef.current;
     if (!room) return;
 
     if (screenOn) {
+      /* ── STOP ── */
       try { await room.localParticipant.setScreenShareEnabled(false); } catch (_) {}
       screenTrackRef.current = null;
       setScreenOn(false);
+      restoreCamPip();
 
-      /* restore cam in PIP */
-      if (localVideoTrackRef.current && camOn && localPreviewRef.current) {
-        const el = localVideoTrackRef.current.attach();
-        Object.assign(el.style, {
-          width: "100%", height: "100%",
-          objectFit: "cover", display: "block",
-          transform: "scaleX(-1)",
-        });
-        localPreviewRef.current.innerHTML = "";
-        localPreviewRef.current.appendChild(el);
-        localPreviewRef.current.style.visibility = "visible";
-      }
     } else {
+      /* ── START ── */
       try {
         const pub = await room.localParticipant.setScreenShareEnabled(true);
-        if (!pub) return; // user cancelled
+        if (!pub) return; // user cancelled browser picker
 
-        const screenTrack = pub.track;
+        /*
+          pub is a LocalTrackPublication.
+          pub.track is the LocalTrack (may be null for a brief moment,
+          so also check pub.videoTrack as fallback).
+        */
+        const screenTrack = pub.track ?? pub.videoTrack ?? null;
         screenTrackRef.current = screenTrack;
 
-        /* preview in PIP */
+        /* ── Show screen preview in PIP (trainer sees own share) ── */
         if (screenTrack && localPreviewRef.current) {
           const el = screenTrack.attach();
           Object.assign(el.style, {
@@ -912,32 +1253,36 @@ const LiveSessionControls = () => {
           localPreviewRef.current.appendChild(el);
           localPreviewRef.current.style.visibility = "visible";
         }
+
         setScreenOn(true);
 
-        /* handle browser "Stop sharing" button */
-        const mediaTrack = screenTrack?.mediaStreamTrack;
+        /*
+          Watch for the browser's native "Stop sharing" button —
+          it fires 'ended' on the underlying MediaStreamTrack.
+        */
+        const mediaTrack =
+          screenTrack?.mediaStreamTrack ??
+          pub.track?.mediaStreamTrack ??
+          null;
+
         if (mediaTrack) {
-          mediaTrack.addEventListener("ended", () => {
+          const onEnded = () => {
             room.localParticipant.setScreenShareEnabled(false).catch(() => {});
             screenTrackRef.current = null;
             setScreenOn(false);
-            if (localVideoTrackRef.current && camOn && localPreviewRef.current) {
-              const el2 = localVideoTrackRef.current.attach();
-              Object.assign(el2.style, {
-                width: "100%", height: "100%",
-                objectFit: "cover", display: "block",
-                transform: "scaleX(-1)",
-              });
-              localPreviewRef.current.innerHTML = "";
-              localPreviewRef.current.appendChild(el2);
-            }
-          });
+            restoreCamPip();
+          };
+          mediaTrack.addEventListener("ended", onEnded, { once: true });
         }
+
       } catch (err) {
-        console.warn("Screen share failed/cancelled:", err);
+        /* user cancelled or permission denied — not an error worth logging loudly */
+        if (err?.name !== "NotAllowedError") {
+          console.warn("Screen share failed:", err);
+        }
       }
     }
-  }, [screenOn, camOn]);
+  }, [screenOn, restoreCamPip]);
 
   /* CHAT SEND */
   const sendMessage = useCallback(() => {

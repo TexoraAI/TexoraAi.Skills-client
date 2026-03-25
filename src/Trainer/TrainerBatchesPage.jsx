@@ -60,7 +60,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getTrainerBatches } from "../services/batchService";
-import { ChevronDown, ChevronUp, Users, BookOpen, Hash, GraduationCap } from "lucide-react";
+import { ChevronDown, ChevronUp, Users, BookOpen, Hash } from "lucide-react";
 
 const TrainerBatchesPage = () => {
   const [batches, setBatches] = useState([]);
@@ -80,179 +80,128 @@ const TrainerBatchesPage = () => {
   };
 
   return (
-    <div style={{
-      padding: "20px 24px",
-      maxWidth: "780px",
-      fontFamily: "inherit",
-    }}>
-
-      {/* ── Header ── */}
-      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
+    <div style={{ padding: "24px", maxWidth: "800px" }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "28px" }}>
         <div style={{
-          background: "var(--primary, #2563eb)",
+          background: "#2563eb",
           color: "#fff",
           borderRadius: "10px",
-          width: "36px", height: "36px",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          flexShrink: 0,
+          padding: "8px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center"
         }}>
-          <GraduationCap size={18} />
+          <Users size={20} />
         </div>
         <div>
-          <h1 style={{
-            fontSize: "18px", fontWeight: "700", margin: 0,
-            color: "var(--foreground, #0f172a)",
-          }}>
+          <h1 style={{ fontSize: "22px", fontWeight: "700", color: "#1e293b", margin: 0 }}>
             My Batches
           </h1>
-          <p style={{ fontSize: "12px", color: "var(--muted-foreground, #94a3b8)", margin: 0 }}>
+          <p style={{ fontSize: "13px", color: "#94a3b8", margin: 0 }}>
             {batches.length} batch{batches.length !== 1 ? "es" : ""} assigned
           </p>
         </div>
       </div>
 
-      {/* ── Cards ── */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-        {batches.map((b, idx) => {
+      {/* Batch Cards */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        {batches.map((b) => {
           const isOpen = expanded[b.id];
-          const accent = "#2563eb";
-
           return (
             <div
               key={b.id}
               style={{
-                border: "1px solid var(--border, #e2e8f0)",
-                borderRadius: "12px",
+                border: "1px solid #e2e8f0",
+                borderRadius: "14px",
                 overflow: "hidden",
-                background: "var(--card, #ffffff)",
-                boxShadow: isOpen
-                  ? "0 2px 12px rgba(37,99,235,0.08)"
-                  : "0 1px 3px rgba(0,0,0,0.05)",
+                background: "#fff",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
                 transition: "box-shadow 0.2s",
               }}
             >
-              {/* Row */}
+              {/* Collapsed Row */}
               <div
                 onClick={() => toggleExpand(b.id)}
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  padding: "12px 16px",
+                  padding: "16px 20px",
                   cursor: "pointer",
-                  userSelect: "none",
-                  background: isOpen
-                    ? "var(--accent, #f1f5f9)"
-                    : "var(--card, #ffffff)",
+                  background: isOpen ? "#f8fafc" : "#fff",
                   transition: "background 0.15s",
-                  gap: "12px",
+                  userSelect: "none",
                 }}
-                onMouseEnter={e =>
-                  e.currentTarget.style.background = "var(--accent, #f1f5f9)"
-                }
-                onMouseLeave={e =>
-                  e.currentTarget.style.background = isOpen
-                    ? "var(--accent, #f1f5f9)"
-                    : "var(--card, #ffffff)"
-                }
+                onMouseEnter={e => e.currentTarget.style.background = "#f1f5f9"}
+                onMouseLeave={e => e.currentTarget.style.background = isOpen ? "#f8fafc" : "#fff"}
               >
                 {/* Left */}
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  {/* Index badge */}
+                <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
                   <div style={{
-                    width: "32px", height: "32px",
-                    borderRadius: "8px",
-                    background: isOpen ? accent : "var(--accent, #eff6ff)",
-                    color: isOpen ? "#fff" : accent,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    flexShrink: 0,
-                    transition: "background 0.2s, color 0.2s",
-                    fontSize: "13px", fontWeight: "700",
+                    background: "#eff6ff",
+                    color: "#2563eb",
+                    borderRadius: "10px",
+                    padding: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
                   }}>
-                    {idx + 1}
+                    <BookOpen size={18} />
                   </div>
-
                   <div>
-                    <p style={{
-                      fontWeight: "600", fontSize: "14px", margin: 0,
-                      color: "var(--foreground, #0f172a)",
-                      letterSpacing: "0.01em",
-                    }}>
+                    <p style={{ fontWeight: "600", fontSize: "15px", color: "#1e293b", margin: 0 }}>
                       {b.batchName}
                     </p>
-                    <div style={{
-                      display: "flex", alignItems: "center", gap: "3px", marginTop: "1px"
-                    }}>
-                      <Hash size={10} color="var(--muted-foreground, #94a3b8)" />
-                      <span style={{ fontSize: "11px", color: "var(--muted-foreground, #94a3b8)" }}>
-                        Batch ID: {b.id}
-                      </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "4px", marginTop: "2px" }}>
+                      <Hash size={11} color="#94a3b8" />
+                      <span style={{ fontSize: "12px", color: "#94a3b8" }}>Batch ID: {b.id}</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Right */}
-                <div style={{
-                  color: "var(--muted-foreground, #94a3b8)",
-                  display: "flex",
-                  transition: "transform 0.2s",
-                  transform: isOpen ? "rotate(0deg)" : "rotate(0deg)",
-                }}>
-                  {isOpen
-                    ? <ChevronUp size={16} />
-                    : <ChevronDown size={16} />
-                  }
+                {/* Right: chevron */}
+                <div style={{ color: "#94a3b8", display: "flex" }}>
+                  {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                 </div>
               </div>
 
-              {/* Expanded panel */}
+              {/* Expanded Content */}
               {isOpen && (
                 <div style={{
-                  padding: "12px 16px",
-                  borderTop: "1px solid var(--border, #e2e8f0)",
-                  background: "var(--card, #ffffff)",
+                  padding: "14px 20px 18px",
+                  borderTop: "1px solid #f1f5f9",
+                  background: "#f8fafc",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
                   gap: "12px",
-                  flexWrap: "wrap",
+                  flexWrap: "wrap"
                 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <BookOpen size={14} color={accent} />
-                    <p style={{
-                      fontSize: "12px",
-                      color: "var(--muted-foreground, #64748b)",
-                      margin: 0,
-                    }}>
-                      Manage students, content & more for this batch.
-                    </p>
-                  </div>
-
+                  <p style={{ fontSize: "13px", color: "#64748b", margin: 0 }}>
+                    Click <strong style={{ color: "#334155" }}>Open Classroom</strong> to manage
+                    students, content, and more for this batch.
+                  </p>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       navigate(`/trainer/batches/${b.id}/students`);
                     }}
                     style={{
-                      background: accent,
+                      background: "#2563eb",
                       color: "#fff",
                       border: "none",
-                      borderRadius: "7px",
-                      padding: "7px 16px",
-                      fontSize: "12px",
+                      borderRadius: "8px",
+                      padding: "9px 20px",
+                      fontSize: "13px",
                       fontWeight: "600",
                       cursor: "pointer",
                       whiteSpace: "nowrap",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      letterSpacing: "0.02em",
-                      transition: "opacity 0.15s",
+                      transition: "background 0.15s",
                     }}
-                    onMouseEnter={e => e.currentTarget.style.opacity = "0.88"}
-                    onMouseLeave={e => e.currentTarget.style.opacity = "1"}
+                    onMouseEnter={e => e.currentTarget.style.background = "#1d4ed8"}
+                    onMouseLeave={e => e.currentTarget.style.background = "#2563eb"}
                   >
-                    <Users size={13} />
                     Open Classroom
                   </button>
                 </div>
@@ -262,26 +211,21 @@ const TrainerBatchesPage = () => {
         })}
       </div>
 
-      {/* ── Empty state ── */}
+      {/* Empty State */}
       {batches.length === 0 && (
         <div style={{
-          display: "flex", flexDirection: "column",
-          alignItems: "center", justifyContent: "center",
-          padding: "60px 0",
-          gap: "8px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "80px 0",
+          color: "#cbd5e1"
         }}>
-          <div style={{
-            width: "48px", height: "48px", borderRadius: "14px",
-            background: "var(--accent, #f1f5f9)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            marginBottom: "4px",
-          }}>
-            <GraduationCap size={22} color="var(--muted-foreground, #94a3b8)" />
-          </div>
-          <p style={{ fontSize: "14px", fontWeight: "600", color: "var(--muted-foreground, #94a3b8)", margin: 0 }}>
+          <Users size={44} style={{ marginBottom: "12px", opacity: 0.3 }} />
+          <p style={{ fontSize: "15px", fontWeight: "600", color: "#94a3b8", margin: 0 }}>
             No batches assigned yet
           </p>
-          <p style={{ fontSize: "12px", color: "var(--muted-foreground, #cbd5e1)", margin: 0 }}>
+          <p style={{ fontSize: "13px", color: "#cbd5e1", marginTop: "6px" }}>
             Your batches will appear here once assigned.
           </p>
         </div>

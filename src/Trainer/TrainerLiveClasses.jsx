@@ -1,6 +1,14 @@
 // import { useEffect, useState } from "react";
 // import { useNavigate } from "react-router-dom";
-// import { getBatchSessions } from "@/services/liveSessionService";
+
+// import {
+//   getBatchSessions,
+//   endLiveSession,
+//   deleteLiveSession,
+// } from "@/services/liveSessionService";
+
+// import { getTrainerBatches } from "@/services/batchService";
+
 // import {
 //   Video,
 //   History,
@@ -20,7 +28,9 @@
 
 // const TrainerLiveClasses = () => {
 //   const navigate = useNavigate();
+
 //   const [sessions, setSessions] = useState([]);
+//   const [batchId, setBatchId] = useState(null);
 //   const [stats, setStats] = useState({
 //     live: 0,
 //     viewers: 0,
@@ -30,21 +40,45 @@
 //   const [loading, setLoading] = useState(true);
 //   const [activeTab, setActiveTab] = useState("all");
 
-//   /* ================= FETCH SESSIONS FROM BACKEND ================= */
+//   // ✅ STEP 1: Load trainer batches to get batchId dynamically
 //   useEffect(() => {
+//     const loadBatches = async () => {
+//       try {
+//         const data = await getTrainerBatches();
+//         console.log("BATCHES:", data);
+
+//         if (Array.isArray(data) && data.length > 0) {
+//           const firstBatch = data[0];
+//           const id = firstBatch.id ?? firstBatch.batchId ?? firstBatch.batch_id;
+//           console.log("BATCH ID:", id);
+//           setBatchId(id);
+//         }
+//       } catch (err) {
+//         console.error("Failed to load batches:", err);
+//       }
+//     };
+
+//     loadBatches();
+//   }, []);
+
+//   // ✅ STEP 2: Load sessions once batchId is available
+//   useEffect(() => {
+//     if (!batchId) return;
+
 //     const loadSessions = async () => {
 //       try {
-//         const res = await getBatchSessions(1); // ⚠️ replace 1 with real batchId from auth/context
+//         const res = await getBatchSessions(batchId);
 //         const data = res.data || [];
+
+//         console.log("Sessions:", data);
 
 //         setSessions(data);
 
-//         // ✅ Derive stats from fetched sessions
 //         setStats({
-//           live: data.filter((s) => s.status === "live").length,
+//           live: data.filter((s) => s.status === "LIVE").length,
 //           viewers: data.reduce((acc, s) => acc + (s.viewers ?? 0), 0),
-//           scheduled: data.filter((s) => s.status === "scheduled").length,
-//           completed: data.filter((s) => s.status === "ended" || s.status === "completed").length,
+//           scheduled: data.filter((s) => s.status === "SCHEDULED").length,
+//           completed: data.filter((s) => s.status === "ENDED").length,
 //         });
 //       } catch (err) {
 //         console.error("Failed to load sessions:", err);
@@ -54,14 +88,46 @@
 //     };
 
 //     loadSessions();
-//   }, []);
+//   }, [batchId]);
+
+//   const tabs = ["all", "LIVE", "SCHEDULED", "ENDED"];
 
 //   const filtered =
 //     activeTab === "all"
 //       ? sessions
 //       : sessions.filter((s) => s.status === activeTab);
 
-//   const tabs = ["all", "live", "scheduled", "ended"];
+//   // ✅ End a live session
+//   const handleEnd = async (id) => {
+//     try {
+//       await endLiveSession(id);
+//       setSessions((prev) =>
+//         prev.map((s) => (s.id === id ? { ...s, status: "ENDED" } : s)),
+//       );
+//       // Update stats
+//       setStats((prev) => ({
+//         ...prev,
+//         live: prev.live - 1,
+//         completed: prev.completed + 1,
+//       }));
+//     } catch (err) {
+//       console.error("End failed", err);
+//     }
+//   };
+
+//   // ✅ Delete an ended session
+//   const handleDelete = async (id) => {
+//     try {
+//       await deleteLiveSession(id);
+//       setSessions((prev) => prev.filter((s) => s.id !== id));
+//       setStats((prev) => ({
+//         ...prev,
+//         completed: prev.completed - 1,
+//       }));
+//     } catch (err) {
+//       console.error("Delete failed", err);
+//     }
+//   };
 
 //   const quickLinks = [
 //     {
@@ -100,7 +166,6 @@
 
 //   return (
 //     <div className="min-h-screen p-6 bg-gray-100 dark:bg-[#0B1120] dark:text-white">
-
 //       {/* ================= HEADER ================= */}
 //       <div className="px-8 py-6 rounded-2xl mb-8 bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
 //         <div className="flex justify-between items-center">
@@ -171,9 +236,7 @@
 //             onClick={() => navigate(q.path)}
 //             className="flex items-center gap-3 p-4 rounded-2xl border bg-white dark:bg-[#111827] hover:shadow-md transition text-left"
 //           >
-//             <div className={`p-3 rounded-xl ${q.bg} ${q.color}`}>
-//               {q.icon}
-//             </div>
+//             <div className={`p-3 rounded-xl ${q.bg} ${q.color}`}>{q.icon}</div>
 //             <div>
 //               <p className="font-semibold text-sm">{q.label}</p>
 //               <p className="text-xs text-gray-500">{q.desc}</p>
@@ -206,11 +269,15 @@
 //           </div>
 
 //           {loading ? (
-//             <p className="text-gray-500 dark:text-slate-400">Loading sessions...</p>
+//             <p className="text-gray-500 dark:text-slate-400">
+//               Loading sessions...
+//             </p>
 //           ) : filtered.length === 0 ? (
 //             <div className="text-center py-16">
 //               <Video size={40} className="mx-auto mb-4 opacity-30" />
-//               <p className="text-gray-400 dark:text-slate-500">No sessions found</p>
+//               <p className="text-gray-400 dark:text-slate-500">
+//                 No sessions found
+//               </p>
 //               <Button
 //                 onClick={() => navigate("/trainer/start-live")}
 //                 className="mt-4 bg-blue-600 text-white"
@@ -223,26 +290,33 @@
 //               {filtered.map((session) => (
 //                 <div
 //                   key={session.id}
-//                   className="flex items-center gap-4 p-4 rounded-xl border hover:bg-gray-50 dark:hover:bg-[#1F2937] cursor-pointer transition"
-//                   onClick={() => navigate(`/trainer/live-controls/${session.id}`)}
+//                   className="flex items-center gap-4 p-4 rounded-xl border hover:bg-gray-50 dark:hover:bg-[#1F2937] transition"
 //                 >
-//                   <div className="flex-1">
+//                   {/* Clickable info area */}
+//                   <div
+//                     className="flex-1 cursor-pointer"
+//                     onClick={() => {
+//                       if (session.status === "LIVE") {
+//                         navigate(`/trainer/live-controls/${session.id}`);
+//                       }
+//                     }}
+//                   >
 //                     <p className="font-medium">{session.title}</p>
 //                     <div className="flex gap-4 mt-1 text-xs text-gray-500 flex-wrap">
 //                       <span className="flex items-center gap-1">
-//                         <Calendar size={14} /> {session.date}
+//                         <Calendar size={12} /> {session.date}
 //                       </span>
 //                       <span className="flex items-center gap-1">
-//                         <Clock size={14} /> {session.time}
+//                         <Clock size={12} /> {session.time}
 //                       </span>
 //                       <span className="flex items-center gap-1">
-//                         <Users size={14} /> {session.viewers ?? 0}
+//                         <Users size={12} /> {session.viewers ?? 0}
 //                       </span>
 //                     </div>
 //                   </div>
 
 //                   <Badge>
-//                     {session.status === "live" && (
+//                     {session.status === "LIVE" && (
 //                       <Circle
 //                         size={8}
 //                         className="inline mr-1 text-red-500 animate-pulse"
@@ -250,6 +324,38 @@
 //                     )}
 //                     {session.status}
 //                   </Badge>
+
+//                   {/* Action Buttons */}
+//                   <div className="flex gap-2">
+//                     {session.status === "LIVE" && (
+//                       <>
+//                         <Button
+//                           onClick={() =>
+//                             navigate(`/trainer/live-controls/${session.id}`)
+//                           }
+//                           className="bg-green-500 hover:bg-green-600"
+//                         >
+//                           Join
+//                         </Button>
+
+//                         <Button
+//                           onClick={() => handleEnd(session.id)}
+//                           className="bg-yellow-500 hover:bg-yellow-600"
+//                         >
+//                           End
+//                         </Button>
+//                       </>
+//                     )}
+
+//                     {session.status === "ENDED" && (
+//                       <Button
+//                         onClick={() => handleDelete(session.id)}
+//                         className="bg-red-500 hover:bg-red-600"
+//                       >
+//                         Delete
+//                       </Button>
+//                     )}
+//                   </div>
 //                 </div>
 //               ))}
 //             </div>
@@ -261,6 +367,10 @@
 // };
 
 // export default TrainerLiveClasses;
+
+
+
+
 
 
 
@@ -309,6 +419,7 @@ import {
   Clock,
   Users,
   Radio,
+  ChevronDown,
 } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -328,6 +439,7 @@ const TrainerLiveClasses = () => {
   });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
+  const [isSessionsOpen, setIsSessionsOpen] = useState(true); // ✅ UI only
 
   // ✅ STEP 1: Load trainer batches to get batchId dynamically
   useEffect(() => {
@@ -537,10 +649,11 @@ const TrainerLiveClasses = () => {
       {/* ================= SESSIONS ================= */}
       <Card>
         <CardContent className="p-6">
+          {/* Header row with tabs + collapse arrow */}
           <div className="flex justify-between mb-5 flex-wrap gap-3">
             <h3 className="font-semibold text-lg">Sessions</h3>
 
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-2 flex-wrap items-center">
               {tabs.map((t) => (
                 <button
                   key={t}
@@ -554,100 +667,121 @@ const TrainerLiveClasses = () => {
                   {t}
                 </button>
               ))}
+
+              {/* ✅ Collapse / Expand arrow — UI only */}
+              <button
+                onClick={() => setIsSessionsOpen((prev) => !prev)}
+                title={isSessionsOpen ? "Collapse sessions" : "Expand sessions"}
+                className="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1F2937] hover:bg-gray-100 dark:hover:bg-gray-600 transition"
+              >
+                <ChevronDown
+                  size={14}
+                  className={`text-gray-500 transition-transform duration-300 ${
+                    isSessionsOpen ? "rotate-0" : "-rotate-90"
+                  }`}
+                />
+              </button>
             </div>
           </div>
 
-          {loading ? (
-            <p className="text-gray-500 dark:text-slate-400">
-              Loading sessions...
-            </p>
-          ) : filtered.length === 0 ? (
-            <div className="text-center py-16">
-              <Video size={40} className="mx-auto mb-4 opacity-30" />
-              <p className="text-gray-400 dark:text-slate-500">
-                No sessions found
-              </p>
-              <Button
-                onClick={() => navigate("/trainer/start-live")}
-                className="mt-4 bg-blue-600 text-white"
-              >
-                Start Now
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {filtered.map((session) => (
-                <div
-                  key={session.id}
-                  className="flex items-center gap-4 p-4 rounded-xl border hover:bg-gray-50 dark:hover:bg-[#1F2937] transition"
-                >
-                  {/* Clickable info area */}
-                  <div
-                    className="flex-1 cursor-pointer"
-                    onClick={() => {
-                      if (session.status === "LIVE") {
-                        navigate(`/trainer/live-controls/${session.id}`);
-                      }
-                    }}
+          {/* ✅ Sessions body — collapses/expands */}
+          {isSessionsOpen && (
+            <>
+              {loading ? (
+                <p className="text-gray-500 dark:text-slate-400">
+                  Loading sessions...
+                </p>
+              ) : filtered.length === 0 ? (
+                <div className="text-center py-16">
+                  <Video size={40} className="mx-auto mb-4 opacity-30" />
+                  <p className="text-gray-400 dark:text-slate-500">
+                    No sessions found
+                  </p>
+                  <Button
+                    onClick={() => navigate("/trainer/start-live")}
+                    className="mt-4 bg-blue-600 text-white"
                   >
-                    <p className="font-medium">{session.title}</p>
-                    <div className="flex gap-4 mt-1 text-xs text-gray-500 flex-wrap">
-                      <span className="flex items-center gap-1">
-                        <Calendar size={12} /> {session.date}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock size={12} /> {session.time}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Users size={12} /> {session.viewers ?? 0}
-                      </span>
-                    </div>
-                  </div>
-
-                  <Badge>
-                    {session.status === "LIVE" && (
-                      <Circle
-                        size={8}
-                        className="inline mr-1 text-red-500 animate-pulse"
-                      />
-                    )}
-                    {session.status}
-                  </Badge>
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-2">
-                    {session.status === "LIVE" && (
-                      <>
-                        <Button
-                          onClick={() =>
-                            navigate(`/trainer/live-controls/${session.id}`)
-                          }
-                          className="bg-green-500 hover:bg-green-600"
-                        >
-                          Join
-                        </Button>
-
-                        <Button
-                          onClick={() => handleEnd(session.id)}
-                          className="bg-yellow-500 hover:bg-yellow-600"
-                        >
-                          End
-                        </Button>
-                      </>
-                    )}
-
-                    {session.status === "ENDED" && (
-                      <Button
-                        onClick={() => handleDelete(session.id)}
-                        className="bg-red-500 hover:bg-red-600"
-                      >
-                        Delete
-                      </Button>
-                    )}
-                  </div>
+                    Start Now
+                  </Button>
                 </div>
-              ))}
-            </div>
+              ) : (
+                <div className="space-y-3">
+                  {filtered.map((session) => (
+                    <div
+                      key={session.id}
+                      className="flex items-center gap-4 p-4 rounded-xl border hover:bg-gray-50 dark:hover:bg-[#1F2937] transition"
+                    >
+                      {/* Clickable info area */}
+                      <div
+                        className="flex-1 cursor-pointer"
+                        onClick={() => {
+                          if (session.status === "LIVE") {
+                            navigate(`/trainer/live-controls/${session.id}`);
+                          }
+                        }}
+                      >
+                        <p className="font-medium">{session.title}</p>
+                        <div className="flex gap-4 mt-1 text-xs text-gray-500 flex-wrap">
+                          <span className="flex items-center gap-1">
+                            <Calendar size={12} /> {session.date}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock size={12} /> {session.time}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Users size={12} /> {session.viewers ?? 0}
+                          </span>
+                        </div>
+                      </div>
+
+                      <Badge>
+                        {session.status === "LIVE" && (
+                          <Circle
+                            size={8}
+                            className="inline mr-1 text-red-500 animate-pulse"
+                          />
+                        )}
+                        {session.status}
+                      </Badge>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-2">
+                        {session.status === "LIVE" && (
+                          <>
+                            <Button
+                              onClick={() =>
+                                navigate(
+                                  `/trainer/live-controls/${session.id}`,
+                                )
+                              }
+                              className="bg-green-500 hover:bg-green-600"
+                            >
+                              Join
+                            </Button>
+
+                            <Button
+                              onClick={() => handleEnd(session.id)}
+                              className="bg-yellow-500 hover:bg-yellow-600"
+                            >
+                              End
+                            </Button>
+                          </>
+                        )}
+
+                        {session.status === "ENDED" && (
+                          <Button
+                            onClick={() => handleDelete(session.id)}
+                            className="bg-red-500 hover:bg-red-600"
+                          >
+                            Delete
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
@@ -656,3 +790,9 @@ const TrainerLiveClasses = () => {
 };
 
 export default TrainerLiveClasses;
+
+
+
+
+
+

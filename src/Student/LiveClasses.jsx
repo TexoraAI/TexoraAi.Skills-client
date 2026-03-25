@@ -125,42 +125,31 @@ import {
 } from "@/services/liveSessionService";
 import LiveRoom from "@/components/live/LiveRoom";
 import {
-  ChevronDown,
-  ChevronUp,
-  Radio,
-  Users,
-  Calendar,
-  Clock,
-  Wifi,
+  ChevronDown, ChevronUp, Radio, Users,
+  Calendar, Clock, Wifi, TrendingUp,
 } from "lucide-react";
 
 const LiveClasses = () => {
-  const [sessions, setSessions] = useState([]);
-  const [selected, setSelected] = useState(null);
-  const [token, setToken] = useState(null);
-  const [room, setRoom] = useState(null);
+  const [sessions, setSessions]   = useState([]);
+  const [selected, setSelected]   = useState(null);
+  const [token, setToken]         = useState(null);
+  const [room, setRoom]           = useState(null);
   const [collapsed, setCollapsed] = useState(false);
-  const [joining, setJoining] = useState(false);
+  const [joining, setJoining]     = useState(false);
 
-  // 🔥 LOAD LIVE SESSIONS (FIXED)
+  /* ================= LOAD LIVE SESSIONS ================= */
   useEffect(() => {
     const loadLive = async () => {
       try {
-        // ✅ GET CLASSROOM
-        const response = await getStudentClassroom();
+        const response  = await getStudentClassroom();
         const classroom = response.data;
         console.log("CLASSROOM:", classroom);
 
-        // ✅ ONLY THIS LINE (IMPORTANT FIX)
         const batchId = classroom.batchId;
         console.log("BATCH ID:", batchId);
 
-        if (!batchId) {
-          console.warn("No batch assigned");
-          return;
-        }
+        if (!batchId) { console.warn("No batch assigned"); return; }
 
-        // ✅ FETCH LIVE SESSIONS
         const res = await getLiveSessionsByBatch(batchId);
         console.log("LIVE SESSIONS:", res.data);
         setSessions(res.data || []);
@@ -168,21 +157,17 @@ const LiveClasses = () => {
         console.error("Live fetch failed", err);
       }
     };
-
     loadLive();
   }, []);
 
-  // 🔥 JOIN LIVE SESSION
+  /* ================= JOIN LIVE SESSION ================= */
   const handleJoin = async () => {
     try {
       if (!selected) return;
       setJoining(true);
-
       const studentId = 1; // ⚠️ later from JWT
-
       const res = await joinLiveSession(selected.id, studentId);
       console.log("JOIN RESPONSE:", res.data);
-
       setToken(res.data.token);
       setRoom(res.data.room);
     } catch (err) {
@@ -192,317 +177,226 @@ const LiveClasses = () => {
     }
   };
 
-  // 🎥 IF JOINED → SHOW LIVE VIDEO
+  /* ================= IF JOINED → LIVE ROOM ================= */
   if (token) {
     return <LiveRoom token={token} roomName={room} />;
   }
 
-  const liveCount = sessions.filter((s) => s.isLive || s.status === "LIVE").length;
+  /* ================= DERIVED STATS ================= */
+  const liveCount     = sessions.filter((s) => s.isLive || s.status === "LIVE").length;
+  const upcomingCount = sessions.filter((s) => !s.isLive && s.status !== "LIVE").length;
 
+  /* ============================================================
+     RENDER
+  ============================================================ */
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    <div className="min-h-screen bg-slate-100 dark:bg-[#0f1b38] px-6 py-7">
 
-        .lc-wrap * { box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+      {/* ===== PAGE TITLE ===== */}
+      <div className="max-w-5xl mx-auto mb-6">
+        <div className="flex items-center gap-2 mb-1">
+          <div className="p-2 rounded-lg"
+            style={{ background: "linear-gradient(135deg,#1e3a8a,#1d4ed8)" }}>
+            <Radio className="h-4 w-4 text-white" />
+          </div>
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+            Live & Recorded
+          </span>
+        </div>
+        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Live Classes</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Join your trainer's live sessions in real-time
+        </p>
+      </div>
 
-        .lc-card {
-          background: #ffffff;
-          border: 1.5px solid #e8eaf0;
-          border-radius: 16px;
-          padding: 16px 20px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          position: relative;
-          overflow: hidden;
-        }
-        .lc-card::before {
-          content: '';
-          position: absolute;
-          left: 0; top: 0; bottom: 0;
-          width: 4px;
-          background: #e2e8f0;
-          border-radius: 4px 0 0 4px;
-          transition: background 0.2s;
-        }
-        .lc-card:hover {
-          border-color: #c7d2fe;
-          background: #fafbff;
-          transform: translateY(-1px);
-          box-shadow: 0 4px 20px rgba(99,102,241,0.08);
-        }
-        .lc-card:hover::before { background: #818cf8; }
-        .lc-card.selected {
-          border-color: #6366f1;
-          background: linear-gradient(135deg, #fafaff 0%, #f0f0ff 100%);
-          box-shadow: 0 4px 24px rgba(99,102,241,0.15);
-        }
-        .lc-card.selected::before { background: linear-gradient(180deg, #6366f1, #8b5cf6); }
+      {/* ===== STAT CARDS ===== */}
+      <div className="max-w-5xl mx-auto grid grid-cols-3 gap-4 mb-6">
+        {[
+          { icon: <Radio size={18} />,       value: sessions.length, label: "Total Sessions", style: "linear-gradient(135deg,#1e3a8a,#2563eb)" },
+          { icon: <TrendingUp size={18} />,  value: liveCount,       label: "Live Now",       style: "linear-gradient(135deg,#991b1b,#ef4444)" },
+          { icon: <Clock size={18} />,       value: upcomingCount,   label: "Upcoming",       style: "linear-gradient(135deg,#0369a1,#0ea5e9)" },
+        ].map((s, i) => (
+          <div key={i} className="rounded-xl px-5 py-4 flex flex-col gap-1 text-white shadow-md"
+            style={{ background: s.style }}>
+            <span className="text-white/70">{s.icon}</span>
+            <span className="text-2xl font-extrabold">{s.value}</span>
+            <span className="text-xs text-white/65 uppercase tracking-widest font-semibold">{s.label}</span>
+          </div>
+        ))}
+      </div>
 
-        .lc-card.live-card {
-          border-color: #fecaca;
-          background: linear-gradient(135deg, #fff5f5 0%, #fff 100%);
-        }
-        .lc-card.live-card::before { background: linear-gradient(180deg, #ef4444, #f97316); }
-        .lc-card.live-card.selected {
-          border-color: #ef4444;
-          background: linear-gradient(135deg, #fff1f1 0%, #fff8f8 100%);
-          box-shadow: 0 4px 24px rgba(239,68,68,0.15);
-        }
+      {/* ===== MAIN PANEL ===== */}
+      <div className="max-w-5xl mx-auto rounded-2xl border border-slate-200 dark:border-white/10
+                      bg-white dark:bg-[#162040] shadow-sm overflow-hidden">
 
-        .pulse-ring {
-          position: relative;
-          width: 44px; height: 44px;
-          border-radius: 12px;
-          display: flex; align-items: center; justify-content: center;
-          flex-shrink: 0;
-        }
-        .pulse-ring.live-icon {
-          background: linear-gradient(135deg, #fee2e2, #fecaca);
-        }
-        .pulse-ring.live-icon::after {
-          content: '';
-          position: absolute;
-          inset: -3px;
-          border-radius: 14px;
-          border: 2px solid #ef4444;
-          opacity: 0.4;
-          animation: ring-pulse 1.5s ease-in-out infinite;
-        }
-        .pulse-ring.normal-icon {
-          background: linear-gradient(135deg, #ede9fe, #ddd6fe);
-        }
-
-        @keyframes ring-pulse {
-          0%, 100% { opacity: 0.4; transform: scale(1); }
-          50% { opacity: 0; transform: scale(1.15); }
-        }
-        @keyframes dot-blink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.3; }
-        }
-
-        .join-btn {
-          width: 100%;
-          padding: 14px;
-          border: none;
-          border-radius: 14px;
-          background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
-          color: white;
-          font-size: 15px;
-          font-weight: 700;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          letter-spacing: 0.3px;
-          transition: all 0.2s ease;
-          box-shadow: 0 4px 15px rgba(239,68,68,0.35);
-          font-family: 'Plus Jakarta Sans', sans-serif;
-        }
-        .join-btn:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(239,68,68,0.45);
-        }
-        .join-btn:active { transform: translateY(0); }
-        .join-btn:disabled {
-          background: linear-gradient(135deg, #cbd5e1, #94a3b8);
-          box-shadow: none;
-          cursor: not-allowed;
-          transform: none;
-        }
-
-        .collapse-btn {
-          background: #f1f5f9;
-          border: none;
-          border-radius: 10px;
-          padding: 6px 10px;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          color: #64748b;
-          font-size: 12px;
-          font-weight: 600;
-          transition: all 0.2s;
-          font-family: 'Plus Jakarta Sans', sans-serif;
-        }
-        .collapse-btn:hover { background: #e2e8f0; color: #334155; }
-
-        .session-meta {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          flex-wrap: wrap;
-          margin-top: 4px;
-        }
-        .meta-chip {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          font-size: 11px;
-          color: #94a3b8;
-          font-weight: 500;
-        }
-
-        .empty-state {
-          text-align: center;
-          padding: 48px 24px;
-          color: #94a3b8;
-        }
-        .empty-icon {
-          width: 56px; height: 56px;
-          border-radius: 16px;
-          background: #f1f5f9;
-          display: flex; align-items: center; justify-content: center;
-          margin: 0 auto 12px;
-        }
-      `}</style>
-
-      <div className="lc-wrap" style={{ padding: "28px 24px", maxWidth: 780, margin: "0 auto" }}>
-
-        {/* ── HEADER ── */}
-        <div style={{
-          background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%)",
-          borderRadius: 20,
-          padding: "22px 26px",
-          marginBottom: 24,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          boxShadow: "0 8px 32px rgba(99,102,241,0.25)",
-          position: "relative",
-          overflow: "hidden",
-        }}>
-          {/* bg decoration */}
-          <div style={{ position: "absolute", right: -20, top: -20, width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} />
-          <div style={{ position: "absolute", right: 40, bottom: -30, width: 80, height: 80, borderRadius: "50%", background: "rgba(255,255,255,0.04)" }} />
-
-          <div style={{ display: "flex", alignItems: "center", gap: 14, position: "relative" }}>
-            <div style={{
-              width: 46, height: 46, borderRadius: 14,
-              background: "rgba(255,255,255,0.15)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              backdropFilter: "blur(10px)",
-            }}>
-              <Radio size={22} color="white" />
+        {/* Panel header with collapse toggle */}
+        <div
+          className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 dark:border-white/10"
+          style={{ background: "linear-gradient(135deg,#1e3a8a,#1d4ed8)" }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-white/20 backdrop-blur">
+              <Radio className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: "#fff", letterSpacing: -0.3 }}>
-                Live Classes
-              </h2>
-              <p style={{ margin: "3px 0 0", fontSize: 12, color: "rgba(255,255,255,0.6)" }}>
+              <p className="text-sm font-bold text-white">Live Classes</p>
+              <p className="text-[11px] text-white/65">
                 {sessions.length > 0
-                  ? `${sessions.length} session${sessions.length > 1 ? "s" : ""} available${liveCount > 0 ? ` · ${liveCount} live now` : ""}`
+                  ? `${sessions.length} session${sessions.length !== 1 ? "s" : ""} available${liveCount > 0 ? ` · ${liveCount} live now` : ""}`
                   : "Loading sessions..."}
               </p>
             </div>
           </div>
 
-          <button className="collapse-btn" onClick={() => setCollapsed((c) => !c)}
-            style={{ background: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.8)", position: "relative" }}>
-            {collapsed ? <ChevronDown size={15} /> : <ChevronUp size={15} />}
-            {collapsed ? "Show" : "Hide"}
+          {/* CRM-style collapse button */}
+          <button
+            onClick={() => setCollapsed((c) => !c)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold
+                       bg-white/15 hover:bg-white/25 text-white border border-white/20
+                       transition select-none"
+          >
+            {collapsed
+              ? <><ChevronDown className="w-3.5 h-3.5" /> Show</>
+              : <><ChevronUp className="w-3.5 h-3.5" /> Hide</>
+            }
           </button>
         </div>
 
-        {/* ── SESSION LIST ── */}
+        {/* ===== COLLAPSIBLE CONTENT ===== */}
         {!collapsed && (
-          <>
-            {sessions.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-icon"><Wifi size={24} color="#cbd5e1" /></div>
-                <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "#64748b" }}>No live sessions available</p>
-                <p style={{ margin: "6px 0 0", fontSize: 12 }}>Check back later or refresh the page</p>
-              </div>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
-                {sessions.map((s) => {
-                  const isLive = s.isLive || s.status === "LIVE";
-                  const isSelected = selected?.id === s.id;
+          <div className="p-4">
 
-                  return (
-                    <div
-                      key={s.id}
-                      className={`lc-card ${isLive ? "live-card" : ""} ${isSelected ? "selected" : ""}`}
-                      onClick={() => setSelected(s)}
-                    >
-                      {/* icon */}
-                      <div className={`pulse-ring ${isLive ? "live-icon" : "normal-icon"}`}>
-                        <Radio size={18} color={isLive ? "#ef4444" : "#7c3aed"} />
-                      </div>
-
-                      {/* info */}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                          <span style={{
-                            fontSize: 14, fontWeight: 700,
-                            color: isSelected ? (isLive ? "#dc2626" : "#4338ca") : "#1e293b",
-                            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-                          }}>
-                            {s.title}
-                          </span>
-
-                          {isLive && (
-                            <span style={{
-                              display: "flex", alignItems: "center", gap: 4,
-                              background: "#fee2e2", color: "#ef4444",
-                              fontSize: 10, fontWeight: 800, letterSpacing: 1,
-                              padding: "2px 8px", borderRadius: 6, textTransform: "uppercase",
-                            }}>
-                              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#ef4444", animation: "dot-blink 1s infinite", display: "inline-block" }} />
-                              LIVE
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="session-meta">
-                          {s.date && (
-                            <span className="meta-chip">
-                              <Calendar size={11} /> {s.date}
-                            </span>
-                          )}
-                          {s.time && (
-                            <span className="meta-chip">
-                              <Clock size={11} /> {s.time}
-                            </span>
-                          )}
-                          {s.viewers != null && (
-                            <span className="meta-chip">
-                              <Users size={11} /> {s.viewers} watching
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* selection indicator */}
-                      {isSelected && (
-                        <div style={{
-                          width: 20, height: 20, borderRadius: "50%", flexShrink: 0,
-                          background: isLive ? "#ef4444" : "#6366f1",
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                        }}>
-                          <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                            <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+            {/* Empty state */}
+            {sessions.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-14 gap-3 opacity-50">
+                <Wifi className="w-10 h-10 text-slate-300 dark:text-slate-600" />
+                <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+                  No live sessions available
+                </p>
+                <p className="text-xs text-slate-400">Check back later or refresh the page</p>
               </div>
             )}
 
-            {/* ── JOIN BUTTON ── */}
+            {/* Session list */}
+            <div className="space-y-2 mb-4">
+              {sessions.map((s) => {
+                const isLive     = s.isLive || s.status === "LIVE";
+                const isSelected = selected?.id === s.id;
+
+                return (
+                  <div
+                    key={s.id}
+                    onClick={() => setSelected(s)}
+                    className={`relative flex items-center gap-4 px-4 py-3.5 rounded-xl cursor-pointer
+                                border transition-all duration-200 overflow-hidden
+                      ${isSelected
+                        ? isLive
+                          ? "border-red-400 dark:border-red-500/60 bg-red-50 dark:bg-red-900/15 shadow-md"
+                          : "border-blue-400 dark:border-blue-500/60 bg-blue-50 dark:bg-blue-900/15 shadow-md"
+                        : isLive
+                          ? "border-red-200 dark:border-red-900/40 bg-red-50/50 dark:bg-red-900/10 hover:border-red-300 dark:hover:border-red-700/50"
+                          : "border-slate-100 dark:border-white/8 bg-slate-50 dark:bg-white/3 hover:border-blue-200 dark:hover:border-blue-700/40 hover:bg-blue-50/30 dark:hover:bg-white/5"
+                      }`}
+                  >
+                    {/* Left accent bar */}
+                    <div
+                      className="absolute left-0 top-0 bottom-0 w-1 rounded-r"
+                      style={{
+                        background: isSelected
+                          ? isLive ? "linear-gradient(180deg,#ef4444,#f97316)" : "linear-gradient(180deg,#1d4ed8,#7c3aed)"
+                          : isLive ? "#fecaca" : "#e2e8f0",
+                      }}
+                    />
+
+                    {/* Icon */}
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{
+                        background: isLive
+                          ? "linear-gradient(135deg,#fee2e2,#fecaca)"
+                          : "linear-gradient(135deg,#ede9fe,#ddd6fe)",
+                        boxShadow: isLive && isSelected ? "0 0 0 3px rgba(239,68,68,0.2)" : undefined,
+                      }}
+                    >
+                      <Radio
+                        size={16}
+                        color={isLive ? "#ef4444" : "#7c3aed"}
+                        style={isLive ? { animation: "lc-pulse 1.5s ease-in-out infinite" } : {}}
+                      />
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`text-sm font-bold truncate
+                          ${isSelected
+                            ? isLive ? "text-red-700 dark:text-red-400" : "text-blue-700 dark:text-blue-400"
+                            : "text-slate-800 dark:text-slate-100"
+                          }`}>
+                          {s.title}
+                        </span>
+
+                        {isLive && (
+                          <span className="flex items-center gap-1 px-2 py-0.5 rounded-md
+                                           bg-red-100 dark:bg-red-900/40
+                                           text-red-600 dark:text-red-400
+                                           text-[10px] font-extrabold tracking-widest uppercase">
+                            <span className="w-1.5 h-1.5 rounded-full bg-red-500"
+                              style={{ animation: "lc-blink 1s infinite" }} />
+                            LIVE
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-3 mt-1 flex-wrap">
+                        {s.date && (
+                          <span className="flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500">
+                            <Calendar size={10} /> {s.date}
+                          </span>
+                        )}
+                        {s.time && (
+                          <span className="flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500">
+                            <Clock size={10} /> {s.time}
+                          </span>
+                        )}
+                        {s.viewers != null && (
+                          <span className="flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500">
+                            <Users size={10} /> {s.viewers} watching
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Selection checkmark */}
+                    {isSelected && (
+                      <div
+                        className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{ background: isLive ? "#ef4444" : "#1d4ed8" }}
+                      >
+                        <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                          <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* ===== JOIN BUTTON ===== */}
             {selected && (
-              <button className="join-btn" onClick={handleJoin} disabled={joining}>
+              <button
+                onClick={handleJoin}
+                disabled={joining}
+                className="w-full flex items-center justify-center gap-2.5
+                           px-4 py-3.5 rounded-xl text-sm font-bold text-white
+                           shadow-lg transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ background: "linear-gradient(135deg,#ef4444,#f97316)" }}
+              >
                 {joining ? (
                   <>
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ animation: "spin 0.8s linear infinite" }}>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+                      style={{ animation: "lc-spin 0.8s linear infinite" }}>
                       <circle cx="8" cy="8" r="6" stroke="rgba(255,255,255,0.3)" strokeWidth="2" />
                       <path d="M8 2a6 6 0 016 6" stroke="white" strokeWidth="2" strokeLinecap="round" />
                     </svg>
@@ -510,18 +404,24 @@ const LiveClasses = () => {
                   </>
                 ) : (
                   <>
-                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: "white", animation: "dot-blink 1s infinite", display: "inline-block" }} />
+                    <span className="w-2 h-2 rounded-full bg-white"
+                      style={{ animation: "lc-blink 1s infinite" }} />
                     Join Live Session — {selected.title}
                   </>
                 )}
               </button>
             )}
-          </>
+          </div>
         )}
-
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
-    </>
+
+      {/* ===== KEYFRAMES ===== */}
+      <style>{`
+        @keyframes lc-blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        @keyframes lc-spin  { to{transform:rotate(360deg)} }
+        @keyframes lc-pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+      `}</style>
+    </div>
   );
 };
 

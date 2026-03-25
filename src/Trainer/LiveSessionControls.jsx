@@ -14,12 +14,22 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Room, RoomEvent, Track, createLocalTracks } from "livekit-client";
 
-import { startLiveSession, endLiveSession } from "@/services/liveSessionService";
+import {
+  startLiveSession,
+  endLiveSession,
+} from "@/services/liveSessionService";
 
 import {
-  FaPhoneSlash, FaTimes, FaDotCircle, FaUsers,
-  FaPaperPlane, FaMicrophone, FaMicrophoneSlash,
-  FaVideo, FaVideoSlash, FaDesktop,
+  FaPhoneSlash,
+  FaTimes,
+  FaDotCircle,
+  FaUsers,
+  FaPaperPlane,
+  FaMicrophone,
+  FaMicrophoneSlash,
+  FaVideo,
+  FaVideoSlash,
+  FaDesktop,
 } from "react-icons/fa";
 
 /* ─────────────────────────────────────────────────────────────
@@ -33,8 +43,10 @@ const attachTrack = (track, container) => {
   const el = track.attach();
   if (track.kind === Track.Kind.Video) {
     Object.assign(el.style, {
-      width: "100%", height: "100%",
-      objectFit: "cover", display: "block",
+      width: "100%",
+      height: "100%",
+      objectFit: "cover",
+      display: "block",
     });
   }
   container.appendChild(el);
@@ -61,30 +73,36 @@ const useLiveTimer = (running) => {
 ═════════════════════════════════════════════════════════════ */
 const LiveSessionControls = () => {
   const navigate = useNavigate();
-  const { id }   = useParams();
+  const { id } = useParams();
 
   /* ── Refs ── */
-  const roomRef            = useRef(null);
-  const remoteGridRef      = useRef(null);   // container for all remote video tiles
-  const localPreviewRef    = useRef(null);   // trainer's own cam PIP
+  const roomRef = useRef(null);
+  const remoteGridRef = useRef(null); // container for all remote video tiles
+  const localPreviewRef = useRef(null); // trainer's own cam PIP
   const localVideoTrackRef = useRef(null);
   const localAudioTrackRef = useRef(null);
-  const screenTrackRef     = useRef(null);
-  const chatEndRef         = useRef(null);
+  const screenTrackRef = useRef(null);
+  const chatEndRef = useRef(null);
 
   /* ── State ── */
-  const [connected,    setConnected]    = useState(false);
-  const [micOn,        setMicOn]        = useState(true);
-  const [camOn,        setCamOn]        = useState(true);
-  const [screenOn,     setScreenOn]     = useState(false);
-  const [recording,    setRecording]    = useState(true);
-  const [sidebarOpen,  setSidebarOpen]  = useState(true);
-  const [sidebarTab,   setSidebarTab]   = useState("chat");
+  const [connected, setConnected] = useState(false);
+  const [micOn, setMicOn] = useState(true);
+  const [camOn, setCamOn] = useState(true);
+  const [screenOn, setScreenOn] = useState(false);
+  const [recording, setRecording] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarTab, setSidebarTab] = useState("chat");
   const [participants, setParticipants] = useState([]);
-  const [messages,     setMessages]     = useState(() => [
-    { id: 0, user: "System", text: "Session started. Welcome!", time: getTime(), system: true },
+  const [messages, setMessages] = useState(() => [
+    {
+      id: 0,
+      user: "System",
+      text: "Session started. Welcome!",
+      time: getTime(),
+      system: true,
+    },
   ]);
-  const [input,        setInput]        = useState("");
+  const [input, setInput] = useState("");
   const [sessionTitle, setSessionTitle] = useState(`Session ${id}`);
 
   const timer = useLiveTimer(connected);
@@ -102,14 +120,19 @@ const LiveSessionControls = () => {
     if (!room) return;
     const list = [
       {
-        id:     room.localParticipant.identity,
-        name:   room.localParticipant.name || "You (Trainer)",
-        self:   true,
+        id: room.localParticipant.identity,
+        name: room.localParticipant.name || "You (Trainer)",
+        self: true,
         isHost: true,
       },
     ];
     room.remoteParticipants.forEach((p) => {
-      list.push({ id: p.identity, name: p.name || p.identity, self: false, isHost: false });
+      list.push({
+        id: p.identity,
+        name: p.name || p.identity,
+        self: false,
+        isHost: false,
+      });
     });
     setParticipants(list);
   }, []);
@@ -125,10 +148,14 @@ const LiveSessionControls = () => {
       /* 1. get token from backend */
       let token;
       try {
-        const res  = await startLiveSession(id);
-        token = res?.data?.token || res?.data?.data?.token || res?.data?.body?.token;
+        const res = await startLiveSession(id);
+        token =
+          res?.data?.token || res?.data?.data?.token || res?.data?.body?.token;
         setSessionTitle(res?.data?.title || `Session ${id}`);
-        if (!token) { console.error("No token returned"); return; }
+        if (!token) {
+          console.error("No token returned");
+          return;
+        }
       } catch (err) {
         console.error("startLiveSession failed:", err);
         return;
@@ -158,8 +185,10 @@ const LiveSessionControls = () => {
             if (localPreviewRef.current) {
               const el = track.attach();
               Object.assign(el.style, {
-                width: "100%", height: "100%",
-                objectFit: "cover", display: "block",
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                display: "block",
                 transform: "scaleX(-1)",
               });
               localPreviewRef.current.innerHTML = "";
@@ -206,12 +235,12 @@ const LiveSessionControls = () => {
       room.on(RoomEvent.DataReceived, (payload, participant) => {
         try {
           const decoded = new TextDecoder().decode(payload);
-          const msg     = JSON.parse(decoded);
+          const msg = JSON.parse(decoded);
           if (msg.text) {
             setMessages((prev) => [
               ...prev,
               {
-                id:   Date.now(),
+                id: Date.now(),
                 user: participant?.name || participant?.identity || "Student",
                 text: msg.text,
                 time: getTime(),
@@ -226,7 +255,9 @@ const LiveSessionControls = () => {
     };
 
     start();
-    return () => { roomRef.current?.disconnect(); };
+    return () => {
+      roomRef.current?.disconnect();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -244,7 +275,7 @@ const LiveSessionControls = () => {
     const track = localAudioTrackRef.current;
     if (!track) return;
     if (micOn) await track.mute();
-    else        await track.unmute();
+    else await track.unmute();
     setMicOn((v) => !v);
   }, [micOn]);
 
@@ -254,10 +285,12 @@ const LiveSessionControls = () => {
     if (!track) return;
     if (camOn) {
       await track.mute();
-      if (localPreviewRef.current) localPreviewRef.current.style.visibility = "hidden";
+      if (localPreviewRef.current)
+        localPreviewRef.current.style.visibility = "hidden";
     } else {
       await track.unmute();
-      if (localPreviewRef.current) localPreviewRef.current.style.visibility = "visible";
+      if (localPreviewRef.current)
+        localPreviewRef.current.style.visibility = "visible";
     }
     setCamOn((v) => !v);
   }, [camOn]);
@@ -267,8 +300,10 @@ const LiveSessionControls = () => {
     if (localVideoTrackRef.current && camOn && localPreviewRef.current) {
       const el = localVideoTrackRef.current.attach();
       Object.assign(el.style, {
-        width: "100%", height: "100%",
-        objectFit: "cover", display: "block",
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+        display: "block",
         transform: "scaleX(-1)",
       });
       localPreviewRef.current.innerHTML = "";
@@ -284,11 +319,12 @@ const LiveSessionControls = () => {
 
     if (screenOn) {
       /* ── STOP ── */
-      try { await room.localParticipant.setScreenShareEnabled(false); } catch (_) {}
+      try {
+        await room.localParticipant.setScreenShareEnabled(false);
+      } catch (_) {}
       screenTrackRef.current = null;
       setScreenOn(false);
       restoreCamPip();
-
     } else {
       /* ── START ── */
       try {
@@ -307,8 +343,10 @@ const LiveSessionControls = () => {
         if (screenTrack && localPreviewRef.current) {
           const el = screenTrack.attach();
           Object.assign(el.style, {
-            width: "100%", height: "100%",
-            objectFit: "contain", display: "block",
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+            display: "block",
           });
           localPreviewRef.current.innerHTML = "";
           localPreviewRef.current.appendChild(el);
@@ -322,9 +360,7 @@ const LiveSessionControls = () => {
           it fires 'ended' on the underlying MediaStreamTrack.
         */
         const mediaTrack =
-          screenTrack?.mediaStreamTrack ??
-          pub.track?.mediaStreamTrack ??
-          null;
+          screenTrack?.mediaStreamTrack ?? pub.track?.mediaStreamTrack ?? null;
 
         if (mediaTrack) {
           const onEnded = () => {
@@ -335,7 +371,6 @@ const LiveSessionControls = () => {
           };
           mediaTrack.addEventListener("ended", onEnded, { once: true });
         }
-
       } catch (err) {
         /* user cancelled or permission denied — not an error worth logging loudly */
         if (err?.name !== "NotAllowedError") {
@@ -353,20 +388,34 @@ const LiveSessionControls = () => {
     /* optimistic */
     setMessages((prev) => [
       ...prev,
-      { id: Date.now(), user: "You (Trainer)", text, time: getTime(), self: true },
+      {
+        id: Date.now(),
+        user: "You (Trainer)",
+        text,
+        time: getTime(),
+        self: true,
+      },
     ]);
     setInput("");
 
     /* broadcast via DataChannel */
     try {
-      const payload = new TextEncoder().encode(JSON.stringify({ text, name: "Trainer" }));
-      roomRef.current?.localParticipant?.publishData(payload, { reliable: true });
-    } catch (e) { console.warn("data send failed:", e); }
+      const payload = new TextEncoder().encode(
+        JSON.stringify({ text, name: "Trainer" }),
+      );
+      roomRef.current?.localParticipant?.publishData(payload, {
+        reliable: true,
+      });
+    } catch (e) {
+      console.warn("data send failed:", e);
+    }
   }, [input]);
 
   /* END SESSION */
   const handleEndSession = useCallback(async () => {
-    try { await endLiveSession(id); } catch (_) {}
+    try {
+      await endLiveSession(id);
+    } catch (_) {}
     roomRef.current?.disconnect();
     navigate("/trainer/live");
   }, [id, navigate]);
@@ -376,16 +425,22 @@ const LiveSessionControls = () => {
   ══════════════════════════════════════════════════════════ */
   return (
     <div style={S.root}>
-
       {/* ── TOP BAR ── */}
       <div style={S.topBar}>
         <div style={S.topLeft}>
-          <div style={S.liveBadge}><span style={S.liveDot} />LIVE</div>
+          <div style={S.liveBadge}>
+            <span style={S.liveDot} />
+            LIVE
+          </div>
           <span style={S.timerText}>{timer}</span>
           <span style={S.sessionTitle}>{sessionTitle}</span>
           {recording && (
             <div style={S.recBadge}>
-              <FaDotCircle size={8} style={{ animation: "recBlink 1.5s infinite" }} /> REC
+              <FaDotCircle
+                size={8}
+                style={{ animation: "recBlink 1.5s infinite" }}
+              />{" "}
+              REC
             </div>
           )}
         </div>
@@ -417,7 +472,6 @@ const LiveSessionControls = () => {
 
       {/* ── BODY ── */}
       <div style={S.body}>
-
         {/* VIDEO AREA */}
         <div style={S.videoArea}>
           {connected ? (
@@ -430,7 +484,8 @@ const LiveSessionControls = () => {
                 <div
                   ref={localPreviewRef}
                   style={{
-                    width: "100%", height: "100%",
+                    width: "100%",
+                    height: "100%",
                     visibility: camOn || screenOn ? "visible" : "hidden",
                   }}
                 />
@@ -440,7 +495,9 @@ const LiveSessionControls = () => {
                     <span style={S.pipOffTxt}>Cam Off</span>
                   </div>
                 )}
-                <span style={S.pipLabel}>You (Trainer){screenOn ? " · Sharing" : ""}</span>
+                <span style={S.pipLabel}>
+                  You (Trainer){screenOn ? " · Sharing" : ""}
+                </span>
               </div>
 
               {/* CONTROL BAR */}
@@ -468,8 +525,12 @@ const LiveSessionControls = () => {
                   label="Chat"
                   active={sidebarOpen && sidebarTab === "chat"}
                   onClick={() => {
-                    if (sidebarOpen && sidebarTab === "chat") setSidebarOpen(false);
-                    else { setSidebarTab("chat"); setSidebarOpen(true); }
+                    if (sidebarOpen && sidebarTab === "chat")
+                      setSidebarOpen(false);
+                    else {
+                      setSidebarTab("chat");
+                      setSidebarOpen(true);
+                    }
                   }}
                 />
                 <CtrlBtn
@@ -477,8 +538,12 @@ const LiveSessionControls = () => {
                   label="People"
                   active={sidebarOpen && sidebarTab === "participants"}
                   onClick={() => {
-                    if (sidebarOpen && sidebarTab === "participants") setSidebarOpen(false);
-                    else { setSidebarTab("participants"); setSidebarOpen(true); }
+                    if (sidebarOpen && sidebarTab === "participants")
+                      setSidebarOpen(false);
+                    else {
+                      setSidebarTab("participants");
+                      setSidebarOpen(true);
+                    }
                   }}
                 />
               </div>
@@ -498,10 +563,19 @@ const LiveSessionControls = () => {
           title="Toggle panel"
         >
           <div style={S.handlePill}>
-            {sidebarOpen
-              ? <><Chevron dir="right" /><div style={S.handleLine} /><Chevron dir="left" /></>
-              : <><Chevron dir="left"  /><div style={S.handleLine} /><Chevron dir="right" /></>
-            }
+            {sidebarOpen ? (
+              <>
+                <Chevron dir="right" />
+                <div style={S.handleLine} />
+                <Chevron dir="left" />
+              </>
+            ) : (
+              <>
+                <Chevron dir="left" />
+                <div style={S.handleLine} />
+                <Chevron dir="right" />
+              </>
+            )}
           </div>
         </div>
 
@@ -542,8 +616,15 @@ const LiveSessionControls = () => {
                           <div style={S.sysBubble}>{m.text}</div>
                         ) : (
                           <>
-                            <span style={S.msgUser}>{m.user} · {m.time}</span>
-                            <div style={{ ...S.msgBubble, ...(m.self ? S.bubbleSelf : S.bubbleOther) }}>
+                            <span style={S.msgUser}>
+                              {m.user} · {m.time}
+                            </span>
+                            <div
+                              style={{
+                                ...S.msgBubble,
+                                ...(m.self ? S.bubbleSelf : S.bubbleOther),
+                              }}
+                            >
                               {m.text}
                             </div>
                           </>
@@ -579,7 +660,9 @@ const LiveSessionControls = () => {
                   {participants.length === 0 && (
                     <div style={S.emptyPeople}>
                       <FaUsers size={28} style={{ opacity: 0.3 }} />
-                      <p style={{ fontSize: 12, color: "#475569", marginTop: 8 }}>
+                      <p
+                        style={{ fontSize: 12, color: "#475569", marginTop: 8 }}
+                      >
                         No participants yet
                       </p>
                     </div>
@@ -613,10 +696,21 @@ const LiveSessionControls = () => {
 ───────────────────────────────────────────────────────────── */
 const Chevron = ({ dir }) => (
   <svg width="5" height="10" viewBox="0 0 6 12" fill="none">
-    {dir === "right"
-      ? <path d="M1 1L6 6L1 11" stroke="#64748b" strokeWidth="1.5" strokeLinecap="round" />
-      : <path d="M5 1L0 6L5 11" stroke="#64748b" strokeWidth="1.5" strokeLinecap="round" />
-    }
+    {dir === "right" ? (
+      <path
+        d="M1 1L6 6L1 11"
+        stroke="#64748b"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    ) : (
+      <path
+        d="M5 1L0 6L5 11"
+        stroke="#64748b"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    )}
   </svg>
 );
 
@@ -624,11 +718,17 @@ const TabBtn = ({ active, label, onClick }) => (
   <button
     onClick={onClick}
     style={{
-      flex: 1, padding: "11px 0", border: "none", background: "transparent",
+      flex: 1,
+      padding: "11px 0",
+      border: "none",
+      background: "transparent",
       borderBottom: active ? "2px solid #3b82f6" : "2px solid transparent",
       color: active ? "#60a5fa" : "#475569",
-      fontFamily: "inherit", fontSize: 13, fontWeight: 600,
-      cursor: "pointer", transition: "all .15s",
+      fontFamily: "inherit",
+      fontSize: 13,
+      fontWeight: 600,
+      cursor: "pointer",
+      transition: "all .15s",
       ...(active ? { background: "rgba(59,130,246,.08)" } : {}),
     }}
   >
@@ -638,42 +738,61 @@ const TabBtn = ({ active, label, onClick }) => (
 
 const PersonRow = ({ name, isHost, self }) => (
   <div style={S.pRow}>
-    <div style={{
-      ...S.pAv,
-      background: self
-        ? "linear-gradient(135deg,#0ea5e9,#6366f1)"
-        : "linear-gradient(135deg,#8b5cf6,#ec4899)",
-    }}>
+    <div
+      style={{
+        ...S.pAv,
+        background: self
+          ? "linear-gradient(135deg,#0ea5e9,#6366f1)"
+          : "linear-gradient(135deg,#8b5cf6,#ec4899)",
+      }}
+    >
       {(name || "?")[0].toUpperCase()}
     </div>
     <span style={S.pName}>{name}</span>
     {isHost && <span style={S.hostTag}>Host</span>}
-    {self   && <span style={S.youTag}>You</span>}
+    {self && <span style={S.youTag}>You</span>}
   </div>
 );
 
 const CtrlBtn = ({ icon, label, active, danger, onClick }) => {
   const [hov, setHov] = useState(false);
-  const bg  = danger ? (hov ? "#991b1b" : "#7f1d1d")
-            : active ? (hov ? "rgba(59,130,246,.38)" : "rgba(59,130,246,.22)")
-                     : (hov ? "rgba(255,255,255,.14)" : "rgba(255,255,255,.07)");
-  const col = danger ? "#fca5a5"
-            : active ? "#93c5fd"
-                     : "#cbd5e1";
+  const bg = danger
+    ? hov
+      ? "#991b1b"
+      : "#7f1d1d"
+    : active
+      ? hov
+        ? "rgba(59,130,246,.38)"
+        : "rgba(59,130,246,.22)"
+      : hov
+        ? "rgba(255,255,255,.14)"
+        : "rgba(255,255,255,.07)";
+  const col = danger ? "#fca5a5" : active ? "#93c5fd" : "#cbd5e1";
   return (
     <button
       onClick={onClick}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
-        display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
-        background: bg, color: col,
-        border: danger ? "1px solid rgba(239,68,68,.3)"
-              : active ? "1px solid rgba(59,130,246,.35)"
-                       : "1px solid transparent",
-        borderRadius: 14, padding: "10px 20px",
-        cursor: "pointer", fontSize: 11, fontWeight: 600,
-        fontFamily: "inherit", letterSpacing: 0.3, transition: "all .18s",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 5,
+        background: bg,
+        color: col,
+        border: danger
+          ? "1px solid rgba(239,68,68,.3)"
+          : active
+            ? "1px solid rgba(59,130,246,.35)"
+            : "1px solid transparent",
+        borderRadius: 14,
+        padding: "10px 20px",
+        cursor: "pointer",
+        fontSize: 11,
+        fontWeight: 600,
+        fontFamily: "inherit",
+        letterSpacing: 0.3,
+        transition: "all .18s",
         minWidth: 68,
       }}
     >
@@ -688,9 +807,13 @@ const CtrlBtn = ({ icon, label, active, danger, onClick }) => {
 ───────────────────────────────────────────────────────────── */
 const S = {
   root: {
-    position: "fixed", inset: 0, zIndex: 9999,
-    display: "flex", flexDirection: "column",
-    background: "#07090f", color: "#e2e8f0",
+    position: "fixed",
+    inset: 0,
+    zIndex: 9999,
+    display: "flex",
+    flexDirection: "column",
+    background: "#07090f",
+    color: "#e2e8f0",
     fontFamily: "'DM Sans','Segoe UI',sans-serif",
     overflow: "hidden",
   },
@@ -698,102 +821,194 @@ const S = {
   /* TOP BAR */
   topBar: {
     flexShrink: 0,
-    display: "flex", alignItems: "center", justifyContent: "space-between",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: "8px 18px",
-    background: "#0d1117", borderBottom: "1px solid rgba(255,255,255,.07)",
+    background: "#0d1117",
+    borderBottom: "1px solid rgba(255,255,255,.07)",
     zIndex: 10,
   },
-  topLeft:  { display: "flex", alignItems: "center", gap: 10 },
-  topRight: { display: "flex", alignItems: "center", gap: 8  },
+  topLeft: { display: "flex", alignItems: "center", gap: 10 },
+  topRight: { display: "flex", alignItems: "center", gap: 8 },
 
   liveBadge: {
-    display: "flex", alignItems: "center", gap: 5,
-    padding: "3px 9px", borderRadius: 8,
-    background: "rgba(239,68,68,.14)", border: "1px solid rgba(239,68,68,.28)",
-    fontSize: 10, fontWeight: 800, letterSpacing: 1.5, color: "#ef4444",
+    display: "flex",
+    alignItems: "center",
+    gap: 5,
+    padding: "3px 9px",
+    borderRadius: 8,
+    background: "rgba(239,68,68,.14)",
+    border: "1px solid rgba(239,68,68,.28)",
+    fontSize: 10,
+    fontWeight: 800,
+    letterSpacing: 1.5,
+    color: "#ef4444",
   },
   liveDot: {
-    width: 7, height: 7, borderRadius: "50%", background: "#ef4444",
-    animation: "livePulse 1.2s ease-in-out infinite", display: "inline-block",
+    width: 7,
+    height: 7,
+    borderRadius: "50%",
+    background: "#ef4444",
+    animation: "livePulse 1.2s ease-in-out infinite",
+    display: "inline-block",
   },
-  timerText:    { fontFamily: "monospace", fontSize: 13, color: "#94a3b8", letterSpacing: 0.5 },
+  timerText: {
+    fontFamily: "monospace",
+    fontSize: 13,
+    color: "#94a3b8",
+    letterSpacing: 0.5,
+  },
   sessionTitle: { fontSize: 14, fontWeight: 600, color: "#f1f5f9" },
   recBadge: {
-    display: "flex", alignItems: "center", gap: 5,
-    padding: "3px 8px", borderRadius: 8,
-    background: "rgba(239,68,68,.1)", border: "1px solid rgba(239,68,68,.2)",
-    fontSize: 10, fontWeight: 700, letterSpacing: 1, color: "#fca5a5",
+    display: "flex",
+    alignItems: "center",
+    gap: 5,
+    padding: "3px 8px",
+    borderRadius: 8,
+    background: "rgba(239,68,68,.1)",
+    border: "1px solid rgba(239,68,68,.2)",
+    fontSize: 10,
+    fontWeight: 700,
+    letterSpacing: 1,
+    color: "#fca5a5",
   },
   pCountBadge: {
-    display: "flex", alignItems: "center", gap: 6,
-    padding: "5px 12px", borderRadius: 10,
-    background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.09)",
-    fontSize: 12, color: "#94a3b8",
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    padding: "5px 12px",
+    borderRadius: 10,
+    background: "rgba(255,255,255,.05)",
+    border: "1px solid rgba(255,255,255,.09)",
+    fontSize: 12,
+    color: "#94a3b8",
   },
   recBtn: {
-    display: "flex", alignItems: "center", gap: 5,
-    padding: "5px 12px", borderRadius: 10,
-    fontSize: 11, fontWeight: 700, cursor: "pointer",
-    fontFamily: "inherit", letterSpacing: 0.3, border: "1px solid transparent",
+    display: "flex",
+    alignItems: "center",
+    gap: 5,
+    padding: "5px 12px",
+    borderRadius: 10,
+    fontSize: 11,
+    fontWeight: 700,
+    cursor: "pointer",
+    fontFamily: "inherit",
+    letterSpacing: 0.3,
+    border: "1px solid transparent",
     transition: "all .15s",
   },
-  recBtnOn:  { background: "rgba(239,68,68,.15)", border: "1px solid rgba(239,68,68,.3)", color: "#f87171" },
-  recBtnOff: { background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.09)", color: "#94a3b8" },
+  recBtnOn: {
+    background: "rgba(239,68,68,.15)",
+    border: "1px solid rgba(239,68,68,.3)",
+    color: "#f87171",
+  },
+  recBtnOff: {
+    background: "rgba(255,255,255,.05)",
+    border: "1px solid rgba(255,255,255,.09)",
+    color: "#94a3b8",
+  },
   endBtn: {
-    display: "flex", alignItems: "center", gap: 6,
-    padding: "7px 16px", borderRadius: 10, border: "none",
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    padding: "7px 16px",
+    borderRadius: 10,
+    border: "none",
     background: "linear-gradient(135deg,#dc2626,#ef4444)",
-    color: "#fff", fontSize: 13, fontWeight: 700,
-    cursor: "pointer", fontFamily: "inherit", letterSpacing: 0.2,
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: "pointer",
+    fontFamily: "inherit",
+    letterSpacing: 0.2,
   },
   closeBtn: {
-    display: "flex", alignItems: "center", justifyContent: "center",
-    width: 32, height: 32, borderRadius: 8, border: "1px solid rgba(255,255,255,.09)",
-    background: "rgba(255,255,255,.04)", color: "#64748b",
-    cursor: "pointer", transition: "all .15s",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    border: "1px solid rgba(255,255,255,.09)",
+    background: "rgba(255,255,255,.04)",
+    color: "#64748b",
+    cursor: "pointer",
+    transition: "all .15s",
   },
 
   /* BODY */
-  body:      { flex: 1, display: "flex", overflow: "hidden", minHeight: 0 },
+  body: { flex: 1, display: "flex", overflow: "hidden", minHeight: 0 },
 
   /* VIDEO */
-  videoArea: { flex: 1, position: "relative", overflow: "hidden", minWidth: 0, background: "#05070d" },
+  videoArea: {
+    flex: 1,
+    position: "relative",
+    overflow: "hidden",
+    minWidth: 0,
+    background: "#05070d",
+  },
 
   /* Remote participants — simple CSS grid that auto-fills tiles */
   remoteGrid: {
-    position: "absolute", inset: 0,
+    position: "absolute",
+    inset: 0,
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-    gap: 4, padding: 4,
+    gap: 4,
+    padding: 4,
     alignContent: "center",
-    paddingBottom: 80,   /* leave room for control bar */
+    paddingBottom: 80 /* leave room for control bar */,
   },
 
   /* Trainer PIP */
   pip: {
-    position: "absolute", bottom: 90, right: 16,
-    width: 176, height: 118, borderRadius: 14,
-    overflow: "hidden", border: "2px solid rgba(255,255,255,.13)",
-    background: "#0d1117", boxShadow: "0 8px 32px rgba(0,0,0,.7)", zIndex: 10,
+    position: "absolute",
+    bottom: 90,
+    right: 16,
+    width: 176,
+    height: 118,
+    borderRadius: 14,
+    overflow: "hidden",
+    border: "2px solid rgba(255,255,255,.13)",
+    background: "#0d1117",
+    boxShadow: "0 8px 32px rgba(0,0,0,.7)",
+    zIndex: 10,
   },
   pipOff: {
-    position: "absolute", inset: 0,
-    display: "flex", flexDirection: "column",
-    alignItems: "center", justifyContent: "center", gap: 5, background: "#0f172a",
+    position: "absolute",
+    inset: 0,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 5,
+    background: "#0f172a",
   },
   pipOffTxt: { fontSize: 10, color: "#475569" },
   pipLabel: {
-    position: "absolute", bottom: 6, left: 8,
-    fontSize: 10, color: "#fff",
-    background: "rgba(0,0,0,.6)", padding: "1px 7px", borderRadius: 5,
+    position: "absolute",
+    bottom: 6,
+    left: 8,
+    fontSize: 10,
+    color: "#fff",
+    background: "rgba(0,0,0,.6)",
+    padding: "1px 7px",
+    borderRadius: 5,
     pointerEvents: "none",
   },
 
   /* Control bar — overlaid at bottom of video area */
   ctrlBar: {
-    position: "absolute", bottom: 0, left: 0, right: 0,
-    display: "flex", alignItems: "center", justifyContent: "center",
-    gap: 8, padding: "10px 24px",
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    padding: "10px 24px",
     background: "rgba(13,17,23,.92)",
     backdropFilter: "blur(12px)",
     borderTop: "1px solid rgba(255,255,255,.07)",
@@ -801,148 +1016,185 @@ const S = {
   },
 
   loadingBox: {
-    position: "absolute", inset: 0,
-    display: "flex", flexDirection: "column",
-    alignItems: "center", justifyContent: "center", gap: 14,
+    position: "absolute",
+    inset: 0,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 14,
   },
   spinner: {
-    width: 40, height: 40,
-    border: "4px solid rgba(59,130,246,.2)", borderTop: "4px solid #3b82f6",
-    borderRadius: "50%", animation: "spin .8s linear infinite",
+    width: 40,
+    height: 40,
+    border: "4px solid rgba(59,130,246,.2)",
+    borderTop: "4px solid #3b82f6",
+    borderRadius: "50%",
+    animation: "spin .8s linear infinite",
   },
   loadingText: { fontSize: 13, color: "#475569" },
 
   /* HANDLE */
   handle: {
-    flexShrink: 0, width: 14,
-    display: "flex", alignItems: "center", justifyContent: "center",
-    background: "#0d1117", borderLeft: "1px solid rgba(255,255,255,.05)",
+    flexShrink: 0,
+    width: 14,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "#0d1117",
+    borderLeft: "1px solid rgba(255,255,255,.05)",
     borderRight: "1px solid rgba(255,255,255,.05)",
-    cursor: "pointer", zIndex: 5, transition: "background .2s",
+    cursor: "pointer",
+    zIndex: 5,
+    transition: "background .2s",
   },
   handlePill: {
-    display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
-    padding: "10px 3px", borderRadius: 8,
-    background: "#1e293b", border: "1px solid rgba(255,255,255,.1)",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 3,
+    padding: "10px 3px",
+    borderRadius: 8,
+    background: "#1e293b",
+    border: "1px solid rgba(255,255,255,.1)",
   },
   handleLine: { width: 1, height: 12, background: "rgba(255,255,255,.15)" },
 
   /* SIDEBAR */
   sidebar: {
     flexShrink: 0,
-    background: "#0d1117", borderLeft: "1px solid rgba(255,255,255,.07)",
-    display: "flex", flexDirection: "column",
-    overflow: "hidden", transition: "width .25s ease",
+    background: "#0d1117",
+    borderLeft: "1px solid rgba(255,255,255,.07)",
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
+    transition: "width .25s ease",
   },
   tabRow: {
     flexShrink: 0,
-    display: "flex", borderBottom: "1px solid rgba(255,255,255,.07)",
+    display: "flex",
+    borderBottom: "1px solid rgba(255,255,255,.07)",
   },
 
   /* CHAT */
   msgList: {
-    flex: 1, overflowY: "auto",
-    padding: "12px 14px", display: "flex", flexDirection: "column", gap: 10,
+    flex: 1,
+    overflowY: "auto",
+    padding: "12px 14px",
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
     minHeight: 0,
   },
-  sysRow:    { display: "flex", justifyContent: "center" },
+  sysRow: { display: "flex", justifyContent: "center" },
   sysBubble: {
-    fontSize: 11, color: "#475569", fontStyle: "italic",
-    background: "rgba(255,255,255,.04)", borderRadius: 8, padding: "3px 10px",
+    fontSize: 11,
+    color: "#475569",
+    fontStyle: "italic",
+    background: "rgba(255,255,255,.04)",
+    borderRadius: 8,
+    padding: "3px 10px",
   },
-  msgBlock:  { display: "flex", flexDirection: "column", gap: 2 },
-  msgUser:   { fontSize: 10, color: "#64748b", fontWeight: 600 },
+  msgBlock: { display: "flex", flexDirection: "column", gap: 2 },
+  msgUser: { fontSize: 10, color: "#64748b", fontWeight: 600 },
   msgBubble: {
-    maxWidth: "88%", padding: "7px 11px", borderRadius: 12,
-    fontSize: 13, color: "#f1f5f9", lineHeight: 1.45,
+    maxWidth: "88%",
+    padding: "7px 11px",
+    borderRadius: 12,
+    fontSize: 13,
+    color: "#f1f5f9",
+    lineHeight: 1.45,
   },
-  bubbleSelf:  { background: "linear-gradient(135deg,#1d4ed8,#3b82f6)", alignSelf: "flex-end", borderBottomRightRadius: 2 },
+  bubbleSelf: {
+    background: "linear-gradient(135deg,#1d4ed8,#3b82f6)",
+    alignSelf: "flex-end",
+    borderBottomRightRadius: 2,
+  },
   bubbleOther: { background: "#1e293b", borderBottomLeftRadius: 2 },
   inputRow: {
     flexShrink: 0,
-    display: "flex", gap: 8, padding: "10px 12px",
+    display: "flex",
+    gap: 8,
+    padding: "10px 12px",
     borderTop: "1px solid rgba(255,255,255,.07)",
   },
   chatInput: {
-    flex: 1, background: "#1e293b", border: "1px solid rgba(255,255,255,.08)",
-    borderRadius: 10, padding: "8px 12px", color: "#e2e8f0",
-    fontSize: 13, fontFamily: "inherit", outline: "none",
+    flex: 1,
+    background: "#1e293b",
+    border: "1px solid rgba(255,255,255,.08)",
+    borderRadius: 10,
+    padding: "8px 12px",
+    color: "#e2e8f0",
+    fontSize: 13,
+    fontFamily: "inherit",
+    outline: "none",
   },
   sendBtn: {
     flexShrink: 0,
-    background: "linear-gradient(135deg,#1d4ed8,#2563eb)", border: "none",
-    borderRadius: 10, padding: "0 14px", color: "#fff",
-    cursor: "pointer", display: "flex", alignItems: "center",
+    background: "linear-gradient(135deg,#1d4ed8,#2563eb)",
+    border: "none",
+    borderRadius: 10,
+    padding: "0 14px",
+    color: "#fff",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
   },
 
   /* PEOPLE */
   peopleList: {
-    flex: 1, overflowY: "auto",
-    padding: "10px 12px", display: "flex", flexDirection: "column", gap: 4,
+    flex: 1,
+    overflowY: "auto",
+    padding: "10px 12px",
+    display: "flex",
+    flexDirection: "column",
+    gap: 4,
     minHeight: 0,
   },
   emptyPeople: {
-    flex: 1, display: "flex", flexDirection: "column",
-    alignItems: "center", justifyContent: "center", gap: 8,
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
   },
   pRow: {
-    display: "flex", alignItems: "center", gap: 10,
-    padding: "8px 10px", borderRadius: 10,
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    padding: "8px 10px",
+    borderRadius: 10,
     background: "rgba(255,255,255,.03)",
   },
   pAv: {
-    width: 32, height: 32, borderRadius: "50%",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    fontSize: 14, fontWeight: 700, flexShrink: 0,
+    width: 32,
+    height: 32,
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 14,
+    fontWeight: 700,
+    flexShrink: 0,
   },
-  pName:   { flex: 1, fontSize: 13, color: "#cbd5e1" },
-  hostTag: { fontSize: 10, background: "rgba(59,130,246,.15)", color: "#60a5fa", padding: "2px 8px", borderRadius: 6, fontWeight: 600 },
-  youTag:  { fontSize: 10, background: "rgba(52,211,153,.12)", color: "#6ee7b7", padding: "2px 8px", borderRadius: 6, fontWeight: 600 },
+  pName: { flex: 1, fontSize: 13, color: "#cbd5e1" },
+  hostTag: {
+    fontSize: 10,
+    background: "rgba(59,130,246,.15)",
+    color: "#60a5fa",
+    padding: "2px 8px",
+    borderRadius: 6,
+    fontWeight: 600,
+  },
+  youTag: {
+    fontSize: 10,
+    background: "rgba(52,211,153,.12)",
+    color: "#6ee7b7",
+    padding: "2px 8px",
+    borderRadius: 6,
+    fontWeight: 600,
+  },
 };
 
 export default LiveSessionControls;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

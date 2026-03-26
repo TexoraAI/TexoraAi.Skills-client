@@ -107,3 +107,19 @@ export const uploadRecording = async (formData) => {
     },
   });
 };
+
+// caling section man
+export const startCall = (trainerEmail) => {
+  return axios.post(
+    `${API_BASE}/live-sessions/call/start?trainerEmail=${trainerEmail}`,
+    {},
+    getAuthHeader(),
+  );
+};
+
+export const joinCall = (room) => {
+  return axios.get(
+    `${API_BASE}/live-sessions/call/join?room=${room}`,
+    getAuthHeader(),
+  );
+};

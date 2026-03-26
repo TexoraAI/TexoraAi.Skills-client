@@ -163,7 +163,7 @@ import { joinCall } from "@/services/liveSessionService";
 import { Client } from "@stomp/stompjs";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:9000";
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api";
 
 const getTrainerEmail = () => {
   try {

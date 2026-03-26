@@ -709,6 +709,7 @@ import {
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import auth from "../auth";
+import { Phone } from "lucide-react";
 
 /* ================================================================
    MENUS
@@ -719,6 +720,11 @@ const studentMenus = [
     name: "Live & Recorded", icon: Radio,
     children: [
       { name: "Live Classes",     path: "/student/live-classes",     icon: Radio },
+      {
+        name: "Call Trainer",
+        path: "/student/call-trainer",
+        icon: Phone,
+      },
       { name: "Recorded Classes", path: "/student/recorded-classes", icon: PlayCircle },
     ],
   },
@@ -765,6 +771,11 @@ const trainerMenus = [
     children: [
       { name: "Live Dashboard",         path: "/trainer/live",            icon: LayoutDashboard },
       { name: "Start Live Session",     path: "/trainer/start-live",      icon: Video },
+      {
+        name: "Join Call",
+        path: "/trainer/join-call",
+        icon: Phone,
+      },
       
       { name: "Live Session History",   path: "/trainer/live-history",    icon: History },
       { name: "Live Attendance Report", path: "/trainer/live-attendance", icon: Users },

@@ -60,6 +60,7 @@ import ProfilePage from "./pages/ProfilePage";
 import SearchPage from "./pages/SearchPage";
 import ApplyForm from "./pages/common/ApplyForm";
 import EditProfile from "./pages/common/EditProfile";
+import CallRoom from "./components/live/CallRoom.jsx";
 
 /* ================= STUDENT ================= */
 import Assessments from "./Student/Assessments.jsx";
@@ -82,6 +83,7 @@ import UpdateEmail from "./Student/UpdateEmail";
 import Certificates from "./Student/certificates.jsx";
 import Overview from "./Student/overview.jsx";
 import VideoLectures from "./Student/videolecctures.jsx";
+import CallTrainer from "./Student/CallTrainer.jsx";
 
 /* ================= TRAINER ================= */
 import TrainerAssessments from "./Trainer/Assessments";
@@ -107,6 +109,7 @@ import UploadDocuments from "./Trainer/UploadDocuments";
 import UploadVideos from "./Trainer/UploadVideos";
 import ViewAssignments from "./Trainer/ViewAssignments";
 import ViewSubmissions from "./Trainer/ViewSubmissions";
+
 /* ================= NEW LIVE + RECORDED ================= */
 import LiveAttendanceReport from "./Trainer/LiveAttendanceReport";
 import LiveSessionControls from "./Trainer/LiveSessionControls";
@@ -115,6 +118,7 @@ import RecordedClassList from "./Trainer/RecordedClassList";
 import StartLiveSession from "./Trainer/StartLiveSession";
 import TrainerLiveClasses from "./Trainer/TrainerLiveClasses";
 import UploadRecordedVideo from "./Trainer/UploadRecordedVideo";
+import TrainerJoinCall from "./Trainer/TrainerJoinCall";
 /* ================= ADMIN ================= */
 import AdminBatches from "./Admin/AdminBatches";
 import AdminDashboard from "./Admin/AdminDashboard";
@@ -239,7 +243,9 @@ export default function App() {
 
           {/* 🔥 NEW ADDED */}
         <Route path="live-classes" element={<LiveClasses />} />
+        <Route path="call-trainer" element={<CallTrainer />} />
         <Route path="recorded-classes" element={<RecordedClasses />} />
+
 
           {/* COURSES */}
           <Route path="courses" element={<MyCourses />} />
@@ -305,20 +311,16 @@ export default function App() {
   <Route path="batch-reports" element={<BatchReports />} />
   <Route path="performance" element={<PerformanceAnalysis />} />
   <Route path="view-assignments" element={<ViewAssignments />} />
-  {/* ================= LIVE CLASSES ================= */}
-  {/* <Route path="live" element={<TrainerLiveClasses />} /> */}
-  {/* <Route path="start-live" element={<StartLiveSession />} />
-  <Route path="live-controls" element={<LiveSessionControls />} />
-  <Route path="live-history" element={<LiveSessionHistory />} />
-  <Route path="live-attendance" element={<LiveAttendanceReport />} /> */}
+ 
 
 {/* ================= LIVE CLASSES ================= */}
           <Route path="live" element={<TrainerLiveClasses />} />
           <Route path="start-live" element={<StartLiveSession />} />
-          {/* <Route path="live-controls" element={<LiveSessionControls />} /> */}
           <Route path="live-controls/:id" element={<LiveSessionControls />} />
           <Route path="live-history" element={<LiveSessionHistory />} />
           <Route path="live-attendance" element={<LiveAttendanceReport />} />
+          <Route path="join-call" element={<TrainerJoinCall />} />
+          <Route path="call-room" element={<CallRoom role="trainer" />} />
   {/* ================= RECORDED CLASSES ================= */}
   <Route path="upload-recorded" element={<UploadRecordedVideo />} />
   <Route path="recorded-list" element={<RecordedClassList />} />

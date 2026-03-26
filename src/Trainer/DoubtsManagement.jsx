@@ -148,3 +148,32 @@ const DoubtsManagement = () => {
 };
 
 export default DoubtsManagement;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

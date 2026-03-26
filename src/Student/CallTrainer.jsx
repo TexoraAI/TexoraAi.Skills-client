@@ -84,10 +84,21 @@ import { useState, useEffect, useRef } from "react";
 const CallTrainer = () => {
   const navigate = useNavigate();
   const [calling, setCalling] = useState(false);
-  const [callStatus, setCallStatus] = useState("idle"); // idle | ringing | connected | failed
-  const [ripple, setRipple] = useState(false);
+  const [callStatus, setCallStatus] = useState("idle"); // idle | ringing | failed
   const [time, setTime] = useState(0);
+  const [isDark, setIsDark] = useState(
+    () => document.documentElement.classList.contains("dark") ||
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+  );
   const timerRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (callStatus === "ringing") {
@@ -106,254 +117,276 @@ const CallTrainer = () => {
     if (calling) return;
     setCalling(true);
     setCallStatus("ringing");
-    setRipple(true);
-
     try {
       const trainerEmail = "trainer1@gmail.com";
       const res = await startCall(trainerEmail);
-
-      if (!res || !res.data) {
-        setCallStatus("failed");
-        setCalling(false);
-        return;
-      }
-
+      if (!res?.data) { setCallStatus("failed"); setCalling(false); return; }
       const { room, token } = res.data;
-      if (!room || !token) {
-        setCallStatus("failed");
-        setCalling(false);
-        return;
-      }
-
+      if (!room || !token) { setCallStatus("failed"); setCalling(false); return; }
       sessionStorage.setItem("call_state", JSON.stringify({ room, token }));
       navigate("/student/call-room", { state: { room, token } });
     } catch (err) {
       console.error("CALL ERROR:", err);
       setCallStatus("failed");
       setCalling(false);
-      setRipple(false);
     }
   };
 
   const handleCancel = () => {
     setCalling(false);
     setCallStatus("idle");
-    setRipple(false);
   };
 
+  const t = isDark ? dark : light;
+  const isRinging = callStatus === "ringing";
+  const isFailed = callStatus === "failed";
+
   return (
-    <div style={styles.page}>
-      {/* Animated background blobs */}
-      <div style={styles.blob1} />
-      <div style={styles.blob2} />
-      <div style={styles.blob3} />
-
-      {/* Noise overlay */}
-      <div style={styles.noise} />
-
-      <div style={styles.card}>
-        {/* Top label */}
-        <p style={styles.topLabel}>
-          {callStatus === "idle" && "DIRECT CALL"}
-          {callStatus === "ringing" && "CALLING..."}
-          {callStatus === "failed" && "CALL FAILED"}
-        </p>
-
-        {/* Avatar zone */}
-        <div style={styles.avatarZone}>
-          {/* Ripple rings — only when ringing */}
-          {ripple && (
-            <>
-              <div style={{ ...styles.ring, ...styles.ring1 }} />
-              <div style={{ ...styles.ring, ...styles.ring2 }} />
-              <div style={{ ...styles.ring, ...styles.ring3 }} />
-            </>
-          )}
-
-          {/* Avatar */}
-          <div style={styles.avatar}>
-            <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
-              <circle cx="26" cy="20" r="11" fill="#e2d9f3" />
-              <ellipse cx="26" cy="42" rx="18" ry="11" fill="#e2d9f3" />
-            </svg>
-          </div>
-        </div>
-
-        {/* Trainer info */}
-        <div style={styles.infoBlock}>
-          <h2 style={styles.trainerName}>Your Trainer</h2>
-          <p style={styles.trainerEmail}>trainer1@gmail.com</p>
-          {callStatus === "ringing" && (
-            <p style={styles.timer}>{formatTime(time)}</p>
-          )}
-          {callStatus === "failed" && (
-            <p style={styles.failedText}>Connection failed. Try again.</p>
-          )}
-        </div>
-
-        {/* Call controls */}
-        <div style={styles.controls}>
-          {callStatus === "idle" || callStatus === "failed" ? (
-            <button
-              onClick={handleCall}
-              style={styles.callBtn}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "scale(1.08)";
-                e.currentTarget.style.boxShadow = "0 0 40px rgba(52,211,153,0.6)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "scale(1)";
-                e.currentTarget.style.boxShadow = "0 0 24px rgba(52,211,153,0.35)";
-              }}
-            >
-              <PhoneIcon />
-            </button>
-          ) : (
-            <button
-              onClick={handleCancel}
-              style={styles.endBtn}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "scale(1.08)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "scale(1)";
-              }}
-            >
-              <EndIcon />
-            </button>
-          )}
-        </div>
-
-        {/* Label under button */}
-        <p style={styles.btnLabel}>
-          {callStatus === "idle" && "Tap to call"}
-          {callStatus === "ringing" && "Tap to cancel"}
-          {callStatus === "failed" && "Tap to retry"}
-        </p>
-      </div>
-
-      {/* Keyframes injected via style tag */}
+    <div style={t.page}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
 
-        @keyframes ripple {
-          0%   { transform: scale(1);   opacity: 0.5; }
-          100% { transform: scale(2.6); opacity: 0; }
+        @keyframes float-in {
+          from { opacity: 0; transform: translateY(28px) scale(0.97); }
+          to   { opacity: 1; transform: translateY(0)   scale(1);    }
         }
-        @keyframes blobFloat {
-          0%, 100% { transform: translateY(0px) scale(1); }
-          50%       { transform: translateY(-30px) scale(1.05); }
+        @keyframes avatar-bob {
+          0%, 100% { transform: translateY(0); }
+          50%       { transform: translateY(-6px); }
         }
-        @keyframes fadeSlideUp {
-          from { opacity: 0; transform: translateY(24px); }
-          to   { opacity: 1; transform: translateY(0); }
+        @keyframes ring-expand {
+          0%   { transform: scale(1);   opacity: 0.6; }
+          100% { transform: scale(2.2); opacity: 0;   }
         }
-        @keyframes pulse {
+        @keyframes ring-expand-2 {
+          0%   { transform: scale(1);   opacity: 0.4; }
+          100% { transform: scale(2.8); opacity: 0;   }
+        }
+        @keyframes timer-pulse {
           0%, 100% { opacity: 1; }
           50%       { opacity: 0.5; }
         }
+        @keyframes shake {
+          0%,100% { transform: translateX(0); }
+          20%     { transform: translateX(-6px); }
+          40%     { transform: translateX(6px); }
+          60%     { transform: translateX(-4px); }
+          80%     { transform: translateX(4px); }
+        }
+        @keyframes spin-in {
+          from { transform: rotate(-90deg) scale(0); opacity: 0; }
+          to   { transform: rotate(0deg) scale(1);  opacity: 1; }
+        }
+        @keyframes status-blink {
+          0%, 100% { opacity: 1; }
+          50%       { opacity: 0.25; }
+        }
       `}</style>
+
+      {/* Decorative background */}
+      <div style={t.bg}>
+        <div style={t.bgOrb1} />
+        <div style={t.bgOrb2} />
+        <div style={t.bgGrid} />
+      </div>
+
+      <div style={t.card}>
+        {/* Top badge */}
+        <div style={t.badge}>
+          <span style={t.badgeDot} />
+          <span style={t.badgeText}>
+            {callStatus === "idle"   && "READY TO CONNECT"}
+            {callStatus === "ringing" && "CONNECTING · " + formatTime(time)}
+            {callStatus === "failed"  && "CONNECTION FAILED"}
+          </span>
+        </div>
+
+        {/* Avatar section */}
+        <div style={t.avatarSection}>
+          {/* Rings */}
+          {isRinging && (
+            <>
+              <div style={{ ...t.ring, animation: "ring-expand 2s ease-out infinite 0s" }} />
+              <div style={{ ...t.ring, animation: "ring-expand-2 2s ease-out infinite 0.5s" }} />
+            </>
+          )}
+
+          {/* Avatar circle */}
+          <div style={{
+            ...t.avatarCircle,
+            animation: isRinging ? "avatar-bob 2.2s ease-in-out infinite" : "none",
+          }}>
+            <div style={t.avatarInner}>
+              <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+                <circle cx="28" cy="22" r="11" fill="rgba(255,255,255,0.92)" />
+                <ellipse cx="28" cy="46" rx="18" ry="11" fill="rgba(255,255,255,0.92)" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        {/* Name & email */}
+        <div style={t.nameBlock}>
+          <h1 style={t.trainerName}>Your Trainer</h1>
+          <p style={t.trainerEmail}>trainer1@gmail.com</p>
+          {isFailed && (
+            <p style={{ ...t.trainerEmail, color: "#f87171", marginTop: 4, animation: "shake 0.4s ease" }}>
+              Could not connect — try again
+            </p>
+          )}
+        </div>
+
+        {/* Divider */}
+        <div style={t.divider} />
+
+        {/* CTA button */}
+        <div style={t.ctaSection}>
+          {!isRinging ? (
+            <button
+              onClick={handleCall}
+              style={t.callButton}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = "translateY(-3px) scale(1.04)";
+                e.currentTarget.style.boxShadow = t.callButtonHoverShadow;
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = "translateY(0) scale(1)";
+                e.currentTarget.style.boxShadow = t.callButtonShadow;
+              }}
+            >
+              <PhoneIcon />
+              <span style={t.callBtnLabel}>
+                {isFailed ? "Retry Call" : "Start Call"}
+              </span>
+            </button>
+          ) : (
+            <div style={t.ringingRow}>
+              <div style={t.ringingIndicator}>
+                <span style={{ ...t.ringingDot, animationDelay: "0s" }} />
+                <span style={{ ...t.ringingDot, animationDelay: "0.2s" }} />
+                <span style={{ ...t.ringingDot, animationDelay: "0.4s" }} />
+              </div>
+              <span style={t.ringingText}>Ringing trainer…</span>
+              <button
+                onClick={handleCancel}
+                style={t.cancelBtn}
+                onMouseEnter={e => e.currentTarget.style.opacity = "0.85"}
+                onMouseLeave={e => e.currentTarget.style.opacity = "1"}
+              >
+                <EndIcon />
+                <span style={t.callBtnLabel}>End</span>
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Bottom hint */}
+        <p style={t.hint}>
+          {isRinging ? "Waiting for trainer to accept…" : "Your trainer will be notified instantly"}
+        </p>
+      </div>
     </div>
   );
 };
 
-/* ─── Icons ──────────────────────────────────────────────────────────────── */
+/* ─── Icons ─────────────────────────────────────────────────────── */
 const PhoneIcon = () => (
-  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.1 1.18 2 2 0 012.08 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" />
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.1 1.18 2 2 0 012.08 0h3a2 2 0 012 1.72c.13.96.36 1.9.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0122 16.92z"/>
   </svg>
 );
 
 const EndIcon = () => (
-  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M10.68 13.31a16 16 0 003.41 2.6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 013.09 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.09 9.91" />
-    <line x1="23" y1="1" x2="1" y2="23" />
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M10.68 13.31a16 16 0 003.41 2.6l1.27-1.27a2 2 0 012.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0122 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 013.09 2h3a2 2 0 012 1.72c.13.96.36 1.9.7 2.81a2 2 0 01-.45 2.11L7.09 9.91"/>
+    <line x1="23" y1="1" x2="1" y2="23"/>
   </svg>
 );
 
-/* ─── Styles ─────────────────────────────────────────────────────────────── */
-const styles = {
+/* ─── DARK ────────────────────────────────────────────────────────── */
+const dark = {
   page: {
     minHeight: "100vh",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "#0f0c1a",
-    fontFamily: "'DM Sans', sans-serif",
+    fontFamily: "'Instrument Sans', sans-serif",
     position: "relative",
+    background: "#060910",
     overflow: "hidden",
   },
-  blob1: {
+  bg: { position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 },
+  bgOrb1: {
+    position: "absolute",
+    width: 700,
+    height: 700,
+    top: "-250px",
+    left: "-200px",
+    borderRadius: "50%",
+    background: "radial-gradient(circle, rgba(79,70,229,0.22) 0%, transparent 60%)",
+  },
+  bgOrb2: {
     position: "absolute",
     width: 500,
     height: 500,
+    bottom: "-200px",
+    right: "-150px",
     borderRadius: "50%",
-    background: "radial-gradient(circle, rgba(109,40,217,0.35) 0%, transparent 70%)",
-    top: "-100px",
-    left: "-120px",
-    animation: "blobFloat 8s ease-in-out infinite",
-    pointerEvents: "none",
+    background: "radial-gradient(circle, rgba(16,185,129,0.14) 0%, transparent 60%)",
   },
-  blob2: {
-    position: "absolute",
-    width: 400,
-    height: 400,
-    borderRadius: "50%",
-    background: "radial-gradient(circle, rgba(16,185,129,0.2) 0%, transparent 70%)",
-    bottom: "-80px",
-    right: "-80px",
-    animation: "blobFloat 10s ease-in-out infinite reverse",
-    pointerEvents: "none",
-  },
-  blob3: {
-    position: "absolute",
-    width: 300,
-    height: 300,
-    borderRadius: "50%",
-    background: "radial-gradient(circle, rgba(236,72,153,0.15) 0%, transparent 70%)",
-    top: "40%",
-    right: "10%",
-    animation: "blobFloat 12s ease-in-out infinite",
-    pointerEvents: "none",
-  },
-  noise: {
+  bgGrid: {
     position: "absolute",
     inset: 0,
-    backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E")`,
-    pointerEvents: "none",
-    opacity: 0.4,
+    backgroundImage: `linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)`,
+    backgroundSize: "48px 48px",
   },
   card: {
     position: "relative",
     zIndex: 10,
-    background: "rgba(255,255,255,0.04)",
-    backdropFilter: "blur(24px)",
-    WebkitBackdropFilter: "blur(24px)",
-    border: "1px solid rgba(255,255,255,0.08)",
+    width: 400,
+    background: "rgba(12,16,28,0.88)",
+    backdropFilter: "blur(40px)",
+    WebkitBackdropFilter: "blur(40px)",
+    border: "1px solid rgba(255,255,255,0.07)",
     borderRadius: 32,
-    padding: "56px 48px 48px",
+    padding: "36px 40px 32px",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     gap: 0,
-    minWidth: 340,
-    boxShadow: "0 32px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)",
-    animation: "fadeSlideUp 0.6s ease both",
+    boxShadow: "0 48px 120px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.07)",
+    animation: "float-in 0.55s cubic-bezier(0.22,1,0.36,1) both",
   },
-  topLabel: {
-    fontFamily: "'DM Sans', sans-serif",
-    fontWeight: 500,
-    fontSize: 11,
-    letterSpacing: "0.22em",
-    color: "rgba(255,255,255,0.35)",
-    textTransform: "uppercase",
+  badge: {
+    display: "flex",
+    alignItems: "center",
+    gap: 7,
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,255,255,0.07)",
+    borderRadius: 20,
+    padding: "5px 14px",
     marginBottom: 40,
-    margin: "0 0 40px 0",
   },
-  avatarZone: {
+  badgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: "50%",
+    background: "#22c55e",
+    display: "inline-block",
+    animation: "status-blink 2s ease-in-out infinite",
+  },
+  badgeText: {
+    fontFamily: "'Syne', sans-serif",
+    fontSize: 10,
+    fontWeight: 700,
+    letterSpacing: "0.18em",
+    color: "rgba(255,255,255,0.4)",
+  },
+  avatarSection: {
     position: "relative",
-    width: 110,
-    height: 110,
+    width: 140,
+    height: 140,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -361,98 +394,342 @@ const styles = {
   },
   ring: {
     position: "absolute",
-    width: 110,
-    height: 110,
+    inset: 0,
     borderRadius: "50%",
-    border: "2px solid rgba(52,211,153,0.45)",
-    animation: "ripple 2s ease-out infinite",
+    border: "2px solid rgba(99,102,241,0.5)",
   },
-  ring1: { animationDelay: "0s" },
-  ring2: { animationDelay: "0.6s" },
-  ring3: { animationDelay: "1.2s" },
-  avatar: {
-    width: 90,
-    height: 90,
+  avatarCircle: {
+    width: 108,
+    height: 108,
     borderRadius: "50%",
-    background: "linear-gradient(135deg, #4c1d95 0%, #7c3aed 50%, #5b21b6 100%)",
+    background: "linear-gradient(145deg, #1e1b4b 0%, #4c1d95 40%, #7c3aed 100%)",
+    padding: 3,
+    zIndex: 2,
+    boxShadow: "0 16px 48px rgba(99,102,241,0.5)",
+  },
+  avatarInner: {
+    width: "100%",
+    height: "100%",
+    borderRadius: "50%",
+    background: "linear-gradient(145deg, #4338ca, #818cf8)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    boxShadow: "0 8px 32px rgba(109,40,217,0.5)",
-    zIndex: 2,
-    position: "relative",
   },
-  infoBlock: {
+  nameBlock: {
     textAlign: "center",
-    marginBottom: 44,
-    display: "flex",
-    flexDirection: "column",
-    gap: 6,
+    marginBottom: 28,
   },
   trainerName: {
-    fontFamily: "'DM Serif Display', serif",
-    fontSize: 28,
-    fontWeight: 400,
+    fontFamily: "'Syne', sans-serif",
+    fontSize: 34,
+    fontWeight: 800,
     color: "#fff",
-    margin: 0,
-    letterSpacing: "-0.02em",
+    margin: "0 0 6px",
+    letterSpacing: "-0.04em",
   },
   trainerEmail: {
     fontSize: 13,
-    color: "rgba(255,255,255,0.4)",
+    color: "rgba(255,255,255,0.32)",
     margin: 0,
     fontWeight: 300,
+    fontStyle: "italic",
   },
-  timer: {
-    fontSize: 22,
-    color: "#34d399",
-    fontWeight: 500,
-    margin: "8px 0 0",
-    fontVariantNumeric: "tabular-nums",
-    animation: "pulse 2s ease-in-out infinite",
+  divider: {
+    width: "100%",
+    height: 1,
+    background: "rgba(255,255,255,0.06)",
+    marginBottom: 28,
   },
-  failedText: {
-    fontSize: 13,
-    color: "#f87171",
-    margin: "6px 0 0",
-  },
-  controls: {
+  ctaSection: {
     display: "flex",
-    justifyContent: "center",
-    marginBottom: 16,
+    flexDirection: "column",
+    alignItems: "center",
+    marginBottom: 20,
+    width: "100%",
   },
-  callBtn: {
-    width: 76,
-    height: 76,
-    borderRadius: "50%",
-    background: "linear-gradient(135deg, #059669, #34d399)",
+  callButton: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    background: "linear-gradient(135deg, #16a34a, #22c55e)",
     border: "none",
+    borderRadius: 50,
+    padding: "16px 40px",
     cursor: "pointer",
+    transition: "transform 0.22s ease, box-shadow 0.22s ease",
+    boxShadow: "0 8px 28px rgba(34,197,94,0.35)",
+  },
+  callButtonShadow: "0 8px 28px rgba(34,197,94,0.35)",
+  callButtonHoverShadow: "0 14px 40px rgba(34,197,94,0.55)",
+  callBtnLabel: {
+    fontFamily: "'Syne', sans-serif",
+    fontWeight: 700,
+    fontSize: 15,
+    letterSpacing: "0.03em",
+    color: "#fff",
+  },
+  ringingRow: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 16,
+    width: "100%",
+  },
+  ringingIndicator: {
+    display: "flex",
+    gap: 6,
+    alignItems: "center",
+  },
+  ringingDot: {
+    display: "inline-block",
+    width: 7,
+    height: 7,
+    borderRadius: "50%",
+    background: "#22c55e",
+    animation: "status-blink 1s ease-in-out infinite",
+  },
+  ringingText: {
+    fontFamily: "'Syne', sans-serif",
+    fontSize: 13,
+    fontWeight: 600,
+    color: "rgba(255,255,255,0.45)",
+    letterSpacing: "0.06em",
+  },
+  cancelBtn: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    background: "linear-gradient(135deg, #7f1d1d, #ef4444)",
+    border: "none",
+    borderRadius: 50,
+    padding: "13px 32px",
+    cursor: "pointer",
+    transition: "opacity 0.2s ease",
+    boxShadow: "0 8px 24px rgba(239,68,68,0.4)",
+  },
+  hint: {
+    fontSize: 11,
+    color: "rgba(255,255,255,0.18)",
+    margin: 0,
+    textAlign: "center",
+    fontWeight: 300,
+    letterSpacing: "0.03em",
+  },
+};
+
+/* ─── LIGHT ──────────────────────────────────────────────────────── */
+const light = {
+  page: {
+    minHeight: "100vh",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    boxShadow: "0 0 24px rgba(52,211,153,0.35)",
-    transition: "transform 0.2s ease, box-shadow 0.2s ease",
+    fontFamily: "'Instrument Sans', sans-serif",
+    position: "relative",
+    background: "#eef0f7",
+    overflow: "hidden",
   },
-  endBtn: {
-    width: 76,
-    height: 76,
+  bg: { position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 },
+  bgOrb1: {
+    position: "absolute",
+    width: 700,
+    height: 700,
+    top: "-300px",
+    left: "-200px",
     borderRadius: "50%",
+    background: "radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 60%)",
+  },
+  bgOrb2: {
+    position: "absolute",
+    width: 500,
+    height: 500,
+    bottom: "-200px",
+    right: "-100px",
+    borderRadius: "50%",
+    background: "radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 60%)",
+  },
+  bgGrid: {
+    position: "absolute",
+    inset: 0,
+    backgroundImage: `linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px)`,
+    backgroundSize: "48px 48px",
+  },
+  card: {
+    position: "relative",
+    zIndex: 10,
+    width: 400,
+    background: "rgba(255,255,255,0.9)",
+    backdropFilter: "blur(40px)",
+    WebkitBackdropFilter: "blur(40px)",
+    border: "1px solid rgba(0,0,0,0.06)",
+    borderRadius: 32,
+    padding: "36px 40px 32px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 0,
+    boxShadow: "0 32px 80px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.05)",
+    animation: "float-in 0.55s cubic-bezier(0.22,1,0.36,1) both",
+  },
+  badge: {
+    display: "flex",
+    alignItems: "center",
+    gap: 7,
+    background: "rgba(0,0,0,0.04)",
+    border: "1px solid rgba(0,0,0,0.06)",
+    borderRadius: 20,
+    padding: "5px 14px",
+    marginBottom: 40,
+  },
+  badgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: "50%",
+    background: "#22c55e",
+    display: "inline-block",
+    animation: "status-blink 2s ease-in-out infinite",
+  },
+  badgeText: {
+    fontFamily: "'Syne', sans-serif",
+    fontSize: 10,
+    fontWeight: 700,
+    letterSpacing: "0.18em",
+    color: "rgba(0,0,0,0.4)",
+  },
+  avatarSection: {
+    position: "relative",
+    width: 140,
+    height: 140,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 32,
+  },
+  ring: {
+    position: "absolute",
+    inset: 0,
+    borderRadius: "50%",
+    border: "2px solid rgba(79,70,229,0.45)",
+  },
+  avatarCircle: {
+    width: 108,
+    height: 108,
+    borderRadius: "50%",
+    background: "linear-gradient(145deg, #c7d2fe 0%, #818cf8 50%, #6366f1 100%)",
+    padding: 3,
+    zIndex: 2,
+    boxShadow: "0 16px 48px rgba(99,102,241,0.35)",
+  },
+  avatarInner: {
+    width: "100%",
+    height: "100%",
+    borderRadius: "50%",
+    background: "linear-gradient(145deg, #4338ca, #818cf8)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  nameBlock: {
+    textAlign: "center",
+    marginBottom: 28,
+  },
+  trainerName: {
+    fontFamily: "'Syne', sans-serif",
+    fontSize: 34,
+    fontWeight: 800,
+    color: "#1e1b4b",
+    margin: "0 0 6px",
+    letterSpacing: "-0.04em",
+  },
+  trainerEmail: {
+    fontSize: 13,
+    color: "rgba(0,0,0,0.35)",
+    margin: 0,
+    fontWeight: 300,
+    fontStyle: "italic",
+  },
+  divider: {
+    width: "100%",
+    height: 1,
+    background: "rgba(0,0,0,0.06)",
+    marginBottom: 28,
+  },
+  ctaSection: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    marginBottom: 20,
+    width: "100%",
+  },
+  callButton: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    background: "linear-gradient(135deg, #15803d, #22c55e)",
+    border: "none",
+    borderRadius: 50,
+    padding: "16px 40px",
+    cursor: "pointer",
+    transition: "transform 0.22s ease, box-shadow 0.22s ease",
+    boxShadow: "0 8px 28px rgba(34,197,94,0.35)",
+  },
+  callButtonShadow: "0 8px 28px rgba(34,197,94,0.35)",
+  callButtonHoverShadow: "0 14px 40px rgba(34,197,94,0.5)",
+  callBtnLabel: {
+    fontFamily: "'Syne', sans-serif",
+    fontWeight: 700,
+    fontSize: 15,
+    letterSpacing: "0.03em",
+    color: "#fff",
+  },
+  ringingRow: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 16,
+    width: "100%",
+  },
+  ringingIndicator: {
+    display: "flex",
+    gap: 6,
+    alignItems: "center",
+  },
+  ringingDot: {
+    display: "inline-block",
+    width: 7,
+    height: 7,
+    borderRadius: "50%",
+    background: "#16a34a",
+    animation: "status-blink 1s ease-in-out infinite",
+  },
+  ringingText: {
+    fontFamily: "'Syne', sans-serif",
+    fontSize: 13,
+    fontWeight: 600,
+    color: "rgba(0,0,0,0.38)",
+    letterSpacing: "0.06em",
+  },
+  cancelBtn: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
     background: "linear-gradient(135deg, #dc2626, #ef4444)",
     border: "none",
+    borderRadius: 50,
+    padding: "13px 32px",
     cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    boxShadow: "0 0 24px rgba(239,68,68,0.4)",
-    transition: "transform 0.2s ease",
+    transition: "opacity 0.2s ease",
+    boxShadow: "0 8px 24px rgba(239,68,68,0.3)",
   },
-  btnLabel: {
-    fontSize: 12,
-    color: "rgba(255,255,255,0.25)",
-    letterSpacing: "0.1em",
-    textTransform: "uppercase",
+  hint: {
+    fontSize: 11,
+    color: "rgba(0,0,0,0.22)",
     margin: 0,
+    textAlign: "center",
+    fontWeight: 300,
+    letterSpacing: "0.03em",
   },
 };
 

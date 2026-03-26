@@ -245,7 +245,7 @@ export default function App() {
         <Route path="live-classes" element={<LiveClasses />} />
         <Route path="call-trainer" element={<CallTrainer />} />
         <Route path="recorded-classes" element={<RecordedClasses />} />
-
+        <Route path="call-room" element={<CallRoom />} /> 
 
           {/* COURSES */}
           <Route path="courses" element={<MyCourses />} />

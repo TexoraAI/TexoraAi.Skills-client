@@ -1,169 +1,10 @@
-
-// import { useEffect, useState, useRef } from "react";
-// import { useNavigate } from "react-router-dom";
-// import { joinCall } from "@/services/liveSessionService";
-// import { Client } from "@stomp/stompjs";
-
-// const API_BASE_URL =
-//   import.meta.env.VITE_API_BASE_URL || "http://localhost:9000";
-
-// const getTrainerEmail = () => {
-//   try {
-//     const lmsUser = localStorage.getItem("lms_user");
-//     if (lmsUser) {
-//       const parsed = JSON.parse(lmsUser);
-//       if (parsed.email) return parsed.email;
-//     }
-//   } catch {}
-//   return null;
-// };
-
-// const TrainerJoinCall = () => {
-//   const [room, setRoom] = useState(null);
-//   const [connected, setConnected] = useState(false);
-//   const [trainerEmail, setTrainerEmail] = useState(null);
-//   const navigate = useNavigate();
-//   const stompClientRef = useRef(null);
-
-//   useEffect(() => {
-//     const email = getTrainerEmail();
-//     if (!email) {
-//       console.error(
-//         "No trainer email found. localStorage:",
-//         Object.keys(localStorage),
-//       );
-//       return;
-//     }
-
-//     console.log("✅ Trainer email:", email);
-//     setTrainerEmail(email);
-
-//     const wsUrl = API_BASE_URL.replace("http", "ws") + "/live-chat";
-//     console.log("Connecting to WebSocket:", wsUrl);
-
-//     const client = new Client({
-//       brokerURL: wsUrl,
-//       reconnectDelay: 5000,
-//       onConnect: () => {
-//         console.log("✅ WebSocket connected");
-//         setConnected(true);
-//         client.subscribe(`/topic/calls/${email}`, (msg) => {
-//           console.log("📞 Incoming call, room:", msg.body);
-//           setRoom(msg.body);
-//         });
-//       },
-//       onDisconnect: () => setConnected(false),
-//       onStompError: (frame) => console.error("STOMP error:", frame),
-//     });
-
-//     client.activate();
-//     stompClientRef.current = client;
-//     return () => client.deactivate();
-//   }, []);
-
-//   const handleJoin = async () => {
-//     try {
-//       if (!room) return alert("No incoming call");
-//       const res = await joinCall(room);
-//       const { token } = res.data;
-//       if (!token) return alert("Invalid token from server");
-
-//       // ✅ Save to sessionStorage BEFORE navigating (state can be lost in nested routes)
-//       sessionStorage.setItem("call_state", JSON.stringify({ room, token }));
-
-//       navigate("/trainer/call-room", { state: { room, token } });
-//     } catch (err) {
-//       console.error("Join failed:", err);
-//       alert("Failed to join call.");
-//     }
-//   };
-
-//   return (
-//     <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-white">
-//       <h2 className="text-3xl font-bold mb-2">📞 Incoming Call</h2>
-
-//       <p
-//         className={`text-sm mb-6 ${connected ? "text-green-400" : "text-red-400"}`}
-//       >
-//         {connected
-//           ? `🟢 Listening as ${trainerEmail}`
-//           : trainerEmail
-//             ? "🔴 Connecting to server..."
-//             : "🔴 Email not found in storage"}
-//       </p>
-
-//       {room ? (
-//         <div className="flex flex-col items-center gap-4">
-//           <div className="w-20 h-20 rounded-full bg-green-500 flex items-center justify-center text-4xl shadow-lg">
-//             📲
-//           </div>
-//           <p className="text-green-400 text-lg font-semibold">
-//             Student is calling!
-//           </p>
-//           <p className="text-gray-400 text-sm">Room: {room}</p>
-//           <div className="flex gap-4 mt-4">
-//             <button
-//               onClick={handleJoin}
-//               className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-full text-lg font-semibold shadow-lg transition-all"
-//             >
-//               ✅ Accept
-//             </button>
-//             <button
-//               onClick={() => setRoom(null)}
-//               className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-full text-lg font-semibold shadow-lg transition-all"
-//             >
-//               ❌ Decline
-//             </button>
-//           </div>
-//         </div>
-//       ) : (
-//         <div className="flex flex-col items-center gap-3 text-gray-400">
-//           <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center text-3xl">
-//             📵
-//           </div>
-//           <p>Waiting for incoming calls...</p>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default TrainerJoinCall;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { joinCall } from "@/services/liveSessionService";
 import { Client } from "@stomp/stompjs";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api";
+// ✅ Single source of truth for WebSocket URL
+const wsUrl = (import.meta.env.VITE_WS_BASE_URL || "ws://localhost:9000") + "/live-chat";
 
 const getTrainerEmail = () => {
   try {
@@ -186,9 +27,7 @@ const TrainerJoinCall = () => {
   );
   const navigate = useNavigate();
   const stompClientRef = useRef(null);
-  const audioRef = useRef(null);
 
-  // Listen for theme changes from the LMS sidebar toggle
   useEffect(() => {
     const observer = new MutationObserver(() => {
       setIsDark(document.documentElement.classList.contains("dark"));
@@ -202,7 +41,7 @@ const TrainerJoinCall = () => {
     if (!email) return;
     setTrainerEmail(email);
 
-    const wsUrl = API_BASE_URL.replace("http", "ws") + "/live-chat";
+    // ✅ Use the top-level wsUrl — no re-declaration, no API_BASE_URL confusion
     const client = new Client({
       brokerURL: wsUrl,
       reconnectDelay: 5000,
@@ -260,27 +99,8 @@ const TrainerJoinCall = () => {
           0%, 100% { opacity: 1; }
           50%       { opacity: 0.3; }
         }
-        @keyframes scanner {
-          0%   { top: 0; opacity: 0.7; }
-          50%  { opacity: 1; }
-          100% { top: 100%; opacity: 0.7; }
-        }
-        @keyframes shimmer-slide {
-          0%   { background-position: -200% center; }
-          100% { background-position: 200% center; }
-        }
-        @keyframes wave-in {
-          from { clip-path: circle(0% at 50% 100%); }
-          to   { clip-path: circle(150% at 50% 100%); }
-        }
-        @keyframes tick-spin {
-          0%   { transform: rotate(0deg) scale(0); opacity: 0; }
-          60%  { transform: rotate(380deg) scale(1.15); opacity: 1; }
-          100% { transform: rotate(360deg) scale(1); opacity: 1; }
-        }
       `}</style>
 
-      {/* Ambient background orbs */}
       <div style={t.orb1} />
       <div style={t.orb2} />
 
@@ -309,7 +129,6 @@ const TrainerJoinCall = () => {
           /* ── INCOMING CALL STATE ── */
           <div style={t.callContainer}>
             <div style={t.avatarWrap}>
-              {/* Pulsing rings */}
               <div style={{ ...t.pulseRing, animation: "pulse-ring 2s ease-out infinite" }} />
               <div style={{ ...t.pulseRing, animation: "pulse-ring-2 2s ease-out infinite 0.4s" }} />
               <div style={t.avatarOuter}>
@@ -357,7 +176,6 @@ const TrainerJoinCall = () => {
         ) : (
           /* ── WAITING STATE ── */
           <div style={t.waitingContainer}>
-            {/* Animated radar */}
             <div style={t.radarWrap}>
               <div style={t.radarOuter}>
                 <div style={t.radarMiddle}>
@@ -381,7 +199,6 @@ const TrainerJoinCall = () => {
               </p>
             </div>
 
-            {/* Divider with dots */}
             <div style={t.dotRow}>
               {[0,1,2,3,4].map(i => (
                 <div key={i} style={{
@@ -479,12 +296,7 @@ const dark = {
     borderRadius: 20,
     padding: "4px 10px",
   },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: "50%",
-    display: "inline-block",
-  },
+  statusDot: { width: 6, height: 6, borderRadius: "50%", display: "inline-block" },
   statusText: {
     fontFamily: "'Syne', sans-serif",
     fontSize: 10,
@@ -492,8 +304,6 @@ const dark = {
     letterSpacing: "0.15em",
     color: "rgba(255,255,255,0.5)",
   },
-
-  /* WAITING */
   waitingContainer: {
     padding: "48px 40px 40px",
     display: "flex",
@@ -540,16 +350,9 @@ const dark = {
     margin: "0 0 8px",
     letterSpacing: "-0.03em",
   },
-  waitingSubtitle: {
-    fontSize: 13,
-    color: "rgba(255,255,255,0.35)",
-    margin: 0,
-    fontWeight: 300,
-  },
+  waitingSubtitle: { fontSize: 13, color: "rgba(255,255,255,0.35)", margin: 0, fontWeight: 300 },
   dotRow: { display: "flex", gap: 8, alignItems: "center" },
   dot: { width: 5, height: 5, borderRadius: "50%" },
-
-  /* CALL */
   callContainer: {
     padding: "44px 40px 40px",
     display: "flex",
@@ -606,16 +409,8 @@ const dark = {
     margin: "0 0 6px",
     letterSpacing: "-0.04em",
   },
-  callRoom: {
-    fontSize: 12,
-    color: "rgba(255,255,255,0.3)",
-    margin: 0,
-    fontWeight: 300,
-  },
-  actionRow: {
-    display: "flex",
-    gap: 24,
-  },
+  callRoom: { fontSize: 12, color: "rgba(255,255,255,0.3)", margin: 0, fontWeight: 300 },
+  actionRow: { display: "flex", gap: 24 },
   declineBtn: {
     width: 72,
     height: 72,
@@ -658,12 +453,7 @@ const dark = {
     borderTop: "1px solid rgba(255,255,255,0.04)",
     textAlign: "center",
   },
-  footerText: {
-    fontSize: 11,
-    color: "rgba(255,255,255,0.2)",
-    fontWeight: 300,
-    letterSpacing: "0.02em",
-  },
+  footerText: { fontSize: 11, color: "rgba(255,255,255,0.2)", fontWeight: 300, letterSpacing: "0.02em" },
 };
 
 /* ─── LIGHT THEME ─────────────────────────────────────────────────── */
@@ -737,12 +527,7 @@ const light = {
     borderRadius: 20,
     padding: "4px 10px",
   },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: "50%",
-    display: "inline-block",
-  },
+  statusDot: { width: 6, height: 6, borderRadius: "50%", display: "inline-block" },
   statusText: {
     fontFamily: "'Syne', sans-serif",
     fontSize: 10,
@@ -750,7 +535,6 @@ const light = {
     letterSpacing: "0.15em",
     color: "rgba(0,0,0,0.4)",
   },
-
   waitingContainer: {
     padding: "48px 40px 40px",
     display: "flex",
@@ -797,15 +581,9 @@ const light = {
     margin: "0 0 8px",
     letterSpacing: "-0.03em",
   },
-  waitingSubtitle: {
-    fontSize: 13,
-    color: "rgba(0,0,0,0.38)",
-    margin: 0,
-    fontWeight: 300,
-  },
+  waitingSubtitle: { fontSize: 13, color: "rgba(0,0,0,0.38)", margin: 0, fontWeight: 300 },
   dotRow: { display: "flex", gap: 8, alignItems: "center" },
   dot: { width: 5, height: 5, borderRadius: "50%" },
-
   callContainer: {
     padding: "44px 40px 40px",
     display: "flex",
@@ -862,16 +640,8 @@ const light = {
     margin: "0 0 6px",
     letterSpacing: "-0.04em",
   },
-  callRoom: {
-    fontSize: 12,
-    color: "rgba(0,0,0,0.3)",
-    margin: 0,
-    fontWeight: 300,
-  },
-  actionRow: {
-    display: "flex",
-    gap: 24,
-  },
+  callRoom: { fontSize: 12, color: "rgba(0,0,0,0.3)", margin: 0, fontWeight: 300 },
+  actionRow: { display: "flex", gap: 24 },
   declineBtn: {
     width: 72,
     height: 72,
@@ -914,12 +684,7 @@ const light = {
     borderTop: "1px solid rgba(0,0,0,0.04)",
     textAlign: "center",
   },
-  footerText: {
-    fontSize: 11,
-    color: "rgba(0,0,0,0.25)",
-    fontWeight: 300,
-    letterSpacing: "0.02em",
-  },
+  footerText: { fontSize: 11, color: "rgba(0,0,0,0.25)", fontWeight: 300, letterSpacing: "0.02em" },
 };
 
 export default TrainerJoinCall;

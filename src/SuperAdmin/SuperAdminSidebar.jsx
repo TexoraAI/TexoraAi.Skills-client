@@ -119,14 +119,15 @@ export default function SuperAdminSidebar({ activePage, onNavigate, isOpen }) {
             fontWeight: 700,
           }}
         >
-          T
+          ILM 
         </div>
 
         {isOpen && (
           <div>
             <div style={{ color: "#fff", fontSize: "15px", fontWeight: 700 }}>
-              TexoraAi.skills
-            </div>
+  <span style={{ color: "#16a34a" }}>ILM</span>
+  <span style={{ color: "#F97316" }}> ORA</span>
+</div>
             <div style={{ color: "rgba(255,255,255,.4)", fontSize: "11px" }}>
               Super Admin
             </div>

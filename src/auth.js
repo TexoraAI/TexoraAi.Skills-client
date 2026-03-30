@@ -14,18 +14,12 @@
 //   async login({ email, password }) {
 //     try {
 //       const res = await authService.login(email, password);
-
 //       const { token, email: userEmail, role } = res.data;
-
 //       localStorage.setItem("lms_token", token);
-//       localStorage.setItem(
-//         "lms_user",
-//         JSON.stringify({
-//           email: userEmail,
-//           role: role.toLowerCase(),
-//         })
-//       );
-
+//       localStorage.setItem("lms_user", JSON.stringify({
+//         email: userEmail,
+//         role: role.toLowerCase(),
+//       }));
 //       return true;
 //     } catch (err) {
 //       return false;
@@ -35,25 +29,33 @@
 //   async googleLogin({ idToken, role }) {
 //     try {
 //       const res = await authService.googleLogin({
-//         idToken: idToken, // ✅ MUST MATCH BACKEND
+//         idToken: idToken,
 //         role,
 //       });
 
-//       const { token, email: userEmail, role: userRole } = res.data;
+//       const data = res.data;
 
+//       // 🔥 DEBUG LINES
+//       console.log(">>> auth.js raw data:", JSON.stringify(data));
+//       console.log(">>> isNewUser value:", data?.isNewUser);
+//       console.log(">>> isNewUser type:", typeof data?.isNewUser);
+
+//       if (data?.isNewUser === true) {
+//         return { isNewUser: true };
+//       }
+
+//       const { token, email: userEmail, role: userRole } = data;
 //       localStorage.setItem("lms_token", token);
-//       localStorage.setItem(
-//         "lms_user",
-//         JSON.stringify({
-//           email: userEmail,
-//           role: userRole.toLowerCase(),
-//         })
-//       );
+//       localStorage.setItem("lms_user", JSON.stringify({
+//         email: userEmail,
+//         role: userRole ? userRole.toLowerCase() : "student"
+//       }));
 
-//       return true;
+//       return { isNewUser: false, role: userRole };
+
 //     } catch (err) {
 //       console.error("Google login failed:", err);
-//       return false;
+//       throw err;
 //     }
 //   },
 
@@ -97,6 +99,14 @@
 
 
 
+
+
+
+
+
+
+
+
 import authService from "./services/authService";
 
 const auth = {
@@ -113,11 +123,12 @@ const auth = {
   async login({ email, password }) {
     try {
       const res = await authService.login(email, password);
-      const { token, email: userEmail, role } = res.data;
+      const { token, email: userEmail, role, name } = res.data;
       localStorage.setItem("lms_token", token);
       localStorage.setItem("lms_user", JSON.stringify({
         email: userEmail,
         role: role.toLowerCase(),
+        name: name || userEmail.split("@")[0], // ← name save 
       }));
       return true;
     } catch (err) {
@@ -143,11 +154,12 @@ const auth = {
         return { isNewUser: true };
       }
 
-      const { token, email: userEmail, role: userRole } = data;
+      const { token, email: userEmail, role: userRole, name: userName } = data; // ← name
       localStorage.setItem("lms_token", token);
       localStorage.setItem("lms_user", JSON.stringify({
         email: userEmail,
-        role: userRole ? userRole.toLowerCase() : "student"
+        role: userRole ? userRole.toLowerCase() : "student",
+        name: userName || userEmail.split("@")[0],
       }));
 
       return { isNewUser: false, role: userRole };

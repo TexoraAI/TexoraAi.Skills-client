@@ -1,3 +1,4 @@
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -213,9 +214,12 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                   </DropdownMenu>
                 </div>
               ) : (
-                <Button onClick={() => navigate("/login")} className="hidden lg:flex items-center gap-2 px-6 h-11 rounded-xl font-semibold bg-[#1E293B] hover:bg-[#334155] text-white shadow-md transition-all hover:scale-105 hover:shadow-lg">
-                  <Sparkles className="w-4 h-4" /> Get Started
-                </Button>
+                <Button
+                onClick={() => navigate("/login")}
+                className="bg-[#1E293B] hover:bg-[#334155] text-white font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
+              >
+                <Sparkles className="w-4 h-4" /> Get Started
+              </Button>
               )}
 
               <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -235,7 +239,12 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                         <Button variant="destructive" onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className="w-full">Logout</Button>
                       </>
                     ) : (
-                      <Button onClick={() => { navigate("/login"); setMobileMenuOpen(false); }} className="w-full bg-[#1E293B] hover:bg-[#334155] text-white">Get Started</Button>
+                      <Button
+                      onClick={() => { navigate("/login"); setMobileMenuOpen(false); }}
+                      className="w-full bg-[#1E293B] hover:bg-[#334155] text-white font-bold flex items-center justify-center gap-2 rounded-xl"
+                    >
+                      <Sparkles className="w-4 h-4" /> Get Started
+                    </Button>
                     )}
                   </div>
                 </SheetContent>

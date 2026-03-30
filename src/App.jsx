@@ -158,6 +158,9 @@ import BusinessSettings from "./Business/Settings.jsx";
 import Performance from "./Business/Team Targets/Performance.jsx";
 import Targets from "./Business/Team Targets/Targets.jsx";
 
+/*src/pages/student/IlmOraDemoPage.jsx */
+import IlmOraDemoPage from "./pages/Student/IlmOraDemoPage";
+
 /* ================= PROTECTED ================= */
 const ProtectedRoute = ({ children }) => {
   if (!auth.isAuthenticated()) {
@@ -213,6 +216,9 @@ export default function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/approval-pending" element={<ApprovalPending />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+
+        {/*src/pages/student/IlmOraDemoPage.jsx */}
+        <Route path="/ilm-demo" element={<IlmOraDemoPage />} />
         
 
         {/* ================= APPLY ================= */}

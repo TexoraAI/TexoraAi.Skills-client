@@ -59,6 +59,7 @@ import NotificationsPage from "./pages/NotificationsPage";
 import ProfilePage from "./pages/ProfilePage";
 import SearchPage from "./pages/SearchPage";
 import ApplyForm from "./pages/common/ApplyForm";
+import CompleteProfile from "./pages/common/CompleteProfile";
 import EditProfile from "./pages/common/EditProfile";
 import CallRoom from "./components/live/CallRoom.jsx";
 
@@ -223,6 +224,7 @@ export default function App() {
 
         {/* ================= APPLY ================= */}
 <Route path="/apply" element={<ApplyForm />} />
+<Route path="/complete-profile" element={<CompleteProfile />} />
         {/* ================= APPLY ================= */}
         <Route path="/apply-admin" element={<ApplyAdmin />} />
         <Route path="/apply-business" element={<ApplyBusiness />} />

@@ -1,4 +1,3 @@
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -13,14 +12,26 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
+import { jwtDecode } from "jwt-decode";
+import auth from "../../auth";
 import heroStudent from "../../assets/hero-student.png";
-// import logo from "../../assets/logo.png";
+
+const GOOGLE_CLIENT_ID = "572421778240-akk3kkb4f60ukuv9pcfrpg2ielm09thk.apps.googleusercontent.com";
 
 export default function LMSHomepage({ theme, toggleTheme }) {
   const [activeTab, setActiveTab] = useState("product");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+  // Modal form states
+  const [modalEmail, setModalEmail]       = useState("");
+  const [modalPassword, setModalPassword] = useState("");
+  const [modalLoading, setModalLoading]   = useState(false);
+  const [showModalPw, setShowModalPw]     = useState(false);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,6 +47,13 @@ export default function LMSHomepage({ theme, toggleTheme }) {
       catch { sessionStorage.removeItem("user"); }
     }
   }, []);
+
+  // Close modal on Escape key
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") setShowLoginModal(false); };
+    if (showLoginModal) window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [showLoginModal]);
 
   const handleLogout = () => {
     sessionStorage.removeItem("user");
@@ -53,6 +71,77 @@ export default function LMSHomepage({ theme, toggleTheme }) {
     } else {
       if (tabName) setActiveTab(tabName);
       document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  /* ─── Role-based redirect ── */
+  const redirectByRole = (role) => {
+    switch ((role || "").toUpperCase()) {
+      case "ADMIN":    navigate("/admin",    { replace: true }); break;
+      case "TRAINER":  navigate("/trainer",  { replace: true }); break;
+      case "BUSINESS": navigate("/business", { replace: true }); break;
+      default:         navigate("/student",  { replace: true });
+    }
+  };
+
+  /* ─── Modal email/password login ── */
+  const handleModalSubmit = async (e) => {
+    e.preventDefault();
+    if (modalLoading) return;
+    setModalLoading(true);
+    try {
+      const ok = await auth.login({ email: modalEmail, password: modalPassword });
+      if (ok) {
+        const role = (auth.getCurrentRole() || "STUDENT").toUpperCase();
+        localStorage.setItem("role", role);
+        setShowLoginModal(false);
+        redirectByRole(role);
+      } else {
+        alert("Login failed! Check your credentials.");
+      }
+    } catch (err) {
+      alert("Login error: " + err.message);
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  /* ─── Modal Google login ── */
+  const handleModalGoogle = async (res) => {
+    try {
+      localStorage.removeItem("lms_token");
+      localStorage.removeItem("lms_user");
+      localStorage.removeItem("role");
+      const dec  = jwtDecode(res.credential);
+      const resp = await auth.googleLogin({ idToken: res.credential });
+      if (resp?.isNewUser === true) {
+        localStorage.setItem("role", "STUDENT");
+        localStorage.setItem("lms_user", JSON.stringify({
+          name: dec.name, email: dec.email, role: "student", isNewUser: true,
+        }));
+        setShowLoginModal(false);
+        navigate("/ilm-demo", { replace: true });
+      } else {
+        const role = (resp?.role || "STUDENT").toUpperCase();
+        localStorage.setItem("role", role);
+        localStorage.setItem("lms_user", JSON.stringify({
+          name: dec.name, email: dec.email, role: role.toLowerCase(),
+        }));
+        setShowLoginModal(false);
+        redirectByRole(role);
+      }
+    } catch (err) {
+      try {
+        const dec = jwtDecode(res.credential);
+        localStorage.setItem("role", "STUDENT");
+        localStorage.setItem("lms_user", JSON.stringify({
+          name: dec.name, email: dec.email, role: "student", isNewUser: true,
+        }));
+        setShowLoginModal(false);
+        navigate("/ilm-demo", { replace: true });
+      } catch (_) {
+        alert("Google login failed. Please try again.");
+      }
     }
   };
 
@@ -136,26 +225,26 @@ export default function LMSHomepage({ theme, toggleTheme }) {
     <div className="min-h-screen bg-[#F6EDE6] dark:bg-black text-[#1E293B] dark:text-white">
 
       {/* ── Nav ── */}
-<nav
-  className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-    scrolled
-      ? "bg-white/95 dark:bg-black/95 backdrop-blur-xl shadow-md"
-      : "bg-white/80 dark:bg-black/80 backdrop-blur-md"
-  } border-b border-[#F97316]/20 dark:border-gray-800`}
->
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div className="flex items-center justify-between h-16 sm:h-20">
-
-      {/* Logo */}
-      <div
-        className="flex items-center cursor-pointer hover:scale-105 transition-transform"
-        onClick={() => navigate("/")}
+      <nav
+        className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+          scrolled
+            ? "bg-white/95 dark:bg-black/95 backdrop-blur-xl shadow-md"
+            : "bg-white/80 dark:bg-black/80 backdrop-blur-md"
+        } border-b border-[#F97316]/20 dark:border-gray-800`}
       >
-        <span className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-wide font-serif whitespace-nowrap">
-          <span className="text-green-600">ILM</span>
-          <span className="text-[#F97316] ml-1 sm:ml-2">ORA</span>
-        </span>
-      </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 sm:h-20">
+
+            {/* Logo */}
+            <div
+              className="flex items-center cursor-pointer hover:scale-105 transition-transform"
+              onClick={() => navigate("/")}
+            >
+              <span className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-wide font-serif whitespace-nowrap">
+                <span className="text-green-600">ILM</span>
+                <span className="text-[#F97316] ml-1 sm:ml-2">ORA</span>
+              </span>
+            </div>
 
             <div className="hidden lg:flex items-center gap-8">
               {navLinks.map(link => (
@@ -214,12 +303,13 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                   </DropdownMenu>
                 </div>
               ) : (
+                /* ── Get Started → opens modal ── */
                 <Button
-                onClick={() => navigate("/login")}
-                className="bg-[#1E293B] hover:bg-[#334155] text-white font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
-              >
-                <Sparkles className="w-4 h-4" /> Get Started
-              </Button>
+                  onClick={() => setShowLoginModal(true)}
+                  className="bg-[#1E293B] hover:bg-[#334155] text-white font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
+                >
+                  <Sparkles className="w-4 h-4" /> Get Started
+                </Button>
               )}
 
               <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -239,12 +329,13 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                         <Button variant="destructive" onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className="w-full">Logout</Button>
                       </>
                     ) : (
+                      /* ── Mobile Get Started → opens modal ── */
                       <Button
-                      onClick={() => { navigate("/login"); setMobileMenuOpen(false); }}
-                      className="w-full bg-[#1E293B] hover:bg-[#334155] text-white font-bold flex items-center justify-center gap-2 rounded-xl"
-                    >
-                      <Sparkles className="w-4 h-4" /> Get Started
-                    </Button>
+                        onClick={() => { setMobileMenuOpen(false); setShowLoginModal(true); }}
+                        className="w-full bg-[#1E293B] hover:bg-[#334155] text-white font-bold flex items-center justify-center gap-2 rounded-xl"
+                      >
+                        <Sparkles className="w-4 h-4" /> Get Started
+                      </Button>
                     )}
                   </div>
                 </SheetContent>
@@ -254,51 +345,50 @@ export default function LMSHomepage({ theme, toggleTheme }) {
         </div>
       </nav>
 
-     {/* ── Hero NEW ── */}
-<section className="pt-32 pb-24 px-6 bg-[#F6EDE6] dark:bg-black relative overflow-hidden">
-  <div className="absolute -top-32 left-[10%] w-[600px] h-[600px] bg-[#F97316]/8 dark:bg-[#F97316]/5 rounded-full blur-[120px] pointer-events-none" />
-  <div className="absolute -bottom-20 right-[5%] w-[500px] h-[500px] bg-[#1E293B]/5 rounded-full blur-[120px] pointer-events-none" />
+      {/* ── Hero ── */}
+      <section className="pt-32 pb-24 px-6 bg-[#F6EDE6] dark:bg-black relative overflow-hidden">
+        <div className="absolute -top-32 left-[10%] w-[600px] h-[600px] bg-[#F97316]/8 dark:bg-[#F97316]/5 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute -bottom-20 right-[5%] w-[500px] h-[500px] bg-[#1E293B]/5 rounded-full blur-[120px] pointer-events-none" />
 
-  <div className="max-w-7xl mx-auto relative z-10 grid lg:grid-cols-2 gap-16 items-center">
+        <div className="max-w-7xl mx-auto relative z-10 grid lg:grid-cols-2 gap-16 items-center">
+          {/* LEFT */}
+          <div className="text-center lg:text-left">
+            <div className="mb-8 inline-flex">
+              <div className="inline-flex items-center gap-2 bg-white dark:bg-gray-900 border border-[#F97316]/30 text-[#F97316] px-5 py-2.5 rounded-full text-sm font-semibold shadow-md">
+                <Sparkles className="w-4 h-4" />
+                Advanced Learning Platform for Modern Professionals
+              </div>
+            </div>
 
-    {/* LEFT */}
-    <div className="text-center lg:text-left">
-      <div className="mb-8 inline-flex">
-        <div className="inline-flex items-center gap-2 bg-white dark:bg-gray-900 border border-[#F97316]/30 text-[#F97316] px-5 py-2.5 rounded-full text-sm font-semibold shadow-md">
-          <Sparkles className="w-4 h-4" />
-          Advanced Learning Platform for Modern Professionals
+            <h1 className="text-4xl md:text-4xl lg:text-6xl font-bold mb-6 leading-tight text-[#1E293B] dark:text-white">
+              Become the <span className="text-[#F97316]">Top 1%</span>
+            </h1>
+
+            <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-12 max-w-xl leading-relaxed">
+              Learn Product, Design, Growth & Marketing from industry experts.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center lg:items-start">
+              <button
+                onClick={() => navigate("/explore-programs")}
+                className="flex items-center gap-2 bg-[#1E293B] hover:bg-[#334155] text-white font-bold px-8 py-4 rounded-xl text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
+              >
+                Start Learning <ArrowRight className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* RIGHT IMAGE */}
+          <div className="flex justify-center">
+            <img
+              src={heroStudent}
+              alt="Hero Student"
+              className="w-full max-w-lg object-contain drop-shadow-2xl hover:scale-105 transition duration-500"
+            />
+          </div>
         </div>
-      </div>
+      </section>
 
-      <h1 className="text-4xl md:text-4xl lg:text-6xl font-bold mb-6 leading-tight text-[#1E293B] dark:text-white">
-        Become the <span className="text-[#F97316]">Top 1%</span>
-      </h1>
-
-      <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-12 max-w-xl leading-relaxed">
-        Learn Product, Design, Growth & Marketing from industry experts.
-      </p>
-
-      <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center lg:items-start">
-        <button
-          onClick={() => navigate("/explore-programs")}
-          className="flex items-center gap-2 bg-[#1E293B] hover:bg-[#334155] text-white font-bold px-8 py-4 rounded-xl text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
-        >
-          Start Learning <ArrowRight className="w-5 h-5" />
-        </button>
-      </div>
-    </div>
-
-    {/* RIGHT IMAGE */}
-    <div className="flex justify-center">
-      <img
-        src={heroStudent}
-        alt="Hero Student"
-        className="w-full max-w-lg object-contain drop-shadow-2xl hover:scale-105 transition duration-500"
-      />
-    </div>
-
-  </div>
-</section>
       {/* ── Stats ── */}
       <section className="py-16 px-6 bg-white dark:bg-gray-900/50">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -315,13 +405,13 @@ export default function LMSHomepage({ theme, toggleTheme }) {
       <section className="py-24 px-6 bg-[#F6EDE6] dark:bg-black">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-[#1E293B] dark:text-white">
-  Why Choose 
-  <span className="ml-2">
-    <span className="text-green-600">ILM</span>{" "}
-    <span className="text-[#F97316]">ORA</span>
-  </span>
-</h2>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-[#1E293B] dark:text-white">
+              Why Choose
+              <span className="ml-2">
+                <span className="text-green-600">ILM</span>{" "}
+                <span className="text-[#F97316]">ORA</span>
+              </span>
+            </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">Everything you need to accelerate your career growth</p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -477,18 +567,15 @@ export default function LMSHomepage({ theme, toggleTheme }) {
               <h3 className="text-3xl md:text-5xl font-bold mb-6 text-white">Ready to Transform Your Career?</h3>
               <p className="text-lg text-gray-300 mb-10">Join 50,000+ professionals who've already taken the leap</p>
               <button
-  onClick={() => {
-    navigate("/explore-programs");
-
-    setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }, 200);
-  }}
-  className="group inline-flex items-center gap-2 bg-[#F97316] hover:bg-[#ea6c0a] text-white px-10 py-4 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
->
-  Explore Free Services
-  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-</button>
+                onClick={() => {
+                  navigate("/explore-programs");
+                  setTimeout(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, 200);
+                }}
+                className="group inline-flex items-center gap-2 bg-[#F97316] hover:bg-[#ea6c0a] text-white px-10 py-4 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
+              >
+                Explore Free Services
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </button>
             </div>
           </div>
         </div>
@@ -499,10 +586,10 @@ export default function LMSHomepage({ theme, toggleTheme }) {
         <div className="max-w-7xl mx-auto px-6 py-20">
           <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-5">
             <div className="lg:col-span-2 space-y-5">
-            <h3 className="text-3xl font-extrabold">
-  <span className="text-green-600">ILM</span>{" "}
-  <span className="text-[#F97316]">ORA</span>
-</h3>
+              <h3 className="text-3xl font-extrabold">
+                <span className="text-green-600">ILM</span>{" "}
+                <span className="text-[#F97316]">ORA</span>
+              </h3>
               <p className="text-sm text-gray-600 max-w-sm leading-relaxed">Modern learning platform for ambitious professionals who want to break into product, design and growth roles.</p>
               <div className="flex gap-3 pt-2">
                 <a href="https://www.youtube.com/@Texoraai" target="_blank" rel="noreferrer" className="h-8 w-8 rounded-full flex items-center justify-center text-white bg-red-600 hover:scale-110 transition-all shadow-md">
@@ -514,26 +601,12 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                 <a href="https://api.whatsapp.com/send?phone=919210970334" target="_blank" rel="noreferrer" className="h-8 w-8 rounded-full flex items-center justify-center text-white bg-green-500 hover:scale-110 transition-all shadow-md">
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
                 </a>
-                <a 
-                href="https://www.instagram.com/texora_ai" 
-                target="_blank" 
-                rel="noreferrer" 
-                className="h-8 w-8 rounded-full flex items-center justify-center text-white bg-pink-600 hover:scale-110 transition-all shadow-md"
-                >
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M7.75 2C4.574 2 2 4.574 2 7.75v8.5C2 19.426 4.574 22 7.75 22h8.5C19.426 22 22 19.426 22 16.25v-8.5C22 4.574 19.426 2 16.25 2h-8.5zm0 2h8.5C18.216 4 20 5.784 20 7.75v8.5C20 18.216 18.216 20 16.25 20h-8.5C5.784 20 4 18.216 4 16.25v-8.5C4 5.784 5.784 4 7.75 4zm4.25 3a5 5 0 100 10 5 5 0 000-10zm0 2a3 3 0 110 6 3 3 0 010-6zm4.5-.75a1.25 1.25 0 100 2.5 1.25 1.25 0 000-2.5z"/>
-                </svg>
+                <a href="https://www.instagram.com/texora_ai" target="_blank" rel="noreferrer" className="h-8 w-8 rounded-full flex items-center justify-center text-white bg-pink-600 hover:scale-110 transition-all shadow-md">
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M7.75 2C4.574 2 2 4.574 2 7.75v8.5C2 19.426 4.574 22 7.75 22h8.5C19.426 22 22 19.426 22 16.25v-8.5C22 4.574 19.426 2 16.25 2h-8.5zm0 2h8.5C18.216 4 20 5.784 20 7.75v8.5C20 18.216 18.216 20 16.25 20h-8.5C5.784 20 4 18.216 4 16.25v-8.5C4 5.784 5.784 4 7.75 4zm4.25 3a5 5 0 100 10 5 5 0 000-10zm0 2a3 3 0 110 6 3 3 0 010-6zm4.5-.75a1.25 1.25 0 100 2.5 1.25 1.25 0 000-2.5z"/></svg>
                 </a>
-                <a 
-              href="https://x.com/texoraai" 
-              target="_blank" 
-              rel="noreferrer" 
-              className="h-8 w-8 rounded-full flex items-center justify-center text-white bg-black hover:scale-110 transition-all shadow-md"
-              >
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M18.244 2H21l-6.54 7.482L22 22h-6.828l-5.34-6.977L3.64 22H1l7.042-8.053L2 2h6.828l4.86 6.35L18.244 2zm-2.396 18h1.89L8.224 4H6.176l9.672 16z"/>
-              </svg>
-              </a>
+                <a href="https://x.com/texoraai" target="_blank" rel="noreferrer" className="h-8 w-8 rounded-full flex items-center justify-center text-white bg-black hover:scale-110 transition-all shadow-md">
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2H21l-6.54 7.482L22 22h-6.828l-5.34-6.977L3.64 22H1l7.042-8.053L2 2h6.828l4.86 6.35L18.244 2zm-2.396 18h1.89L8.224 4H6.176l9.672 16z"/></svg>
+                </a>
               </div>
             </div>
 
@@ -571,19 +644,196 @@ export default function LMSHomepage({ theme, toggleTheme }) {
         </div>
       </footer>
 
+      {/* ══════════════════════════════════════════
+          ── Login Modal Popup ──
+      ══════════════════════════════════════════ */}
+      {showLoginModal && (
+        <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+            style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(5px)" }}
+            onClick={(e) => { if (e.target === e.currentTarget) setShowLoginModal(false); }}
+          >
+            {/* Modal Card */}
+            <div
+              className="relative w-full max-w-md rounded-2xl shadow-2xl"
+              style={{
+                background: "rgba(255,255,255,0.97)",
+                border: "1px solid rgba(249,115,22,0.18)",
+                padding: "36px 32px 28px",
+                animation: "modalFadeUp 0.3s ease both",
+              }}
+            >
+              <style>{`
+                @keyframes modalFadeUp {
+                  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+                  to   { opacity: 1; transform: translateY(0)   scale(1);    }
+                }
+              `}</style>
+
+              {/* Close button */}
+              <button
+                onClick={() => setShowLoginModal(false)}
+                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition text-xl font-bold leading-none"
+                aria-label="Close"
+              >×</button>
+
+              {/* Logo */}
+              <div className="flex justify-center mb-5">
+                <span className="text-4xl font-extrabold font-serif tracking-wide">
+                  <span className="text-green-600">ILM</span>
+                  <span className="text-[#F97316] ml-2">ORA</span>
+                </span>
+              </div>
+
+              {/* Heading */}
+              <div className="text-center mb-6">
+                <h2 className="text-xl font-bold text-[#1e0e02] mb-1">Welcome back!</h2>
+                <p className="text-sm text-[#8a6040]">
+                  Don't have an account?{" "}
+                  <button
+                    onClick={() => { setShowLoginModal(false); navigate("/complete-profile"); }}
+                    className="text-[#F97316] font-bold hover:underline bg-transparent border-none cursor-pointer text-sm p-0"
+                  >Apply now</button>
+                </p>
+              </div>
+
+              {/* Google Login */}
+              <div className="flex justify-center mb-5">
+                <GoogleLogin
+                  onSuccess={handleModalGoogle}
+                  onError={() => console.error("Google OAuth failed")}
+                  theme="outline"
+                  size="large"
+                  text="continue_with"
+                  shape="rectangular"
+                  width="360"
+                  auto_select={false}
+                  cancel_on_tap_outside={true}
+                />
+              </div>
+
+              {/* OR divider */}
+              <div className="flex items-center gap-3 mb-5">
+                <div className="flex-1 h-px" style={{ background: "rgba(180,100,30,0.15)" }} />
+                <span className="text-xs text-[#b8906a] uppercase tracking-widest font-medium">OR</span>
+                <div className="flex-1 h-px" style={{ background: "rgba(180,100,30,0.15)" }} />
+              </div>
+
+              {/* Email / Password Form */}
+              <form onSubmit={handleModalSubmit}>
+
+                {/* Email */}
+                <div className="mb-3">
+                  <label className="block text-xs font-bold text-[#8a6040] mb-1.5 uppercase tracking-widest">Email</label>
+                  <input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={modalEmail}
+                    onChange={e => setModalEmail(e.target.value)}
+                    required
+                    disabled={modalLoading}
+                    className="w-full px-3.5 py-2.5 rounded-xl text-sm text-[#1a0e06] placeholder-[#c0a070] outline-none transition-all disabled:opacity-50"
+                    style={{
+                      background: "rgba(255,255,255,0.8)",
+                      border: "1.5px solid rgba(180,120,60,0.2)",
+                    }}
+                    onFocus={e => { e.target.style.borderColor = "#F97316"; e.target.style.boxShadow = "0 0 0 3px rgba(249,115,22,0.1)"; e.target.style.background = "#fff"; }}
+                    onBlur={e => { e.target.style.borderColor = "rgba(180,120,60,0.2)"; e.target.style.boxShadow = "none"; }}
+                  />
+                </div>
+
+                {/* Password */}
+                <div className="mb-2">
+                  <label className="block text-xs font-bold text-[#8a6040] mb-1.5 uppercase tracking-widest">Password</label>
+                  <div className="relative">
+                    <input
+                      type={showModalPw ? "text" : "password"}
+                      placeholder="Enter your password"
+                      value={modalPassword}
+                      onChange={e => setModalPassword(e.target.value)}
+                      required
+                      disabled={modalLoading}
+                      className="w-full px-3.5 py-2.5 pr-11 rounded-xl text-sm text-[#1a0e06] placeholder-[#c0a070] outline-none transition-all disabled:opacity-50"
+                      style={{
+                        background: "rgba(255,255,255,0.8)",
+                        border: "1.5px solid rgba(180,120,60,0.2)",
+                      }}
+                      onFocus={e => { e.target.style.borderColor = "#F97316"; e.target.style.boxShadow = "0 0 0 3px rgba(249,115,22,0.1)"; e.target.style.background = "#fff"; }}
+                      onBlur={e => { e.target.style.borderColor = "rgba(180,120,60,0.2)"; e.target.style.boxShadow = "none"; }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowModalPw(p => !p)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#b8906a] hover:text-[#F97316] transition flex items-center justify-center p-0 bg-transparent border-none cursor-pointer"
+                      tabIndex={-1}
+                      aria-label={showModalPw ? "Hide password" : "Show password"}
+                    >
+                      {showModalPw ? (
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                          <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                          <line x1="1" y1="1" x2="23" y2="23"/>
+                        </svg>
+                      ) : (
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                          <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Forgot password */}
+                <div className="text-right mb-5">
+                  <button
+                    type="button"
+                    onClick={() => { setShowLoginModal(false); navigate("/forgot-password"); }}
+                    className="text-xs text-[#F97316] hover:underline bg-transparent border-none cursor-pointer font-medium p-0"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+
+                {/* Submit */}
+                <button
+                  type="submit"
+                  disabled={modalLoading}
+                  className="w-full py-3 rounded-xl font-bold text-white text-sm transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  style={{
+                    background: "linear-gradient(135deg, #F97316, #ea580c)",
+                    boxShadow: "0 4px 18px rgba(249,115,22,0.32)",
+                  }}
+                >
+                  {modalLoading ? (
+                    <>
+                      <span
+                        className="inline-block w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin"
+                      />
+                      Signing in…
+                    </>
+                  ) : "Log in"}
+                </button>
+
+              </form>
+
+              {/* Back to home */}
+              <div className="text-center mt-5">
+                <button
+                  onClick={() => setShowLoginModal(false)}
+                  className="text-xs text-[#b8906a] hover:text-[#8a6040] bg-transparent border-none cursor-pointer transition-colors"
+                >
+                  ← Back to home
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </GoogleOAuthProvider>
+      )}
+
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

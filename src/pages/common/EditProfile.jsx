@@ -14,7 +14,7 @@ const EditProfile = () => {
 
   const [formData, setFormData] = useState({
     name: "",
-    role: "admin",
+    role: "",
     email: "",
     photo: null,
     photoPreview: null,
@@ -22,6 +22,7 @@ const EditProfile = () => {
 
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
   const [message, setMessage] = useState({ type: "", text: "" });
   const fileInputRef = React.useRef(null);
 
@@ -41,6 +42,7 @@ const EditProfile = () => {
     return "/profile";
   };
 
+  // ── Fetch real profile on mount ──
   useEffect(() => {
     const fetchMyProfile = async () => {
       try {
@@ -51,9 +53,10 @@ const EditProfile = () => {
           ...prev,
           name: user?.displayName || "",
           email: user?.email || "",
-          role: (user?.roles || getLockedRole()).toLowerCase(),
+          // normalise role: backend may return "TRAINER" or "trainer"
+          role: (user?.roles || getLockedRole()).toString().toLowerCase(),
           photo: null,
-          photoPreview: "/default-avatar.png",
+          photoPreview: user?.photoUrl || null, // show existing photo if available
         }));
       } catch (error) {
         console.error("Fetch profile error:", error);
@@ -61,6 +64,8 @@ const EditProfile = () => {
           type: "error",
           text: "Failed to load profile. Please login again.",
         });
+      } finally {
+        setIsFetching(false);
       }
     };
 
@@ -85,56 +90,73 @@ const EditProfile = () => {
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        setErrors({ ...errors, photo: "Photo must be under 2MB." });
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData({ ...formData, photo: file, photoPreview: reader.result });
-        if (errors.photo) setErrors({ ...errors, photo: "" });
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      setErrors({ ...errors, photo: "Photo must be under 2MB." });
+      return;
     }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData({ ...formData, photo: file, photoPreview: reader.result });
+      if (errors.photo) setErrors({ ...errors, photo: "" });
+    };
+    reader.readAsDataURL(file);
   };
 
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
-  };
+  const triggerFileInput = () => fileInputRef.current?.click();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     setIsLoading(true);
+    setMessage({ type: "", text: "" });
+
     try {
       const lockedRole = getLockedRole();
 
-      const payload = {
+      // ── Send only what your backend UpdateUserRequest supports ──
+      // NOTE: To support photo upload, add a multipart endpoint on the backend.
+      // For now only displayName + roles are sent.
+      await userService.updateMyProfile({
         displayName: formData.name,
         roles: lockedRole.toUpperCase(),
-      };
-
-      await userService.updateMyProfile(payload);
+        // ✅ ADDED: send Base64 photo string if user selected one
+        photoUrl: formData.photoPreview || null,
+      });
 
       setMessage({ type: "success", text: "Profile updated successfully!" });
-      
-      // Redirect after 1.5 seconds
+
+      // Small delay so the user sees the success message, then go back.
+      // replace:true ensures the profile page remounts and re-fetches fresh data.
       setTimeout(() => {
-        navigate(getBackPath());
+        navigate(getBackPath(), { 
+          replace: true, 
+          state: { updated: true } 
+        });
       }, 1500);
     } catch (error) {
       console.error("Update profile error:", error);
-      setMessage({ type: "error", text: "Update failed. Try again." });
+      setMessage({ type: "error", text: "Update failed. Please try again." });
     } finally {
       setIsLoading(false);
     }
   };
 
   const getRoleLabel = () => {
+    if (!formData.role) return "";
     return formData.role.charAt(0).toUpperCase() + formData.role.slice(1);
   };
+
+  // ── Loading skeleton while fetching ──
+  if (isFetching) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6 animate-pulse">
+        <div className="h-10 w-40 rounded-lg bg-gray-200 dark:bg-slate-800" />
+        <div className="h-96 rounded-2xl bg-gray-200 dark:bg-slate-800" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -156,7 +178,7 @@ const EditProfile = () => {
         </div>
       </div>
 
-      {/* SUCCESS/ERROR MESSAGE */}
+      {/* SUCCESS / ERROR MESSAGE */}
       {message.text && (
         <div
           className={`p-4 rounded-xl border ${
@@ -187,13 +209,18 @@ const EditProfile = () => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <User className="w-16 h-16 text-gray-400 dark:text-slate-500" />
+                  // Show initials if no photo
+                  <div className="w-full h-full flex items-center justify-center bg-indigo-100 dark:bg-indigo-900/40">
+                    <span className="text-3xl font-bold text-indigo-600 dark:text-indigo-300">
+                      {formData.name?.charAt(0)?.toUpperCase() || (
+                        <User className="w-16 h-16 text-gray-400 dark:text-slate-500" />
+                      )}
+                    </span>
                   </div>
                 )}
               </div>
             </div>
-            
+
             <button
               type="button"
               onClick={triggerFileInput}
@@ -214,6 +241,12 @@ const EditProfile = () => {
             <p className="text-xs text-gray-500 dark:text-slate-500 mt-1">
               JPG, PNG or GIF (max. 2MB)
             </p>
+            {/* ⚠️ Note shown when photo is selected but backend doesn't support it yet */}
+            {formData.photo && (
+              <p className="text-xs text-amber-500 dark:text-amber-400 mt-1">
+                Photo preview only — backend photo upload not yet enabled.
+              </p>
+            )}
           </div>
 
           <input
@@ -223,7 +256,7 @@ const EditProfile = () => {
             onChange={handlePhotoChange}
             className="hidden"
           />
-          
+
           {errors.photo && (
             <p className="text-sm text-red-600 dark:text-red-400">
               {errors.photo}
@@ -287,7 +320,7 @@ const EditProfile = () => {
           </p>
         </div>
 
-        {/* EMAIL FIELD */}
+        {/* EMAIL FIELD (read-only — email changes need a separate flow) */}
         <div className="space-y-2">
           <label
             htmlFor="email"
@@ -301,22 +334,15 @@ const EditProfile = () => {
             name="email"
             type="email"
             value={formData.email}
-            onChange={handleChange}
-            className={`w-full px-4 py-3 rounded-lg border ${
-              errors.email
-                ? "border-red-300 dark:border-red-700"
-                : "border-gray-300 dark:border-slate-600"
-            } bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all`}
-            placeholder="your.email@example.com"
+            disabled
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-800/50 text-gray-500 dark:text-slate-400 cursor-not-allowed"
           />
-          {errors.email && (
-            <p className="text-sm text-red-600 dark:text-red-400">
-              {errors.email}
-            </p>
-          )}
+          <p className="text-xs text-gray-500 dark:text-slate-500">
+            Email cannot be changed from this page
+          </p>
         </div>
 
-        {/* SUBMIT BUTTON */}
+        {/* SUBMIT BUTTONS */}
         <div className="flex gap-3 pt-4">
           <button
             type="button"
@@ -325,7 +351,7 @@ const EditProfile = () => {
           >
             Cancel
           </button>
-          
+
           <button
             type="submit"
             disabled={isLoading}
@@ -350,25 +376,3 @@ const EditProfile = () => {
 };
 
 export default EditProfile;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

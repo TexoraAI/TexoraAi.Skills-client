@@ -1,124 +1,65 @@
-
+// // src/trainer/CreateQuiz.jsx
 // import { useEffect, useState } from "react";
-// import {
-//   addOption,
-//   addQuestion,
-//   createQuiz,
-// } from "../services/assessmentService";
-
-// import { getTrainerBatches } from "../services/batchService"; // ⭐ ONLY ADDITION
-
-// import {
-//   ClipboardList,
-//   HelpCircle,
-//   Loader2,
-//   PlusCircle
-// } from "lucide-react";
+// import { addOption, addQuestion, createQuiz } from "../services/assessmentService";
+// import { getTrainerBatches } from "../services/batchService";
+// import { ChevronDown, ClipboardList, HelpCircle, Loader2, PlusCircle, CheckCircle2 } from "lucide-react";
 // import auth from "../auth";
+// import {
+//   useTrainerTheme, PageShell, PageHero, ThemedCard,
+//   ThemedInput, ThemedTextarea, ThemedSelect, FieldLabel,
+//   PrimaryButton, SecondaryButton, Pill,
+// } from "./trainerTheme";
+
+// const PANELS = ["details", "questions", "review"];
 
 // const CreateQuiz = () => {
+//   const { t, isDark } = useTrainerTheme();
+
 //   const [title, setTitle] = useState("");
 //   const [batchId, setBatchId] = useState("");
 //   const [instructions, setInstructions] = useState("");
 //   const [loading, setLoading] = useState(false);
-
-//   const [batches, setBatches] = useState([]); // ⭐ STORE TRAINER BATCHES
-
+//   const [batches, setBatches] = useState([]);
+//   const [open, setOpen] = useState("details");
 //   const [questions, setQuestions] = useState([
-//     {
-//       text: "",
-//       options: { A: "", B: "", C: "", D: "" },
-//       correctOption: "",
-//     },
+//     { text: "", options: { A: "", B: "", C: "", D: "" }, correctOption: "" },
 //   ]);
 
-//   // 🔥 LOAD TRAINER BATCHES (SAME AS VIDEO SERVICE)
 //   useEffect(() => {
-//     if (!auth.isAuthenticated()) {
-//       alert("Please login again");
-//       return;
-//     }
-
+//     if (!auth.isAuthenticated()) { alert("Please login again"); return; }
 //     const loadBatches = async () => {
 //       try {
 //         const res = await getTrainerBatches();
-//         setBatches(res || []); // batchService already returns data
-//       } catch (err) {
-//         console.error("Failed to load trainer batches", err);
-//       }
+//         setBatches(res || []);
+//       } catch (err) { console.error("Failed to load trainer batches", err); }
 //     };
-
 //     loadBatches();
 //   }, []);
 
 //   const addNewQuestion = () => {
-//     setQuestions([
-//       ...questions,
-//       {
-//         text: "",
-//         options: { A: "", B: "", C: "", D: "" },
-//         correctOption: "",
-//       },
-//     ]);
+//     setQuestions([...questions, { text: "", options: { A: "", B: "", C: "", D: "" }, correctOption: "" }]);
 //   };
 
 //   const handleSaveQuiz = async () => {
 //     try {
 //       for (const q of questions) {
-//         if (!q.text.trim()) {
-//           alert("Please enter question text");
-//           return;
-//         }
-//         if (!q.correctOption) {
-//           alert("Please select correct option for all questions");
-//           return;
-//         }
+//         if (!q.text.trim()) { alert("Please enter question text"); return; }
+//         if (!q.correctOption) { alert("Please select correct option for all questions"); return; }
 //       }
-
-//       if (!batchId) {
-//         alert("Please select a batch");
-//         return;
-//       }
-
+//       if (!batchId) { alert("Please select a batch"); return; }
 //       setLoading(true);
-
-//       const quizRes = await createQuiz({
-//         title,
-//         batchId,
-//         instructions,
-//       });
-
+//       const quizRes = await createQuiz({ title, batchId, instructions });
 //       const quizId = quizRes.data.id;
-
 //       for (const q of questions) {
-//         const qRes = await addQuestion({
-//           quizId,
-//           text: q.text,
-//         });
-
+//         const qRes = await addQuestion({ quizId, text: q.text });
 //         const questionId = qRes.data.id;
-
 //         for (const key of ["A", "B", "C", "D"]) {
-//           await addOption({
-//             questionId,
-//             text: q.options[key],
-//             correct: key === q.correctOption,
-//           });
+//           await addOption({ questionId, text: q.options[key], correct: key === q.correctOption });
 //         }
 //       }
-
 //       alert("✅ Quiz created successfully");
-
-//       setTitle("");
-//       setBatchId("");
-//       setInstructions("");
-//       setQuestions([
-//         {
-//           text: "",
-//           options: { A: "", B: "", C: "", D: "" },
-//           correctOption: "",
-//         },
-//       ]);
+//       setTitle(""); setBatchId(""); setInstructions("");
+//       setQuestions([{ text: "", options: { A: "", B: "", C: "", D: "" }, correctOption: "" }]);
 //     } catch (err) {
 //       console.error(err);
 //       alert("❌ Failed to create quiz");
@@ -127,138 +68,228 @@
 //     }
 //   };
 
+//   const toggle = (panel) => setOpen((prev) => (prev === panel ? null : panel));
+
+//   const panelMeta = {
+//     details:   { label: "Quiz Details",      sub: "Title, batch & instructions", color: "#22d3ee", num: 1, next: "questions", nextLabel: "Next: Add Questions →" },
+//     questions: { label: "Questions",          sub: `${questions.length} question${questions.length !== 1 ? "s" : ""} added`, color: "#7c3aed", num: 2, next: "review", nextLabel: "Next: Review →" },
+//     review:    { label: "Review & Publish",   sub: "Confirm and save",           color: "#34d399", num: 3, next: null, nextLabel: null },
+//   };
+
 //   return (
-//     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-6 transition-colors">
-//       <div className="max-w-6xl mx-auto space-y-6">
-//         {/* HERO */}
-//         <div className="rounded-2xl bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 p-5 text-white shadow-md">
-//           <div className="flex items-center gap-3">
-//             <div className="w-9 h-9 rounded-lg bg-white shadow flex items-center justify-center">
-//               <ClipboardList className="w-4 h-4 text-blue-600" />
-//             </div>
-//             <div>
-//               <h1 className="text-lg font-semibold">Quiz Builder</h1>
-//               <p className="text-sm text-white/90">
-//                 Create assessments for students
-//               </p>
-//             </div>
-//           </div>
-//         </div>
+//     <PageShell t={t}>
+//       {/* HERO */}
+//       <PageHero
+//         t={t} isDark={isDark}
+//         icon={ClipboardList}
+//         badge="Assessment Builder"
+//         title="Quiz Builder"
+//         subtitle="Create quizzes with multiple choice questions for your batches."
+//         color="#22d3ee"
+//       />
 
-//         {/* DETAILS */}
-//         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-//           <input
-//             value={title}
-//             onChange={(e) => setTitle(e.target.value)}
-//             placeholder="Quiz Title"
-//             className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 outline-none"
-//           />
+//       {/* ACCORDION PANELS */}
+//       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+//         {PANELS.map((key) => {
+//           const meta = panelMeta[key];
+//           const isOpen = open === key;
 
-//           {/* ⭐ AUTO LOAD BATCHES */}
-//           <select
-//             value={batchId}
-//             onChange={(e) => setBatchId(Number(e.target.value))}
-//             className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 outline-none"
-//           >
-//             <option value="">Select Batch</option>
-//             {batches.map((b) => (
-//               <option key={b.id} value={b.id}>
-//                 Batch {b.id}
-//               </option>
-//             ))}
-//           </select>
-//         </div>
-
-//         <textarea
-//           value={instructions}
-//           onChange={(e) => setInstructions(e.target.value)}
-//           placeholder="Quiz instructions"
-//           rows={3}
-//           className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 outline-none"
-//         />
-
-//         {/* QUESTIONS UI UNCHANGED */}
-//         <div className="space-y-6">
-//           {questions.map((q, index) => (
-//             <div
-//               key={index}
-//               className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-5 space-y-4"
-//             >
-//               <div className="flex items-center gap-2">
-//                 <HelpCircle className="w-4 h-4 text-blue-600" />
-//                 <h2 className="text-sm font-semibold">Question {index + 1}</h2>
-//               </div>
-
-//               <input
-//                 value={q.text}
-//                 onChange={(e) => {
-//                   const updated = [...questions];
-//                   updated[index].text = e.target.value;
-//                   setQuestions(updated);
+//           return (
+//             <div key={key} style={{
+//               background: t.cardBg,
+//               border: `1px solid ${isOpen ? meta.color + "40" : t.border}`,
+//               borderRadius: 20,
+//               overflow: "hidden",
+//               boxShadow: isOpen ? `0 0 0 1px ${meta.color}20, ${t.shadow}` : t.shadow,
+//               transition: "all 0.2s",
+//             }}>
+//               {/* Header */}
+//               <button
+//                 onClick={() => toggle(key)}
+//                 style={{
+//                   width: "100%", display: "flex", alignItems: "center", gap: 14,
+//                   padding: "16px 20px", textAlign: "left",
+//                   background: isOpen ? `${meta.color}06` : "transparent",
+//                   border: "none", cursor: "pointer",
+//                   borderBottom: isOpen ? `1px solid ${t.border}` : "none",
+//                   transition: "background 0.2s",
 //                 }}
-//                 placeholder="Enter question text"
-//                 className="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 outline-none"
-//               />
+//               >
+//                 <div style={{
+//                   width: 32, height: 32, borderRadius: 999,
+//                   display: "flex", alignItems: "center", justifyContent: "center",
+//                   background: `${meta.color}20`, border: `1px solid ${meta.color}40`,
+//                   flexShrink: 0,
+//                 }}>
+//                   <span style={{ fontSize: 12, fontWeight: 800, color: meta.color, fontFamily: "'Poppins',sans-serif" }}>{meta.num}</span>
+//                 </div>
+//                 <div style={{ flex: 1 }}>
+//                   <p style={{ fontSize: 13, fontWeight: 700, color: t.text, margin: 0, fontFamily: "'Poppins',sans-serif" }}>{meta.label}</p>
+//                   <p style={{ fontSize: 11, color: t.textMuted, margin: "2px 0 0", fontFamily: "'Poppins',sans-serif" }}>{meta.sub}</p>
+//                 </div>
+//                 {/* step dots */}
+//                 <div style={{ display: "flex", gap: 4, marginRight: 8 }}>
+//                   {PANELS.map((p, pi) => (
+//                     <span key={p} style={{
+//                       width: p === key ? 18 : 6, height: 6, borderRadius: 999,
+//                       background: p === key ? meta.color : pi < PANELS.indexOf(key) ? "#94a3b8" : t.barBg,
+//                       transition: "all 0.3s",
+//                     }} />
+//                   ))}
+//                 </div>
+//                 <ChevronDown size={16} color={t.textMuted} style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s", flexShrink: 0 }} />
+//               </button>
 
-//               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-//                 {["A", "B", "C", "D"].map((key) => (
-//                   <div key={key} className="rounded-lg border p-3">
-//                     <div className="flex items-center gap-2">
-//                       <input
-//                         type="radio"
-//                         name={`correct-${index}`}
-//                         checked={q.correctOption === key}
-//                         onChange={() => {
-//                           const updated = [...questions];
-//                           updated[index].correctOption = key;
-//                           setQuestions(updated);
-//                         }}
-//                       />
-//                       <input
-//                         value={q.options[key]}
-//                         onChange={(e) => {
-//                           const updated = [...questions];
-//                           updated[index].options[key] = e.target.value;
-//                           setQuestions(updated);
-//                         }}
-//                         placeholder={`Option ${key}`}
-//                         className="flex-1 bg-transparent outline-none"
-//                       />
+//               {/* Body */}
+//               {isOpen && (
+//                 <div style={{ padding: "20px 20px 24px" }}>
+
+//                   {/* PANEL 1 — DETAILS */}
+//                   {key === "details" && (
+//                     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+//                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+//                         <div>
+//                           <FieldLabel t={t}>Quiz Title</FieldLabel>
+//                           <ThemedInput t={t} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. React Fundamentals" />
+//                         </div>
+//                         <div>
+//                           <FieldLabel t={t}>Select Batch</FieldLabel>
+//                           <ThemedSelect t={t} value={batchId} onChange={(e) => setBatchId(Number(e.target.value))}>
+//                             <option value="">Select Batch</option>
+//                             {batches.map((b) => (
+//                               <option key={b.id} value={b.id}>Batch {b.id}</option>
+//                             ))}
+//                           </ThemedSelect>
+//                         </div>
+//                       </div>
+//                       <div>
+//                         <FieldLabel t={t}>Instructions</FieldLabel>
+//                         <ThemedTextarea t={t} value={instructions} onChange={(e) => setInstructions(e.target.value)} placeholder="Quiz instructions for students…" rows={3} />
+//                       </div>
+//                       <div style={{ display: "flex", justifyContent: "flex-end" }}>
+//                         <PrimaryButton color={meta.color} onClick={() => setOpen("questions")}>{meta.nextLabel}</PrimaryButton>
+//                       </div>
 //                     </div>
-//                   </div>
-//                 ))}
-//               </div>
+//                   )}
+
+//                   {/* PANEL 2 — QUESTIONS */}
+//                   {key === "questions" && (
+//                     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+//                       {questions.map((q, index) => (
+//                         <div key={index} style={{
+//                           background: t.recentItemBg,
+//                           border: `1px solid ${t.recentItemBorder}`,
+//                           borderRadius: 16, padding: 16,
+//                         }}>
+//                           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+//                             <div style={{
+//                               width: 24, height: 24, borderRadius: 8,
+//                               background: "rgba(124,58,237,0.15)", border: "1px solid rgba(124,58,237,0.3)",
+//                               display: "flex", alignItems: "center", justifyContent: "center",
+//                             }}>
+//                               <span style={{ fontSize: 10, fontWeight: 800, color: "#7c3aed", fontFamily: "'Poppins',sans-serif" }}>{index + 1}</span>
+//                             </div>
+//                             <span style={{ fontSize: 11, fontWeight: 600, color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "'Poppins',sans-serif" }}>
+//                               Question {index + 1}
+//                             </span>
+//                           </div>
+//                           <ThemedInput
+//                             t={t}
+//                             value={q.text}
+//                             onChange={(e) => { const u = [...questions]; u[index].text = e.target.value; setQuestions(u); }}
+//                             placeholder="Enter question text"
+//                             style={{ marginBottom: 12 }}
+//                           />
+//                           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+//                             {["A", "B", "C", "D"].map((optKey) => (
+//                               <label key={optKey} style={{
+//                                 display: "flex", alignItems: "center", gap: 10,
+//                                 borderRadius: 12, padding: "10px 12px", cursor: "pointer",
+//                                 border: `1px solid ${q.correctOption === optKey ? "#34d399" : t.inputBorder}`,
+//                                 background: q.correctOption === optKey ? "rgba(52,211,153,0.08)" : t.inputBg,
+//                                 transition: "all 0.15s",
+//                               }}>
+//                                 <input
+//                                   type="radio"
+//                                   name={`correct-${index}`}
+//                                   checked={q.correctOption === optKey}
+//                                   onChange={() => { const u = [...questions]; u[index].correctOption = optKey; setQuestions(u); }}
+//                                   style={{ accentColor: "#34d399" }}
+//                                 />
+//                                 <span style={{
+//                                   width: 20, height: 20, borderRadius: 6, flexShrink: 0,
+//                                   display: "flex", alignItems: "center", justifyContent: "center",
+//                                   background: q.correctOption === optKey ? "#34d399" : t.barBg,
+//                                   fontSize: 10, fontWeight: 800, color: q.correctOption === optKey ? "#fff" : t.textMuted,
+//                                   fontFamily: "'Poppins',sans-serif",
+//                                 }}>{optKey}</span>
+//                                 <input
+//                                   value={q.options[optKey]}
+//                                   onChange={(e) => { const u = [...questions]; u[index].options[optKey] = e.target.value; setQuestions(u); }}
+//                                   placeholder={`Option ${optKey}`}
+//                                   style={{ flex: 1, background: "transparent", outline: "none", border: "none", fontSize: 13, color: t.text, fontFamily: "'Poppins',sans-serif" }}
+//                                 />
+//                               </label>
+//                             ))}
+//                           </div>
+//                         </div>
+//                       ))}
+//                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+//                         <button
+//                           onClick={addNewQuestion}
+//                           style={{
+//                             display: "flex", alignItems: "center", gap: 8,
+//                             padding: "9px 16px", borderRadius: 12,
+//                             border: `2px dashed rgba(124,58,237,0.4)`,
+//                             background: "transparent", color: "#7c3aed",
+//                             fontSize: 12, fontWeight: 600, cursor: "pointer",
+//                             fontFamily: "'Poppins',sans-serif",
+//                           }}
+//                         >
+//                           <PlusCircle size={14} /> Add Question
+//                         </button>
+//                         <PrimaryButton color={meta.color} onClick={() => setOpen("review")}>{meta.nextLabel}</PrimaryButton>
+//                       </div>
+//                     </div>
+//                   )}
+
+//                   {/* PANEL 3 — REVIEW */}
+//                   {key === "review" && (
+//                     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+//                       <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
+//                         {[
+//                           { label: "Title",     val: title || "—" },
+//                           { label: "Batch",     val: batchId ? `Batch ${batchId}` : "—" },
+//                           { label: "Questions", val: questions.length },
+//                         ].map(({ label, val }) => (
+//                           <div key={label} style={{
+//                             background: t.recentItemBg,
+//                             border: `1px solid ${t.recentItemBorder}`,
+//                             borderRadius: 14, padding: "12px 16px",
+//                           }}>
+//                             <p style={{ fontSize: 10, color: t.textMuted, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", margin: 0, fontFamily: "'Poppins',sans-serif" }}>{label}</p>
+//                             <p style={{ fontSize: 15, fontWeight: 700, color: t.text, margin: "4px 0 0", fontFamily: "'Poppins',sans-serif" }}>{val}</p>
+//                           </div>
+//                         ))}
+//                       </div>
+//                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+//                         <button
+//                           onClick={() => setOpen("questions")}
+//                           style={{ fontSize: 12, color: t.textMuted, background: "none", border: "none", cursor: "pointer", fontFamily: "'Poppins',sans-serif", fontWeight: 500 }}
+//                         >← Back to Questions</button>
+//                         <PrimaryButton color="#34d399" onClick={handleSaveQuiz} disabled={loading} style={{ opacity: loading ? 0.6 : 1 }}>
+//                           {loading ? <><Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> Saving…</> : <><CheckCircle2 size={14} /> Publish Quiz</>}
+//                         </PrimaryButton>
+//                       </div>
+//                     </div>
+//                   )}
+//                 </div>
+//               )}
 //             </div>
-//           ))}
-//         </div>
-
-//         {/* ACTIONS */}
-//         <div className="flex flex-col sm:flex-row gap-3">
-//           <button
-//             onClick={addNewQuestion}
-//             className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold"
-//           >
-//             <PlusCircle className="w-4 h-4" />
-//             Add Question
-//           </button>
-
-//           <button
-//             onClick={handleSaveQuiz}
-//             disabled={loading}
-//             className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold"
-//           >
-//             {loading ? (
-//               <>
-//                 <Loader2 className="w-4 h-4 animate-spin" />
-//                 Saving…
-//               </>
-//             ) : (
-//               "Publish Quiz"
-//             )}
-//           </button>
-//         </div>
+//           );
+//         })}
 //       </div>
-//     </div>
+//     </PageShell>
 //   );
 // };
 
@@ -276,47 +307,29 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
+// src/trainer/CreateQuiz.jsx
 import { useEffect, useState } from "react";
-import {
-  addOption,
-  addQuestion,
-  createQuiz,
-} from "../services/assessmentService";
-
+import { addOption, addQuestion, createQuiz } from "../services/assessmentService";
 import { getTrainerBatches } from "../services/batchService";
-
-import {
-  ChevronDown,
-  ClipboardList,
-  HelpCircle,
-  Loader2,
-  PlusCircle,
-  Settings2,
-  CheckCircle2,
-} from "lucide-react";
+import { ChevronDown, ClipboardList, HelpCircle, Loader2, PlusCircle, CheckCircle2 } from "lucide-react";
 import auth from "../auth";
+import {
+  useTrainerTheme, PageShell, PageHero, ThemedCard,
+  ThemedInput, ThemedTextarea, ThemedSelect, FieldLabel,
+  PrimaryButton, SecondaryButton, Pill,
+} from "./trainerTheme";
 
 const PANELS = ["details", "questions", "review"];
 
 const CreateQuiz = () => {
+  const { t, isDark } = useTrainerTheme();
+
   const [title, setTitle] = useState("");
   const [batchId, setBatchId] = useState("");
   const [instructions, setInstructions] = useState("");
   const [loading, setLoading] = useState(false);
   const [batches, setBatches] = useState([]);
   const [open, setOpen] = useState("details");
-
   const [questions, setQuestions] = useState([
     { text: "", options: { A: "", B: "", C: "", D: "" }, correctOption: "" },
   ]);
@@ -327,9 +340,7 @@ const CreateQuiz = () => {
       try {
         const res = await getTrainerBatches();
         setBatches(res || []);
-      } catch (err) {
-        console.error("Failed to load trainer batches", err);
-      }
+      } catch (err) { console.error("Failed to load trainer batches", err); }
     };
     loadBatches();
   }, []);
@@ -338,29 +349,71 @@ const CreateQuiz = () => {
     setQuestions([...questions, { text: "", options: { A: "", B: "", C: "", D: "" }, correctOption: "" }]);
   };
 
+  // ✅ Full validation + immutable state updates from component 2
   const handleSaveQuiz = async () => {
     try {
+      // 🔥 FULL VALIDATION
       for (const q of questions) {
-        if (!q.text.trim()) { alert("Please enter question text"); return; }
-        if (!q.correctOption) { alert("Please select correct option for all questions"); return; }
-      }
-      if (!batchId) { alert("Please select a batch"); return; }
-      setLoading(true);
-      const quizRes = await createQuiz({ title, batchId, instructions });
-      const quizId = quizRes.data.id;
-      for (const q of questions) {
-        const qRes = await addQuestion({ quizId, text: q.text });
-        const questionId = qRes.data.id;
+        if (!q.text || !q.text.trim()) {
+          alert("Please enter question text");
+          return;
+        }
+        if (!q.correctOption) {
+          alert("Please select correct option for all questions");
+          return;
+        }
         for (const key of ["A", "B", "C", "D"]) {
-          await addOption({ questionId, text: q.options[key], correct: key === q.correctOption });
+          const opt = q.options[key];
+          if (!opt || !opt.trim()) {
+            alert(`Please fill option ${key} for all questions`);
+            return;
+          }
         }
       }
+
+      if (!batchId) {
+        alert("Please select a batch");
+        return;
+      }
+
+      setLoading(true);
+
+      // ✅ CREATE QUIZ
+      const quizRes = await createQuiz({ title, batchId, instructions });
+      const quizId = quizRes.data.id;
+
+      // 🔥 DEBUG
+      console.log("QUESTIONS:", JSON.stringify(questions, null, 2));
+
+      // ✅ SAVE QUESTIONS + OPTIONS (with trim, same as component 2)
+      for (const q of questions) {
+        const qRes = await addQuestion({
+          quizId,
+          text: q.text.trim(),
+        });
+
+        const questionId = qRes.data.id;
+
+        for (const key of ["A", "B", "C", "D"]) {
+          const optionText = q.options[key].trim();
+          await addOption({
+            questionId,
+            text: optionText,
+            correct: key === q.correctOption,
+          });
+        }
+      }
+
       alert("✅ Quiz created successfully");
-      setTitle(""); setBatchId(""); setInstructions("");
+
+      // ✅ RESET FORM
+      setTitle("");
+      setBatchId("");
+      setInstructions("");
       setQuestions([{ text: "", options: { A: "", B: "", C: "", D: "" }, correctOption: "" }]);
     } catch (err) {
       console.error(err);
-      alert("❌ Failed to create quiz");
+      alert(err.message || "❌ Failed to create quiz");
     } finally {
       setLoading(false);
     }
@@ -369,294 +422,248 @@ const CreateQuiz = () => {
   const toggle = (panel) => setOpen((prev) => (prev === panel ? null : panel));
 
   const panelMeta = {
-    details: {
-      label: "Quiz Details",
-      sub: "Title, batch & instructions",
-      accent: "from-cyan-500 to-blue-600",
-      ring: "focus-within:ring-2 focus-within:ring-blue-400/30",
-      activeBorder: "border-blue-300 dark:border-blue-700",
-      dot: "#06b6d4",
-    },
-    questions: {
-      label: "Questions",
-      sub: `${questions.length} question${questions.length !== 1 ? "s" : ""} added`,
-      accent: "from-indigo-500 to-violet-600",
-      ring: "focus-within:ring-2 focus-within:ring-indigo-400/30",
-      activeBorder: "border-indigo-300 dark:border-indigo-700",
-      dot: "#6366f1",
-    },
-    review: {
-      label: "Review & Publish",
-      sub: "Confirm and save",
-      accent: "from-emerald-500 to-green-600",
-      ring: "focus-within:ring-2 focus-within:ring-emerald-400/30",
-      activeBorder: "border-emerald-300 dark:border-emerald-700",
-      dot: "#10b981",
-    },
+    details:   { label: "Quiz Details",      sub: "Title, batch & instructions", color: "#22d3ee", num: 1, next: "questions", nextLabel: "Next: Add Questions →" },
+    questions: { label: "Questions",          sub: `${questions.length} question${questions.length !== 1 ? "s" : ""} added`, color: "#7c3aed", num: 2, next: "review", nextLabel: "Next: Review →" },
+    review:    { label: "Review & Publish",   sub: "Confirm and save",           color: "#34d399", num: 3, next: null, nextLabel: null },
   };
 
-  /* shared input classes */
-  const inp = "w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm shadow-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 placeholder:text-slate-400 dark:placeholder:text-slate-500";
-  const sel = "w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm shadow-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20";
-
   return (
-    <div className="p-4 pb-12 space-y-4 bg-slate-50 dark:bg-slate-950 min-h-screen">
+    <PageShell t={t}>
+      {/* HERO */}
+      <PageHero
+        t={t} isDark={isDark}
+        icon={ClipboardList}
+        badge="Assessment Builder"
+        title="Quiz Builder"
+        subtitle="Create quizzes with multiple choice questions for your batches."
+        color="#22d3ee"
+      />
 
-      {/* ── HERO ── */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600 px-6 py-5 text-white shadow-xl shadow-blue-500/20">
-        <div className="pointer-events-none absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-8 left-1/4 w-32 h-32 rounded-full bg-indigo-400/20 blur-2xl" />
-        <div className="relative flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center shadow-inner shrink-0">
-            <ClipboardList className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-white/60 mb-0.5">Assessment Builder</p>
-            <h1 className="text-xl font-bold tracking-tight leading-none">Quiz Builder</h1>
-          </div>
-        </div>
-      </div>
+      {/* ACCORDION PANELS */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {PANELS.map((key) => {
+          const meta = panelMeta[key];
+          const isOpen = open === key;
 
-      {/* ── ACCORDION PANELS ── */}
-      {PANELS.map((key, idx) => {
-        const meta = panelMeta[key];
-        const isOpen = open === key;
+          return (
+            <div key={key} style={{
+              background: t.cardBg,
+              border: `1px solid ${isOpen ? meta.color + "40" : t.border}`,
+              borderRadius: 20,
+              overflow: "hidden",
+              boxShadow: isOpen ? `0 0 0 1px ${meta.color}20, ${t.shadow}` : t.shadow,
+              transition: "all 0.2s",
+            }}>
+              {/* Header */}
+              <button
+                onClick={() => toggle(key)}
+                style={{
+                  width: "100%", display: "flex", alignItems: "center", gap: 14,
+                  padding: "16px 20px", textAlign: "left",
+                  background: isOpen ? `${meta.color}06` : "transparent",
+                  border: "none", cursor: "pointer",
+                  borderBottom: isOpen ? `1px solid ${t.border}` : "none",
+                  transition: "background 0.2s",
+                }}
+              >
+                <div style={{
+                  width: 32, height: 32, borderRadius: 999,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  background: `${meta.color}20`, border: `1px solid ${meta.color}40`,
+                  flexShrink: 0,
+                }}>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: meta.color, fontFamily: "'Poppins',sans-serif" }}>{meta.num}</span>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: t.text, margin: 0, fontFamily: "'Poppins',sans-serif" }}>{meta.label}</p>
+                  <p style={{ fontSize: 11, color: t.textMuted, margin: "2px 0 0", fontFamily: "'Poppins',sans-serif" }}>{meta.sub}</p>
+                </div>
+                {/* step dots */}
+                <div style={{ display: "flex", gap: 4, marginRight: 8 }}>
+                  {PANELS.map((p, pi) => (
+                    <span key={p} style={{
+                      width: p === key ? 18 : 6, height: 6, borderRadius: 999,
+                      background: p === key ? meta.color : pi < PANELS.indexOf(key) ? "#94a3b8" : t.barBg,
+                      transition: "all 0.3s",
+                    }} />
+                  ))}
+                </div>
+                <ChevronDown size={16} color={t.textMuted} style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s", flexShrink: 0 }} />
+              </button>
 
-        return (
-          <div
-            key={key}
-            className={`rounded-2xl border bg-white dark:bg-slate-900 overflow-hidden transition-all duration-200 ${
-              isOpen
-                ? `shadow-lg ${meta.activeBorder}`
-                : "border-slate-200 dark:border-slate-800 shadow-sm"
-            }`}
-          >
-            {/* ── header ── */}
-            <button
-              onClick={() => toggle(key)}
-              className="w-full flex items-center gap-3.5 px-5 py-4 text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
-            >
-              {/* step badge */}
-              <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${meta.accent} flex items-center justify-center shrink-0 shadow-md`}>
-                <span className="text-xs font-bold text-white">{idx + 1}</span>
-              </div>
+              {/* Body */}
+              {isOpen && (
+                <div style={{ padding: "20px 20px 24px" }}>
 
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 leading-tight">{meta.label}</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{meta.sub}</p>
-              </div>
-
-              {/* progress dots */}
-              <div className="flex items-center gap-1.5 mr-1">
-                {PANELS.map((p, pi) => (
-                  <span
-                    key={p}
-                    className="w-1.5 h-1.5 rounded-full transition-all"
-                    style={{
-                      background: p === key ? meta.dot : pi < idx ? "#94a3b8" : "#e2e8f0",
-                      transform: p === key ? "scale(1.3)" : "scale(1)",
-                    }}
-                  />
-                ))}
-              </div>
-
-              <ChevronDown
-                className={`w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 ${isOpen ? "rotate-180" : ""}`}
-              />
-            </button>
-
-            {/* ── body ── */}
-            {isOpen && (
-              <div className="px-5 pb-6 pt-2 border-t border-slate-100 dark:border-slate-800 space-y-4">
-
-                {/* PANEL 1 — DETAILS */}
-                {key === "details" && (
-                  <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Quiz Title</label>
-                        <input
-                          value={title}
-                          onChange={(e) => setTitle(e.target.value)}
-                          placeholder="e.g. React Fundamentals"
-                          className={inp}
-                        />
+                  {/* PANEL 1 — DETAILS */}
+                  {key === "details" && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                        <div>
+                          <FieldLabel t={t}>Quiz Title</FieldLabel>
+                          <ThemedInput t={t} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. React Fundamentals" />
+                        </div>
+                        <div>
+                          <FieldLabel t={t}>Select Batch</FieldLabel>
+                          <ThemedSelect t={t} value={batchId} onChange={(e) => setBatchId(Number(e.target.value))}>
+                            <option value="">Select Batch</option>
+                            {batches.map((b) => (
+                              <option key={b.id} value={b.id}>Batch {b.id}</option>
+                            ))}
+                          </ThemedSelect>
+                        </div>
                       </div>
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Select Batch</label>
-                        <select
-                          value={batchId}
-                          onChange={(e) => setBatchId(Number(e.target.value))}
-                          className={sel}
-                        >
-                          <option value="">Select Batch</option>
-                          {batches.map((b) => (
-                            <option key={b.id} value={b.id}>Batch {b.id}</option>
-                          ))}
-                        </select>
+                      <div>
+                        <FieldLabel t={t}>Instructions</FieldLabel>
+                        <ThemedTextarea t={t} value={instructions} onChange={(e) => setInstructions(e.target.value)} placeholder="Quiz instructions for students…" rows={3} />
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                        <PrimaryButton color={meta.color} onClick={() => setOpen("questions")}>{meta.nextLabel}</PrimaryButton>
                       </div>
                     </div>
+                  )}
 
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Instructions</label>
-                      <textarea
-                        value={instructions}
-                        onChange={(e) => setInstructions(e.target.value)}
-                        placeholder="Quiz instructions for students…"
-                        rows={3}
-                        className={`${inp} resize-none`}
-                      />
-                    </div>
-
-                    <div className="flex justify-end pt-1">
-                      <button
-                        onClick={() => setOpen("questions")}
-                        className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xs font-semibold shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/30 hover:brightness-105 transition-all"
-                      >
-                        Next: Add Questions →
-                      </button>
-                    </div>
-                  </>
-                )}
-
-                {/* PANEL 2 — QUESTIONS */}
-                {key === "questions" && (
-                  <>
-                    <div className="space-y-4">
+                  {/* PANEL 2 — QUESTIONS */}
+                  {key === "questions" && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                       {questions.map((q, index) => (
-                        <div
-                          key={index}
-                          className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-4 space-y-3 shadow-sm"
-                        >
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shrink-0 shadow-sm">
-                              <span className="text-[10px] font-bold text-white">{index + 1}</span>
+                        <div key={index} style={{
+                          background: t.recentItemBg,
+                          border: `1px solid ${t.recentItemBorder}`,
+                          borderRadius: 16, padding: 16,
+                        }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                            <div style={{
+                              width: 24, height: 24, borderRadius: 8,
+                              background: "rgba(124,58,237,0.15)", border: "1px solid rgba(124,58,237,0.3)",
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                            }}>
+                              <span style={{ fontSize: 10, fontWeight: 800, color: "#7c3aed", fontFamily: "'Poppins',sans-serif" }}>{index + 1}</span>
                             </div>
-                            <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wide">
+                            <span style={{ fontSize: 11, fontWeight: 600, color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "'Poppins',sans-serif" }}>
                               Question {index + 1}
                             </span>
                           </div>
 
-                          <input
+                          {/* ✅ Immutable update for question text (from component 2) */}
+                          <ThemedInput
+                            t={t}
                             value={q.text}
                             onChange={(e) => {
                               const updated = [...questions];
-                              updated[index].text = e.target.value;
+                              updated[index] = { ...updated[index], text: e.target.value };
                               setQuestions(updated);
                             }}
                             placeholder="Enter question text"
-                            className={inp}
+                            style={{ marginBottom: 12 }}
                           />
 
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                             {["A", "B", "C", "D"].map((optKey) => (
-                              <label
-                                key={optKey}
-                                className={`flex items-center gap-2.5 rounded-xl border px-3 py-2.5 cursor-pointer transition-all shadow-sm ${
-                                  q.correctOption === optKey
-                                    ? "border-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 shadow-emerald-100 dark:shadow-emerald-900/20"
-                                    : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300 hover:bg-slate-50"
-                                }`}
-                              >
+                              <label key={optKey} style={{
+                                display: "flex", alignItems: "center", gap: 10,
+                                borderRadius: 12, padding: "10px 12px", cursor: "pointer",
+                                border: `1px solid ${q.correctOption === optKey ? "#34d399" : t.inputBorder}`,
+                                background: q.correctOption === optKey ? "rgba(52,211,153,0.08)" : t.inputBg,
+                                transition: "all 0.15s",
+                              }}>
+                                {/* ✅ Immutable update for correctOption (from component 2) */}
                                 <input
                                   type="radio"
                                   name={`correct-${index}`}
                                   checked={q.correctOption === optKey}
                                   onChange={() => {
                                     const updated = [...questions];
-                                    updated[index].correctOption = optKey;
+                                    updated[index] = { ...updated[index], correctOption: optKey };
                                     setQuestions(updated);
                                   }}
-                                  className="accent-emerald-500"
+                                  style={{ accentColor: "#34d399" }}
                                 />
-                                <span
-                                  className={`text-[10px] font-bold w-5 h-5 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                                    q.correctOption === optKey
-                                      ? "bg-emerald-500 text-white shadow-sm"
-                                      : "bg-slate-100 dark:bg-slate-700 text-slate-500"
-                                  }`}
-                                >
-                                  {optKey}
-                                </span>
+                                <span style={{
+                                  width: 20, height: 20, borderRadius: 6, flexShrink: 0,
+                                  display: "flex", alignItems: "center", justifyContent: "center",
+                                  background: q.correctOption === optKey ? "#34d399" : t.barBg,
+                                  fontSize: 10, fontWeight: 800, color: q.correctOption === optKey ? "#fff" : t.textMuted,
+                                  fontFamily: "'Poppins',sans-serif",
+                                }}>{optKey}</span>
+                                {/* ✅ Immutable update for option text (from component 2) */}
                                 <input
-                                  value={q.options[optKey]}
+                                  value={q.options[optKey] || ""}
                                   onChange={(e) => {
                                     const updated = [...questions];
-                                    updated[index].options[optKey] = e.target.value;
+                                    updated[index] = {
+                                      ...updated[index],
+                                      options: {
+                                        ...updated[index].options,
+                                        [optKey]: e.target.value,
+                                      },
+                                    };
                                     setQuestions(updated);
                                   }}
                                   placeholder={`Option ${optKey}`}
-                                  className="flex-1 bg-transparent outline-none text-sm min-w-0 placeholder:text-slate-400"
+                                  style={{ flex: 1, background: "transparent", outline: "none", border: "none", fontSize: 13, color: t.text, fontFamily: "'Poppins',sans-serif" }}
                                 />
                               </label>
                             ))}
                           </div>
                         </div>
                       ))}
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <button
+                          onClick={addNewQuestion}
+                          style={{
+                            display: "flex", alignItems: "center", gap: 8,
+                            padding: "9px 16px", borderRadius: 12,
+                            border: `2px dashed rgba(124,58,237,0.4)`,
+                            background: "transparent", color: "#7c3aed",
+                            fontSize: 12, fontWeight: 600, cursor: "pointer",
+                            fontFamily: "'Poppins',sans-serif",
+                          }}
+                        >
+                          <PlusCircle size={14} /> Add Question
+                        </button>
+                        <PrimaryButton color={meta.color} onClick={() => setOpen("review")}>{meta.nextLabel}</PrimaryButton>
+                      </div>
                     </div>
+                  )}
 
-                    <div className="flex items-center justify-between pt-1">
-                      <button
-                        onClick={addNewQuestion}
-                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-dashed border-indigo-300 dark:border-indigo-700 text-indigo-500 text-xs font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:border-indigo-400 transition-all"
-                      >
-                        <PlusCircle className="w-3.5 h-3.5" />
-                        Add Question
-                      </button>
-                      <button
-                        onClick={() => setOpen("review")}
-                        className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white text-xs font-semibold shadow-md shadow-indigo-500/25 hover:shadow-lg hover:brightness-105 transition-all"
-                      >
-                        Next: Review →
-                      </button>
+                  {/* PANEL 3 — REVIEW */}
+                  {key === "review" && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
+                        {[
+                          { label: "Title",     val: title || "—" },
+                          { label: "Batch",     val: batchId ? `Batch ${batchId}` : "—" },
+                          { label: "Questions", val: questions.length },
+                        ].map(({ label, val }) => (
+                          <div key={label} style={{
+                            background: t.recentItemBg,
+                            border: `1px solid ${t.recentItemBorder}`,
+                            borderRadius: 14, padding: "12px 16px",
+                          }}>
+                            <p style={{ fontSize: 10, color: t.textMuted, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", margin: 0, fontFamily: "'Poppins',sans-serif" }}>{label}</p>
+                            <p style={{ fontSize: 15, fontWeight: 700, color: t.text, margin: "4px 0 0", fontFamily: "'Poppins',sans-serif" }}>{val}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <button
+                          onClick={() => setOpen("questions")}
+                          style={{ fontSize: 12, color: t.textMuted, background: "none", border: "none", cursor: "pointer", fontFamily: "'Poppins',sans-serif", fontWeight: 500 }}
+                        >← Back to Questions</button>
+                        <PrimaryButton color="#34d399" onClick={handleSaveQuiz} disabled={loading} style={{ opacity: loading ? 0.6 : 1 }}>
+                          {loading ? <><Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> Saving…</> : <><CheckCircle2 size={14} /> Publish Quiz</>}
+                        </PrimaryButton>
+                      </div>
                     </div>
-                  </>
-                )}
-
-                {/* PANEL 3 — REVIEW */}
-                {key === "review" && (
-                  <>
-                    <div className="grid grid-cols-3 gap-3">
-                      {[
-                        { label: "Title", val: title || "—" },
-                        { label: "Batch", val: batchId ? `Batch ${batchId}` : "—" },
-                        { label: "Questions", val: questions.length },
-                      ].map(({ label, val }) => (
-                        <div key={label} className="rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-3 shadow-sm">
-                          <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-widest mb-1">{label}</p>
-                          <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">{val}</p>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="flex items-center justify-between pt-1">
-                      <button
-                        onClick={() => setOpen("questions")}
-                        className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition font-medium"
-                      >
-                        ← Back to Questions
-                      </button>
-                      <button
-                        onClick={handleSaveQuiz}
-                        disabled={loading}
-                        className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 text-white text-sm font-semibold shadow-md shadow-emerald-500/25 hover:shadow-lg hover:shadow-emerald-500/30 hover:brightness-105 disabled:opacity-60 transition-all"
-                      >
-                        {loading ? (
-                          <><Loader2 className="w-4 h-4 animate-spin" />Saving…</>
-                        ) : (
-                          <><CheckCircle2 className="w-4 h-4" />Publish Quiz</>
-                        )}
-                      </button>
-                    </div>
-                  </>
-                )}
-
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </PageShell>
   );
 };
 

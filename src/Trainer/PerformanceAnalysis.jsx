@@ -1,11 +1,40 @@
 // import React, { useState } from "react";
-// import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from "recharts";
+// import {
+//   LineChart,
+//   Line,
+//   BarChart,
+//   Bar,
+//   PieChart,
+//   Pie,
+//   Cell,
+//   XAxis,
+//   YAxis,
+//   CartesianGrid,
+//   Tooltip,
+//   Legend,
+//   ResponsiveContainer,
+//   Area,
+//   AreaChart,
+// } from "recharts";
+
+// import {
+//   BarChart3,
+//   TrendingUp,
+//   CheckCircle,
+//   CalendarCheck,
+//   Activity,
+//   Download,
+//   Target,
+//   Trophy,
+//   AlertTriangle,
+//   BookOpen,
+//   Info,
+// } from "lucide-react";
 
 // const PerformanceAnalysis = () => {
 //   const [timeRange, setTimeRange] = useState("6months");
-//   const [selectedMetric, setSelectedMetric] = useState("all");
 
-//   // Empty data arrays - replace with actual API data
+//   // Empty data (API later)
 //   const completionTrendData = [];
 //   const assessmentTrendData = [];
 //   const batchPerformanceData = [];
@@ -16,599 +45,185 @@
 
 //   const stats = [
 //     {
-//       label: "Average Course Completion",
+//       label: "Course Completion",
 //       value: "0%",
 //       change: "0%",
-//       trend: "up",
+//       icon: BookOpen,
 //       color: "emerald",
-//       icon: "📚",
 //       target: "80%",
 //       progress: 0,
 //     },
 //     {
-//       label: "Average Assessment Score",
+//       label: "Assessment Score",
 //       value: "0%",
 //       change: "0%",
-//       trend: "up",
+//       icon: Target,
 //       color: "blue",
-//       icon: "🎯",
 //       target: "85%",
 //       progress: 0,
 //     },
 //     {
-//       label: "Overall Attendance",
+//       label: "Attendance",
 //       value: "0%",
 //       change: "0%",
-//       trend: "up",
+//       icon: CalendarCheck,
 //       color: "purple",
-//       icon: "✅",
 //       target: "90%",
 //       progress: 0,
 //     },
 //     {
-//       label: "Student Engagement",
+//       label: "Engagement",
 //       value: "0%",
 //       change: "0%",
-//       trend: "up",
+//       icon: Activity,
 //       color: "cyan",
-//       icon: "⚡",
 //       target: "90%",
 //       progress: 0,
 //     },
 //   ];
 
 //   const CustomTooltip = ({ active, payload, label }) => {
-//     if (active && payload && payload.length) {
-//       return (
-//         <div className="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-3 shadow-xl">
-//           <p className="text-slate-800 dark:text-slate-200 font-medium mb-2">{label}</p>
-//           {payload.map((entry, index) => (
-//             <p key={index} className="text-sm" style={{ color: entry.color }}>
-//               {entry.name}: {entry.value}%
-//             </p>
-//           ))}
-//         </div>
-//       );
-//     }
-//     return null;
+//     if (!active || !payload?.length) return null;
+//     return (
+//       <div className="rounded-md border bg-white dark:bg-slate-900 p-2 text-xs shadow">
+//         <p className="font-medium mb-1">{label}</p>
+//         {payload.map((p, i) => (
+//           <p key={i} style={{ color: p.color }}>
+//             {p.name}: {p.value}%
+//           </p>
+//         ))}
+//       </div>
+//     );
 //   };
 
 //   return (
-//     <div className="space-y-6">
-//       {/* Header */}
-//       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-cyan-600 via-blue-600 to-indigo-700 p-8">
-//         <div className="absolute inset-0 bg-black/10 dark:bg-black/10"></div>
-//         <div className="relative">
-//           <div className="flex items-center gap-2 mb-2">
-//             <span className="text-2xl">📊</span>
-//             <p className="text-xs font-semibold tracking-wide text-cyan-50 uppercase">
-//               Analytics Dashboard
-//             </p>
-//           </div>
-//           <h1 className="text-3xl font-bold text-white mb-2">
-//             Performance Analysis
-//           </h1>
-//           <p className="text-cyan-50 max-w-2xl">
-//             Comprehensive insights into student performance, batch analytics, and completion trends
-//           </p>
+//     <div className="space-y-5">
+//       {/* HEADER */}
+//       <div className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 p-5 text-white">
+//         <div className="flex items-center gap-2 text-xs uppercase opacity-90">
+//           <BarChart3 className="w-4 h-4" />
+//           Analytics Dashboard
 //         </div>
+//         <h1 className="text-xl font-bold mt-1">Performance Analysis</h1>
+//         <p className="text-sm opacity-90">
+//           Student performance & batch insights
+//         </p>
 //       </div>
 
-//       {/* Controls */}
-//       <div className="flex flex-wrap gap-4 items-center justify-between bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-4">
-//         <div className="flex gap-2">
-//           <button
-//             onClick={() => setTimeRange("3months")}
-//             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-//               timeRange === "3months"
-//                 ? "bg-blue-600 text-white"
-//                 : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
-//             }`}
-//           >
-//             3 Months
-//           </button>
-//           <button
-//             onClick={() => setTimeRange("6months")}
-//             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-//               timeRange === "6months"
-//                 ? "bg-blue-600 text-white"
-//                 : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
-//             }`}
-//           >
-//             6 Months
-//           </button>
-//           <button
-//             onClick={() => setTimeRange("1year")}
-//             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-//               timeRange === "1year"
-//                 ? "bg-blue-600 text-white"
-//                 : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
-//             }`}
-//           >
-//             1 Year
-//           </button>
+//       {/* CONTROLS */}
+//       <div className="flex items-center justify-between gap-2 rounded-lg border bg-white dark:bg-slate-900 p-3">
+//         <div className="flex gap-1">
+//           {["3months", "6months", "1year"].map((r) => (
+//             <button
+//               key={r}
+//               onClick={() => setTimeRange(r)}
+//               className={`px-3 py-1 text-xs rounded-md ${
+//                 timeRange === r
+//                   ? "bg-blue-600 text-white"
+//                   : "bg-slate-100 dark:bg-slate-800"
+//               }`}
+//             >
+//               {r === "3months" ? "3M" : r === "6months" ? "6M" : "1Y"}
+//             </button>
+//           ))}
 //         </div>
-//         <button className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg text-sm font-medium transition-all flex items-center gap-2">
-//           <span>📥</span>
-//           Export Report
+
+//         <button className="flex items-center gap-1 px-3 py-1 text-xs rounded-md bg-slate-100 dark:bg-slate-800">
+//           <Download className="w-4 h-4" />
+//           Export
 //         </button>
 //       </div>
 
-//       {/* Key Metrics */}
-//       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-//         {stats.map((stat) => (
-//           <div
-//             key={stat.label}
-//             className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-5 hover:border-slate-300 dark:hover:border-slate-600 transition-all"
-//           >
-//             <div className="flex items-start justify-between mb-3">
-//               <div>
-//                 <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-medium">
-//                   {stat.label}
-//                 </p>
-//                 <div className="flex items-baseline gap-2 mt-2">
-//                   <p className="text-3xl font-bold text-slate-900 dark:text-white">{stat.value}</p>
-//                   <span className={`text-sm font-medium ${
-//                     stat.trend === "up" ? "text-emerald-500 dark:text-emerald-400" : "text-rose-500 dark:text-rose-400"
-//                   }`}>
-//                     {stat.change}
-//                   </span>
-//                 </div>
+//       {/* STATS */}
+//       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+//         {stats.map((s) => {
+//           const Icon = s.icon;
+//           return (
+//             <div
+//               key={s.label}
+//               className="rounded-lg border bg-white dark:bg-slate-900 p-3"
+//             >
+//               <div className="flex items-center justify-between mb-2">
+//                 <p className="text-xs text-muted-foreground">{s.label}</p>
+//                 <Icon className="w-4 h-4 text-blue-500" />
 //               </div>
-//               <span className="text-2xl">{stat.icon}</span>
-//             </div>
-//             <div className="space-y-2">
-//               <div className="flex justify-between text-xs">
-//                 <span className="text-slate-500 dark:text-slate-400">Target: {stat.target}</span>
-//                 <span className="text-slate-600 dark:text-slate-300">{stat.progress.toFixed(1)}%</span>
-//               </div>
-//               <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5">
+//               <p className="text-lg font-semibold">{s.value}</p>
+//               <div className="mt-2 h-1.5 w-full rounded bg-slate-200 dark:bg-slate-800">
 //                 <div
-//                   className={`h-1.5 rounded-full bg-gradient-to-r ${
-//                     stat.color === "emerald"
-//                       ? "from-emerald-500 to-emerald-400"
-//                       : stat.color === "blue"
-//                       ? "from-blue-500 to-blue-400"
-//                       : stat.color === "purple"
-//                       ? "from-purple-500 to-purple-400"
-//                       : "from-cyan-500 to-cyan-400"
-//                   }`}
-//                   style={{ width: `${stat.progress}%` }}
-//                 ></div>
-//               </div>
-//             </div>
-//           </div>
-//         ))}
-//       </div>
-
-//       {/* Trend Charts */}
-//       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-//         {/* Completion Trend */}
-//         <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-6">
-//           <div className="mb-4">
-//             <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-//               <span>📈</span>
-//               Course Completion Trend
-//             </h3>
-//             <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-//               Monthly completion vs target rates
-//             </p>
-//           </div>
-//           {completionTrendData.length > 0 ? (
-//             <ResponsiveContainer width="100%" height={280}>
-//               <AreaChart data={completionTrendData}>
-//                 <defs>
-//                   <linearGradient id="completionGradient" x1="0" y1="0" x2="0" y2="1">
-//                     <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-//                     <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-//                   </linearGradient>
-//                 </defs>
-//                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-//                 <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} />
-//                 <YAxis stroke="#94a3b8" fontSize={12} />
-//                 <Tooltip content={<CustomTooltip />} />
-//                 <Legend />
-//                 <Area
-//                   type="monotone"
-//                   dataKey="completion"
-//                   stroke="#3b82f6"
-//                   fill="url(#completionGradient)"
-//                   strokeWidth={2}
-//                   name="Completion"
+//                   className="h-1.5 rounded bg-blue-500"
+//                   style={{ width: `${s.progress}%` }}
 //                 />
-//                 <Line
-//                   type="monotone"
-//                   dataKey="target"
-//                   stroke="#10b981"
-//                   strokeDasharray="5 5"
-//                   strokeWidth={2}
-//                   name="Target"
-//                 />
-//               </AreaChart>
-//             </ResponsiveContainer>
-//           ) : (
-//             <div className="h-[280px] flex items-center justify-center bg-slate-100 dark:bg-slate-800/50 rounded-lg">
-//               <div className="text-center">
-//                 <span className="text-4xl mb-2 block">📊</span>
-//                 <p className="text-slate-600 dark:text-slate-400 text-sm">No data available</p>
-//                 <p className="text-slate-500 dark:text-slate-500 text-xs mt-1">Connect your data source to view trends</p>
 //               </div>
 //             </div>
-//           )}
-//         </div>
-
-//         {/* Assessment & Attendance Trend */}
-//         <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-6">
-//           <div className="mb-4">
-//             <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-//               <span>📊</span>
-//               Assessment & Attendance Trends
-//             </h3>
-//             <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-//               Performance metrics over time
-//             </p>
-//           </div>
-//           {assessmentTrendData.length > 0 ? (
-//             <ResponsiveContainer width="100%" height={280}>
-//               <LineChart data={assessmentTrendData}>
-//                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-//                 <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} />
-//                 <YAxis stroke="#94a3b8" fontSize={12} />
-//                 <Tooltip content={<CustomTooltip />} />
-//                 <Legend />
-//                 <Line
-//                   type="monotone"
-//                   dataKey="score"
-//                   stroke="#8b5cf6"
-//                   strokeWidth={2}
-//                   name="Assessment Score"
-//                   dot={{ fill: "#8b5cf6", r: 4 }}
-//                 />
-//                 <Line
-//                   type="monotone"
-//                   dataKey="attendance"
-//                   stroke="#06b6d4"
-//                   strokeWidth={2}
-//                   name="Attendance"
-//                   dot={{ fill: "#06b6d4", r: 4 }}
-//                 />
-//               </LineChart>
-//             </ResponsiveContainer>
-//           ) : (
-//             <div className="h-[280px] flex items-center justify-center bg-slate-100 dark:bg-slate-800/50 rounded-lg">
-//               <div className="text-center">
-//                 <span className="text-4xl mb-2 block">📈</span>
-//                 <p className="text-slate-600 dark:text-slate-400 text-sm">No data available</p>
-//                 <p className="text-slate-500 dark:text-slate-500 text-xs mt-1">Connect your data source to view trends</p>
-//               </div>
-//             </div>
-//           )}
-//         </div>
+//           );
+//         })}
 //       </div>
 
-//       {/* Batch Performance & Distribution */}
-//       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-//         {/* Batch Performance */}
-//         <div className="lg:col-span-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-6">
-//           <div className="mb-4">
-//             <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-//               <span>🎓</span>
-//               Batch Performance Comparison
-//             </h3>
-//             <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-//               Completion rates across different batches
-//             </p>
-//           </div>
-//           {batchPerformanceData.length > 0 ? (
-//             <ResponsiveContainer width="100%" height={280}>
-//               <BarChart data={batchPerformanceData}>
-//                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-//                 <XAxis dataKey="batch" stroke="#94a3b8" fontSize={12} />
-//                 <YAxis stroke="#94a3b8" fontSize={12} />
-//                 <Tooltip content={<CustomTooltip />} />
-//                 <Legend />
-//                 <Bar dataKey="completion" fill="#3b82f6" name="Completion" radius={[4, 4, 0, 0]} />
-//                 <Bar dataKey="score" fill="#8b5cf6" name="Avg Score" radius={[4, 4, 0, 0]} />
-//                 <Bar dataKey="attendance" fill="#06b6d4" name="Attendance" radius={[4, 4, 0, 0]} />
-//               </BarChart>
-//             </ResponsiveContainer>
-//           ) : (
-//             <div className="h-[280px] flex items-center justify-center bg-slate-100 dark:bg-slate-800/50 rounded-lg">
-//               <div className="text-center">
-//                 <span className="text-4xl mb-2 block">🎓</span>
-//                 <p className="text-slate-600 dark:text-slate-400 text-sm">No batch data available</p>
-//                 <p className="text-slate-500 dark:text-slate-500 text-xs mt-1">Add batches to view comparison</p>
-//               </div>
-//             </div>
-//           )}
-//         </div>
+//       {/* CHARTS */}
+//       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+//         {/* COMPLETION */}
+//         <ChartCard
+//           title="Course Completion Trend"
+//           icon={TrendingUp}
+//           empty
+//         />
 
-//         {/* Performance Distribution */}
-//         <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-6">
-//           <div className="mb-4">
-//             <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-//               <span>🎯</span>
-//               Performance Distribution
-//             </h3>
-//             <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-//               Student performance breakdown
-//             </p>
-//           </div>
-//           {performanceDistributionData.length > 0 ? (
-//             <>
-//               <ResponsiveContainer width="100%" height={200}>
-//                 <PieChart>
-//                   <Pie
-//                     data={performanceDistributionData}
-//                     cx="50%"
-//                     cy="50%"
-//                     innerRadius={50}
-//                     outerRadius={80}
-//                     paddingAngle={5}
-//                     dataKey="value"
-//                   >
-//                     {performanceDistributionData.map((entry, index) => (
-//                       <Cell key={`cell-${index}`} fill={entry.color} />
-//                     ))}
-//                   </Pie>
-//                   <Tooltip />
-//                 </PieChart>
-//               </ResponsiveContainer>
-//               <div className="mt-4 space-y-2">
-//                 {performanceDistributionData.map((item) => (
-//                   <div key={item.name} className="flex items-center justify-between text-xs">
-//                     <div className="flex items-center gap-2">
-//                       <div
-//                         className="w-3 h-3 rounded-full"
-//                         style={{ backgroundColor: item.color }}
-//                       ></div>
-//                       <span className="text-slate-600 dark:text-slate-300">{item.name}</span>
-//                     </div>
-//                     <span className="text-slate-500 dark:text-slate-400 font-medium">{item.value}%</span>
-//                   </div>
-//                 ))}
-//               </div>
-//             </>
-//           ) : (
-//             <div className="h-[280px] flex items-center justify-center">
-//               <div className="text-center">
-//                 <span className="text-4xl mb-2 block">🎯</span>
-//                 <p className="text-slate-600 dark:text-slate-400 text-sm">No distribution data</p>
-//                 <p className="text-slate-500 dark:text-slate-500 text-xs mt-1">Data will appear once students enroll</p>
-//               </div>
-//             </div>
-//           )}
-//         </div>
+//         {/* ASSESSMENT */}
+//         <ChartCard
+//           title="Assessment & Attendance"
+//           icon={BarChart3}
+//           empty
+//         />
 //       </div>
 
-//       {/* Module Completion & Insights */}
-//       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-//         {/* Module Completion */}
-//         <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-6">
-//           <div className="mb-4">
-//             <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-//               <span>📚</span>
-//               Module Completion Rates
-//             </h3>
-//             <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-//               Progress across course modules
-//             </p>
-//           </div>
-//           <div className="space-y-4">
-//             {moduleCompletionData.length > 0 ? (
-//               moduleCompletionData.map((module) => (
-//                 <div key={module.module}>
-//                   <div className="flex justify-between text-sm mb-2">
-//                     <span className="text-slate-700 dark:text-slate-300 font-medium">{module.module}</span>
-//                     <span className="text-slate-600 dark:text-slate-400">{module.completion}%</span>
-//                   </div>
-//                   <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2">
-//                     <div
-//                       className={`h-2 rounded-full ${
-//                         module.completion >= 80
-//                           ? "bg-gradient-to-r from-emerald-500 to-emerald-400"
-//                           : module.completion >= 60
-//                           ? "bg-gradient-to-r from-blue-500 to-blue-400"
-//                           : "bg-gradient-to-r from-amber-500 to-amber-400"
-//                       }`}
-//                       style={{ width: `${module.completion}%` }}
-//                     ></div>
-//                   </div>
-//                 </div>
-//               ))
-//             ) : (
-//               <div className="h-[200px] flex items-center justify-center bg-slate-100 dark:bg-slate-800/50 rounded-lg">
-//                 <div className="text-center">
-//                   <span className="text-4xl mb-2 block">📚</span>
-//                   <p className="text-slate-600 dark:text-slate-400 text-sm">No module data available</p>
-//                   <p className="text-slate-500 dark:text-slate-500 text-xs mt-1">Create courses to track module progress</p>
-//                 </div>
-//               </div>
-//             )}
-//           </div>
-//         </div>
-
-//         {/* Key Insights */}
-//         <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-6">
-//           <div className="mb-4">
-//             <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-//               <span>💡</span>
-//               Key Insights
-//             </h3>
-//             <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-//               Automated performance analysis
-//             </p>
-//           </div>
-//           <div className="space-y-3">
-//             <div className="p-4 bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg">
-//               <div className="flex items-start gap-3">
-//                 <span className="text-2xl">💡</span>
-//                 <div>
-//                   <p className="text-sm font-medium text-slate-700 dark:text-slate-300">No insights available yet</p>
-//                   <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-//                     Insights will be generated automatically once student data is available
-//                   </p>
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
+//       {/* BATCH + DISTRIBUTION */}
+//       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+//         <ChartCard
+//           title="Batch Performance"
+//           icon={BookOpen}
+//           className="lg:col-span-2"
+//           empty
+//         />
+//         <ChartCard
+//           title="Performance Distribution"
+//           icon={Target}
+//           empty
+//         />
 //       </div>
 
-//       {/* Top Performers & Needs Attention */}
-//       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-//         {/* Top Performers */}
-//         <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-6">
-//           <div className="mb-4">
-//             <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-//               <span>🏆</span>
-//               Top Performers
-//             </h3>
-//             <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-//               Students exceeding expectations
-//             </p>
-//           </div>
-//           <div className="space-y-3">
-//             {topPerformers.length > 0 ? (
-//               topPerformers.map((student, index) => (
-//                 <div
-//                   key={student.name}
-//                   className="flex items-center gap-4 p-3 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-750 transition-all"
-//                 >
-//                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center font-bold text-white text-sm">
-//                     {index + 1}
-//                   </div>
-//                   <div className="flex-1 min-w-0">
-//                     <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
-//                       {student.name}
-//                     </p>
-//                     <p className="text-xs text-slate-600 dark:text-slate-400">{student.batch}</p>
-//                   </div>
-//                   <div className="flex gap-3 text-xs">
-//                     <div className="text-center">
-//                       <p className="text-slate-600 dark:text-slate-400">Score</p>
-//                       <p className="font-semibold text-emerald-500 dark:text-emerald-400">{student.score}%</p>
-//                     </div>
-//                     <div className="text-center">
-//                       <p className="text-slate-600 dark:text-slate-400">Compl</p>
-//                       <p className="font-semibold text-blue-500 dark:text-blue-400">{student.completion}%</p>
-//                     </div>
-//                   </div>
-//                 </div>
-//               ))
-//             ) : (
-//               <div className="h-[200px] flex items-center justify-center bg-slate-100 dark:bg-slate-800/50 rounded-lg">
-//                 <div className="text-center">
-//                   <span className="text-4xl mb-2 block">🏆</span>
-//                   <p className="text-slate-600 dark:text-slate-400 text-sm">No top performers yet</p>
-//                   <p className="text-slate-500 dark:text-slate-500 text-xs mt-1">Students will appear as they excel</p>
-//                 </div>
-//               </div>
-//             )}
-//           </div>
-//         </div>
-
-//         {/* Needs Attention */}
-//         <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-6">
-//           <div className="mb-4">
-//             <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-//               <span>⚠️</span>
-//               Needs Attention
-//             </h3>
-//             <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-//               Students requiring additional support
-//             </p>
-//           </div>
-//           <div className="space-y-3">
-//             {needsAttention.length > 0 ? (
-//               <>
-//                 {needsAttention.map((student) => (
-//                   <div
-//                     key={student.name}
-//                     className="p-4 bg-rose-50 dark:bg-rose-500/5 border border-rose-200 dark:border-rose-500/20 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-500/10 transition-all"
-//                   >
-//                     <div className="flex items-start justify-between mb-2">
-//                       <div>
-//                         <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{student.name}</p>
-//                         <p className="text-xs text-slate-600 dark:text-slate-400">{student.batch}</p>
-//                       </div>
-//                       <span className="px-2 py-1 bg-rose-200 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-xs rounded-md font-medium">
-//                         {student.issue}
-//                       </span>
-//                     </div>
-//                     <div className="flex gap-4 text-xs">
-//                       <div>
-//                         <span className="text-slate-600 dark:text-slate-400">Score: </span>
-//                         <span className="text-slate-700 dark:text-slate-300 font-medium">{student.score}%</span>
-//                       </div>
-//                       <div>
-//                         <span className="text-slate-600 dark:text-slate-400">Completion: </span>
-//                         <span className="text-slate-700 dark:text-slate-300 font-medium">{student.completion}%</span>
-//                       </div>
-//                       <div>
-//                         <span className="text-slate-600 dark:text-slate-400">Attendance: </span>
-//                         <span className="text-slate-700 dark:text-slate-300 font-medium">{student.attendance}%</span>
-//                       </div>
-//                     </div>
-//                   </div>
-//                 ))}
-//                 <button className="mt-4 w-full py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg text-sm font-medium transition-all">
-//                   View All At-Risk Students
-//                 </button>
-//               </>
-//             ) : (
-//               <div className="h-[200px] flex items-center justify-center bg-slate-100 dark:bg-slate-800/50 rounded-lg">
-//                 <div className="text-center">
-//                   <span className="text-4xl mb-2 block">✨</span>
-//                   <p className="text-slate-600 dark:text-slate-400 text-sm">All students performing well</p>
-//                   <p className="text-slate-500 dark:text-slate-500 text-xs mt-1">No intervention needed at this time</p>
-//                 </div>
-//               </div>
-//             )}
-//           </div>
-//         </div>
+//       {/* MODULE + INSIGHTS */}
+//       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+//         <ChartCard title="Module Completion" icon={BookOpen} empty />
+//         <ChartCard title="Key Insights" icon={Info} empty />
 //       </div>
 
-//       {/* Help Section */}
-//       <div className="rounded-xl bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-500/10 dark:to-purple-500/10 border border-blue-200 dark:border-blue-500/20 p-6">
-//         <div className="flex items-start gap-3">
-//           <span className="text-2xl">💡</span>
-//           <div>
-//             <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
-//               Understanding Performance Metrics
-//             </h3>
-//             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-//               <div>
-//                 <p className="text-slate-700 dark:text-slate-300 font-medium mb-1">Completion Rate</p>
-//                 <p className="text-slate-600 dark:text-slate-400">
-//                   Percentage of course content completed by students
-//                 </p>
-//               </div>
-//               <div>
-//                 <p className="text-slate-700 dark:text-slate-300 font-medium mb-1">Assessment Score</p>
-//                 <p className="text-slate-600 dark:text-slate-400">
-//                   Average score across all quizzes and assignments
-//                 </p>
-//               </div>
-//               <div>
-//                 <p className="text-slate-700 dark:text-slate-300 font-medium mb-1">Attendance</p>
-//                 <p className="text-slate-600 dark:text-slate-400">
-//                   Percentage of live sessions attended
-//                 </p>
-//               </div>
-//               <div>
-//                 <p className="text-slate-700 dark:text-slate-300 font-medium mb-1">Engagement</p>
-//                 <p className="text-slate-600 dark:text-slate-400">
-//                   Combined metric of participation and activity
-//                 </p>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
+//       {/* TOP & ATTENTION */}
+//       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+//         <ChartCard title="Top Performers" icon={Trophy} empty />
+//         <ChartCard title="Needs Attention" icon={AlertTriangle} empty />
 //       </div>
 //     </div>
 //   );
 // };
+
+// /* ---------------- HELPER ---------------- */
+
+// const ChartCard = ({ title, icon: Icon, empty, className = "" }) => (
+//   <div
+//     className={`rounded-lg border bg-white dark:bg-slate-900 p-4 ${className}`}
+//   >
+//     <div className="flex items-center gap-2 mb-3">
+//       <Icon className="w-4 h-4 text-blue-500" />
+//       <h3 className="text-sm font-semibold">{title}</h3>
+//     </div>
+
+//     {empty ? (
+//       <div className="h-[180px] flex items-center justify-center rounded-md bg-slate-100 dark:bg-slate-800/50">
+//         <p className="text-xs text-muted-foreground">No data available</p>
+//       </div>
+//     ) : null}
+//   </div>
+// );
 
 // export default PerformanceAnalysis;
 
@@ -617,231 +232,237 @@
 
 
 
-import React, { useState } from "react";
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  Area,
-  AreaChart,
-} from "recharts";
 
-import {
-  BarChart3,
-  TrendingUp,
-  CheckCircle,
-  CalendarCheck,
-  Activity,
-  Download,
-  Target,
-  Trophy,
-  AlertTriangle,
-  BookOpen,
-  Info,
-} from "lucide-react";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import React, { useState, useEffect } from "react";
+import { BarChart3, TrendingUp, CheckCircle, CalendarCheck, Activity, Download, Target, Trophy, AlertTriangle, BookOpen, Info, Sparkles, Users, ArrowUpRight } from "lucide-react";
+
+/* ─── theme tokens ─── */
+const T = {
+  dark: {
+    pageBg: "#0a0a0a", cardBg: "#111111", cardBgHov: "#161616", heroBg: "#141414",
+    border: "rgba(255,255,255,0.06)", borderHov: "rgba(255,255,255,0.14)", borderHero: "rgba(255,255,255,0.07)",
+    text: "#ffffff", textSub: "rgba(255,255,255,0.3)", textMuted: "rgba(255,255,255,0.2)",
+    textLabel: "rgba(255,255,255,0.22)", pillBg: "rgba(255,255,255,0.04)", pillBorder: "rgba(255,255,255,0.07)",
+    pillText: "rgba(255,255,255,0.25)", actBg: "rgba(255,255,255,0.04)", actBorder: "rgba(255,255,255,0.07)",
+    actBar: "rgba(255,255,255,0.5)", actIcon: "rgba(255,255,255,0.3)",
+    shadow: "0 4px 20px rgba(0,0,0,0.4)", shadowHov: "0 20px 60px rgba(0,0,0,0.6)",
+    gridLine: "rgba(255,255,255,0.5)", barBg: "rgba(255,255,255,0.05)",
+    emptyBorder: "rgba(255,255,255,0.07)", emptyBg: "rgba(255,255,255,0.02)", emptyIcon: "rgba(255,255,255,0.12)",
+    inputBg: "#1a1a1a", inputBorder: "rgba(255,255,255,0.08)", inputText: "#ffffff",
+  },
+  light: {
+    pageBg: "#f1f5f9", cardBg: "#ffffff", cardBgHov: "#f8fafc", heroBg: "#ffffff",
+    border: "#e2e8f0", borderHov: "#cbd5e1", borderHero: "#e2e8f0",
+    text: "#0f172a", textSub: "#64748b", textMuted: "#94a3b8",
+    textLabel: "#94a3b8", pillBg: "#f1f5f9", pillBorder: "#e2e8f0", pillText: "#94a3b8",
+    actBg: "#f8fafc", actBorder: "#e2e8f0", actBar: "#94a3b8", actIcon: "#94a3b8",
+    shadow: "0 1px 8px rgba(0,0,0,0.07)", shadowHov: "0 8px 32px rgba(0,0,0,0.10)",
+    gridLine: "rgba(0,0,0,0.12)", barBg: "#f1f5f9",
+    emptyBorder: "#e2e8f0", emptyBg: "#f8fafc", emptyIcon: "#cbd5e1",
+    inputBg: "#f8fafc", inputBorder: "#e2e8f0", inputText: "#0f172a",
+  },
+};
 
 const PerformanceAnalysis = () => {
   const [timeRange, setTimeRange] = useState("6months");
-
-  // Empty data (API later)
-  const completionTrendData = [];
-  const assessmentTrendData = [];
-  const batchPerformanceData = [];
-  const performanceDistributionData = [];
-  const moduleCompletionData = [];
-  const topPerformers = [];
-  const needsAttention = [];
+  const [isDark, setIsDark] = useState(
+    () => typeof document !== "undefined" && (document.documentElement.classList.contains("dark") || document.documentElement.getAttribute("data-theme") === "dark")
+  );
+  useEffect(() => {
+    const obs = new MutationObserver(() => setIsDark(document.documentElement.classList.contains("dark") || document.documentElement.getAttribute("data-theme") === "dark"));
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-theme"] });
+    return () => obs.disconnect();
+  }, []);
+  const t = isDark ? T.dark : T.light;
 
   const stats = [
-    {
-      label: "Course Completion",
-      value: "0%",
-      change: "0%",
-      icon: BookOpen,
-      color: "emerald",
-      target: "80%",
-      progress: 0,
-    },
-    {
-      label: "Assessment Score",
-      value: "0%",
-      change: "0%",
-      icon: Target,
-      color: "blue",
-      target: "85%",
-      progress: 0,
-    },
-    {
-      label: "Attendance",
-      value: "0%",
-      change: "0%",
-      icon: CalendarCheck,
-      color: "purple",
-      target: "90%",
-      progress: 0,
-    },
-    {
-      label: "Engagement",
-      value: "0%",
-      change: "0%",
-      icon: Activity,
-      color: "cyan",
-      target: "90%",
-      progress: 0,
-    },
+    { label: "Course Completion", value: "0%", icon: BookOpen, color: "#34d399", target: "80%", progress: 0 },
+    { label: "Assessment Score", value: "0%", icon: Target, color: "#22d3ee", target: "85%", progress: 0 },
+    { label: "Attendance", value: "0%", icon: CalendarCheck, color: "#a78bfa", target: "90%", progress: 0 },
+    { label: "Engagement", value: "0%", icon: Activity, color: "#f59e0b", target: "90%", progress: 0 },
   ];
 
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (!active || !payload?.length) return null;
-    return (
-      <div className="rounded-md border bg-white dark:bg-slate-900 p-2 text-xs shadow">
-        <p className="font-medium mb-1">{label}</p>
-        {payload.map((p, i) => (
-          <p key={i} style={{ color: p.color }}>
-            {p.name}: {p.value}%
-          </p>
-        ))}
-      </div>
-    );
-  };
+  const chartSections = [
+    [
+      { title: "Course Completion Trend", icon: TrendingUp, color: "#34d399", span: 1 },
+      { title: "Assessment & Attendance", icon: BarChart3, color: "#22d3ee", span: 1 },
+    ],
+    [
+      { title: "Batch Performance", icon: BookOpen, color: "#a78bfa", span: 2 },
+      { title: "Performance Distribution", icon: Target, color: "#f59e0b", span: 1 },
+    ],
+    [
+      { title: "Module Completion", icon: BookOpen, color: "#2dd4bf", span: 1 },
+      { title: "Key Insights", icon: Info, color: "#fb923c", span: 1 },
+    ],
+    [
+      { title: "Top Performers", icon: Trophy, color: "#f59e0b", span: 1 },
+      { title: "Needs Attention", icon: AlertTriangle, color: "#f87171", span: 1 },
+    ],
+  ];
 
   return (
-    <div className="space-y-5">
-      {/* HEADER */}
-      <div className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 p-5 text-white">
-        <div className="flex items-center gap-2 text-xs uppercase opacity-90">
-          <BarChart3 className="w-4 h-4" />
-          Analytics Dashboard
-        </div>
-        <h1 className="text-xl font-bold mt-1">Performance Analysis</h1>
-        <p className="text-sm opacity-90">
-          Student performance & batch insights
-        </p>
-      </div>
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
+        @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+        .dfade{animation:fadeUp 0.45s ease both}
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:0.15}}
+        .d1{animation:blink 1.6s ease infinite}
+        .d2{animation:blink 1.6s 0.3s ease infinite}
+        .d3{animation:blink 1.6s 0.6s ease infinite}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+        @keyframes pulse-ring{0%{box-shadow:0 0 0 0 rgba(52,211,153,0.5)}70%{box-shadow:0 0 0 8px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
+        .livebadge{animation:pulse-ring 2.2s ease-out infinite}
+      `}</style>
 
-      {/* CONTROLS */}
-      <div className="flex items-center justify-between gap-2 rounded-lg border bg-white dark:bg-slate-900 p-3">
-        <div className="flex gap-1">
-          {["3months", "6months", "1year"].map((r) => (
-            <button
-              key={r}
-              onClick={() => setTimeRange(r)}
-              className={`px-3 py-1 text-xs rounded-md ${
-                timeRange === r
-                  ? "bg-blue-600 text-white"
-                  : "bg-slate-100 dark:bg-slate-800"
-              }`}
-            >
-              {r === "3months" ? "3M" : r === "6months" ? "6M" : "1Y"}
-            </button>
-          ))}
-        </div>
+      <div style={{ minHeight: "100vh", background: t.pageBg, color: t.text, fontFamily: "'Poppins',sans-serif", transition: "background 0.3s,color 0.3s" }}>
+        <div style={{ position: "relative", zIndex: 1, padding: 24, maxWidth: 1300, margin: "0 auto", paddingBottom: 52 }}>
 
-        <button className="flex items-center gap-1 px-3 py-1 text-xs rounded-md bg-slate-100 dark:bg-slate-800">
-          <Download className="w-4 h-4" />
-          Export
-        </button>
-      </div>
+          {/* ═══ HERO ═══ */}
+          <div className="dfade" style={{ borderRadius: 24, padding: "30px 36px", background: t.heroBg, border: `1px solid ${t.borderHero}`, position: "relative", overflow: "hidden", marginBottom: 20, boxShadow: t.shadow }}>
+            <div style={{ position: "absolute", inset: 0, pointerEvents: "none", opacity: isDark ? 0.04 : 0.025, backgroundImage: `linear-gradient(${t.gridLine} 1px,transparent 1px),linear-gradient(90deg,${t.gridLine} 1px,transparent 1px)`, backgroundSize: "40px 40px" }} />
+            <div style={{ position: "absolute", top: "-30%", left: "40%", width: 300, height: 200, background: "radial-gradient(ellipse,rgba(34,211,238,0.06),transparent 70%)", pointerEvents: "none" }} />
+            <div style={{ position: "absolute", bottom: "-40%", right: "10%", width: 250, height: 200, background: "radial-gradient(ellipse,rgba(167,139,250,0.06),transparent 70%)", pointerEvents: "none" }} />
 
-      {/* STATS */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {stats.map((s) => {
-          const Icon = s.icon;
-          return (
-            <div
-              key={s.label}
-              className="rounded-lg border bg-white dark:bg-slate-900 p-3"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-xs text-muted-foreground">{s.label}</p>
-                <Icon className="w-4 h-4 text-blue-500" />
+            <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
+                  <Sparkles size={11} color={t.textSub} />
+                  <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: t.textSub, fontFamily: "'Poppins',sans-serif" }}>Analytics</span>
+                </div>
+                <h1 style={{ fontFamily: "'Poppins',sans-serif", fontWeight: 900, fontSize: "clamp(1.6rem,3vw,2.4rem)", color: t.text, margin: 0, lineHeight: 1.1, letterSpacing: "-0.02em" }}>Performance Analysis</h1>
+                <p style={{ fontSize: 12, color: t.textSub, marginTop: 7, fontWeight: 500, fontFamily: "'Poppins',sans-serif" }}>Student performance &amp; batch insights at a glance</p>
               </div>
-              <p className="text-lg font-semibold">{s.value}</p>
-              <div className="mt-2 h-1.5 w-full rounded bg-slate-200 dark:bg-slate-800">
-                <div
-                  className="h-1.5 rounded bg-blue-500"
-                  style={{ width: `${s.progress}%` }}
-                />
+
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                {/* Time range selector */}
+                <div style={{ display: "flex", gap: 4, background: t.actBg, border: `1px solid ${t.actBorder}`, borderRadius: 10, padding: 4 }}>
+                  {[{ key: "3months", label: "3M" }, { key: "6months", label: "6M" }, { key: "1year", label: "1Y" }].map(({ key, label }) => (
+                    <button key={key} onClick={() => setTimeRange(key)} style={{ padding: "5px 12px", borderRadius: 7, border: "none", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", cursor: "pointer", fontFamily: "'Poppins',sans-serif", transition: "all 0.2s", background: timeRange === key ? "#22d3ee" : "transparent", color: timeRange === key ? "#000" : t.textMuted }}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 8, background: t.actBg, border: `1px solid ${t.actBorder}`, borderRadius: 10, padding: "8px 14px" }}>
+                  <Activity size={12} color={t.actIcon} />
+                  <div style={{ display: "flex", gap: 3, alignItems: "flex-end", height: 14 }}>
+                    <span className="d1" style={{ width: 3, height: 10, borderRadius: 2, background: t.actBar, display: "block" }} />
+                    <span className="d2" style={{ width: 3, height: 14, borderRadius: 2, background: t.actBar, display: "block" }} />
+                    <span className="d3" style={{ width: 3, height: 7, borderRadius: 2, background: t.actBar, display: "block" }} />
+                  </div>
+                </div>
+
+                <ExportBtn t={t} />
               </div>
             </div>
-          );
-        })}
-      </div>
+          </div>
 
-      {/* CHARTS */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* COMPLETION */}
-        <ChartCard
-          title="Course Completion Trend"
-          icon={TrendingUp}
-          empty
-        />
+          {/* ═══ STAT CARDS ═══ */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 14, marginBottom: 20 }}>
+            {stats.map((s, i) => (
+              <StatCard key={i} stat={s} index={i} t={t} />
+            ))}
+          </div>
 
-        {/* ASSESSMENT */}
-        <ChartCard
-          title="Assessment & Attendance"
-          icon={BarChart3}
-          empty
-        />
+          {/* ═══ CHART ROWS ═══ */}
+          {chartSections.map((row, ri) => (
+            <div key={ri} style={{ display: "grid", gridTemplateColumns: row.map(c => c.span === 2 ? "2fr" : "1fr").join(" "), gap: 14, marginBottom: 14 }}>
+              {row.map((chart, ci) => (
+                <ChartCard key={ci} chart={chart} t={t} isDark={isDark} index={ri * 10 + ci} />
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
-
-      {/* BATCH + DISTRIBUTION */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <ChartCard
-          title="Batch Performance"
-          icon={BookOpen}
-          className="lg:col-span-2"
-          empty
-        />
-        <ChartCard
-          title="Performance Distribution"
-          icon={Target}
-          empty
-        />
-      </div>
-
-      {/* MODULE + INSIGHTS */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <ChartCard title="Module Completion" icon={BookOpen} empty />
-        <ChartCard title="Key Insights" icon={Info} empty />
-      </div>
-
-      {/* TOP & ATTENTION */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <ChartCard title="Top Performers" icon={Trophy} empty />
-        <ChartCard title="Needs Attention" icon={AlertTriangle} empty />
-      </div>
-    </div>
+    </>
   );
 };
 
-/* ---------------- HELPER ---------------- */
-
-const ChartCard = ({ title, icon: Icon, empty, className = "" }) => (
-  <div
-    className={`rounded-lg border bg-white dark:bg-slate-900 p-4 ${className}`}
-  >
-    <div className="flex items-center gap-2 mb-3">
-      <Icon className="w-4 h-4 text-blue-500" />
-      <h3 className="text-sm font-semibold">{title}</h3>
-    </div>
-
-    {empty ? (
-      <div className="h-[180px] flex items-center justify-center rounded-md bg-slate-100 dark:bg-slate-800/50">
-        <p className="text-xs text-muted-foreground">No data available</p>
+/* ─── Stat Card ─── */
+function StatCard({ stat, index, t }) {
+  const [hov, setHov] = useState(false);
+  const Icon = stat.icon;
+  return (
+    <div onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)} className="dfade" style={{
+      animationDelay: `${index * 80}ms`, background: hov ? t.cardBgHov : t.cardBg,
+      border: `1px solid ${hov ? stat.color + "30" : t.border}`,
+      boxShadow: hov ? `${t.shadowHov}, 0 0 40px ${stat.color}12` : t.shadow,
+      borderRadius: 20, padding: "22px 22px 20px", display: "flex", flexDirection: "column", gap: 14,
+      position: "relative", overflow: "hidden", transition: "all 0.25s ease",
+    }}>
+      <div style={{ position: "absolute", top: -20, right: -20, width: 90, height: 90, borderRadius: "50%", background: stat.color, filter: "blur(40px)", opacity: hov ? 0.15 : 0.04, transition: "opacity 0.4s", pointerEvents: "none" }} />
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ width: 42, height: 42, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", background: `${stat.color}18`, border: `1px solid ${stat.color}30` }}>
+          <Icon size={19} color={stat.color} strokeWidth={2} />
+        </div>
+        <span style={{ fontSize: 9, fontWeight: 700, color: t.textMuted, fontFamily: "'Poppins',sans-serif", letterSpacing: "0.06em" }}>TARGET {stat.target}</span>
       </div>
-    ) : null}
-  </div>
-);
+      <div>
+        <p style={{ fontSize: 40, fontWeight: 800, lineHeight: 1, fontFamily: "'Poppins',sans-serif", color: t.text, margin: 0 }}>{stat.value}</p>
+        <p style={{ fontSize: 10, marginTop: 6, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: t.textMuted, fontFamily: "'Poppins',sans-serif", margin: "6px 0 0" }}>{stat.label}</p>
+      </div>
+      <div style={{ height: 2, background: t.barBg, borderRadius: 99, overflow: "hidden" }}>
+        <div style={{ height: "100%", borderRadius: 99, background: stat.color, width: hov ? "65%" : "20%", transition: "width 0.65s ease", opacity: 0.85 }} />
+      </div>
+    </div>
+  );
+}
+
+/* ─── Chart Card (empty state) ─── */
+function ChartCard({ chart, t, isDark, index }) {
+  const Icon = chart.icon;
+  return (
+    <div className="dfade" style={{ animationDelay: `${index * 40}ms`, background: t.cardBg, border: `1px solid ${t.border}`, borderRadius: 20, padding: 22, boxShadow: t.shadow }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 34, height: 34, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", background: `${chart.color}18`, border: `1px solid ${chart.color}30` }}>
+            <Icon size={15} color={chart.color} />
+          </div>
+          <span style={{ fontFamily: "'Poppins',sans-serif", fontWeight: 700, fontSize: 13, color: t.text }}>{chart.title}</span>
+        </div>
+        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", padding: "4px 10px", borderRadius: 999, background: t.pillBg, border: `1px solid ${t.pillBorder}`, color: t.pillText, fontFamily: "'Poppins',sans-serif" }}>
+          No Data
+        </span>
+      </div>
+
+      {/* Empty state placeholder */}
+      <div style={{ height: 180, borderRadius: 14, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, border: `1.5px dashed ${t.emptyBorder}`, background: t.emptyBg }}>
+        {/* Mini bar chart placeholder */}
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 5, opacity: 0.3 }}>
+          {[40, 65, 30, 75, 50, 85, 45].map((h, i) => (
+            <div key={i} style={{ width: 12, height: h * 0.6, borderRadius: 4, background: chart.color }} />
+          ))}
+        </div>
+        <p style={{ fontSize: 11, color: t.textMuted, fontWeight: 500, fontFamily: "'Poppins',sans-serif", margin: 0 }}>No data available yet</p>
+        <p style={{ fontSize: 9, color: t.emptyIcon, fontWeight: 500, fontFamily: "'Poppins',sans-serif", margin: 0, letterSpacing: "0.05em" }}>Data will appear as students engage</p>
+      </div>
+    </div>
+  );
+}
+
+function ExportBtn({ t }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <button onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)} style={{ display: "flex", alignItems: "center", gap: 7, padding: "8px 16px", borderRadius: 10, border: `1px solid ${hov ? "rgba(34,211,238,0.4)" : t.actBorder}`, background: hov ? "rgba(34,211,238,0.1)" : t.actBg, color: hov ? "#22d3ee" : t.textMuted, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "'Poppins',sans-serif", transition: "all 0.2s", letterSpacing: "0.03em" }}>
+      <Download size={13} /> Export
+    </button>
+  );
+}
 
 export default PerformanceAnalysis;

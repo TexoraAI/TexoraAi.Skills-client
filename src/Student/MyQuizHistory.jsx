@@ -1,36 +1,344 @@
-// import React, { useEffect, useState } from "react";
+// import React, { useEffect, useRef, useState, useCallback } from "react";
 // import { getMyQuizHistory } from "../services/assessmentService";
 // import {
-//   Trophy,
-//   Target,
-//   Calendar,
-//   Award,
-//   TrendingUp,
-//   FileText,
-//   CheckCircle2,
-//   XCircle
+//   Trophy, Calendar, TrendingUp, FileText,
+//   CheckCircle2, XCircle, Sparkles, Activity,
+//   ChevronDown, ArrowUpRight, ChevronRight,
 // } from "lucide-react";
 
+// /* ═══════════════════════════════════════════════
+//    THEME TOKEN MAP (matches Dashboard exactly)
+// ═══════════════════════════════════════════════ */
+// const T = {
+//   dark: {
+//     pageBg: "#0a0a0a",
+//     cardBg: "#111111",
+//     cardBgHov: "#161616",
+//     heroBg: "#141414",
+//     border: "rgba(255,255,255,0.06)",
+//     borderHov: "rgba(255,255,255,0.14)",
+//     borderHero: "rgba(255,255,255,0.07)",
+//     text: "#ffffff",
+//     textSub: "rgba(255,255,255,0.3)",
+//     textMuted: "rgba(255,255,255,0.2)",
+//     textLabel: "rgba(255,255,255,0.22)",
+//     pillBg: "rgba(255,255,255,0.04)",
+//     pillBorder: "rgba(255,255,255,0.07)",
+//     pillText: "rgba(255,255,255,0.25)",
+//     iconBg: "rgba(255,255,255,0.05)",
+//     iconBorder: "rgba(255,255,255,0.08)",
+//     gridLine: "rgba(255,255,255,0.5)",
+//     barBg: "rgba(255,255,255,0.05)",
+//     actBar: "rgba(255,255,255,0.5)",
+//     actIcon: "rgba(255,255,255,0.3)",
+//     actBg: "rgba(255,255,255,0.04)",
+//     actBorder: "rgba(255,255,255,0.07)",
+//     shadow: "0 4px 20px rgba(0,0,0,0.4)",
+//     shadowHov: "0 20px 60px rgba(0,0,0,0.6)",
+//     emptyBorder: "rgba(255,255,255,0.07)",
+//     emptyBg: "rgba(255,255,255,0.02)",
+//     emptyIcon: "rgba(255,255,255,0.12)",
+//     recentItemBg: "rgba(255,255,255,0.03)",
+//     recentItemBorder: "rgba(255,255,255,0.05)",
+//     recentItemBgHov: "rgba(255,255,255,0.06)",
+//     overdueBg: "rgba(239,68,68,0.12)",
+//     overdueText: "#f87171",
+//     overdueBorder: "rgba(239,68,68,0.2)",
+//   },
+//   light: {
+//     pageBg: "#f1f5f9",
+//     cardBg: "#ffffff",
+//     cardBgHov: "#f8fafc",
+//     heroBg: "#ffffff",
+//     border: "#e2e8f0",
+//     borderHov: "#cbd5e1",
+//     borderHero: "#e2e8f0",
+//     text: "#0f172a",
+//     textSub: "#64748b",
+//     textMuted: "#94a3b8",
+//     textLabel: "#94a3b8",
+//     pillBg: "#f1f5f9",
+//     pillBorder: "#e2e8f0",
+//     pillText: "#94a3b8",
+//     iconBg: "#f8fafc",
+//     iconBorder: "#e2e8f0",
+//     gridLine: "rgba(0,0,0,0.12)",
+//     barBg: "#f1f5f9",
+//     actBar: "#94a3b8",
+//     actIcon: "#94a3b8",
+//     actBg: "#f8fafc",
+//     actBorder: "#e2e8f0",
+//     shadow: "0 1px 8px rgba(0,0,0,0.07)",
+//     shadowHov: "0 8px 32px rgba(0,0,0,0.10)",
+//     emptyBorder: "#e2e8f0",
+//     emptyBg: "#f8fafc",
+//     emptyIcon: "#cbd5e1",
+//     recentItemBg: "#f8fafc",
+//     recentItemBorder: "#e2e8f0",
+//     recentItemBgHov: "#f1f5f9",
+//     overdueBg: "#fef2f2",
+//     overdueText: "#ef4444",
+//     overdueBorder: "#fecaca",
+//   },
+// };
+
+// /* ═══════════════════════════════════════════════
+//    STAT CARD
+// ═══════════════════════════════════════════════ */
+// const StatCard = ({ icon: Icon, value, label, color, t }) => {
+//   const [hov, setHov] = useState(false);
+//   return (
+//     <div
+//       onMouseEnter={() => setHov(true)}
+//       onMouseLeave={() => setHov(false)}
+//       style={{
+//         background: hov ? t.cardBgHov : t.cardBg,
+//         border: `1px solid ${hov ? t.borderHov : t.border}`,
+//         boxShadow: hov ? `${t.shadowHov}, 0 0 40px ${color}12` : t.shadow,
+//         borderRadius: 20, padding: "22px 22px 20px",
+//         display: "flex", flexDirection: "column", gap: 14,
+//         transition: "all 0.25s ease", position: "relative", overflow: "hidden",
+//         cursor: "default",
+//       }}
+//     >
+//       <div style={{
+//         position: "absolute", top: -20, right: -20, width: 90, height: 90,
+//         borderRadius: "50%", background: color, filter: "blur(40px)",
+//         opacity: hov ? 0.15 : 0.04, transition: "opacity 0.4s", pointerEvents: "none",
+//       }} />
+//       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+//         <div style={{
+//           width: 42, height: 42, borderRadius: 12,
+//           display: "flex", alignItems: "center", justifyContent: "center",
+//           background: `${color}18`, border: `1px solid ${color}30`,
+//         }}>
+//           <Icon size={19} color={color} strokeWidth={2} />
+//         </div>
+//         <ArrowUpRight size={13} style={{ color, opacity: hov ? 0.7 : 0, transition: "opacity 0.2s" }} />
+//       </div>
+//       <div>
+//         <p style={{
+//           fontSize: 38, fontWeight: 800, lineHeight: 1,
+//           fontFamily: "'Poppins',sans-serif", color: t.text, margin: 0,
+//         }}>{value}</p>
+//         <p style={{
+//           fontSize: 10, fontWeight: 600, letterSpacing: "0.1em",
+//           textTransform: "uppercase", color: t.textMuted,
+//           fontFamily: "'Poppins',sans-serif", margin: "6px 0 0",
+//         }}>{label}</p>
+//       </div>
+//       <div style={{ height: 2, background: t.barBg, borderRadius: 99, overflow: "hidden" }}>
+//         <div style={{
+//           height: "100%", borderRadius: 99, background: color,
+//           width: hov ? "65%" : "20%", transition: "width 0.65s ease", opacity: 0.85,
+//         }} />
+//       </div>
+//       <div style={{
+//         position: "absolute", bottom: 0, left: 0,
+//         width: hov ? "60%" : "30%", height: 1,
+//         background: `linear-gradient(90deg,${color},transparent)`,
+//         transition: "width 0.5s ease", opacity: 0.5,
+//       }} />
+//     </div>
+//   );
+// };
+
+// /* ═══════════════════════════════════════════════
+//    COLLAPSIBLE ATTEMPT ROW (CRM-style)
+// ═══════════════════════════════════════════════ */
+// const AttemptRow = ({ a, index, getPercent, isPassed, t }) => {
+//   const [open, setOpen] = useState(false);
+//   const [hov, setHov] = useState(false);
+//   const passed = isPassed(a);
+//   const percent = getPercent(a);
+//   const accentColor = passed ? "#34d399" : "#f87171";
+
+//   return (
+//     <div
+//       style={{
+//         borderRadius: 16,
+//         border: `1px solid ${open ? accentColor + "40" : hov ? t.borderHov : t.border}`,
+//         overflow: "hidden",
+//         boxShadow: open ? `0 0 24px ${accentColor}10` : t.shadow,
+//         transition: "all 0.25s ease",
+//         background: t.cardBg,
+//       }}
+//       className="row-anim"
+//       onMouseEnter={() => setHov(true)}
+//       onMouseLeave={() => setHov(false)}
+//     >
+//       {/* ── Header Row ── */}
+//       <div
+//         onClick={() => setOpen((p) => !p)}
+//         style={{
+//           display: "grid",
+//           gridTemplateColumns: "34px 1fr auto auto auto auto",
+//           alignItems: "center", gap: 14,
+//           padding: "14px 20px", cursor: "pointer",
+//           background: open ? `${accentColor}06` : hov ? t.cardBgHov : t.cardBg,
+//           transition: "background 0.2s", userSelect: "none",
+//         }}
+//       >
+//         {/* Index */}
+//         <div style={{
+//           width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+//           display: "flex", alignItems: "center", justifyContent: "center",
+//           background: open ? `${accentColor}20` : t.iconBg,
+//           border: `1px solid ${open ? accentColor + "40" : t.iconBorder}`,
+//           fontFamily: "'Poppins',sans-serif", fontWeight: 800, fontSize: 11,
+//           color: open ? accentColor : t.textMuted,
+//           transition: "all 0.2s",
+//         }}>{String(index + 1).padStart(2, "0")}</div>
+
+//         {/* Quiz Name */}
+//         <div style={{ minWidth: 0 }}>
+//           <p style={{
+//             margin: 0, fontSize: 13, fontWeight: 700,
+//             color: open ? accentColor : t.text,
+//             fontFamily: "'Poppins',sans-serif",
+//             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+//             transition: "color 0.2s",
+//           }}>{a.quiz?.title || "Quiz"}</p>
+//           <p style={{ margin: "2px 0 0", fontSize: 10, color: t.textMuted, fontFamily: "'Poppins',sans-serif" }}>
+//             {a.submittedAt ? new Date(a.submittedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}
+//           </p>
+//         </div>
+
+//         {/* Score + mini bar */}
+//         <div style={{ minWidth: 80 }}>
+//           <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: t.text, fontFamily: "'Poppins',sans-serif" }}>
+//             {a.score}/{a.quiz?.questions?.length || "—"}
+//           </p>
+//           <div style={{ marginTop: 4, height: 4, borderRadius: 99, background: t.barBg, overflow: "hidden", width: 64 }}>
+//             <div style={{
+//               height: "100%", borderRadius: 99,
+//               width: `${percent}%`,
+//               background: passed
+//                 ? "linear-gradient(90deg,#16a34a,#22c55e)"
+//                 : "linear-gradient(90deg,#dc2626,#ef4444)",
+//               transition: "width 0.6s ease",
+//             }} />
+//           </div>
+//         </div>
+
+//         {/* Percent */}
+//         <span style={{
+//           fontSize: 13, fontWeight: 800, color: accentColor,
+//           fontFamily: "'Poppins',sans-serif", minWidth: 52, textAlign: "right",
+//         }}>{percent}%</span>
+
+//         {/* Badge */}
+//         <span style={{
+//           fontSize: 9, fontWeight: 700, letterSpacing: "0.1em",
+//           textTransform: "uppercase", padding: "4px 12px", borderRadius: 999,
+//           background: passed ? "rgba(52,211,153,0.12)" : "rgba(248,113,113,0.12)",
+//           color: accentColor,
+//           border: `1px solid ${passed ? "rgba(52,211,153,0.3)" : "rgba(248,113,113,0.3)"}`,
+//           fontFamily: "'Poppins',sans-serif",
+//           display: "flex", alignItems: "center", gap: 5,
+//         }}>
+//           {passed ? <CheckCircle2 size={10} /> : <XCircle size={10} />}
+//           {passed ? "Pass" : "Fail"}
+//         </span>
+
+//         {/* CRM Arrow */}
+//         <div style={{
+//           width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+//           display: "flex", alignItems: "center", justifyContent: "center",
+//           background: open ? `${accentColor}18` : t.actBg,
+//           border: `1px solid ${open ? accentColor + "30" : t.actBorder}`,
+//           transition: "all 0.2s",
+//         }}>
+//           <ChevronDown
+//             size={14}
+//             color={open ? accentColor : t.textMuted}
+//             style={{ transition: "transform 0.3s", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+//           />
+//         </div>
+//       </div>
+
+//       {/* ── Collapsible Body ── */}
+//       <div style={{
+//         maxHeight: open ? 260 : 0,
+//         overflow: "hidden",
+//         transition: "max-height 0.35s cubic-bezier(0.4,0,0.2,1)",
+//       }}>
+//         <div style={{
+//           borderTop: `1px solid ${accentColor}20`,
+//           padding: "20px",
+//           background: open ? `${accentColor}03` : "transparent",
+//         }}>
+//           <div style={{
+//             display: "grid", gridTemplateColumns: "repeat(3, 1fr)",
+//             gap: 12,
+//           }}>
+//             {[
+//               { label: "Quiz Title", value: a.quiz?.title || "—", icon: FileText, color: "#22d3ee" },
+//               { label: "Score", value: `${a.score} / ${a.quiz?.questions?.length || "—"}`, icon: Trophy, color: "#f59e0b" },
+//               { label: "Percentage", value: `${percent}%`, icon: TrendingUp, color: accentColor },
+//               { label: "Result", value: passed ? "Passed ✓" : "Failed ✗", icon: passed ? CheckCircle2 : XCircle, color: accentColor },
+//               { label: "Submitted", value: a.submittedAt ? new Date(a.submittedAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "—", icon: Calendar, color: "#a78bfa" },
+//               { label: "Questions", value: a.quiz?.questions?.length || "—", icon: FileText, color: "#fb923c" },
+//             ].map((det, i) => (
+//               <div key={i} style={{
+//                 display: "flex", alignItems: "center", gap: 10,
+//                 padding: "10px 14px", borderRadius: 12,
+//                 background: t.recentItemBg, border: `1px solid ${t.recentItemBorder}`,
+//               }}>
+//                 <div style={{
+//                   width: 30, height: 30, borderRadius: 8, flexShrink: 0,
+//                   display: "flex", alignItems: "center", justifyContent: "center",
+//                   background: `${det.color}18`, border: `1px solid ${det.color}30`,
+//                 }}>
+//                   <det.icon size={13} color={det.color} />
+//                 </div>
+//                 <div style={{ minWidth: 0 }}>
+//                   <p style={{ margin: 0, fontSize: 9, color: t.textMuted, fontFamily: "'Poppins',sans-serif", letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 600 }}>{det.label}</p>
+//                   <p style={{ margin: "2px 0 0", fontSize: 12, fontWeight: 700, color: t.text, fontFamily: "'Poppins',sans-serif", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{det.value}</p>
+//                 </div>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// /* ═══════════════════════════════════════════════
+//    MAIN QUIZ HISTORY PAGE
+// ═══════════════════════════════════════════════ */
 // export default function MyQuizHistory() {
 //   const [attempts, setAttempts] = useState([]);
 //   const [loading, setLoading] = useState(true);
 
+//   const [isDark, setIsDark] = useState(
+//     () =>
+//       typeof document !== "undefined" &&
+//       (document.documentElement.classList.contains("dark") ||
+//         document.documentElement.getAttribute("data-theme") === "dark")
+//   );
+
 //   useEffect(() => {
-//     loadHistory();
+//     const obs = new MutationObserver(() => {
+//       setIsDark(
+//         document.documentElement.classList.contains("dark") ||
+//           document.documentElement.getAttribute("data-theme") === "dark"
+//       );
+//     });
+//     obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-theme"] });
+//     return () => obs.disconnect();
 //   }, []);
+
+//   const t = isDark ? T.dark : T.light;
+
+//   useEffect(() => { loadHistory(); }, []);
 
 //   const loadHistory = async () => {
 //     try {
 //       const res = await getMyQuizHistory();
-  
-//       const list =
-//         res?.data?.data ||
-//         res?.data?.attempts ||
-//         res?.data ||
-//         [];
-  
+//       const list = res?.data?.data || res?.data?.attempts || res?.data || [];
 //       setAttempts(Array.isArray(list) ? list : []);
-  
 //     } catch (err) {
 //       console.error("Failed to load quiz history", err);
 //     } finally {
@@ -38,30 +346,40 @@
 //     }
 //   };
 
-//   // ================= STATS =================
+//   /* ── Stats ── */
 //   const totalAttempts = attempts.length;
-
-//   const passedAttempts = attempts.filter(a => {
+//   const passedAttempts = attempts.filter((a) => {
 //     const total = a.quiz?.questions?.length || 0;
-//     const percent = total > 0 ? (a.score * 100) / total : 0;
-//     return percent >= 50;
+//     return total > 0 ? (a.score * 100) / total >= 50 : false;
 //   }).length;
+//   const averageScore =
+//     attempts.length > 0
+//       ? attempts.reduce((sum, a) => {
+//           const total = a.quiz?.questions?.length || 0;
+//           return sum + (total > 0 ? (a.score * 100) / total : 0);
+//         }, 0) / attempts.length
+//       : 0;
 
-//   const averageScore = attempts.length > 0
-//     ? attempts.reduce((sum, a) => {
-//         const total = a.quiz?.questions?.length || 0;
-//         const percent = total > 0 ? (a.score * 100) / total : 0;
-//         return sum + percent;
-//       }, 0) / attempts.length
-//     : 0;
+//   const getPercent = (a) => {
+//     const total = a.quiz?.questions?.length || 0;
+//     return total > 0 ? ((a.score * 100) / total).toFixed(1) : "0.0";
+//   };
+//   const isPassed = (a) => parseFloat(getPercent(a)) >= 50;
 
-//   /* ================= LOADING ================= */
+//   /* ── Loading ── */
 //   if (loading) {
 //     return (
-//       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
-//         <div className="text-center">
-//           <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-//           <p className="text-slate-600 dark:text-slate-400">
+//       <div style={{
+//         minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
+//         background: isDark ? "#0a0a0a" : "#f1f5f9",
+//       }}>
+//         <div style={{ textAlign: "center" }}>
+//           <div style={{
+//             width: 52, height: 52, borderRadius: "50%",
+//             border: "3px solid #7c3aed", borderTopColor: "transparent",
+//             animation: "spin 0.8s linear infinite", margin: "0 auto 16px",
+//           }} />
+//           <p style={{ color: isDark ? "rgba(255,255,255,0.3)" : "#94a3b8", fontSize: 12, fontFamily: "'Poppins',sans-serif" }}>
 //             Loading quiz history...
 //           </p>
 //         </div>
@@ -70,100 +388,242 @@
 //   }
 
 //   return (
-//     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+//     <>
+//       <style>{`
+//         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
+//         @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+//         .dfade{animation:fadeUp 0.45s ease both}
+//         .row-anim{animation:fadeUp 0.45s ease both}
+//         @keyframes spin{to{transform:rotate(360deg)}}
+//         @keyframes blink{0%,100%{opacity:1}50%{opacity:0.15}}
+//         .d1{animation:blink 1.6s ease infinite}
+//         .d2{animation:blink 1.6s 0.3s ease infinite}
+//         .d3{animation:blink 1.6s 0.6s ease infinite}
+//         @keyframes pulse-ring{0%{box-shadow:0 0 0 0 rgba(124,58,237,0.5)}70%{box-shadow:0 0 0 8px rgba(124,58,237,0)}100%{box-shadow:0 0 0 0 rgba(124,58,237,0)}}
+//         .livebadge{animation:pulse-ring 2.2s ease-out infinite}
+//       `}</style>
 
-//       {/* ================= LIGHT BLUE HERO ================= */}
-//       <header
-//         className="relative overflow-hidden
-//         bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400
-//         dark:from-sky-600 dark:via-blue-600 dark:to-indigo-600"
-//       >
-//         <div className="absolute inset-0 bg-white/10 dark:bg-black/10" />
+//       <div style={{
+//         minHeight: "100vh", background: t.pageBg, color: t.text,
+//         fontFamily: "'Poppins',sans-serif",
+//         transition: "background 0.3s, color 0.3s",
+//       }}>
+//         <div style={{ padding: 24, maxWidth: 1300, margin: "0 auto", paddingBottom: 52 }}>
 
-//         <div className="relative max-w-7xl mx-auto px-6 py-6">
-//           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+//           {/* ═══ HERO ═══ */}
+//           <div className="dfade" style={{
+//             borderRadius: 24, padding: "30px 36px",
+//             background: t.heroBg, border: `1px solid ${t.borderHero}`,
+//             position: "relative", overflow: "hidden",
+//             marginBottom: 20, boxShadow: t.shadow,
+//           }}>
+//             <div style={{
+//               position: "absolute", inset: 0, pointerEvents: "none",
+//               opacity: isDark ? 0.04 : 0.025,
+//               backgroundImage: `linear-gradient(${t.gridLine} 1px,transparent 1px),linear-gradient(90deg,${t.gridLine} 1px,transparent 1px)`,
+//               backgroundSize: "40px 40px",
+//             }} />
+//             <div style={{
+//               position: "absolute", top: "-30%", left: "40%",
+//               width: 300, height: 200,
+//               background: "radial-gradient(ellipse,rgba(124,58,237,0.06),transparent 70%)",
+//               pointerEvents: "none",
+//             }} />
 
-//             {/* LEFT */}
-//             <div>
-//               <div className="flex items-center gap-2 mb-1">
-//                 <div className="p-2 rounded-md bg-white/30 backdrop-blur shadow">
-//                   <Trophy className="h-4 w-4 text-yellow-300" />
+//             <div style={{
+//               position: "relative", display: "flex", alignItems: "center",
+//               justifyContent: "space-between", flexWrap: "wrap", gap: 16,
+//             }}>
+//               <div>
+//                 <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
+//                   <Sparkles size={11} color={t.textSub} />
+//                   <span style={{
+//                     fontSize: 9, fontWeight: 700, letterSpacing: "0.22em",
+//                     textTransform: "uppercase", color: t.textSub,
+//                     fontFamily: "'Poppins',sans-serif",
+//                   }}>Performance Tracking</span>
 //                 </div>
-//                 <span className="text-xs font-semibold uppercase tracking-wide text-white/90">
-//                   Performance Tracking
-//                 </span>
+//                 <h1 style={{
+//                   fontFamily: "'Poppins',sans-serif", fontWeight: 900,
+//                   fontSize: "clamp(1.6rem,3vw,2.4rem)", color: t.text,
+//                   margin: 0, lineHeight: 1.1, letterSpacing: "-0.02em",
+//                 }}>My Quiz History</h1>
+//                 <p style={{
+//                   fontSize: 12, color: t.textSub, marginTop: 7,
+//                   fontWeight: 500, fontFamily: "'Poppins',sans-serif",
+//                 }}>Track your assessment performance and review quiz attempts</p>
 //               </div>
 
-//               <h1 className="text-2xl font-bold text-white">
-//                 My Quiz History
-//               </h1>
-
-//               <p className="text-sm text-white/85 max-w-xl">
-//                 Track your assessment performance and review quiz attempts
-//               </p>
+//               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+//                 <div style={{
+//                   display: "flex", alignItems: "center", gap: 12,
+//                   background: t.actBg, border: `1px solid ${t.actBorder}`,
+//                   borderRadius: 12, padding: "8px 16px",
+//                   fontSize: 11, fontWeight: 600,
+//                   fontFamily: "'Poppins',sans-serif", color: t.textSub,
+//                 }}>
+//                   <span>{totalAttempts} attempts</span>
+//                   <span style={{ width: 1, height: 14, background: t.actBorder }} />
+//                   <span style={{ color: "#34d399", fontWeight: 700 }}>{passedAttempts} passed</span>
+//                   <span style={{ width: 1, height: 14, background: t.actBorder }} />
+//                   <span style={{ color: "#7c3aed", fontWeight: 700 }}>{averageScore.toFixed(1)}% avg</span>
+//                 </div>
+//                 <div style={{
+//                   display: "flex", alignItems: "center", gap: 8,
+//                   background: t.actBg, border: `1px solid ${t.actBorder}`,
+//                   borderRadius: 10, padding: "8px 14px",
+//                 }}>
+//                   <Activity size={12} color={t.actIcon} />
+//                   <div style={{ display: "flex", gap: 3, alignItems: "flex-end", height: 14 }}>
+//                     <span className="d1" style={{ width: 3, height: 10, borderRadius: 2, background: t.actBar, display: "block" }} />
+//                     <span className="d2" style={{ width: 3, height: 14, borderRadius: 2, background: t.actBar, display: "block" }} />
+//                     <span className="d3" style={{ width: 3, height: 7, borderRadius: 2, background: t.actBar, display: "block" }} />
+//                   </div>
+//                 </div>
+//                 <div className="livebadge" style={{
+//                   display: "flex", alignItems: "center", gap: 7,
+//                   background: "rgba(124,58,237,0.08)",
+//                   border: "1px solid rgba(124,58,237,0.3)",
+//                   borderRadius: 999, padding: "8px 18px",
+//                   color: "#7c3aed", fontSize: 11, fontWeight: 700,
+//                   letterSpacing: "0.1em", fontFamily: "'Poppins',sans-serif",
+//                 }}>
+//                   <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#7c3aed", display: "inline-block" }} />
+//                   LIVE
+//                 </div>
+//               </div>
 //             </div>
-
-//             {/* RIGHT STATS */}
-//             <div className="flex flex-wrap gap-3">
-//               <Stat
-//                 icon={<FileText className="h-4 w-4" />}
-//                 label="Attempts"
-//                 value={totalAttempts}
-//               />
-//               <Stat
-//                 icon={<CheckCircle2 className="h-4 w-4 text-emerald-300" />}
-//                 label="Passed"
-//                 value={passedAttempts}
-//               />
-//               <Stat
-//                 icon={<TrendingUp className="h-4 w-4 text-yellow-300" />}
-//                 label="Avg Score"
-//                 value={`${averageScore.toFixed(1)}%`}
-//               />
-//             </div>
-
 //           </div>
+
+//           {/* ═══ STAT CARDS ═══ */}
+//           <div style={{
+//             display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(185px,1fr))",
+//             gap: 14, marginBottom: 20,
+//           }}>
+//             <StatCard icon={FileText} value={totalAttempts} label="Total Attempts" color="#22d3ee" t={t} />
+//             <StatCard icon={CheckCircle2} value={passedAttempts} label="Passed" color="#34d399" t={t} />
+//             <StatCard icon={XCircle} value={totalAttempts - passedAttempts} label="Failed" color="#f87171" t={t} />
+//             <StatCard icon={TrendingUp} value={`${averageScore.toFixed(1)}%`} label="Avg Score" color="#a78bfa" t={t} />
+//           </div>
+
+//           {/* ═══ ATTEMPTS LIST ═══ */}
+//           <div className="dfade" style={{
+//             background: t.cardBg, border: `1px solid ${t.border}`,
+//             borderRadius: 24, overflow: "hidden", boxShadow: t.shadow,
+//           }}>
+//             {/* Panel Header */}
+//             <div style={{
+//               display: "flex", alignItems: "center", justifyContent: "space-between",
+//               padding: "20px 24px", borderBottom: `1px solid ${t.border}`,
+//             }}>
+//               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+//                 <div style={{
+//                   width: 34, height: 34, borderRadius: 10,
+//                   display: "flex", alignItems: "center", justifyContent: "center",
+//                   background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.2)",
+//                 }}>
+//                   <Trophy size={15} color="#7c3aed" />
+//                 </div>
+//                 <div>
+//                   <span style={{ fontFamily: "'Poppins',sans-serif", fontWeight: 700, fontSize: 13, color: t.text, display: "block" }}>All Attempts</span>
+//                   <span style={{ fontFamily: "'Poppins',sans-serif", fontSize: 10, color: t.textMuted }}>Click any row to expand details</span>
+//                 </div>
+//               </div>
+
+//               {/* Best Attempt Badge */}
+//               {attempts.length > 0 && (() => {
+//                 const best = attempts.reduce((prev, curr) =>
+//                   parseFloat(getPercent(curr)) > parseFloat(getPercent(prev)) ? curr : prev
+//                 );
+//                 return (
+//                   <div style={{
+//                     display: "flex", alignItems: "center", gap: 8,
+//                     padding: "6px 14px", borderRadius: 12,
+//                     background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)",
+//                   }}>
+//                     <Trophy size={13} color="#f59e0b" />
+//                     <div>
+//                       <p style={{ margin: 0, fontSize: 10, color: t.textMuted, fontFamily: "'Poppins',sans-serif" }}>Best Attempt</p>
+//                       <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#f59e0b", fontFamily: "'Poppins',sans-serif" }}>
+//                         {best.quiz?.title || "Quiz"} — {getPercent(best)}%
+//                       </p>
+//                     </div>
+//                   </div>
+//                 );
+//               })()}
+//             </div>
+
+//             {/* Average Score Bar */}
+//             {attempts.length > 0 && (
+//               <div style={{
+//                 padding: "16px 24px", borderBottom: `1px solid ${t.border}`,
+//                 background: t.recentItemBg,
+//                 display: "flex", alignItems: "center", gap: 16,
+//               }}>
+//                 <span style={{ fontSize: 10, fontWeight: 700, color: t.textMuted, fontFamily: "'Poppins',sans-serif", letterSpacing: "0.08em", textTransform: "uppercase", flexShrink: 0 }}>
+//                   Avg Performance
+//                 </span>
+//                 <div style={{ flex: 1, height: 6, borderRadius: 99, background: t.barBg, overflow: "hidden" }}>
+//                   <div style={{
+//                     height: "100%", borderRadius: 99,
+//                     width: `${Math.min(averageScore, 100)}%`,
+//                     background: averageScore >= 50
+//                       ? "linear-gradient(90deg,#1d4ed8,#34d399)"
+//                       : "linear-gradient(90deg,#dc2626,#f97316)",
+//                     transition: "width 1s ease",
+//                   }} />
+//                 </div>
+//                 <span style={{
+//                   fontSize: 14, fontWeight: 800, fontFamily: "'Poppins',sans-serif",
+//                   color: averageScore >= 50 ? "#34d399" : "#f87171",
+//                   flexShrink: 0,
+//                 }}>{averageScore.toFixed(1)}%</span>
+//               </div>
+//             )}
+
+//             {/* Rows */}
+//             <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: 10 }}>
+//               {attempts.length === 0 ? (
+//                 <div style={{
+//                   display: "flex", flexDirection: "column", alignItems: "center",
+//                   justifyContent: "center", padding: "60px 0", gap: 14,
+//                 }}>
+//                   <div style={{
+//                     width: 64, height: 64, borderRadius: 18,
+//                     display: "flex", alignItems: "center", justifyContent: "center",
+//                     border: `1.5px dashed ${t.emptyBorder}`, background: t.emptyBg,
+//                   }}>
+//                     <FileText size={26} color={t.emptyIcon} />
+//                   </div>
+//                   <div style={{ textAlign: "center" }}>
+//                     <p style={{ fontSize: 14, fontWeight: 700, color: t.text, margin: 0, fontFamily: "'Poppins',sans-serif" }}>No Quiz Attempts Yet</p>
+//                     <p style={{ fontSize: 11, color: t.textMuted, margin: "4px 0 0", fontFamily: "'Poppins',sans-serif" }}>
+//                       Your quiz attempts will appear here once you start taking assessments
+//                     </p>
+//                   </div>
+//                 </div>
+//               ) : (
+//                 attempts.map((a, idx) => (
+//                   <AttemptRow
+//                     key={idx} a={a} index={idx}
+//                     getPercent={getPercent} isPassed={isPassed} t={t}
+//                   />
+//                 ))
+//               )}
+//             </div>
+//           </div>
+
 //         </div>
-//       </header>
-
-//       {/* ================= QUIZ HISTORY (UNCHANGED CONTENT AREA) ================= */}
-//       <div className="max-w-7xl mx-auto px-6 py-12">
-//         {attempts.length === 0 ? (
-//           <div className="text-center py-20">
-//             <div className="inline-flex items-center justify-center
-//                             w-20 h-20 rounded-full
-//                             bg-blue-100 dark:bg-blue-900/20 mb-4">
-//               <FileText className="h-10 w-10 text-blue-600 dark:text-blue-400" />
-//             </div>
-//             <p className="text-lg font-medium text-slate-700 dark:text-slate-300 mb-2">
-//               No Quiz Attempts Yet
-//             </p>
-//             <p className="text-sm text-slate-500 dark:text-slate-400">
-//               Your quiz attempts will appear here once you start taking assessments
-//             </p>
-//           </div>
-//         ) : (
-//           <div className="space-y-4">
-//             {/* Desktop table / mobile cards — SAME AS YOUR EXISTING CODE */}
-//           </div>
-//         )}
 //       </div>
-//     </div>
+//     </>
 //   );
 // }
 
-// /* ================= STAT ================= */
-// const Stat = ({ icon, label, value }) => (
-//   <div className="flex items-center gap-2 px-4 py-2
-//                   rounded-xl bg-white/30 backdrop-blur
-//                   border border-white/30 text-white shadow">
-//     {icon}
-//     <div>
-//       <p className="text-base font-bold leading-none">{value}</p>
-//       <p className="text-[11px] text-white/80">{label}</p>
-//     </div>
-//   </div>
-// );
+
+
+
+
+
 
 
 
@@ -190,52 +650,346 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { getMyQuizHistory } from "../services/assessmentService";
 import {
-  Trophy,
-  Calendar,
-  TrendingUp,
-  FileText,
-  CheckCircle2,
-  XCircle,
+  Trophy, Calendar, TrendingUp, FileText,
+  CheckCircle2, XCircle, Sparkles, Activity,
+  ChevronDown, ArrowUpRight, ChevronRight,
 } from "lucide-react";
 
+/* ═══════════════════════════════════════════════
+   THEME TOKEN MAP (matches Dashboard exactly)
+═══════════════════════════════════════════════ */
+const T = {
+  dark: {
+    pageBg: "#0a0a0a",
+    cardBg: "#111111",
+    cardBgHov: "#161616",
+    heroBg: "#141414",
+    border: "rgba(255,255,255,0.06)",
+    borderHov: "rgba(255,255,255,0.14)",
+    borderHero: "rgba(255,255,255,0.07)",
+    text: "#ffffff",
+    textSub: "rgba(255,255,255,0.3)",
+    textMuted: "rgba(255,255,255,0.2)",
+    textLabel: "rgba(255,255,255,0.22)",
+    pillBg: "rgba(255,255,255,0.04)",
+    pillBorder: "rgba(255,255,255,0.07)",
+    pillText: "rgba(255,255,255,0.25)",
+    iconBg: "rgba(255,255,255,0.05)",
+    iconBorder: "rgba(255,255,255,0.08)",
+    gridLine: "rgba(255,255,255,0.5)",
+    barBg: "rgba(255,255,255,0.05)",
+    actBar: "rgba(255,255,255,0.5)",
+    actIcon: "rgba(255,255,255,0.3)",
+    actBg: "rgba(255,255,255,0.04)",
+    actBorder: "rgba(255,255,255,0.07)",
+    shadow: "0 4px 20px rgba(0,0,0,0.4)",
+    shadowHov: "0 20px 60px rgba(0,0,0,0.6)",
+    emptyBorder: "rgba(255,255,255,0.07)",
+    emptyBg: "rgba(255,255,255,0.02)",
+    emptyIcon: "rgba(255,255,255,0.12)",
+    recentItemBg: "rgba(255,255,255,0.03)",
+    recentItemBorder: "rgba(255,255,255,0.05)",
+    recentItemBgHov: "rgba(255,255,255,0.06)",
+    overdueBg: "rgba(239,68,68,0.12)",
+    overdueText: "#f87171",
+    overdueBorder: "rgba(239,68,68,0.2)",
+  },
+  light: {
+    pageBg: "#f1f5f9",
+    cardBg: "#ffffff",
+    cardBgHov: "#f8fafc",
+    heroBg: "#ffffff",
+    border: "#e2e8f0",
+    borderHov: "#cbd5e1",
+    borderHero: "#e2e8f0",
+    text: "#0f172a",
+    textSub: "#64748b",
+    textMuted: "#94a3b8",
+    textLabel: "#94a3b8",
+    pillBg: "#f1f5f9",
+    pillBorder: "#e2e8f0",
+    pillText: "#94a3b8",
+    iconBg: "#f8fafc",
+    iconBorder: "#e2e8f0",
+    gridLine: "rgba(0,0,0,0.12)",
+    barBg: "#f1f5f9",
+    actBar: "#94a3b8",
+    actIcon: "#94a3b8",
+    actBg: "#f8fafc",
+    actBorder: "#e2e8f0",
+    shadow: "0 1px 8px rgba(0,0,0,0.07)",
+    shadowHov: "0 8px 32px rgba(0,0,0,0.10)",
+    emptyBorder: "#e2e8f0",
+    emptyBg: "#f8fafc",
+    emptyIcon: "#cbd5e1",
+    recentItemBg: "#f8fafc",
+    recentItemBorder: "#e2e8f0",
+    recentItemBgHov: "#f1f5f9",
+    overdueBg: "#fef2f2",
+    overdueText: "#ef4444",
+    overdueBorder: "#fecaca",
+  },
+};
+
+/* ═══════════════════════════════════════════════
+   STAT CARD
+═══════════════════════════════════════════════ */
+const StatCard = ({ icon: Icon, value, label, color, t }) => {
+  const [hov, setHov] = useState(false);
+  return (
+    <div
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        background: hov ? t.cardBgHov : t.cardBg,
+        border: `1px solid ${hov ? t.borderHov : t.border}`,
+        boxShadow: hov ? `${t.shadowHov}, 0 0 40px ${color}12` : t.shadow,
+        borderRadius: 20, padding: "22px 22px 20px",
+        display: "flex", flexDirection: "column", gap: 14,
+        transition: "all 0.25s ease", position: "relative", overflow: "hidden",
+        cursor: "default",
+      }}
+    >
+      <div style={{
+        position: "absolute", top: -20, right: -20, width: 90, height: 90,
+        borderRadius: "50%", background: color, filter: "blur(40px)",
+        opacity: hov ? 0.15 : 0.04, transition: "opacity 0.4s", pointerEvents: "none",
+      }} />
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{
+          width: 42, height: 42, borderRadius: 12,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          background: `${color}18`, border: `1px solid ${color}30`,
+        }}>
+          <Icon size={19} color={color} strokeWidth={2} />
+        </div>
+        <ArrowUpRight size={13} style={{ color, opacity: hov ? 0.7 : 0, transition: "opacity 0.2s" }} />
+      </div>
+      <div>
+        <p style={{
+          fontSize: 38, fontWeight: 800, lineHeight: 1,
+          fontFamily: "'Poppins',sans-serif", color: t.text, margin: 0,
+        }}>{value}</p>
+        <p style={{
+          fontSize: 10, fontWeight: 600, letterSpacing: "0.1em",
+          textTransform: "uppercase", color: t.textMuted,
+          fontFamily: "'Poppins',sans-serif", margin: "6px 0 0",
+        }}>{label}</p>
+      </div>
+      <div style={{ height: 2, background: t.barBg, borderRadius: 99, overflow: "hidden" }}>
+        <div style={{
+          height: "100%", borderRadius: 99, background: color,
+          width: hov ? "65%" : "20%", transition: "width 0.65s ease", opacity: 0.85,
+        }} />
+      </div>
+      <div style={{
+        position: "absolute", bottom: 0, left: 0,
+        width: hov ? "60%" : "30%", height: 1,
+        background: `linear-gradient(90deg,${color},transparent)`,
+        transition: "width 0.5s ease", opacity: 0.5,
+      }} />
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════
+   COLLAPSIBLE ATTEMPT ROW (CRM-style)
+═══════════════════════════════════════════════ */
+const AttemptRow = ({ a, index, getPercent, isPassed, getScoreDisplay, t }) => {
+  const [open, setOpen] = useState(false);
+  const [hov, setHov] = useState(false);
+  const passed = isPassed(a);
+  const percent = getPercent(a);
+  const accentColor = passed ? "#34d399" : "#f87171";
+
+  return (
+    <div
+      style={{
+        borderRadius: 16,
+        border: `1px solid ${open ? accentColor + "40" : hov ? t.borderHov : t.border}`,
+        overflow: "hidden",
+        boxShadow: open ? `0 0 24px ${accentColor}10` : t.shadow,
+        transition: "all 0.25s ease",
+        background: t.cardBg,
+      }}
+      className="row-anim"
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+    >
+      {/* ── Header Row ── */}
+      <div
+        onClick={() => setOpen((p) => !p)}
+        style={{
+          display: "grid",
+          gridTemplateColumns: "34px 1fr auto auto auto auto",
+          alignItems: "center", gap: 14,
+          padding: "14px 20px", cursor: "pointer",
+          background: open ? `${accentColor}06` : hov ? t.cardBgHov : t.cardBg,
+          transition: "background 0.2s", userSelect: "none",
+        }}
+      >
+        {/* Index */}
+        <div style={{
+          width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          background: open ? `${accentColor}20` : t.iconBg,
+          border: `1px solid ${open ? accentColor + "40" : t.iconBorder}`,
+          fontFamily: "'Poppins',sans-serif", fontWeight: 800, fontSize: 11,
+          color: open ? accentColor : t.textMuted,
+          transition: "all 0.2s",
+        }}>{String(index + 1).padStart(2, "0")}</div>
+
+        {/* Quiz Name */}
+        <div style={{ minWidth: 0 }}>
+          <p style={{
+            margin: 0, fontSize: 13, fontWeight: 700,
+            color: open ? accentColor : t.text,
+            fontFamily: "'Poppins',sans-serif",
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            transition: "color 0.2s",
+          }}>{a.quizTitle || a.quiz?.title || "Quiz"}</p>
+          <p style={{ margin: "2px 0 0", fontSize: 10, color: t.textMuted, fontFamily: "'Poppins',sans-serif" }}>
+            {a.submittedAt
+              ? new Date(a.submittedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+              : "—"}
+          </p>
+        </div>
+
+        {/* Score + mini bar */}
+        <div style={{ minWidth: 80 }}>
+          <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: t.text, fontFamily: "'Poppins',sans-serif" }}>
+            {/* ✅ Uses getScoreDisplay from component 2 logic */}
+            {getScoreDisplay(a)}
+          </p>
+          <div style={{ marginTop: 4, height: 4, borderRadius: 99, background: t.barBg, overflow: "hidden", width: 64 }}>
+            <div style={{
+              height: "100%", borderRadius: 99,
+              width: `${percent}%`,
+              background: passed
+                ? "linear-gradient(90deg,#16a34a,#22c55e)"
+                : "linear-gradient(90deg,#dc2626,#ef4444)",
+              transition: "width 0.6s ease",
+            }} />
+          </div>
+        </div>
+
+        {/* Percent */}
+        <span style={{
+          fontSize: 13, fontWeight: 800, color: accentColor,
+          fontFamily: "'Poppins',sans-serif", minWidth: 52, textAlign: "right",
+        }}>{percent}%</span>
+
+        {/* Badge */}
+        <span style={{
+          fontSize: 9, fontWeight: 700, letterSpacing: "0.1em",
+          textTransform: "uppercase", padding: "4px 12px", borderRadius: 999,
+          background: passed ? "rgba(52,211,153,0.12)" : "rgba(248,113,113,0.12)",
+          color: accentColor,
+          border: `1px solid ${passed ? "rgba(52,211,153,0.3)" : "rgba(248,113,113,0.3)"}`,
+          fontFamily: "'Poppins',sans-serif",
+          display: "flex", alignItems: "center", gap: 5,
+        }}>
+          {passed ? <CheckCircle2 size={10} /> : <XCircle size={10} />}
+          {passed ? "Pass" : "Fail"}
+        </span>
+
+        {/* CRM Arrow */}
+        <div style={{
+          width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          background: open ? `${accentColor}18` : t.actBg,
+          border: `1px solid ${open ? accentColor + "30" : t.actBorder}`,
+          transition: "all 0.2s",
+        }}>
+          <ChevronDown
+            size={14}
+            color={open ? accentColor : t.textMuted}
+            style={{ transition: "transform 0.3s", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+          />
+        </div>
+      </div>
+
+      {/* ── Collapsible Body ── */}
+      <div style={{
+        maxHeight: open ? 260 : 0,
+        overflow: "hidden",
+        transition: "max-height 0.35s cubic-bezier(0.4,0,0.2,1)",
+      }}>
+        <div style={{
+          borderTop: `1px solid ${accentColor}20`,
+          padding: "20px",
+          background: open ? `${accentColor}03` : "transparent",
+        }}>
+          <div style={{
+            display: "grid", gridTemplateColumns: "repeat(3, 1fr)",
+            gap: 12,
+          }}>
+            {[
+              { label: "Quiz Title",  value: a.quizTitle || a.quiz?.title || "—",  icon: FileText,                             color: "#22d3ee" },
+              { label: "Score",       value: getScoreDisplay(a),                    icon: Trophy,                               color: "#f59e0b" },
+              { label: "Percentage",  value: `${percent}%`,                         icon: TrendingUp,                           color: accentColor },
+              { label: "Result",      value: passed ? "Passed ✓" : "Failed ✗",     icon: passed ? CheckCircle2 : XCircle,      color: accentColor },
+              {
+                label: "Submitted",
+                value: a.submittedAt
+                  ? new Date(a.submittedAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })
+                  : "—",
+                icon: Calendar, color: "#a78bfa",
+              },
+              { label: "Questions",   value: getScoreDisplay(a).includes("/") ? getScoreDisplay(a).split("/")[1] : "—", icon: FileText, color: "#fb923c" },
+            ].map((det, i) => (
+              <div key={i} style={{
+                display: "flex", alignItems: "center", gap: 10,
+                padding: "10px 14px", borderRadius: 12,
+                background: t.recentItemBg, border: `1px solid ${t.recentItemBorder}`,
+              }}>
+                <div style={{
+                  width: 30, height: 30, borderRadius: 8, flexShrink: 0,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  background: `${det.color}18`, border: `1px solid ${det.color}30`,
+                }}>
+                  <det.icon size={13} color={det.color} />
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <p style={{ margin: 0, fontSize: 9, color: t.textMuted, fontFamily: "'Poppins',sans-serif", letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 600 }}>{det.label}</p>
+                  <p style={{ margin: "2px 0 0", fontSize: 12, fontWeight: 700, color: t.text, fontFamily: "'Poppins',sans-serif", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{det.value}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════
+   MAIN QUIZ HISTORY PAGE
+═══════════════════════════════════════════════ */
 export default function MyQuizHistory() {
   const [attempts, setAttempts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  /* ================= RESIZABLE PANEL ================= */
-  const [leftWidth, setLeftWidth] = useState(65);
-  const isDragging = useRef(false);
-  const containerRef = useRef(null);
-
-  const onMouseDown = useCallback(() => {
-    isDragging.current = true;
-    document.body.style.cursor = "col-resize";
-    document.body.style.userSelect = "none";
-  }, []);
-
-  const onMouseMove = useCallback((e) => {
-    if (!isDragging.current || !containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const newLeft = ((e.clientX - rect.left) / rect.width) * 100;
-    if (newLeft > 30 && newLeft < 80) setLeftWidth(newLeft);
-  }, []);
-
-  const onMouseUp = useCallback(() => {
-    isDragging.current = false;
-    document.body.style.cursor = "";
-    document.body.style.userSelect = "";
-  }, []);
+  const [isDark, setIsDark] = useState(
+    () =>
+      typeof document !== "undefined" &&
+      (document.documentElement.classList.contains("dark") ||
+        document.documentElement.getAttribute("data-theme") === "dark")
+  );
 
   useEffect(() => {
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
-    return () => {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
-    };
-  }, [onMouseMove, onMouseUp]);
+    const obs = new MutationObserver(() => {
+      setIsDark(
+        document.documentElement.classList.contains("dark") ||
+          document.documentElement.getAttribute("data-theme") === "dark"
+      );
+    });
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-theme"] });
+    return () => obs.disconnect();
+  }, []);
 
-  /* ================= DATA ================= */
+  const t = isDark ? T.dark : T.light;
+
   useEffect(() => { loadHistory(); }, []);
 
   const loadHistory = async () => {
@@ -250,300 +1004,300 @@ export default function MyQuizHistory() {
     }
   };
 
-  /* ================= STATS ================= */
-  const totalAttempts = attempts.length;
+  /* ── Logic from component 2 ── */
 
-  const passedAttempts = attempts.filter((a) => {
-    const total = a.quiz?.questions?.length || 0;
-    const percent = total > 0 ? (a.score * 100) / total : 0;
-    return percent >= 50;
-  }).length;
+  // ✅ Uses a.percentage directly from backend (component 2 logic)
+  const getPercent = (a) => (a.percentage || 0).toFixed(1);
 
-  const averageScore =
-    attempts.length > 0
-      ? attempts.reduce((sum, a) => {
-          const total = a.quiz?.questions?.length || 0;
-          const percent = total > 0 ? (a.score * 100) / total : 0;
-          return sum + percent;
-        }, 0) / attempts.length
-      : 0;
+  // ✅ Uses a.percentage for pass check (component 2 logic)
+  const isPassed = (a) => (a.percentage || 0) >= 50;
 
-  const getPercent = (a) => {
-    const total = a.quiz?.questions?.length || 0;
-    return total > 0 ? ((a.score * 100) / total).toFixed(1) : "0.0";
+  // ✅ Derives total questions from score + percentage, with fallbacks (component 2 logic)
+  const getTotalQuestions = (a) => {
+    const direct =
+      a.totalQuestions ??
+      a.total_questions ??
+      a.quiz?.totalQuestions ??
+      a.quiz?.questions?.length ??
+      null;
+    if (direct != null) return direct;
+    const score = a.score ?? 0;
+    const pct = a.percentage ?? 0;
+    if (score > 0 && pct > 0) {
+      return Math.round(score / (pct / 100));
+    }
+    return null;
   };
 
-  const isPassed = (a) => parseFloat(getPercent(a)) >= 50;
+  // ✅ Returns "2/3" or just "0" if total unknown (component 2 logic)
+  const getScoreDisplay = (a) => {
+    const score = a.score ?? 0;
+    const total = getTotalQuestions(a);
+    return total != null ? `${score}/${total}` : `${score}`;
+  };
 
-  /* ================= LOADING ================= */
+  /* ── Stats ── */
+  const totalAttempts = attempts.length;
+  // ✅ Uses isPassed with a.percentage (component 2 logic)
+  const passedAttempts = attempts.filter((a) => isPassed(a)).length;
+  // ✅ Uses a.percentage directly (component 2 logic)
+  const averageScore =
+    attempts.length > 0
+      ? attempts.reduce((sum, a) => sum + (a.percentage || 0), 0) / attempts.length
+      : 0;
+
+  /* ── Loading ── */
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-[#0f1b38]">
-        <div className="text-center">
-          <div className="w-14 h-14 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-slate-500 dark:text-slate-400 text-sm">Loading quiz history...</p>
+      <div style={{
+        minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
+        background: isDark ? "#0a0a0a" : "#f1f5f9",
+      }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{
+            width: 52, height: 52, borderRadius: "50%",
+            border: "3px solid #7c3aed", borderTopColor: "transparent",
+            animation: "spin 0.8s linear infinite", margin: "0 auto 16px",
+          }} />
+          <p style={{ color: isDark ? "rgba(255,255,255,0.3)" : "#94a3b8", fontSize: 12, fontFamily: "'Poppins',sans-serif" }}>
+            Loading quiz history...
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-[#0f1b38]">
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
+        @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+        .dfade{animation:fadeUp 0.45s ease both}
+        .row-anim{animation:fadeUp 0.45s ease both}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:0.15}}
+        .d1{animation:blink 1.6s ease infinite}
+        .d2{animation:blink 1.6s 0.3s ease infinite}
+        .d3{animation:blink 1.6s 0.6s ease infinite}
+        @keyframes pulse-ring{0%{box-shadow:0 0 0 0 rgba(124,58,237,0.5)}70%{box-shadow:0 0 0 8px rgba(124,58,237,0)}100%{box-shadow:0 0 0 0 rgba(124,58,237,0)}}
+        .livebadge{animation:pulse-ring 2.2s ease-out infinite}
+      `}</style>
 
-      {/* ===== PAGE TITLE ===== */}
-      <div className="px-6 pt-7 pb-5 max-w-7xl mx-auto">
-        <div className="flex items-center gap-2 mb-1">
-          <div className="p-2 rounded-lg" style={{ background: "linear-gradient(135deg,#1e3a8a,#1d4ed8)" }}>
-            <Trophy className="h-4 w-4 text-yellow-300" />
-          </div>
-          <span className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-            Performance Tracking
-          </span>
-        </div>
-        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">My Quiz History</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          Track your assessment performance and review quiz attempts
-        </p>
-      </div>
+      <div style={{
+        minHeight: "100vh", background: t.pageBg, color: t.text,
+        fontFamily: "'Poppins',sans-serif",
+        transition: "background 0.3s, color 0.3s",
+      }}>
+        <div style={{ padding: 24, maxWidth: 1300, margin: "0 auto", paddingBottom: 52 }}>
 
-      {/* ===== STAT CARDS ===== */}
-      <div className="px-6 pb-5 max-w-7xl mx-auto">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { icon: <FileText size={18} />,     value: totalAttempts,                   label: "Total Attempts", style: "linear-gradient(135deg,#1e3a8a,#2563eb)" },
-            { icon: <CheckCircle2 size={18} />, value: passedAttempts,                  label: "Passed",         style: "linear-gradient(135deg,#166534,#16a34a)" },
-            { icon: <XCircle size={18} />,      value: totalAttempts - passedAttempts,  label: "Failed",         style: "linear-gradient(135deg,#991b1b,#dc2626)" },
-            { icon: <TrendingUp size={18} />,   value: `${averageScore.toFixed(1)}%`,   label: "Avg Score",      style: "linear-gradient(135deg,#0369a1,#0ea5e9)" },
-          ].map((s, i) => (
-            <div key={i} className="rounded-xl px-5 py-4 flex flex-col gap-1 text-white shadow-md"
-              style={{ background: s.style }}>
-              <span className="text-white/70">{s.icon}</span>
-              <span className="text-2xl font-extrabold">{s.value}</span>
-              <span className="text-xs text-white/65 uppercase tracking-widest font-semibold">{s.label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+          {/* ═══ HERO ═══ */}
+          <div className="dfade" style={{
+            borderRadius: 24, padding: "30px 36px",
+            background: t.heroBg, border: `1px solid ${t.borderHero}`,
+            position: "relative", overflow: "hidden",
+            marginBottom: 20, boxShadow: t.shadow,
+          }}>
+            <div style={{
+              position: "absolute", inset: 0, pointerEvents: "none",
+              opacity: isDark ? 0.04 : 0.025,
+              backgroundImage: `linear-gradient(${t.gridLine} 1px,transparent 1px),linear-gradient(90deg,${t.gridLine} 1px,transparent 1px)`,
+              backgroundSize: "40px 40px",
+            }} />
+            <div style={{
+              position: "absolute", top: "-30%", left: "40%",
+              width: 300, height: 200,
+              background: "radial-gradient(ellipse,rgba(124,58,237,0.06),transparent 70%)",
+              pointerEvents: "none",
+            }} />
 
-      {/* ===== EMPTY STATE ===== */}
-      {attempts.length === 0 ? (
-        <div className="max-w-7xl mx-auto px-6 pb-6">
-          <div className="rounded-2xl border border-slate-200 dark:border-white/10
-                          bg-white dark:bg-[#162040] p-16 text-center shadow-sm">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full
-                            bg-blue-100 dark:bg-blue-900/20 mb-4">
-              <FileText className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-            </div>
-            <p className="text-base font-semibold text-slate-700 dark:text-slate-200 mb-1">
-              No Quiz Attempts Yet
-            </p>
-            <p className="text-sm text-slate-400">
-              Your quiz attempts will appear here once you start taking assessments
-            </p>
-          </div>
-        </div>
-      ) : (
-
-        /* ===== SPLIT PANEL ===== */
-        <div
-          ref={containerRef}
-          className="flex mx-6 mb-6 max-w-7xl xl:mx-auto overflow-hidden
-                     rounded-2xl border border-slate-200 dark:border-white/10
-                     bg-white dark:bg-[#162040] shadow-sm"
-          style={{ height: "calc(100vh - 290px)", minHeight: "400px" }}
-        >
-          {/* ---- LEFT: Quiz List ---- */}
-          <div className="flex flex-col overflow-hidden" style={{ width: `${leftWidth}%`, minWidth: "30%" }}>
-
-            <div className="flex items-center gap-2 px-5 py-3 border-b border-slate-100 dark:border-white/10">
-              <FileText className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-              <span className="text-sm font-bold text-slate-700 dark:text-white tracking-wide">All Attempts</span>
-            </div>
-
-            {/* Table header */}
-            <div className="grid grid-cols-4 gap-2 px-5 py-2.5
-                            bg-slate-50 dark:bg-white/5
-                            border-b border-slate-100 dark:border-white/10
-                            text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-              <span>Quiz</span>
-              <span>Score</span>
-              <span>Date</span>
-              <span>Result</span>
-            </div>
-
-            <div className="flex-1 overflow-y-auto">
-              {attempts.map((a, idx) => {
-                const percent = getPercent(a);
-                const passed = isPassed(a);
-                return (
-                  <div key={idx}
-                    className="grid grid-cols-4 gap-2 items-center px-5 py-3
-                               border-b border-slate-50 dark:border-white/5
-                               hover:bg-slate-50 dark:hover:bg-white/5 transition">
-
-                    {/* Quiz name */}
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div className="p-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/40 flex-shrink-0">
-                        <FileText className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <span className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">
-                        {a.quiz?.title || "Quiz"}
-                      </span>
-                    </div>
-
-                    {/* Score + mini bar */}
-                    <div>
-                      <p className="text-sm font-bold text-slate-800 dark:text-white">
-                        {a.score}/{a.quiz?.questions?.length || "—"}
-                      </p>
-                      <div className="mt-1 h-1.5 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden w-16">
-                        <div className="h-full rounded-full"
-                          style={{
-                            width: `${percent}%`,
-                            background: passed
-                              ? "linear-gradient(90deg,#16a34a,#22c55e)"
-                              : "linear-gradient(90deg,#dc2626,#ef4444)",
-                          }} />
-                      </div>
-                    </div>
-
-                    {/* Date */}
-                    <div className="flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                      <span className="text-xs text-slate-500 dark:text-slate-400">
-                        {a.submittedAt ? new Date(a.submittedAt).toLocaleDateString() : "—"}
-                      </span>
-                    </div>
-
-                    {/* Result badge */}
-                    <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full w-fit
-                      ${passed
-                        ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300"
-                        : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
-                      }`}>
-                      {passed ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                      {passed ? "Pass" : "Fail"}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* ---- DRAG HANDLE (CRM ←|→) ---- */}
-          <div
-            onMouseDown={onMouseDown}
-            className="relative flex-shrink-0 w-3 flex items-center justify-center
-                       cursor-col-resize group z-10
-                       bg-slate-100 dark:bg-white/5
-                       border-x border-slate-200 dark:border-white/10
-                       hover:bg-blue-100 dark:hover:bg-blue-900/30 transition"
-          >
-            <div className="absolute flex items-center gap-0.5 px-1.5 py-2 rounded-lg
-                            bg-white dark:bg-[#1e3a5f]
-                            border border-slate-300 dark:border-white/20
-                            shadow group-hover:shadow-blue-300/40
-                            group-hover:border-blue-400 dark:group-hover:border-blue-600
-                            transition select-none">
-              <svg width="6" height="12" viewBox="0 0 6 12" fill="none"
-                className="text-slate-400 dark:text-slate-300 group-hover:text-blue-500 dark:group-hover:text-blue-400">
-                <path d="M1 1L0 6L1 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
-              <div className="w-px h-4 bg-slate-300 dark:bg-slate-500 group-hover:bg-blue-400 transition mx-0.5" />
-              <svg width="6" height="12" viewBox="0 0 6 12" fill="none"
-                className="text-slate-400 dark:text-slate-300 group-hover:text-blue-500 dark:group-hover:text-blue-400">
-                <path d="M5 1L6 6L5 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
-            </div>
-          </div>
-
-          {/* ---- RIGHT: Performance Summary ---- */}
-          <div className="flex flex-col overflow-y-auto" style={{ flex: 1, minWidth: "20%" }}>
-
-            <div className="flex items-center gap-2 px-5 py-3 border-b border-slate-100 dark:border-white/10">
-              <TrendingUp className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-              <span className="text-sm font-bold text-slate-700 dark:text-white tracking-wide">Performance</span>
-            </div>
-
-            <div className="px-5 py-5 space-y-5">
-
-              {/* Avg score */}
-              <div className="rounded-xl p-4 text-center border border-slate-100 dark:border-white/8 bg-slate-50 dark:bg-white/5">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">
-                  Average Score
-                </p>
-                <p className="text-4xl font-extrabold text-blue-600 dark:text-blue-400">
-                  {averageScore.toFixed(1)}%
-                </p>
-                <p className="text-xs text-slate-400 mt-1">
-                  across {totalAttempts} attempt{totalAttempts !== 1 ? "s" : ""}
-                </p>
-                <div className="mt-3 h-2 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
-                  <div className="h-full rounded-full transition-all duration-500"
-                    style={{
-                      width: `${averageScore}%`,
-                      background: averageScore >= 50
-                        ? "linear-gradient(90deg,#1d4ed8,#16a34a)"
-                        : "linear-gradient(90deg,#dc2626,#f97316)",
-                    }} />
-                </div>
-              </div>
-
-              {/* Breakdown */}
+            <div style={{
+              position: "relative", display: "flex", alignItems: "center",
+              justifyContent: "space-between", flexWrap: "wrap", gap: 16,
+            }}>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">
-                  Breakdown
-                </p>
-                <div className="space-y-2">
-                  {[
-                    { label: "Passed", value: passedAttempts,               color: "bg-emerald-500", text: "text-emerald-600 dark:text-emerald-400" },
-                    { label: "Failed", value: totalAttempts - passedAttempts, color: "bg-red-500",   text: "text-red-600 dark:text-red-400" },
-                    { label: "Total",  value: totalAttempts,                 color: "bg-blue-500",   text: "text-blue-600 dark:text-blue-400" },
-                  ].map((s, i) => (
-                    <div key={i} className="flex items-center justify-between px-3 py-2.5 rounded-xl
-                                            bg-slate-50 dark:bg-white/5
-                                            border border-slate-100 dark:border-white/8">
-                      <div className="flex items-center gap-2">
-                        <span className={`w-2.5 h-2.5 rounded-full ${s.color}`} />
-                        <span className="text-sm text-slate-600 dark:text-slate-300">{s.label}</span>
-                      </div>
-                      <span className={`text-sm font-bold ${s.text}`}>{s.value}</span>
-                    </div>
-                  ))}
+                <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
+                  <Sparkles size={11} color={t.textSub} />
+                  <span style={{
+                    fontSize: 9, fontWeight: 700, letterSpacing: "0.22em",
+                    textTransform: "uppercase", color: t.textSub,
+                    fontFamily: "'Poppins',sans-serif",
+                  }}>Performance Tracking</span>
+                </div>
+                <h1 style={{
+                  fontFamily: "'Poppins',sans-serif", fontWeight: 900,
+                  fontSize: "clamp(1.6rem,3vw,2.4rem)", color: t.text,
+                  margin: 0, lineHeight: 1.1, letterSpacing: "-0.02em",
+                }}>My Quiz History</h1>
+                <p style={{
+                  fontSize: 12, color: t.textSub, marginTop: 7,
+                  fontWeight: 500, fontFamily: "'Poppins',sans-serif",
+                }}>Track your assessment performance and review quiz attempts</p>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 12,
+                  background: t.actBg, border: `1px solid ${t.actBorder}`,
+                  borderRadius: 12, padding: "8px 16px",
+                  fontSize: 11, fontWeight: 600,
+                  fontFamily: "'Poppins',sans-serif", color: t.textSub,
+                }}>
+                  <span>{totalAttempts} attempts</span>
+                  <span style={{ width: 1, height: 14, background: t.actBorder }} />
+                  <span style={{ color: "#34d399", fontWeight: 700 }}>{passedAttempts} passed</span>
+                  <span style={{ width: 1, height: 14, background: t.actBorder }} />
+                  <span style={{ color: "#7c3aed", fontWeight: 700 }}>{averageScore.toFixed(1)}% avg</span>
+                </div>
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 8,
+                  background: t.actBg, border: `1px solid ${t.actBorder}`,
+                  borderRadius: 10, padding: "8px 14px",
+                }}>
+                  <Activity size={12} color={t.actIcon} />
+                  <div style={{ display: "flex", gap: 3, alignItems: "flex-end", height: 14 }}>
+                    <span className="d1" style={{ width: 3, height: 10, borderRadius: 2, background: t.actBar, display: "block" }} />
+                    <span className="d2" style={{ width: 3, height: 14, borderRadius: 2, background: t.actBar, display: "block" }} />
+                    <span className="d3" style={{ width: 3, height: 7, borderRadius: 2, background: t.actBar, display: "block" }} />
+                  </div>
+                </div>
+                <div className="livebadge" style={{
+                  display: "flex", alignItems: "center", gap: 7,
+                  background: "rgba(124,58,237,0.08)",
+                  border: "1px solid rgba(124,58,237,0.3)",
+                  borderRadius: 999, padding: "8px 18px",
+                  color: "#7c3aed", fontSize: 11, fontWeight: 700,
+                  letterSpacing: "0.1em", fontFamily: "'Poppins',sans-serif",
+                }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#7c3aed", display: "inline-block" }} />
+                  LIVE
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ═══ STAT CARDS ═══ */}
+          <div style={{
+            display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(185px,1fr))",
+            gap: 14, marginBottom: 20,
+          }}>
+            <StatCard icon={FileText}    value={totalAttempts}                     label="Total Attempts" color="#22d3ee" t={t} />
+            <StatCard icon={CheckCircle2} value={passedAttempts}                   label="Passed"         color="#34d399" t={t} />
+            <StatCard icon={XCircle}     value={totalAttempts - passedAttempts}    label="Failed"         color="#f87171" t={t} />
+            <StatCard icon={TrendingUp}  value={`${averageScore.toFixed(1)}%`}     label="Avg Score"      color="#a78bfa" t={t} />
+          </div>
+
+          {/* ═══ ATTEMPTS LIST ═══ */}
+          <div className="dfade" style={{
+            background: t.cardBg, border: `1px solid ${t.border}`,
+            borderRadius: 24, overflow: "hidden", boxShadow: t.shadow,
+          }}>
+            {/* Panel Header */}
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              padding: "20px 24px", borderBottom: `1px solid ${t.border}`,
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{
+                  width: 34, height: 34, borderRadius: 10,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.2)",
+                }}>
+                  <Trophy size={15} color="#7c3aed" />
+                </div>
+                <div>
+                  <span style={{ fontFamily: "'Poppins',sans-serif", fontWeight: 700, fontSize: 13, color: t.text, display: "block" }}>All Attempts</span>
+                  <span style={{ fontFamily: "'Poppins',sans-serif", fontSize: 10, color: t.textMuted }}>Click any row to expand details</span>
                 </div>
               </div>
 
-              {/* Best attempt */}
-              {(() => {
+              {/* Best Attempt Badge */}
+              {attempts.length > 0 && (() => {
                 const best = attempts.reduce((prev, curr) =>
                   parseFloat(getPercent(curr)) > parseFloat(getPercent(prev)) ? curr : prev
                 );
                 return (
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">
-                      Best Attempt
-                    </p>
-                    <div className="flex items-center gap-3 px-3 py-3 rounded-xl
-                                    bg-slate-50 dark:bg-white/5
-                                    border border-slate-100 dark:border-white/8">
-                      <div className="p-2 rounded-lg" style={{ background: "linear-gradient(135deg,#1e3a8a,#1d4ed8)" }}>
-                        <Trophy className="w-4 h-4 text-yellow-300" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-bold text-slate-800 dark:text-white truncate">
-                          {best.quiz?.title || "Quiz"}
-                        </p>
-                        <p className="text-xs text-slate-400">{getPercent(best)}%</p>
-                      </div>
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 8,
+                    padding: "6px 14px", borderRadius: 12,
+                    background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)",
+                  }}>
+                    <Trophy size={13} color="#f59e0b" />
+                    <div>
+                      <p style={{ margin: 0, fontSize: 10, color: t.textMuted, fontFamily: "'Poppins',sans-serif" }}>Best Attempt</p>
+                      <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#f59e0b", fontFamily: "'Poppins',sans-serif" }}>
+                        {best.quizTitle || best.quiz?.title || "Quiz"} — {getPercent(best)}%
+                      </p>
                     </div>
                   </div>
                 );
               })()}
+            </div>
 
+            {/* Average Score Bar */}
+            {attempts.length > 0 && (
+              <div style={{
+                padding: "16px 24px", borderBottom: `1px solid ${t.border}`,
+                background: t.recentItemBg,
+                display: "flex", alignItems: "center", gap: 16,
+              }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: t.textMuted, fontFamily: "'Poppins',sans-serif", letterSpacing: "0.08em", textTransform: "uppercase", flexShrink: 0 }}>
+                  Avg Performance
+                </span>
+                <div style={{ flex: 1, height: 6, borderRadius: 99, background: t.barBg, overflow: "hidden" }}>
+                  <div style={{
+                    height: "100%", borderRadius: 99,
+                    width: `${Math.min(averageScore, 100)}%`,
+                    background: averageScore >= 50
+                      ? "linear-gradient(90deg,#1d4ed8,#34d399)"
+                      : "linear-gradient(90deg,#dc2626,#f97316)",
+                    transition: "width 1s ease",
+                  }} />
+                </div>
+                <span style={{
+                  fontSize: 14, fontWeight: 800, fontFamily: "'Poppins',sans-serif",
+                  color: averageScore >= 50 ? "#34d399" : "#f87171",
+                  flexShrink: 0,
+                }}>{averageScore.toFixed(1)}%</span>
+              </div>
+            )}
+
+            {/* Rows */}
+            <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: 10 }}>
+              {attempts.length === 0 ? (
+                <div style={{
+                  display: "flex", flexDirection: "column", alignItems: "center",
+                  justifyContent: "center", padding: "60px 0", gap: 14,
+                }}>
+                  <div style={{
+                    width: 64, height: 64, borderRadius: 18,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    border: `1.5px dashed ${t.emptyBorder}`, background: t.emptyBg,
+                  }}>
+                    <FileText size={26} color={t.emptyIcon} />
+                  </div>
+                  <div style={{ textAlign: "center" }}>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: t.text, margin: 0, fontFamily: "'Poppins',sans-serif" }}>No Quiz Attempts Yet</p>
+                    <p style={{ fontSize: 11, color: t.textMuted, margin: "4px 0 0", fontFamily: "'Poppins',sans-serif" }}>
+                      Your quiz attempts will appear here once you start taking assessments
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                attempts.map((a, idx) => (
+                  <AttemptRow
+                    key={idx} a={a} index={idx}
+                    getPercent={getPercent}
+                    isPassed={isPassed}
+                    getScoreDisplay={getScoreDisplay}
+                    t={t}
+                  />
+                ))
+              )}
             </div>
           </div>
+
         </div>
-      )}
-    </div>
+      </div>
+    </>
   );
 }

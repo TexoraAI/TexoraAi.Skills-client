@@ -2,9 +2,15 @@
 // import { useNavigate } from "react-router-dom";
 // import { gsap } from "gsap";
 // import { ScrollTrigger } from "gsap/ScrollTrigger";
-
+// import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
+// import { jwtDecode } from "jwt-decode";
+// import auth from "../../auth";
+// import CompleteProfile from "../common/CompleteProfile";
 
 // gsap.registerPlugin(ScrollTrigger);
+
+// const GOOGLE_CLIENT_ID =
+//   "572421778240-akk3kkb4f60ukuv9pcfrpg2ielm09thk.apps.googleusercontent.com";
 
 // /* ─── TypeWriter ─────────────────────────────────────────────────────────── */
 // function TypeWriter({
@@ -59,6 +65,188 @@
 //   );
 // }
 
+// /* ─── LOGIN MODAL ────────────────────────────────────────────────────────── */
+// function LoginModal({ onClose, onGoogleSuccess }) {
+//   const navigate = useNavigate();
+//   const [email, setEmail]             = useState("");
+//   const [password, setPassword]       = useState("");
+//   const [loading, setLoading]         = useState(false);
+//   const [showPassword, setShowPassword] = useState(false);
+
+//   const redirectByRole = (role) => {
+//     onClose();
+//     switch ((role || "").toUpperCase()) {
+//       case "ADMIN":    navigate("/admin",    { replace: true }); break;
+//       case "TRAINER":  navigate("/trainer",  { replace: true }); break;
+//       case "BUSINESS": navigate("/business", { replace: true }); break;
+//       default:         navigate("/student",  { replace: true });
+//     }
+//   };
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     if (loading) return;
+//     setLoading(true);
+//     try {
+//       const ok = await auth.login({ email, password });
+//       if (ok) {
+//         const role = (auth.getCurrentRole() || "STUDENT").toUpperCase();
+//         localStorage.setItem("role", role);
+//         redirectByRole(role);
+//       } else {
+//         alert("Login failed! Check your credentials.");
+//       }
+//     } catch (err) {
+//       alert("Login error: " + err.message);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   // ── BUG 2 FIX ──────────────────────────────────────────────────────────
+//   // Google login should NOT save to DB immediately.
+//   // It should only decode the token, pre-fill the form, and redirect to
+//   // CompleteProfile. The DB save happens only after full form submission.
+//   const handleGoogleSuccess = async (res) => {
+//     try {
+//       const dec = jwtDecode(res.credential);
+
+//       // Check if user already exists in our system by calling a lightweight
+//       // "check" endpoint (read-only). If they exist, log them in normally.
+//       // If they are NEW, redirect to registration — do NOT save yet.
+//       let existingUser = null;
+//       try {
+//         existingUser = await auth.googleLogin({ idToken: res.credential });
+//       } catch (_) {
+//         // Network/server error — treat as new user to be safe
+//         existingUser = null;
+//       }
+
+//       if (existingUser && existingUser.isNewUser === false) {
+//         // ── Returning Google user: log in normally ──
+//         const role = (existingUser?.role || "STUDENT").toUpperCase();
+//         localStorage.setItem("role", role);
+//         localStorage.setItem("lms_user", JSON.stringify({
+//           name: dec.name, email: dec.email, role: role.toLowerCase(),
+//         }));
+//         onClose();
+//         redirectByRole(role);
+//       } else {
+//         // ── New Google user: redirect to registration form, pre-fill email ──
+//         // Do NOT save anything to the database here.
+//         // Clear any stale data first.
+//         localStorage.removeItem("lms_token");
+//         localStorage.removeItem("lms_user");
+//         localStorage.removeItem("role");
+
+//         onClose();
+//         // Pass Google user info via navigation state so CompleteProfile
+//         // can pre-fill the form. The credential token is passed so the
+//         // backend can verify it on final form submission.
+//         onGoogleSuccess && onGoogleSuccess({
+//           name: dec.name,
+//           email: dec.email,
+//           googleCredential: res.credential,
+//         });
+//       }
+//     } catch (err) {
+//       console.error("Google login error:", err);
+//       // Fallback: decode token only and send to registration
+//       try {
+//         const dec = jwtDecode(res.credential);
+//         localStorage.removeItem("lms_token");
+//         localStorage.removeItem("lms_user");
+//         localStorage.removeItem("role");
+//         onClose();
+//         onGoogleSuccess && onGoogleSuccess({
+//           name: dec.name,
+//           email: dec.email,
+//           googleCredential: res.credential,
+//         });
+//       } catch (_) {
+//         alert("Google login failed. Please try again.");
+//       }
+//     }
+//   };
+
+//   const EyeOpen = () => (
+//     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+//       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+//     </svg>
+//   );
+//   const EyeOff = () => (
+//     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+//       <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+//       <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+//       <line x1="1" y1="1" x2="23" y2="23"/>
+//     </svg>
+//   );
+
+//   return (
+//     <div className="lm-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+//       <div className="lm-box">
+//         <button className="lm-close" onClick={onClose} aria-label="Close">✕</button>
+
+//         <div className="lm-logo" onClick={() => { onClose(); }}>
+//           <span style={{ color: "#16a34a" }}>ILM</span>
+//           <span style={{ color: "#F97316" }}>ORA</span>
+//         </div>
+
+//         <div className="lm-heading">
+//           <h2>Welcome back!</h2>
+//           <p>Don't have an account?{" "}
+//             <button onClick={() => { onClose(); navigate("/complete-profile"); }}>Apply now</button>
+//           </p>
+//         </div>
+
+//         <div className="lm-google-wrap">
+//           <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+//             <GoogleLogin
+//               onSuccess={handleGoogleSuccess}
+//               onError={() => console.error("Google OAuth failed")}
+//               theme="outline" size="large" text="continue_with"
+//               shape="rectangular" width="372"
+//               auto_select={false} cancel_on_tap_outside={true}
+//             />
+//           </GoogleOAuthProvider>
+//         </div>
+
+//         <div className="lm-or">
+//           <div className="lm-or-line" /><span className="lm-or-text">OR</span><div className="lm-or-line" />
+//         </div>
+
+//         <form onSubmit={handleSubmit}>
+//           <div className="lm-field">
+//             <label>Email</label>
+//             <input type="email" placeholder="Enter your email" value={email}
+//               onChange={e => setEmail(e.target.value)} required disabled={loading}/>
+//           </div>
+//           <div className="lm-field">
+//             <label>Password</label>
+//             <div className="lm-pw-wrap">
+//               <input type={showPassword ? "text" : "password"} placeholder="Enter your password"
+//                 value={password} onChange={e => setPassword(e.target.value)} required disabled={loading}/>
+//               <button type="button" className="lm-eye" onClick={() => setShowPassword(p => !p)} tabIndex={-1}>
+//                 {showPassword ? <EyeOff /> : <EyeOpen />}
+//               </button>
+//             </div>
+//           </div>
+//           <div className="lm-forgot">
+//             <button type="button" onClick={() => { onClose(); navigate("/forgot-password"); }}>Forgot password?</button>
+//           </div>
+//           <button type="submit" className="lm-submit" disabled={loading}>
+//             {loading ? <><span className="lm-spinner"/>Signing in…</> : "Log in"}
+//           </button>
+//         </form>
+
+//         <div className="lm-back-home">
+//           <button onClick={() => { onClose(); navigate("/"); }}>← Back to home</button>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
 // /* ─── Data ───────────────────────────────────────────────────────────────── */
 // const ALL_COURSES = {
 //   product: [
@@ -78,12 +266,6 @@
 //   ],
 // };
 
-// const LEVEL_STYLES = {
-//   Beginner:     { bg:"#dcfce7", color:"#15803d" },
-//   Intermediate: { bg:"#fff7ed", color:"#c2410c", border:"#fed7aa" },
-//   Advanced:     { bg:"#f1f5f9", color:"#1e293b", border:"#cbd5e1" },
-// };
-
 // const TOOLS = [
 //   { icon:"texora",     desc:"AI-powered platform redefining professional growth, automation and business intelligence at scale.",         tags:["AI Platform","Flagship"],   key:"texora",    route:"https://texora.ai/" },
 //   { icon:"tora-cx",   desc:"Customer experience platform powered by AI. Automate support, boost satisfaction and retain more users.",    tags:["Customer AI","Free Trial"], key:"tora-cx",   route:"https://tora-cx.texora.ai/" },
@@ -100,33 +282,28 @@
 //   { value:"4.9★", label:"Average Rating" },
 // ];
 
-// const COMPANIES    = ["Capgemini","Microsoft","Google","Amazon","Apple","Cognizant","Texora","UFS"];
-// const QUICK_ACTIONS = [];
+// const COMPANIES = ["Capgemini","Microsoft","Google","Amazon","Apple","Cognizant","Texora","UFS"];
 
 // const BLOG_POSTS = [
 //   {
-//     emoji:"",
 //     cover:"https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=700&q=80",
 //     title:"How ILM ORA Is Redefining Professional Learning in 2026",
 //     cat:"Platform Updates", date:"Mar 26, 2026", reads:4, featured:true,
 //     excerpt:"From AI-powered skill scores to real-time mentor sessions — here's how ILM ORA is changing the game for working professionals.",
 //   },
 //   {
-//     emoji:"",
 //     cover:"https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=80",
 //     title:"Task Orbit: A Smarter Way to Manage Learning Teams",
 //     cat:"Product Updates", date:"Mar 23, 2026", reads:7,
 //     excerpt:"Built for team leads and L&D managers who want clarity, automation, and zero friction.",
 //   },
 //   {
-//     emoji:"",
 //     cover:"https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&q=80",
 //     title:"What Is a Skill Score? And Why It Decides Your Career",
 //     cat:"How-To Guides", date:"Mar 23, 2026", reads:5,
 //     excerpt:"Your Skill Score is more than a number — it's a career signal that employers and mentors are watching.",
 //   },
 //   {
-//     emoji:"",
 //     cover:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80",
 //     title:"Why 'Course Sync' Might Be the Missing Piece in Your Growth",
 //     cat:"Use Cases", date:"Mar 20, 2026", reads:3,
@@ -137,14 +314,39 @@
 // /* ─── Main Page ──────────────────────────────────────────────────────────── */
 // export default function IlmOraDemoPage() {
 //   const navigate = useNavigate();
-//   const [activeTab, setActiveTab] = useState("product");
+//   const [activeTab, setActiveTab]         = useState("product");
+//   const [showLogin, setShowLogin]         = useState(false);
+//   const [showRolePopup, setShowRolePopup] = useState(false);
+
+//   // ── BUG 2 FIX: Store Google user info in state (not localStorage/DB)
+//   // until the user completes the full registration form.
+//   const [googleUserInfo, setGoogleUserInfo] = useState(null);
 
 //   const savedUser = JSON.parse(localStorage.getItem("lms_user") || "{}");
 //   const userName  = savedUser?.name || savedUser?.email?.split("@")[0] || "there";
 
+//   // Show CompleteProfile popup if user is a new Google user and hasn't completed profile
+//   useEffect(() => {
+//     const user = JSON.parse(localStorage.getItem("lms_user") || "{}");
+//     if (user?.isNewUser === true) {
+//       setShowRolePopup(true);
+//     }
+//   }, []);
+
+//   const handleRoleSkip = () => {
+//     setShowRolePopup(false);
+//     setGoogleUserInfo(null);
+//   };
+
+//   // ── BUG 2 FIX: Receive Google user info, show CompleteProfile form
+//   // with pre-filled email/name. Nothing is saved to DB at this point.
+//   const handleGoogleNewUser = (googleInfo) => {
+//     setGoogleUserInfo(googleInfo);
+//     setShowRolePopup(true);
+//   };
+
 //   const hour     = new Date().getHours();
 //   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
-
 //   const currentCourses = ALL_COURSES[activeTab] || ALL_COURSES.product;
 
 //   const heroRef    = useRef(null);
@@ -154,21 +356,12 @@
 //   const blogRef    = useRef(null);
 //   const ctaRef     = useRef(null);
 
-//   // scrollToSection helper used by footer
-//   const scrollToSection = (id, tab) => {
-//     if (tab) setActiveTab(tab);
-//     setTimeout(() => {
-//       document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-//     }, 100);
-//   };
-
 //   useEffect(() => {
 //     const ctx = gsap.context(() => {
 //       const tl = gsap.timeline({ defaults:{ ease:"power3.out" } });
 //       tl.fromTo(".d-hero-greeting", { opacity:0, y:20 }, { opacity:1, y:0, duration:0.5 })
 //         .fromTo(".d-hero-name",     { opacity:0, y:24 }, { opacity:1, y:0, duration:0.55 }, "-=0.25")
 //         .fromTo(".d-hero-subtitle", { opacity:0, y:16 }, { opacity:1, y:0, duration:0.45 }, "-=0.2")
-//         .fromTo(".d-quick-btn",     { opacity:0, y:14, scale:0.96 }, { opacity:1, y:0, scale:1, duration:0.4, stagger:0.07 }, "-=0.15")
 //         .fromTo(".d-hero-title",    { opacity:0, y:32 }, { opacity:1, y:0, duration:0.6 }, "-=0.2")
 //         .fromTo(".d-hero-typing",   { opacity:0, y:14 }, { opacity:1, y:0, duration:0.45 }, "-=0.25")
 //         .fromTo(".d-hero-btns",     { opacity:0, y:14 }, { opacity:1, y:0, duration:0.4 }, "-=0.2");
@@ -240,9 +433,6 @@
 //         .d-hero-name { font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:900; color:#1E293B; }
 //         .d-hero-name .ora { color:#F97316; }
 //         .d-hero-subtitle { font-size:0.85rem; color:#64748b; }
-//         .d-quick-actions { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:28px; }
-//         .d-quick-btn { display:flex; align-items:center; gap:7px; padding:10px 18px; background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; color:#1E293B; font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:700; cursor:pointer; transition:all 0.18s; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
-//         .d-quick-btn:hover { border-color:#F97316; color:#F97316; transform:translateY(-2px); }
 //         .d-hero-title { font-family:'Playfair Display',serif; font-size:2.8rem; font-weight:900; line-height:1.1; color:#1E293B; margin-bottom:16px; }
 //         @media(min-width:768px){ .d-hero-title { font-size:4rem; } }
 //         .d-hero-title .ora { color:#F97316; }
@@ -250,8 +440,6 @@
 //         .d-hero-typing { min-height:2em; margin-bottom:24px; font-size:1.05rem; color:#64748b; display:flex; align-items:center; justify-content:center; gap:6px; }
 //         .d-typewriter { color:#F97316; font-weight:700; font-size:1.1rem; }
 //         .d-hero-btns { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
-//         .d-hero-secondary { background:#fff; color:#1E293B; border:1.5px solid #e2e8f0; border-radius:12px; padding:14px 32px; font-size:0.95rem; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.18s; display:flex; align-items:center; gap:8px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
-//         .d-hero-secondary:hover { border-color:#1E293B; transform:translateY(-2px); }
 
 //         /* ── STATS ── */
 //         .d-stats { background:#1E293B; padding:36px 24px; display:grid; grid-template-columns:repeat(2,1fr); gap:1px; }
@@ -277,7 +465,6 @@
 //         .d-tool-card { background:#fff; border-radius:20px; padding:24px; cursor:pointer; border:1.5px solid #f1f5f9; box-shadow:0 2px 12px rgba(0,0,0,0.05); transition:all 0.22s; display:flex; flex-direction:column; gap:14px; }
 //         .d-tool-card:hover { border-color:#F97316; box-shadow:0 12px 32px rgba(249,115,22,0.15); transform:translateY(-4px); }
 //         .d-tool-icon { overflow:hidden; border-radius:10px; }
-//         .d-tool-title { font-size:1rem; font-weight:800; color:#1E293B; }
 //         .d-tool-desc { font-size:0.8rem; color:#64748b; line-height:1.65; flex:1; }
 //         .d-tool-tags { display:flex; gap:7px; flex-wrap:wrap; margin-top:auto; }
 //         .d-tool-tag { font-size:0.65rem; font-weight:700; border-radius:999px; padding:3px 10px; background:rgba(249,115,22,0.08); color:#F97316; border:1px solid rgba(249,115,22,0.2); }
@@ -299,7 +486,7 @@
 //         .d-course-body { padding:20px; flex:1; display:flex; flex-direction:column; gap:10px; }
 //         .d-course-head { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
 //         .d-course-level { font-size:0.65rem; font-weight:700; border-radius:999px; padding:3px 10px; border:1px solid; }
-//         .d-course-rating { font-size:0.7rem; font-weight:700; background:#fff7ed; color:#c2410c; border:1px solid #fed7aa; border-radius:999px; padding:3px 10px; white-space:nowrap; display:flex; align-items:center; gap:3px; }
+//         .d-course-rating { font-size:0.7rem; font-weight:700; background:#fff7ed; color:#c2410c; border:1px solid #fed7aa; border-radius:999px; padding:3px 10px; white-space:nowrap; }
 //         .d-course-title { font-size:1rem; font-weight:800; color:#1E293B; line-height:1.3; }
 //         .d-course-instructor { font-size:0.75rem; color:#94a3b8; }
 //         .d-course-desc { font-size:0.8rem; color:#64748b; line-height:1.6; flex:1; }
@@ -321,7 +508,7 @@
 //         .d-company-pill { background:#F6EDE6; border:1px solid #e2e8f0; border-radius:10px; padding:10px 20px; font-size:0.82rem; font-weight:700; color:#475569; transition:all 0.18s; }
 //         .d-company-pill:hover { border-color:#F97316; color:#F97316; }
 
-//         /* ── BLOG v2 ── */
+//         /* ── BLOG ── */
 //         .d-blog-grid { display:grid; grid-template-columns:1fr; gap:20px; }
 //         @media(min-width:768px){ .d-blog-grid { grid-template-columns:1.6fr 1fr; gap:24px; } }
 //         .d-blog-featured { background:#fff; border-radius:20px; border:1.5px solid #f1f5f9; box-shadow:0 2px 12px rgba(0,0,0,0.05); overflow:hidden; cursor:pointer; transition:all 0.22s; display:flex; flex-direction:column; }
@@ -344,8 +531,6 @@
 //         .d-blog-side-title { font-size:0.82rem; font-weight:700; color:#1E293B; line-height:1.4; }
 //         .d-blog-side-meta { font-size:0.66rem; color:#94a3b8; display:flex; gap:5px; align-items:center; margin-top:2px; }
 //         .d-blog-dot { width:3px; height:3px; border-radius:50%; background:#cbd5e1; flex-shrink:0; display:inline-block; }
-//         .d-blog-more-btn { display:inline-flex; align-items:center; gap:8px; margin-top:28px; padding:11px 28px; background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; font-size:0.82rem; font-weight:700; color:#1E293B; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.18s; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
-//         .d-blog-more-btn:hover { border-color:#F97316; color:#F97316; transform:translateY(-2px); }
 
 //         /* ── CTA ── */
 //         .d-cta { background:#1E293B; border-radius:24px; padding:56px 32px; text-align:center; margin:0 24px 64px; position:relative; overflow:hidden; }
@@ -362,11 +547,11 @@
 //         .d-footer-inner { max-width:1200px; margin:0 auto; padding:64px 24px 0; }
 //         .d-footer-grid { display:grid; gap:40px; grid-template-columns:1fr; }
 //         @media(min-width:768px){ .d-footer-grid { grid-template-columns:1fr 1fr; } }
-//         @media(min-width:1024px){ .d-footer-grid { grid-template-columns:2fr 1fr 1fr 1fr; } }
+//         @media(min-width:1024px){ .d-footer-grid { grid-template-columns:2fr 1fr; } }
 //         .d-footer-brand h3 { font-size:1.8rem; font-weight:900; margin-bottom:12px; }
 //         .d-footer-brand p { font-size:0.82rem; color:#64748b; line-height:1.65; max-width:280px; margin-bottom:16px; }
 //         .d-footer-socials { display:flex; gap:10px; flex-wrap:wrap; }
-//         .d-footer-social-btn { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; transition:transform 0.2s; box-shadow:0 2px 6px rgba(0,0,0,0.15); flex-shrink:0; }
+//         .d-footer-social-btn { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; transition:transform 0.2s; box-shadow:0 2px 6px rgba(0,0,0,0.15); flex-shrink:0; text-decoration:none; }
 //         .d-footer-social-btn:hover { transform:scale(1.1); }
 //         .d-footer-col h4 { font-size:0.78rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#1E293B; margin-bottom:14px; }
 //         .d-footer-col ul { list-style:none; display:flex; flex-direction:column; gap:8px; }
@@ -375,10 +560,69 @@
 //         .d-footer-bottom { max-width:1200px; margin:0 auto; padding:20px 24px; border-top:1px solid #e2e8f0; margin-top:48px; display:flex; flex-direction:column; align-items:center; gap:8px; font-size:0.72rem; color:#94a3b8; }
 //         @media(min-width:768px){ .d-footer-bottom { flex-direction:row; justify-content:space-between; } }
 
-//         @keyframes fpulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+//         /* ── LOGIN MODAL ── */
+//         .lm-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(4px); animation:lmFade 0.2s ease; }
+//         @keyframes lmFade { from{opacity:0} to{opacity:1} }
+//         .lm-box { background:#fff; border-radius:20px; padding:32px 28px; width:100%; max-width:420px; position:relative; box-shadow:0 24px 64px rgba(0,0,0,0.2); animation:lmUp 0.3s ease; }
+//         @keyframes lmUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+//         .lm-close { position:absolute; top:16px; right:16px; background:none; border:none; font-size:1rem; cursor:pointer; color:#94a3b8; width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:50%; transition:all 0.18s; }
+//         .lm-close:hover { background:#f1f5f9; color:#1E293B; }
+//         .lm-logo { font-family:'Playfair Display',serif; font-size:2rem; font-weight:900; text-align:center; margin-bottom:8px; cursor:pointer; }
+//         .lm-heading { text-align:center; margin-bottom:20px; }
+//         .lm-heading h2 { font-size:1.2rem; font-weight:700; color:#1e0e02; margin-bottom:6px; }
+//         .lm-heading p { font-size:0.84rem; color:#8a6040; }
+//         .lm-heading p button { background:none; border:none; cursor:pointer; color:#F97316; font-family:'DM Sans',sans-serif; font-size:0.84rem; font-weight:700; padding:0; }
+//         .lm-heading p button:hover { text-decoration:underline; }
+//         .lm-google-wrap { width:100%; margin-bottom:14px; display:flex; justify-content:center; }
+//         .lm-or { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+//         .lm-or-line { flex:1; height:1px; background:rgba(180,100,30,0.15); }
+//         .lm-or-text { font-size:0.7rem; color:#b8906a; letter-spacing:0.1em; text-transform:uppercase; }
+//         .lm-field { margin-bottom:12px; }
+//         .lm-field label { display:block; font-size:0.72rem; font-weight:700; color:#8a6040; margin-bottom:5px; letter-spacing:0.06em; text-transform:uppercase; }
+//         .lm-field input { width:100%; padding:11px 14px; background:rgba(255,255,255,0.8); border:1.5px solid rgba(180,120,60,0.2); border-radius:10px; color:#1a0e06; font-family:'DM Sans',sans-serif; font-size:0.875rem; outline:none; transition:border-color 0.2s,box-shadow 0.2s; }
+//         .lm-field input::placeholder { color:#c0a070; }
+//         .lm-field input:focus { border-color:#F97316; box-shadow:0 0 0 3px rgba(249,115,22,0.1); background:#fff; }
+//         .lm-pw-wrap { position:relative; }
+//         .lm-pw-wrap input { padding-right:44px; }
+//         .lm-eye { position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#b8906a; display:flex; align-items:center; padding:0; transition:color 0.2s; }
+//         .lm-eye:hover { color:#F97316; }
+//         .lm-forgot { text-align:right; margin:6px 0 14px; }
+//         .lm-forgot button { background:none; border:none; cursor:pointer; color:#F97316; font-family:'DM Sans',sans-serif; font-size:0.78rem; font-weight:500; }
+//         .lm-forgot button:hover { text-decoration:underline; }
+//         .lm-submit { width:100%; padding:13px; background:linear-gradient(135deg,#F97316,#ea580c); color:#fff; font-family:'DM Sans',sans-serif; font-weight:700; font-size:0.95rem; border:none; border-radius:10px; cursor:pointer; transition:opacity 0.2s,transform 0.15s; box-shadow:0 4px 18px rgba(249,115,22,0.32); display:flex; align-items:center; justify-content:center; gap:8px; }
+//         .lm-submit:hover:not(:disabled) { opacity:0.9; transform:translateY(-1px); }
+//         .lm-submit:disabled { opacity:0.5; cursor:not-allowed; }
+//         .lm-spinner { width:13px; height:13px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; }
+//         @keyframes spin { to{transform:rotate(360deg)} }
+//         .lm-back-home { text-align:center; margin-top:14px; }
+//         .lm-back-home button { background:none; border:none; cursor:pointer; color:#94a3b8; font-family:'DM Sans',sans-serif; font-size:0.78rem; }
+//         .lm-back-home button:hover { color:#475569; }
 //       `}</style>
 
 //       <div className="d-page">
+
+//         {/* ═══ LOGIN MODAL ═══ */}
+//         {showLogin && (
+//           <LoginModal
+//             onClose={() => setShowLogin(false)}
+//             onGoogleSuccess={handleGoogleNewUser}
+//           />
+//         )}
+
+//         {/* ═══ COMPLETE PROFILE POPUP ═══
+//             BUG 1 FIX: Pass googleUserInfo so the form can pre-fill email/name.
+//             BUG 2 FIX: googleUserInfo is only in state — nothing saved to DB yet.
+//                        The DB save only happens when the user submits the full form.
+//         ═══ */}
+//         {showRolePopup && (
+//           <CompleteProfile
+//             onSkip={handleRoleSkip}
+//             prefillName={googleUserInfo?.name || ""}
+//             prefillEmail={googleUserInfo?.email || ""}
+//             googleCredential={googleUserInfo?.googleCredential || null}
+//             isGoogleUser={!!googleUserInfo}
+//           />
+//         )}
 
 //         {/* ═══ NAVBAR ═══ */}
 //         <nav className="d-nav">
@@ -388,8 +632,10 @@
 //             <span className="d-beta">BETA</span>
 //           </div>
 //           <div className="d-nav-right">
-//             <button className="d-btn-login"  onClick={() => navigate("/login")}>Login</button>
-//             <button className="d-btn-signup" onClick={() => navigate("/complete-profile")}>Apply Now ✦</button>
+//             <button className="d-btn-login" onClick={() => setShowLogin(true)}>Login</button>
+//             {/* BUG 1 FIX: "Apply Now" opens CompleteProfile with NO googleUserInfo,
+//                 so the form shows email input for manual registration */}
+//             <button className="d-btn-signup" onClick={() => { setGoogleUserInfo(null); setShowRolePopup(true); }}>Apply Now ✦</button>
 //           </div>
 //         </nav>
 
@@ -399,13 +645,6 @@
 //             <div className="d-hero-greeting"><span>👋</span> {greeting}</div>
 //             <div className="d-hero-name">Welcome back, <span className="ora">{userName}</span></div>
 //             <div className="d-hero-subtitle">Your AI-powered learning hub is ready. Pick up where you left off.</div>
-//           </div>
-//           <div className="d-quick-actions">
-//             {QUICK_ACTIONS.map(a => (
-//               <button key={a.label} className="d-quick-btn" onClick={() => navigate(a.route)}>
-//                 <span>{a.icon}</span> {a.label}
-//               </button>
-//             ))}
 //           </div>
 //           <h1 className="d-hero-title">
 //             Become the <span className="ora">Top 1%</span><br />
@@ -443,12 +682,9 @@
 //             <div className="d-tools-grid">
 //               {TOOLS.map(t => (
 //                 <div key={t.key} className="d-tool-card" onClick={() => window.open(t.route, '_blank')}>
-//                   <div className="d-tool-icon" style={{background:"#f8fafc", padding:0, overflow:"hidden"}}>
-//                     {["texora","crm","ilm_ora","taskorbit","innovara","tora-cx"].includes(t.icon)
-//                       ? <img src={`/images/${t.icon}.jpeg`} alt={t.icon} style={{width:"100%",height:"100%",objectFit:"contain",borderRadius:"10px",padding:"4px 8px"}} />
-//                       : t.icon}
+//                   <div className="d-tool-icon" style={{background:"#f8fafc",padding:0,overflow:"hidden"}}>
+//                     <img src={`/images/${t.icon}.jpeg`} alt={t.icon} style={{width:"100%",height:"100%",objectFit:"contain",borderRadius:"10px",padding:"4px 8px"}} />
 //                   </div>
-//                   <div className="d-tool-title">{t.title}</div>
 //                   <div className="d-tool-desc">{t.desc}</div>
 //                   <div className="d-tool-tags">
 //                     {t.tags.map((tag, i) => <span key={tag} className={`d-tool-tag ${i === 1 ? "green" : ""}`}>{tag}</span>)}
@@ -459,6 +695,7 @@
 //             </div>
 //           </div>
 //         </section>
+
 //         {/* ═══ BLOG ═══ */}
 //         <section className="d-section" style={{background:"#F6EDE6"}} ref={blogRef}>
 //           <div className="d-section-inner">
@@ -491,9 +728,7 @@
 //                       <div className="d-blog-side-cat">{b.cat}</div>
 //                       <div className="d-blog-side-title">{b.title}</div>
 //                       <div className="d-blog-side-meta">
-//                         <span>{b.date}</span>
-//                         <span className="d-blog-dot"/>
-//                         <span>{b.reads} min read</span>
+//                         <span>{b.date}</span><span className="d-blog-dot"/><span>{b.reads} min read</span>
 //                       </div>
 //                     </div>
 //                   </div>
@@ -509,17 +744,15 @@
 //             <div className="d-cta-title">Ready to Transform Your Career?</div>
 //             <p className="d-cta-sub">Join 50,000+ professionals who've already taken the leap with ILM ORA</p>
 //             <div className="d-cta-btns">
-//               <button className="d-cta-primary" onClick={() => navigate("/complete-profile")}>Create Account →</button>
+//               <button className="d-cta-primary" onClick={() => { setGoogleUserInfo(null); setShowRolePopup(true); }}>Create Account →</button>
 //             </div>
 //           </div>
 //         </div>
 
-//         {/* ═══ FOOTER (from LMSHomepage) ═══ */}
+//         {/* ═══ FOOTER ═══ */}
 //         <footer className="d-footer-new">
 //           <div className="d-footer-inner">
 //             <div className="d-footer-grid">
-
-//               {/* Brand col */}
 //               <div className="d-footer-brand">
 //                 <h3>
 //                   <span style={{color:"#16a34a"}}>ILM</span>{" "}
@@ -537,27 +770,24 @@
 //                     <svg style={{width:16,height:16}} viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
 //                   </a>
 //                   <a href="https://www.instagram.com/texora_ai" target="_blank" rel="noreferrer" className="d-footer-social-btn" style={{background:"#db2777"}}>
-//                     <svg style={{width:16,height:16}} viewBox="0 0 24 24" fill="currentColor"><path d="M7.75 2C4.574 2 2 4.574 2 7.75v8.5C2 19.426 4.574 22 7.75 22h8.5C19.426 22 22 19.426 22 16.25v-8.5C22 4.574 19.426 2 16.25 2h-8.5zm0 2h8.5C18.216 4 20 5.784 20 7.75v8.5C20 18.216 18.216 20 16.25 20h-8.5C5.784 20 4 18.216 4 16.25v-8.5C4 5.784 5.784 4 7.75 4zm4.25 3a5 5 0 100 10 5 5 0 000-10zm0 2a3 3 0 110 6 3 3 0 010-6zm4.5-.75a1.25 1.25 0 100 2.5 1.25 1.25 0 000-2.5z"/></svg>
+//                     <svg style={{width:16,height:16}} viewBox="0 0 24 24" fill="currentColor"><path d="M7.75 2C4.574 2 4.574 22 7.75 22h8.5C19.426 22 22 19.426 22 16.25v-8.5C22 4.574 19.426 2 16.25 2h-8.5zm0 2h8.5C18.216 4 20 5.784 20 7.75v8.5C20 18.216 18.216 20 16.25 20h-8.5C5.784 20 4 18.216 4 16.25v-8.5C4 5.784 5.784 4 7.75 4zm4.25 3a5 5 0 100 10 5 5 0 000-10zm0 2a3 3 0 110 6 3 3 0 010-6zm4.5-.75a1.25 1.25 0 100 2.5 1.25 1.25 0 000-2.5z"/></svg>
 //                   </a>
 //                   <a href="https://x.com/texoraai" target="_blank" rel="noreferrer" className="d-footer-social-btn" style={{background:"#000"}}>
 //                     <svg style={{width:16,height:16}} viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2H21l-6.54 7.482L22 22h-6.828l-5.34-6.977L3.64 22H1l7.042-8.053L2 2h6.828l4.86 6.35L18.244 2zm-2.396 18h1.89L8.224 4H6.176l9.672 16z"/></svg>
 //                   </a>
 //                 </div>
 //               </div>
-
-//               {/* Company col only */}
-// <div className="d-footer-col">
-//   <h4>Company</h4>
-//   <ul>
-//     <li onClick={() => navigate("/about")}>About Us</li>
-//     <li onClick={() => navigate("/careers")}>Careers</li>
-//     <li onClick={() => navigate("/privacy-policy")}>Privacy Policy</li>
-//     <li onClick={() => navigate("/terms-of-service")}>Terms of Service</li>
-//   </ul>
-// </div>
+//               <div className="d-footer-col">
+//                 <h4>Company</h4>
+//                 <ul>
+//                   <li onClick={() => navigate("/about")}>About Us</li>
+//                   <li onClick={() => navigate("/careers")}>Careers</li>
+//                   <li onClick={() => navigate("/privacy-policy")}>Privacy Policy</li>
+//                   <li onClick={() => navigate("/terms-of-service")}>Terms of Service</li>
+//                 </ul>
+//               </div>
 //             </div>
 //           </div>
-
 //           <div className="d-footer-bottom">
 //             <span>© {new Date().getFullYear()} ILM ORA All rights reserved.</span>
 //             <span>Built with passion for modern learners 🚀</span>
@@ -594,6 +824,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import auth from "../../auth";
+import CompleteProfile from "../common/CompleteProfile";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -656,9 +887,9 @@ function TypeWriter({
 /* ─── LOGIN MODAL ────────────────────────────────────────────────────────── */
 function LoginModal({ onClose, onGoogleSuccess }) {
   const navigate = useNavigate();
-  const [email, setEmail]             = useState("");
-  const [password, setPassword]       = useState("");
-  const [loading, setLoading]         = useState(false);
+  const [email, setEmail]               = useState("");
+  const [password, setPassword]         = useState("");
+  const [loading, setLoading]           = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const redirectByRole = (role) => {
@@ -691,38 +922,86 @@ function LoginModal({ onClose, onGoogleSuccess }) {
     }
   };
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // FIX: handleGoogleSuccess
+  //
+  // ROOT CAUSE OF 409:
+  //   The old code called auth.googleLogin() for ALL Google sign-ins,
+  //   which created the user in the DB immediately — even for brand-new
+  //   users who hadn't filled out their profile yet. Then when the profile
+  //   form was submitted, the backend found the user already existed → 409.
+  //
+  // FIX:
+  //   1. Decode the JWT locally (no network call, no DB write).
+  //   2. Call a READ-ONLY check endpoint to see if the user already exists.
+  //   3a. Existing + approved user  → log in normally, redirect to dashboard.
+  //   3b. New user                  → send to CompleteProfile form with
+  //       pre-filled name/email. Do NOT touch the DB here at all.
+  //   4. The DB write happens ONLY when the user submits the completed
+  //      profile form (inside CompleteProfile → authService.register()).
+  // ─────────────────────────────────────────────────────────────────────────
   const handleGoogleSuccess = async (res) => {
     try {
-      localStorage.removeItem("lms_token");
-      localStorage.removeItem("lms_user");
-      localStorage.removeItem("role");
-      const dec  = jwtDecode(res.credential);
-      const resp = await auth.googleLogin({ idToken: res.credential });
-      if (resp?.isNewUser === true) {
-        localStorage.setItem("role", "STUDENT");
-        localStorage.setItem("lms_user", JSON.stringify({
-          name: dec.name, email: dec.email, role: "student", isNewUser: true,
-        }));
-        onClose();
-        onGoogleSuccess && onGoogleSuccess();
-      } else {
-        const role = (resp?.role || "STUDENT").toUpperCase();
+      // Step 1 – decode locally, zero network cost, zero DB risk
+      const dec = jwtDecode(res.credential);
+
+      // Step 2 – read-only existence check
+      // auth.checkGoogleUser() must call GET/POST /api/auth/check-google
+      // That endpoint only reads the DB — it NEVER creates a user.
+      let isExistingUser   = false;
+      let existingUserData = null;
+
+      try {
+        const checkResult = await auth.checkGoogleUser({ idToken: res.credential });
+        if (checkResult && checkResult.isNewUser === false) {
+          isExistingUser   = true;
+          existingUserData = checkResult;
+        }
+      } catch (_) {
+        // Network/server error — treat as new user (safe default)
+        isExistingUser = false;
+      }
+
+      if (isExistingUser && existingUserData) {
+        // ── 3a: Returning Google user – log in, go to dashboard ──
+        const role = (existingUserData.role || "STUDENT").toUpperCase();
         localStorage.setItem("role", role);
-        localStorage.setItem("lms_user", JSON.stringify({
-          name: dec.name, email: dec.email, role: role.toLowerCase(),
-        }));
+        localStorage.setItem(
+          "lms_user",
+          JSON.stringify({ name: dec.name, email: dec.email, role: role.toLowerCase() })
+        );
+        onClose();
         redirectByRole(role);
+      } else {
+        // ── 3b: New Google user – go to registration form ONLY ──
+        // Clear any stale auth state so nothing leaks into the form.
+        localStorage.removeItem("lms_token");
+        localStorage.removeItem("lms_user");
+        localStorage.removeItem("role");
+
+        onClose();
+        // Hand off to IlmOraDemoPage → CompleteProfile via onGoogleSuccess.
+        // Nothing is saved to the DB at this point.
+        onGoogleSuccess && onGoogleSuccess({
+          name:             dec.name,
+          email:            dec.email,
+          googleCredential: res.credential,
+        });
       }
     } catch (err) {
       console.error("Google login error:", err);
+      // Fallback: decode only and send to registration — still no DB write
       try {
         const dec = jwtDecode(res.credential);
-        localStorage.setItem("role", "STUDENT");
-        localStorage.setItem("lms_user", JSON.stringify({
-          name: dec.name, email: dec.email, role: "student", isNewUser: true,
-        }));
+        localStorage.removeItem("lms_token");
+        localStorage.removeItem("lms_user");
+        localStorage.removeItem("role");
         onClose();
-        onGoogleSuccess && onGoogleSuccess();
+        onGoogleSuccess && onGoogleSuccess({
+          name:             dec.name,
+          email:            dec.email,
+          googleCredential: res.credential,
+        });
       } catch (_) {
         alert("Google login failed. Please try again.");
       }
@@ -798,48 +1077,10 @@ function LoginModal({ onClose, onGoogleSuccess }) {
             {loading ? <><span className="lm-spinner"/>Signing in…</> : "Log in"}
           </button>
         </form>
-      </div>
-    </div>
-  );
-}
 
-/* ─── COMPLETE PROFILE POPUP (for Google new users) ─────────────────────── */
-function CompleteProfilePopup({ onSkip, onComplete }) {
-  const navigate = useNavigate();
-
-  return (
-    <div className="cpp-overlay">
-      <div className="cpp-box">
-        <div className="cpp-header">
-          <div className="cpp-logo">
-            <span style={{ color: "#16a34a" }}>ILM</span>
-            <span style={{ color: "#F97316" }}>ORA</span>
-          </div>
-          <button className="cpp-skip" onClick={onSkip}>Skip for now →</button>
+        <div className="lm-back-home">
+          <button onClick={() => { onClose(); navigate("/"); }}>← Back to home</button>
         </div>
-        <div className="cpp-icon">🎓</div>
-        <h3 className="cpp-title">Complete Your Profile</h3>
-        <p className="cpp-sub">
-          You're signed in! Complete your profile to unlock your personalised
-          dashboard, courses, and mentors.
-        </p>
-        <div className="cpp-benefits">
-          <div className="cpp-benefit"><span>✦</span> Personalized course recommendations</div>
-          <div className="cpp-benefit"><span>✦</span> Access to expert mentors</div>
-          <div className="cpp-benefit"><span>✦</span> Track your learning progress</div>
-        </div>
-        <button
-          className="cpp-cta"
-          onClick={() => {
-            onComplete();
-            navigate("/complete-profile");
-          }}
-        >
-          Complete Profile →
-        </button>
-        <button className="cpp-skip-btn" onClick={onSkip}>
-          I'll do this later
-        </button>
       </div>
     </div>
   );
@@ -912,28 +1153,37 @@ const BLOG_POSTS = [
 /* ─── Main Page ──────────────────────────────────────────────────────────── */
 export default function IlmOraDemoPage() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab]       = useState("product");
-  const [showLogin, setShowLogin]       = useState(false);
-  const [showProfilePopup, setShowProfilePopup] = useState(false);
+  const [activeTab, setActiveTab]         = useState("product");
+  const [showLogin, setShowLogin]         = useState(false);
+  const [showRolePopup, setShowRolePopup] = useState(false);
+
+  // Google user info lives in React state ONLY — nothing saved to DB
+  // until the user fully submits their profile form.
+  const [googleUserInfo, setGoogleUserInfo] = useState(null);
 
   const savedUser = JSON.parse(localStorage.getItem("lms_user") || "{}");
   const userName  = savedUser?.name || savedUser?.email?.split("@")[0] || "there";
 
-  // Show profile popup if user is a new Google user and hasn't completed profile
+  // If a returning user's lms_user has isNewUser=true they haven't
+  // completed their profile yet — show the form again.
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("lms_user") || "{}");
     if (user?.isNewUser === true) {
-      setShowProfilePopup(true);
+      setShowRolePopup(true);
     }
   }, []);
 
-  const handleProfileSkip = () => {
-    setShowProfilePopup(false);
-    // Keep isNewUser = true so popup shows again next visit until they register
+  const handleRoleSkip = () => {
+    setShowRolePopup(false);
+    setGoogleUserInfo(null);
   };
 
-  const handleGoogleNewUser = () => {
-    setShowProfilePopup(true);
+  // Called by LoginModal when a NEW Google user signs in.
+  // googleInfo = { name, email, googleCredential }
+  // Nothing has been written to the DB at this point.
+  const handleGoogleNewUser = (googleInfo) => {
+    setGoogleUserInfo(googleInfo);
+    setShowRolePopup(true);
   };
 
   const hour     = new Date().getHours();
@@ -1185,24 +1435,9 @@ export default function IlmOraDemoPage() {
         .lm-submit:disabled { opacity:0.5; cursor:not-allowed; }
         .lm-spinner { width:13px; height:13px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; }
         @keyframes spin { to{transform:rotate(360deg)} }
-
-        /* ── COMPLETE PROFILE POPUP ── */
-        .cpp-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1100; display:flex; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(6px); animation:lmFade 0.25s ease; }
-        .cpp-box { background:#fff; border-radius:24px; padding:36px 32px; width:100%; max-width:440px; text-align:center; box-shadow:0 32px 80px rgba(0,0,0,0.25); animation:lmUp 0.35s ease; border-top:4px solid #F97316; }
-        .cpp-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
-        .cpp-logo { font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:900; }
-        .cpp-skip { background:none; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:0.75rem; color:#94a3b8; transition:color 0.18s; padding:0; }
-        .cpp-skip:hover { color:#F97316; }
-        .cpp-icon { font-size:3rem; margin-bottom:12px; }
-        .cpp-title { font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:900; color:#1E293B; margin-bottom:10px; }
-        .cpp-sub { font-size:0.85rem; color:#64748b; line-height:1.65; margin-bottom:20px; }
-        .cpp-benefits { background:#F6EDE6; border-radius:12px; padding:16px 20px; margin-bottom:24px; display:flex; flex-direction:column; gap:8px; text-align:left; }
-        .cpp-benefit { font-size:0.82rem; color:#475569; display:flex; align-items:center; gap:8px; font-weight:500; }
-        .cpp-benefit span { color:#F97316; font-size:1rem; }
-        .cpp-cta { width:100%; padding:14px; background:linear-gradient(135deg,#F97316,#ea580c); color:#fff; border:none; border-radius:12px; font-family:'DM Sans',sans-serif; font-size:0.95rem; font-weight:700; cursor:pointer; transition:all 0.18s; box-shadow:0 4px 16px rgba(249,115,22,0.35); margin-bottom:10px; }
-        .cpp-cta:hover { opacity:0.9; transform:translateY(-1px); }
-        .cpp-skip-btn { background:none; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:0.78rem; color:#94a3b8; padding:4px; transition:color 0.18s; }
-        .cpp-skip-btn:hover { color:#64748b; }
+        .lm-back-home { text-align:center; margin-top:14px; }
+        .lm-back-home button { background:none; border:none; cursor:pointer; color:#94a3b8; font-family:'DM Sans',sans-serif; font-size:0.78rem; }
+        .lm-back-home button:hover { color:#475569; }
       `}</style>
 
       <div className="d-page">
@@ -1215,11 +1450,18 @@ export default function IlmOraDemoPage() {
           />
         )}
 
-        {/* ═══ COMPLETE PROFILE POPUP (for Google new users) ═══ */}
-        {showProfilePopup && (
-          <CompleteProfilePopup
-            onSkip={handleProfileSkip}
-            onComplete={() => setShowProfilePopup(false)}
+        {/* ═══ COMPLETE PROFILE POPUP ═══
+            - googleUserInfo is in React state only (no DB write yet)
+            - DB save happens only when the user submits the form inside CompleteProfile
+            - Manual "Apply Now" passes no googleUserInfo → form shows email/password fields
+        ═══ */}
+        {showRolePopup && (
+          <CompleteProfile
+            onSkip={handleRoleSkip}
+            prefillName={googleUserInfo?.name || ""}
+            prefillEmail={googleUserInfo?.email || ""}
+            googleCredential={googleUserInfo?.googleCredential || null}
+            isGoogleUser={!!googleUserInfo}
           />
         )}
 
@@ -1232,7 +1474,8 @@ export default function IlmOraDemoPage() {
           </div>
           <div className="d-nav-right">
             <button className="d-btn-login" onClick={() => setShowLogin(true)}>Login</button>
-            <button className="d-btn-signup" onClick={() => navigate("/complete-profile")}>Apply Now ✦</button>
+            {/* "Apply Now" → manual registration (no Google pre-fill) */}
+            <button className="d-btn-signup" onClick={() => { setGoogleUserInfo(null); setShowRolePopup(true); }}>Apply Now ✦</button>
           </div>
         </nav>
 
@@ -1341,7 +1584,7 @@ export default function IlmOraDemoPage() {
             <div className="d-cta-title">Ready to Transform Your Career?</div>
             <p className="d-cta-sub">Join 50,000+ professionals who've already taken the leap with ILM ORA</p>
             <div className="d-cta-btns">
-              <button className="d-cta-primary" onClick={() => navigate("/complete-profile")}>Create Account →</button>
+              <button className="d-cta-primary" onClick={() => { setGoogleUserInfo(null); setShowRolePopup(true); }}>Create Account →</button>
             </div>
           </div>
         </div>
@@ -1367,7 +1610,7 @@ export default function IlmOraDemoPage() {
                     <svg style={{width:16,height:16}} viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
                   </a>
                   <a href="https://www.instagram.com/texora_ai" target="_blank" rel="noreferrer" className="d-footer-social-btn" style={{background:"#db2777"}}>
-                    <svg style={{width:16,height:16}} viewBox="0 0 24 24" fill="currentColor"><path d="M7.75 2C4.574 2 2 4.574 2 7.75v8.5C2 19.426 4.574 22 7.75 22h8.5C19.426 22 22 19.426 22 16.25v-8.5C22 4.574 19.426 2 16.25 2h-8.5zm0 2h8.5C18.216 4 20 5.784 20 7.75v8.5C20 18.216 18.216 20 16.25 20h-8.5C5.784 20 4 18.216 4 16.25v-8.5C4 5.784 5.784 4 7.75 4zm4.25 3a5 5 0 100 10 5 5 0 000-10zm0 2a3 3 0 110 6 3 3 0 010-6zm4.5-.75a1.25 1.25 0 100 2.5 1.25 1.25 0 000-2.5z"/></svg>
+                    <svg style={{width:16,height:16}} viewBox="0 0 24 24" fill="currentColor"><path d="M7.75 2C4.574 2 4.574 22 7.75 22h8.5C19.426 22 22 19.426 22 16.25v-8.5C22 4.574 19.426 2 16.25 2h-8.5zm0 2h8.5C18.216 4 20 5.784 20 7.75v8.5C20 18.216 18.216 20 16.25 20h-8.5C5.784 20 4 18.216 4 16.25v-8.5C4 5.784 5.784 4 7.75 4zm4.25 3a5 5 0 100 10 5 5 0 000-10zm0 2a3 3 0 110 6 3 3 0 010-6zm4.5-.75a1.25 1.25 0 100 2.5 1.25 1.25 0 000-2.5z"/></svg>
                   </a>
                   <a href="https://x.com/texoraai" target="_blank" rel="noreferrer" className="d-footer-social-btn" style={{background:"#000"}}>
                     <svg style={{width:16,height:16}} viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2H21l-6.54 7.482L22 22h-6.828l-5.34-6.977L3.64 22H1l7.042-8.053L2 2h6.828l4.86 6.35L18.244 2zm-2.396 18h1.89L8.224 4H6.176l9.672 16z"/></svg>

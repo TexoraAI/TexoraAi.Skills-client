@@ -1,6 +1,508 @@
+// import { GoogleOAuthProvider } from "@react-oauth/google";
+// import { useEffect, useState } from "react";
+// import { Navigate, Route, Routes } from "react-router-dom";
+
+// /* ================= AUTH ================= */
+// import auth from "./auth";
+
+// /* ================= ROLE GUARD ================= */
+// import RoleGuard from "./components/RoleGuard";
+
+// /* ================= PANELS ================= */
+// import AdminPanel from "./Admin/AdminPanel";
+// import BusinessPanel from "./Business/BusinessPanel";
+// import StudentPanel from "./Student/StudentPanel";
+// import TrainerPanel from "./Trainer/TrainerPanel";
+
+// /* ================= APPLY ================= */
+// import ApplyAdmin from "./Admin/ApplyAdmin.jsx";
+// import ApplyBusiness from "./Business/ApplyBusiness.jsx";
+// import StudentApplicationForm from "./Student/StudentApplicationForm.jsx";
+// import ApplyTrainer from "./Trainer/ApplyTrainer.jsx";
+
+// /* ================= SUPER ADMIN ================= */
+// import SuperAdminDashboard from "./SuperAdmin/SuperAdminDashboard";
+// import SuperAdminLayout from "./SuperAdmin/SuperAdminLayout";
+// import AdminOrganisationControl from "./SuperAdmin/admin-control/AdminOrganisationControl";
+// import BusinessDashboardControl from "./SuperAdmin/admin-control/business-control/BusinessDashboardControl";
+// import SuperAdminProfile from "./SuperAdmin/profile/SuperAdminProfile";
+// import AuditLogs from "./SuperAdmin/settings/AuditLogs";
+// import RolePageMatrix from "./SuperAdmin/settings/RolePageMatrix";
+// import SendEmail from "./SuperAdmin/settings/SendEmail";
+// import StudentDashboardControl from "./SuperAdmin/student-control/StudentDashboardControl";
+// import TrainerDashboardControl from "./SuperAdmin/trainer-control/TrainerDashboardControl";
+
+// /* ================= AUTH PAGES ================= */
+// import ApprovalPending from "./pages/Auth/ApprovalPending.jsx";
+// import ForgotPassword from "./pages/Auth/ForgotPassword.jsx";
+// import Login from "./pages/Auth/Login.jsx";
+// import Signup from "./pages/Auth/Register.jsx";
+// import ResetPassword from "./pages/Auth/ResetPassword.jsx";
+// import VerifyEmail from "./pages/Auth/VerifyEmail.jsx";
+
+// /* ================= LANDING ================= */
+// import CoursePreview from "./pages/CoursePreview";
+// import CourseDetail from "./pages/Landing/CourseDetailsPage";
+// import ExploreFreeServices from "./pages/Landing/ExploreFreeServices";
+// import LMSHomepage from "./pages/Landing/LMSHomepage";
+// import SyllabusPage from "./pages/Landing/Syllabus.jsx";
+// import Watchnow from "./pages/Landing/Watchnow";
+
+// /* ================= COMPANY ================= */
+// import AboutTexoraSkills from "./pages/About/AboutTexoraSkills";
+// import Careers from "./pages/Company/Careers";
+// import PrivacyPolicy from "./pages/Company/PrivacyPolicy";
+// import TermsOfService from "./pages/Company/TermsOfService";
+
+// /* ================= COMMON ================= */
+// import NotificationsPage from "./pages/NotificationsPage";
+// import ProfilePage from "./pages/ProfilePage";
+// import SearchPage from "./pages/SearchPage";
+// import ApplyForm from "./pages/common/ApplyForm";
+// import CompleteProfile from "./pages/common/CompleteProfile";
+// import EditProfile from "./pages/common/EditProfile";
+// import CallRoom from "./components/live/CallRoom.jsx";
+
+// /* ================= STUDENT ================= */
+// import Assessments from "./Student/Assessments.jsx";
+// import AssignmentDetail from "./Student/AssignmentDetail";
+// import AttemptQuiz from "./Student/AttemptQuiz.jsx";
+// import Attendance from "./Student/Attendance.jsx";
+// import DashboardPage from "./Student/DashboardPage.jsx";
+// import Documents from "./Student/Documents.jsx";
+// import Doubts from "./Student/Doubts.jsx";
+// import LiveClasses from "./Student/LiveClasses.jsx";
+// import MyCourses from "./Student/MyCourses.jsx";
+// import MyQuizHistory from "./Student/MyQuizHistory";
+// import RecordedClasses from "./Student/RecordedClasses.jsx";
+// import Settings from "./Student/Settings.jsx";
+// import StudentAssignments from "./Student/StudentAssignments.jsx";
+// import StudentClassroomPage from "./Student/StudentClassroomPage";
+// import StudentCourseView from "./Student/StudentCourseView";
+// import TwoFactorAuth from "./Student/TwoFactorAuth";
+// import UpdateEmail from "./Student/UpdateEmail";
+// import Certificates from "./Student/certificates.jsx";
+// import Overview from "./Student/overview.jsx";
+// import VideoLectures from "./Student/videolecctures.jsx";
+// import CallTrainer from "./Student/CallTrainer.jsx";
+
+// /* ================= TRAINER ================= */
+// import TrainerAssessments from "./Trainer/Assessments";
+// import TrainerAttendance from "./Trainer/Attendance";
+// import BatchReports from "./Trainer/BatchReports";
+// import CreateAssignments from "./Trainer/CreateAssignments";
+// import CreateQuiz from "./Trainer/CreateQuiz";
+// import TrainerDashboard from "./Trainer/Dashboard";
+// import DoubtsManagement from "./Trainer/DoubtsManagement";
+// import EditAssignment from "./Trainer/EditAssignment";
+// import EditRecordedClass from "./Trainer/EditRecordedClass";
+// import MyAssignments from "./Trainer/MyAssignments";
+// import MyQuizzes from "./Trainer/MyQuizzes";
+// import PerformanceAnalysis from "./Trainer/PerformanceAnalysis";
+// import StudentReports from "./Trainer/StudentReports";
+// import TrainerBatchesPage from "./Trainer/TrainerBatchesPage";
+// import TrainerClassroomPage from "./Trainer/TrainerClassroomPage";
+// import CourseManagement from "./Trainer/TrainerCourseManagement.jsx";
+// import CourseModules from "./Trainer/TrainerCourseModules";
+// import TrainerFiles from "./Trainer/TrainerFiles";
+// import TrainerSettings from "./Trainer/TrainerSettings";
+// import UploadDocuments from "./Trainer/UploadDocuments";
+// import UploadVideos from "./Trainer/UploadVideos";
+// import ViewAssignments from "./Trainer/ViewAssignments";
+// import ViewSubmissions from "./Trainer/ViewSubmissions";
+
+// /* ================= NEW LIVE + RECORDED ================= */
+// import LiveAttendanceReport from "./Trainer/LiveAttendanceReport";
+// import LiveSessionControls from "./Trainer/LiveSessionControls";
+// import LiveSessionHistory from "./Trainer/LiveSessionHistory";
+// import RecordedClassList from "./Trainer/RecordedClassList";
+// import StartLiveSession from "./Trainer/StartLiveSession";
+// import TrainerLiveClasses from "./Trainer/TrainerLiveClasses";
+// import UploadRecordedVideo from "./Trainer/UploadRecordedVideo";
+// import TrainerJoinCall from "./Trainer/TrainerJoinCall";
+// /* ================= ADMIN ================= */
+// import AdminBatches from "./Admin/AdminBatches";
+// import AdminDashboard from "./Admin/AdminDashboard";
+// import AdminLiveSessions from "./Admin/AdminLiveSessions";
+// import AdminRecordedVideos from "./Admin/AdminRecordedVideos";
+// import Admincourseuploadform from "./Admin/Admincourseuploadform";
+// import AllCourses from "./Admin/AllCourses";
+// import AllUsers from "./Admin/AllUsers";
+// import AssignTrainerPage from "./Admin/AssignTrainerPage";
+// import BatchStudentsPage from "./Admin/BatchStudentsPage";
+// import BatchTrainerOverviewPage from "./Admin/BatchTrainerOverviewPage";
+// import Branches from "./Admin/Branches";
+// import Categories from "./Admin/Categories";
+// import CertificatesAdmin from "./Admin/CertificatesAdmin";
+// import DepartmentList from "./Admin/DepartmentList";
+// import Featuredcourseuploadform from "./Admin/Featuredcourseuploadform";
+// import FeedbackAdmin from "./Admin/FeedbackAdmin";
+// import OrgReports from "./Admin/OrgReports";
+// import OrgSettings from "./Admin/OrgSettings";
+// import PendingUsers from "./Admin/PendingUsers.jsx";
+// import StudentsAdmin from "./Admin/StudentsAdmin";
+// import TrainersAdmin from "./Admin/TrainersAdmin";
+// import UsageAnalytics from "./Admin/UsageAnalytics";
+// /* ================= BUSINESS ================= */
+// import BusinessDashboard from "./Business/BusinessDashboard";
+// import NewEnrollments from "./Business/Enrollments/NewEnrollments.jsx";
+// import Renewals from "./Business/Enrollments/Renewals.jsx";
+// import Invoices from "./Business/Financial/Invoices.jsx";
+// import Payments from "./Business/Financial/Payments.jsx";
+// import Applications from "./Business/Hiring Manager/Applications.jsx";
+// import JobOpenings from "./Business/Hiring Manager/JobOpenings.jsx";
+// import AllLeads from "./Business/Lead Management/AllLeads.jsx";
+// import FollowUps from "./Business/Lead Management/FollowUps.jsx";
+// import Campaigns from "./Business/Marketing/Campaigns.jsx";
+// import Sources from "./Business/Marketing/Sources.jsx";
+// import BusinessSettings from "./Business/Settings.jsx";
+// import Performance from "./Business/Team Targets/Performance.jsx";
+// import Targets from "./Business/Team Targets/Targets.jsx";
+
+// /*src/pages/student/IlmOraDemoPage.jsx */
+// import IlmOraDemoPage from "./pages/Student/IlmOraDemoPage";
+
+// /* ================= PROTECTED ================= */
+// const ProtectedRoute = ({ children }) => {
+//   if (!auth.isAuthenticated()) {
+//     return <Navigate to="/login" replace />;
+//   }
+//   return children;
+// };
+
+// export default function App() {
+//   const [theme, setTheme] = useState("light");
+
+//   useEffect(() => {
+//     const saved = localStorage.getItem("theme");
+//     if (saved) setTheme(saved);
+//   }, []);
+
+//   useEffect(() => {
+//     document.documentElement.classList.toggle("dark", theme === "dark");
+//     localStorage.setItem("theme", theme);
+//   }, [theme]);
+
+//   return (
+//     <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
+//       <Routes>
+//         {/* ================= PUBLIC ================= */}
+//         <Route
+//           path="/"
+//           element={
+//             <LMSHomepage
+//               theme={theme}
+//               toggleTheme={() =>
+//                 setTheme((prev) => (prev === "dark" ? "light" : "dark"))
+//               }
+//             />
+//           }
+//         />
+//         <Route path="/explore-programs" element={<ExploreFreeServices />} />
+//         <Route path="/watch-demo/:videoId" element={<Watchnow />} />
+//         <Route path="/course/:id" element={<CoursePreview />} />
+//         <Route path="/course-details" element={<CourseDetail />} />
+//         <Route path="/syllabus" element={<SyllabusPage />} />
+
+//         {/* ================= COMPANY ================= */}
+//         <Route path="/about" element={<AboutTexoraSkills />} />
+//         <Route path="/careers" element={<Careers />} />
+//         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+//         <Route path="/terms-of-service" element={<TermsOfService />} />
+
+//         {/* ================= AUTH ================= */}
+//         <Route path="/login" element={<Login />} />
+//         <Route path="/signup" element={<Signup />} />
+//         <Route path="/forgot-password" element={<ForgotPassword />} />
+//         <Route path="/reset-password" element={<ResetPassword />} />
+//         <Route path="/approval-pending" element={<ApprovalPending />} />
+//         <Route path="/verify-email" element={<VerifyEmail />} />
+
+//         {/*src/pages/student/IlmOraDemoPage.jsx */}
+//         <Route path="/ilm-demo" element={<IlmOraDemoPage />} />
+        
+
+//         {/* ================= APPLY ================= */}
+// <Route path="/apply" element={<ApplyForm />} />
+// <Route path="/complete-profile" element={<CompleteProfile />} />
+//         {/* ================= APPLY ================= */}
+//         <Route path="/apply-admin" element={<ApplyAdmin />} />
+//         <Route path="/apply-business" element={<ApplyBusiness />} />
+//         <Route path="/apply-trainer" element={<ApplyTrainer />} />
+//         <Route path="/apply-student" element={<StudentApplicationForm />} />
+//         {/* ================= STUDENT ================= */}
+//         <Route
+//           path="/student"
+//           element={
+//             <ProtectedRoute>
+//               <RoleGuard allowedRoles={["STUDENT", "ADMIN"]}>
+//                 <StudentPanel />
+//               </RoleGuard>
+//             </ProtectedRoute>
+//           }
+//         >
+//           {/* DASHBOARD */}
+//           <Route index element={<DashboardPage />} />
+
+//           <Route path="classroom" element={<StudentClassroomPage />} />
+//           {/* LEARNING */}
+//           <Route path="videos" element={<VideoLectures />} />
+//           <Route path="documents" element={<Documents />} />
+
+//           {/* 🔥 NEW ADDED */}
+//         <Route path="live-classes" element={<LiveClasses />} />
+//         <Route path="call-trainer" element={<CallTrainer />} />
+//         <Route path="recorded-classes" element={<RecordedClasses />} />
+//         <Route path="call-room" element={<CallRoom />} /> 
+
+//           {/* COURSES */}
+//           <Route path="courses" element={<MyCourses />} />
+//           <Route path="course/:id" element={<StudentCourseView />} />
+//           <Route path="assessments" element={<Assessments />} />
+//           <Route path="assignments" element={<StudentAssignments />} />
+//           <Route path="assignments/:id" element={<AssignmentDetail />} />
+//           <Route path="quiz/:quizId" element={<AttemptQuiz />} />
+//           <Route path="my-quizzes" element={<MyQuizHistory />} />
+
+//           {/* ACTIVITY */}
+//           <Route path="attendance" element={<Attendance />} />
+//           <Route path="doubts" element={<Doubts />} />
+//           <Route path="certificates" element={<Certificates />} />
+//           <Route path="overview" element={<Overview />} />
+
+//           {/* SETTINGS */}
+//           <Route path="settings">
+//             <Route index element={<Settings />} />
+//             <Route path="2fa" element={<TwoFactorAuth />} />
+//             <Route path="update-email" element={<UpdateEmail />} />
+//           </Route>
+
+//           {/*  COMMON TOP BAR ROUTES */}
+//           <Route path="search" element={<SearchPage />} />
+//           <Route path="notifications" element={<NotificationsPage />} />
+//           <Route path="profile" element={<ProfilePage />} />
+//           <Route path="edit-profile" element={<EditProfile />} />
+          
+//         </Route>
+
+//         {/* ================= TRAINER ================= */}
+// <Route
+//   path="/trainer"
+//   element={
+//     <ProtectedRoute>
+//       <RoleGuard allowedRoles={["TRAINER", "ADMIN"]}>
+//         <TrainerPanel />
+//       </RoleGuard>
+//     </ProtectedRoute>
+//   }
+// >
+//   <Route index element={<TrainerDashboard />} />
+
+//   {/* Existing Routes */}
+//   <Route path="batches" element={<TrainerBatchesPage />} />
+//   <Route path="batches/:batchId/students" element={<TrainerClassroomPage />} />
+//   <Route path="trainerfiles" element={<TrainerFiles />} />
+//   <Route path="upload-videos" element={<UploadVideos />} />
+//   <Route path="upload-docs" element={<UploadDocuments />} />
+//   <Route path="create-quiz" element={<CreateQuiz />} />
+//   <Route path="my-quizzes" element={<MyQuizzes />} />
+//   <Route path="edit-assignment/:id" element={<EditAssignment />} />
+//   <Route path="submissions/:id" element={<ViewSubmissions />} />
+//   <Route path="create-assignments" element={<CreateAssignments />} />
+//   <Route path="my-assignments" element={<MyAssignments />} />
+//   <Route path="course-management" element={<CourseManagement />} />
+//   <Route path="course/:courseId/modules" element={<CourseModules />} />
+//   <Route path="assessments" element={<TrainerAssessments />} />
+//   <Route path="attendance" element={<TrainerAttendance />} />
+//   <Route path="doubts-management" element={<DoubtsManagement />} />
+//   <Route path="student-reports" element={<StudentReports />} />
+//   <Route path="batch-reports" element={<BatchReports />} />
+//   <Route path="performance" element={<PerformanceAnalysis />} />
+//   <Route path="view-assignments" element={<ViewAssignments />} />
+ 
+
+// {/* ================= LIVE CLASSES ================= */}
+//           <Route path="live" element={<TrainerLiveClasses />} />
+//           <Route path="start-live" element={<StartLiveSession />} />
+//           <Route path="live-controls/:id" element={<LiveSessionControls />} />
+//           <Route path="live-history" element={<LiveSessionHistory />} />
+//           <Route path="live-attendance" element={<LiveAttendanceReport />} />
+//           <Route path="join-call" element={<TrainerJoinCall />} />
+//           <Route path="call-room" element={<CallRoom role="trainer" />} />
+//   {/* ================= RECORDED CLASSES ================= */}
+//   <Route path="upload-recorded" element={<UploadRecordedVideo />} />
+//   <Route path="recorded-list" element={<RecordedClassList />} />
+//   <Route path="edit-recorded/:id" element={<EditRecordedClass />} />
+//   {/* Settings */}
+//   <Route path="settings" element={<TrainerSettings />} />
+//   <Route path="search" element={<SearchPage />} />
+//   <Route path="notifications" element={<NotificationsPage />} />
+//   <Route path="profile" element={<ProfilePage />} />
+//   <Route path="edit-profile" element={<EditProfile />} />
+// </Route>
+
+
+//         {/* ================= ADMIN ================= */}
+//         <Route
+//           path="/admin"
+//           element={
+//             <ProtectedRoute>
+//               <RoleGuard allowedRoles={["ADMIN"]}>
+//                 <AdminPanel />
+//               </RoleGuard>
+//             </ProtectedRoute>
+//           }
+//         >
+//           <Route index element={<AdminDashboard />} />
+//           <Route path="settings" element={<OrgSettings />} />
+//           <Route path="branches" element={<Branches />} />
+//           <Route path="batches" element={<AdminBatches />} />
+//           <Route
+//             path="batches/:batchId/assign-trainer"
+//             element={<AssignTrainerPage />}
+//           />
+//           <Route
+//             path="batches/:batchId/students/:trainerEmail"
+//             element={<BatchStudentsPage />}
+//           />
+//           <Route
+//             path="batches/:batchId/trainers"
+//             element={<BatchTrainerOverviewPage />}
+//           />
+
+//           <Route path="users" element={<AllUsers />} />
+//           <Route path="students" element={<StudentsAdmin />} />
+//           <Route path="trainers" element={<TrainersAdmin />} />
+//           <Route path="pending-users" element={<PendingUsers />} />
+//           <Route path="courses" element={<AllCourses />} />
+//           <Route path="categories" element={<Categories />} />
+//           <Route path="certificates" element={<CertificatesAdmin />} />
+//           <Route path="reports" element={<OrgReports />} />
+//           <Route path="departmentlist" element={<DepartmentList />} />
+//           <Route path="usage" element={<UsageAnalytics />} />
+//           <Route path="feedback" element={<FeedbackAdmin />} />
+//           <Route path="live-sessions" element={<AdminLiveSessions />} />
+//           <Route path="recorded-videos" element={<AdminRecordedVideos />} />
+//           <Route path="search" element={<SearchPage />} />
+//           <Route path="notifications" element={<NotificationsPage />} />
+//           <Route path="profile" element={<ProfilePage />} />
+//           <Route path="edit-profile" element={<EditProfile />} />
+//           <Route path="featured-course-upload" element={<Featuredcourseuploadform />} />
+//            <Route path="course-upload" element={<Admincourseuploadform />} />
+          
+//         </Route>
+
+//         {/* ================= BUSINESS ================= */}
+//         <Route
+//           path="/business"
+//           element={
+//             <ProtectedRoute>
+//               <RoleGuard allowedRoles={["BUSINESS", "ADMIN"]}>
+//                 <BusinessPanel />
+//               </RoleGuard>
+//             </ProtectedRoute>
+//           }
+//         >
+//           <Route index element={<BusinessDashboard />} />
+//           <Route path="jobs" element={<JobOpenings />} />
+//           <Route path="applications" element={<Applications />} />
+//           <Route path="leads" element={<AllLeads />} />
+//           <Route path="followups" element={<FollowUps />} />
+//           <Route path="enrollments" element={<NewEnrollments />} />
+//           <Route path="renewals" element={<Renewals />} />
+//           <Route path="invoices" element={<Invoices />} />
+//           <Route path="payments" element={<Payments />} />
+//           <Route path="campaigns" element={<Campaigns />} />
+//           <Route path="sources" element={<Sources />} />
+//           <Route path="targets" element={<Targets />} />
+//           <Route path="performance" element={<Performance />} />
+//           <Route path="settings" element={<BusinessSettings />} />
+//           <Route path="search" element={<SearchPage />} />
+//           <Route path="notifications" element={<NotificationsPage />} />
+//           <Route path="profile" element={<ProfilePage />} />
+//           <Route path="edit-profile" element={<EditProfile />} />
+//         </Route>
+
+//         {/* ================= SUPER ADMIN ================= */}
+//         <Route
+//           path="/super-admin"
+//           element={
+//             <ProtectedRoute>
+//               <RoleGuard allowedRoles={["SUPER_ADMIN"]}>
+//                 <SuperAdminLayout />
+//               </RoleGuard>
+//             </ProtectedRoute>
+//           }
+//         >
+//           <Route index element={<SuperAdminDashboard />} />
+//           <Route path="dashboard" element={<SuperAdminDashboard />} />
+//           <Route path="admin-control" element={<AdminOrganisationControl />} />
+//           <Route
+//             path="business-control"
+//             element={<BusinessDashboardControl />}
+//           />
+//           <Route path="trainer-control" element={<TrainerDashboardControl />} />
+//           <Route path="student-control" element={<StudentDashboardControl />} />
+//           <Route path="settings/role-matrix" element={<RolePageMatrix />} />
+//           <Route path="settings/send-email" element={<SendEmail />} />
+//           <Route path="settings/audit-logs" element={<AuditLogs />} />
+//           <Route path="profile" element={<SuperAdminProfile />} />
+//         </Route>
+
+//         {/* ================= FALLBACK ================= */}
+//         <Route path="*" element={<Navigate to="/" replace />} />
+//       </Routes>
+//     </GoogleOAuthProvider>
+//   );
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
+import LoadingSpinner from "./components/ui/LoadingSpinner";
+import ErrorBoundary from "./components/ui/ErrorBoundary";
+import { lazyLoad } from "./lib/lazyLoad";
 
 /* ================= AUTH ================= */
 import auth from "./auth";
@@ -8,161 +510,161 @@ import auth from "./auth";
 /* ================= ROLE GUARD ================= */
 import RoleGuard from "./components/RoleGuard";
 
-/* ================= PANELS ================= */
+/* ================= PANELS (eager - layout components) ================= */
 import AdminPanel from "./Admin/AdminPanel";
 import BusinessPanel from "./Business/BusinessPanel";
 import StudentPanel from "./Student/StudentPanel";
 import TrainerPanel from "./Trainer/TrainerPanel";
+import SuperAdminLayout from "./SuperAdmin/SuperAdminLayout";
 
 /* ================= APPLY ================= */
-import ApplyAdmin from "./Admin/ApplyAdmin.jsx";
-import ApplyBusiness from "./Business/ApplyBusiness.jsx";
-import StudentApplicationForm from "./Student/StudentApplicationForm.jsx";
-import ApplyTrainer from "./Trainer/ApplyTrainer.jsx";
+const ApplyAdmin            = lazyLoad(() => import("./Admin/ApplyAdmin.jsx"));
+const ApplyBusiness         = lazyLoad(() => import("./Business/ApplyBusiness.jsx"));
+const StudentApplicationForm = lazyLoad(() => import("./Student/StudentApplicationForm.jsx"));
+const ApplyTrainer          = lazyLoad(() => import("./Trainer/ApplyTrainer.jsx"));
 
 /* ================= SUPER ADMIN ================= */
-import SuperAdminDashboard from "./SuperAdmin/SuperAdminDashboard";
-import SuperAdminLayout from "./SuperAdmin/SuperAdminLayout";
-import AdminOrganisationControl from "./SuperAdmin/admin-control/AdminOrganisationControl";
-import BusinessDashboardControl from "./SuperAdmin/admin-control/business-control/BusinessDashboardControl";
-import SuperAdminProfile from "./SuperAdmin/profile/SuperAdminProfile";
-import AuditLogs from "./SuperAdmin/settings/AuditLogs";
-import RolePageMatrix from "./SuperAdmin/settings/RolePageMatrix";
-import SendEmail from "./SuperAdmin/settings/SendEmail";
-import StudentDashboardControl from "./SuperAdmin/student-control/StudentDashboardControl";
-import TrainerDashboardControl from "./SuperAdmin/trainer-control/TrainerDashboardControl";
+const SuperAdminDashboard       = lazyLoad(() => import("./SuperAdmin/SuperAdminDashboard"));
+const AdminOrganisationControl  = lazyLoad(() => import("./SuperAdmin/admin-control/AdminOrganisationControl"));
+const BusinessDashboardControl  = lazyLoad(() => import("./SuperAdmin/admin-control/business-control/BusinessDashboardControl"));
+const SuperAdminProfile         = lazyLoad(() => import("./SuperAdmin/profile/SuperAdminProfile"));
+const AuditLogs                 = lazyLoad(() => import("./SuperAdmin/settings/AuditLogs"));
+const RolePageMatrix            = lazyLoad(() => import("./SuperAdmin/settings/RolePageMatrix"));
+const SendEmail                 = lazyLoad(() => import("./SuperAdmin/settings/SendEmail"));
+const StudentDashboardControl   = lazyLoad(() => import("./SuperAdmin/student-control/StudentDashboardControl"));
+const TrainerDashboardControl   = lazyLoad(() => import("./SuperAdmin/trainer-control/TrainerDashboardControl"));
 
 /* ================= AUTH PAGES ================= */
-import ApprovalPending from "./pages/Auth/ApprovalPending.jsx";
-import ForgotPassword from "./pages/Auth/ForgotPassword.jsx";
-import Login from "./pages/Auth/Login.jsx";
-import Signup from "./pages/Auth/Register.jsx";
-import ResetPassword from "./pages/Auth/ResetPassword.jsx";
-import VerifyEmail from "./pages/Auth/VerifyEmail.jsx";
+const ApprovalPending = lazyLoad(() => import("./pages/Auth/ApprovalPending.jsx"));
+const ForgotPassword  = lazyLoad(() => import("./pages/Auth/ForgotPassword.jsx"));
+const Login           = lazyLoad(() => import("./pages/Auth/Login.jsx"));
+const Signup          = lazyLoad(() => import("./pages/Auth/Register.jsx"));
+const ResetPassword   = lazyLoad(() => import("./pages/Auth/ResetPassword.jsx"));
+const VerifyEmail     = lazyLoad(() => import("./pages/Auth/VerifyEmail.jsx"));
 
 /* ================= LANDING ================= */
-import CoursePreview from "./pages/CoursePreview";
-import CourseDetail from "./pages/Landing/CourseDetailsPage";
-import ExploreFreeServices from "./pages/Landing/ExploreFreeServices";
-import LMSHomepage from "./pages/Landing/LMSHomepage";
-import SyllabusPage from "./pages/Landing/Syllabus.jsx";
-import Watchnow from "./pages/Landing/Watchnow";
+const CoursePreview        = lazyLoad(() => import("./pages/CoursePreview"));
+const CourseDetail         = lazyLoad(() => import("./pages/Landing/CourseDetailsPage"));
+const ExploreFreeServices  = lazyLoad(() => import("./pages/Landing/ExploreFreeServices"));
+const LMSHomepage          = lazyLoad(() => import("./pages/Landing/LMSHomepage"));
+const SyllabusPage         = lazyLoad(() => import("./pages/Landing/Syllabus.jsx"));
+const Watchnow             = lazyLoad(() => import("./pages/Landing/Watchnow"));
 
 /* ================= COMPANY ================= */
-import AboutTexoraSkills from "./pages/About/AboutTexoraSkills";
-import Careers from "./pages/Company/Careers";
-import PrivacyPolicy from "./pages/Company/PrivacyPolicy";
-import TermsOfService from "./pages/Company/TermsOfService";
+const AboutTexoraSkills = lazyLoad(() => import("./pages/About/AboutTexoraSkills"));
+const Careers           = lazyLoad(() => import("./pages/Company/Careers"));
+const PrivacyPolicy     = lazyLoad(() => import("./pages/Company/PrivacyPolicy"));
+const TermsOfService    = lazyLoad(() => import("./pages/Company/TermsOfService"));
 
 /* ================= COMMON ================= */
-import NotificationsPage from "./pages/NotificationsPage";
-import ProfilePage from "./pages/ProfilePage";
-import SearchPage from "./pages/SearchPage";
-import ApplyForm from "./pages/common/ApplyForm";
-import CompleteProfile from "./pages/common/CompleteProfile";
-import EditProfile from "./pages/common/EditProfile";
-import CallRoom from "./components/live/CallRoom.jsx";
+const NotificationsPage = lazyLoad(() => import("./pages/NotificationsPage"));
+const ProfilePage       = lazyLoad(() => import("./pages/ProfilePage"));
+const SearchPage        = lazyLoad(() => import("./pages/SearchPage"));
+const ApplyForm         = lazyLoad(() => import("./pages/common/ApplyForm"));
+const CompleteProfile   = lazyLoad(() => import("./pages/common/CompleteProfile"));
+const EditProfile       = lazyLoad(() => import("./pages/common/EditProfile"));
+const CallRoom          = lazyLoad(() => import("./components/live/CallRoom.jsx"));
 
 /* ================= STUDENT ================= */
-import Assessments from "./Student/Assessments.jsx";
-import AssignmentDetail from "./Student/AssignmentDetail";
-import AttemptQuiz from "./Student/AttemptQuiz.jsx";
-import Attendance from "./Student/Attendance.jsx";
-import DashboardPage from "./Student/DashboardPage.jsx";
-import Documents from "./Student/Documents.jsx";
-import Doubts from "./Student/Doubts.jsx";
-import LiveClasses from "./Student/LiveClasses.jsx";
-import MyCourses from "./Student/MyCourses.jsx";
-import MyQuizHistory from "./Student/MyQuizHistory";
-import RecordedClasses from "./Student/RecordedClasses.jsx";
-import Settings from "./Student/Settings.jsx";
-import StudentAssignments from "./Student/StudentAssignments.jsx";
-import StudentClassroomPage from "./Student/StudentClassroomPage";
-import StudentCourseView from "./Student/StudentCourseView";
-import TwoFactorAuth from "./Student/TwoFactorAuth";
-import UpdateEmail from "./Student/UpdateEmail";
-import Certificates from "./Student/certificates.jsx";
-import Overview from "./Student/overview.jsx";
-import VideoLectures from "./Student/videolecctures.jsx";
-import CallTrainer from "./Student/CallTrainer.jsx";
+const Assessments           = lazyLoad(() => import("./Student/Assessments.jsx"));
+const AssignmentDetail      = lazyLoad(() => import("./Student/AssignmentDetail"));
+const AttemptQuiz           = lazyLoad(() => import("./Student/AttemptQuiz.jsx"));
+const Attendance            = lazyLoad(() => import("./Student/Attendance.jsx"));
+const DashboardPage         = lazyLoad(() => import("./Student/DashboardPage.jsx"));
+const Documents             = lazyLoad(() => import("./Student/Documents.jsx"));
+const Doubts                = lazyLoad(() => import("./Student/Doubts.jsx"));
+const LiveClasses           = lazyLoad(() => import("./Student/LiveClasses.jsx"));
+const MyCourses             = lazyLoad(() => import("./Student/MyCourses.jsx"));
+const MyQuizHistory         = lazyLoad(() => import("./Student/MyQuizHistory"));
+const RecordedClasses       = lazyLoad(() => import("./Student/RecordedClasses.jsx"));
+const Settings              = lazyLoad(() => import("./Student/Settings.jsx"));
+const StudentAssignments    = lazyLoad(() => import("./Student/StudentAssignments.jsx"));
+const StudentClassroomPage  = lazyLoad(() => import("./Student/StudentClassroomPage"));
+const StudentCourseView     = lazyLoad(() => import("./Student/StudentCourseView"));
+const TwoFactorAuth         = lazyLoad(() => import("./Student/TwoFactorAuth"));
+const UpdateEmail           = lazyLoad(() => import("./Student/UpdateEmail"));
+const Certificates          = lazyLoad(() => import("./Student/certificates.jsx"));
+const Overview              = lazyLoad(() => import("./Student/overview.jsx"));
+const VideoLectures         = lazyLoad(() => import("./Student/videolecctures.jsx"));
+const CallTrainer           = lazyLoad(() => import("./Student/CallTrainer.jsx"));
 
 /* ================= TRAINER ================= */
-import TrainerAssessments from "./Trainer/Assessments";
-import TrainerAttendance from "./Trainer/Attendance";
-import BatchReports from "./Trainer/BatchReports";
-import CreateAssignments from "./Trainer/CreateAssignments";
-import CreateQuiz from "./Trainer/CreateQuiz";
-import TrainerDashboard from "./Trainer/Dashboard";
-import DoubtsManagement from "./Trainer/DoubtsManagement";
-import EditAssignment from "./Trainer/EditAssignment";
-import EditRecordedClass from "./Trainer/EditRecordedClass";
-import MyAssignments from "./Trainer/MyAssignments";
-import MyQuizzes from "./Trainer/MyQuizzes";
-import PerformanceAnalysis from "./Trainer/PerformanceAnalysis";
-import StudentReports from "./Trainer/StudentReports";
-import TrainerBatchesPage from "./Trainer/TrainerBatchesPage";
-import TrainerClassroomPage from "./Trainer/TrainerClassroomPage";
-import CourseManagement from "./Trainer/TrainerCourseManagement.jsx";
-import CourseModules from "./Trainer/TrainerCourseModules";
-import TrainerFiles from "./Trainer/TrainerFiles";
-import TrainerSettings from "./Trainer/TrainerSettings";
-import UploadDocuments from "./Trainer/UploadDocuments";
-import UploadVideos from "./Trainer/UploadVideos";
-import ViewAssignments from "./Trainer/ViewAssignments";
-import ViewSubmissions from "./Trainer/ViewSubmissions";
+const TrainerAssessments    = lazyLoad(() => import("./Trainer/Assessments"));
+const TrainerAttendance     = lazyLoad(() => import("./Trainer/Attendance"));
+const BatchReports          = lazyLoad(() => import("./Trainer/BatchReports"));
+const CreateAssignments     = lazyLoad(() => import("./Trainer/CreateAssignments"));
+const CreateQuiz            = lazyLoad(() => import("./Trainer/CreateQuiz"));
+const TrainerDashboard      = lazyLoad(() => import("./Trainer/Dashboard"));
+const DoubtsManagement      = lazyLoad(() => import("./Trainer/DoubtsManagement"));
+const EditAssignment        = lazyLoad(() => import("./Trainer/EditAssignment"));
+const EditRecordedClass     = lazyLoad(() => import("./Trainer/EditRecordedClass"));
+const MyAssignments         = lazyLoad(() => import("./Trainer/MyAssignments"));
+const MyQuizzes             = lazyLoad(() => import("./Trainer/MyQuizzes"));
+const PerformanceAnalysis   = lazyLoad(() => import("./Trainer/PerformanceAnalysis"));
+const StudentReports        = lazyLoad(() => import("./Trainer/StudentReports"));
+const TrainerBatchesPage    = lazyLoad(() => import("./Trainer/TrainerBatchesPage"));
+const TrainerClassroomPage  = lazyLoad(() => import("./Trainer/TrainerClassroomPage"));
+const CourseManagement      = lazyLoad(() => import("./Trainer/TrainerCourseManagement.jsx"));
+const CourseModules         = lazyLoad(() => import("./Trainer/TrainerCourseModules"));
+const TrainerFiles          = lazyLoad(() => import("./Trainer/TrainerFiles"));
+const TrainerSettings       = lazyLoad(() => import("./Trainer/TrainerSettings"));
+const UploadDocuments       = lazyLoad(() => import("./Trainer/UploadDocuments"));
+const UploadVideos          = lazyLoad(() => import("./Trainer/UploadVideos"));
+const ViewAssignments       = lazyLoad(() => import("./Trainer/ViewAssignments"));
+const ViewSubmissions       = lazyLoad(() => import("./Trainer/ViewSubmissions"));
+const LiveAttendanceReport  = lazyLoad(() => import("./Trainer/LiveAttendanceReport"));
+const LiveSessionControls   = lazyLoad(() => import("./Trainer/LiveSessionControls"));
+const LiveSessionHistory    = lazyLoad(() => import("./Trainer/LiveSessionHistory"));
+const RecordedClassList     = lazyLoad(() => import("./Trainer/RecordedClassList"));
+const StartLiveSession      = lazyLoad(() => import("./Trainer/StartLiveSession"));
+const TrainerLiveClasses    = lazyLoad(() => import("./Trainer/TrainerLiveClasses"));
+const UploadRecordedVideo   = lazyLoad(() => import("./Trainer/UploadRecordedVideo"));
+const TrainerJoinCall       = lazyLoad(() => import("./Trainer/TrainerJoinCall"));
 
-/* ================= NEW LIVE + RECORDED ================= */
-import LiveAttendanceReport from "./Trainer/LiveAttendanceReport";
-import LiveSessionControls from "./Trainer/LiveSessionControls";
-import LiveSessionHistory from "./Trainer/LiveSessionHistory";
-import RecordedClassList from "./Trainer/RecordedClassList";
-import StartLiveSession from "./Trainer/StartLiveSession";
-import TrainerLiveClasses from "./Trainer/TrainerLiveClasses";
-import UploadRecordedVideo from "./Trainer/UploadRecordedVideo";
-import TrainerJoinCall from "./Trainer/TrainerJoinCall";
 /* ================= ADMIN ================= */
-import AdminBatches from "./Admin/AdminBatches";
-import AdminDashboard from "./Admin/AdminDashboard";
-import AdminLiveSessions from "./Admin/AdminLiveSessions";
-import AdminRecordedVideos from "./Admin/AdminRecordedVideos";
-import Admincourseuploadform from "./Admin/Admincourseuploadform";
-import AllCourses from "./Admin/AllCourses";
-import AllUsers from "./Admin/AllUsers";
-import AssignTrainerPage from "./Admin/AssignTrainerPage";
-import BatchStudentsPage from "./Admin/BatchStudentsPage";
-import BatchTrainerOverviewPage from "./Admin/BatchTrainerOverviewPage";
-import Branches from "./Admin/Branches";
-import Categories from "./Admin/Categories";
-import CertificatesAdmin from "./Admin/CertificatesAdmin";
-import DepartmentList from "./Admin/DepartmentList";
-import Featuredcourseuploadform from "./Admin/Featuredcourseuploadform";
-import FeedbackAdmin from "./Admin/FeedbackAdmin";
-import OrgReports from "./Admin/OrgReports";
-import OrgSettings from "./Admin/OrgSettings";
-import PendingUsers from "./Admin/PendingUsers.jsx";
-import StudentsAdmin from "./Admin/StudentsAdmin";
-import TrainersAdmin from "./Admin/TrainersAdmin";
-import UsageAnalytics from "./Admin/UsageAnalytics";
+const AdminBatches              = lazyLoad(() => import("./Admin/AdminBatches"));
+const AdminDashboard            = lazyLoad(() => import("./Admin/AdminDashboard"));
+const AdminLiveSessions         = lazyLoad(() => import("./Admin/AdminLiveSessions"));
+const AdminRecordedVideos       = lazyLoad(() => import("./Admin/AdminRecordedVideos"));
+const Admincourseuploadform     = lazyLoad(() => import("./Admin/Admincourseuploadform"));
+const AllCourses                = lazyLoad(() => import("./Admin/AllCourses"));
+const AllUsers                  = lazyLoad(() => import("./Admin/AllUsers"));
+const AssignTrainerPage         = lazyLoad(() => import("./Admin/AssignTrainerPage"));
+const BatchStudentsPage         = lazyLoad(() => import("./Admin/BatchStudentsPage"));
+const BatchTrainerOverviewPage  = lazyLoad(() => import("./Admin/BatchTrainerOverviewPage"));
+const Branches                  = lazyLoad(() => import("./Admin/Branches"));
+const Categories                = lazyLoad(() => import("./Admin/Categories"));
+const CertificatesAdmin         = lazyLoad(() => import("./Admin/CertificatesAdmin"));
+const DepartmentList            = lazyLoad(() => import("./Admin/DepartmentList"));
+const Featuredcourseuploadform  = lazyLoad(() => import("./Admin/Featuredcourseuploadform"));
+const FeedbackAdmin             = lazyLoad(() => import("./Admin/FeedbackAdmin"));
+const OrgReports                = lazyLoad(() => import("./Admin/OrgReports"));
+const OrgSettings               = lazyLoad(() => import("./Admin/OrgSettings"));
+const PendingUsers              = lazyLoad(() => import("./Admin/PendingUsers.jsx"));
+const StudentsAdmin             = lazyLoad(() => import("./Admin/StudentsAdmin"));
+const TrainersAdmin             = lazyLoad(() => import("./Admin/TrainersAdmin"));
+const UsageAnalytics            = lazyLoad(() => import("./Admin/UsageAnalytics"));
+
 /* ================= BUSINESS ================= */
-import BusinessDashboard from "./Business/BusinessDashboard";
-import NewEnrollments from "./Business/Enrollments/NewEnrollments.jsx";
-import Renewals from "./Business/Enrollments/Renewals.jsx";
-import Invoices from "./Business/Financial/Invoices.jsx";
-import Payments from "./Business/Financial/Payments.jsx";
-import Applications from "./Business/Hiring Manager/Applications.jsx";
-import JobOpenings from "./Business/Hiring Manager/JobOpenings.jsx";
-import AllLeads from "./Business/Lead Management/AllLeads.jsx";
-import FollowUps from "./Business/Lead Management/FollowUps.jsx";
-import Campaigns from "./Business/Marketing/Campaigns.jsx";
-import Sources from "./Business/Marketing/Sources.jsx";
-import BusinessSettings from "./Business/Settings.jsx";
-import Performance from "./Business/Team Targets/Performance.jsx";
-import Targets from "./Business/Team Targets/Targets.jsx";
+const BusinessDashboard = lazyLoad(() => import("./Business/BusinessDashboard"));
+const NewEnrollments    = lazyLoad(() => import("./Business/Enrollments/NewEnrollments.jsx"));
+const Renewals          = lazyLoad(() => import("./Business/Enrollments/Renewals.jsx"));
+const Invoices          = lazyLoad(() => import("./Business/Financial/Invoices.jsx"));
+const Payments          = lazyLoad(() => import("./Business/Financial/Payments.jsx"));
+const Applications      = lazyLoad(() => import("./Business/Hiring Manager/Applications.jsx"));
+const JobOpenings       = lazyLoad(() => import("./Business/Hiring Manager/JobOpenings.jsx"));
+const AllLeads          = lazyLoad(() => import("./Business/Lead Management/AllLeads.jsx"));
+const FollowUps         = lazyLoad(() => import("./Business/Lead Management/FollowUps.jsx"));
+const Campaigns         = lazyLoad(() => import("./Business/Marketing/Campaigns.jsx"));
+const Sources           = lazyLoad(() => import("./Business/Marketing/Sources.jsx"));
+const BusinessSettings  = lazyLoad(() => import("./Business/Settings.jsx"));
+const Performance       = lazyLoad(() => import("./Business/Team Targets/Performance.jsx"));
+const Targets           = lazyLoad(() => import("./Business/Team Targets/Targets.jsx"));
 
-/*src/pages/student/IlmOraDemoPage.jsx */
-import IlmOraDemoPage from "./pages/Student/IlmOraDemoPage";
+/* ================= STUDENT DEMO ================= */
+const IlmOraDemoPage = lazyLoad(() => import("./pages/Student/IlmOraDemoPage"));
 
-/* ================= PROTECTED ================= */
+/* ================= PROTECTED ROUTE ================= */
 const ProtectedRoute = ({ children }) => {
   if (!auth.isAuthenticated()) {
     return <Navigate to="/login" replace />;
@@ -185,273 +687,187 @@ export default function App() {
 
   return (
     <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
-      <Routes>
-        {/* ================= PUBLIC ================= */}
-        <Route
-          path="/"
-          element={
-            <LMSHomepage
-              theme={theme}
-              toggleTheme={() =>
-                setTheme((prev) => (prev === "dark" ? "light" : "dark"))
-              }
-            />
-          }
-        />
-        <Route path="/explore-programs" element={<ExploreFreeServices />} />
-        <Route path="/watch-demo/:videoId" element={<Watchnow />} />
-        <Route path="/course/:id" element={<CoursePreview />} />
-        <Route path="/course-details" element={<CourseDetail />} />
-        <Route path="/syllabus" element={<SyllabusPage />} />
+      <ErrorBoundary>
+        <Suspense fallback={<LoadingSpinner />}>
+          <Routes>
 
-        {/* ================= COMPANY ================= */}
-        <Route path="/about" element={<AboutTexoraSkills />} />
-        <Route path="/careers" element={<Careers />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/terms-of-service" element={<TermsOfService />} />
+            {/* ================= PUBLIC ================= */}
+            <Route path="/" element={<LMSHomepage theme={theme} toggleTheme={() => setTheme((prev) => (prev === "dark" ? "light" : "dark"))} />} />
+            <Route path="/explore-programs" element={<ExploreFreeServices />} />
+            <Route path="/watch-demo/:videoId" element={<Watchnow />} />
+            <Route path="/course/:id" element={<CoursePreview />} />
+            <Route path="/course-details" element={<CourseDetail />} />
+            <Route path="/syllabus" element={<SyllabusPage />} />
 
-        {/* ================= AUTH ================= */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/approval-pending" element={<ApprovalPending />} />
-        <Route path="/verify-email" element={<VerifyEmail />} />
+            {/* ================= COMPANY ================= */}
+            <Route path="/about" element={<AboutTexoraSkills />} />
+            <Route path="/careers" element={<Careers />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
 
-        {/*src/pages/student/IlmOraDemoPage.jsx */}
-        <Route path="/ilm-demo" element={<IlmOraDemoPage />} />
-        
+            {/* ================= AUTH ================= */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/approval-pending" element={<ApprovalPending />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
 
-        {/* ================= APPLY ================= */}
-<Route path="/apply" element={<ApplyForm />} />
-<Route path="/complete-profile" element={<CompleteProfile />} />
-        {/* ================= APPLY ================= */}
-        <Route path="/apply-admin" element={<ApplyAdmin />} />
-        <Route path="/apply-business" element={<ApplyBusiness />} />
-        <Route path="/apply-trainer" element={<ApplyTrainer />} />
-        <Route path="/apply-student" element={<StudentApplicationForm />} />
-        {/* ================= STUDENT ================= */}
-        <Route
-          path="/student"
-          element={
-            <ProtectedRoute>
-              <RoleGuard allowedRoles={["STUDENT", "ADMIN"]}>
-                <StudentPanel />
-              </RoleGuard>
-            </ProtectedRoute>
-          }
-        >
-          {/* DASHBOARD */}
-          <Route index element={<DashboardPage />} />
+            {/* ================= DEMO ================= */}
+            <Route path="/ilm-demo" element={<IlmOraDemoPage />} />
 
-          <Route path="classroom" element={<StudentClassroomPage />} />
-          {/* LEARNING */}
-          <Route path="videos" element={<VideoLectures />} />
-          <Route path="documents" element={<Documents />} />
+            {/* ================= APPLY ================= */}
+            <Route path="/apply" element={<ApplyForm />} />
+            <Route path="/complete-profile" element={<CompleteProfile />} />
+            <Route path="/apply-admin" element={<ApplyAdmin />} />
+            <Route path="/apply-business" element={<ApplyBusiness />} />
+            <Route path="/apply-trainer" element={<ApplyTrainer />} />
+            <Route path="/apply-student" element={<StudentApplicationForm />} />
 
-          {/* 🔥 NEW ADDED */}
-        <Route path="live-classes" element={<LiveClasses />} />
-        <Route path="call-trainer" element={<CallTrainer />} />
-        <Route path="recorded-classes" element={<RecordedClasses />} />
-        <Route path="call-room" element={<CallRoom />} /> 
+            {/* ================= STUDENT ================= */}
+            <Route path="/student" element={<ProtectedRoute><RoleGuard allowedRoles={["STUDENT", "ADMIN"]}><StudentPanel /></RoleGuard></ProtectedRoute>}>
+              <Route index element={<DashboardPage />} />
+              <Route path="classroom" element={<StudentClassroomPage />} />
+              <Route path="videos" element={<VideoLectures />} />
+              <Route path="documents" element={<Documents />} />
+              <Route path="live-classes" element={<LiveClasses />} />
+              <Route path="call-trainer" element={<CallTrainer />} />
+              <Route path="recorded-classes" element={<RecordedClasses />} />
+              <Route path="call-room" element={<CallRoom />} />
+              <Route path="courses" element={<MyCourses />} />
+              <Route path="course/:id" element={<StudentCourseView />} />
+              <Route path="assessments" element={<Assessments />} />
+              <Route path="assignments" element={<StudentAssignments />} />
+              <Route path="assignments/:id" element={<AssignmentDetail />} />
+              <Route path="quiz/:quizId" element={<AttemptQuiz />} />
+              <Route path="my-quizzes" element={<MyQuizHistory />} />
+              <Route path="attendance" element={<Attendance />} />
+              <Route path="doubts" element={<Doubts />} />
+              <Route path="certificates" element={<Certificates />} />
+              <Route path="overview" element={<Overview />} />
+              <Route path="settings">
+                <Route index element={<Settings />} />
+                <Route path="2fa" element={<TwoFactorAuth />} />
+                <Route path="update-email" element={<UpdateEmail />} />
+              </Route>
+              <Route path="search" element={<SearchPage />} />
+              <Route path="notifications" element={<NotificationsPage />} />
+              <Route path="profile" element={<ProfilePage />} />
+              <Route path="edit-profile" element={<EditProfile />} />
+            </Route>
 
-          {/* COURSES */}
-          <Route path="courses" element={<MyCourses />} />
-          <Route path="course/:id" element={<StudentCourseView />} />
-          <Route path="assessments" element={<Assessments />} />
-          <Route path="assignments" element={<StudentAssignments />} />
-          <Route path="assignments/:id" element={<AssignmentDetail />} />
-          <Route path="quiz/:quizId" element={<AttemptQuiz />} />
-          <Route path="my-quizzes" element={<MyQuizHistory />} />
+            {/* ================= TRAINER ================= */}
+            <Route path="/trainer" element={<ProtectedRoute><RoleGuard allowedRoles={["TRAINER", "ADMIN"]}><TrainerPanel /></RoleGuard></ProtectedRoute>}>
+              <Route index element={<TrainerDashboard />} />
+              <Route path="batches" element={<TrainerBatchesPage />} />
+              <Route path="batches/:batchId/students" element={<TrainerClassroomPage />} />
+              <Route path="trainerfiles" element={<TrainerFiles />} />
+              <Route path="upload-videos" element={<UploadVideos />} />
+              <Route path="upload-docs" element={<UploadDocuments />} />
+              <Route path="create-quiz" element={<CreateQuiz />} />
+              <Route path="my-quizzes" element={<MyQuizzes />} />
+              <Route path="edit-assignment/:id" element={<EditAssignment />} />
+              <Route path="submissions/:id" element={<ViewSubmissions />} />
+              <Route path="create-assignments" element={<CreateAssignments />} />
+              <Route path="my-assignments" element={<MyAssignments />} />
+              <Route path="course-management" element={<CourseManagement />} />
+              <Route path="course/:courseId/modules" element={<CourseModules />} />
+              <Route path="assessments" element={<TrainerAssessments />} />
+              <Route path="attendance" element={<TrainerAttendance />} />
+              <Route path="doubts-management" element={<DoubtsManagement />} />
+              <Route path="student-reports" element={<StudentReports />} />
+              <Route path="batch-reports" element={<BatchReports />} />
+              <Route path="performance" element={<PerformanceAnalysis />} />
+              <Route path="view-assignments" element={<ViewAssignments />} />
+              <Route path="live" element={<TrainerLiveClasses />} />
+              <Route path="start-live" element={<StartLiveSession />} />
+              <Route path="live-controls/:id" element={<LiveSessionControls />} />
+              <Route path="live-history" element={<LiveSessionHistory />} />
+              <Route path="live-attendance" element={<LiveAttendanceReport />} />
+              <Route path="join-call" element={<TrainerJoinCall />} />
+              <Route path="call-room" element={<CallRoom role="trainer" />} />
+              <Route path="upload-recorded" element={<UploadRecordedVideo />} />
+              <Route path="recorded-list" element={<RecordedClassList />} />
+              <Route path="edit-recorded/:id" element={<EditRecordedClass />} />
+              <Route path="settings" element={<TrainerSettings />} />
+              <Route path="search" element={<SearchPage />} />
+              <Route path="notifications" element={<NotificationsPage />} />
+              <Route path="profile" element={<ProfilePage />} />
+              <Route path="edit-profile" element={<EditProfile />} />
+            </Route>
 
-          {/* ACTIVITY */}
-          <Route path="attendance" element={<Attendance />} />
-          <Route path="doubts" element={<Doubts />} />
-          <Route path="certificates" element={<Certificates />} />
-          <Route path="overview" element={<Overview />} />
+            {/* ================= ADMIN ================= */}
+            <Route path="/admin" element={<ProtectedRoute><RoleGuard allowedRoles={["ADMIN"]}><AdminPanel /></RoleGuard></ProtectedRoute>}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="settings" element={<OrgSettings />} />
+              <Route path="branches" element={<Branches />} />
+              <Route path="batches" element={<AdminBatches />} />
+              <Route path="batches/:batchId/assign-trainer" element={<AssignTrainerPage />} />
+              <Route path="batches/:batchId/students/:trainerEmail" element={<BatchStudentsPage />} />
+              <Route path="batches/:batchId/trainers" element={<BatchTrainerOverviewPage />} />
+              <Route path="users" element={<AllUsers />} />
+              <Route path="students" element={<StudentsAdmin />} />
+              <Route path="trainers" element={<TrainersAdmin />} />
+              <Route path="pending-users" element={<PendingUsers />} />
+              <Route path="courses" element={<AllCourses />} />
+              <Route path="categories" element={<Categories />} />
+              <Route path="certificates" element={<CertificatesAdmin />} />
+              <Route path="reports" element={<OrgReports />} />
+              <Route path="departmentlist" element={<DepartmentList />} />
+              <Route path="usage" element={<UsageAnalytics />} />
+              <Route path="feedback" element={<FeedbackAdmin />} />
+              <Route path="live-sessions" element={<AdminLiveSessions />} />
+              <Route path="recorded-videos" element={<AdminRecordedVideos />} />
+              <Route path="search" element={<SearchPage />} />
+              <Route path="notifications" element={<NotificationsPage />} />
+              <Route path="profile" element={<ProfilePage />} />
+              <Route path="edit-profile" element={<EditProfile />} />
+              <Route path="featured-course-upload" element={<Featuredcourseuploadform />} />
+              <Route path="course-upload" element={<Admincourseuploadform />} />
+            </Route>
 
-          {/* SETTINGS */}
-          <Route path="settings">
-            <Route index element={<Settings />} />
-            <Route path="2fa" element={<TwoFactorAuth />} />
-            <Route path="update-email" element={<UpdateEmail />} />
-          </Route>
+            {/* ================= BUSINESS ================= */}
+            <Route path="/business" element={<ProtectedRoute><RoleGuard allowedRoles={["BUSINESS", "ADMIN"]}><BusinessPanel /></RoleGuard></ProtectedRoute>}>
+              <Route index element={<BusinessDashboard />} />
+              <Route path="jobs" element={<JobOpenings />} />
+              <Route path="applications" element={<Applications />} />
+              <Route path="leads" element={<AllLeads />} />
+              <Route path="followups" element={<FollowUps />} />
+              <Route path="enrollments" element={<NewEnrollments />} />
+              <Route path="renewals" element={<Renewals />} />
+              <Route path="invoices" element={<Invoices />} />
+              <Route path="payments" element={<Payments />} />
+              <Route path="campaigns" element={<Campaigns />} />
+              <Route path="sources" element={<Sources />} />
+              <Route path="targets" element={<Targets />} />
+              <Route path="performance" element={<Performance />} />
+              <Route path="settings" element={<BusinessSettings />} />
+              <Route path="search" element={<SearchPage />} />
+              <Route path="notifications" element={<NotificationsPage />} />
+              <Route path="profile" element={<ProfilePage />} />
+              <Route path="edit-profile" element={<EditProfile />} />
+            </Route>
 
-          {/*  COMMON TOP BAR ROUTES */}
-          <Route path="search" element={<SearchPage />} />
-          <Route path="notifications" element={<NotificationsPage />} />
-          <Route path="profile" element={<ProfilePage />} />
-          <Route path="edit-profile" element={<EditProfile />} />
-          
-        </Route>
+            {/* ================= SUPER ADMIN ================= */}
+            <Route path="/super-admin" element={<ProtectedRoute><RoleGuard allowedRoles={["SUPER_ADMIN"]}><SuperAdminLayout /></RoleGuard></ProtectedRoute>}>
+              <Route index element={<SuperAdminDashboard />} />
+              <Route path="dashboard" element={<SuperAdminDashboard />} />
+              <Route path="admin-control" element={<AdminOrganisationControl />} />
+              <Route path="business-control" element={<BusinessDashboardControl />} />
+              <Route path="trainer-control" element={<TrainerDashboardControl />} />
+              <Route path="student-control" element={<StudentDashboardControl />} />
+              <Route path="settings/role-matrix" element={<RolePageMatrix />} />
+              <Route path="settings/send-email" element={<SendEmail />} />
+              <Route path="settings/audit-logs" element={<AuditLogs />} />
+              <Route path="profile" element={<SuperAdminProfile />} />
+            </Route>
 
-        {/* ================= TRAINER ================= */}
-<Route
-  path="/trainer"
-  element={
-    <ProtectedRoute>
-      <RoleGuard allowedRoles={["TRAINER", "ADMIN"]}>
-        <TrainerPanel />
-      </RoleGuard>
-    </ProtectedRoute>
-  }
->
-  <Route index element={<TrainerDashboard />} />
+            {/* ================= FALLBACK ================= */}
+            <Route path="*" element={<Navigate to="/" replace />} />
 
-  {/* Existing Routes */}
-  <Route path="batches" element={<TrainerBatchesPage />} />
-  <Route path="batches/:batchId/students" element={<TrainerClassroomPage />} />
-  <Route path="trainerfiles" element={<TrainerFiles />} />
-  <Route path="upload-videos" element={<UploadVideos />} />
-  <Route path="upload-docs" element={<UploadDocuments />} />
-  <Route path="create-quiz" element={<CreateQuiz />} />
-  <Route path="my-quizzes" element={<MyQuizzes />} />
-  <Route path="edit-assignment/:id" element={<EditAssignment />} />
-  <Route path="submissions/:id" element={<ViewSubmissions />} />
-  <Route path="create-assignments" element={<CreateAssignments />} />
-  <Route path="my-assignments" element={<MyAssignments />} />
-  <Route path="course-management" element={<CourseManagement />} />
-  <Route path="course/:courseId/modules" element={<CourseModules />} />
-  <Route path="assessments" element={<TrainerAssessments />} />
-  <Route path="attendance" element={<TrainerAttendance />} />
-  <Route path="doubts-management" element={<DoubtsManagement />} />
-  <Route path="student-reports" element={<StudentReports />} />
-  <Route path="batch-reports" element={<BatchReports />} />
-  <Route path="performance" element={<PerformanceAnalysis />} />
-  <Route path="view-assignments" element={<ViewAssignments />} />
- 
-
-{/* ================= LIVE CLASSES ================= */}
-          <Route path="live" element={<TrainerLiveClasses />} />
-          <Route path="start-live" element={<StartLiveSession />} />
-          <Route path="live-controls/:id" element={<LiveSessionControls />} />
-          <Route path="live-history" element={<LiveSessionHistory />} />
-          <Route path="live-attendance" element={<LiveAttendanceReport />} />
-          <Route path="join-call" element={<TrainerJoinCall />} />
-          <Route path="call-room" element={<CallRoom role="trainer" />} />
-  {/* ================= RECORDED CLASSES ================= */}
-  <Route path="upload-recorded" element={<UploadRecordedVideo />} />
-  <Route path="recorded-list" element={<RecordedClassList />} />
-  <Route path="edit-recorded/:id" element={<EditRecordedClass />} />
-  {/* Settings */}
-  <Route path="settings" element={<TrainerSettings />} />
-  <Route path="search" element={<SearchPage />} />
-  <Route path="notifications" element={<NotificationsPage />} />
-  <Route path="profile" element={<ProfilePage />} />
-  <Route path="edit-profile" element={<EditProfile />} />
-</Route>
-
-
-        {/* ================= ADMIN ================= */}
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute>
-              <RoleGuard allowedRoles={["ADMIN"]}>
-                <AdminPanel />
-              </RoleGuard>
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<AdminDashboard />} />
-          <Route path="settings" element={<OrgSettings />} />
-          <Route path="branches" element={<Branches />} />
-          <Route path="batches" element={<AdminBatches />} />
-          <Route
-            path="batches/:batchId/assign-trainer"
-            element={<AssignTrainerPage />}
-          />
-          <Route
-            path="batches/:batchId/students/:trainerEmail"
-            element={<BatchStudentsPage />}
-          />
-          <Route
-            path="batches/:batchId/trainers"
-            element={<BatchTrainerOverviewPage />}
-          />
-
-          <Route path="users" element={<AllUsers />} />
-          <Route path="students" element={<StudentsAdmin />} />
-          <Route path="trainers" element={<TrainersAdmin />} />
-          <Route path="pending-users" element={<PendingUsers />} />
-          <Route path="courses" element={<AllCourses />} />
-          <Route path="categories" element={<Categories />} />
-          <Route path="certificates" element={<CertificatesAdmin />} />
-          <Route path="reports" element={<OrgReports />} />
-          <Route path="departmentlist" element={<DepartmentList />} />
-          <Route path="usage" element={<UsageAnalytics />} />
-          <Route path="feedback" element={<FeedbackAdmin />} />
-          <Route path="live-sessions" element={<AdminLiveSessions />} />
-          <Route path="recorded-videos" element={<AdminRecordedVideos />} />
-          <Route path="search" element={<SearchPage />} />
-          <Route path="notifications" element={<NotificationsPage />} />
-          <Route path="profile" element={<ProfilePage />} />
-          <Route path="edit-profile" element={<EditProfile />} />
-          <Route path="featured-course-upload" element={<Featuredcourseuploadform />} />
-           <Route path="course-upload" element={<Admincourseuploadform />} />
-          
-        </Route>
-
-        {/* ================= BUSINESS ================= */}
-        <Route
-          path="/business"
-          element={
-            <ProtectedRoute>
-              <RoleGuard allowedRoles={["BUSINESS", "ADMIN"]}>
-                <BusinessPanel />
-              </RoleGuard>
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<BusinessDashboard />} />
-          <Route path="jobs" element={<JobOpenings />} />
-          <Route path="applications" element={<Applications />} />
-          <Route path="leads" element={<AllLeads />} />
-          <Route path="followups" element={<FollowUps />} />
-          <Route path="enrollments" element={<NewEnrollments />} />
-          <Route path="renewals" element={<Renewals />} />
-          <Route path="invoices" element={<Invoices />} />
-          <Route path="payments" element={<Payments />} />
-          <Route path="campaigns" element={<Campaigns />} />
-          <Route path="sources" element={<Sources />} />
-          <Route path="targets" element={<Targets />} />
-          <Route path="performance" element={<Performance />} />
-          <Route path="settings" element={<BusinessSettings />} />
-          <Route path="search" element={<SearchPage />} />
-          <Route path="notifications" element={<NotificationsPage />} />
-          <Route path="profile" element={<ProfilePage />} />
-          <Route path="edit-profile" element={<EditProfile />} />
-        </Route>
-
-        {/* ================= SUPER ADMIN ================= */}
-        <Route
-          path="/super-admin"
-          element={
-            <ProtectedRoute>
-              <RoleGuard allowedRoles={["SUPER_ADMIN"]}>
-                <SuperAdminLayout />
-              </RoleGuard>
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<SuperAdminDashboard />} />
-          <Route path="dashboard" element={<SuperAdminDashboard />} />
-          <Route path="admin-control" element={<AdminOrganisationControl />} />
-          <Route
-            path="business-control"
-            element={<BusinessDashboardControl />}
-          />
-          <Route path="trainer-control" element={<TrainerDashboardControl />} />
-          <Route path="student-control" element={<StudentDashboardControl />} />
-          <Route path="settings/role-matrix" element={<RolePageMatrix />} />
-          <Route path="settings/send-email" element={<SendEmail />} />
-          <Route path="settings/audit-logs" element={<AuditLogs />} />
-          <Route path="profile" element={<SuperAdminProfile />} />
-        </Route>
-
-        {/* ================= FALLBACK ================= */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
     </GoogleOAuthProvider>
   );
 }

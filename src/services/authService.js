@@ -214,6 +214,10 @@ const authService = {
   logout() {
     localStorage.removeItem("lms_token");
   },
+  // ================= CHECK GOOGLE USER (read-only, no DB write) =================
+  checkGoogleUser({ idToken }) {
+    return api.post("/auth/check-google", { idToken }).then(res => res.data);
+  },
 };
 
 export default authService;

@@ -42,5 +42,6 @@ jobs:
           script: |
             sudo rm -rf /var/www/html/*
             sudo cp -r /home/ec2-user/dist/* /var/www/html/
+            sudo rm -rf /home/ec2-user/dist
             sudo bash -c 'printf "Options -MultiViews\nRewriteEngine On\nRewriteCond %%{REQUEST_FILENAME} !-f\nRewriteRule ^ index.html [QL]\n" > /var/www/html/.htaccess'
             sudo systemctl restart httpd

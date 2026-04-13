@@ -41,9 +41,19 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "dist/*"
+          source: "dist/"
           strip_components: 1
           target: "/var/www/html"
+
+      # ✅ React Router ke liye .htaccess banao
+      - name: Create .htaccess on server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            sudo bash -c 'printf "Options -MultiViews\nRewriteEngine On\nRewriteCond %%{REQUEST_FILENAME} !-f\nRewriteRule ^ index.html [QL]\n" > /var/www/html/.htaccess'
 
       # 🔄 Restart Apache
       - name: Restart Apache

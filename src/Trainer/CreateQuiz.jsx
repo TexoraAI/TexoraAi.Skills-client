@@ -311,7 +311,8 @@
 import { useEffect, useState } from "react";
 import { addOption, addQuestion, createQuiz } from "../services/assessmentService";
 import { getTrainerBatches } from "../services/batchService";
-import { ChevronDown, ClipboardList, HelpCircle, Loader2, PlusCircle, CheckCircle2 } from "lucide-react";
+import { ChevronDown, ClipboardList, ClipboardCheck, HelpCircle, Loader2, PlusCircle, CheckCircle2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import auth from "../auth";
 import {
   useTrainerTheme, PageShell, PageHero, ThemedCard,
@@ -322,6 +323,7 @@ import {
 const PANELS = ["details", "questions", "review"];
 
 const CreateQuiz = () => {
+  const navigate = useNavigate();
   const { t, isDark } = useTrainerTheme();
 
   const [title, setTitle] = useState("");
@@ -431,13 +433,37 @@ const CreateQuiz = () => {
     <PageShell t={t}>
       {/* HERO */}
       <PageHero
-        t={t} isDark={isDark}
-        icon={ClipboardList}
-        badge="Assessment Builder"
-        title="Quiz Builder"
-        subtitle="Create quizzes with multiple choice questions for your batches."
-        color="#22d3ee"
-      />
+  t={t}
+  isDark={isDark}
+  icon={ClipboardList}
+  badge="Assessment Builder"
+  title="Quiz Builder"
+  subtitle="Create quizzes with multiple choice questions for your batches."
+  color="#22d3ee"
+  right={
+    <button
+      onClick={() => navigate("/trainer/my-quizzes")}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        padding: "9px 16px",
+        borderRadius: 12,
+        cursor: "pointer",
+        background: t.actBg,
+        border: `1px solid ${t.border}`,
+        color: t.textSub,
+        fontSize: 12,
+        fontWeight: 600,
+        fontFamily: "'Poppins',sans-serif",
+        transition: "all 0.2s",
+      }}
+    >
+      <ClipboardCheck size={14} />
+      My Quizzes
+    </button>
+  }
+/>
 
       {/* ACCORDION PANELS */}
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>

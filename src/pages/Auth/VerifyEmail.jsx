@@ -1,29 +1,235 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { CheckCircle, XCircle, Mail, ArrowRight } from "lucide-react";
 import axios from "axios";
 
-// ✅ Backend Base URL (Gateway)
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:9000";
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:9000";
 console.log("API_BASE_URL =>", API_BASE_URL);
 
-// Color scheme — ILM ORA palette
-const colors = {
-  primary: "from-green-600 to-orange-500",
-  primarySolid: "bg-green-700",
-  muted: "text-gray-600 dark:text-gray-400",
-};
+/* ─── Styles ─────────────────────────────────────────────────────── */
+const STYLES = `
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
 
+:root {
+  --bg:#f1f5f9; --card:#ffffff; --tx:#0f172a; --mu:#64748b; --bd:#e2e8f0;
+  --c1:#22d3ee; --c2:#fb923c; --c3:#34d399; --c4:#a78bfa; --cr:#f87171;
+  --sh:0 4px 24px rgba(0,0,0,0.06); --shl:0 8px 40px rgba(0,0,0,0.10); --r:20px;
+}
+.ve-dk {
+  --bg:#0a0a0a; --card:#111111; --tx:#ffffff; --mu:#94a3b8;
+  --bd:rgba(255,255,255,0.06);
+  --sh:0 4px 24px rgba(0,0,0,0.40); --shl:0 8px 40px rgba(0,0,0,0.60);
+}
+
+.ve-root {
+  font-family:'Poppins',sans-serif;
+  min-height:100vh;
+  background:var(--bg);
+  color:var(--tx);
+  display:flex;
+  flex-direction:column;
+  transition:background 0.3s;
+}
+
+/* ── Header ── */
+.ve-header {
+  background:var(--card);
+  border-bottom:1px solid var(--bd);
+  box-shadow:var(--sh);
+  flex-shrink:0;
+}
+
+.ve-header-inner {
+  max-width:1200px;
+  margin:0 auto;
+  padding:16px 24px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.ve-logo {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  cursor:pointer;
+  text-decoration:none;
+}
+
+.ve-logo-box {
+  width:36px; height:36px;
+  border-radius:10px;
+  background:var(--c1);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  font-weight:800;
+  color:#0a0a0a;
+  flex-shrink:0;
+}
+
+.ve-logo-name {
+  font-size:18px;
+  font-weight:800;
+  color:var(--tx);
+  margin:0;
+}
+
+/* ── Main ── */
+.ve-main {
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:48px 24px;
+}
+
+.ve-card {
+  background:var(--card);
+  border:1px solid var(--bd);
+  border-radius:var(--r);
+  box-shadow:var(--shl);
+  padding:48px 40px;
+  width:100%;
+  max-width:440px;
+  text-align:center;
+}
+
+/* ── Icon circles ── */
+.ve-icon-wrap {
+  width:72px; height:72px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:0 auto 24px;
+}
+
+.ve-icon-wrap.cyan   { background:rgba(34,211,238,.12); border:1px solid rgba(34,211,238,.20); }
+.ve-icon-wrap.green  { background:rgba(52,211,153,.12);  border:1px solid rgba(52,211,153,.20); }
+.ve-icon-wrap.red    { background:rgba(248,113,113,.12); border:1px solid rgba(248,113,113,.20); }
+
+/* Spinner */
+.ve-spinner {
+  width:36px; height:36px;
+  border-radius:50%;
+  border:3px solid rgba(34,211,238,.2);
+  border-top-color:var(--c1);
+  animation:ve-spin 0.8s linear infinite;
+}
+@keyframes ve-spin { to { transform:rotate(360deg); } }
+
+/* ── Typography ── */
+.ve-title {
+  font-size:22px;
+  font-weight:800;
+  color:var(--tx);
+  margin:0 0 8px;
+  line-height:1.3;
+}
+
+.ve-sub {
+  font-size:13px;
+  color:var(--mu);
+  margin:0 0 24px;
+  line-height:1.6;
+}
+
+.ve-email-display {
+  font-size:14px;
+  font-weight:700;
+  color:var(--c1);
+  margin:0 0 24px;
+}
+
+/* ── Message box ── */
+.ve-msg {
+  padding:12px 16px;
+  border-radius:13px;
+  margin-bottom:20px;
+  font-size:13px;
+  font-weight:500;
+  text-align:left;
+}
+
+.ve-msg.green {
+  background:rgba(52,211,153,.08);
+  border:1px solid rgba(52,211,153,.20);
+  color:var(--c3);
+}
+
+.ve-msg.red {
+  background:rgba(248,113,113,.08);
+  border:1px solid rgba(248,113,113,.20);
+  color:var(--cr);
+}
+
+/* ── Divider ── */
+.ve-divider {
+  height:1px;
+  background:var(--bd);
+  margin:24px 0;
+}
+
+/* ── Buttons ── */
+.ve-btn {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  width:100%;
+  padding:13px 20px;
+  border-radius:14px;
+  border:none;
+  font-family:'Poppins',sans-serif;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+  transition:opacity 0.2s, transform 0.15s;
+  margin-bottom:10px;
+}
+
+.ve-btn:last-child { margin-bottom:0; }
+.ve-btn:hover { opacity:0.87; transform:translateY(-1px); }
+.ve-btn:disabled { opacity:0.45; cursor:not-allowed; transform:none; }
+
+.ve-btn-cyan { background:var(--c1); color:#0a0a0a; }
+.ve-btn-outline {
+  background:transparent;
+  color:var(--mu);
+  border:1px solid var(--bd) !important;
+}
+.ve-btn-outline:hover { border-color:rgba(34,211,238,.30) !important; color:var(--c1); opacity:1; }
+.ve-btn-ghost {
+  background:transparent;
+  color:var(--mu);
+  border:none !important;
+}
+.ve-btn-ghost:hover { color:var(--c1); opacity:1; }
+`;
+
+if (!document.getElementById("ve-st")) {
+  const t = document.createElement("style");
+  t.id = "ve-st";
+  t.textContent = STYLES;
+  document.head.appendChild(t);
+}
+
+const isDark = () =>
+  document.documentElement.classList.contains("dark") ||
+  document.body.classList.contains("dark") ||
+  window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+/* ════════════════════════════════════════════════════════════════════
+   COMPONENT
+════════════════════════════════════════════════════════════════════ */
 const VerifyEmail = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const [dark, setDark] = useState(isDark);
 
   const [verificationStatus, setVerificationStatus] = useState("verifying");
-  // verifying | success | error | pending
-
   const [email, setEmail] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
   const [message, setMessage] = useState("");
@@ -31,7 +237,15 @@ const VerifyEmail = () => {
   const token = searchParams.get("token");
   const emailParam = searchParams.get("email");
 
-  // ✅ Verify token from URL
+  /* dark mode observer */
+  useEffect(() => {
+    const o = new MutationObserver(() => setDark(isDark()));
+    o.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    o.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    return () => o.disconnect();
+  }, []);
+
+  /* verify token */
   useEffect(() => {
     if (token && emailParam) {
       setEmail(emailParam);
@@ -44,198 +258,140 @@ const VerifyEmail = () => {
     }
   }, [token, emailParam, navigate]);
 
-  // ✅ Cooldown timer
+  /* cooldown timer */
   useEffect(() => {
     if (resendCooldown > 0) {
-      const timer = setTimeout(() => {
-        setResendCooldown((prev) => prev - 1);
-      }, 1000);
+      const timer = setTimeout(() => setResendCooldown(p => p - 1), 1000);
       return () => clearTimeout(timer);
     }
   }, [resendCooldown]);
 
-  // ================= VERIFY EMAIL API =================
+  /* ── API: verify ── */
   const verifyEmailToken = async (token, email) => {
     try {
       setVerificationStatus("verifying");
-
       const res = await axios.post(
         `${API_BASE_URL}/api/auth/verify-email`,
-        {
-          token,
-          email,
-        },
-        {
-          headers: { "Content-Type": "application/json" },
-        },
+        { token, email },
+        { headers: { "Content-Type": "application/json" } }
       );
-
       setVerificationStatus("success");
       setMessage(res?.data?.message || "Email verified successfully!");
-
-      // ✅ redirect after 2 sec
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
+      setTimeout(() => navigate("/login"), 2000);
     } catch (error) {
       console.error("Verify Email Error:", error);
-
       const backendMsg =
         error?.response?.data?.message ||
         error?.response?.data?.error ||
         "Invalid or expired verification link.";
-
       setVerificationStatus("error");
       setMessage(backendMsg);
     }
   };
 
-  // ================= RESEND VERIFICATION API =================
+  /* ── API: resend ── */
   const handleResendVerification = async () => {
-    if (!email) {
-      setMessage("Email is missing.");
-      return;
-    }
-
+    if (!email) { setMessage("Email is missing."); return; }
     if (resendCooldown > 0) return;
-
     try {
       const res = await axios.post(
         `${API_BASE_URL}/api/auth/resend-verification`,
         { email },
-        { headers: { "Content-Type": "application/json" } },
+        { headers: { "Content-Type": "application/json" } }
       );
-
       setMessage(res?.data?.message || "Verification email sent again!");
       setResendCooldown(60);
     } catch (error) {
       console.error("Resend Verification Error:", error);
-
       const backendMsg =
         error?.response?.data?.message ||
         error?.response?.data?.error ||
         "Failed to resend verification email.";
-
       setMessage(backendMsg);
     }
   };
 
+  /* ── Render states ── */
   const renderContent = () => {
     switch (verificationStatus) {
+
       case "verifying":
         return (
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-green-100 dark:bg-green-900/30">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-700"></div>
+          <>
+            <div className="ve-icon-wrap cyan">
+              <div className="ve-spinner" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Verifying your email...
-            </h2>
-            <p className={colors.muted}>
-              Please wait while we verify your email address.
-            </p>
-          </div>
+            <h2 className="ve-title">Verifying your email...</h2>
+            <p className="ve-sub">Please wait while we verify your email address.</p>
+          </>
         );
 
       case "success":
         return (
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-green-100 dark:bg-green-900/30">
-              <CheckCircle className="w-10 h-10 text-green-700 dark:text-green-400" />
+          <>
+            <div className="ve-icon-wrap green">
+              <CheckCircle size={32} style={{ color: "var(--c3)" }} />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Email Verified!
-            </h2>
-            <p className={`${colors.muted} mb-6`}>{message}</p>
-
-            <button
-              onClick={() => navigate("/login")}
-              className={`${colors.primarySolid} hover:bg-green-800 text-white px-6 py-3 rounded-lg font-medium transition-colors inline-flex items-center gap-2`}
-            >
-              Continue to Login
-              <ArrowRight className="w-4 h-4" />
+            <h2 className="ve-title">Email Verified!</h2>
+            <p className="ve-sub">{message}</p>
+            <div className="ve-divider" />
+            <button className="ve-btn ve-btn-cyan" onClick={() => navigate("/login")}>
+              Continue to Login <ArrowRight size={15} />
             </button>
-          </div>
+          </>
         );
 
       case "error":
         return (
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-red-100 dark:bg-red-900/30">
-              <XCircle className="w-10 h-10 text-red-600 dark:text-red-400" />
+          <>
+            <div className="ve-icon-wrap red">
+              <XCircle size={32} style={{ color: "var(--cr)" }} />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Verification Failed
-            </h2>
-            <p className={`${colors.muted} mb-6`}>{message}</p>
-
-            <div className="space-y-3">
-              <button
-                onClick={handleResendVerification}
-                disabled={resendCooldown > 0}
-                className={`w-full ${colors.primarySolid} hover:bg-green-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium transition-colors`}
-              >
-                {resendCooldown > 0
-                  ? `Resend in ${resendCooldown}s`
-                  : "Resend Verification Email"}
-              </button>
-
-              <button
-                onClick={() => navigate("/login")}
-                className="w-full border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-lg font-medium transition-colors"
-              >
-                Back to Login
-              </button>
-            </div>
-          </div>
+            <h2 className="ve-title">Verification Failed</h2>
+            {message && <div className="ve-msg red">{message}</div>}
+            <div className="ve-divider" />
+            <button
+              className="ve-btn ve-btn-cyan"
+              onClick={handleResendVerification}
+              disabled={resendCooldown > 0}
+            >
+              <Mail size={15} />
+              {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend Verification Email"}
+            </button>
+            <button className="ve-btn ve-btn-outline" onClick={() => navigate("/login")}>
+              Back to Login
+            </button>
+          </>
         );
 
       case "pending":
         return (
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-orange-100 dark:bg-orange-900/30">
-              <Mail className="w-10 h-10 text-orange-500 dark:text-orange-400" />
+          <>
+            <div className="ve-icon-wrap cyan">
+              <Mail size={32} style={{ color: "var(--c1)" }} />
             </div>
-
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Check your email
-            </h2>
-
-            <p className={`${colors.muted} mb-4`}>
+            <h2 className="ve-title">Check your email</h2>
+            <p className="ve-sub" style={{ marginBottom: 8 }}>
               We've sent a verification link to
             </p>
+            <p className="ve-email-display">{email}</p>
 
-            <p className="text-gray-900 dark:text-white font-medium mb-6">
-              {email}
-            </p>
+            {message && <div className="ve-msg green">{message}</div>}
 
-            {message && (
-              <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                <p className="text-sm text-green-700 dark:text-green-300">
-                  {message}
-                </p>
-              </div>
-            )}
+            <div className="ve-divider" />
 
-            <div className="space-y-3">
-              <button
-                onClick={handleResendVerification}
-                disabled={resendCooldown > 0}
-                className={`w-full ${colors.primarySolid} hover:bg-green-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium transition-colors`}
-              >
-                {resendCooldown > 0
-                  ? `Resend in ${resendCooldown}s`
-                  : "Resend Verification Email"}
-              </button>
-
-              <button
-                onClick={() => navigate("/login")}
-                className="w-full text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium transition-colors"
-              >
-                Back to Login
-              </button>
-            </div>
-          </div>
+            <button
+              className="ve-btn ve-btn-cyan"
+              onClick={handleResendVerification}
+              disabled={resendCooldown > 0}
+            >
+              <Mail size={15} />
+              {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend Verification Email"}
+            </button>
+            <button className="ve-btn ve-btn-ghost" onClick={() => navigate("/login")}>
+              Back to Login
+            </button>
+          </>
         );
 
       default:
@@ -244,30 +400,25 @@ const VerifyEmail = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-900 dark:to-gray-800">
+    <div className={`ve-root${dark ? " ve-dk" : ""}`}>
+
       {/* Header */}
-      <header className="bg-white dark:bg-black shadow-sm border-b dark:border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div
-            className="flex items-center gap-2 cursor-pointer"
-            onClick={() => navigate("/")}
-          >
-            <span className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-wide font-serif whitespace-nowrap">
-              <span className="text-green-600">ILM</span>
-              <span className="text-[#F97316] ml-1 sm:ml-2">ORA</span>
-            </span>
+      <header className="ve-header">
+        <div className="ve-header-inner">
+          <div className="ve-logo" onClick={() => navigate("/")}>
+            <div className="ve-logo-box">T</div>
+            <span className="ve-logo-name">TexoraAi.skills</span>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-md">
-          <div className="bg-white dark:bg-black rounded-lg shadow-md border dark:border-gray-800 p-8">
-            {renderContent()}
-          </div>
+      {/* Main */}
+      <main className="ve-main">
+        <div className="ve-card">
+          {renderContent()}
         </div>
-      </div>
+      </main>
+
     </div>
   );
 };

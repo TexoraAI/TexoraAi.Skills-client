@@ -1,446 +1,70 @@
-// import axios from "axios";
-// import {
-//   ArrowLeft, CalendarDays, Clock, Mail, RefreshCcw,
-//   Search, Shield, ShieldOff, Trash2, UserPlus, Users,
-// } from "lucide-react";
-// import { useEffect, useState } from "react";
-// import { useNavigate } from "react-router-dom";
-
-// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// import { Input } from "@/components/ui/input";
-// import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-
-// const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api";
-// const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem("lms_token")}` });
-
-// /* ── nav tabs (same as AllUsers) ── */
-// const TABS = [
-//   { label: "All Users",     path: "/admin/users"         },
-//   { label: "Students",      path: "/admin/students"      },
-//   { label: "Trainers",      path: "/admin/trainers"      },
-//   { label: "Pending Users", path: "/admin/pending-users" },
-// ];
-
-// /* ── gradient pool ── */
-// const GRAD = [
-//   "from-violet-500 to-purple-600", "from-cyan-500 to-blue-600",
-//   "from-rose-500 to-pink-600",     "from-amber-500 to-orange-600",
-//   "from-emerald-500 to-teal-600",  "from-indigo-500 to-blue-700",
-// ];
-// const grad = (val) => GRAD[(String(val)?.charCodeAt(0) ?? 0) % GRAD.length];
-
-// /* ================= MAIN ================= */
-// const StudentsAdmin = () => {
-//   const navigate = useNavigate();
-
-//   const [students, setStudents] = useState([]);
-//   const [search, setSearch]     = useState("");
-//   const [userId, setUserId]     = useState("");
-//   const [email, setEmail]       = useState("");
-//   const [loading, setLoading]   = useState(false);
-
-//   /* ── LOAD (unchanged) ── */
-//   const loadStudents = async () => {
-//     try {
-//       setLoading(true);
-//       const res  = await axios.get(`${API_BASE}/students`, { headers: authHeaders() });
-//       const data = res?.data;
-//       setStudents(Array.isArray(data) ? data : data?.data || []);
-//     } catch (err) {
-//       if (err.response?.status === 401) alert("Unauthorized. Please login again.");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   useEffect(() => { loadStudents(); }, []);
-
-//   /* ── ADD (unchanged) ── */
-//   const addStudent = async () => {
-//     if (!userId || !email) { alert("Enter User ID and Email"); return; }
-//     try {
-//       await axios.post(`${API_BASE}/students`, { userId: Number(userId), email }, { headers: authHeaders() });
-//       setUserId(""); setEmail("");
-//       loadStudents();
-//     } catch { alert("Student already exists or error occurred"); }
-//   };
-
-//   /* ── TOGGLE STATUS (unchanged) ── */
-//   const toggleStatus = async (id, status) => {
-//     const next = status === "ACTIVE" ? "BLOCKED" : "ACTIVE";
-//     try {
-//       await axios.put(`${API_BASE}/students/${id}/status`, null, { params: { status: next }, headers: authHeaders() });
-//       loadStudents();
-//     } catch { alert("Failed to update status"); }
-//   };
-
-//   /* ── DELETE (unchanged) ── */
-//   const deleteStudent = async (id) => {
-//     if (!window.confirm("Delete this student?")) return;
-//     try {
-//       await axios.delete(`${API_BASE}/students/${id}`, { headers: authHeaders() });
-//       loadStudents();
-//     } catch { alert("Failed to delete student"); }
-//   };
-
-//   const filtered = Array.isArray(students)
-//     ? students.filter((s) => s?.userId?.toString().includes(search) || s?.email?.toLowerCase().includes(search.toLowerCase()))
-//     : [];
-
-//   const activeCount  = students.filter((s) => s.status === "ACTIVE").length;
-//   const blockedCount = students.filter((s) => s.status === "BLOCKED").length;
-
-//   /* ================= RENDER ================= */
-//   return (
-//     <div className="min-h-screen bg-[#f0f4ff] dark:bg-[#060b18] p-5 space-y-5">
-
-//       {/* ═══════ HERO ═══════ */}
-//       <div className="relative overflow-hidden rounded-2xl shadow-xl
-//         bg-gradient-to-r from-[#1a56db] via-[#3b82f6] to-[#06b6d4]">
-//         <div className="pointer-events-none absolute -right-12 -top-12 h-52 w-52 rounded-full bg-white/10 blur-3xl" />
-//         <div className="pointer-events-none absolute right-32 bottom-[-30px] h-36 w-36 rounded-full bg-cyan-300/20 blur-2xl" />
-//         <div className="pointer-events-none absolute left-1/2 top-0 h-px w-2/3 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-
-//         <div className="relative flex items-center justify-between px-6 py-5">
-//           <div className="flex items-center gap-4">
-//             <button
-//               onClick={() => navigate(-1)}
-//               className="flex items-center gap-1.5 rounded-xl bg-white/15 px-3 py-1.5
-//                 text-sm font-medium text-white backdrop-blur-sm hover:bg-white/25 transition-all"
-//             >
-//               <ArrowLeft className="h-4 w-4" /> Back
-//             </button>
-//             <div>
-//               <h1 className="text-2xl font-bold tracking-tight text-white">Students</h1>
-//               <p className="mt-0.5 text-sm text-blue-100/80">Manage student access, status and activity</p>
-//             </div>
-//           </div>
-
-//           {/* stats pills */}
-//           <div className="hidden md:flex items-center gap-2">
-//             <div className="flex items-center gap-2 rounded-2xl bg-white/15 px-4 py-2 backdrop-blur-sm">
-//               <Users className="h-4 w-4 text-cyan-200" />
-//               <span className="text-sm font-semibold text-white">
-//                 {students.length}
-//                 <span className="ml-1 font-normal text-blue-100/80">Total</span>
-//               </span>
-//             </div>
-//             <div className="flex items-center gap-2 rounded-2xl bg-white/15 px-4 py-2 backdrop-blur-sm">
-//               <Shield className="h-4 w-4 text-emerald-300" />
-//               <span className="text-sm font-semibold text-white">
-//                 {activeCount}
-//                 <span className="ml-1 font-normal text-blue-100/80">Active</span>
-//               </span>
-//             </div>
-//             {blockedCount > 0 && (
-//               <div className="flex items-center gap-2 rounded-2xl bg-white/15 px-4 py-2 backdrop-blur-sm">
-//                 <ShieldOff className="h-4 w-4 text-red-300" />
-//                 <span className="text-sm font-semibold text-white">
-//                   {blockedCount}
-//                   <span className="ml-1 font-normal text-blue-100/80">Blocked</span>
-//                 </span>
-//               </div>
-//             )}
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* ═══════ ACTION BAR ═══════ */}
-//       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-
-//         {/* nav tabs */}
-//         <div className="flex flex-wrap gap-1.5 rounded-xl bg-white dark:bg-slate-900
-//           border border-slate-200 dark:border-slate-800 p-1 shadow-sm">
-//           {TABS.map(({ label, path }) => {
-//             const active = location.pathname === path;
-//             return (
-//               <button
-//                 key={path}
-//                 onClick={() => navigate(path)}
-//                 className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-all
-//                   ${active
-//                     ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow"
-//                     : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-//                   }`}
-//               >
-//                 {label}
-//               </button>
-//             );
-//           })}
-//         </div>
-
-//         {/* search */}
-//         <div className="relative md:w-60">
-//           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-//           <Input
-//             placeholder="Search by ID or email…"
-//             value={search}
-//             onChange={(e) => setSearch(e.target.value)}
-//             className="pl-9 h-9 rounded-xl bg-white dark:bg-slate-900
-//               border-slate-200 dark:border-slate-800 text-sm"
-//           />
-//         </div>
-//       </div>
-
-//       {/* ═══════ ADD STUDENT CARD ═══════ */}
-//       <Card className="overflow-hidden rounded-2xl border border-slate-200
-//         dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg">
-
-//         <CardHeader className="border-b border-slate-100 dark:border-slate-800
-//           bg-slate-50/60 dark:bg-slate-900/60 px-6 py-4">
-//           <div className="flex items-center gap-2.5">
-//             <div className="h-8 w-8 rounded-lg bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center">
-//               <UserPlus className="h-4 w-4 text-blue-500" />
-//             </div>
-//             <CardTitle className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-//               Add Student
-//             </CardTitle>
-//           </div>
-//         </CardHeader>
-
-//         <CardContent className="px-6 py-4">
-//           <div className="flex flex-wrap gap-2 items-end">
-//             <div className="space-y-1.5">
-//               <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">User ID</label>
-//               <Input
-//                 type="number"
-//                 placeholder="e.g. 1042"
-//                 value={userId}
-//                 onChange={(e) => setUserId(e.target.value)}
-//                 className="w-32 h-10 rounded-xl border-slate-200 dark:border-slate-700
-//                   bg-slate-50 dark:bg-slate-800"
-//               />
-//             </div>
-
-//             <div className="space-y-1.5 flex-1 min-w-[200px]">
-//               <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Email</label>
-//               <Input
-//                 type="email"
-//                 placeholder="student@example.com"
-//                 value={email}
-//                 onChange={(e) => setEmail(e.target.value)}
-//                 className="h-10 rounded-xl border-slate-200 dark:border-slate-700
-//                   bg-slate-50 dark:bg-slate-800"
-//               />
-//             </div>
-
-//             <button
-//               onClick={addStudent}
-//               className="flex items-center gap-1.5 rounded-xl h-10
-//                 bg-gradient-to-r from-blue-600 to-cyan-500 px-5
-//                 text-sm font-semibold text-white shadow
-//                 hover:opacity-90 hover:scale-105 transition-all"
-//             >
-//               <UserPlus className="h-4 w-4" /> Add Student
-//             </button>
-//           </div>
-//         </CardContent>
-//       </Card>
-
-//       {/* ═══════ TABLE CARD ═══════ */}
-//       <Card className="overflow-hidden rounded-2xl border border-slate-200
-//         dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg">
-
-//         <CardHeader className="border-b border-slate-100 dark:border-slate-800
-//           bg-slate-50/60 dark:bg-slate-900/60 px-6 py-4">
-//           <div>
-//             <CardTitle className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-//               Student List
-//             </CardTitle>
-//             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-//               {filtered.length} record{filtered.length !== 1 && "s"} found
-//             </p>
-//           </div>
-//         </CardHeader>
-
-//         <CardContent className="p-0">
-//           {loading ? (
-//             <div className="p-4 space-y-2">
-//               {[1,2,3].map((i) => (
-//                 <div key={i} className="flex items-center justify-between rounded-2xl
-//                   border border-slate-100 dark:border-slate-800 p-4 animate-pulse">
-//                   <div className="flex items-center gap-3">
-//                     <div className="h-10 w-10 rounded-xl bg-slate-200 dark:bg-slate-700" />
-//                     <div className="space-y-2">
-//                       <div className="h-3 w-24 bg-slate-200 dark:bg-slate-700 rounded" />
-//                       <div className="h-2.5 w-36 bg-slate-200 dark:bg-slate-700 rounded" />
-//                     </div>
-//                   </div>
-//                   <div className="h-7 w-20 bg-slate-200 dark:bg-slate-700 rounded-full" />
-//                 </div>
-//               ))}
-//             </div>
-//           ) : filtered.length === 0 ? (
-//             <div className="flex flex-col items-center justify-center py-16 gap-3">
-//               <div className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-//                 <Users className="h-7 w-7 text-slate-400" />
-//               </div>
-//               <p className="text-sm font-medium text-slate-500">No students found</p>
-//               <p className="text-xs text-slate-400">Add a student using the form above</p>
-//             </div>
-//           ) : (
-//             <Table>
-//               <TableHeader>
-//                 <TableRow className="bg-slate-50/80 dark:bg-slate-800/60
-//                   border-b border-slate-100 dark:border-slate-800">
-//                   <TableHead className="pl-6 py-3 text-[11px] uppercase tracking-wider font-semibold text-slate-500">Student</TableHead>
-//                   <TableHead className="py-3 text-[11px] uppercase tracking-wider font-semibold text-slate-500">User ID</TableHead>
-//                   <TableHead className="py-3 text-[11px] uppercase tracking-wider font-semibold text-slate-500">Joined</TableHead>
-//                   <TableHead className="py-3 text-[11px] uppercase tracking-wider font-semibold text-slate-500">Last Active</TableHead>
-//                   <TableHead className="py-3 text-[11px] uppercase tracking-wider font-semibold text-slate-500">Status</TableHead>
-//                   <TableHead className="pr-6 py-3 text-right text-[11px] uppercase tracking-wider font-semibold text-slate-500">Actions</TableHead>
-//                 </TableRow>
-//               </TableHeader>
-
-//               <TableBody>
-//                 {filtered.map((s) => (
-//                   <TableRow
-//                     key={s.id}
-//                     className="group border-b border-slate-100 dark:border-slate-800/60
-//                       hover:bg-blue-50/40 dark:hover:bg-slate-800/40 transition-colors"
-//                   >
-//                     {/* Student */}
-//                     <TableCell className="pl-6 py-3.5">
-//                       <div className="flex items-center gap-3">
-//                         <div className={`h-9 w-9 rounded-xl bg-gradient-to-br ${grad(s.email)}
-//                           flex items-center justify-center text-white text-xs font-bold shadow-sm shrink-0`}>
-//                           {s.email?.charAt(0)?.toUpperCase()}
-//                         </div>
-//                         <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-//                           <Mail className="h-3 w-3" />
-//                           <span className="font-medium text-slate-700 dark:text-slate-300">{s.email}</span>
-//                         </div>
-//                       </div>
-//                     </TableCell>
-
-//                     {/* User ID */}
-//                     <TableCell className="py-3.5">
-//                       <span className="inline-flex items-center rounded-lg
-//                         bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5
-//                         text-xs font-mono font-semibold text-slate-600 dark:text-slate-400">
-//                         #{s.userId}
-//                       </span>
-//                     </TableCell>
-
-//                     {/* Joined */}
-//                     <TableCell className="py-3.5">
-//                       <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-//                         <CalendarDays className="h-3.5 w-3.5" />
-//                         {new Date(s.joinedAt).toLocaleDateString()}
-//                       </div>
-//                     </TableCell>
-
-//                     {/* Last Active */}
-//                     <TableCell className="py-3.5">
-//                       <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-//                         <Clock className="h-3.5 w-3.5" />
-//                         {s.lastActiveAt ? new Date(s.lastActiveAt).toLocaleDateString() : "—"}
-//                       </div>
-//                     </TableCell>
-
-//                     {/* Status */}
-//                     <TableCell className="py-3.5">
-//                       {s.status === "ACTIVE" ? (
-//                         <span className="inline-flex items-center gap-1.5 rounded-full border
-//                           bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-800
-//                           px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
-//                           <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-//                           Active
-//                         </span>
-//                       ) : (
-//                         <span className="inline-flex items-center gap-1.5 rounded-full border
-//                           bg-red-50 dark:bg-red-950/50 border-red-200 dark:border-red-800
-//                           px-2.5 py-0.5 text-[11px] font-semibold text-red-600 dark:text-red-400">
-//                           <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-//                           Blocked
-//                         </span>
-//                       )}
-//                     </TableCell>
-
-//                     {/* Actions */}
-//                     <TableCell className="pr-6 py-3.5 text-right">
-//                       <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-//                         <button
-//                           onClick={() => toggleStatus(s.id, s.status)}
-//                           title={s.status === "ACTIVE" ? "Block student" : "Unblock student"}
-//                           className={`h-8 w-8 rounded-lg flex items-center justify-center transition-colors
-//                             ${s.status === "ACTIVE"
-//                               ? "bg-amber-50 dark:bg-amber-950/50 text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-900"
-//                               : "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-900"
-//                             }`}
-//                         >
-//                           <RefreshCcw className="h-3.5 w-3.5" />
-//                         </button>
-
-//                         <button
-//                           onClick={() => deleteStudent(s.id)}
-//                           className="h-8 w-8 rounded-lg bg-red-50 dark:bg-red-950/50
-//                             flex items-center justify-center text-red-500
-//                             hover:bg-red-100 dark:hover:bg-red-900 transition-colors"
-//                         >
-//                           <Trash2 className="h-3.5 w-3.5" />
-//                         </button>
-//                       </div>
-//                     </TableCell>
-//                   </TableRow>
-//                 ))}
-//               </TableBody>
-//             </Table>
-//           )}
-//         </CardContent>
-//       </Card>
-//     </div>
-//   );
-// };
-
-// export default StudentsAdmin;
-
-
-
-
-
-
-
-
-
-
-
-
-
 import axios from "axios";
 import {
   ArrowLeft, CalendarDays, Clock, Mail, Plus, RefreshCcw,
   Search, Shield, ShieldOff, Trash2, UserPlus, Users, X,
+  Sparkles, Activity,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api";
+const API_BASE  = import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api";
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem("lms_token")}` });
 
-/* ── nav tabs ── */
+/* ─── theme token map ─── */
+const T = {
+  dark: {
+    pageBg:"#0a0a0a",cardBg:"#111111",heroBg:"#141414",
+    border:"rgba(255,255,255,0.06)",borderHov:"rgba(255,255,255,0.14)",borderHero:"rgba(255,255,255,0.07)",
+    text:"#ffffff",textSub:"rgba(255,255,255,0.3)",textMuted:"rgba(255,255,255,0.2)",textLabel:"rgba(255,255,255,0.22)",
+    pillBg:"rgba(255,255,255,0.04)",pillBorder:"rgba(255,255,255,0.07)",pillText:"rgba(255,255,255,0.25)",
+    actBg:"rgba(255,255,255,0.04)",actBorder:"rgba(255,255,255,0.07)",actIcon:"rgba(255,255,255,0.3)",actBar:"rgba(255,255,255,0.5)",
+    gridLine:"rgba(255,255,255,0.5)",shadow:"0 4px 20px rgba(0,0,0,0.4)",shadowHov:"0 20px 60px rgba(0,0,0,0.6)",
+    emptyBorder:"rgba(255,255,255,0.07)",emptyBg:"rgba(255,255,255,0.02)",emptyIcon:"rgba(255,255,255,0.12)",
+    recentItemBg:"rgba(255,255,255,0.03)",recentItemBorder:"rgba(255,255,255,0.05)",
+    liveColor:"#34d399",liveText:"#34d399",
+    inputBg:"rgba(255,255,255,0.05)",inputBorder:"rgba(255,255,255,0.1)",inputText:"#ffffff",
+    skeletonBg:"rgba(255,255,255,0.07)",theadBg:"rgba(255,255,255,0.03)",
+  },
+  light: {
+    pageBg:"#f1f5f9",cardBg:"#ffffff",heroBg:"#ffffff",
+    border:"#e2e8f0",borderHov:"#cbd5e1",borderHero:"#e2e8f0",
+    text:"#0f172a",textSub:"#64748b",textMuted:"#94a3b8",textLabel:"#94a3b8",
+    pillBg:"#f1f5f9",pillBorder:"#e2e8f0",pillText:"#94a3b8",
+    actBg:"#f8fafc",actBorder:"#e2e8f0",actIcon:"#94a3b8",actBar:"#94a3b8",
+    gridLine:"rgba(0,0,0,0.12)",shadow:"0 1px 8px rgba(0,0,0,0.07)",shadowHov:"0 8px 32px rgba(0,0,0,0.10)",
+    emptyBorder:"#e2e8f0",emptyBg:"#f8fafc",emptyIcon:"#cbd5e1",
+    recentItemBg:"#f8fafc",recentItemBorder:"#e2e8f0",
+    liveColor:"#16a34a",liveText:"#16a34a",
+    inputBg:"#f8fafc",inputBorder:"#e2e8f0",inputText:"#0f172a",
+    skeletonBg:"#e2e8f0",theadBg:"rgba(0,0,0,0.02)",
+  },
+};
+
+const GRAD_COLORS = [
+  ["#a78bfa","#7c3aed"],["#22d3ee","#0891b2"],["#f43f5e","#be123c"],
+  ["#f59e0b","#b45309"],["#34d399","#059669"],["#818cf8","#4338ca"],
+];
+const gradColor = val => GRAD_COLORS[(String(val)?.charCodeAt(0) ?? 0) % GRAD_COLORS.length];
+
 const TABS = [
-  { label: "All Users",     path: "/admin/users"         },
-  { label: "Students",      path: "/admin/students"      },
-  { label: "Trainers",      path: "/admin/trainers"      },
-  { label: "Pending Users", path: "/admin/pending-users" },
+  { label:"All Users",     path:"/admin/users"         },
+  { label:"Students",      path:"/admin/students"      },
+  { label:"Trainers",      path:"/admin/trainers"      },
+  { label:"Pending Users", path:"/admin/pending-users" },
 ];
 
-/* ── gradient pool ── */
-const GRAD = [
-  "from-violet-500 to-purple-600", "from-cyan-500 to-blue-600",
-  "from-rose-500 to-pink-600",     "from-amber-500 to-orange-600",
-  "from-emerald-500 to-teal-600",  "from-indigo-500 to-blue-700",
-];
-const grad = (val) => GRAD[(String(val)?.charCodeAt(0) ?? 0) % GRAD.length];
-
-/* ================= MAIN ================= */
 const StudentsAdmin = () => {
   const navigate = useNavigate();
+
+  const [isDark, setIsDark] = useState(
+    () => typeof document !== "undefined" && (document.documentElement.classList.contains("dark") || document.documentElement.getAttribute("data-theme") === "dark")
+  );
+  useEffect(() => {
+    const obs = new MutationObserver(() => setIsDark(document.documentElement.classList.contains("dark") || document.documentElement.getAttribute("data-theme") === "dark"));
+    obs.observe(document.documentElement, { attributes:true, attributeFilter:["class","data-theme"] });
+    return () => obs.disconnect();
+  }, []);
+  const t = isDark ? T.dark : T.light;
 
   const [students, setStudents] = useState([]);
   const [search, setSearch]     = useState("");
@@ -449,349 +73,267 @@ const StudentsAdmin = () => {
   const [loading, setLoading]   = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
 
-  /* ── LOAD (unchanged) ── */
   const loadStudents = async () => {
     try {
       setLoading(true);
-      const res  = await axios.get(`${API_BASE}/students`, { headers: authHeaders() });
+      const res = await axios.get(`${API_BASE}/students`, { headers: authHeaders() });
       const data = res?.data;
       setStudents(Array.isArray(data) ? data : data?.data || []);
-    } catch (err) {
-      if (err.response?.status === 401) alert("Unauthorized. Please login again.");
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { if (err.response?.status === 401) alert("Unauthorized. Please login again."); }
+    finally { setLoading(false); }
   };
-
   useEffect(() => { loadStudents(); }, []);
 
-  /* ── ADD (unchanged) ── */
   const addStudent = async () => {
     if (!userId || !email) { alert("Enter User ID and Email"); return; }
     try {
       await axios.post(`${API_BASE}/students`, { userId: Number(userId), email }, { headers: authHeaders() });
-      setUserId(""); setEmail("");
-      setPanelOpen(false);
-      loadStudents();
+      setUserId(""); setEmail(""); setPanelOpen(false); loadStudents();
     } catch { alert("Student already exists or error occurred"); }
   };
 
-  /* ── TOGGLE STATUS (unchanged) ── */
   const toggleStatus = async (id, status) => {
     const next = status === "ACTIVE" ? "BLOCKED" : "ACTIVE";
-    try {
-      await axios.put(`${API_BASE}/students/${id}/status`, null, { params: { status: next }, headers: authHeaders() });
-      loadStudents();
-    } catch { alert("Failed to update status"); }
+    try { await axios.put(`${API_BASE}/students/${id}/status`, null, { params:{status:next}, headers:authHeaders() }); loadStudents(); }
+    catch { alert("Failed to update status"); }
   };
 
-  /* ── DELETE (unchanged) ── */
   const deleteStudent = async (id) => {
     if (!window.confirm("Delete this student?")) return;
-    try {
-      await axios.delete(`${API_BASE}/students/${id}`, { headers: authHeaders() });
-      loadStudents();
-    } catch { alert("Failed to delete student"); }
+    try { await axios.delete(`${API_BASE}/students/${id}`, { headers:authHeaders() }); loadStudents(); }
+    catch { alert("Failed to delete student"); }
   };
 
-  const filtered = Array.isArray(students)
-    ? students.filter((s) => s?.userId?.toString().includes(search) || s?.email?.toLowerCase().includes(search.toLowerCase()))
-    : [];
+  const filtered = Array.isArray(students) ? students.filter(s => s?.userId?.toString().includes(search) || s?.email?.toLowerCase().includes(search.toLowerCase())) : [];
+  const activeCount  = students.filter(s => s.status === "ACTIVE").length;
+  const blockedCount = students.filter(s => s.status === "BLOCKED").length;
 
-  const activeCount  = students.filter((s) => s.status === "ACTIVE").length;
-  const blockedCount = students.filter((s) => s.status === "BLOCKED").length;
+  const pill = { fontSize:9,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",padding:"4px 10px",borderRadius:999,background:t.pillBg,border:`1px solid ${t.pillBorder}`,color:t.pillText,fontFamily:"'Poppins',sans-serif" };
+  const inputStyle = { width:"100%",height:38,borderRadius:10,border:`1px solid ${t.inputBorder}`,background:t.inputBg,color:t.inputText,fontSize:12,fontFamily:"'Poppins',sans-serif",padding:"0 12px",outline:"none",boxSizing:"border-box" };
+  const labelStyle = { fontSize:9,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:t.textMuted,fontFamily:"'Poppins',sans-serif",display:"block",marginBottom:6 };
 
-  /* ================= RENDER ================= */
   return (
-    <div className="min-h-screen bg-[#f0f4ff] dark:bg-[#060b18] p-5 space-y-5">
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
+        @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+        .sfade{animation:fadeUp 0.45s ease both}
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:0.15}}
+        .d1{animation:blink 1.6s ease infinite}.d2{animation:blink 1.6s 0.3s ease infinite}.d3{animation:blink 1.6s 0.6s ease infinite}
+        @keyframes pulse-ring{0%{box-shadow:0 0 0 0 rgba(52,211,153,0.5)}70%{box-shadow:0 0 0 8px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
+        .livebadge{animation:pulse-ring 2.2s ease-out infinite}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+        @keyframes shimmer{0%,100%{opacity:1}50%{opacity:0.4}}
+        .st-row .row-actions{opacity:0;transition:opacity 0.2s}.st-row:hover .row-actions{opacity:1}
+        .st-row:hover .sname{color:#22d3ee}.sname{transition:color 0.15s}
+      `}</style>
 
-      {/* ═══════ HERO ═══════ */}
-      <div className="relative overflow-hidden rounded-2xl shadow-xl bg-gradient-to-r from-[#1a56db] via-[#3b82f6] to-[#06b6d4]">
-        <div className="pointer-events-none absolute -right-12 -top-12 h-52 w-52 rounded-full bg-white/10 blur-3xl" />
-        <div className="pointer-events-none absolute right-32 bottom-[-30px] h-36 w-36 rounded-full bg-cyan-300/20 blur-2xl" />
-        <div className="pointer-events-none absolute left-1/2 top-0 h-px w-2/3 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-        <div className="relative flex items-center justify-between px-6 py-5">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate(-1)}
-              className="flex items-center gap-1.5 rounded-xl bg-white/15 px-3 py-1.5 text-sm font-medium text-white backdrop-blur-sm hover:bg-white/25 transition-all"
-            >
-              <ArrowLeft className="h-4 w-4" /> Back
-            </button>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-white">Students</h1>
-              <p className="mt-0.5 text-sm text-blue-100/80">Manage student access, status and activity</p>
-            </div>
-          </div>
-          <div className="hidden md:flex items-center gap-2">
-            <div className="flex items-center gap-2 rounded-2xl bg-white/15 px-4 py-2 backdrop-blur-sm">
-              <Users className="h-4 w-4 text-cyan-200" />
-              <span className="text-sm font-semibold text-white">
-                {students.length}<span className="ml-1 font-normal text-blue-100/80">Total</span>
-              </span>
-            </div>
-            <div className="flex items-center gap-2 rounded-2xl bg-white/15 px-4 py-2 backdrop-blur-sm">
-              <Shield className="h-4 w-4 text-emerald-300" />
-              <span className="text-sm font-semibold text-white">
-                {activeCount}<span className="ml-1 font-normal text-blue-100/80">Active</span>
-              </span>
-            </div>
-            {blockedCount > 0 && (
-              <div className="flex items-center gap-2 rounded-2xl bg-white/15 px-4 py-2 backdrop-blur-sm">
-                <ShieldOff className="h-4 w-4 text-red-300" />
-                <span className="text-sm font-semibold text-white">
-                  {blockedCount}<span className="ml-1 font-normal text-blue-100/80">Blocked</span>
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      <div style={{ minHeight:"100vh",background:t.pageBg,color:t.text,fontFamily:"'Poppins',sans-serif",transition:"background 0.3s,color 0.3s" }}>
+        <div style={{ maxWidth:1300,margin:"0 auto",padding:24,paddingBottom:52 }}>
 
-      {/* ═══════ ACTION BAR ═══════ */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-wrap gap-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1 shadow-sm">
-          {TABS.map(({ label, path }) => {
-            const active = location.pathname === path;
-            return (
-              <button
-                key={path}
-                onClick={() => navigate(path)}
-                className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-all ${
-                  active
-                    ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow"
-                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                }`}
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <div className="relative md:w-60">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input
-              placeholder="Search by ID or email…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-9 rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-sm"
-            />
-          </div>
-          <button
-            onClick={() => setPanelOpen(true)}
-            className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow hover:opacity-90 hover:scale-105 transition-all whitespace-nowrap"
-          >
-            <Plus className="h-4 w-4" /> Add Student
-          </button>
-        </div>
-      </div>
-
-      {/* ═══════ MAIN — table + inline panel ═══════ */}
-      <div className={`flex gap-4 ${panelOpen ? "items-start" : ""}`}>
-
-        {/* TABLE CARD */}
-        <div className={`transition-all duration-300 ${panelOpen ? "flex-1 min-w-0" : "w-full"}`}>
-          <Card className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg">
-            <CardHeader className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 px-6 py-4">
+          {/* HERO */}
+          <div className="sfade" style={{ borderRadius:24,padding:"30px 36px",background:t.heroBg,border:`1px solid ${t.borderHero}`,position:"relative",overflow:"hidden",marginBottom:20,boxShadow:t.shadow }}>
+            <div style={{ position:"absolute",inset:0,pointerEvents:"none",opacity:isDark?0.04:0.025,backgroundImage:`linear-gradient(${t.gridLine} 1px,transparent 1px),linear-gradient(90deg,${t.gridLine} 1px,transparent 1px)`,backgroundSize:"40px 40px" }} />
+            <div style={{ position:"absolute",top:"-30%",left:"40%",width:300,height:200,background:"radial-gradient(ellipse,rgba(34,211,238,0.06),transparent 70%)",pointerEvents:"none" }} />
+            <div style={{ position:"absolute",bottom:"-40%",right:"10%",width:250,height:200,background:"radial-gradient(ellipse,rgba(167,139,250,0.06),transparent 70%)",pointerEvents:"none" }} />
+            <div style={{ position:"relative",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:16 }}>
               <div>
-                <CardTitle className="text-sm font-semibold text-slate-800 dark:text-slate-100">Student List</CardTitle>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  {filtered.length} record{filtered.length !== 1 && "s"} found
-                </p>
+                <div style={{ display:"flex",alignItems:"center",gap:12,marginBottom:10 }}>
+                  <button onClick={() => navigate(-1)} style={{ display:"flex",alignItems:"center",gap:6,padding:"6px 14px",borderRadius:10,border:`1px solid ${t.borderHov}`,background:t.actBg,color:t.textSub,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"'Poppins',sans-serif" }}><ArrowLeft size={13} /> Back</button>
+                  <div style={{ display:"flex",alignItems:"center",gap:7 }}><Sparkles size={11} color={t.textSub} /><span style={{ fontSize:9,fontWeight:700,letterSpacing:"0.22em",textTransform:"uppercase",color:t.textSub,fontFamily:"'Poppins',sans-serif" }}>Admin Portal</span></div>
+                </div>
+                <h1 style={{ fontFamily:"'Poppins',sans-serif",fontWeight:900,fontSize:"clamp(1.6rem,3vw,2.4rem)",color:t.text,margin:0,lineHeight:1.1,letterSpacing:"-0.02em" }}>Students</h1>
+                <p style={{ fontSize:12,color:t.textSub,marginTop:7,fontWeight:500,fontFamily:"'Poppins',sans-serif" }}>Manage student access, status and activity</p>
               </div>
-            </CardHeader>
-
-            <CardContent className="p-0">
-              {loading ? (
-                <div className="p-4 space-y-2">
-                  {[1,2,3].map((i) => (
-                    <div key={i} className="flex items-center justify-between rounded-2xl border border-slate-100 dark:border-slate-800 p-4 animate-pulse">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-slate-200 dark:bg-slate-700" />
-                        <div className="space-y-2">
-                          <div className="h-3 w-24 bg-slate-200 dark:bg-slate-700 rounded" />
-                          <div className="h-2.5 w-36 bg-slate-200 dark:bg-slate-700 rounded" />
-                        </div>
-                      </div>
-                      <div className="h-7 w-20 bg-slate-200 dark:bg-slate-700 rounded-full" />
+              <div style={{ display:"flex",alignItems:"center",gap:10 }}>
+                {[{ icon:Users,color:"#22d3ee",val:students.length,label:"Total" },{ icon:Shield,color:"#34d399",val:activeCount,label:"Active" },blockedCount>0&&{ icon:ShieldOff,color:"#f43f5e",val:blockedCount,label:"Blocked" }].filter(Boolean).map((item,i) => {
+                  const Ic = item.icon;
+                  return (
+                    <div key={i} style={{ display:"flex",alignItems:"center",gap:8,background:t.actBg,border:`1px solid ${t.actBorder}`,borderRadius:12,padding:"8px 14px",fontSize:11,fontWeight:600,fontFamily:"'Poppins',sans-serif",color:t.textSub }}>
+                      <Ic size={13} color={item.color} /><span style={{ color:t.text,fontWeight:700 }}>{item.val}</span><span>{item.label}</span>
                     </div>
-                  ))}
-                </div>
-              ) : filtered.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 gap-3">
-                  <div className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                    <Users className="h-7 w-7 text-slate-400" />
+                  );
+                })}
+                <div style={{ display:"flex",alignItems:"center",gap:8,background:t.actBg,border:`1px solid ${t.actBorder}`,borderRadius:10,padding:"8px 14px" }}>
+                  <Activity size={12} color={t.actIcon} />
+                  <div style={{ display:"flex",gap:3,alignItems:"flex-end",height:14 }}>
+                    <span className="d1" style={{ width:3,height:10,borderRadius:2,background:t.actBar,display:"block" }} />
+                    <span className="d2" style={{ width:3,height:14,borderRadius:2,background:t.actBar,display:"block" }} />
+                    <span className="d3" style={{ width:3,height:7,borderRadius:2,background:t.actBar,display:"block" }} />
                   </div>
-                  <p className="text-sm font-medium text-slate-500">No students found</p>
-                  <p className="text-xs text-slate-400">Click "Add Student" to get started</p>
                 </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-slate-50/80 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800">
-                      <TableHead className="pl-6 py-3 text-[11px] uppercase tracking-wider font-semibold text-slate-500">Student</TableHead>
-                      <TableHead className="py-3 text-[11px] uppercase tracking-wider font-semibold text-slate-500">User ID</TableHead>
-                      <TableHead className="py-3 text-[11px] uppercase tracking-wider font-semibold text-slate-500">Joined</TableHead>
-                      <TableHead className="py-3 text-[11px] uppercase tracking-wider font-semibold text-slate-500">Last Active</TableHead>
-                      <TableHead className="py-3 text-[11px] uppercase tracking-wider font-semibold text-slate-500">Status</TableHead>
-                      <TableHead className="pr-6 py-3 text-right text-[11px] uppercase tracking-wider font-semibold text-slate-500">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filtered.map((s) => (
-                      <TableRow
-                        key={s.id}
-                        className="group border-b border-slate-100 dark:border-slate-800/60 hover:bg-blue-50/40 dark:hover:bg-slate-800/40 transition-colors"
-                      >
-                        <TableCell className="pl-6 py-3.5">
-                          <div className="flex items-center gap-3">
-                            <div className={`h-9 w-9 rounded-xl bg-gradient-to-br ${grad(s.email)} flex items-center justify-center text-white text-xs font-bold shadow-sm shrink-0`}>
-                              {s.email?.charAt(0)?.toUpperCase()}
+                <div className="livebadge" style={{ display:"flex",alignItems:"center",gap:7,background:isDark?"rgba(52,211,153,0.08)":"rgba(22,163,74,0.08)",border:isDark?"1px solid rgba(52,211,153,0.3)":"1px solid rgba(22,163,74,0.3)",borderRadius:999,padding:"8px 18px",color:t.liveText,fontSize:11,fontWeight:700,letterSpacing:"0.1em",fontFamily:"'Poppins',sans-serif" }}>
+                  <span style={{ width:6,height:6,borderRadius:"50%",background:t.liveColor,display:"inline-block" }} /> LIVE
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ACTION BAR */}
+          <div className="sfade" style={{ display:"flex",flexWrap:"wrap",gap:12,alignItems:"center",justifyContent:"space-between",marginBottom:20 }}>
+            <div style={{ display:"flex",gap:4,borderRadius:14,background:t.cardBg,border:`1px solid ${t.border}`,padding:4,boxShadow:t.shadow }}>
+              {TABS.map(({ label, path }) => {
+                const isActive = typeof location !== "undefined" && location.pathname === path;
+                return <button key={path} onClick={() => navigate(path)} style={{ padding:"7px 16px",borderRadius:10,border:"none",cursor:"pointer",fontFamily:"'Poppins',sans-serif",fontSize:11,fontWeight:600,background:isActive?"linear-gradient(135deg,#22d3ee,#3b82f6)":"transparent",color:isActive?"#fff":t.textSub,boxShadow:isActive?"0 2px 8px rgba(34,211,238,0.3)":"none",transition:"all 0.2s" }}>{label}</button>;
+              })}
+            </div>
+            <div style={{ display:"flex",alignItems:"center",gap:10 }}>
+              <div style={{ position:"relative" }}>
+                <Search size={14} style={{ position:"absolute",left:11,top:"50%",transform:"translateY(-50%)",color:t.textMuted,pointerEvents:"none" }} />
+                <input placeholder="Search by ID or email…" value={search} onChange={e => setSearch(e.target.value)} style={{ paddingLeft:34,paddingRight:14,height:36,width:220,borderRadius:10,border:`1px solid ${t.border}`,background:t.cardBg,color:t.text,fontSize:11,fontFamily:"'Poppins',sans-serif",outline:"none",boxShadow:t.shadow }} />
+              </div>
+              <button onClick={() => setPanelOpen(true)} style={{ display:"flex",alignItems:"center",gap:7,padding:"8px 18px",borderRadius:10,background:"linear-gradient(135deg,#3b82f6,#22d3ee)",border:"none",color:"#fff",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"'Poppins',sans-serif",boxShadow:"0 4px 14px rgba(34,211,238,0.35)",whiteSpace:"nowrap" }}>
+                <Plus size={14} /> Add Student
+              </button>
+            </div>
+          </div>
+
+          {/* MAIN */}
+          <div style={{ display:"flex",gap:16,alignItems:"flex-start" }}>
+            <div style={{ flex:1,minWidth:0 }}>
+              <div style={{ background:t.cardBg,border:`1px solid ${t.border}`,borderRadius:20,overflow:"hidden",boxShadow:t.shadow }}>
+                <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"16px 22px",borderBottom:`1px solid ${t.border}`,background:isDark?"rgba(255,255,255,0.02)":"rgba(0,0,0,0.01)" }}>
+                  <div>
+                    <p style={{ fontSize:13,fontWeight:700,color:t.text,margin:0,fontFamily:"'Poppins',sans-serif" }}>Student List</p>
+                    <p style={{ fontSize:10,color:t.textMuted,margin:"3px 0 0",fontFamily:"'Poppins',sans-serif" }}>{filtered.length} record{filtered.length !== 1 && "s"} found</p>
+                  </div>
+                  <span style={pill}>Students</span>
+                </div>
+
+                <div style={{ overflowX:"auto" }}>
+                  {loading ? (
+                    <div style={{ padding:16,display:"flex",flexDirection:"column",gap:10 }}>
+                      {[1,2,3].map(i => (
+                        <div key={i} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",borderRadius:14,border:`1px solid ${t.border}`,padding:14,animation:"shimmer 1.5s ease infinite" }}>
+                          <div style={{ display:"flex",alignItems:"center",gap:12 }}>
+                            <div style={{ width:40,height:40,borderRadius:12,background:t.skeletonBg }} />
+                            <div style={{ display:"flex",flexDirection:"column",gap:6 }}>
+                              <div style={{ height:10,width:120,borderRadius:5,background:t.skeletonBg }} />
+                              <div style={{ height:8,width:160,borderRadius:4,background:t.skeletonBg }} />
                             </div>
-                            <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                              <Mail className="h-3 w-3" />
-                              <span className="font-medium text-slate-700 dark:text-slate-300">{s.email}</span>
-                            </div>
                           </div>
-                        </TableCell>
-                        <TableCell className="py-3.5">
-                          <span className="inline-flex items-center rounded-lg bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-mono font-semibold text-slate-600 dark:text-slate-400">
-                            #{s.userId}
-                          </span>
-                        </TableCell>
-                        <TableCell className="py-3.5">
-                          <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                            <CalendarDays className="h-3.5 w-3.5" />
-                            {new Date(s.joinedAt).toLocaleDateString()}
-                          </div>
-                        </TableCell>
-                        <TableCell className="py-3.5">
-                          <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                            <Clock className="h-3.5 w-3.5" />
-                            {s.lastActiveAt ? new Date(s.lastActiveAt).toLocaleDateString() : "—"}
-                          </div>
-                        </TableCell>
-                        <TableCell className="py-3.5">
-                          {s.status === "ACTIVE" ? (
-                            <span className="inline-flex items-center gap-1.5 rounded-full border bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-800 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
-                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> Active
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1.5 rounded-full border bg-red-50 dark:bg-red-950/50 border-red-200 dark:border-red-800 px-2.5 py-0.5 text-[11px] font-semibold text-red-600 dark:text-red-400">
-                              <span className="h-1.5 w-1.5 rounded-full bg-red-500" /> Blocked
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell className="pr-6 py-3.5 text-right">
-                          <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button
-                              onClick={() => toggleStatus(s.id, s.status)}
-                              title={s.status === "ACTIVE" ? "Block student" : "Unblock student"}
-                              className={`h-8 w-8 rounded-lg flex items-center justify-center transition-colors ${
-                                s.status === "ACTIVE"
-                                  ? "bg-amber-50 dark:bg-amber-950/50 text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-900"
-                                  : "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-900"
-                              }`}
-                            >
-                              <RefreshCcw className="h-3.5 w-3.5" />
-                            </button>
-                            <button
-                              onClick={() => deleteStudent(s.id)}
-                              className="h-8 w-8 rounded-lg bg-red-50 dark:bg-red-950/50 flex items-center justify-center text-red-500 hover:bg-red-100 dark:hover:bg-red-900 transition-colors"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
+                          <div style={{ height:26,width:70,borderRadius:999,background:t.skeletonBg }} />
+                        </div>
+                      ))}
+                    </div>
+                  ) : filtered.length === 0 ? (
+                    <div style={{ display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"52px 0",gap:12 }}>
+                      <div style={{ width:52,height:52,borderRadius:14,display:"flex",alignItems:"center",justifyContent:"center",border:`1.5px dashed ${t.emptyBorder}`,background:t.emptyBg }}>
+                        <Users size={22} color={t.emptyIcon} />
+                      </div>
+                      <p style={{ fontSize:12,color:t.textMuted,fontWeight:500,fontFamily:"'Poppins',sans-serif",margin:0 }}>No students found</p>
+                      <p style={{ fontSize:10,color:t.textLabel,fontFamily:"'Poppins',sans-serif",margin:0 }}>Click "Add Student" to get started</p>
+                    </div>
+                  ) : (
+                    <table style={{ width:"100%",borderCollapse:"collapse" }}>
+                      <thead>
+                        <tr style={{ background:t.theadBg,borderBottom:`1px solid ${t.border}` }}>
+                          {["Student","User ID","Joined","Last Active","Status","Actions"].map((h,i) => (
+                            <th key={i} style={{ padding:i===0?"12px 8px 12px 22px":"12px 16px",textAlign:i===5?"right":"left",fontSize:9,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:t.textMuted,fontFamily:"'Poppins',sans-serif",whiteSpace:"nowrap" }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filtered.map(s => {
+                          const [c1,c2] = gradColor(s.email);
+                          return (
+                            <tr key={s.id} className="st-row" style={{ borderBottom:`1px solid ${t.border}`,transition:"background 0.15s" }}>
+                              <td style={{ padding:"14px 8px 14px 22px" }}>
+                                <div style={{ display:"flex",alignItems:"center",gap:10 }}>
+                                  <div style={{ width:36,height:36,borderRadius:10,background:`linear-gradient(135deg,${c1},${c2})`,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:800,fontSize:13,fontFamily:"'Poppins',sans-serif",boxShadow:`0 3px 10px ${c1}44`,flexShrink:0 }}>{s.email?.charAt(0)?.toUpperCase()}</div>
+                                  <div style={{ display:"flex",alignItems:"center",gap:5 }}>
+                                    <Mail size={11} color={t.textMuted} />
+                                    <span className="sname" style={{ fontSize:12,fontWeight:600,color:t.text,fontFamily:"'Poppins',sans-serif" }}>{s.email}</span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td style={{ padding:"14px 16px" }}>
+                                <span style={{ display:"inline-flex",padding:"3px 10px",borderRadius:8,background:t.actBg,border:`1px solid ${t.border}`,fontSize:11,fontWeight:700,color:t.textSub,fontFamily:"'Poppins',sans-serif",letterSpacing:"0.03em" }}>#{s.userId}</span>
+                              </td>
+                              <td style={{ padding:"14px 16px" }}>
+                                <div style={{ display:"flex",alignItems:"center",gap:5,fontSize:11,color:t.textMuted,fontFamily:"'Poppins',sans-serif" }}>
+                                  <CalendarDays size={12} color={t.textMuted} />{new Date(s.joinedAt).toLocaleDateString()}
+                                </div>
+                              </td>
+                              <td style={{ padding:"14px 16px" }}>
+                                <div style={{ display:"flex",alignItems:"center",gap:5,fontSize:11,color:t.textMuted,fontFamily:"'Poppins',sans-serif" }}>
+                                  <Clock size={12} color={t.textMuted} />{s.lastActiveAt ? new Date(s.lastActiveAt).toLocaleDateString() : "—"}
+                                </div>
+                              </td>
+                              <td style={{ padding:"14px 16px" }}>
+                                {s.status === "ACTIVE" ? (
+                                  <span style={{ display:"inline-flex",alignItems:"center",gap:5,padding:"3px 10px",borderRadius:999,background:"rgba(52,211,153,0.1)",border:"1px solid rgba(52,211,153,0.25)",fontSize:10,fontWeight:700,color:isDark?"#34d399":"#16a34a",fontFamily:"'Poppins',sans-serif" }}>
+                                    <span style={{ width:5,height:5,borderRadius:"50%",background:isDark?"#34d399":"#16a34a",display:"inline-block",animation:"pulse 1.5s ease infinite" }} /> Active
+                                  </span>
+                                ) : (
+                                  <span style={{ display:"inline-flex",alignItems:"center",gap:5,padding:"3px 10px",borderRadius:999,background:"rgba(244,63,94,0.1)",border:"1px solid rgba(244,63,94,0.25)",fontSize:10,fontWeight:700,color:"#f43f5e",fontFamily:"'Poppins',sans-serif" }}>
+                                    <span style={{ width:5,height:5,borderRadius:"50%",background:"#f43f5e",display:"inline-block" }} /> Blocked
+                                  </span>
+                                )}
+                              </td>
+                              <td style={{ padding:"14px 22px 14px 16px",textAlign:"right" }}>
+                                <div className="row-actions" style={{ display:"flex",justifyContent:"flex-end",gap:6 }}>
+                                  <button onClick={() => toggleStatus(s.id,s.status)} title={s.status==="ACTIVE"?"Block":"Unblock"} style={{ width:32,height:32,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",background:s.status==="ACTIVE"?"rgba(245,158,11,0.1)":"rgba(52,211,153,0.1)",border:s.status==="ACTIVE"?"1px solid rgba(245,158,11,0.25)":"1px solid rgba(52,211,153,0.25)",color:s.status==="ACTIVE"?"#f59e0b":isDark?"#34d399":"#16a34a",cursor:"pointer" }}>
+                                    <RefreshCcw size={13} />
+                                  </button>
+                                  <button onClick={() => deleteStudent(s.id)} style={{ width:32,height:32,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(244,63,94,0.08)",border:"1px solid rgba(244,63,94,0.2)",color:"#f43f5e",cursor:"pointer" }}>
+                                    <Trash2 size={13} />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* PANEL */}
+            <div style={{ flexShrink:0,width:panelOpen?384:0,opacity:panelOpen?1:0,pointerEvents:panelOpen?"auto":"none",overflow:"hidden",transition:"width 0.3s ease,opacity 0.3s ease" }}>
+              <div style={{ width:384,borderRadius:20,border:`1px solid ${t.border}`,background:t.cardBg,overflow:"hidden",boxShadow:t.shadowHov }}>
+                <div style={{ background:"linear-gradient(135deg,#1a56db,#06b6d4)",padding:"18px 20px" }}>
+                  <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between" }}>
+                    <div style={{ display:"flex",alignItems:"center",gap:10 }}>
+                      <div style={{ width:34,height:34,borderRadius:10,background:"rgba(255,255,255,0.2)",display:"flex",alignItems:"center",justifyContent:"center" }}><UserPlus size={15} color="#fff" /></div>
+                      <div>
+                        <p style={{ fontSize:13,fontWeight:700,color:"#fff",margin:0,fontFamily:"'Poppins',sans-serif" }}>Add Student</p>
+                        <p style={{ fontSize:10,color:"rgba(255,255,255,0.6)",margin:"2px 0 0",fontFamily:"'Poppins',sans-serif" }}>Enter user ID and email</p>
+                      </div>
+                    </div>
+                    <button onClick={() => setPanelOpen(false)} style={{ width:28,height:28,borderRadius:8,background:"rgba(255,255,255,0.15)",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}><X size={14} color="#fff" /></button>
+                  </div>
+                  <div style={{ display:"flex",gap:6,marginTop:14 }}>
+                    {["Student Info","Confirm","Done"].map((step,i) => (
+                      <div key={step} style={{ display:"flex",alignItems:"center",gap:6,padding:"6px 10px",borderRadius:8,background:i===0?"rgba(255,255,255,0.2)":"transparent",color:i===0?"#fff":"rgba(255,255,255,0.4)",fontSize:10,fontWeight:600,fontFamily:"'Poppins',sans-serif" }}>
+                        <div style={{ width:16,height:16,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:800,background:i===0?"#fff":"rgba(255,255,255,0.2)",color:i===0?"#1a56db":"rgba(255,255,255,0.6)",flexShrink:0 }}>{i+1}</div>
+                        {step}
+                      </div>
                     ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* ═══════ INLINE SLIDE PANEL ═══════ */}
-        <div className={`flex-shrink-0 transition-all duration-300 ease-in-out overflow-hidden ${panelOpen ? "w-96 opacity-100" : "w-0 opacity-0 pointer-events-none"}`}>
-          <div className="w-96 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl overflow-hidden">
-
-            {/* panel header */}
-            <div className="bg-gradient-to-r from-[#1a56db] to-[#06b6d4] px-5 py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="h-8 w-8 rounded-xl bg-white/20 flex items-center justify-center">
-                    <UserPlus className="h-4 w-4 text-white" />
+                  </div>
+                </div>
+                <div style={{ padding:20,display:"flex",flexDirection:"column",gap:14 }}>
+                  <div>
+                    <label style={{ fontSize:9,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:t.textMuted,fontFamily:"'Poppins',sans-serif",display:"block",marginBottom:6 }}>User ID</label>
+                    <input type="number" placeholder="e.g. 1042" value={userId} onChange={e => setUserId(e.target.value)} style={{ width:"100%",height:38,borderRadius:10,border:`1px solid ${t.inputBorder}`,background:t.inputBg,color:t.inputText,fontSize:12,fontFamily:"'Poppins',sans-serif",padding:"0 12px",outline:"none",boxSizing:"border-box" }} />
                   </div>
                   <div>
-                    <h2 className="text-sm font-bold text-white">Add Student</h2>
-                    <p className="text-[11px] text-blue-100/70">Enter user ID and email</p>
+                    <label style={{ fontSize:9,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:t.textMuted,fontFamily:"'Poppins',sans-serif",display:"block",marginBottom:6 }}>Email</label>
+                    <input type="email" placeholder="student@example.com" value={email} onChange={e => setEmail(e.target.value)} style={{ width:"100%",height:38,borderRadius:10,border:`1px solid ${t.inputBorder}`,background:t.inputBg,color:t.inputText,fontSize:12,fontFamily:"'Poppins',sans-serif",padding:"0 12px",outline:"none",boxSizing:"border-box" }} />
+                  </div>
+                  <div style={{ display:"flex",justifyContent:"flex-end",gap:8,paddingTop:4 }}>
+                    <button onClick={() => setPanelOpen(false)} style={{ padding:"8px 18px",borderRadius:10,border:`1px solid ${t.border}`,background:t.actBg,color:t.textSub,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"'Poppins',sans-serif" }}>Cancel</button>
+                    <button onClick={addStudent} style={{ padding:"8px 20px",borderRadius:10,background:"linear-gradient(135deg,#3b82f6,#22d3ee)",border:"none",color:"#fff",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"'Poppins',sans-serif",boxShadow:"0 4px 14px rgba(34,211,238,0.35)" }}>Add Student</button>
                   </div>
                 </div>
-                <button
-                  onClick={() => setPanelOpen(false)}
-                  className="h-7 w-7 rounded-lg bg-white/15 hover:bg-white/30 flex items-center justify-center transition-colors"
-                >
-                  <X className="h-4 w-4 text-white" />
-                </button>
-              </div>
-
-              {/* step bar */}
-              <div className="flex gap-1.5 mt-4">
-                {["Student Info", "Confirm", "Done"].map((step, i) => (
-                  <div key={step} className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold ${i === 0 ? "bg-white/20 text-white" : "text-white/40"}`}>
-                    <div className={`h-4 w-4 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${i === 0 ? "bg-white text-blue-600" : "bg-white/20 text-white/60"}`}>{i + 1}</div>
-                    {step}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* panel body */}
-            <div className="p-5 space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">User ID</label>
-                <Input
-                  type="number"
-                  placeholder="e.g. 1042"
-                  value={userId}
-                  onChange={(e) => setUserId(e.target.value)}
-                  className="h-10 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Email</label>
-                <Input
-                  type="email"
-                  placeholder="student@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="h-10 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  onClick={() => setPanelOpen(false)}
-                  className="px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={addStudent}
-                  className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 shadow hover:opacity-90 hover:scale-105 transition-all"
-                >
-                  Add Student
-                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

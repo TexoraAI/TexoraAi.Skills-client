@@ -1,214 +1,79 @@
-
-// import { useEffect, useState } from "react";
-// import videoService from "../services/videoService";
-// import VideoList from "./VideoList";
-// import { UploadCloud, Video, FileText } from "lucide-react";
-
-// const UploadVideos = () => {
-//   const [file, setFile] = useState(null);
-//   const [title, setTitle] = useState("");
-//   const [description, setDescription] = useState("");
-//   const [batchId, setBatchId] = useState(null); // ⭐ MUST BE NUMBER
-//   const [batches, setBatches] = useState([]);
-//   const [loading, setLoading] = useState(false);
-//   const [message, setMessage] = useState("");
-//   const [refreshKey, setRefreshKey] = useState(0);
-
-//   // 🔥 LOAD TRAINER BATCHES
-//   useEffect(() => {
-//     const loadBatches = async () => {
-//       try {
-//         const res = await videoService.getTrainerBatches();
-//         setBatches(res.data || []);
-//       } catch (err) {
-//         console.error("Failed to load batches", err);
-//       }
-//     };
-//     loadBatches();
-//   }, []);
-
-//   const handleFileChange = (e) => {
-//     setFile(e.target.files[0]);
-//   };
-
-//   const handleUpload = async () => {
-//     if (!file || !title.trim() || !batchId) {
-//       setMessage("❌ Select video, title & batch");
-//       return;
-//     }
-
-//     try {
-//       setLoading(true);
-//       setMessage("");
-
-//       await videoService.uploadVideo(file, title, description, batchId);
-
-//       setMessage("✅ Video uploaded successfully");
-//       setRefreshKey((p) => p + 1);
-
-//       setFile(null);
-//       setTitle("");
-//       setDescription("");
-//       setBatchId(null);
-//     } catch (e) {
-//       setMessage("❌ Upload failed (not assigned to batch)");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   return (
-//     <div className="space-y-6">
-//       {/* HERO SECTION */}
-//       <div className="rounded-2xl bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 p-5 text-white shadow-md">
-//         <p className="text-xs font-semibold tracking-widest uppercase text-white/90">
-//           Trainer Studio
-//         </p>
-
-//         <h1 className="mt-1 text-xl font-semibold">Publish New Lecture</h1>
-
-//         <p className="text-sm text-white/90 max-w-xl">
-//           Upload recorded lectures for students.
-//         </p>
-//       </div>
-
-//       {/* UPLOAD CARD */}
-//       <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-lg p-6 space-y-6">
-//         {/* DROP ZONE */}
-//         <div className="rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 p-10 text-center bg-slate-50 dark:bg-slate-950">
-//           <UploadCloud className="mx-auto h-10 w-10 text-indigo-500 mb-3" />
-//           <p className="text-sm text-slate-600 dark:text-slate-400">
-//             Drag & drop your lecture video here
-//           </p>
-
-//           <label className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-semibold cursor-pointer hover:bg-indigo-700 transition">
-//             <Video className="w-4 h-4" />
-//             Browse Video
-//             <input
-//               type="file"
-//               accept="video/*"
-//               hidden
-//               onChange={handleFileChange}
-//             />
-//           </label>
-
-//           {file && (
-//             <p className="mt-3 text-xs text-emerald-600 dark:text-emerald-400">
-//               Selected: {file.name}
-//             </p>
-//           )}
-//         </div>
-
-//         {/* INPUTS */}
-//         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-//           {/* TITLE */}
-//           <div>
-//             <label className="text-xs font-semibold uppercase text-slate-600 dark:text-slate-400">
-//               Lecture Title
-//             </label>
-//             <input
-//               value={title}
-//               onChange={(e) => setTitle(e.target.value)}
-//               placeholder="React State Management – Lecture 1"
-//               className="mt-1 w-full rounded-lg border px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-//             />
-//           </div>
-
-//           {/* DESCRIPTION */}
-//           <div>
-//             <label className="text-xs font-semibold uppercase text-slate-600 dark:text-slate-400">
-//               Short Description
-//             </label>
-//             <textarea
-//               rows={2}
-//               value={description}
-//               onChange={(e) => setDescription(e.target.value)}
-//               placeholder="What students will learn in this lecture"
-//               className="mt-1 w-full rounded-lg border px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-//             />
-//           </div>
-
-//           {/* ⭐ SELECT BATCH DROPDOWN */}
-//           <div>
-//             <label className="text-xs font-semibold uppercase text-slate-600 dark:text-slate-400">
-//               Select Batch
-//             </label>
-
-//             <select
-//               value={batchId || ""}
-//               onChange={(e) => setBatchId(Number(e.target.value))} // ⭐ FIX
-//               className="mt-1 w-full rounded-lg border px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-//             >
-//               <option value="">Select Batch</option>
-//               {batches.map((b) => (
-//                 <option key={b.id} value={b.id}>
-//                   {b.name || "Batch"} (ID: {b.id})
-//                 </option>
-//               ))}
-//             </select>
-//           </div>
-//         </div>
-
-//         {/* ACTION */}
-//         <div className="flex items-center justify-between">
-//           {message && (
-//             <p className="text-sm text-slate-600 dark:text-slate-300">
-//               {message}
-//             </p>
-//           )}
-
-//           <button
-//             onClick={handleUpload}
-//             disabled={loading}
-//             className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition disabled:opacity-50"
-//           >
-//             <FileText className="w-4 h-4" />
-//             {loading ? "Uploading..." : "Publish Lecture"}
-//           </button>
-//         </div>
-//       </div>
-
-//       {/* VIDEO LIST */}
-//       <VideoList refreshKey={refreshKey} trainerMode={true} />
-//     </div>
-//   );
-// };
-
-// export default UploadVideos;
-
-
-
-
-
-
-
-
-
-
-
-
 // src/trainer/UploadVideos.jsx
 import { useEffect, useState } from "react";
 import videoService from "../services/videoService";
 import VideoList from "./VideoList";
-import { UploadCloud, Video, FileText } from "lucide-react";
+import UploadDocuments from "./UploadDocuments";
+import CreateQuiz from "./CreateQuiz";
+import CreateAssignments from "./CreateAssignments";
+import {
+  UploadCloud, Video, FileText, ClipboardEdit, BookOpen,
+} from "lucide-react";
 import {
   useTrainerTheme, PageShell, PageHero, ThemedCard, CardHeader,
   ThemedInput, ThemedTextarea, ThemedSelect, FieldLabel,
-  PrimaryButton, SecondaryButton,
+  PrimaryButton,
 } from "./trainerTheme";
 
-const UploadVideos = () => {
-  const { t, isDark } = useTrainerTheme();
+/* ─────────────────── TAB CONFIG ─────────────────── */
+const TABS = [
+  { key: "upload-video",      label: "Upload Video",      icon: Video },
+  { key: "upload-document",   label: "Upload Document",   icon: FileText },
+  { key: "create-quiz",       label: "Create Quiz",       icon: ClipboardEdit },
+  { key: "create-assignment", label: "Create Assignment", icon: BookOpen },
+];
 
-  const [file, setFile] = useState(null);
-  const [title, setTitle] = useState("");
+/* ─────────────────── TAB BAR ─────────────────── */
+const TabBar = ({ activeTab, setActiveTab, t }) => (
+  <div style={{
+    display: "flex",
+    gap: 6,
+    flexWrap: "wrap",
+    marginBottom: 24,
+    background: t.cardBg,
+    border: `1px solid ${t.inputBorder}`,
+    borderRadius: 14,
+    padding: 6,
+  }}>
+    {TABS.map(({ key, label, icon: Icon }) => {
+      const isActive = activeTab === key;
+      return (
+        <button
+          key={key}
+          onClick={() => setActiveTab(key)}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 7,
+            padding: "9px 18px",
+            borderRadius: 10,
+            border: "none",
+            cursor: "pointer",
+            fontFamily: "'Poppins', sans-serif",
+            fontSize: 13,
+            fontWeight: isActive ? 700 : 500,
+            transition: "all 0.18s ease",
+            background: isActive ? "#7c3aed" : "transparent",
+            color: isActive ? "#fff" : t.textSub,
+          }}
+        >
+          <Icon size={15} />
+          {label}
+        </button>
+      );
+    })}
+  </div>
+);
+
+/* ─────────────────── UPLOAD VIDEO PANEL ─────────────────── */
+const UploadVideoPanel = ({ t, isDark }) => {
+  const [file, setFile]               = useState(null);
+  const [title, setTitle]             = useState("");
   const [description, setDescription] = useState("");
-  const [batchId, setBatchId] = useState(null);
-  const [batches, setBatches] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [batchId, setBatchId]         = useState(null);
+  const [batches, setBatches]         = useState([]);
+  const [loading, setLoading]         = useState(false);
+  const [message, setMessage]         = useState("");
+  const [refreshKey, setRefreshKey]   = useState(0);
 
   useEffect(() => {
     const loadBatches = async () => {
@@ -221,8 +86,6 @@ const UploadVideos = () => {
     };
     loadBatches();
   }, []);
-
-  const handleFileChange = (e) => setFile(e.target.files[0]);
 
   const handleUpload = async () => {
     if (!file || !title.trim() || !batchId) {
@@ -239,7 +102,7 @@ const UploadVideos = () => {
       setTitle("");
       setDescription("");
       setBatchId(null);
-    } catch (e) {
+    } catch {
       setMessage("❌ Upload failed (not assigned to batch)");
     } finally {
       setLoading(false);
@@ -247,18 +110,7 @@ const UploadVideos = () => {
   };
 
   return (
-    <PageShell t={t}>
-      {/* HERO */}
-      <PageHero
-        t={t} isDark={isDark}
-        icon={Video}
-        badge="Trainer Studio"
-        title="Publish New Lecture"
-        subtitle="Upload recorded lectures for students."
-        color="#7c3aed"
-      />
-
-      {/* UPLOAD CARD */}
+    <>
       <ThemedCard t={t} style={{ marginBottom: 20 }}>
         <CardHeader t={t} icon={UploadCloud} color="#7c3aed" title="Upload Video" />
 
@@ -285,7 +137,7 @@ const UploadVideos = () => {
           }}>
             <Video size={14} />
             Browse Video
-            <input type="file" accept="video/*" hidden onChange={handleFileChange} />
+            <input type="file" accept="video/*" hidden onChange={(e) => setFile(e.target.files[0])} />
           </label>
           {file && (
             <p style={{ marginTop: 12, fontSize: 11, color: t.liveText, fontFamily: "'Poppins',sans-serif" }}>
@@ -354,6 +206,55 @@ const UploadVideos = () => {
 
       {/* VIDEO LIST */}
       <VideoList refreshKey={refreshKey} trainerMode={true} />
+    </>
+  );
+};
+
+/* ─────────────────── MAIN PAGE ─────────────────── */
+const UploadVideos = () => {
+  const { t, isDark } = useTrainerTheme();
+  const [activeTab, setActiveTab] = useState("upload-video");
+
+  const renderPanel = () => {
+    switch (activeTab) {
+      case "upload-video":
+        return <UploadVideoPanel t={t} isDark={isDark} />;
+      case "upload-document":
+        return <UploadDocuments />;
+      case "create-quiz":
+        return <CreateQuiz />;
+      case "create-assignment":
+        return <CreateAssignments />;
+      default:
+        return null;
+    }
+  };
+
+  /* Hero title & subtitle change with active tab */
+  const heroMeta = {
+    "upload-video":      { title: "Publish New Lecture",   subtitle: "Upload recorded lectures for students.",           icon: Video,         color: "#7c3aed" },
+    "upload-document":   { title: "Upload Documents",      subtitle: "Share study material and resources with students.", icon: FileText,       color: "#2563eb" },
+    "create-quiz":       { title: "Create Quiz",           subtitle: "Build interactive quizzes for your batch.",         icon: ClipboardEdit,  color: "#d97706" },
+    "create-assignment": { title: "Create Assignment",     subtitle: "Set assignments and track submissions.",            icon: BookOpen,       color: "#059669" },
+  }[activeTab];
+
+  return (
+    <PageShell t={t}>
+      {/* HERO */}
+      <PageHero
+        t={t} isDark={isDark}
+        icon={heroMeta.icon}
+        badge="Trainer Studio"
+        title={heroMeta.title}
+        subtitle={heroMeta.subtitle}
+        color={heroMeta.color}
+      />
+
+      {/* TABS */}
+      <TabBar activeTab={activeTab} setActiveTab={setActiveTab} t={t} />
+
+      {/* PANEL */}
+      {renderPanel()}
     </PageShell>
   );
 };

@@ -734,10 +734,10 @@ const trainerMenus = [
     name: "Content Management", icon: FileText,
     children: [
       { name: "Upload Videos",      path: "/trainer/upload-videos",      icon: Video },
-      { name: "Upload Documents",   path: "/trainer/upload-docs",        icon: FileText },
-      { name: "Create Quiz",        path: "/trainer/create-quiz",        icon: ClipboardEdit },
-      { name: "My Quizzes",         path: "/trainer/my-quizzes",         icon: ClipboardCheck },
-      { name: "Create Assignments", path: "/trainer/create-assignments", icon: ClipboardEdit },
+      // { name: "Upload Documents",   path: "/trainer/upload-docs",        icon: FileText },
+      // { name: "Create Quiz",        path: "/trainer/create-quiz",        icon: ClipboardEdit },
+      // { name: "My Quizzes",         path: "/trainer/my-quizzes",         icon: ClipboardCheck },
+      // { name: "Create Assignments", path: "/trainer/create-assignments", icon: ClipboardEdit },
       { name: "Course Management",  path: "/trainer/course-management",  icon: BookOpen },
       { name: "Assessments",        path: "/trainer/assessments",        icon: ClipboardCheck },
       { name: "Attendance",         path: "/trainer/attendance",         icon: CalendarDays },
@@ -795,7 +795,7 @@ const adminMenus = [
     name: "Free Learning Hub", icon: GraduationCap,
     children: [
       { name: "Upload Course",          path: "/admin/course-upload",          icon: Upload },
-      { name: "Upload Featured Course", path: "/admin/featured-course-upload", icon: Star },
+      // { name: "Upload Featured Course", path: "/admin/featured-course-upload", icon: Star },
     ],
   },
   {

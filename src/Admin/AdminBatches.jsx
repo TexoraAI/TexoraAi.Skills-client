@@ -1,10 +1,7 @@
-
-
-
 import {
   ArrowLeft, Building2, CheckCircle2, ChevronRight,
   GitBranch, GripVertical, Layers, Plus, Search,
-  Trash2, UserCheck, Users, X,
+  Trash2, UserCheck, Users, X, Sparkles, Activity,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -12,36 +9,117 @@ import { useNavigate } from "react-router-dom";
 import { deleteBatch, getAllBatches } from "../services/batchService";
 import CreateBatchModal from "./CreateBatchModal";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+/* ─── theme token map — same as AdminDashboard ─── */
+const T = {
+  dark: {
+    pageBg: "#0a0a0a",
+    cardBg: "#111111",
+    cardBgHov: "#161616",
+    heroBg: "#141414",
+    border: "rgba(255,255,255,0.06)",
+    borderHov: "rgba(255,255,255,0.14)",
+    borderHero: "rgba(255,255,255,0.07)",
+    text: "#ffffff",
+    textSub: "rgba(255,255,255,0.3)",
+    textMuted: "rgba(255,255,255,0.2)",
+    textLabel: "rgba(255,255,255,0.22)",
+    pillBg: "rgba(255,255,255,0.04)",
+    pillBorder: "rgba(255,255,255,0.07)",
+    pillText: "rgba(255,255,255,0.25)",
+    iconBg: "rgba(255,255,255,0.05)",
+    iconBorder: "rgba(255,255,255,0.08)",
+    barBg: "rgba(255,255,255,0.05)",
+    actBg: "rgba(255,255,255,0.04)",
+    actBorder: "rgba(255,255,255,0.07)",
+    actIcon: "rgba(255,255,255,0.3)",
+    actBar: "rgba(255,255,255,0.5)",
+    gridLine: "rgba(255,255,255,0.5)",
+    shadow: "0 4px 20px rgba(0,0,0,0.4)",
+    shadowHov: "0 20px 60px rgba(0,0,0,0.6)",
+    emptyBorder: "rgba(255,255,255,0.07)",
+    emptyBg: "rgba(255,255,255,0.02)",
+    emptyIcon: "rgba(255,255,255,0.12)",
+    recentItemBg: "rgba(255,255,255,0.03)",
+    recentItemBorder: "rgba(255,255,255,0.05)",
+    recentItemBgHov: "rgba(255,255,255,0.06)",
+    liveColor: "#34d399",
+    liveText: "#34d399",
+    navBtnBg: "rgba(255,255,255,0.04)",
+    navBtnBorder: "rgba(255,255,255,0.08)",
+    navBtnColor: "#888",
+    todayBg: "#ffffff",
+    todayText: "#000000",
+  },
+  light: {
+    pageBg: "#f1f5f9",
+    cardBg: "#ffffff",
+    cardBgHov: "#f8fafc",
+    heroBg: "#ffffff",
+    border: "#e2e8f0",
+    borderHov: "#cbd5e1",
+    borderHero: "#e2e8f0",
+    text: "#0f172a",
+    textSub: "#64748b",
+    textMuted: "#94a3b8",
+    textLabel: "#94a3b8",
+    pillBg: "#f1f5f9",
+    pillBorder: "#e2e8f0",
+    pillText: "#94a3b8",
+    iconBg: "#f8fafc",
+    iconBorder: "#e2e8f0",
+    barBg: "#f1f5f9",
+    actBg: "#f8fafc",
+    actBorder: "#e2e8f0",
+    actIcon: "#94a3b8",
+    actBar: "#94a3b8",
+    gridLine: "rgba(0,0,0,0.12)",
+    shadow: "0 1px 8px rgba(0,0,0,0.07)",
+    shadowHov: "0 8px 32px rgba(0,0,0,0.10)",
+    emptyBorder: "#e2e8f0",
+    emptyBg: "#f8fafc",
+    emptyIcon: "#cbd5e1",
+    recentItemBg: "#f8fafc",
+    recentItemBorder: "#e2e8f0",
+    recentItemBgHov: "#f1f5f9",
+    liveColor: "#16a34a",
+    liveText: "#16a34a",
+    navBtnBg: "#f8fafc",
+    navBtnBorder: "#e2e8f0",
+    navBtnColor: "#64748b",
+    todayBg: "#0f172a",
+    todayText: "#ffffff",
+  },
+};
 
 /* ── gradient pool ── */
-const GRAD = [
-  "from-violet-500 to-purple-600","from-cyan-500 to-blue-600",
-  "from-rose-500 to-pink-600","from-amber-500 to-orange-600",
-  "from-emerald-500 to-teal-600","from-indigo-500 to-blue-700",
+const GRAD_COLORS = [
+  ["#a78bfa", "#7c3aed"],
+  ["#22d3ee", "#0891b2"],
+  ["#f43f5e", "#be123c"],
+  ["#f59e0b", "#b45309"],
+  ["#34d399", "#059669"],
+  ["#818cf8", "#4338ca"],
 ];
-const grad = name => GRAD[(name?.charCodeAt(0) ?? 0) % GRAD.length];
+const gradColor = name => GRAD_COLORS[(name?.charCodeAt(0) ?? 0) % GRAD_COLORS.length];
 
 /* ── nav tabs ── */
 const TABS = [
-  { label:"Departments", path:"/admin/departmentlist", icon:Building2 },
-  { label:"Branches",    path:"/admin/branches",        icon:GitBranch  },
-  { label:"Batches",     path:"/admin/batches",         icon:Layers     },
+  { label: "Departments", path: "/admin/departmentlist", icon: Building2 },
+  { label: "Branches",    path: "/admin/branches",       icon: GitBranch  },
+  { label: "Batches",     path: "/admin/batches",        icon: Layers     },
 ];
 
 /* ── workflow steps ── */
 const STEPS = [
-  { icon:Layers,    label:"Create a batch"                },
-  { icon:UserCheck, label:"Assign trainer to batch"       },
-  { icon:Users,     label:"Assign students under trainer" },
+  { icon: Layers,    label: "Create a batch"                },
+  { icon: UserCheck, label: "Assign trainer to batch"       },
+  { icon: Users,     label: "Assign students under trainer" },
 ];
 
 /* ══ drag-and-drop hook ══ */
 function useDragList(items, setItems) {
   const dragIdx = useRef(null), overIdx = useRef(null);
   const [active, setActive] = useState(null), [over, setOver] = useState(null);
-
   const handlers = i => ({
     draggable: true,
     onDragStart: () => { dragIdx.current = i; setActive(i); },
@@ -55,13 +133,31 @@ function useDragList(items, setItems) {
     },
     onDragEnd: () => { dragIdx.current = null; overIdx.current = null; setActive(null); setOver(null); },
   });
-
   return { handlers, active, over };
 }
 
 /* ══════════ MAIN ══════════ */
 const AdminBatches = () => {
   const navigate = useNavigate();
+
+  const [isDark, setIsDark] = useState(
+    () => typeof document !== "undefined" && (
+      document.documentElement.classList.contains("dark") ||
+      document.documentElement.getAttribute("data-theme") === "dark"
+    )
+  );
+  useEffect(() => {
+    const obs = new MutationObserver(() => {
+      setIsDark(
+        document.documentElement.classList.contains("dark") ||
+        document.documentElement.getAttribute("data-theme") === "dark"
+      );
+    });
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-theme"] });
+    return () => obs.disconnect();
+  }, []);
+
+  const t = isDark ? T.dark : T.light;
 
   /* ── backend state — all unchanged ── */
   const [batches, setBatches]               = useState([]);
@@ -86,266 +182,578 @@ const AdminBatches = () => {
     b?.batchName?.toLowerCase().includes(search.toLowerCase())
   );
 
-  /* drag for batch cards */
   const { handlers: dragH, active: dActive, over: dOver } = useDragList(batches, setBatches);
+
+  const pill = {
+    fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
+    padding: "4px 10px", borderRadius: 999, background: t.pillBg,
+    border: `1px solid ${t.pillBorder}`, color: t.pillText,
+    fontFamily: "'Poppins',sans-serif",
+  };
 
   /* ══════════ RENDER ══════════ */
   return (
-    <div className="min-h-screen bg-[#f0f4ff] dark:bg-[#060b18] p-5 space-y-5">
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
+        @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+        .bfade{animation:fadeUp 0.45s ease both}
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:0.15}}
+        .d1{animation:blink 1.6s ease infinite}
+        .d2{animation:blink 1.6s 0.3s ease infinite}
+        .d3{animation:blink 1.6s 0.6s ease infinite}
+        @keyframes pulse-ring{0%{box-shadow:0 0 0 0 rgba(52,211,153,0.5)}70%{box-shadow:0 0 0 8px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
+        .livebadge{animation:pulse-ring 2.2s ease-out infinite}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+        .grip-btn{opacity:0;transition:opacity 0.2s}
+        .batch-row:hover .grip-btn{opacity:1}
+      `}</style>
 
-      {/* ═══ HERO ═══ */}
-      <div className="relative overflow-hidden rounded-2xl shadow-xl bg-gradient-to-r from-[#1a56db] via-[#3b82f6] to-[#06b6d4]">
-        <div className="pointer-events-none absolute -right-12 -top-12 h-52 w-52 rounded-full bg-white/10 blur-3xl" />
-        <div className="pointer-events-none absolute right-32 bottom-[-30px] h-36 w-36 rounded-full bg-cyan-300/20 blur-2xl" />
-        <div className="pointer-events-none absolute left-1/2 top-0 h-px w-2/3 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-        <div className="relative flex items-center justify-between px-6 py-5">
-          <div className="flex items-center gap-4">
-            <button onClick={() => navigate(-1)}
-              className="flex items-center gap-1.5 rounded-xl bg-white/15 px-3 py-1.5 text-sm font-medium text-white backdrop-blur-sm hover:bg-white/25 transition-all">
-              <ArrowLeft className="h-4 w-4" /> Back
-            </button>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-white">Batch Management</h1>
-              <p className="mt-0.5 text-sm text-blue-100/80">Create batch and assign trainer &amp; students</p>
+      <div style={{
+        minHeight: "100vh", background: t.pageBg, color: t.text,
+        fontFamily: "'Poppins',sans-serif", transition: "background 0.3s,color 0.3s",
+      }}>
+        <div style={{ maxWidth: 1300, margin: "0 auto", padding: 24, paddingBottom: 52 }}>
+
+          {/* ═══ HERO ═══ */}
+          <div className="bfade" style={{
+            borderRadius: 24, padding: "30px 36px",
+            background: t.heroBg, border: `1px solid ${t.borderHero}`,
+            position: "relative", overflow: "hidden",
+            marginBottom: 20, boxShadow: t.shadow,
+          }}>
+            {/* grid overlay */}
+            <div style={{
+              position: "absolute", inset: 0, pointerEvents: "none",
+              opacity: isDark ? 0.04 : 0.025,
+              backgroundImage: `linear-gradient(${t.gridLine} 1px,transparent 1px),linear-gradient(90deg,${t.gridLine} 1px,transparent 1px)`,
+              backgroundSize: "40px 40px",
+            }} />
+            {/* glow blobs */}
+            <div style={{
+              position: "absolute", top: "-30%", left: "40%", width: 300, height: 200,
+              background: "radial-gradient(ellipse,rgba(34,211,238,0.06),transparent 70%)",
+              pointerEvents: "none",
+            }} />
+            <div style={{
+              position: "absolute", bottom: "-40%", right: "10%", width: 250, height: 200,
+              background: "radial-gradient(ellipse,rgba(167,139,250,0.06),transparent 70%)",
+              pointerEvents: "none",
+            }} />
+
+            <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+              <div>
+                {/* back + label */}
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
+                  <button
+                    onClick={() => navigate(-1)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 6,
+                      padding: "6px 14px", borderRadius: 10,
+                      border: `1px solid ${t.borderHov}`,
+                      background: t.actBg, color: t.textSub,
+                      fontSize: 11, fontWeight: 600, cursor: "pointer",
+                      fontFamily: "'Poppins',sans-serif",
+                    }}
+                  >
+                    <ArrowLeft size={13} /> Back
+                  </button>
+                  <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                    <Sparkles size={11} color={t.textSub} />
+                    <span style={{
+                      fontSize: 9, fontWeight: 700, letterSpacing: "0.22em",
+                      textTransform: "uppercase", color: t.textSub,
+                      fontFamily: "'Poppins',sans-serif",
+                    }}>Admin Portal</span>
+                  </div>
+                </div>
+
+                <h1 style={{
+                  fontFamily: "'Poppins',sans-serif", fontWeight: 900,
+                  fontSize: "clamp(1.6rem,3vw,2.4rem)", color: t.text,
+                  margin: 0, lineHeight: 1.1, letterSpacing: "-0.02em",
+                }}>Batch Management</h1>
+                <p style={{
+                  fontSize: 12, color: t.textSub, marginTop: 7,
+                  fontWeight: 500, fontFamily: "'Poppins',sans-serif",
+                }}>Create batches and assign trainers &amp; students</p>
+              </div>
+
+              {/* right side badges */}
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 12,
+                  background: t.actBg, border: `1px solid ${t.actBorder}`,
+                  borderRadius: 12, padding: "8px 16px",
+                  fontSize: 11, fontWeight: 600, fontFamily: "'Poppins',sans-serif", color: t.textSub,
+                }}>
+                  <Layers size={13} color="#f59e0b" />
+                  <span style={{ color: t.text, fontWeight: 700 }}>{batches.length}</span>
+                  <span>Batches</span>
+                </div>
+
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 8,
+                  background: t.actBg, border: `1px solid ${t.actBorder}`,
+                  borderRadius: 10, padding: "8px 14px",
+                }}>
+                  <Activity size={12} color={t.actIcon} />
+                  <div style={{ display: "flex", gap: 3, alignItems: "flex-end", height: 14 }}>
+                    <span className="d1" style={{ width: 3, height: 10, borderRadius: 2, background: t.actBar, display: "block" }} />
+                    <span className="d2" style={{ width: 3, height: 14, borderRadius: 2, background: t.actBar, display: "block" }} />
+                    <span className="d3" style={{ width: 3, height: 7, borderRadius: 2, background: t.actBar, display: "block" }} />
+                  </div>
+                </div>
+
+                <div className="livebadge" style={{
+                  display: "flex", alignItems: "center", gap: 7,
+                  background: isDark ? "rgba(52,211,153,0.08)" : "rgba(22,163,74,0.08)",
+                  border: isDark ? "1px solid rgba(52,211,153,0.3)" : "1px solid rgba(22,163,74,0.3)",
+                  borderRadius: 999, padding: "8px 18px",
+                  color: t.liveText, fontSize: 11, fontWeight: 700,
+                  letterSpacing: "0.1em", fontFamily: "'Poppins',sans-serif",
+                }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: t.liveColor, display: "inline-block" }} />
+                  LIVE
+                </div>
+              </div>
             </div>
           </div>
-          <div className="hidden md:flex items-center gap-2 rounded-2xl bg-white/15 px-4 py-2 backdrop-blur-sm">
-            <Layers className="h-5 w-5 text-cyan-200" />
-            <span className="text-sm font-semibold text-white">
-              {batches.length}<span className="ml-1 font-normal text-blue-100/80">Batches</span>
-            </span>
-          </div>
-        </div>
-      </div>
 
-      {/* ═══ ACTION BAR ═══ */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="flex gap-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1 shadow-sm">
-          {TABS.map(({ label, path, icon: Icon }) => {
-            const active = location.pathname === path;
-            return (
-              <button key={path} onClick={() => navigate(path)}
-                className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-sm font-medium transition-all ${
-                  active ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow"
-                         : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>
-                <Icon className="h-3.5 w-3.5" /> {label}
+          {/* ═══ ACTION BAR ═══ */}
+          <div className="bfade" style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+            {/* Tab switcher */}
+            <div style={{
+              display: "flex", gap: 4, borderRadius: 14,
+              background: t.cardBg, border: `1px solid ${t.border}`,
+              padding: 4, boxShadow: t.shadow,
+            }}>
+              {TABS.map(({ label, path, icon: Icon }) => {
+                const isActive = typeof location !== "undefined" && location.pathname === path;
+                return (
+                  <button
+                    key={path}
+                    onClick={() => navigate(path)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 6,
+                      padding: "7px 16px", borderRadius: 10,
+                      border: "none", cursor: "pointer",
+                      fontFamily: "'Poppins',sans-serif", fontSize: 11, fontWeight: 600,
+                      background: isActive
+                        ? "linear-gradient(135deg,#22d3ee,#3b82f6)"
+                        : "transparent",
+                      color: isActive ? "#fff" : t.textSub,
+                      boxShadow: isActive ? "0 2px 8px rgba(34,211,238,0.3)" : "none",
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    <Icon size={13} /> {label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Search + Create */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ position: "relative" }}>
+                <Search size={14} style={{
+                  position: "absolute", left: 11, top: "50%",
+                  transform: "translateY(-50%)", color: t.textMuted, pointerEvents: "none",
+                }} />
+                <input
+                  placeholder="Search batches…"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  style={{
+                    paddingLeft: 34, paddingRight: 14, height: 36, width: 220,
+                    borderRadius: 10, border: `1px solid ${t.border}`,
+                    background: t.cardBg, color: t.text,
+                    fontSize: 11, fontFamily: "'Poppins',sans-serif",
+                    outline: "none", boxShadow: t.shadow,
+                  }}
+                />
+              </div>
+              <button
+                onClick={() => setPanelOpen(true)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 7,
+                  padding: "8px 18px", borderRadius: 10,
+                  background: "linear-gradient(135deg,#3b82f6,#22d3ee)",
+                  border: "none", color: "#fff",
+                  fontSize: 11, fontWeight: 700, cursor: "pointer",
+                  fontFamily: "'Poppins',sans-serif",
+                  boxShadow: "0 4px 14px rgba(34,211,238,0.35)",
+                  transition: "all 0.2s",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <Plus size={14} /> Create Batch
               </button>
-            );
-          })}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <div className="relative md:w-60">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input placeholder="Search batches…" value={search} onChange={e => setSearch(e.target.value)}
-              className="pl-9 h-9 rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-sm" />
+            </div>
           </div>
-          <button onClick={() => setPanelOpen(true)}
-            className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow hover:opacity-90 hover:scale-105 transition-all whitespace-nowrap">
-            <Plus className="h-4 w-4" /> Create Batch
-          </button>
-        </div>
-      </div>
 
-      {/* ═══ WORKFLOW CARD ═══ */}
-      <Card className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg">
-        <CardHeader className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 px-6 py-4">
-          <CardTitle className="text-sm font-semibold text-slate-800 dark:text-slate-100">How it works</CardTitle>
-        </CardHeader>
-        <CardContent className="px-6 py-5">
-          <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-0">
-            {STEPS.map(({ icon: Icon, label }, i) => (
-              <div key={i} className="flex md:flex-1 items-center gap-3 md:gap-0">
-                <div className="flex items-center gap-3 md:flex-col md:items-center md:gap-2 md:flex-1">
-                  <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center shadow-md shrink-0">
-                    <Icon className="h-5 w-5 text-white" />
+          {/* ═══ WORKFLOW CARD ═══ */}
+          <div className="bfade" style={{
+            background: t.cardBg, border: `1px solid ${t.border}`,
+            borderRadius: 20, padding: 22, marginBottom: 20, boxShadow: t.shadow,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
+              <span style={{
+                fontSize: 10, fontWeight: 700, letterSpacing: "0.1em",
+                textTransform: "uppercase", color: t.textLabel,
+                fontFamily: "'Poppins',sans-serif",
+              }}>How it works</span>
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "center" }}>
+              {STEPS.map(({ icon: Icon, label }, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{
+                      width: 42, height: 42, borderRadius: 12,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      background: "linear-gradient(135deg,rgba(59,130,246,0.15),rgba(34,211,238,0.15))",
+                      border: "1px solid rgba(34,211,238,0.25)",
+                    }}>
+                      <Icon size={18} color="#22d3ee" />
+                    </div>
+                    <div>
+                      <p style={{
+                        fontSize: 9, fontWeight: 700, letterSpacing: "0.1em",
+                        textTransform: "uppercase", color: "#22d3ee",
+                        margin: 0, fontFamily: "'Poppins',sans-serif",
+                      }}>Step {i + 1}</p>
+                      <p style={{
+                        fontSize: 12, fontWeight: 600, color: t.text,
+                        margin: "3px 0 0", fontFamily: "'Poppins',sans-serif",
+                      }}>{label}</p>
+                    </div>
                   </div>
-                  <div className="md:text-center">
-                    <span className="block text-[10px] font-bold uppercase tracking-widest text-blue-500 dark:text-blue-400 mb-0.5">Step {i + 1}</span>
-                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{label}</p>
-                  </div>
-                </div>
-                {i < STEPS.length - 1 && (
-                  <div className="hidden md:block h-px flex-none w-8 bg-gradient-to-r from-blue-300 to-cyan-300 dark:from-blue-700 dark:to-cyan-700 mx-1" />
-                )}
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* ═══ MAIN — batches list + inline panel ═══ */}
-      <div className={`flex gap-4 ${panelOpen ? "items-start" : ""}`}>
-
-        {/* BATCHES CARD */}
-        <div className={`transition-all duration-300 ${panelOpen ? "flex-1 min-w-0" : "w-full"}`}>
-          <Card className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 px-6 py-4">
-              <div>
-                <CardTitle className="text-sm font-semibold text-slate-800 dark:text-slate-100">Existing Batches</CardTitle>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  {filteredBatches.length} record{filteredBatches.length !== 1 && "s"} found
-                  {batches.length > 0 && (
-                    <span className="ml-2 text-slate-400">· Drag <GripVertical className="inline h-3 w-3" /> to reorder</span>
+                  {i < STEPS.length - 1 && (
+                    <ChevronRight size={16} color={t.textMuted} style={{ marginLeft: 4 }} />
                   )}
-                </p>
-              </div>
-            </CardHeader>
-
-            <CardContent className="p-4 space-y-3">
-              {!Array.isArray(batches) || batches.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 gap-3">
-                  <div className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                    <Layers className="h-7 w-7 text-slate-400" />
-                  </div>
-                  <p className="text-sm font-medium text-slate-500">No batches created yet</p>
-                  <p className="text-xs text-slate-400">Click "Create Batch" to get started</p>
                 </div>
-              ) : (
-                filteredBatches.map((b, index) => {
-                  const dh         = dragH(index);
-                  const isDragging = dActive === index;
-                  const isOver     = dOver === index && dActive !== index;
+              ))}
+            </div>
+          </div>
 
-                  return (
-                    <div
-                      key={b.id}
-                      {...dh}
-                      className={`group relative flex flex-col sm:flex-row sm:items-center sm:justify-between
-                        gap-4 rounded-2xl border p-4 transition-all duration-150 cursor-default
-                        ${isDragging
-                          ? "opacity-40 scale-[0.98] border-dashed border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/50"
-                          : isOver
-                          ? "border-blue-400 bg-blue-50/60 dark:bg-blue-950/20 shadow-md border-t-2 border-t-blue-400"
-                          : "border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:border-blue-200 dark:hover:border-blue-800 hover:bg-blue-50/40 dark:hover:bg-slate-800 hover:shadow-md"
-                        }`}
-                    >
-                      {/* blue drop indicator */}
-                      {isOver && (
-                        <div className="absolute -top-0.5 left-6 right-6 h-0.5 bg-blue-400 rounded-full" />
+          {/* ═══ MAIN — batches list + inline panel ═══ */}
+          <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+
+            {/* BATCHES CARD */}
+            <div style={{
+              flex: 1, minWidth: 0,
+              transition: "all 0.3s",
+            }}>
+              <div style={{
+                background: t.cardBg, border: `1px solid ${t.border}`,
+                borderRadius: 20, overflow: "hidden", boxShadow: t.shadow,
+              }}>
+                {/* card header */}
+                <div style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "16px 22px",
+                  borderBottom: `1px solid ${t.border}`,
+                  background: isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.01)",
+                }}>
+                  <div>
+                    <p style={{
+                      fontSize: 13, fontWeight: 700, color: t.text,
+                      margin: 0, fontFamily: "'Poppins',sans-serif",
+                    }}>Existing Batches</p>
+                    <p style={{
+                      fontSize: 10, color: t.textMuted, margin: "3px 0 0",
+                      fontFamily: "'Poppins',sans-serif",
+                    }}>
+                      {filteredBatches.length} record{filteredBatches.length !== 1 && "s"} found
+                      {batches.length > 0 && (
+                        <span style={{ marginLeft: 8, color: t.textLabel }}>
+                          · Drag to reorder
+                        </span>
                       )}
+                    </p>
+                  </div>
+                  <span style={pill}>All Batches</span>
+                </div>
 
-                      <div className="flex items-center gap-4">
-                        {/* drag grip */}
-                        <div className="cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 flex-shrink-0">
-                          <GripVertical className="h-4 w-4 text-slate-400" />
-                        </div>
-
-                        {/* avatar */}
-                        <div className={`h-11 w-11 rounded-xl bg-gradient-to-br ${grad(b.batchName)} flex items-center justify-center text-white text-base font-bold shadow-sm shrink-0`}>
-                          {b.batchName?.charAt(0)?.toUpperCase()}
-                        </div>
-
-                        <div className="space-y-1">
-                          <p className="text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 transition-colors">
-                            {b.batchName}
-                          </p>
-                          <div className="flex flex-wrap gap-3 text-[11px] text-slate-500 dark:text-slate-400">
-                            <span className="flex items-center gap-1">
-                              <span className="h-1.5 w-1.5 rounded-full bg-slate-400 dark:bg-slate-500" />
-                              ID: {b.id}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <GitBranch className="h-3 w-3" /> Branch: {b.branchId}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            {b.trainerEmail ? (
-                              <>
-                                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                                <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">{b.trainerEmail}</span>
-                              </>
-                            ) : (
-                              <>
-                                <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
-                                <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">Trainer not assigned</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
+                {/* card content */}
+                <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
+                  {!Array.isArray(batches) || batches.length === 0 ? (
+                    <div style={{
+                      display: "flex", flexDirection: "column", alignItems: "center",
+                      justifyContent: "center", padding: "52px 0", gap: 12,
+                    }}>
+                      <div style={{
+                        width: 52, height: 52, borderRadius: 14,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        border: `1.5px dashed ${t.emptyBorder}`, background: t.emptyBg,
+                      }}>
+                        <Layers size={22} color={t.emptyIcon} />
                       </div>
+                      <p style={{ fontSize: 12, color: t.textMuted, fontWeight: 500, fontFamily: "'Poppins',sans-serif", margin: 0 }}>
+                        No batches created yet
+                      </p>
+                      <p style={{ fontSize: 10, color: t.textLabel, fontFamily: "'Poppins',sans-serif", margin: 0 }}>
+                        Click "Create Batch" to get started
+                      </p>
+                    </div>
+                  ) : (
+                    filteredBatches.map((b, index) => {
+                      const dh         = dragH(index);
+                      const isDragging = dActive === index;
+                      const isOver     = dOver === index && dActive !== index;
+                      const [c1, c2]   = gradColor(b.batchName);
 
-                      {/* action buttons — unchanged logic */}
-                      <div className="flex gap-2 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => navigate(`/admin/batches/${b.id}/assign-trainer`)}
-                          className="flex items-center gap-1.5 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/50 px-3 py-1.5 text-xs font-semibold text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors">
-                          <UserCheck className="h-3.5 w-3.5" />
-                          {b.trainerEmail ? "Manage Students" : "Assign Trainer"}
-                        </button>
-                        <button onClick={() => navigate(`/admin/batches/${b.id}/trainers`)}
-                          className="flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-                          <Users className="h-3.5 w-3.5" /> Trainers
-                        </button>
-                        <button onClick={async () => {
-                            if (!window.confirm("Delete this batch permanently?")) return;
-                            try { await deleteBatch(b.id); loadBatches(); }
-                            catch (e) { console.error("Delete failed", e); alert("Failed to delete batch"); }
+                      return (
+                        <div
+                          key={b.id}
+                          {...dh}
+                          className="batch-row"
+                          style={{
+                            display: "flex", flexDirection: "row",
+                            alignItems: "center", justifyContent: "space-between",
+                            gap: 16, borderRadius: 16, padding: "14px 16px",
+                            border: `1px solid ${isOver ? "#22d3ee" : isDragging ? t.borderHov : t.border}`,
+                            background: isDragging
+                              ? t.actBg
+                              : isOver
+                              ? (isDark ? "rgba(34,211,238,0.06)" : "rgba(34,211,238,0.04)")
+                              : t.recentItemBg,
+                            opacity: isDragging ? 0.5 : 1,
+                            transition: "all 0.15s", cursor: "default",
+                            position: "relative",
+                            boxShadow: isOver ? `0 0 0 2px #22d3ee33` : "none",
                           }}
-                          className="h-8 w-8 rounded-xl bg-red-50 dark:bg-red-950/50 flex items-center justify-center text-red-500 hover:bg-red-100 dark:hover:bg-red-900 transition-colors">
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
+                        >
+                          {/* drop indicator */}
+                          {isOver && (
+                            <div style={{
+                              position: "absolute", top: -1, left: 24, right: 24,
+                              height: 2, background: "#22d3ee", borderRadius: 99,
+                            }} />
+                          )}
+
+                          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                            {/* drag grip */}
+                            <div
+                              className="grip-btn"
+                              style={{
+                                cursor: "grab", padding: 6, borderRadius: 8,
+                                background: t.actBg, flexShrink: 0,
+                              }}
+                            >
+                              <GripVertical size={14} color={t.textMuted} />
+                            </div>
+
+                            {/* avatar */}
+                            <div style={{
+                              width: 42, height: 42, borderRadius: 12,
+                              background: `linear-gradient(135deg,${c1},${c2})`,
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                              color: "#fff", fontWeight: 800, fontSize: 15,
+                              fontFamily: "'Poppins',sans-serif",
+                              boxShadow: `0 4px 12px ${c1}44`,
+                              flexShrink: 0,
+                            }}>
+                              {b.batchName?.charAt(0)?.toUpperCase()}
+                            </div>
+
+                            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                              <p style={{
+                                fontSize: 13, fontWeight: 700, color: t.text,
+                                margin: 0, fontFamily: "'Poppins',sans-serif",
+                              }}>{b.batchName}</p>
+                              <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                                <span style={{
+                                  display: "flex", alignItems: "center", gap: 4,
+                                  fontSize: 10, color: t.textMuted, fontFamily: "'Poppins',sans-serif",
+                                }}>
+                                  <span style={{ width: 5, height: 5, borderRadius: "50%", background: t.textMuted, display: "inline-block" }} />
+                                  ID: {b.id}
+                                </span>
+                                <span style={{
+                                  display: "flex", alignItems: "center", gap: 4,
+                                  fontSize: 10, color: t.textMuted, fontFamily: "'Poppins',sans-serif",
+                                }}>
+                                  <GitBranch size={10} /> Branch: {b.branchId}
+                                </span>
+                              </div>
+                              {b.trainerEmail ? (
+                                <span style={{
+                                  display: "flex", alignItems: "center", gap: 5,
+                                  fontSize: 10, fontWeight: 600,
+                                  color: isDark ? "#34d399" : "#16a34a",
+                                  fontFamily: "'Poppins',sans-serif",
+                                }}>
+                                  <CheckCircle2 size={12} color={isDark ? "#34d399" : "#16a34a"} />
+                                  {b.trainerEmail}
+                                </span>
+                              ) : (
+                                <span style={{
+                                  display: "flex", alignItems: "center", gap: 5,
+                                  fontSize: 10, fontWeight: 600, color: "#f59e0b",
+                                  fontFamily: "'Poppins',sans-serif",
+                                }}>
+                                  <span style={{
+                                    width: 6, height: 6, borderRadius: "50%",
+                                    background: "#f59e0b", display: "inline-block",
+                                    animation: "pulse 1.5s ease infinite",
+                                  }} />
+                                  Trainer not assigned
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* action buttons — unchanged logic */}
+                          <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                            <button
+                              onClick={() => navigate(`/admin/batches/${b.id}/assign-trainer`)}
+                              style={{
+                                display: "flex", alignItems: "center", gap: 6,
+                                padding: "7px 14px", borderRadius: 9,
+                                border: "1px solid rgba(34,211,238,0.3)",
+                                background: "rgba(34,211,238,0.08)",
+                                color: isDark ? "#22d3ee" : "#0891b2",
+                                fontSize: 11, fontWeight: 600, cursor: "pointer",
+                                fontFamily: "'Poppins',sans-serif", transition: "all 0.15s",
+                              }}
+                            >
+                              <UserCheck size={13} />
+                              {b.trainerEmail ? "Manage Students" : "Assign Trainer"}
+                            </button>
+                            <button
+                              onClick={() => navigate(`/admin/batches/${b.id}/trainers`)}
+                              style={{
+                                display: "flex", alignItems: "center", gap: 6,
+                                padding: "7px 14px", borderRadius: 9,
+                                border: `1px solid ${t.border}`,
+                                background: t.actBg,
+                                color: t.textSub,
+                                fontSize: 11, fontWeight: 600, cursor: "pointer",
+                                fontFamily: "'Poppins',sans-serif", transition: "all 0.15s",
+                              }}
+                            >
+                              <Users size={13} /> Trainers
+                            </button>
+                            <button
+                              onClick={async () => {
+                                if (!window.confirm("Delete this batch permanently?")) return;
+                                try { await deleteBatch(b.id); loadBatches(); }
+                                catch (e) { console.error("Delete failed", e); alert("Failed to delete batch"); }
+                              }}
+                              style={{
+                                width: 34, height: 34, borderRadius: 9,
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                background: "rgba(244,63,94,0.08)", border: "1px solid rgba(244,63,94,0.2)",
+                                color: "#f43f5e", cursor: "pointer", transition: "all 0.15s",
+                              }}
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* ═══ INLINE SLIDE PANEL ═══ */}
+            <div style={{
+              flexShrink: 0,
+              width: panelOpen ? 384 : 0,
+              opacity: panelOpen ? 1 : 0,
+              pointerEvents: panelOpen ? "auto" : "none",
+              overflow: "hidden",
+              transition: "width 0.3s ease, opacity 0.3s ease",
+            }}>
+              <div style={{
+                width: 384, borderRadius: 20,
+                border: `1px solid ${t.border}`,
+                background: t.cardBg, overflow: "hidden",
+                boxShadow: t.shadowHov,
+              }}>
+                {/* panel header */}
+                <div style={{
+                  background: "linear-gradient(135deg,#1a56db,#06b6d4)",
+                  padding: "18px 20px",
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{
+                        width: 34, height: 34, borderRadius: 10,
+                        background: "rgba(255,255,255,0.2)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                      }}>
+                        <Plus size={16} color="#fff" />
+                      </div>
+                      <div>
+                        <p style={{ fontSize: 13, fontWeight: 700, color: "#fff", margin: 0, fontFamily: "'Poppins',sans-serif" }}>New Batch</p>
+                        <p style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", margin: "2px 0 0", fontFamily: "'Poppins',sans-serif" }}>Fill in the batch details</p>
                       </div>
                     </div>
-                  );
-                })
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* ═══ INLINE SLIDE PANEL ═══ */}
-        <div className={`flex-shrink-0 transition-all duration-300 ease-in-out overflow-hidden
-          ${panelOpen ? "w-96 opacity-100" : "w-0 opacity-0 pointer-events-none"}`}>
-
-          <div className="w-96 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl overflow-hidden">
-
-            {/* panel header */}
-            <div className="bg-gradient-to-r from-[#1a56db] to-[#06b6d4] px-5 py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="h-8 w-8 rounded-xl bg-white/20 flex items-center justify-center">
-                    <Plus className="h-4 w-4 text-white" />
+                    <button
+                      onClick={() => setPanelOpen(false)}
+                      style={{
+                        width: 28, height: 28, borderRadius: 8,
+                        background: "rgba(255,255,255,0.15)",
+                        border: "none", cursor: "pointer",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        transition: "background 0.2s",
+                      }}
+                    >
+                      <X size={14} color="#fff" />
+                    </button>
                   </div>
-                  <div>
-                    <h2 className="text-sm font-bold text-white">New Batch</h2>
-                    <p className="text-[11px] text-blue-100/70">Fill in the batch details</p>
+
+                  {/* step bar */}
+                  <div style={{ display: "flex", gap: 6, marginTop: 14 }}>
+                    {["Batch Info", "Assign Trainer", "Add Students"].map((step, i) => (
+                      <div
+                        key={step}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 6,
+                          padding: "6px 10px", borderRadius: 8,
+                          background: i === 0 ? "rgba(255,255,255,0.2)" : "transparent",
+                          color: i === 0 ? "#fff" : "rgba(255,255,255,0.4)",
+                          fontSize: 10, fontWeight: 600,
+                          fontFamily: "'Poppins',sans-serif",
+                        }}
+                      >
+                        <div style={{
+                          width: 16, height: 16, borderRadius: "50%",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          fontSize: 9, fontWeight: 800,
+                          background: i === 0 ? "#fff" : "rgba(255,255,255,0.2)",
+                          color: i === 0 ? "#1a56db" : "rgba(255,255,255,0.6)",
+                          flexShrink: 0,
+                        }}>{i + 1}</div>
+                        {step}
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <button onClick={() => setPanelOpen(false)}
-                  className="h-7 w-7 rounded-lg bg-white/15 hover:bg-white/30 flex items-center justify-center transition-colors">
-                  <X className="h-4 w-4 text-white" />
-                </button>
-              </div>
 
-              {/* step bar */}
-              <div className="flex gap-1.5 mt-4">
-                {["Batch Info","Assign Trainer","Add Students"].map((step, i) => (
-                  <div key={step} className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold ${
-                    i === 0 ? "bg-white/20 text-white" : "text-white/40"}`}>
-                    <div className={`h-4 w-4 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
-                      i === 0 ? "bg-white text-blue-600" : "bg-white/20 text-white/60"}`}>{i+1}</div>
-                    {step}
-                  </div>
-                ))}
+                {/* panel body */}
+                <div style={{ overflowY: "auto", maxHeight: "calc(100vh - 280px)" }}>
+                  <CreateBatchModal
+                    inline
+                    onClose={() => setPanelOpen(false)}
+                    onSuccess={newBatch => {
+                      setPanelOpen(false);
+                      setCreatedBatchId(newBatch.id);
+                      loadBatches();
+                    }}
+                  />
+                </div>
               </div>
             </div>
 
-            {/* panel body — CreateBatchModal rendered inline */}
-            <div className="overflow-y-auto max-h-[calc(100vh-280px)]">
-              <CreateBatchModal
-                inline
-                onClose={() => setPanelOpen(false)}
-                onSuccess={newBatch => {
-                  setPanelOpen(false);
-                  setCreatedBatchId(newBatch.id);
-                  loadBatches();
-                }}
-              />
-            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

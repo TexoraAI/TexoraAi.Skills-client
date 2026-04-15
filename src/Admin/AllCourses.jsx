@@ -1,462 +1,3 @@
-// import { courseService } from "@/services/courseService";
-// import { BookOpen, Search, X } from "lucide-react";
-// import { useEffect, useState } from "react";
-
-// import { Badge } from "@/components/ui/badge";
-// import { Button } from "@/components/ui/button";
-// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// import {
-//   Dialog,
-//   DialogClose,
-//   DialogContent,
-//   DialogHeader,
-//   DialogTitle,
-// } from "@/components/ui/dialog";
-// import { Input } from "@/components/ui/input";
-// import {
-//   Table,
-//   TableBody,
-//   TableCell,
-//   TableHead,
-//   TableHeader,
-//   TableRow,
-// } from "@/components/ui/table";
-
-// const AllCourses = () => {
-//   const [search, setSearch] = useState("");
-//   const [open, setOpen] = useState(false);
-//   const [courses, setCourses] = useState([]);
-//   const [loading, setLoading] = useState(true);
-
-//   // ===============================
-//   // LOAD ADMIN COURSES
-//   // ===============================
-//   useEffect(() => {
-//     loadCourses();
-//   }, []);
-
-//   const loadCourses = () => {
-//     courseService
-//       .getAllCoursesForAdmin()
-//       .then((res) => {
-//         // map backend fields to UI expected fields
-//         const mapped = res.data.map((c) => ({
-//           id: c.id,
-//           name: c.title,
-//           category: c.category,
-//           trainerName: c.ownerEmail,
-//           status: "PUBLISHED", // default (since not in entity yet)
-//           enrollments: 0, // placeholder until enrollment service added
-//         }));
-
-//         setCourses(mapped);
-//       })
-//       .catch((err) => {
-//         console.error("Failed to load courses", err);
-//       })
-//       .finally(() => setLoading(false));
-//   };
-
-//   // ===============================
-//   // SEARCH FILTER
-//   // ===============================
-//   const filteredCourses = courses.filter((c) =>
-//     c.name.toLowerCase().includes(search.toLowerCase()),
-//   );
-
-//   return (
-//     <div className="space-y-8">
-//       {/* HERO */}
-//       <div className="rounded-3xl p-8 text-white shadow-xl bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600">
-//         <h1 className="text-3xl font-bold">All Courses</h1>
-//         <p className="mt-2 text-sm opacity-90">
-//           Approve, publish and manage all courses on the platform
-//         </p>
-//       </div>
-
-//       {/* ACTION BAR */}
-//       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-//         <div className="relative md:w-72">
-//           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-//           <Input
-//             placeholder="Search courses..."
-//             value={search}
-//             onChange={(e) => setSearch(e.target.value)}
-//             className="pl-9"
-//           />
-//         </div>
-//       </div>
-
-//       {/* TABLE */}
-//       <Card>
-//         <CardHeader>
-//           <CardTitle className="text-sm">Course List</CardTitle>
-//         </CardHeader>
-
-//         <CardContent>
-//           {loading ? (
-//             <div className="text-center py-8 text-muted-foreground">
-//               Loading courses...
-//             </div>
-//           ) : filteredCourses.length === 0 ? (
-//             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-//               <BookOpen className="h-10 w-10 mb-3 opacity-40" />
-//               <p className="text-sm">No courses available</p>
-//               <p className="text-xs">
-//                 Courses created by trainers will appear here
-//               </p>
-//             </div>
-//           ) : (
-//             <Table>
-//               <TableHeader>
-//                 <TableRow>
-//                   <TableHead>Course Name</TableHead>
-//                   <TableHead>Category</TableHead>
-//                   <TableHead>Trainer</TableHead>
-//                   <TableHead>Status</TableHead>
-//                   <TableHead className="text-right">Enrollments</TableHead>
-//                 </TableRow>
-//               </TableHeader>
-
-//               <TableBody>
-//                 {filteredCourses.map((c) => (
-//                   <TableRow key={c.id}>
-//                     <TableCell className="font-medium">{c.name}</TableCell>
-//                     <TableCell>{c.category}</TableCell>
-//                     <TableCell>{c.trainerName}</TableCell>
-//                     <TableCell>
-//                       <Badge
-//                         variant={
-//                           c.status === "PUBLISHED" ? "secondary" : "outline"
-//                         }
-//                       >
-//                         {c.status}
-//                       </Badge>
-//                     </TableCell>
-//                     <TableCell className="text-right">
-//                       {c.enrollments}
-//                     </TableCell>
-//                   </TableRow>
-//                 ))}
-//               </TableBody>
-//             </Table>
-//           )}
-//         </CardContent>
-//       </Card>
-
-//       {/* CREATE COURSE MODAL (UI unchanged) */}
-//       <Dialog open={open} onOpenChange={setOpen}>
-//         <DialogContent
-//           className="
-//             fixed left-1/2 top-1/2
-//             -translate-x-1/2 -translate-y-1/2
-//             rounded-2xl max-w-md w-full
-//             bg-white dark:bg-slate-900
-//             border border-slate-200 dark:border-slate-700
-//             shadow-xl
-//           "
-//         >
-//           <DialogHeader>
-//             <DialogTitle>Create Course</DialogTitle>
-
-//             <DialogClose
-//               className="
-//                 absolute right-4 top-4
-//                 rounded-md p-1
-//                 text-slate-500 hover:text-slate-900
-//                 hover:bg-slate-100
-//                 dark:text-slate-400 dark:hover:text-white
-//                 dark:hover:bg-slate-800
-//                 outline-none ring-0
-//                 focus:outline-none focus:ring-0
-//                 transition
-//               "
-//             >
-//               <X className="h-4 w-4" />
-//             </DialogClose>
-//           </DialogHeader>
-
-//           <div className="space-y-4 mt-4">
-//             <Input placeholder="Course name" />
-//             <Input placeholder="Category" />
-//             <Input placeholder="Trainer name" />
-
-//             <div className="flex justify-end gap-2 pt-2">
-//               <Button variant="secondary" onClick={() => setOpen(false)}>
-//                 Cancel
-//               </Button>
-//               <Button className="bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600">
-//                 Create
-//               </Button>
-//             </div>
-//           </div>
-//         </DialogContent>
-//       </Dialog>
-//     </div>
-//   );
-// };
-
-// export default AllCourses;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import { courseService } from "@/services/courseService";
-// import { BookOpen, Search, X } from "lucide-react";
-// import { useNavigate } from "react-router-dom";
-// import { useEffect, useState } from "react";
-// import { Folder } from "lucide-react";
-// import { Badge } from "@/components/ui/badge";
-// import { Button } from "@/components/ui/button";
-// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// import {
-//   Dialog,
-//   DialogClose,
-//   DialogContent,
-//   DialogHeader,
-//   DialogTitle,
-// } from "@/components/ui/dialog";
-// import { Input } from "@/components/ui/input";
-// import {
-//   Table,
-//   TableBody,
-//   TableCell,
-//   TableHead,
-//   TableHeader,
-//   TableRow,
-// } from "@/components/ui/table";
-
-// const AllCourses = () => {
-//   const navigate = useNavigate(); 
-//   const [search, setSearch] = useState("");
-//   const [open, setOpen] = useState(false);
-//   const [courses, setCourses] = useState([]);
-//   const [loading, setLoading] = useState(true);
-
-//   // ===============================
-//   // LOAD ADMIN COURSES
-//   // ===============================
-//   useEffect(() => {
-//     loadCourses();
-//   }, []);
-
-//   const loadCourses = () => {
-//     courseService
-//       .getAllCoursesForAdmin()
-//       .then((res) => {
-//         // map backend fields to UI expected fields
-//         const mapped = res.data.map((c) => ({
-//           id: c.id,
-//           name: c.title,
-//           category: c.category,
-//           trainerName: c.ownerEmail,
-//           status: "PUBLISHED", // default (since not in entity yet)
-//           enrollments: 0, // placeholder until enrollment service added
-//         }));
-
-//         setCourses(mapped);
-//       })
-//       .catch((err) => {
-//         console.error("Failed to load courses", err);
-//       })
-//       .finally(() => setLoading(false));
-//   };
-
-//   // ===============================
-//   // SEARCH FILTER
-//   // ===============================
-//   const filteredCourses = courses.filter((c) =>
-//     c.name.toLowerCase().includes(search.toLowerCase()),
-//   );
-
-//   return (
-//     <div className="space-y-8">
-//       {/* HERO */}
-//       <div className="rounded-3xl p-8 text-white shadow-xl bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600">
-//         <h1 className="text-3xl font-bold">All Courses</h1>
-//         <p className="mt-2 text-sm opacity-90">
-//           Approve, publish and manage all courses on the platform
-//         </p>
-//       </div>
-
-//       {/* ACTION BAR */}
-//       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-
-//   {/* LEFT → Search */}
-//   <div className="relative md:w-72">
-//     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-//     <Input
-//       placeholder="Search courses..."
-//       value={search}
-//       onChange={(e) => setSearch(e.target.value)}
-//       className="pl-9 bg-white dark:bg-slate-900"
-//     />
-//   </div>
-
-//   {/* RIGHT → Categories Button */}
-//   <Button
-//   onClick={() => navigate("/admin/categories")}
-//   className="
-//     flex items-center gap-2
-//     px-5 py-2.5
-//     rounded-xl
-//     text-white font-medium
-//     bg-gradient-to-r from-blue-500 to-indigo-600
-//     hover:from-blue-600 hover:to-indigo-700
-//     shadow-md hover:shadow-lg
-//     transition-all duration-300
-//   "
-// >
-//   <Folder className="h-4 w-4" />
-//   Categories
-// </Button>
-
-// </div>
-
-//       {/* TABLE */}
-//       <Card>
-//         <CardHeader>
-//           <CardTitle className="text-sm">Course List</CardTitle>
-//         </CardHeader>
-
-//         <CardContent>
-//           {loading ? (
-//             <div className="text-center py-8 text-muted-foreground">
-//               Loading courses...
-//             </div>
-//           ) : filteredCourses.length === 0 ? (
-//             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-//               <BookOpen className="h-10 w-10 mb-3 opacity-40" />
-//               <p className="text-sm">No courses available</p>
-//               <p className="text-xs">
-//                 Courses created by trainers will appear here
-//               </p>
-//             </div>
-//           ) : (
-//             <Table>
-//               <TableHeader>
-//                 <TableRow>
-//                   <TableHead>Course Name</TableHead>
-//                   <TableHead>Category</TableHead>
-//                   <TableHead>Trainer</TableHead>
-//                   <TableHead>Status</TableHead>
-//                   <TableHead className="text-right">Enrollments</TableHead>
-//                 </TableRow>
-//               </TableHeader>
-
-//               <TableBody>
-//                 {filteredCourses.map((c) => (
-//                   <TableRow key={c.id}>
-//                     <TableCell className="font-medium">{c.name}</TableCell>
-//                     <TableCell>{c.category}</TableCell>
-//                     <TableCell>{c.trainerName}</TableCell>
-//                     <TableCell>
-//                       <Badge
-//                         variant={
-//                           c.status === "PUBLISHED" ? "secondary" : "outline"
-//                         }
-//                       >
-//                         {c.status}
-//                       </Badge>
-//                     </TableCell>
-//                     <TableCell className="text-right">
-//                       {c.enrollments}
-//                     </TableCell>
-//                   </TableRow>
-//                 ))}
-//               </TableBody>
-//             </Table>
-//           )}
-//         </CardContent>
-//       </Card>
-
-//       {/* CREATE COURSE MODAL (UI unchanged) */}
-//       <Dialog open={open} onOpenChange={setOpen}>
-//         <DialogContent
-//           className="
-//             fixed left-1/2 top-1/2
-//             -translate-x-1/2 -translate-y-1/2
-//             rounded-2xl max-w-md w-full
-//             bg-white dark:bg-slate-900
-//             border border-slate-200 dark:border-slate-700
-//             shadow-xl
-//           "
-//         >
-//           <DialogHeader>
-//             <DialogTitle>Create Course</DialogTitle>
-
-//             <DialogClose
-//               className="
-//                 absolute right-4 top-4
-//                 rounded-md p-1
-//                 text-slate-500 hover:text-slate-900
-//                 hover:bg-slate-100
-//                 dark:text-slate-400 dark:hover:text-white
-//                 dark:hover:bg-slate-800
-//                 outline-none ring-0
-//                 focus:outline-none focus:ring-0
-//                 transition
-//               "
-//             >
-//               <X className="h-4 w-4" />
-//             </DialogClose>
-//           </DialogHeader>
-
-//           <div className="space-y-4 mt-4">
-//             <Input placeholder="Course name" />
-//             <Input placeholder="Category" />
-//             <Input placeholder="Trainer name" />
-
-//             <div className="flex justify-end gap-2 pt-2">
-//               <Button variant="secondary" onClick={() => setOpen(false)}>
-//                 Cancel
-//               </Button>
-//               <Button className="bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600">
-//                 Create
-//               </Button>
-//             </div>
-//           </div>
-//         </DialogContent>
-//       </Dialog>
-//     </div>
-//   );
-// };
-
-// export default AllCourses;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import { courseService } from "@/services/courseService";
 import {
   ArrowLeft, BookOpen, Folder, Mail, Plus,
@@ -465,38 +6,162 @@ import {
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+/* ─── Styles ─────────────────────────────────────────────────────── */
+const STYLES = `
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+:root{--bg:#f1f5f9;--card:#ffffff;--tx:#0f172a;--mu:#64748b;--bd:#e2e8f0;
+  --c1:#22d3ee;--c2:#fb923c;--c3:#34d399;--c4:#a78bfa;--cr:#f87171;
+  --sh:0 4px 24px rgba(0,0,0,0.06);--shl:0 8px 40px rgba(0,0,0,0.10);--r:20px;}
+.ac-dk{--bg:#0a0a0a;--card:#111111;--tx:#ffffff;--mu:#94a3b8;--bd:rgba(255,255,255,0.06);
+  --sh:0 4px 24px rgba(0,0,0,0.40);--shl:0 8px 40px rgba(0,0,0,0.60);}
 
-/* ── category chip colours ── */
-const CHIP = [
-  "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800",
-  "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/50 dark:text-violet-400 dark:border-violet-800",
-  "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800",
-  "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800",
-  "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/50 dark:text-rose-400 dark:border-rose-800",
-  "bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-950/50 dark:text-cyan-400 dark:border-cyan-800",
+.ac{font-family:'Poppins',sans-serif;min-height:100vh;background:var(--bg);color:var(--tx);padding:24px;box-sizing:border-box;}
+.ac-inner{max-width:1300px;margin:0 auto;display:flex;flex-direction:column;gap:20px;}
+
+/* header */
+.ac-hdr{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:24px 28px;box-shadow:var(--sh);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.ac-hdr-l{display:flex;align-items:center;gap:14px;}
+.ac-back{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border-radius:12px;border:1px solid var(--bd);background:var(--bg);color:var(--mu);font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:border-color .2s,color .2s;flex-shrink:0;}
+.ac-back:hover{border-color:rgba(34,211,238,.35);color:var(--c1);}
+.ac-hdr-ico{width:52px;height:52px;border-radius:14px;background:rgba(34,211,238,.10);border:1px solid rgba(34,211,238,.18);display:flex;align-items:center;justify-content:center;color:var(--c1);flex-shrink:0;}
+.ac-bdg{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:50px;border:1px solid var(--bd);background:rgba(34,211,238,.08);color:var(--c1);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;}
+.ac-h1{font-size:22px;font-weight:800;color:var(--tx);margin:0 0 2px;}
+.ac-sub{font-size:13px;color:var(--mu);margin:0;}
+.ac-chips{display:flex;gap:10px;flex-wrap:wrap;}
+.ac-chip{display:flex;align-items:center;gap:7px;padding:10px 18px;border-radius:13px;background:var(--bg);border:1px solid var(--bd);font-size:13px;font-weight:700;white-space:nowrap;box-shadow:var(--sh);}
+
+/* action bar */
+.ac-abar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.ac-search{position:relative;}
+.ac-search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--mu);}
+.ac-search input{padding:10px 14px 10px 38px;border-radius:13px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-family:'Poppins',sans-serif;font-size:13px;font-weight:500;outline:none;width:260px;transition:border-color .2s,box-shadow .2s;}
+.ac-search input::placeholder{color:var(--mu);}
+.ac-search input:focus{border-color:var(--c1);box-shadow:0 0 0 3px rgba(34,211,238,.12);}
+.ac-abar-r{display:flex;gap:8px;}
+.ac-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:13px;border:none;font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:opacity .2s,transform .15s;}
+.ac-btn:hover{opacity:.87;transform:translateY(-1px);}
+.ac-btn-outline{background:var(--card);border:1px solid var(--bd)!important;color:var(--mu);}
+.ac-btn-outline:hover{border-color:rgba(34,211,238,.30)!important;color:var(--c1);}
+.ac-btn-cyan{background:var(--c1);color:#0a0a0a;}
+
+/* table card */
+.ac-tcard{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;}
+.ac-thead-row{display:flex;align-items:center;justify-content:space-between;padding:14px 22px;border-bottom:1px solid var(--bd);background:var(--bg);}
+.ac-thead-title{font-size:13px;font-weight:700;color:var(--tx);margin:0 0 2px;}
+.ac-thead-sub{font-size:11px;color:var(--mu);margin:0;}
+
+/* skeleton */
+.ac-skel-row{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--bd);}
+.ac-skel-l{display:flex;align-items:center;gap:12px;}
+.ac-skel-sq{width:38px;height:38px;border-radius:12px;background:var(--bd);}
+.ac-skel-line{height:10px;border-radius:6px;background:var(--bd);}
+.ac-skel-pill{height:22px;width:80px;border-radius:30px;background:var(--bd);}
+@keyframes ac-pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.ac-skel-row{animation:ac-pulse 1.4s ease-in-out infinite;}
+
+/* empty */
+.ac-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 20px;gap:12px;text-align:center;}
+.ac-empty-ico{width:56px;height:56px;border-radius:16px;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.15);display:flex;align-items:center;justify-content:center;color:var(--c1);}
+.ac-empty-t{font-size:14px;font-weight:700;color:var(--tx);margin:0 0 4px;}
+.ac-empty-s{font-size:12px;color:var(--mu);margin:0;}
+
+/* table */
+table.ac-t{width:100%;border-collapse:collapse;font-size:13px;}
+.ac-t thead th{padding:11px 14px;text-align:left;font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.07em;background:var(--bg);border-bottom:1px solid var(--bd);}
+.ac-t thead th:first-child{padding-left:22px;}
+.ac-t thead th:last-child{text-align:right;padding-right:22px;}
+.ac-t tbody tr{border-bottom:1px solid var(--bd);transition:background .15s;}
+.ac-t tbody tr:last-child{border-bottom:none;}
+.ac-t tbody tr:hover{background:rgba(34,211,238,.025);}
+.ac-t tbody td{padding:12px 14px;vertical-align:middle;}
+.ac-t tbody td:first-child{padding-left:22px;}
+.ac-t tbody td:last-child{padding-right:22px;text-align:right;}
+.ac-idx{font-size:12px;font-weight:700;color:var(--mu);}
+.ac-course-cell{display:flex;align-items:center;gap:12px;}
+.ac-course-av{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ac-course-name{font-size:13px;font-weight:700;color:var(--tx);transition:color .15s;}
+.ac-t tbody tr:hover .ac-course-name{color:var(--c1);}
+.ac-cat-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:700;border:1px solid;}
+.ac-trainer-cell{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--mu);}
+.ac-status-ok{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:700;background:rgba(52,211,153,.10);border:1px solid rgba(52,211,153,.20);color:var(--c3);}
+.ac-status-dot{width:6px;height:6px;border-radius:50%;background:var(--c3);animation:ac-blink 1.4s ease-in-out infinite;}
+@keyframes ac-blink{0%,100%{opacity:1}50%{opacity:.3}}
+.ac-enroll-cell{display:flex;align-items:center;justify-content:flex-end;gap:5px;font-size:13px;font-weight:700;color:var(--tx);}
+
+/* modal overlay */
+.ac-modal-overlay{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;}
+.ac-modal{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);width:100%;max-width:400px;overflow:hidden;box-shadow:var(--shl);}
+.ac-modal-head{padding:18px 20px;background:rgba(34,211,238,.06);border-bottom:1px solid var(--bd);}
+.ac-modal-head-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:0;}
+.ac-modal-head-l{display:flex;align-items:center;gap:10px;}
+.ac-modal-ico{width:36px;height:36px;border-radius:10px;background:rgba(34,211,238,.12);border:1px solid rgba(34,211,238,.20);display:flex;align-items:center;justify-content:center;color:var(--c1);}
+.ac-modal-title{font-size:14px;font-weight:800;color:var(--tx);margin:0 0 2px;}
+.ac-modal-sub{font-size:11px;color:var(--mu);margin:0;}
+.ac-modal-close{width:30px;height:30px;border-radius:9px;border:1px solid var(--bd);background:var(--bg);color:var(--mu);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;}
+.ac-modal-close:hover{border-color:rgba(248,113,113,.30);color:var(--cr);}
+.ac-modal-body{padding:20px;display:flex;flex-direction:column;gap:14px;}
+.ac-field label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--mu);margin-bottom:6px;}
+.ac-input{width:100%;padding:10px 13px;border-radius:13px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-family:'Poppins',sans-serif;font-size:13px;outline:none;box-sizing:border-box;transition:border-color .2s,box-shadow .2s;}
+.ac-input:focus{border-color:var(--c1);box-shadow:0 0 0 3px rgba(34,211,238,.12);}
+.ac-input::placeholder{color:var(--mu);}
+.ac-modal-footer{display:flex;justify-content:flex-end;gap:8px;}
+.ac-cancel{padding:10px 18px;border-radius:12px;border:1px solid var(--bd);background:var(--bg);color:var(--mu);font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;}
+.ac-cancel:hover{border-color:rgba(34,211,238,.30);color:var(--c1);}
+.ac-submit{padding:10px 22px;border-radius:12px;border:none;background:var(--c1);color:#0a0a0a;font-family:'Poppins',sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:opacity .2s,transform .15s;}
+.ac-submit:hover{opacity:.87;transform:translateY(-1px);}
+`;
+
+if (!document.getElementById("ac-st")) {
+  const t = document.createElement("style");
+  t.id = "ac-st";
+  t.textContent = STYLES;
+  document.head.appendChild(t);
+}
+
+const isDark = () =>
+  document.documentElement.classList.contains("dark") ||
+  document.body.classList.contains("dark") ||
+  window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+/* ── category tag colours ── */
+const CAT_COLORS = [
+  { bg:"rgba(34,211,238,.10)",  color:"var(--c1)", bd:"rgba(34,211,238,.20)"  },
+  { bg:"rgba(167,139,250,.10)", color:"var(--c4)", bd:"rgba(167,139,250,.20)" },
+  { bg:"rgba(251,146,60,.10)",  color:"var(--c2)", bd:"rgba(251,146,60,.20)"  },
+  { bg:"rgba(52,211,153,.10)",  color:"var(--c3)", bd:"rgba(52,211,153,.20)"  },
+  { bg:"rgba(248,113,113,.10)", color:"var(--cr)", bd:"rgba(248,113,113,.20)" },
 ];
-const chip = (val) => CHIP[(String(val)?.charCodeAt(0) ?? 0) % CHIP.length];
+const catColor = val => CAT_COLORS[(String(val)?.charCodeAt(0) ?? 0) % CAT_COLORS.length];
 
-/* ── course avatar gradient ── */
-const GRAD = [
-  "from-violet-500 to-purple-600", "from-cyan-500 to-blue-600",
-  "from-rose-500 to-pink-600",     "from-amber-500 to-orange-600",
-  "from-emerald-500 to-teal-600",  "from-indigo-500 to-blue-700",
+/* ── avatar gradients ── */
+const GRAD_BG = [
+  "linear-gradient(135deg,#6d28d9,#4338ca)",
+  "linear-gradient(135deg,#0891b2,#0e7490)",
+  "linear-gradient(135deg,#be123c,#9f1239)",
+  "linear-gradient(135deg,#b45309,#92400e)",
+  "linear-gradient(135deg,#047857,#065f46)",
+  "linear-gradient(135deg,#1d4ed8,#1e40af)",
 ];
-const grad = (val) => GRAD[(String(val)?.charCodeAt(0) ?? 0) % GRAD.length];
+const gradBg = val => GRAD_BG[(String(val)?.charCodeAt(0) ?? 0) % GRAD_BG.length];
 
-/* ================= MAIN ================= */
+/* ════════════════════════════════════════════════════════════════════
+   MAIN
+════════════════════════════════════════════════════════════════════ */
 const AllCourses = () => {
   const navigate = useNavigate();
+  const [dark, setDark] = useState(isDark);
 
   const [search, setSearch]   = useState("");
   const [open, setOpen]       = useState(false);
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const o = new MutationObserver(() => setDark(isDark()));
+    o.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    o.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    return () => o.disconnect();
+  }, []);
 
   /* ── LOAD (unchanged) ── */
   useEffect(() => { loadCourses(); }, []);
@@ -525,277 +190,182 @@ const AllCourses = () => {
 
   const publishedCount = courses.filter((c) => c.status === "PUBLISHED").length;
 
-  /* ================= RENDER ================= */
   return (
-    <div className="min-h-screen bg-[#f0f4ff] dark:bg-[#060b18] p-5 space-y-5">
+    <div className={`ac${dark ? " ac-dk" : ""}`}>
+      <div className="ac-inner">
 
-      {/* ═══════ HERO ═══════ */}
-      <div className="relative overflow-hidden rounded-2xl shadow-xl
-        bg-gradient-to-r from-[#1a56db] via-[#3b82f6] to-[#06b6d4]">
-        <div className="pointer-events-none absolute -right-12 -top-12 h-52 w-52 rounded-full bg-white/10 blur-3xl" />
-        <div className="pointer-events-none absolute right-32 bottom-[-30px] h-36 w-36 rounded-full bg-cyan-300/20 blur-2xl" />
-        <div className="pointer-events-none absolute left-1/2 top-0 h-px w-2/3 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-
-        <div className="relative flex items-center justify-between px-6 py-5">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate(-1)}
-              className="flex items-center gap-1.5 rounded-xl bg-white/15 px-3 py-1.5
-                text-sm font-medium text-white backdrop-blur-sm hover:bg-white/25 transition-all"
-            >
-              <ArrowLeft className="h-4 w-4" /> Back
+        {/* ── Header ── */}
+        <div className="ac-hdr">
+          <div className="ac-hdr-l">
+            <button className="ac-back" onClick={() => navigate(-1)}>
+              <ArrowLeft size={14} /> Back
             </button>
+            <div className="ac-hdr-ico"><BookOpen size={24} /></div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-white">All Courses</h1>
-              <p className="mt-0.5 text-sm text-blue-100/80">
-                Approve, publish and manage all courses on the platform
+              <div className="ac-bdg"><BookOpen size={10} /> Course Management</div>
+              <h1 className="ac-h1">All Courses</h1>
+              <p className="ac-sub">Approve, publish and manage all courses on the platform</p>
+            </div>
+          </div>
+          <div className="ac-chips">
+            <div className="ac-chip">
+              <BookOpen size={14} style={{ color: "var(--c1)" }} />
+              <span style={{ fontWeight: 800, color: "var(--c1)" }}>{courses.length}</span>
+              <span style={{ color: "var(--mu)", fontWeight: 500 }}>Courses</span>
+            </div>
+            <div className="ac-chip">
+              <Users size={14} style={{ color: "var(--c3)" }} />
+              <span style={{ fontWeight: 800, color: "var(--c3)" }}>{publishedCount}</span>
+              <span style={{ color: "var(--mu)", fontWeight: 500 }}>Published</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Action bar ── */}
+        <div className="ac-abar">
+          <div className="ac-search">
+            <Search size={14} />
+            <input
+              placeholder="Search courses…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <div className="ac-abar-r">
+            <button className="ac-btn ac-btn-outline" onClick={() => navigate("/admin/categories")}>
+              <Folder size={14} style={{ color: "var(--c1)" }} /> Categories
+            </button>
+          </div>
+        </div>
+
+        {/* ── Table card ── */}
+        <div className="ac-tcard">
+          <div className="ac-thead-row">
+            <div>
+              <p className="ac-thead-title">Course List</p>
+              <p className="ac-thead-sub">
+                {filteredCourses.length} course{filteredCourses.length !== 1 && "s"} found
               </p>
             </div>
           </div>
 
-          {/* stats pills */}
-          <div className="hidden md:flex items-center gap-2">
-            <div className="flex items-center gap-2 rounded-2xl bg-white/15 px-4 py-2 backdrop-blur-sm">
-              <BookOpen className="h-4 w-4 text-cyan-200" />
-              <span className="text-sm font-semibold text-white">
-                {courses.length}
-                <span className="ml-1 font-normal text-blue-100/80">Courses</span>
-              </span>
-            </div>
-            <div className="flex items-center gap-2 rounded-2xl bg-white/15 px-4 py-2 backdrop-blur-sm">
-              <Users className="h-4 w-4 text-cyan-200" />
-              <span className="text-sm font-semibold text-white">
-                {publishedCount}
-                <span className="ml-1 font-normal text-blue-100/80">Published</span>
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ═══════ ACTION BAR ═══════ */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-
-        {/* search */}
-        <div className="relative sm:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <Input
-            placeholder="Search courses…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-9 rounded-xl bg-white dark:bg-slate-900
-              border-slate-200 dark:border-slate-800 text-sm"
-          />
-        </div>
-
-        {/* right buttons */}
-        <div className="flex gap-2">
-          <button
-            onClick={() => navigate("/admin/categories")}
-            className="flex items-center gap-1.5 rounded-xl border border-slate-200
-              dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2
-              text-sm font-medium text-slate-600 dark:text-slate-300
-              hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          >
-            <Folder className="h-4 w-4 text-blue-500" /> Categories
-          </button>
-
-        
-        </div>
-      </div>
-
-      {/* ═══════ TABLE CARD ═══════ */}
-      <Card className="overflow-hidden rounded-2xl border border-slate-200
-        dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg">
-
-        <CardHeader className="flex flex-row items-center justify-between
-          border-b border-slate-100 dark:border-slate-800
-          bg-slate-50/60 dark:bg-slate-900/60 px-6 py-4">
-          <div>
-            <CardTitle className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-              Course List
-            </CardTitle>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              {filteredCourses.length} course{filteredCourses.length !== 1 && "s"} found
-            </p>
-          </div>
-        </CardHeader>
-
-        <CardContent className="p-0">
           {/* skeleton */}
-          {loading && (
-            <div className="p-4 space-y-2">
-              {[1,2,3].map((i) => (
-                <div key={i} className="flex items-center justify-between rounded-2xl
-                  border border-slate-100 dark:border-slate-800 p-4 animate-pulse">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-slate-200 dark:bg-slate-700" />
-                    <div className="space-y-2">
-                      <div className="h-3 w-40 bg-slate-200 dark:bg-slate-700 rounded" />
-                      <div className="h-2.5 w-28 bg-slate-200 dark:bg-slate-700 rounded" />
-                    </div>
-                  </div>
-                  <div className="h-6 w-20 bg-slate-200 dark:bg-slate-700 rounded-full" />
+          {loading && [1, 2, 3].map(i => (
+            <div key={i} className="ac-skel-row">
+              <div className="ac-skel-l">
+                <div className="ac-skel-sq" />
+                <div>
+                  <div className="ac-skel-line" style={{ width: 160, marginBottom: 8 }} />
+                  <div className="ac-skel-line" style={{ width: 100 }} />
                 </div>
-              ))}
-            </div>
-          )}
-
-          {/* empty state */}
-          {!loading && filteredCourses.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-16 gap-3">
-              <div className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-slate-800
-                flex items-center justify-center">
-                <BookOpen className="h-7 w-7 text-slate-400" />
               </div>
-              <p className="text-sm font-medium text-slate-500">No courses available</p>
-              <p className="text-xs text-slate-400">Courses created by trainers will appear here</p>
+              <div className="ac-skel-pill" />
+            </div>
+          ))}
+
+          {/* empty */}
+          {!loading && filteredCourses.length === 0 && (
+            <div className="ac-empty">
+              <div className="ac-empty-ico"><BookOpen size={26} /></div>
+              <p className="ac-empty-t">No courses available</p>
+              <p className="ac-empty-s">Courses created by trainers will appear here</p>
             </div>
           )}
 
           {/* table */}
           {!loading && filteredCourses.length > 0 && (
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-slate-50/80 dark:bg-slate-800/60
-                  border-b border-slate-100 dark:border-slate-800">
-                  <TableHead className="pl-6 py-3 text-[11px] uppercase tracking-wider font-semibold text-slate-500">#</TableHead>
-                  <TableHead className="py-3 text-[11px] uppercase tracking-wider font-semibold text-slate-500">Course</TableHead>
-                  <TableHead className="py-3 text-[11px] uppercase tracking-wider font-semibold text-slate-500">Category</TableHead>
-                  <TableHead className="py-3 text-[11px] uppercase tracking-wider font-semibold text-slate-500">Trainer</TableHead>
-                  <TableHead className="py-3 text-[11px] uppercase tracking-wider font-semibold text-slate-500">Status</TableHead>
-                  <TableHead className="pr-6 py-3 text-right text-[11px] uppercase tracking-wider font-semibold text-slate-500">Enrollments</TableHead>
-                </TableRow>
-              </TableHeader>
-
-              <TableBody>
-                {filteredCourses.map((c, index) => (
-                  <TableRow
-                    key={c.id}
-                    className="group border-b border-slate-100 dark:border-slate-800/60
-                      hover:bg-blue-50/40 dark:hover:bg-slate-800/40 transition-colors"
-                  >
-                    {/* # */}
-                    <TableCell className="pl-6 py-3.5 text-sm text-slate-400 font-medium w-10">
-                      {String(index + 1).padStart(2, "0")}
-                    </TableCell>
-
-                    {/* Course */}
-                    <TableCell className="py-3.5">
-                      <div className="flex items-center gap-3">
-                        <div className={`h-9 w-9 rounded-xl bg-gradient-to-br ${grad(c.name)}
-                          flex items-center justify-center text-white shrink-0`}>
-                          <BookOpen className="h-4 w-4" />
+            <table className="ac-t">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Course</th>
+                  <th>Category</th>
+                  <th>Trainer</th>
+                  <th>Status</th>
+                  <th>Enrollments</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredCourses.map((c, index) => {
+                  const cc = catColor(c.category);
+                  return (
+                    <tr key={c.id}>
+                      <td><span className="ac-idx">{String(index + 1).padStart(2, "0")}</span></td>
+                      <td>
+                        <div className="ac-course-cell">
+                          <div className="ac-course-av" style={{ background: gradBg(c.name) }}>
+                            <BookOpen size={16} color="white" />
+                          </div>
+                          <span className="ac-course-name">{c.name}</span>
                         </div>
-                        <span className="text-sm font-bold text-slate-800 dark:text-slate-100
-                          group-hover:text-blue-600 transition-colors">
-                          {c.name}
+                      </td>
+                      <td>
+                        <span className="ac-cat-tag" style={{ background: cc.bg, color: cc.color, borderColor: cc.bd }}>
+                          <Tag size={11} /> {c.category || "—"}
                         </span>
-                      </div>
-                    </TableCell>
-
-                    {/* Category */}
-                    <TableCell className="py-3.5">
-                      <span className={`inline-flex items-center gap-1.5 rounded-full border
-                        px-2.5 py-0.5 text-[11px] font-semibold ${chip(c.category)}`}>
-                        <Tag className="h-3 w-3" />
-                        {c.category || "—"}
-                      </span>
-                    </TableCell>
-
-                    {/* Trainer */}
-                    <TableCell className="py-3.5">
-                      <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                        <Mail className="h-3 w-3 shrink-0" />
-                        {c.trainerName}
-                      </div>
-                    </TableCell>
-
-                    {/* Status */}
-                    <TableCell className="py-3.5">
-                      <span className="inline-flex items-center gap-1.5 rounded-full border
-                        bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-800
-                        px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        {c.status}
-                      </span>
-                    </TableCell>
-
-                    {/* Enrollments */}
-                    <TableCell className="pr-6 py-3.5 text-right">
-                      <div className="flex items-center justify-end gap-1.5
-                        text-sm font-semibold text-slate-700 dark:text-slate-300">
-                        <Users className="h-3.5 w-3.5 text-slate-400" />
-                        {c.enrollments}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                      </td>
+                      <td>
+                        <div className="ac-trainer-cell">
+                          <Mail size={12} /> {c.trainerName}
+                        </div>
+                      </td>
+                      <td>
+                        <span className="ac-status-ok">
+                          <span className="ac-status-dot" /> {c.status}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="ac-enroll-cell">
+                          <Users size={13} style={{ color: "var(--mu)" }} /> {c.enrollments}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           )}
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* ═══════ MODAL (unchanged logic) ═══════ */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-sm p-0 rounded-2xl overflow-hidden
-          bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl">
+      </div>
 
-          {/* header */}
-          <div className="bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-xl bg-white/20 flex items-center justify-center">
-                  <BookOpen className="h-4 w-4 text-white" />
+      {/* ── Modal (unchanged logic) ── */}
+      {open && (
+        <div className={`ac-modal-overlay${dark ? " ac-dk" : ""}`} onClick={() => setOpen(false)}>
+          <div className="ac-modal" onClick={e => e.stopPropagation()}>
+            <div className="ac-modal-head">
+              <div className="ac-modal-head-row">
+                <div className="ac-modal-head-l">
+                  <div className="ac-modal-ico"><BookOpen size={17} /></div>
+                  <div>
+                    <p className="ac-modal-title">Create Course</p>
+                    <p className="ac-modal-sub">Fill in the details below</p>
+                  </div>
                 </div>
-                <div>
-                  <DialogTitle className="text-sm font-bold text-white">Create Course</DialogTitle>
-                  <p className="text-[11px] text-blue-100/70">Fill in the details below</p>
-                </div>
+                <button className="ac-modal-close" onClick={() => setOpen(false)}><X size={14} /></button>
               </div>
-              <DialogClose className="rounded-lg bg-white/15 p-1.5 text-white
-                hover:bg-white/25 transition-colors">
-                <X className="h-4 w-4" />
-              </DialogClose>
+            </div>
+            <div className="ac-modal-body">
+              <div className="ac-field">
+                <label>Course Name</label>
+                <input className="ac-input" placeholder="e.g. React for Beginners" />
+              </div>
+              <div className="ac-field">
+                <label>Category</label>
+                <input className="ac-input" placeholder="e.g. Web Development" />
+              </div>
+              <div className="ac-field">
+                <label>Trainer Name</label>
+                <input className="ac-input" placeholder="trainer@example.com" />
+              </div>
+              <div className="ac-modal-footer">
+                <button className="ac-cancel" onClick={() => setOpen(false)}>Cancel</button>
+                <button className="ac-submit">Create</button>
+              </div>
             </div>
           </div>
-
-          {/* body */}
-          <div className="p-5 space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Course Name</label>
-              <Input placeholder="e.g. React for Beginners" className="h-10 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Category</label>
-              <Input placeholder="e.g. Web Development" className="h-10 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Trainer Name</label>
-              <Input placeholder="trainer@example.com" className="h-10 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
-            </div>
-
-            <div className="flex justify-end gap-2 pt-1">
-              <button
-                onClick={() => setOpen(false)}
-                className="px-4 py-2 rounded-xl text-sm font-medium
-                  bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300
-                  hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                className="px-5 py-2 rounded-xl text-sm font-semibold text-white
-                  bg-gradient-to-r from-blue-600 to-cyan-500 shadow
-                  hover:opacity-90 hover:scale-105 transition-all"
-              >
-                Create
-              </button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
     </div>
   );
 };

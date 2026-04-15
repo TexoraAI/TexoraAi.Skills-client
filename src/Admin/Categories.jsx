@@ -1,472 +1,3 @@
-// import { courseService } from "@/services/courseService";
-// import { Layers, Search, X } from "lucide-react";
-// import { useEffect, useState } from "react";
-
-// import { Badge } from "@/components/ui/badge";
-// import { Button } from "@/components/ui/button";
-// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// import {
-//   Dialog,
-//   DialogClose,
-//   DialogContent,
-//   DialogHeader,
-//   DialogTitle,
-// } from "@/components/ui/dialog";
-// import { Input } from "@/components/ui/input";
-// import {
-//   Table,
-//   TableBody,
-//   TableCell,
-//   TableHead,
-//   TableHeader,
-//   TableRow,
-// } from "@/components/ui/table";
-
-// const Categories = () => {
-//   const [search, setSearch] = useState("");
-//   const [open, setOpen] = useState(false);
-//   const [categories, setCategories] = useState([]);
-//   const [loading, setLoading] = useState(true);
-
-//   // ===============================
-//   // LOAD CATEGORIES FROM COURSES
-//   // ===============================
-//   useEffect(() => {
-//     loadCategories();
-//   }, []);
-
-//   const loadCategories = () => {
-//     courseService
-//       .getAllCoursesForAdmin()
-//       .then((res) => {
-//         const courses = res.data;
-
-//         // Group courses by category
-//         const grouped = {};
-
-//         courses.forEach((course) => {
-//           const category = course.category || "Uncategorized";
-
-//           if (!grouped[category]) {
-//             grouped[category] = 0;
-//           }
-
-//           grouped[category]++;
-//         });
-
-//         // Convert to array format for table
-//         const formatted = Object.keys(grouped).map((categoryName, index) => ({
-//           id: index + 1,
-//           name: categoryName,
-//           courseCount: grouped[categoryName],
-//           active: true, // default since no status column
-//         }));
-
-//         setCategories(formatted);
-//       })
-//       .catch((err) => {
-//         console.error("Failed to load categories", err);
-//       })
-//       .finally(() => setLoading(false));
-//   };
-
-//   // ===============================
-//   // SEARCH FILTER
-//   // ===============================
-//   const filteredCategories = categories.filter((c) =>
-//     c.name.toLowerCase().includes(search.toLowerCase()),
-//   );
-
-//   return (
-//     <div className="space-y-8">
-//       {/* HERO */}
-//       <div className="rounded-3xl p-8 text-white shadow-xl bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600">
-//         <h1 className="text-3xl font-bold">Course Categories</h1>
-//         <p className="mt-2 text-sm opacity-90">
-//           Organize courses into meaningful categories
-//         </p>
-//       </div>
-
-//       {/* ACTION BAR */}
-//       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-//         <div className="relative md:w-72">
-//           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-//           <Input
-//             placeholder="Search categories..."
-//             value={search}
-//             onChange={(e) => setSearch(e.target.value)}
-//             className="pl-9 h-9"
-//           />
-//         </div>
-//       </div>
-
-//       {/* TABLE */}
-//       <Card>
-//         <CardHeader className="py-3">
-//           <CardTitle className="text-sm">Category List</CardTitle>
-//         </CardHeader>
-
-//         <CardContent>
-//           {loading ? (
-//             <div className="text-center py-8 text-muted-foreground">
-//               Loading categories...
-//             </div>
-//           ) : filteredCategories.length === 0 ? (
-//             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-//               <Layers className="h-10 w-10 mb-3 opacity-40" />
-//               <p className="text-sm">No categories created</p>
-//               <p className="text-xs">Create categories to organize courses</p>
-//             </div>
-//           ) : (
-//             <Table>
-//               <TableHeader>
-//                 <TableRow>
-//                   <TableHead>Category Name</TableHead>
-//                   <TableHead>Total Courses</TableHead>
-//                   <TableHead className="text-right">Status</TableHead>
-//                 </TableRow>
-//               </TableHeader>
-
-//               <TableBody>
-//                 {filteredCategories.map((c) => (
-//                   <TableRow key={c.id}>
-//                     <TableCell className="font-medium">{c.name}</TableCell>
-
-//                     <TableCell>{c.courseCount}</TableCell>
-
-//                     <TableCell className="text-right">
-//                       <Badge variant={c.active ? "secondary" : "outline"}>
-//                         {c.active ? "Active" : "Inactive"}
-//                       </Badge>
-//                     </TableCell>
-//                   </TableRow>
-//                 ))}
-//               </TableBody>
-//             </Table>
-//           )}
-//         </CardContent>
-//       </Card>
-
-//       {/* ADD CATEGORY MODAL (UI unchanged) */}
-//       <Dialog open={open} onOpenChange={setOpen}>
-//         <DialogContent
-//           className="
-//             fixed left-1/2 top-1/2
-//             -translate-x-1/2 -translate-y-1/2
-//             rounded-2xl max-w-sm w-full
-//             bg-white dark:bg-slate-900
-//             border border-slate-200 dark:border-slate-700
-//             shadow-xl
-//           "
-//         >
-//           <DialogHeader>
-//             <DialogTitle>Add Category</DialogTitle>
-
-//             <DialogClose
-//               className="
-//                 absolute right-4 top-4
-//                 rounded-md p-1
-//                 text-slate-500 hover:text-slate-900
-//                 hover:bg-slate-100
-//                 dark:text-slate-400 dark:hover:text-white
-//                 dark:hover:bg-slate-800
-//                 outline-none ring-0
-//                 focus:outline-none focus:ring-0
-//                 transition
-//               "
-//             >
-//               <X className="h-4 w-4" />
-//             </DialogClose>
-//           </DialogHeader>
-
-//           <div className="space-y-4 mt-4">
-//             <Input placeholder="Category name" />
-
-//             <div className="flex justify-end gap-2 pt-2">
-//               <Button
-//                 size="sm"
-//                 variant="secondary"
-//                 onClick={() => setOpen(false)}
-//               >
-//                 Cancel
-//               </Button>
-//               <Button
-//                 size="sm"
-//                 className="bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600"
-//               >
-//                 Create
-//               </Button>
-//             </div>
-//           </div>
-//         </DialogContent>
-//       </Dialog>
-//     </div>
-//   );
-// };
-
-// export default Categories;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import { courseService } from "@/services/courseService";
-// import { Layers, Search, X } from "lucide-react";
-// import { useEffect, useState } from "react";
-
-// import { Badge } from "@/components/ui/badge";
-// import { Button } from "@/components/ui/button";
-// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// import {
-//   Dialog,
-//   DialogClose,
-//   DialogContent,
-//   DialogHeader,
-//   DialogTitle,
-// } from "@/components/ui/dialog";
-// import { Input } from "@/components/ui/input";
-// import {
-//   Table,
-//   TableBody,
-//   TableCell,
-//   TableHead,
-//   TableHeader,
-//   TableRow,
-// } from "@/components/ui/table";
-// import { ArrowLeft } from "lucide-react";
-// import { useNavigate } from "react-router-dom";
-
-// const Categories = () => {
-//   const navigate = useNavigate();
-//   const [search, setSearch] = useState("");
-//   const [open, setOpen] = useState(false);
-//   const [categories, setCategories] = useState([]);
-//   const [loading, setLoading] = useState(true);
-
-//   // ===============================
-//   // LOAD CATEGORIES FROM COURSES
-//   // ===============================
-//   useEffect(() => {
-//     loadCategories();
-//   }, []);
-
-//   const loadCategories = () => {
-//     courseService
-//       .getAllCoursesForAdmin()
-//       .then((res) => {
-//         const courses = res.data;
-
-//         // Group courses by category
-//         const grouped = {};
-
-//         courses.forEach((course) => {
-//           const category = course.category || "Uncategorized";
-
-//           if (!grouped[category]) {
-//             grouped[category] = 0;
-//           }
-
-//           grouped[category]++;
-//         });
-
-//         // Convert to array format for table
-//         const formatted = Object.keys(grouped).map((categoryName, index) => ({
-//           id: index + 1,
-//           name: categoryName,
-//           courseCount: grouped[categoryName],
-//           active: true, // default since no status column
-//         }));
-
-//         setCategories(formatted);
-//       })
-//       .catch((err) => {
-//         console.error("Failed to load categories", err);
-//       })
-//       .finally(() => setLoading(false));
-//   };
-
-//   // ===============================
-//   // SEARCH FILTER
-//   // ===============================
-//   const filteredCategories = categories.filter((c) =>
-//     c.name.toLowerCase().includes(search.toLowerCase()),
-//   );
-
-//   return (
-//     <div className="space-y-8">
-//       {/* HERO */}
-//       <div className="rounded-3xl p-8 text-white shadow-xl bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600">
-//   <div className="flex items-center gap-3">
-
-//     {/* BACK BUTTON */}
-//     <button
-//       onClick={() => navigate("/admin/courses")}
-//       className="p-2 rounded-lg bg-white/20 hover:bg-white/30 transition"
-//     >
-//       <ArrowLeft className="w-5 h-5" />
-//     </button>
-
-//     {/* TITLE */}
-//     <div>
-//       <h1 className="text-3xl font-bold">Course Categories</h1>
-//       <p className="text-sm opacity-90">
-//         Organize courses into meaningful categories
-//       </p>
-//     </div>
-
-//   </div>
-// </div>
-
-//       {/* ACTION BAR */}
-//       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-//         <div className="relative md:w-72">
-//           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-//           <Input
-//             placeholder="Search categories..."
-//             value={search}
-//             onChange={(e) => setSearch(e.target.value)}
-//             className="pl-9 h-9"
-//           />
-//         </div>
-//       </div>
-
-//       {/* TABLE */}
-//       <Card>
-//         <CardHeader className="py-3">
-//           <CardTitle className="text-sm">Category List</CardTitle>
-//         </CardHeader>
-
-//         <CardContent>
-//           {loading ? (
-//             <div className="text-center py-8 text-muted-foreground">
-//               Loading categories...
-//             </div>
-//           ) : filteredCategories.length === 0 ? (
-//             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-//               <Layers className="h-10 w-10 mb-3 opacity-40" />
-//               <p className="text-sm">No categories created</p>
-//               <p className="text-xs">Create categories to organize courses</p>
-//             </div>
-//           ) : (
-//             <Table>
-//               <TableHeader>
-//                 <TableRow>
-//                   <TableHead>Category Name</TableHead>
-//                   <TableHead>Total Courses</TableHead>
-//                   <TableHead className="text-right">Status</TableHead>
-//                 </TableRow>
-//               </TableHeader>
-
-//               <TableBody>
-//                 {filteredCategories.map((c) => (
-//                   <TableRow key={c.id}>
-//                     <TableCell className="font-medium">{c.name}</TableCell>
-
-//                     <TableCell>{c.courseCount}</TableCell>
-
-//                     <TableCell className="text-right">
-//                       <Badge variant={c.active ? "secondary" : "outline"}>
-//                         {c.active ? "Active" : "Inactive"}
-//                       </Badge>
-//                     </TableCell>
-//                   </TableRow>
-//                 ))}
-//               </TableBody>
-//             </Table>
-//           )}
-//         </CardContent>
-//       </Card>
-
-//       {/* ADD CATEGORY MODAL (UI unchanged) */}
-//       <Dialog open={open} onOpenChange={setOpen}>
-//         <DialogContent
-//           className="
-//             fixed left-1/2 top-1/2
-//             -translate-x-1/2 -translate-y-1/2
-//             rounded-2xl max-w-sm w-full
-//             bg-white dark:bg-slate-900
-//             border border-slate-200 dark:border-slate-700
-//             shadow-xl
-//           "
-//         >
-//           <DialogHeader>
-//             <DialogTitle>Add Category</DialogTitle>
-
-//             <DialogClose
-//               className="
-//                 absolute right-4 top-4
-//                 rounded-md p-1
-//                 text-slate-500 hover:text-slate-900
-//                 hover:bg-slate-100
-//                 dark:text-slate-400 dark:hover:text-white
-//                 dark:hover:bg-slate-800
-//                 outline-none ring-0
-//                 focus:outline-none focus:ring-0
-//                 transition
-//               "
-//             >
-//               <X className="h-4 w-4" />
-//             </DialogClose>
-//           </DialogHeader>
-
-//           <div className="space-y-4 mt-4">
-//             <Input placeholder="Category name" />
-
-//             <div className="flex justify-end gap-2 pt-2">
-//               <Button
-//                 size="sm"
-//                 variant="secondary"
-//                 onClick={() => setOpen(false)}
-//               >
-//                 Cancel
-//               </Button>
-//               <Button
-//                 size="sm"
-//                 className="bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600"
-//               >
-//                 Create
-//               </Button>
-//             </div>
-//           </div>
-//         </DialogContent>
-//       </Dialog>
-//     </div>
-//   );
-// };
-
-// export default Categories;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import { courseService } from "@/services/courseService";
 import {
   ArrowLeft, BookOpen, Layers, Plus, Search, Tag, X,
@@ -474,37 +5,154 @@ import {
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+/* ─── Styles ─────────────────────────────────────────────────────── */
+const STYLES = `
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+:root{--bg:#f1f5f9;--card:#ffffff;--tx:#0f172a;--mu:#64748b;--bd:#e2e8f0;
+  --c1:#22d3ee;--c2:#fb923c;--c3:#34d399;--c4:#a78bfa;--cr:#f87171;
+  --sh:0 4px 24px rgba(0,0,0,0.06);--shl:0 8px 40px rgba(0,0,0,0.10);--r:20px;}
+.ca-dk{--bg:#0a0a0a;--card:#111111;--tx:#ffffff;--mu:#94a3b8;--bd:rgba(255,255,255,0.06);
+  --sh:0 4px 24px rgba(0,0,0,0.40);--shl:0 8px 40px rgba(0,0,0,0.60);}
 
-/* ── category colour pool ── */
-const CHIP = [
-  "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800",
-  "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/50 dark:text-violet-400 dark:border-violet-800",
-  "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800",
-  "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800",
-  "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/50 dark:text-rose-400 dark:border-rose-800",
-  "bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-950/50 dark:text-cyan-400 dark:border-cyan-800",
+.ca{font-family:'Poppins',sans-serif;min-height:100vh;background:var(--bg);color:var(--tx);padding:24px;box-sizing:border-box;}
+.ca-inner{max-width:1300px;margin:0 auto;display:flex;flex-direction:column;gap:20px;}
+
+/* header */
+.ca-hdr{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:24px 28px;box-shadow:var(--sh);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.ca-hdr-l{display:flex;align-items:center;gap:14px;}
+.ca-back{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border-radius:12px;border:1px solid var(--bd);background:var(--bg);color:var(--mu);font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:border-color .2s,color .2s;flex-shrink:0;}
+.ca-back:hover{border-color:rgba(34,211,238,.35);color:var(--c1);}
+.ca-hdr-ico{width:52px;height:52px;border-radius:14px;background:rgba(167,139,250,.10);border:1px solid rgba(167,139,250,.18);display:flex;align-items:center;justify-content:center;color:var(--c4);flex-shrink:0;}
+.ca-bdg{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:50px;border:1px solid var(--bd);background:rgba(167,139,250,.08);color:var(--c4);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;}
+.ca-h1{font-size:22px;font-weight:800;color:var(--tx);margin:0 0 2px;}
+.ca-sub{font-size:13px;color:var(--mu);margin:0;}
+.ca-chips{display:flex;gap:10px;flex-wrap:wrap;}
+.ca-chip{display:flex;align-items:center;gap:7px;padding:10px 18px;border-radius:13px;background:var(--bg);border:1px solid var(--bd);font-size:13px;font-weight:700;white-space:nowrap;box-shadow:var(--sh);}
+
+/* action bar */
+.ca-abar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.ca-search{position:relative;}
+.ca-search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--mu);}
+.ca-search input{padding:10px 14px 10px 38px;border-radius:13px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-family:'Poppins',sans-serif;font-size:13px;font-weight:500;outline:none;width:260px;transition:border-color .2s,box-shadow .2s;}
+.ca-search input::placeholder{color:var(--mu);}
+.ca-search input:focus{border-color:var(--c1);box-shadow:0 0 0 3px rgba(34,211,238,.12);}
+
+/* table card */
+.ca-tcard{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;}
+.ca-thead-row{display:flex;align-items:center;justify-content:space-between;padding:14px 22px;border-bottom:1px solid var(--bd);background:var(--bg);}
+.ca-thead-title{font-size:13px;font-weight:700;color:var(--tx);margin:0 0 2px;}
+.ca-thead-sub{font-size:11px;color:var(--mu);margin:0;}
+
+/* skeleton */
+.ca-skel-row{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--bd);animation:ca-pulse 1.4s ease-in-out infinite;}
+@keyframes ca-pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.ca-skel-l{display:flex;align-items:center;gap:12px;}
+.ca-skel-sq{width:38px;height:38px;border-radius:12px;background:var(--bd);}
+.ca-skel-line{height:10px;border-radius:6px;background:var(--bd);}
+.ca-skel-pill{height:22px;width:80px;border-radius:30px;background:var(--bd);}
+
+/* empty */
+.ca-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 20px;gap:12px;text-align:center;}
+.ca-empty-ico{width:56px;height:56px;border-radius:16px;background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.15);display:flex;align-items:center;justify-content:center;color:var(--c4);}
+.ca-empty-t{font-size:14px;font-weight:700;color:var(--tx);margin:0 0 4px;}
+.ca-empty-s{font-size:12px;color:var(--mu);margin:0;}
+
+/* table */
+table.ca-t{width:100%;border-collapse:collapse;font-size:13px;}
+.ca-t thead th{padding:11px 14px;text-align:left;font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.07em;background:var(--bg);border-bottom:1px solid var(--bd);}
+.ca-t thead th:first-child{padding-left:22px;}
+.ca-t thead th:last-child{text-align:right;padding-right:22px;}
+.ca-t tbody tr{border-bottom:1px solid var(--bd);transition:background .15s;}
+.ca-t tbody tr:last-child{border-bottom:none;}
+.ca-t tbody tr:hover{background:rgba(167,139,250,.025);}
+.ca-t tbody td{padding:12px 14px;vertical-align:middle;}
+.ca-t tbody td:first-child{padding-left:22px;}
+.ca-t tbody td:last-child{padding-right:22px;text-align:right;}
+.ca-idx{font-size:12px;font-weight:700;color:var(--mu);}
+.ca-cat-cell{display:flex;align-items:center;gap:12px;}
+.ca-cat-av{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ca-cat-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:700;border:1px solid;}
+.ca-course-cnt{display:flex;align-items:center;gap:6px;font-size:13px;}
+.ca-cnt-num{font-weight:800;color:var(--tx);}
+.ca-cnt-lbl{font-size:11px;color:var(--mu);}
+.ca-status-active{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:700;background:rgba(52,211,153,.10);border:1px solid rgba(52,211,153,.20);color:var(--c3);}
+.ca-status-inactive{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:700;background:var(--bg);border:1px solid var(--bd);color:var(--mu);}
+.ca-status-dot-active{width:6px;height:6px;border-radius:50%;background:var(--c3);animation:ca-blink 1.4s ease-in-out infinite;}
+.ca-status-dot-inactive{width:6px;height:6px;border-radius:50%;background:var(--mu);}
+@keyframes ca-blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* modal */
+.ca-modal-overlay{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;}
+.ca-modal{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);width:100%;max-width:400px;overflow:hidden;box-shadow:var(--shl);}
+.ca-modal-head{padding:18px 20px;background:rgba(167,139,250,.06);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;}
+.ca-modal-head-l{display:flex;align-items:center;gap:10px;}
+.ca-modal-ico{width:36px;height:36px;border-radius:10px;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.20);display:flex;align-items:center;justify-content:center;color:var(--c4);}
+.ca-modal-title{font-size:14px;font-weight:800;color:var(--tx);margin:0 0 2px;}
+.ca-modal-sub{font-size:11px;color:var(--mu);margin:0;}
+.ca-modal-close{width:30px;height:30px;border-radius:9px;border:1px solid var(--bd);background:var(--bg);color:var(--mu);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;}
+.ca-modal-close:hover{border-color:rgba(248,113,113,.30);color:var(--cr);}
+.ca-modal-body{padding:20px;display:flex;flex-direction:column;gap:14px;}
+.ca-field label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--mu);margin-bottom:6px;}
+.ca-input{width:100%;padding:10px 13px;border-radius:13px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-family:'Poppins',sans-serif;font-size:13px;outline:none;box-sizing:border-box;transition:border-color .2s,box-shadow .2s;}
+.ca-input:focus{border-color:var(--c4);box-shadow:0 0 0 3px rgba(167,139,250,.12);}
+.ca-input::placeholder{color:var(--mu);}
+.ca-modal-footer{display:flex;justify-content:flex-end;gap:8px;}
+.ca-cancel{padding:10px 18px;border-radius:12px;border:1px solid var(--bd);background:var(--bg);color:var(--mu);font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;}
+.ca-cancel:hover{border-color:rgba(34,211,238,.30);color:var(--c1);}
+.ca-submit{padding:10px 22px;border-radius:12px;border:none;background:var(--c4);color:#0a0a0a;font-family:'Poppins',sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:opacity .2s,transform .15s;}
+.ca-submit:hover{opacity:.87;transform:translateY(-1px);}
+`;
+
+if (!document.getElementById("ca-st")) {
+  const t = document.createElement("style");
+  t.id = "ca-st";
+  t.textContent = STYLES;
+  document.head.appendChild(t);
+}
+
+const isDark = () =>
+  document.documentElement.classList.contains("dark") ||
+  document.body.classList.contains("dark") ||
+  window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+/* ── category colours ── */
+const CAT_COLORS = [
+  { bg:"rgba(34,211,238,.10)",  color:"var(--c1)", bd:"rgba(34,211,238,.20)"  },
+  { bg:"rgba(167,139,250,.10)", color:"var(--c4)", bd:"rgba(167,139,250,.20)" },
+  { bg:"rgba(251,146,60,.10)",  color:"var(--c2)", bd:"rgba(251,146,60,.20)"  },
+  { bg:"rgba(52,211,153,.10)",  color:"var(--c3)", bd:"rgba(52,211,153,.20)"  },
+  { bg:"rgba(248,113,113,.10)", color:"var(--cr)", bd:"rgba(248,113,113,.20)" },
 ];
-const chip = (val) => CHIP[(String(val)?.charCodeAt(0) ?? 0) % CHIP.length];
+const catColor = val => CAT_COLORS[(String(val)?.charCodeAt(0) ?? 0) % CAT_COLORS.length];
 
-const GRAD = [
-  "from-violet-500 to-purple-600", "from-cyan-500 to-blue-600",
-  "from-rose-500 to-pink-600",     "from-amber-500 to-orange-600",
-  "from-emerald-500 to-teal-600",  "from-indigo-500 to-blue-700",
+const GRAD_BG = [
+  "linear-gradient(135deg,#6d28d9,#4338ca)",
+  "linear-gradient(135deg,#0891b2,#0e7490)",
+  "linear-gradient(135deg,#be123c,#9f1239)",
+  "linear-gradient(135deg,#b45309,#92400e)",
+  "linear-gradient(135deg,#047857,#065f46)",
+  "linear-gradient(135deg,#1d4ed8,#1e40af)",
 ];
-const grad = (val) => GRAD[(String(val)?.charCodeAt(0) ?? 0) % GRAD.length];
+const gradBg = val => GRAD_BG[(String(val)?.charCodeAt(0) ?? 0) % GRAD_BG.length];
 
-/* ================= MAIN ================= */
+/* ════════════════════════════════════════════════════════════════════
+   MAIN
+════════════════════════════════════════════════════════════════════ */
 const Categories = () => {
   const navigate = useNavigate();
+  const [dark, setDark] = useState(isDark);
 
   const [search, setSearch]         = useState("");
   const [open, setOpen]             = useState(false);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading]       = useState(true);
+
+  useEffect(() => {
+    const o = new MutationObserver(() => setDark(isDark()));
+    o.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    o.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    return () => o.disconnect();
+  }, []);
 
   /* ── LOAD (unchanged) ── */
   useEffect(() => { loadCategories(); }, []);
@@ -538,254 +186,167 @@ const Categories = () => {
 
   const activeCount = categories.filter((c) => c.active).length;
 
-  /* ================= RENDER ================= */
   return (
-    <div className="min-h-screen bg-[#f0f4ff] dark:bg-[#060b18] p-5 space-y-5">
+    <div className={`ca${dark ? " ca-dk" : ""}`}>
+      <div className="ca-inner">
 
-      {/* ═══════ HERO ═══════ */}
-      <div className="relative overflow-hidden rounded-2xl shadow-xl
-        bg-gradient-to-r from-[#1a56db] via-[#3b82f6] to-[#06b6d4]">
-        <div className="pointer-events-none absolute -right-12 -top-12 h-52 w-52 rounded-full bg-white/10 blur-3xl" />
-        <div className="pointer-events-none absolute right-32 bottom-[-30px] h-36 w-36 rounded-full bg-cyan-300/20 blur-2xl" />
-        <div className="pointer-events-none absolute left-1/2 top-0 h-px w-2/3 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-
-        <div className="relative flex items-center justify-between px-6 py-5">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate("/admin/courses")}
-              className="flex items-center gap-1.5 rounded-xl bg-white/15 px-3 py-1.5
-                text-sm font-medium text-white backdrop-blur-sm hover:bg-white/25 transition-all"
-            >
-              <ArrowLeft className="h-4 w-4" /> Back
+        {/* ── Header ── */}
+        <div className="ca-hdr">
+          <div className="ca-hdr-l">
+            <button className="ca-back" onClick={() => navigate("/admin/courses")}>
+              <ArrowLeft size={14} /> Back
             </button>
+            <div className="ca-hdr-ico"><Layers size={24} /></div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-white">Course Categories</h1>
-              <p className="mt-0.5 text-sm text-blue-100/80">Organize courses into meaningful categories</p>
+              <div className="ca-bdg"><Layers size={10} /> Content Management</div>
+              <h1 className="ca-h1">Course Categories</h1>
+              <p className="ca-sub">Organize courses into meaningful categories</p>
             </div>
           </div>
-
-          {/* stats pills */}
-          <div className="hidden md:flex items-center gap-2">
-            <div className="flex items-center gap-2 rounded-2xl bg-white/15 px-4 py-2 backdrop-blur-sm">
-              <Layers className="h-4 w-4 text-cyan-200" />
-              <span className="text-sm font-semibold text-white">
-                {categories.length}
-                <span className="ml-1 font-normal text-blue-100/80">Categories</span>
-              </span>
+          <div className="ca-chips">
+            <div className="ca-chip">
+              <Layers size={14} style={{ color: "var(--c4)" }} />
+              <span style={{ fontWeight: 800, color: "var(--c4)" }}>{categories.length}</span>
+              <span style={{ color: "var(--mu)", fontWeight: 500 }}>Categories</span>
             </div>
-            <div className="flex items-center gap-2 rounded-2xl bg-white/15 px-4 py-2 backdrop-blur-sm">
-              <BookOpen className="h-4 w-4 text-cyan-200" />
-              <span className="text-sm font-semibold text-white">
+            <div className="ca-chip">
+              <BookOpen size={14} style={{ color: "var(--c1)" }} />
+              <span style={{ fontWeight: 800, color: "var(--c1)" }}>
                 {categories.reduce((a, c) => a + c.courseCount, 0)}
-                <span className="ml-1 font-normal text-blue-100/80">Courses</span>
               </span>
+              <span style={{ color: "var(--mu)", fontWeight: 500 }}>Courses</span>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* ═══════ ACTION BAR ═══════ */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-
-        <div className="relative sm:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <Input
-            placeholder="Search categories…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-9 rounded-xl bg-white dark:bg-slate-900
-              border-slate-200 dark:border-slate-800 text-sm"
-          />
+        {/* ── Action bar ── */}
+        <div className="ca-abar">
+          <div className="ca-search">
+            <Search size={14} />
+            <input
+              placeholder="Search categories…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
         </div>
 
-        
-      </div>
-
-      {/* ═══════ TABLE CARD ═══════ */}
-      <Card className="overflow-hidden rounded-2xl border border-slate-200
-        dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg">
-
-        <CardHeader className="flex flex-row items-center justify-between
-          border-b border-slate-100 dark:border-slate-800
-          bg-slate-50/60 dark:bg-slate-900/60 px-6 py-4">
-          <div>
-            <CardTitle className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-              Category List
-            </CardTitle>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              {filteredCategories.length} categor{filteredCategories.length !== 1 ? "ies" : "y"} found
-            </p>
+        {/* ── Table card ── */}
+        <div className="ca-tcard">
+          <div className="ca-thead-row">
+            <div>
+              <p className="ca-thead-title">Category List</p>
+              <p className="ca-thead-sub">
+                {filteredCategories.length} categor{filteredCategories.length !== 1 ? "ies" : "y"} found
+              </p>
+            </div>
           </div>
-        </CardHeader>
-
-        <CardContent className="p-0">
 
           {/* skeleton */}
-          {loading && (
-            <div className="p-4 space-y-2">
-              {[1,2,3].map((i) => (
-                <div key={i} className="flex items-center justify-between rounded-2xl
-                  border border-slate-100 dark:border-slate-800 p-4 animate-pulse">
-                  <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-xl bg-slate-200 dark:bg-slate-700" />
-                    <div className="h-3 w-36 bg-slate-200 dark:bg-slate-700 rounded" />
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="h-6 w-16 bg-slate-200 dark:bg-slate-700 rounded-full" />
-                    <div className="h-6 w-14 bg-slate-200 dark:bg-slate-700 rounded-full" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* empty state */}
-          {!loading && filteredCategories.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-16 gap-3">
-              <div className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-slate-800
-                flex items-center justify-center">
-                <Layers className="h-7 w-7 text-slate-400" />
+          {loading && [1, 2, 3].map(i => (
+            <div key={i} className="ca-skel-row">
+              <div className="ca-skel-l">
+                <div className="ca-skel-sq" />
+                <div className="ca-skel-line" style={{ width: 140 }} />
               </div>
-              <p className="text-sm font-medium text-slate-500">No categories yet</p>
-              <p className="text-xs text-slate-400">Create categories to organize courses</p>
+              <div style={{ display: "flex", gap: 12 }}>
+                <div className="ca-skel-pill" />
+                <div className="ca-skel-pill" style={{ width: 60 }} />
+              </div>
+            </div>
+          ))}
+
+          {/* empty */}
+          {!loading && filteredCategories.length === 0 && (
+            <div className="ca-empty">
+              <div className="ca-empty-ico"><Layers size={26} /></div>
+              <p className="ca-empty-t">No categories yet</p>
+              <p className="ca-empty-s">Create categories to organize courses</p>
             </div>
           )}
 
           {/* table */}
           {!loading && filteredCategories.length > 0 && (
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-slate-50/80 dark:bg-slate-800/60
-                  border-b border-slate-100 dark:border-slate-800">
-                  <TableHead className="pl-6 py-3 text-[11px] uppercase tracking-wider font-semibold text-slate-500">#</TableHead>
-                  <TableHead className="py-3 text-[11px] uppercase tracking-wider font-semibold text-slate-500">Category</TableHead>
-                  <TableHead className="py-3 text-[11px] uppercase tracking-wider font-semibold text-slate-500">Total Courses</TableHead>
-                  <TableHead className="pr-6 py-3 text-right text-[11px] uppercase tracking-wider font-semibold text-slate-500">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-
-              <TableBody>
-                {filteredCategories.map((c, index) => (
-                  <TableRow
-                    key={c.id}
-                    className="group border-b border-slate-100 dark:border-slate-800/60
-                      hover:bg-blue-50/40 dark:hover:bg-slate-800/40 transition-colors"
-                  >
-                    {/* # */}
-                    <TableCell className="pl-6 py-3.5 text-sm text-slate-400 font-medium w-10">
-                      {String(index + 1).padStart(2, "0")}
-                    </TableCell>
-
-                    {/* Category */}
-                    <TableCell className="py-3.5">
-                      <div className="flex items-center gap-3">
-                        <div className={`h-9 w-9 rounded-xl bg-gradient-to-br ${grad(c.name)}
-                          flex items-center justify-center shrink-0`}>
-                          <Tag className="h-4 w-4 text-white" />
+            <table className="ca-t">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Category</th>
+                  <th>Total Courses</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredCategories.map((c, index) => {
+                  const cc = catColor(c.name);
+                  return (
+                    <tr key={c.id}>
+                      <td><span className="ca-idx">{String(index + 1).padStart(2, "0")}</span></td>
+                      <td>
+                        <div className="ca-cat-cell">
+                          <div className="ca-cat-av" style={{ background: gradBg(c.name) }}>
+                            <Tag size={16} color="white" />
+                          </div>
+                          <span className="ca-cat-tag" style={{ background: cc.bg, color: cc.color, borderColor: cc.bd }}>
+                            {c.name}
+                          </span>
                         </div>
-                        <span className={`inline-flex items-center gap-1.5 rounded-full border
-                          px-2.5 py-0.5 text-xs font-semibold ${chip(c.name)}`}>
-                          {c.name}
-                        </span>
-                      </div>
-                    </TableCell>
-
-                    {/* Course Count */}
-                    <TableCell className="py-3.5">
-                      <div className="flex items-center gap-1.5">
-                        <BookOpen className="h-3.5 w-3.5 text-slate-400" />
-                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                          {c.courseCount}
-                        </span>
-                        <span className="text-xs text-slate-400">
-                          course{c.courseCount !== 1 && "s"}
-                        </span>
-                      </div>
-                    </TableCell>
-
-                    {/* Status */}
-                    <TableCell className="pr-6 py-3.5 text-right">
-                      {c.active ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-full border
-                          bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-800
-                          px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                          Active
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 rounded-full border
-                          bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700
-                          px-2.5 py-0.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                          <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-                          Inactive
-                        </span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                      </td>
+                      <td>
+                        <div className="ca-course-cnt">
+                          <BookOpen size={13} style={{ color: "var(--mu)" }} />
+                          <span className="ca-cnt-num">{c.courseCount}</span>
+                          <span className="ca-cnt-lbl">course{c.courseCount !== 1 && "s"}</span>
+                        </div>
+                      </td>
+                      <td>
+                        {c.active ? (
+                          <span className="ca-status-active">
+                            <span className="ca-status-dot-active" /> Active
+                          </span>
+                        ) : (
+                          <span className="ca-status-inactive">
+                            <span className="ca-status-dot-inactive" /> Inactive
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           )}
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* ═══════ MODAL (unchanged logic) ═══════ */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-sm p-0 rounded-2xl overflow-hidden
-          bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl">
+      </div>
 
-          {/* header */}
-          <div className="bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-xl bg-white/20 flex items-center justify-center">
-                  <Layers className="h-4 w-4 text-white" />
-                </div>
+      {/* ── Modal (unchanged logic) ── */}
+      {open && (
+        <div className={`ca-modal-overlay${dark ? " ca-dk" : ""}`} onClick={() => setOpen(false)}>
+          <div className="ca-modal" onClick={e => e.stopPropagation()}>
+            <div className="ca-modal-head">
+              <div className="ca-modal-head-l">
+                <div className="ca-modal-ico"><Layers size={17} /></div>
                 <div>
-                  <DialogTitle className="text-sm font-bold text-white">Add Category</DialogTitle>
-                  <p className="text-[11px] text-blue-100/70">Create a new course category</p>
+                  <p className="ca-modal-title">Add Category</p>
+                  <p className="ca-modal-sub">Create a new course category</p>
                 </div>
               </div>
-              <DialogClose className="rounded-lg bg-white/15 p-1.5 text-white
-                hover:bg-white/25 transition-colors">
-                <X className="h-4 w-4" />
-              </DialogClose>
+              <button className="ca-modal-close" onClick={() => setOpen(false)}><X size={14} /></button>
+            </div>
+            <div className="ca-modal-body">
+              <div className="ca-field">
+                <label>Category Name</label>
+                <input className="ca-input" placeholder="e.g. Web Development" />
+              </div>
+              <div className="ca-modal-footer">
+                <button className="ca-cancel" onClick={() => setOpen(false)}>Cancel</button>
+                <button className="ca-submit">Create</button>
+              </div>
             </div>
           </div>
-
-          {/* body */}
-          <div className="p-5 space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-                Category Name
-              </label>
-              <Input
-                placeholder="e.g. Web Development"
-                className="h-10 rounded-xl border-slate-200 dark:border-slate-700
-                  bg-slate-50 dark:bg-slate-800"
-              />
-            </div>
-
-            <div className="flex justify-end gap-2 pt-1">
-              <button
-                onClick={() => setOpen(false)}
-                className="px-4 py-2 rounded-xl text-sm font-medium
-                  bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300
-                  hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                className="px-5 py-2 rounded-xl text-sm font-semibold text-white
-                  bg-gradient-to-r from-blue-600 to-cyan-500 shadow
-                  hover:opacity-90 hover:scale-105 transition-all"
-              >
-                Create
-              </button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
     </div>
   );
 };

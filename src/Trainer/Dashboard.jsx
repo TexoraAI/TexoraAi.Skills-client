@@ -1095,262 +1095,113 @@ const Dashboard = () => {
           }}
         >
           {/* ═══ HERO ═══ */}
-          <div
-            className="dfade"
-            style={{
-              borderRadius: 24,
-              padding: "30px 36px",
-              background: t.heroBg,
-              border: `1px solid ${t.borderHero}`,
-              position: "relative",
-              overflow: "hidden",
-              marginBottom: 20,
-              boxShadow: t.shadow,
-            }}
-          >
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                pointerEvents: "none",
-                opacity: isDark ? 0.04 : 0.025,
-                backgroundImage: `linear-gradient(${t.gridLine} 1px,transparent 1px),linear-gradient(90deg,${t.gridLine} 1px,transparent 1px)`,
-                backgroundSize: "40px 40px",
-              }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                top: "-30%",
-                left: "40%",
-                width: 300,
-                height: 200,
-                background:
-                  "radial-gradient(ellipse,rgba(34,211,238,0.06),transparent 70%)",
-                pointerEvents: "none",
-              }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                bottom: "-40%",
-                right: "10%",
-                width: 250,
-                height: 200,
-                background:
-                  "radial-gradient(ellipse,rgba(167,139,250,0.06),transparent 70%)",
-                pointerEvents: "none",
-              }}
-            />
+<div
+  style={{
+    borderRadius: 20,
+    padding: "28px 32px",
+    background: t.heroBg,
+    border: `0.5px solid ${t.borderHero}`,
+    marginBottom: 20,
+  }}
+>
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      flexWrap: "wrap",
+      gap: 16,
+    }}
+  >
+    {/* Left: Title */}
+    <div>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+        <div
+          style={{
+            width: 6, height: 6,
+            borderRadius: "50%",
+            background: t.textSub,
+          }}
+        />
+        <span
+          style={{
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: "0.2em",
+            textTransform: "uppercase",
+            color: t.textSub,
+            fontFamily: "'Poppins', sans-serif",
+          }}
+        >
+          Overview
+        </span>
+      </div>
+      <h1
+        style={{
+          fontFamily: "'Poppins', sans-serif",
+          fontWeight: 900,
+          fontSize: "clamp(1.5rem, 3vw, 2.2rem)",
+          color: t.text,
+          margin: "0 0 6px",
+          lineHeight: 1.1,
+          letterSpacing: "-0.02em",
+        }}
+      >
+        Trainer Dashboard
+      </h1>
+      <p style={{ fontSize: 12, color: t.textSub, margin: 0, fontWeight: 500, fontFamily: "'Poppins', sans-serif" }}>
+        All your content &amp; student activity at a glance
+      </p>
+    </div>
 
-            <div
-              style={{
-                position: "relative",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                flexWrap: "wrap",
-                gap: 16,
-              }}
-            >
-              <div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 7,
-                    marginBottom: 10,
-                  }}
-                >
-                  <Sparkles size={11} color={t.textSub} />
-                  <span
-                    style={{
-                      fontSize: 9,
-                      fontWeight: 700,
-                      letterSpacing: "0.22em",
-                      textTransform: "uppercase",
-                      color: t.textSub,
-                      fontFamily: "'Poppins',sans-serif",
-                    }}
-                  >
-                    Overview
-                  </span>
-                </div>
-                <h1
-                  style={{
-                    fontFamily: "'Poppins',sans-serif",
-                    fontWeight: 900,
-                    fontSize: "clamp(1.6rem,3vw,2.4rem)",
-                    color: t.text,
-                    margin: 0,
-                    lineHeight: 1.1,
-                    letterSpacing: "-0.02em",
-                  }}
-                >
-                  Trainer Dashboard
-                </h1>
-                <p
-                  style={{
-                    fontSize: 12,
-                    color: t.textSub,
-                    marginTop: 7,
-                    fontWeight: 500,
-                    fontFamily: "'Poppins',sans-serif",
-                  }}
-                >
-                  All your content &amp; student activity at a glance
-                </p>
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                {/* summary pill */}
-                {!loading && (
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 12,
-                      background: t.actBg,
-                      border: `1px solid ${t.actBorder}`,
-                      borderRadius: 12,
-                      padding: "8px 16px",
-                      fontSize: 11,
-                      fontWeight: 600,
-                      fontFamily: "'Poppins',sans-serif",
-                      color: t.textSub,
-                    }}
-                  >
-                    <span>
-                      {counts.batches} batch{counts.batches !== 1 ? "es" : ""}
-                    </span>
-                    <span
-                      style={{ width: 1, height: 14, background: t.actBorder }}
-                    />
-                    <span>
-                      {counts.students} student
-                      {counts.students !== 1 ? "s" : ""}
-                    </span>
-                    <span
-                      style={{ width: 1, height: 14, background: t.actBorder }}
-                    />
-                    {doubtsLoading ? (
-                      <span style={{ opacity: 0.5 }}>checking doubts…</span>
-                    ) : counts.doubts > 0 ? (
-                      <span
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 5,
-                          color: "#fb923c",
-                          fontWeight: 700,
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: 6,
-                            height: 6,
-                            borderRadius: "50%",
-                            background: "#fb923c",
-                            display: "inline-block",
-                          }}
-                        />
-                        {counts.doubts} unanswered
-                      </span>
-                    ) : (
-                      <span style={{ color: t.liveText }}>
-                        No pending doubts ✓
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    background: t.actBg,
-                    border: `1px solid ${t.actBorder}`,
-                    borderRadius: 10,
-                    padding: "8px 14px",
-                  }}
-                >
-                  <Activity size={12} color={t.actIcon} />
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 3,
-                      alignItems: "flex-end",
-                      height: 14,
-                    }}
-                  >
-                    <span
-                      className="d1"
-                      style={{
-                        width: 3,
-                        height: 10,
-                        borderRadius: 2,
-                        background: t.actBar,
-                        display: "block",
-                      }}
-                    />
-                    <span
-                      className="d2"
-                      style={{
-                        width: 3,
-                        height: 14,
-                        borderRadius: 2,
-                        background: t.actBar,
-                        display: "block",
-                      }}
-                    />
-                    <span
-                      className="d3"
-                      style={{
-                        width: 3,
-                        height: 7,
-                        borderRadius: 2,
-                        background: t.actBar,
-                        display: "block",
-                      }}
-                    />
-                  </div>
-                </div>
-                <div
-                  className="livebadge"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 7,
-                    background: isDark
-                      ? "rgba(52,211,153,0.08)"
-                      : "rgba(22,163,74,0.08)",
-                    border: isDark
-                      ? "1px solid rgba(52,211,153,0.3)"
-                      : "1px solid rgba(22,163,74,0.3)",
-                    borderRadius: 999,
-                    padding: "8px 18px",
-                    color: t.liveText,
-                    fontSize: 11,
-                    fontWeight: 700,
-                    letterSpacing: "0.1em",
-                    fontFamily: "'Poppins',sans-serif",
-                  }}
-                >
-                  <span
-                    style={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: "50%",
-                      background: t.liveColor,
-                      display: "inline-block",
-                    }}
-                  />
-                  LIVE
-                </div>
-              </div>
-            </div>
-          </div>
+    {/* Right: Badges */}
+    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+      {["0 batches", "0 students"].map((label) => (
+        <span
+          key={label}
+          style={{
+            fontSize: 11,
+            fontWeight: 500,
+            padding: "5px 12px",
+            borderRadius: 20,
+            border: `0.5px solid ${t.border}`,
+            background: t.cardBg,
+            color: t.textSub,
+            fontFamily: "'Poppins', sans-serif",
+          }}
+        >
+          {label}
+        </span>
+      ))}
+      <span
+        style={{
+          fontSize: 11, fontWeight: 500,
+          padding: "5px 12px", borderRadius: 20,
+          background: isDark ? "#14532d" : "#dcfce7",
+          color: isDark ? "#86efac" : "#15803d",
+          border: `0.5px solid ${isDark ? "#166534" : "#bbf7d0"}`,
+          fontFamily: "'Poppins', sans-serif",
+        }}
+      >
+        No pending doubts ✓
+      </span>
+      <span
+        style={{
+          display: "flex", alignItems: "center", gap: 5,
+          fontSize: 11, fontWeight: 700,
+          padding: "5px 12px", borderRadius: 20,
+          background: isDark ? "#14532d" : "#dcfce7",
+          color: isDark ? "#86efac" : "#15803d",
+          border: `0.5px solid ${isDark ? "#166534" : "#bbf7d0"}`,
+          fontFamily: "'Poppins', sans-serif",
+        }}
+      >
+        <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#22c55e", flexShrink: 0 }} />
+        LIVE
+      </span>
+    </div>
+  </div>
+</div>
 
           {/* ═══ 8 STAT CARDS ═══ */}
           <div

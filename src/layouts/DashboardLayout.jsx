@@ -86,7 +86,7 @@ const DashboardLayout = ({ SidebarComponent }) => {
           </div>
 
           {/* PAGE CONTENT */}
-          <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-black p-4 md:p-6">
+          <main className="flex-1 overflow-y-auto bg-white dark:bg-black">
             <Outlet />
           </main>
 

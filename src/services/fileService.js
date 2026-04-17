@@ -1,9 +1,7 @@
-
-
 import axios from "axios";
 
-const API_GATEWAY =   import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api";
-
+const API_GATEWAY =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api";
 
 const authHeader = () => ({
   Authorization: `Bearer ${localStorage.getItem("lms_token")}`,
@@ -31,7 +29,7 @@ const fileService = {
     formData.append("batchId", batchId);
     formData.append("title", title || "");
     formData.append("description", description || "");
-  
+
     return axios.post(`${API_GATEWAY}/file/upload`, formData, {
       headers: {
         ...authHeader(),
@@ -47,7 +45,7 @@ const fileService = {
     });
   },
 
-  // ================= STUDENT FILES =================
+  //================= STUDENT FILES =================
   getStudentFiles() {
     return axios.get(`${API_GATEWAY}/file/student`, {
       headers: authHeader(),
@@ -111,7 +109,28 @@ const fileService = {
     return `${API_GATEWAY}/course-files/download/${encodeURIComponent(fileName)}`;
   },
 
+  // 2️⃣ ✅ EDIT COURSE FILE — newFile is optional (pass null to keep existing)
+  updateCourseFile(id, newFile, courseId, moduleId, batchId) {
+    const formData = new FormData();
+    if (newFile) formData.append("file", newFile);
+    if (courseId !== undefined && courseId !== null)
+      formData.append("courseId", courseId);
+    if (moduleId !== undefined && moduleId !== null)
+      formData.append("moduleId", moduleId);
+    if (batchId !== undefined && batchId !== null)
+      formData.append("batchId", batchId);
+
+    return axios.put(`${API_GATEWAY}/course-files/${id}`, formData, {
+      headers: authHeader(),
+    });
+  },
+
   // 3️⃣ Delete Course Module File
+  // deleteCourseFile(id) {
+  //   return axios.delete(`${API_GATEWAY}/course-files/${id}`, {
+  //     headers: authHeader(),
+  //   });
+  // },
   deleteCourseFile(id) {
     return axios.delete(`${API_GATEWAY}/course-files/${id}`, {
       headers: authHeader(),

@@ -342,6 +342,18 @@ export const evaluateSubmission = (submissionId, marks) =>
   API.put(`/submissions/evaluate/${submissionId}?marks=${marks}`);
 
 /* ========================================================= */
+/* 🔥 DOWNLOAD ASSIGNMENT FILE (FIXED) */
+/* ========================================================= */
+
+export const downloadAssignmentFileBlob = async (fileId) => {
+  const res = await API.get(`/assignment-files/download/${fileId}`, {
+    responseType: "blob",
+  });
+
+  return res.data;
+};
+
+/* ========================================================= */
 /* 🔥 DEFAULT EXPORT (FIXED) */
 /* ========================================================= */
 
@@ -371,4 +383,5 @@ export default {
   getStudentAssignments,
   getMySubmissions,
   evaluateSubmission,
+  downloadAssignmentFileBlob,
 };

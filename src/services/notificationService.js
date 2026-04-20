@@ -85,6 +85,46 @@ export const clearAllNotificationsAPI = async () => {
     console.error("clearAllNotificationsAPI error:", err);
   }
 };
+
+
+
+// ─────────────────────────────────────────────────────────────
+//  NEW: FCM DEVICE TOKEN ENDPOINTS
+// ─────────────────────────────────────────────────────────────
+
+// Called by firebaseService.registerFcmToken() after login
+// POST /api/notification/register-token
+// Body: { fcmToken: string, deviceType: "WEB" | "ANDROID" | "IOS" }
+export const registerDeviceToken = async (fcmToken, deviceType = "WEB") => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/notification/register-token`, {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify({ fcmToken, deviceType }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    console.log("✅ Device token registered");
+  } catch (err) {
+    console.error("registerDeviceToken error:", err);
+  }
+};
+
+// Called by firebaseService.unregisterFcmToken() on logout
+// DELETE /api/notification/remove-token
+// Body: { fcmToken: string }
+export const removeDeviceToken = async (fcmToken) => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/notification/remove-token`, {
+      method: "DELETE",
+      headers: authHeaders(),
+      body: JSON.stringify({ fcmToken }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    console.log("🗑️ Device token removed");
+  } catch (err) {
+    console.error("removeDeviceToken error:", err);
+  }
+};
 // ─────────────────────────────────────────────────────────────
 //  WEBSOCKET
 // ─────────────────────────────────────────────────────────────

@@ -117,19 +117,128 @@
 
 
 
-import { Bell, Menu } from "lucide-react";
-import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate, Outlet } from "react-router-dom";
-import { onForegroundMessage } from "../services/firebaseService";
 
+import { Bell, Menu, X } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { useLocation, useNavigate, Outlet } from "react-router-dom";
+import { onForegroundMessage, registerFcmToken } from "../services/firebaseService";
+
+// ─────────────────────────────────────────────
+// Notification permission banner (shown once
+// when permission is still "default").
+// Must be triggered by a real user click so
+// the browser allows the permission prompt.
+// ─────────────────────────────────────────────
+const NotificationBanner = () => {
+  const [show, setShow] = useState(false);
+  const [asking, setAsking] = useState(false);
+
+  useEffect(() => {
+    // Only show if user hasn't decided yet
+    if (typeof Notification !== "undefined" && Notification.permission === "default") {
+      setShow(true);
+    }
+  }, []);
+
+  const handleEnable = async () => {
+    setAsking(true);
+    try {
+      const token = await registerFcmToken(); // ← user click triggers this safely
+      if (token) {
+        console.log("✅ FCM registered:", token);
+      }
+    } catch (err) {
+      console.error("FCM error:", err);
+    } finally {
+      setShow(false);
+      setAsking(false);
+    }
+  };
+
+  if (!show) return null;
+
+  return (
+    <div style={{
+      position:       "fixed",
+      bottom:         24,
+      left:           "50%",
+      transform:      "translateX(-50%)",
+      background:     "#1e293b",
+      color:          "#f8fafc",
+      padding:        "13px 18px",
+      borderRadius:   14,
+      display:        "flex",
+      alignItems:     "center",
+      gap:            12,
+      boxShadow:      "0 8px 32px rgba(0,0,0,0.28)",
+      border:         "1px solid rgba(255,255,255,0.08)",
+      zIndex:         9998,
+      fontFamily:     "DM Sans, sans-serif",
+      fontSize:       "0.86rem",
+      whiteSpace:     "nowrap",
+      animation:      "bnrIn 0.35s ease",
+    }}>
+      <style>{`
+        @keyframes bnrIn {
+          from { opacity: 0; transform: translateX(-50%) translateY(16px); }
+          to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+      `}</style>
+
+      <span style={{ fontSize: 18 }}>🔔</span>
+      <span style={{ color: "#cbd5e1" }}>
+        Enable notifications to get video &amp; course alerts
+      </span>
+
+      <button
+        onClick={handleEnable}
+        disabled={asking}
+        style={{
+          background:   "#F97316",
+          color:        "#fff",
+          border:       "none",
+          borderRadius: 8,
+          padding:      "7px 16px",
+          cursor:       asking ? "not-allowed" : "pointer",
+          fontWeight:   700,
+          fontSize:     "0.82rem",
+          opacity:      asking ? 0.7 : 1,
+          fontFamily:   "inherit",
+          whiteSpace:   "nowrap",
+        }}
+      >
+        {asking ? "Enabling…" : "Enable"}
+      </button>
+
+      <button
+        onClick={() => setShow(false)}
+        style={{
+          background: "none",
+          border:     "none",
+          color:      "#64748b",
+          cursor:     "pointer",
+          display:    "flex",
+          alignItems: "center",
+          padding:    0,
+        }}
+      >
+        <X size={16} />
+      </button>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// Main layout
+// ─────────────────────────────────────────────
 const DashboardLayout = ({ SidebarComponent }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const base = "/" + location.pathname.split("/")[1];
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [toast, setToast] = useState(null);
-  const toastTimer = React.useRef(null);
+  const [toast,       setToast]       = useState(null);
+  const toastTimer = useRef(null);
 
   // Firebase foreground push notifications
   useEffect(() => {
@@ -146,7 +255,7 @@ const DashboardLayout = ({ SidebarComponent }) => {
     toastTimer.current = setTimeout(() => setToast(null), 4000);
   };
 
-  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+  const toggleSidebar = () => setSidebarOpen((o) => !o);
   const closeSidebar  = () => setSidebarOpen(false);
 
   return (
@@ -227,7 +336,10 @@ const DashboardLayout = ({ SidebarComponent }) => {
         </div>
       </div>
 
-      {/* FOREGROUND PUSH TOAST */}
+      {/* ── Notification permission banner ── */}
+      <NotificationBanner />
+
+      {/* ── Foreground push toast ── */}
       {toast && (
         <div
           onClick={() => {

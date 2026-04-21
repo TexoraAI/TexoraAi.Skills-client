@@ -1,5 +1,5 @@
 // src/trainer/trainerTheme.js
-// ─── Shared theme tokens & layout helpers for all Trainer pages ───────────
+
 
 export const T = {
   dark: {

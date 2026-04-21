@@ -721,7 +721,7 @@ import { Bell, Menu, X } from "lucide-react";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate, Outlet } from "react-router-dom";
 import { onForegroundMessage, registerFcmToken } from "../services/firebaseService";
-import { useTrainerTheme } from "../trainer/trainerTheme";
+import { useTrainerTheme } from "../Trainer/trainerTheme";
 import {
   connectWebSocket,
   disconnectWebSocket,

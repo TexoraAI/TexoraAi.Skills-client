@@ -482,6 +482,7 @@ import { useNavigate } from "react-router-dom";
 import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import auth from "../../auth";
+import { registerFcmToken } from "../../services/firebaseService"; // ✅ ADDED
 
 const GOOGLE_CLIENT_ID =
   "572421778240-akk3kkb4f60ukuv9pcfrpg2ielm09thk.apps.googleusercontent.com";
@@ -528,6 +529,15 @@ const TexoraLogin = () => {
     }
   };
 
+  // ✅ ADDED: helper that registers FCM silently after login
+  const tryRegisterFcm = () => {
+    if (Notification.permission === "granted") {
+      // Already granted — register silently, no banner needed
+      registerFcmToken().catch(console.error);
+    }
+    // If "default" or "denied", the NotificationBanner in DashboardLayout handles it
+  };
+
   // Email / password login
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -538,7 +548,7 @@ const TexoraLogin = () => {
       if (ok) {
         const role = (auth.getCurrentRole() || "STUDENT").toUpperCase();
         localStorage.setItem("role", role);
-        // ✅ FCM token is registered in DashboardLayout via the notification banner
+        tryRegisterFcm(); // ✅ ADDED
         redirectByRole(role);
       } else {
         alert("Login failed! Check your credentials.");
@@ -566,7 +576,7 @@ const TexoraLogin = () => {
       } else {
         const role = (resp?.role || "STUDENT").toUpperCase();
         localStorage.setItem("role", role);
-        // ✅ FCM token is registered in DashboardLayout via the notification banner
+        tryRegisterFcm(); // ✅ ADDED
         redirectByRole(role);
       }
     } catch (err) {

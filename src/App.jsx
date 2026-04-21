@@ -186,16 +186,27 @@ export default function App() {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  // ✅ ADDED: Register Firebase service worker once on app load
-  // This must run early so getToken() in firebaseService.js always has a SW ready.
-  useEffect(() => {
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("/firebase-messaging-sw.js", { scope: "/" })
-        .then((reg) => console.log("✅ FCM SW registered:", reg.scope))
-        .catch((err) => console.error("❌ FCM SW registration failed:", err));
-    }
-  }, []);
+ // ✅ Register SW always + FCM token only if already logged in
+useEffect(() => {
+  // SW registration — needs no auth
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker
+      .register("/firebase-messaging-sw.js", { scope: "/" })
+      .then((reg) => console.log("✅ FCM SW registered:", reg.scope))
+      .catch((err) => console.error("❌ FCM SW registration failed:", err));
+  }
+
+  // FCM token — only if user is already authenticated (page refresh case)
+  if (
+    auth.isAuthenticated() &&
+    Notification.permission === "granted" &&
+    !localStorage.getItem("fcm_token")
+  ) {
+    import("./services/firebaseService").then(({ registerFcmToken }) => {
+      registerFcmToken().catch(console.error);
+    });
+  }
+}, []);
   return (
     <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
       <ErrorBoundary>

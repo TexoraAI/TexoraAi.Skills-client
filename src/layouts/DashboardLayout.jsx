@@ -40,20 +40,22 @@
 //     osc1.connect(g1); g1.connect(ctx.destination);
 //     osc1.type = "sine";
 //     osc1.frequency.setValueAtTime(880, ctx.currentTime);
-//     g1.gain.setValueAtTime(0.15, ctx.currentTime);
-//     g1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+//     // ✅ FIX 1: louder sound — 0.15 → 0.6
+//     g1.gain.setValueAtTime(0.6, ctx.currentTime);
+//     g1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
 //     osc1.start(ctx.currentTime);
-//     osc1.stop(ctx.currentTime + 0.18);
+//     osc1.stop(ctx.currentTime + 0.22);
 
 //     const osc2 = ctx.createOscillator();
 //     const g2   = ctx.createGain();
 //     osc2.connect(g2); g2.connect(ctx.destination);
 //     osc2.type = "sine";
-//     osc2.frequency.setValueAtTime(1100, ctx.currentTime + 0.2);
-//     g2.gain.setValueAtTime(0.12, ctx.currentTime + 0.2);
-//     g2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.38);
-//     osc2.start(ctx.currentTime + 0.2);
-//     osc2.stop(ctx.currentTime + 0.38);
+//     osc2.frequency.setValueAtTime(1100, ctx.currentTime + 0.25);
+//     // ✅ FIX 1: louder sound — 0.12 → 0.5
+//     g2.gain.setValueAtTime(0.5, ctx.currentTime + 0.25);
+//     g2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.48);
+//     osc2.start(ctx.currentTime + 0.25);
+//     osc2.stop(ctx.currentTime + 0.48);
 
 //     setTimeout(() => ctx.close(), 600);
 //   } catch (e) {
@@ -69,6 +71,7 @@
 //   const [asking, setAsking] = useState(false);
 
 //   useEffect(() => {
+//     // ✅ FIX 2: remember dismissal — don't show banner again after X clicked
 //     const dismissed = localStorage.getItem("notif_banner_dismissed");
 //     if (
 //       typeof Notification !== "undefined" &&
@@ -93,6 +96,7 @@
 //   };
 
 //   const handleDismiss = () => {
+//     // ✅ FIX 2: persist dismissal to localStorage
 //     localStorage.setItem("notif_banner_dismissed", "true");
 //     setShow(false);
 //   };
@@ -170,9 +174,10 @@
 // // Toast stack — shows multiple toasts, each auto-dismisses
 // // ─────────────────────────────────────────────────────────────
 // const ToastStack = ({ toasts, onDismiss, onNavigate }) => (
+//   // ✅ FIX 3: top: 24 instead of bottom: 24 → appears top-right
 //   <div style={{
 //     position:      "fixed",
-//     bottom:        24,
+//     top:           24,
 //     right:         24,
 //     zIndex:        9999,
 //     display:       "flex",
@@ -197,7 +202,7 @@
 //           display:      "flex",
 //           alignItems:   "flex-start",
 //           gap:          10,
-//           animation:    "slideUp 0.3s ease",
+//           animation:    "slideDown 0.3s ease",
 //           cursor:       "pointer",
 //           width:        "100%",
 //         }}
@@ -238,8 +243,8 @@
 //       </div>
 //     ))}
 //     <style>{`
-//       @keyframes slideUp {
-//         from { opacity: 0; transform: translateY(14px); }
+//       @keyframes slideDown {
+//         from { opacity: 0; transform: translateY(-14px); }
 //         to   { opacity: 1; transform: translateY(0); }
 //       }
 //     `}</style>
@@ -442,11 +447,6 @@
 
 
 
-
-
-
-
-
 //for github//
 import { Bell, Menu, X } from "lucide-react";
 import React, { useState, useEffect, useRef, useCallback } from "react";
@@ -480,33 +480,67 @@ const TYPE_ICON = {
 };
 const getIcon = (type) => TYPE_ICON[type] ?? TYPE_ICON.DEFAULT;
 
+// ── Shared AudioContext — created once, reused ───────────────
+let _audioCtx = null;
+const getAudioCtx = () => {
+  if (!_audioCtx || _audioCtx.state === "closed") {
+    _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return _audioCtx;
+};
+
+// ── Unlock AudioContext on first user interaction ────────────
+// Browsers suspend AudioContext until user clicks/taps something.
+// This runs once and resumes it so sound works even on passive pages.
+const unlockAudio = () => {
+  try {
+    const ctx = getAudioCtx();
+    if (ctx.state === "suspended") {
+      ctx.resume();
+    }
+  } catch (_) {}
+};
+if (typeof window !== "undefined") {
+  window.addEventListener("click",      unlockAudio, { once: false });
+  window.addEventListener("keydown",    unlockAudio, { once: false });
+  window.addEventListener("touchstart", unlockAudio, { once: false });
+}
+
 // ── Sound using Web Audio API ────────────────────────────────
 const playSound = () => {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc1 = ctx.createOscillator();
-    const g1   = ctx.createGain();
-    osc1.connect(g1); g1.connect(ctx.destination);
-    osc1.type = "sine";
-    osc1.frequency.setValueAtTime(880, ctx.currentTime);
-    // ✅ FIX 1: louder sound — 0.15 → 0.6
-    g1.gain.setValueAtTime(0.6, ctx.currentTime);
-    g1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
-    osc1.start(ctx.currentTime);
-    osc1.stop(ctx.currentTime + 0.22);
+    const ctx = getAudioCtx();
 
-    const osc2 = ctx.createOscillator();
-    const g2   = ctx.createGain();
-    osc2.connect(g2); g2.connect(ctx.destination);
-    osc2.type = "sine";
-    osc2.frequency.setValueAtTime(1100, ctx.currentTime + 0.25);
-    // ✅ FIX 1: louder sound — 0.12 → 0.5
-    g2.gain.setValueAtTime(0.5, ctx.currentTime + 0.25);
-    g2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.48);
-    osc2.start(ctx.currentTime + 0.25);
-    osc2.stop(ctx.currentTime + 0.48);
+    // ✅ If still suspended (no interaction yet), resume first
+    const doPlay = () => {
+      const t = ctx.currentTime;
 
-    setTimeout(() => ctx.close(), 600);
+      const osc1 = ctx.createOscillator();
+      const g1   = ctx.createGain();
+      osc1.connect(g1); g1.connect(ctx.destination);
+      osc1.type = "sine";
+      osc1.frequency.setValueAtTime(880, t);
+      g1.gain.setValueAtTime(0.6, t);
+      g1.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+      osc1.start(t);
+      osc1.stop(t + 0.22);
+
+      const osc2 = ctx.createOscillator();
+      const g2   = ctx.createGain();
+      osc2.connect(g2); g2.connect(ctx.destination);
+      osc2.type = "sine";
+      osc2.frequency.setValueAtTime(1100, t + 0.25);
+      g2.gain.setValueAtTime(0.5, t + 0.25);
+      g2.gain.exponentialRampToValueAtTime(0.001, t + 0.48);
+      osc2.start(t + 0.25);
+      osc2.stop(t + 0.48);
+    };
+
+    if (ctx.state === "suspended") {
+      ctx.resume().then(doPlay);
+    } else {
+      doPlay();
+    }
   } catch (e) {
     console.warn("Sound error:", e);
   }

@@ -87,7 +87,9 @@ const UpdateEmail           = lazyLoad(() => import("./Student/UpdateEmail"));
 const Certificates          = lazyLoad(() => import("./Student/certificates.jsx"));
 const Overview              = lazyLoad(() => import("./Student/overview.jsx"));
 const VideoLectures         = lazyLoad(() => import("./Student/videolecctures.jsx"));
+const StudentNotebook = lazyLoad(() => import("./Student/StudentNotebook.jsx"));
 const CallTrainer           = lazyLoad(() => import("./Student/CallTrainer.jsx"));
+const StudentFeedback = lazyLoad(() => import("./Student/Studentfeedback.jsx"));
 
 /* ================= TRAINER ================= */
 const TrainerAssessments    = lazyLoad(() => import("./Trainer/Assessments"));
@@ -121,7 +123,7 @@ const StartLiveSession      = lazyLoad(() => import("./Trainer/StartLiveSession"
 const TrainerLiveClasses    = lazyLoad(() => import("./Trainer/TrainerLiveClasses"));
 const UploadRecordedVideo   = lazyLoad(() => import("./Trainer/UploadRecordedVideo"));
 const TrainerJoinCall       = lazyLoad(() => import("./Trainer/TrainerJoinCall"));
-
+const TrainerFeedback = lazyLoad(() => import("./Trainer/Trainerfeedback.jsx"));
 /* ================= ADMIN ================= */
 const AdminBatches              = lazyLoad(() => import("./Admin/AdminBatches"));
 const AdminDashboard            = lazyLoad(() => import("./Admin/AdminDashboard"));
@@ -138,14 +140,14 @@ const Categories                = lazyLoad(() => import("./Admin/Categories"));
 const CertificatesAdmin         = lazyLoad(() => import("./Admin/CertificatesAdmin"));
 const DepartmentList            = lazyLoad(() => import("./Admin/DepartmentList"));
 const Featuredcourseuploadform  = lazyLoad(() => import("./Admin/Featuredcourseuploadform"));
-const FeedbackAdmin             = lazyLoad(() => import("./Admin/FeedbackAdmin"));
+
 const OrgReports                = lazyLoad(() => import("./Admin/OrgReports"));
 const OrgSettings               = lazyLoad(() => import("./Admin/OrgSettings"));
 const PendingUsers              = lazyLoad(() => import("./Admin/PendingUsers.jsx"));
 const StudentsAdmin             = lazyLoad(() => import("./Admin/StudentsAdmin"));
 const TrainersAdmin             = lazyLoad(() => import("./Admin/TrainersAdmin"));
 const UsageAnalytics            = lazyLoad(() => import("./Admin/UsageAnalytics"));
-
+const AdminFeedback   = lazyLoad(() => import("./Admin/Adminfeedback.jsx"));
 /* ================= BUSINESS ================= */
 const BusinessDashboard = lazyLoad(() => import("./Business/BusinessDashboard"));
 const NewEnrollments    = lazyLoad(() => import("./Business/Enrollments/NewEnrollments.jsx"));
@@ -251,6 +253,7 @@ useEffect(() => {
               <Route index element={<DashboardPage />} />
               <Route path="classroom" element={<StudentClassroomPage />} />
               <Route path="videos" element={<VideoLectures />} />
+              <Route path="notebook" element={<StudentNotebook />} /> 
               <Route path="documents" element={<Documents />} />
               <Route path="live-classes" element={<LiveClasses />} />
               <Route path="call-trainer" element={<CallTrainer />} />
@@ -276,6 +279,7 @@ useEffect(() => {
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="edit-profile" element={<EditProfile />} />
+              <Route path="student/feedback" element={<StudentFeedback />} />
             </Route>
 
             {/* ================= TRAINER ================= */}
@@ -316,6 +320,7 @@ useEffect(() => {
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="edit-profile" element={<EditProfile />} />
+              <Route path="trainer/feedback" element={<TrainerFeedback />} />
             </Route>
 
             {/* ================= ADMIN ================= */}
@@ -337,7 +342,7 @@ useEffect(() => {
               <Route path="reports" element={<OrgReports />} />
               <Route path="departmentlist" element={<DepartmentList />} />
               <Route path="usage" element={<UsageAnalytics />} />
-              <Route path="feedback" element={<FeedbackAdmin />} />
+              
               <Route path="live-sessions" element={<AdminLiveSessions />} />
               <Route path="recorded-videos" element={<AdminRecordedVideos />} />
               <Route path="search" element={<SearchPage />} />
@@ -346,6 +351,7 @@ useEffect(() => {
               <Route path="edit-profile" element={<EditProfile />} />
               <Route path="featured-course-upload" element={<Featuredcourseuploadform />} />
               <Route path="course-upload" element={<Admincourseuploadform />} />
+              <Route path="feedback-review" element={<AdminFeedback />} />
             </Route>
 
             {/* ================= BUSINESS ================= */}

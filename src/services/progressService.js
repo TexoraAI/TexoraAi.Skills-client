@@ -76,8 +76,6 @@ export const progressService = {
   // Used by: Assignments.jsx
   // ============================
 
-  // ✅ Called on Assignments page load
-  // GET /api/assignment-progress/user?email=x&batchId=54
   getAssignmentProgress(email, batchId) {
     return axios.get(`${API}/assignment-progress/user`, {
       params: { email, batchId },
@@ -85,9 +83,6 @@ export const progressService = {
     });
   },
 
-  // ✅ Called when student submits assignment
-  // POST /api/assignment-progress/mark-complete?email=x&batchId=54&assignmentId=12&totalAssignmentCount=5
-  // ✅ FIXED: param name is "totalAssignments" to match backend @RequestParam
   markAssignmentComplete(email, batchId, assignmentId, totalAssignments) {
     return axios.post(`${API}/assignment-progress/mark-complete`, null, {
       params: {
@@ -100,13 +95,6 @@ export const progressService = {
     });
   },
 
-  // ============================
-  // QUIZ PROGRESS
-  // Used by: Assessment.jsx
-  // ============================
-
-  // ✅ Called on Quiz page load
-  // GET /api/quiz-progress/user?email=x&batchId=54
   getQuizProgress(email, batchId) {
     return axios.get(`${API}/quiz-progress/user`, {
       params: { email, batchId },
@@ -114,14 +102,6 @@ export const progressService = {
     });
   },
 
-  // ✅ Called when student submits quiz
-  // POST /api/quiz-progress/mark-attempted?email=x&batchId=54&quizId=10&totalQuizCount=3
-  // markQuizAttempted(email, batchId, quizId, totalQuizCount) {
-  //   return axios.post(`${API}/quiz-progress/mark-attempted`, null, {
-  //     params: { email, batchId, quizId, totalQuizCount },
-  //     headers: authHeader(),
-  //   });
-  // },
   markQuizAttempted(email, batchId, quizId, totalQuizzes) {
     return axios.post(`${API}/quiz-progress/mark-attempted`, null, {
       params: { email, batchId, quizId, totalQuizzes }, // ✅ FIXED
@@ -134,5 +114,27 @@ export const progressService = {
     return axios.get(`${API}/progress/${id}`, {
       headers: authHeader(),
     });
+  },
+
+  // REPORT ENDPOINTS
+
+  getBatchProgressReport(batchId) {
+    return axios.get(`${API}/progress/reports/batch/${batchId}`, {
+      headers: authHeader(),
+    });
+  },
+
+  getStudentProgressInBatch(batchId, studentEmail) {
+    return axios.get(
+      `${API}/progress/reports/batch/${batchId}/student/${encodeURIComponent(studentEmail)}`,
+      { headers: authHeader() },
+    );
+  },
+
+  getTrainerProgressReport(trainerEmail) {
+    return axios.get(
+      `${API}/progress/reports/trainer/${encodeURIComponent(trainerEmail)}`,
+      { headers: authHeader() },
+    );
   },
 };

@@ -1,3 +1,4 @@
+
 // import React, { useEffect, useRef, useState, useCallback } from "react";
 // import { getMyQuizHistory } from "../services/assessmentService";
 // import {
@@ -146,7 +147,7 @@
 // /* ═══════════════════════════════════════════════
 //    COLLAPSIBLE ATTEMPT ROW (CRM-style)
 // ═══════════════════════════════════════════════ */
-// const AttemptRow = ({ a, index, getPercent, isPassed, t }) => {
+// const AttemptRow = ({ a, index, getPercent, isPassed, getScoreDisplay, t }) => {
 //   const [open, setOpen] = useState(false);
 //   const [hov, setHov] = useState(false);
 //   const passed = isPassed(a);
@@ -198,16 +199,19 @@
 //             fontFamily: "'Poppins',sans-serif",
 //             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
 //             transition: "color 0.2s",
-//           }}>{a.quiz?.title || "Quiz"}</p>
+//           }}>{a.quizTitle || a.quiz?.title || "Quiz"}</p>
 //           <p style={{ margin: "2px 0 0", fontSize: 10, color: t.textMuted, fontFamily: "'Poppins',sans-serif" }}>
-//             {a.submittedAt ? new Date(a.submittedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}
+//             {a.submittedAt
+//               ? new Date(a.submittedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+//               : "—"}
 //           </p>
 //         </div>
 
 //         {/* Score + mini bar */}
 //         <div style={{ minWidth: 80 }}>
 //           <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: t.text, fontFamily: "'Poppins',sans-serif" }}>
-//             {a.score}/{a.quiz?.questions?.length || "—"}
+//             {/* ✅ Uses getScoreDisplay from component 2 logic */}
+//             {getScoreDisplay(a)}
 //           </p>
 //           <div style={{ marginTop: 4, height: 4, borderRadius: 99, background: t.barBg, overflow: "hidden", width: 64 }}>
 //             <div style={{
@@ -273,12 +277,18 @@
 //             gap: 12,
 //           }}>
 //             {[
-//               { label: "Quiz Title", value: a.quiz?.title || "—", icon: FileText, color: "#22d3ee" },
-//               { label: "Score", value: `${a.score} / ${a.quiz?.questions?.length || "—"}`, icon: Trophy, color: "#f59e0b" },
-//               { label: "Percentage", value: `${percent}%`, icon: TrendingUp, color: accentColor },
-//               { label: "Result", value: passed ? "Passed ✓" : "Failed ✗", icon: passed ? CheckCircle2 : XCircle, color: accentColor },
-//               { label: "Submitted", value: a.submittedAt ? new Date(a.submittedAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "—", icon: Calendar, color: "#a78bfa" },
-//               { label: "Questions", value: a.quiz?.questions?.length || "—", icon: FileText, color: "#fb923c" },
+//               { label: "Quiz Title",  value: a.quizTitle || a.quiz?.title || "—",  icon: FileText,                             color: "#22d3ee" },
+//               { label: "Score",       value: getScoreDisplay(a),                    icon: Trophy,                               color: "#f59e0b" },
+//               { label: "Percentage",  value: `${percent}%`,                         icon: TrendingUp,                           color: accentColor },
+//               { label: "Result",      value: passed ? "Passed ✓" : "Failed ✗",     icon: passed ? CheckCircle2 : XCircle,      color: accentColor },
+//               {
+//                 label: "Submitted",
+//                 value: a.submittedAt
+//                   ? new Date(a.submittedAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })
+//                   : "—",
+//                 icon: Calendar, color: "#a78bfa",
+//               },
+//               { label: "Questions",   value: getScoreDisplay(a).includes("/") ? getScoreDisplay(a).split("/")[1] : "—", icon: FileText, color: "#fb923c" },
 //             ].map((det, i) => (
 //               <div key={i} style={{
 //                 display: "flex", alignItems: "center", gap: 10,
@@ -346,25 +356,47 @@
 //     }
 //   };
 
+//   /* ── Logic from component 2 ── */
+
+//   // ✅ Uses a.percentage directly from backend (component 2 logic)
+//   const getPercent = (a) => (a.percentage || 0).toFixed(1);
+
+//   // ✅ Uses a.percentage for pass check (component 2 logic)
+//   const isPassed = (a) => (a.percentage || 0) >= 50;
+
+//   // ✅ Derives total questions from score + percentage, with fallbacks (component 2 logic)
+//   const getTotalQuestions = (a) => {
+//     const direct =
+//       a.totalQuestions ??
+//       a.total_questions ??
+//       a.quiz?.totalQuestions ??
+//       a.quiz?.questions?.length ??
+//       null;
+//     if (direct != null) return direct;
+//     const score = a.score ?? 0;
+//     const pct = a.percentage ?? 0;
+//     if (score > 0 && pct > 0) {
+//       return Math.round(score / (pct / 100));
+//     }
+//     return null;
+//   };
+
+//   // ✅ Returns "2/3" or just "0" if total unknown (component 2 logic)
+//   const getScoreDisplay = (a) => {
+//     const score = a.score ?? 0;
+//     const total = getTotalQuestions(a);
+//     return total != null ? `${score}/${total}` : `${score}`;
+//   };
+
 //   /* ── Stats ── */
 //   const totalAttempts = attempts.length;
-//   const passedAttempts = attempts.filter((a) => {
-//     const total = a.quiz?.questions?.length || 0;
-//     return total > 0 ? (a.score * 100) / total >= 50 : false;
-//   }).length;
+//   // ✅ Uses isPassed with a.percentage (component 2 logic)
+//   const passedAttempts = attempts.filter((a) => isPassed(a)).length;
+//   // ✅ Uses a.percentage directly (component 2 logic)
 //   const averageScore =
 //     attempts.length > 0
-//       ? attempts.reduce((sum, a) => {
-//           const total = a.quiz?.questions?.length || 0;
-//           return sum + (total > 0 ? (a.score * 100) / total : 0);
-//         }, 0) / attempts.length
+//       ? attempts.reduce((sum, a) => sum + (a.percentage || 0), 0) / attempts.length
 //       : 0;
-
-//   const getPercent = (a) => {
-//     const total = a.quiz?.questions?.length || 0;
-//     return total > 0 ? ((a.score * 100) / total).toFixed(1) : "0.0";
-//   };
-//   const isPassed = (a) => parseFloat(getPercent(a)) >= 50;
 
 //   /* ── Loading ── */
 //   if (loading) {
@@ -500,10 +532,10 @@
 //             display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(185px,1fr))",
 //             gap: 14, marginBottom: 20,
 //           }}>
-//             <StatCard icon={FileText} value={totalAttempts} label="Total Attempts" color="#22d3ee" t={t} />
-//             <StatCard icon={CheckCircle2} value={passedAttempts} label="Passed" color="#34d399" t={t} />
-//             <StatCard icon={XCircle} value={totalAttempts - passedAttempts} label="Failed" color="#f87171" t={t} />
-//             <StatCard icon={TrendingUp} value={`${averageScore.toFixed(1)}%`} label="Avg Score" color="#a78bfa" t={t} />
+//             <StatCard icon={FileText}    value={totalAttempts}                     label="Total Attempts" color="#22d3ee" t={t} />
+//             <StatCard icon={CheckCircle2} value={passedAttempts}                   label="Passed"         color="#34d399" t={t} />
+//             <StatCard icon={XCircle}     value={totalAttempts - passedAttempts}    label="Failed"         color="#f87171" t={t} />
+//             <StatCard icon={TrendingUp}  value={`${averageScore.toFixed(1)}%`}     label="Avg Score"      color="#a78bfa" t={t} />
 //           </div>
 
 //           {/* ═══ ATTEMPTS LIST ═══ */}
@@ -545,7 +577,7 @@
 //                     <div>
 //                       <p style={{ margin: 0, fontSize: 10, color: t.textMuted, fontFamily: "'Poppins',sans-serif" }}>Best Attempt</p>
 //                       <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#f59e0b", fontFamily: "'Poppins',sans-serif" }}>
-//                         {best.quiz?.title || "Quiz"} — {getPercent(best)}%
+//                         {best.quizTitle || best.quiz?.title || "Quiz"} — {getPercent(best)}%
 //                       </p>
 //                     </div>
 //                   </div>
@@ -606,7 +638,10 @@
 //                 attempts.map((a, idx) => (
 //                   <AttemptRow
 //                     key={idx} a={a} index={idx}
-//                     getPercent={getPercent} isPassed={isPassed} t={t}
+//                     getPercent={getPercent}
+//                     isPassed={isPassed}
+//                     getScoreDisplay={getScoreDisplay}
+//                     t={t}
 //                   />
 //                 ))
 //               )}
@@ -642,21 +677,22 @@
 
 
 
-
-
-
-
-
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { getMyQuizHistory } from "../services/assessmentService";
 import {
-  Trophy, Calendar, TrendingUp, FileText,
-  CheckCircle2, XCircle, Sparkles, Activity,
-  ChevronDown, ArrowUpRight, ChevronRight,
+  Trophy,
+  Calendar,
+  TrendingUp,
+  FileText,
+  CheckCircle2,
+  XCircle,
+  Sparkles,
+  Activity,
+  ArrowUpRight,
 } from "lucide-react";
 
 /* ═══════════════════════════════════════════════
-   THEME TOKEN MAP (matches Dashboard exactly)
+   THEME TOKEN MAP (matches Component 1 exactly)
 ═══════════════════════════════════════════════ */
 const T = {
   dark: {
@@ -693,6 +729,13 @@ const T = {
     overdueBg: "rgba(239,68,68,0.12)",
     overdueText: "#f87171",
     overdueBorder: "rgba(239,68,68,0.2)",
+    splitBg: "#111111",
+    splitBorder: "rgba(255,255,255,0.06)",
+    dragBg: "rgba(255,255,255,0.04)",
+    dragBorder: "rgba(255,255,255,0.08)",
+    dragHov: "rgba(124,58,237,0.12)",
+    tableHeaderBg: "rgba(255,255,255,0.03)",
+    rowHov: "rgba(255,255,255,0.03)",
   },
   light: {
     pageBg: "#f1f5f9",
@@ -728,11 +771,18 @@ const T = {
     overdueBg: "#fef2f2",
     overdueText: "#ef4444",
     overdueBorder: "#fecaca",
+    splitBg: "#ffffff",
+    splitBorder: "#e2e8f0",
+    dragBg: "#f1f5f9",
+    dragBorder: "#e2e8f0",
+    dragHov: "rgba(124,58,237,0.08)",
+    tableHeaderBg: "#f8fafc",
+    rowHov: "#f8fafc",
   },
 };
 
 /* ═══════════════════════════════════════════════
-   STAT CARD
+   STAT CARD (Component 1 design)
 ═══════════════════════════════════════════════ */
 const StatCard = ({ icon: Icon, value, label, color, t }) => {
   const [hov, setHov] = useState(false);
@@ -792,184 +842,11 @@ const StatCard = ({ icon: Icon, value, label, color, t }) => {
   );
 };
 
-/* ═══════════════════════════════════════════════
-   COLLAPSIBLE ATTEMPT ROW (CRM-style)
-═══════════════════════════════════════════════ */
-const AttemptRow = ({ a, index, getPercent, isPassed, getScoreDisplay, t }) => {
-  const [open, setOpen] = useState(false);
-  const [hov, setHov] = useState(false);
-  const passed = isPassed(a);
-  const percent = getPercent(a);
-  const accentColor = passed ? "#34d399" : "#f87171";
-
-  return (
-    <div
-      style={{
-        borderRadius: 16,
-        border: `1px solid ${open ? accentColor + "40" : hov ? t.borderHov : t.border}`,
-        overflow: "hidden",
-        boxShadow: open ? `0 0 24px ${accentColor}10` : t.shadow,
-        transition: "all 0.25s ease",
-        background: t.cardBg,
-      }}
-      className="row-anim"
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-    >
-      {/* ── Header Row ── */}
-      <div
-        onClick={() => setOpen((p) => !p)}
-        style={{
-          display: "grid",
-          gridTemplateColumns: "34px 1fr auto auto auto auto",
-          alignItems: "center", gap: 14,
-          padding: "14px 20px", cursor: "pointer",
-          background: open ? `${accentColor}06` : hov ? t.cardBgHov : t.cardBg,
-          transition: "background 0.2s", userSelect: "none",
-        }}
-      >
-        {/* Index */}
-        <div style={{
-          width: 34, height: 34, borderRadius: 10, flexShrink: 0,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          background: open ? `${accentColor}20` : t.iconBg,
-          border: `1px solid ${open ? accentColor + "40" : t.iconBorder}`,
-          fontFamily: "'Poppins',sans-serif", fontWeight: 800, fontSize: 11,
-          color: open ? accentColor : t.textMuted,
-          transition: "all 0.2s",
-        }}>{String(index + 1).padStart(2, "0")}</div>
-
-        {/* Quiz Name */}
-        <div style={{ minWidth: 0 }}>
-          <p style={{
-            margin: 0, fontSize: 13, fontWeight: 700,
-            color: open ? accentColor : t.text,
-            fontFamily: "'Poppins',sans-serif",
-            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-            transition: "color 0.2s",
-          }}>{a.quizTitle || a.quiz?.title || "Quiz"}</p>
-          <p style={{ margin: "2px 0 0", fontSize: 10, color: t.textMuted, fontFamily: "'Poppins',sans-serif" }}>
-            {a.submittedAt
-              ? new Date(a.submittedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
-              : "—"}
-          </p>
-        </div>
-
-        {/* Score + mini bar */}
-        <div style={{ minWidth: 80 }}>
-          <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: t.text, fontFamily: "'Poppins',sans-serif" }}>
-            {/* ✅ Uses getScoreDisplay from component 2 logic */}
-            {getScoreDisplay(a)}
-          </p>
-          <div style={{ marginTop: 4, height: 4, borderRadius: 99, background: t.barBg, overflow: "hidden", width: 64 }}>
-            <div style={{
-              height: "100%", borderRadius: 99,
-              width: `${percent}%`,
-              background: passed
-                ? "linear-gradient(90deg,#16a34a,#22c55e)"
-                : "linear-gradient(90deg,#dc2626,#ef4444)",
-              transition: "width 0.6s ease",
-            }} />
-          </div>
-        </div>
-
-        {/* Percent */}
-        <span style={{
-          fontSize: 13, fontWeight: 800, color: accentColor,
-          fontFamily: "'Poppins',sans-serif", minWidth: 52, textAlign: "right",
-        }}>{percent}%</span>
-
-        {/* Badge */}
-        <span style={{
-          fontSize: 9, fontWeight: 700, letterSpacing: "0.1em",
-          textTransform: "uppercase", padding: "4px 12px", borderRadius: 999,
-          background: passed ? "rgba(52,211,153,0.12)" : "rgba(248,113,113,0.12)",
-          color: accentColor,
-          border: `1px solid ${passed ? "rgba(52,211,153,0.3)" : "rgba(248,113,113,0.3)"}`,
-          fontFamily: "'Poppins',sans-serif",
-          display: "flex", alignItems: "center", gap: 5,
-        }}>
-          {passed ? <CheckCircle2 size={10} /> : <XCircle size={10} />}
-          {passed ? "Pass" : "Fail"}
-        </span>
-
-        {/* CRM Arrow */}
-        <div style={{
-          width: 28, height: 28, borderRadius: 8, flexShrink: 0,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          background: open ? `${accentColor}18` : t.actBg,
-          border: `1px solid ${open ? accentColor + "30" : t.actBorder}`,
-          transition: "all 0.2s",
-        }}>
-          <ChevronDown
-            size={14}
-            color={open ? accentColor : t.textMuted}
-            style={{ transition: "transform 0.3s", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
-          />
-        </div>
-      </div>
-
-      {/* ── Collapsible Body ── */}
-      <div style={{
-        maxHeight: open ? 260 : 0,
-        overflow: "hidden",
-        transition: "max-height 0.35s cubic-bezier(0.4,0,0.2,1)",
-      }}>
-        <div style={{
-          borderTop: `1px solid ${accentColor}20`,
-          padding: "20px",
-          background: open ? `${accentColor}03` : "transparent",
-        }}>
-          <div style={{
-            display: "grid", gridTemplateColumns: "repeat(3, 1fr)",
-            gap: 12,
-          }}>
-            {[
-              { label: "Quiz Title",  value: a.quizTitle || a.quiz?.title || "—",  icon: FileText,                             color: "#22d3ee" },
-              { label: "Score",       value: getScoreDisplay(a),                    icon: Trophy,                               color: "#f59e0b" },
-              { label: "Percentage",  value: `${percent}%`,                         icon: TrendingUp,                           color: accentColor },
-              { label: "Result",      value: passed ? "Passed ✓" : "Failed ✗",     icon: passed ? CheckCircle2 : XCircle,      color: accentColor },
-              {
-                label: "Submitted",
-                value: a.submittedAt
-                  ? new Date(a.submittedAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })
-                  : "—",
-                icon: Calendar, color: "#a78bfa",
-              },
-              { label: "Questions",   value: getScoreDisplay(a).includes("/") ? getScoreDisplay(a).split("/")[1] : "—", icon: FileText, color: "#fb923c" },
-            ].map((det, i) => (
-              <div key={i} style={{
-                display: "flex", alignItems: "center", gap: 10,
-                padding: "10px 14px", borderRadius: 12,
-                background: t.recentItemBg, border: `1px solid ${t.recentItemBorder}`,
-              }}>
-                <div style={{
-                  width: 30, height: 30, borderRadius: 8, flexShrink: 0,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  background: `${det.color}18`, border: `1px solid ${det.color}30`,
-                }}>
-                  <det.icon size={13} color={det.color} />
-                </div>
-                <div style={{ minWidth: 0 }}>
-                  <p style={{ margin: 0, fontSize: 9, color: t.textMuted, fontFamily: "'Poppins',sans-serif", letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 600 }}>{det.label}</p>
-                  <p style={{ margin: "2px 0 0", fontSize: 12, fontWeight: 700, color: t.text, fontFamily: "'Poppins',sans-serif", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{det.value}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-/* ═══════════════════════════════════════════════
-   MAIN QUIZ HISTORY PAGE
-═══════════════════════════════════════════════ */
 export default function MyQuizHistory() {
   const [attempts, setAttempts] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  /* ================= THEME (Component 1 logic) ================= */
   const [isDark, setIsDark] = useState(
     () =>
       typeof document !== "undefined" &&
@@ -990,7 +867,43 @@ export default function MyQuizHistory() {
 
   const t = isDark ? T.dark : T.light;
 
-  useEffect(() => { loadHistory(); }, []);
+  /* ================= RESIZABLE PANEL ================= */
+  const [leftWidth, setLeftWidth] = useState(65);
+  const isDragging = useRef(false);
+  const containerRef = useRef(null);
+
+  const onMouseDown = useCallback(() => {
+    isDragging.current = true;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+  }, []);
+
+  const onMouseMove = useCallback((e) => {
+    if (!isDragging.current || !containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const newLeft = ((e.clientX - rect.left) / rect.width) * 100;
+    if (newLeft > 30 && newLeft < 80) setLeftWidth(newLeft);
+  }, []);
+
+  const onMouseUp = useCallback(() => {
+    isDragging.current = false;
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+  }, [onMouseMove, onMouseUp]);
+
+  /* ================= DATA ================= */
+  useEffect(() => {
+    loadHistory();
+  }, []);
 
   const loadHistory = async () => {
     try {
@@ -1004,16 +917,15 @@ export default function MyQuizHistory() {
     }
   };
 
-  /* ── Logic from component 2 ── */
-
-  // ✅ Uses a.percentage directly from backend (component 2 logic)
+  /* ================= LOGIC ================= */
   const getPercent = (a) => (a.percentage || 0).toFixed(1);
-
-  // ✅ Uses a.percentage for pass check (component 2 logic)
   const isPassed = (a) => (a.percentage || 0) >= 50;
 
-  // ✅ Derives total questions from score + percentage, with fallbacks (component 2 logic)
+  // Calculate total questions from score + percentage
+  // e.g. score=2, percentage=66.7 → total = round(2 / 0.667) = 3
+  // Falls back to known backend fields if available
   const getTotalQuestions = (a) => {
+    // Direct field from backend (preferred)
     const direct =
       a.totalQuestions ??
       a.total_questions ??
@@ -1021,32 +933,34 @@ export default function MyQuizHistory() {
       a.quiz?.questions?.length ??
       null;
     if (direct != null) return direct;
+
+    // Derive from score + percentage
     const score = a.score ?? 0;
     const pct = a.percentage ?? 0;
     if (score > 0 && pct > 0) {
       return Math.round(score / (pct / 100));
     }
+    // score=0 means either 0/N (failed) — can't derive total, show just 0
     return null;
   };
 
-  // ✅ Returns "2/3" or just "0" if total unknown (component 2 logic)
+  // Returns "2/3" or just "0" if total unknown
   const getScoreDisplay = (a) => {
     const score = a.score ?? 0;
     const total = getTotalQuestions(a);
     return total != null ? `${score}/${total}` : `${score}`;
   };
 
-  /* ── Stats ── */
+  /* ================= STATS ================= */
   const totalAttempts = attempts.length;
-  // ✅ Uses isPassed with a.percentage (component 2 logic)
   const passedAttempts = attempts.filter((a) => isPassed(a)).length;
-  // ✅ Uses a.percentage directly (component 2 logic)
   const averageScore =
     attempts.length > 0
-      ? attempts.reduce((sum, a) => sum + (a.percentage || 0), 0) / attempts.length
+      ? attempts.reduce((sum, a) => sum + (a.percentage || 0), 0) /
+        attempts.length
       : 0;
 
-  /* ── Loading ── */
+  /* ================= LOADING ================= */
   if (loading) {
     return (
       <div style={{
@@ -1073,7 +987,6 @@ export default function MyQuizHistory() {
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
         @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
         .dfade{animation:fadeUp 0.45s ease both}
-        .row-anim{animation:fadeUp 0.45s ease both}
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes blink{0%,100%{opacity:1}50%{opacity:0.15}}
         .d1{animation:blink 1.6s ease infinite}
@@ -1081,6 +994,7 @@ export default function MyQuizHistory() {
         .d3{animation:blink 1.6s 0.6s ease infinite}
         @keyframes pulse-ring{0%{box-shadow:0 0 0 0 rgba(124,58,237,0.5)}70%{box-shadow:0 0 0 8px rgba(124,58,237,0)}100%{box-shadow:0 0 0 0 rgba(124,58,237,0)}}
         .livebadge{animation:pulse-ring 2.2s ease-out infinite}
+        .drag-handle:hover{background:rgba(124,58,237,0.12)!important}
       `}</style>
 
       <div style={{
@@ -1090,7 +1004,7 @@ export default function MyQuizHistory() {
       }}>
         <div style={{ padding: 24, maxWidth: 1300, margin: "0 auto", paddingBottom: 52 }}>
 
-          {/* ═══ HERO ═══ */}
+          {/* ═══ HERO (Component 1 design) ═══ */}
           <div className="dfade" style={{
             borderRadius: 24, padding: "30px 36px",
             background: t.heroBg, border: `1px solid ${t.borderHero}`,
@@ -1175,126 +1089,335 @@ export default function MyQuizHistory() {
             </div>
           </div>
 
-          {/* ═══ STAT CARDS ═══ */}
+          {/* ═══ STAT CARDS (Component 1 design) ═══ */}
           <div style={{
             display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(185px,1fr))",
             gap: 14, marginBottom: 20,
           }}>
-            <StatCard icon={FileText}    value={totalAttempts}                     label="Total Attempts" color="#22d3ee" t={t} />
-            <StatCard icon={CheckCircle2} value={passedAttempts}                   label="Passed"         color="#34d399" t={t} />
-            <StatCard icon={XCircle}     value={totalAttempts - passedAttempts}    label="Failed"         color="#f87171" t={t} />
-            <StatCard icon={TrendingUp}  value={`${averageScore.toFixed(1)}%`}     label="Avg Score"      color="#a78bfa" t={t} />
+            <StatCard icon={FileText}     value={totalAttempts}                  label="Total Attempts" color="#22d3ee" t={t} />
+            <StatCard icon={CheckCircle2} value={passedAttempts}                 label="Passed"         color="#34d399" t={t} />
+            <StatCard icon={XCircle}      value={totalAttempts - passedAttempts} label="Failed"         color="#f87171" t={t} />
+            <StatCard icon={TrendingUp}   value={`${averageScore.toFixed(1)}%`}  label="Avg Score"      color="#a78bfa" t={t} />
           </div>
 
-          {/* ═══ ATTEMPTS LIST ═══ */}
-          <div className="dfade" style={{
-            background: t.cardBg, border: `1px solid ${t.border}`,
-            borderRadius: 24, overflow: "hidden", boxShadow: t.shadow,
-          }}>
-            {/* Panel Header */}
-            <div style={{
-              display: "flex", alignItems: "center", justifyContent: "space-between",
-              padding: "20px 24px", borderBottom: `1px solid ${t.border}`,
+          {/* ===== EMPTY STATE ===== */}
+          {attempts.length === 0 ? (
+            <div className="dfade" style={{
+              borderRadius: 24, border: `1.5px dashed ${t.emptyBorder}`,
+              background: t.emptyBg, padding: "64px 0",
+              display: "flex", flexDirection: "column", alignItems: "center",
+              justifyContent: "center", gap: 14, boxShadow: t.shadow,
             }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{
+                width: 64, height: 64, borderRadius: 18,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                border: `1.5px dashed ${t.emptyBorder}`, background: t.emptyBg,
+              }}>
+                <FileText size={26} color={t.emptyIcon} />
+              </div>
+              <div style={{ textAlign: "center" }}>
+                <p style={{ fontSize: 14, fontWeight: 700, color: t.text, margin: 0, fontFamily: "'Poppins',sans-serif" }}>No Quiz Attempts Yet</p>
+                <p style={{ fontSize: 11, color: t.textMuted, margin: "4px 0 0", fontFamily: "'Poppins',sans-serif" }}>
+                  Your quiz attempts will appear here once you start taking assessments
+                </p>
+              </div>
+            </div>
+          ) : (
+            /* ===== SPLIT PANEL (Component 2 layout + Component 1 styling) ===== */
+            <div
+              ref={containerRef}
+              className="dfade"
+              style={{
+                display: "flex",
+                overflow: "hidden",
+                borderRadius: 24,
+                border: `1px solid ${t.splitBorder}`,
+                background: t.splitBg,
+                boxShadow: t.shadow,
+                height: "calc(100vh - 340px)",
+                minHeight: 400,
+              }}
+            >
+              {/* ---- LEFT: Quiz List ---- */}
+              <div
+                style={{
+                  display: "flex", flexDirection: "column", overflow: "hidden",
+                  width: `${leftWidth}%`, minWidth: "30%",
+                }}
+              >
+                {/* Panel Header */}
                 <div style={{
-                  width: 34, height: 34, borderRadius: 10,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.2)",
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "18px 22px",
+                  borderBottom: `1px solid ${t.border}`,
                 }}>
-                  <Trophy size={15} color="#7c3aed" />
+                  <div style={{
+                    width: 34, height: 34, borderRadius: 10,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.2)",
+                  }}>
+                    <FileText size={15} color="#7c3aed" />
+                  </div>
+                  <div>
+                    <span style={{ fontFamily: "'Poppins',sans-serif", fontWeight: 700, fontSize: 13, color: t.text, display: "block" }}>All Attempts</span>
+                    <span style={{ fontFamily: "'Poppins',sans-serif", fontSize: 10, color: t.textMuted }}>Drag the handle to resize panels</span>
+                  </div>
                 </div>
-                <div>
-                  <span style={{ fontFamily: "'Poppins',sans-serif", fontWeight: 700, fontSize: 13, color: t.text, display: "block" }}>All Attempts</span>
-                  <span style={{ fontFamily: "'Poppins',sans-serif", fontSize: 10, color: t.textMuted }}>Click any row to expand details</span>
+
+                {/* Table header */}
+                <div style={{
+                  display: "grid", gridTemplateColumns: "1fr auto auto auto",
+                  gap: 8, padding: "10px 22px",
+                  background: t.tableHeaderBg,
+                  borderBottom: `1px solid ${t.border}`,
+                  fontSize: 10, fontWeight: 700,
+                  letterSpacing: "0.1em", textTransform: "uppercase",
+                  color: t.textMuted, fontFamily: "'Poppins',sans-serif",
+                }}>
+                  <span>Quiz</span>
+                  <span style={{ minWidth: 80 }}>Score</span>
+                  <span style={{ minWidth: 70 }}>Date</span>
+                  <span style={{ minWidth: 60 }}>Result</span>
+                </div>
+
+                <div style={{ flex: 1, overflowY: "auto" }}>
+                  {attempts.map((a, idx) => {
+                    const percent = getPercent(a);
+                    const passed = isPassed(a);
+                    const scoreDisplay = getScoreDisplay(a);
+                    const accentColor = passed ? "#34d399" : "#f87171";
+
+                    return (
+                      <div
+                        key={idx}
+                        style={{
+                          display: "grid", gridTemplateColumns: "1fr auto auto auto",
+                          gap: 8, alignItems: "center",
+                          padding: "12px 22px",
+                          borderBottom: `1px solid ${t.border}`,
+                          transition: "background 0.15s",
+                          cursor: "default",
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = t.rowHov}
+                        onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                      >
+                        {/* Quiz name */}
+                        <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                          <div style={{
+                            width: 32, height: 32, borderRadius: 9, flexShrink: 0,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            background: t.iconBg, border: `1px solid ${t.iconBorder}`,
+                          }}>
+                            <FileText size={13} color={t.textMuted} />
+                          </div>
+                          <span style={{
+                            fontSize: 12, fontWeight: 700, color: t.text,
+                            fontFamily: "'Poppins',sans-serif",
+                            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                          }}>
+                            {a.quizTitle || a.quiz?.title || "Quiz"}
+                          </span>
+                        </div>
+
+                        {/* Score: "2/3" + percentage + mini bar */}
+                        <div style={{ minWidth: 80 }}>
+                          <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: t.text, fontFamily: "'Poppins',sans-serif" }}>
+                            {scoreDisplay}
+                            <span style={{ marginLeft: 4, fontSize: 10, fontWeight: 500, color: t.textMuted }}>correct</span>
+                          </p>
+                          <p style={{ margin: "1px 0 0", fontSize: 10, color: t.textMuted, fontFamily: "'Poppins',sans-serif" }}>{percent}%</p>
+                          <div style={{ marginTop: 4, height: 4, borderRadius: 99, background: t.barBg, overflow: "hidden", width: 56 }}>
+                            <div style={{
+                              height: "100%", borderRadius: 99,
+                              width: `${percent}%`,
+                              background: passed
+                                ? "linear-gradient(90deg,#16a34a,#22c55e)"
+                                : "linear-gradient(90deg,#dc2626,#ef4444)",
+                            }} />
+                          </div>
+                        </div>
+
+                        {/* Date */}
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 70 }}>
+                          <Calendar size={11} color={t.textMuted} />
+                          <span style={{ fontSize: 10, color: t.textMuted, fontFamily: "'Poppins',sans-serif" }}>
+                            {a.submittedAt
+                              ? new Date(a.submittedAt).toLocaleDateString()
+                              : "—"}
+                          </span>
+                        </div>
+
+                        {/* Result badge */}
+                        <span style={{
+                          fontSize: 9, fontWeight: 700, letterSpacing: "0.08em",
+                          textTransform: "uppercase", padding: "4px 10px", borderRadius: 999,
+                          background: passed ? "rgba(52,211,153,0.12)" : "rgba(248,113,113,0.12)",
+                          color: accentColor,
+                          border: `1px solid ${passed ? "rgba(52,211,153,0.3)" : "rgba(248,113,113,0.3)"}`,
+                          fontFamily: "'Poppins',sans-serif",
+                          display: "inline-flex", alignItems: "center", gap: 4,
+                          whiteSpace: "nowrap",
+                        }}>
+                          {passed ? <CheckCircle2 size={9} /> : <XCircle size={9} />}
+                          {passed ? "Pass" : "Fail"}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Best Attempt Badge */}
-              {attempts.length > 0 && (() => {
-                const best = attempts.reduce((prev, curr) =>
-                  parseFloat(getPercent(curr)) > parseFloat(getPercent(prev)) ? curr : prev
-                );
-                return (
+              {/* ---- DRAG HANDLE (Component 1 styling) ---- */}
+              <div
+                className="drag-handle"
+                onMouseDown={onMouseDown}
+                style={{
+                  position: "relative", flexShrink: 0, width: 12,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  cursor: "col-resize",
+                  background: t.dragBg,
+                  borderLeft: `1px solid ${t.dragBorder}`,
+                  borderRight: `1px solid ${t.dragBorder}`,
+                  transition: "background 0.2s",
+                  zIndex: 10,
+                }}
+              >
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 2,
+                  padding: "6px 4px", borderRadius: 8,
+                  background: t.cardBg,
+                  border: `1px solid ${t.border}`,
+                  boxShadow: t.shadow,
+                  userSelect: "none",
+                }}>
+                  <svg width="5" height="12" viewBox="0 0 6 12" fill="none">
+                    <path d="M1 1L0 6L1 11" stroke={t.textMuted} strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                  <div style={{ width: 1, height: 14, background: t.border, margin: "0 1px" }} />
+                  <svg width="5" height="12" viewBox="0 0 6 12" fill="none">
+                    <path d="M5 1L6 6L5 11" stroke={t.textMuted} strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* ---- RIGHT: Performance Summary (Component 1 styling) ---- */}
+              <div style={{ display: "flex", flexDirection: "column", overflowY: "auto", flex: 1, minWidth: "20%" }}>
+                {/* Panel Header */}
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "18px 22px",
+                  borderBottom: `1px solid ${t.border}`,
+                }}>
                   <div style={{
-                    display: "flex", alignItems: "center", gap: 8,
-                    padding: "6px 14px", borderRadius: 12,
-                    background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)",
+                    width: 34, height: 34, borderRadius: 10,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    background: "rgba(34,211,238,0.08)", border: "1px solid rgba(34,211,238,0.2)",
                   }}>
-                    <Trophy size={13} color="#f59e0b" />
-                    <div>
-                      <p style={{ margin: 0, fontSize: 10, color: t.textMuted, fontFamily: "'Poppins',sans-serif" }}>Best Attempt</p>
-                      <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#f59e0b", fontFamily: "'Poppins',sans-serif" }}>
-                        {best.quizTitle || best.quiz?.title || "Quiz"} — {getPercent(best)}%
-                      </p>
+                    <TrendingUp size={15} color="#22d3ee" />
+                  </div>
+                  <div>
+                    <span style={{ fontFamily: "'Poppins',sans-serif", fontWeight: 700, fontSize: 13, color: t.text, display: "block" }}>Performance</span>
+                    <span style={{ fontFamily: "'Poppins',sans-serif", fontSize: 10, color: t.textMuted }}>Your summary</span>
+                  </div>
+                </div>
+
+                <div style={{ padding: "20px 22px", display: "flex", flexDirection: "column", gap: 20 }}>
+
+                  {/* Avg score card */}
+                  <div style={{
+                    borderRadius: 16, padding: "20px 18px",
+                    textAlign: "center",
+                    border: `1px solid ${t.border}`,
+                    background: t.recentItemBg,
+                  }}>
+                    <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: t.textMuted, margin: "0 0 10px", fontFamily: "'Poppins',sans-serif" }}>
+                      Average Score
+                    </p>
+                    <p style={{ fontSize: 42, fontWeight: 800, color: "#a78bfa", margin: 0, fontFamily: "'Poppins',sans-serif", lineHeight: 1 }}>
+                      {averageScore.toFixed(1)}%
+                    </p>
+                    <p style={{ fontSize: 10, color: t.textMuted, margin: "6px 0 12px", fontFamily: "'Poppins',sans-serif" }}>
+                      across {totalAttempts} attempt{totalAttempts !== 1 ? "s" : ""}
+                    </p>
+                    <div style={{ height: 6, borderRadius: 99, background: t.barBg, overflow: "hidden" }}>
+                      <div style={{
+                        height: "100%", borderRadius: 99,
+                        width: `${Math.min(averageScore, 100)}%`,
+                        background: averageScore >= 50
+                          ? "linear-gradient(90deg,#1d4ed8,#34d399)"
+                          : "linear-gradient(90deg,#dc2626,#f97316)",
+                        transition: "width 1s ease",
+                      }} />
                     </div>
                   </div>
-                );
-              })()}
-            </div>
 
-            {/* Average Score Bar */}
-            {attempts.length > 0 && (
-              <div style={{
-                padding: "16px 24px", borderBottom: `1px solid ${t.border}`,
-                background: t.recentItemBg,
-                display: "flex", alignItems: "center", gap: 16,
-              }}>
-                <span style={{ fontSize: 10, fontWeight: 700, color: t.textMuted, fontFamily: "'Poppins',sans-serif", letterSpacing: "0.08em", textTransform: "uppercase", flexShrink: 0 }}>
-                  Avg Performance
-                </span>
-                <div style={{ flex: 1, height: 6, borderRadius: 99, background: t.barBg, overflow: "hidden" }}>
-                  <div style={{
-                    height: "100%", borderRadius: 99,
-                    width: `${Math.min(averageScore, 100)}%`,
-                    background: averageScore >= 50
-                      ? "linear-gradient(90deg,#1d4ed8,#34d399)"
-                      : "linear-gradient(90deg,#dc2626,#f97316)",
-                    transition: "width 1s ease",
-                  }} />
-                </div>
-                <span style={{
-                  fontSize: 14, fontWeight: 800, fontFamily: "'Poppins',sans-serif",
-                  color: averageScore >= 50 ? "#34d399" : "#f87171",
-                  flexShrink: 0,
-                }}>{averageScore.toFixed(1)}%</span>
-              </div>
-            )}
-
-            {/* Rows */}
-            <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: 10 }}>
-              {attempts.length === 0 ? (
-                <div style={{
-                  display: "flex", flexDirection: "column", alignItems: "center",
-                  justifyContent: "center", padding: "60px 0", gap: 14,
-                }}>
-                  <div style={{
-                    width: 64, height: 64, borderRadius: 18,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    border: `1.5px dashed ${t.emptyBorder}`, background: t.emptyBg,
-                  }}>
-                    <FileText size={26} color={t.emptyIcon} />
-                  </div>
-                  <div style={{ textAlign: "center" }}>
-                    <p style={{ fontSize: 14, fontWeight: 700, color: t.text, margin: 0, fontFamily: "'Poppins',sans-serif" }}>No Quiz Attempts Yet</p>
-                    <p style={{ fontSize: 11, color: t.textMuted, margin: "4px 0 0", fontFamily: "'Poppins',sans-serif" }}>
-                      Your quiz attempts will appear here once you start taking assessments
+                  {/* Breakdown */}
+                  <div>
+                    <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: t.textMuted, margin: "0 0 10px", fontFamily: "'Poppins',sans-serif" }}>
+                      Breakdown
                     </p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {[
+                        { label: "Passed", value: passedAttempts, color: "#34d399" },
+                        { label: "Failed", value: totalAttempts - passedAttempts, color: "#f87171" },
+                        { label: "Total",  value: totalAttempts,                  color: "#22d3ee" },
+                      ].map((s, i) => (
+                        <div key={i} style={{
+                          display: "flex", alignItems: "center", justifyContent: "space-between",
+                          padding: "10px 14px", borderRadius: 12,
+                          background: t.recentItemBg, border: `1px solid ${t.recentItemBorder}`,
+                        }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <span style={{ width: 8, height: 8, borderRadius: "50%", background: s.color, display: "inline-block" }} />
+                            <span style={{ fontSize: 12, color: t.text, fontFamily: "'Poppins',sans-serif", fontWeight: 500 }}>{s.label}</span>
+                          </div>
+                          <span style={{ fontSize: 13, fontWeight: 800, color: s.color, fontFamily: "'Poppins',sans-serif" }}>{s.value}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
+
+                  {/* Best attempt */}
+                  {(() => {
+                    const best = attempts.reduce((prev, curr) =>
+                      parseFloat(getPercent(curr)) > parseFloat(getPercent(prev))
+                        ? curr
+                        : prev,
+                    );
+                    return (
+                      <div>
+                        <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: t.textMuted, margin: "0 0 10px", fontFamily: "'Poppins',sans-serif" }}>
+                          Best Attempt
+                        </p>
+                        <div style={{
+                          display: "flex", alignItems: "center", gap: 12,
+                          padding: "12px 14px", borderRadius: 12,
+                          background: "rgba(245,158,11,0.06)",
+                          border: "1px solid rgba(245,158,11,0.2)",
+                        }}>
+                          <div style={{
+                            width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            background: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.3)",
+                          }}>
+                            <Trophy size={15} color="#f59e0b" />
+                          </div>
+                          <div style={{ minWidth: 0 }}>
+                            <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: t.text, fontFamily: "'Poppins',sans-serif", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {best.quizTitle || best.quiz?.title || "Quiz"}
+                            </p>
+                            <p style={{ margin: "2px 0 0", fontSize: 10, color: t.textMuted, fontFamily: "'Poppins',sans-serif" }}>
+                              {getScoreDisplay(best)} correct · {getPercent(best)}%
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
-              ) : (
-                attempts.map((a, idx) => (
-                  <AttemptRow
-                    key={idx} a={a} index={idx}
-                    getPercent={getPercent}
-                    isPassed={isPassed}
-                    getScoreDisplay={getScoreDisplay}
-                    t={t}
-                  />
-                ))
-              )}
+              </div>
             </div>
-          </div>
+          )}
 
         </div>
       </div>

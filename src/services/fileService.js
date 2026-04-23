@@ -1,3 +1,4 @@
+
 import axios from "axios";
 
 const API_GATEWAY =
@@ -9,31 +10,19 @@ const authHeader = () => ({
 
 const fileService = {
   // ================= TRAINER UPLOAD =================
-  // uploadFile(file, batchId) {
-  //   const formData = new FormData();
-  //   formData.append("file", file);
-  //   formData.append("batchId", batchId);
-  //   formData.append("title", title);
-  //   formData.append("description", description);
-
-  //   return axios.post(`${API_GATEWAY}/api/file/upload`, formData, {
-  //     headers: {
-  //       ...authHeader(),
-  //       "Content-Type": "multipart/form-data",
-  //     },
-  //   });
-  // },
-  uploadFile(file, batchId, title, description) {
+  uploadFile(file, batchId, title, description, courseId, category) {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("batchId", batchId);
     formData.append("title", title || "");
     formData.append("description", description || "");
+    if (courseId) formData.append("courseId", courseId);
+    if (category) formData.append("category", category);
 
     return axios.post(`${API_GATEWAY}/file/upload`, formData, {
       headers: {
         ...authHeader(),
-        // ✅ No Content-Type here — axios sets multipart/form-data + boundary automatically
+        // ✅ No Content-Type — axios sets multipart/form-data + boundary automatically
       },
     });
   },
@@ -45,7 +34,7 @@ const fileService = {
     });
   },
 
-  //================= STUDENT FILES =================
+  // ================= STUDENT FILES =================
   getStudentFiles() {
     return axios.get(`${API_GATEWAY}/file/student`, {
       headers: authHeader(),
@@ -53,14 +42,6 @@ const fileService = {
   },
 
   // ================= DOWNLOAD =================
-  downloadFileBlob(name) {
-    return axios.get(`${API_GATEWAY}/file/download/${name}`, {
-      responseType: "blob",
-      headers: authHeader(),
-    });
-  },
-
-  // DOWNLOAD AS BLOB
   downloadFileBlob(fileName) {
     return axios.get(`${API_GATEWAY}/file/download/${fileName}`, {
       responseType: "blob",
@@ -68,11 +49,13 @@ const fileService = {
     });
   },
 
-  // VIEW FILE (PREVIEW) AS BLOB
-  // ================= PREVIEW FILE =================
+  // ================= PREVIEW / VIEW =================
+  // ✅ FIX: use arraybuffer so Blob constructor gets correct binary data
+  // Backend returns "inline" for PDF/images → browser opens them
+  // Backend returns "attachment" for DOCX/ZIP/PPT → browser downloads them
   viewFileBlob(id) {
     return axios.get(`${API_GATEWAY}/file/view/${id}`, {
-      responseType: "blob",
+      responseType: "arraybuffer",   // ✅ was "blob" — this was the bug
       headers: authHeader(),
     });
   },
@@ -88,7 +71,6 @@ const fileService = {
   // 🔥 COURSE CONTENT FILES (MODULE PDFs)
   // ==========================================
 
-  // 1️⃣ Upload Course Module PDF
   uploadCourseFile(file, courseId, moduleId, batchId) {
     const formData = new FormData();
     formData.append("file", file);
@@ -104,12 +86,10 @@ const fileService = {
     });
   },
 
-  // 2️⃣ Get Download URL (For Student iframe preview)
   getCourseFileDownloadUrl(fileName) {
     return `${API_GATEWAY}/course-files/download/${encodeURIComponent(fileName)}`;
   },
 
-  // 2️⃣ ✅ EDIT COURSE FILE — newFile is optional (pass null to keep existing)
   updateCourseFile(id, newFile, courseId, moduleId, batchId) {
     const formData = new FormData();
     if (newFile) formData.append("file", newFile);
@@ -125,12 +105,6 @@ const fileService = {
     });
   },
 
-  // 3️⃣ Delete Course Module File
-  // deleteCourseFile(id) {
-  //   return axios.delete(`${API_GATEWAY}/course-files/${id}`, {
-  //     headers: authHeader(),
-  //   });
-  // },
   deleteCourseFile(id) {
     return axios.delete(`${API_GATEWAY}/course-files/${id}`, {
       headers: authHeader(),

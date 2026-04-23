@@ -55,6 +55,11 @@ const studentMenus = [
       { name: "My Quiz History", path: "/student/my-quizzes",   icon: History },
       { name: "Attendance",      path: "/student/attendance",   icon: CalendarDays },
       { name: "Doubts",          path: "/student/doubts",       icon: MessageCircleQuestion },
+      {
+        name: "Feedback",
+        path: "/student/feedback",
+        icon: MessageCircleQuestion,
+      },
       { name: "Certificates",    path: "/student/certificates", icon: Award },
     ],
   },
@@ -75,6 +80,11 @@ const trainerMenus = [
       { name: "Assessments",        path: "/trainer/assessments",        icon: ClipboardCheck },
       { name: "Attendance",         path: "/trainer/attendance",         icon: CalendarDays },
       { name: "Doubts Management",  path: "/trainer/doubts-management",  icon: MessageCircleQuestion },
+      {
+        name: "Feedback",
+        path: "/trainer/feedback",
+        icon: MessageCircleQuestion,
+      },
     ],
   },
   {
@@ -148,7 +158,12 @@ const adminMenus = [
     name: "Insight Review", icon: BarChart3,
     children: [
       { name: "Usage Analytics", path: "/admin/usage",    icon: LineChart },
-      { name: "Feedback",        path: "/admin/feedback", icon: MessageCircleQuestion },
+      // { name: "Feedback",        path: "/admin/feedback", icon: MessageCircleQuestion },
+      {
+        name: "Feedback Review",
+        path: "/admin/feedback-review",
+        icon: MessageCircleQuestion,
+      },
       { name: "Settings",        path: "/admin/settings", icon: Settings },
     ],
   },

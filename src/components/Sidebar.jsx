@@ -32,6 +32,7 @@ const studentMenus = [
   {
     name: "Live & Recorded", icon: Radio,
     children: [
+      
       { name: "Live Classes",     path: "/student/live-classes",     icon: Radio },
       { name: "Call Trainer",     path: "/student/call-trainer",     icon: Phone },
       { name: "Recorded Classes", path: "/student/recorded-classes", icon: PlayCircle },
@@ -42,6 +43,7 @@ const studentMenus = [
     children: [
       { name: "Video Lectures", path: "/student/videos",    icon: Video },
       { name: "Documents",      path: "/student/documents", icon: FileText },
+      { name: "Notebook",       path: "/student/notebook",  icon: BookOpen },
     ],
   },
   {
@@ -79,19 +81,19 @@ const trainerMenus = [
     name: "Live Classes", icon: Video,
     children: [
       { name: "Live Dashboard",         path: "/trainer/live",            icon: LayoutDashboard },
-      { name: "Start Live Session",     path: "/trainer/start-live",      icon: Video },
-      { name: "Join Call",              path: "/trainer/join-call",       icon: Phone },
-      { name: "Live Session History",   path: "/trainer/live-history",    icon: History },
-      { name: "Live Attendance Report", path: "/trainer/live-attendance", icon: Users },
+      // { name: "Start Live Session",     path: "/trainer/start-live",      icon: Video },
+      // { name: "Join Call",              path: "/trainer/join-call",       icon: Phone },
+      // { name: "Live Session History",   path: "/trainer/live-history",    icon: History },
+      // { name: "Live Attendance Report", path: "/trainer/live-attendance", icon: Users },
     ],
   },
-  {
-    name: "Recorded Classes", icon: PlayCircle,
-    children: [
-      { name: "Upload Recorded Video", path: "/trainer/upload-recorded", icon: Upload },
-      { name: "Recorded Classes List", path: "/trainer/recorded-list",   icon: List },
-    ],
-  },
+  // {
+  //   name: "Recorded Classes", icon: PlayCircle,
+  //   children: [
+  //     // { name: "Upload Recorded Video", path: "/trainer/upload-recorded", icon: Upload },
+  //     // { name: "Recorded Classes List", path: "/trainer/recorded-list",   icon: List },
+  //   ],
+  // },
   {
     name: "Reports & Analytics", icon: BarChart3,
     children: [

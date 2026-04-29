@@ -598,7 +598,7 @@
 
 
 // for github //
-import { Bell, Menu, X } from "lucide-react";
+import { Bell, X } from "lucide-react";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate, Outlet } from "react-router-dom";
 import { onForegroundMessage, registerFcmToken } from "../services/firebaseService";
@@ -886,9 +886,8 @@ const DashboardLayout = ({ SidebarComponent }) => {
   const location = useLocation();
   const base     = "/" + location.pathname.split("/")[1];
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [toasts, setToasts]           = useState([]);
-  const toastCounterRef               = useRef(0);
+  const [toasts, setToasts] = useState([]);
+  const toastCounterRef     = useRef(0);
 
   const [isDark, setIsDark] = useState(
     () => typeof document !== "undefined" &&
@@ -961,9 +960,6 @@ const DashboardLayout = ({ SidebarComponent }) => {
     });
   }, [addToast]);
 
-  const toggleSidebar = () => setSidebarOpen((o) => !o);
-  const closeSidebar  = () => setSidebarOpen(false);
-
   const headerStyle = {
     height:               64,
     display:              "flex",
@@ -990,28 +986,9 @@ const DashboardLayout = ({ SidebarComponent }) => {
     }}>
       <div style={{ display: "flex", height: "100%", overflow: "hidden" }}>
 
-        {/* Sidebar overlay (mobile) */}
-        {sidebarOpen && (
-          <div
-            onClick={closeSidebar}
-            className="md:hidden"
-            style={{
-              position:   "fixed",
-              inset:      0,
-              background: "rgba(0,0,0,0.4)",
-              zIndex:     30,
-            }}
-          />
-        )}
-
         {/* Sidebar */}
-        <aside className={`
-          fixed md:static z-40 top-0 left-0 h-full w-64 md:w-auto
-          transform transition-transform duration-300
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-          md:translate-x-0
-        `}>
-          {SidebarComponent && <SidebarComponent closeSidebar={closeSidebar} />}
+        <aside>
+          {SidebarComponent && <SidebarComponent />}
         </aside>
 
         {/* Main content column */}
@@ -1019,26 +996,6 @@ const DashboardLayout = ({ SidebarComponent }) => {
 
           {/* ═══ HEADER ═══ */}
           <div style={headerStyle}>
-            {/* Left: hamburger */}
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <button
-                onClick={toggleSidebar}
-                className="md:hidden"
-                style={{
-                  background:     "none",
-                  border:         "none",
-                  cursor:         "pointer",
-                  display:        "flex",
-                  alignItems:     "center",
-                  justifyContent: "center",
-                  padding:        6,
-                  borderRadius:   8,
-                }}
-              >
-                <Menu size={20} color={isDark ? "#94a3b8" : "#64748b"} />
-              </button>
-            </div>
-
             {/* Right: bell + avatar */}
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: "auto" }}>
 

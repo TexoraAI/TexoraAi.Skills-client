@@ -15,7 +15,7 @@ import {
   Activity, TrendingUp, LineChart, Briefcase, Building2, Layers, Target,
   DollarSign, Receipt, Settings, Mail, FileSearch, ChevronDown,
   Sun, Moon, LogOut, Radio, PlayCircle, Mic, Upload,
-  List, Star, Menu,
+  List, Star, Menu,Brain, MessageSquare
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import auth from "../auth";
@@ -24,46 +24,115 @@ import { Phone } from "lucide-react";
 // ✅ Shared AvatarContext se import
 import { useAvatarContext } from "../context/AvatarContext";
 
+// /* ================================================================
+//    MENUS — NO CHANGES
+// ================================================================ */
+// const studentMenus = [
+//   { name: "Dashboard", path: "/student", icon: LayoutDashboard },
+//   {
+//     name: "Live & Recorded", icon: Radio,
+//     children: [
+      
+//       { name: "Live Classes",     path: "/student/live-classes",     icon: Radio },
+//       { name: "Call Trainer",     path: "/student/call-trainer",     icon: Phone },
+//       { name: "Recorded Classes", path: "/student/recorded-classes", icon: PlayCircle },
+//     ],
+//   },
+//   {
+//     name: "Learning Materials", icon: GraduationCap,
+//     children: [
+//       { name: "Video Lectures", path: "/student/videos",    icon: Video },
+//       { name: "Documents",      path: "/student/documents", icon: FileText },
+//       { name: "Notebook",       path: "/student/notebook",  icon: BookOpen },
+//     ],
+//   },
+//   {
+//     name: "My Courses", icon: BookOpen,
+//     children: [
+//       { name: "My Courses",      path: "/student/courses",      icon: BookOpen },
+//       { name: "Assessments",     path: "/student/assessments",  icon: ClipboardCheck },
+//       { name: "Assignments",     path: "/student/assignments",  icon: ClipboardEdit },
+//       { name: "My Quiz History", path: "/student/my-quizzes",   icon: History },
+//       { name: "Attendance",      path: "/student/attendance",   icon: CalendarDays },
+//       { name: "Doubts",          path: "/student/doubts",       icon: MessageCircleQuestion },
+//       {
+//         name: "Feedback",
+//         path: "/student/feedback",
+//         icon: MessageCircleQuestion,
+//       },
+//       { name: "Certificates",    path: "/student/certificates", icon: Award },
+//     ],
+//   },
+// ];
+
+
+
 /* ================================================================
-   MENUS — NO CHANGES
+   MENUS
 ================================================================ */
 const studentMenus = [
-  { name: "Dashboard", path: "/student", icon: LayoutDashboard },
   {
-    name: "Live & Recorded", icon: Radio,
+    name: "Dashboard",
+    path: "/student",
+    icon: LayoutDashboard,
+  },
+  {
+    name: "Learning & Classes",
+    icon: Radio,
     children: [
-      
-      { name: "Live Classes",     path: "/student/live-classes",     icon: Radio },
-      { name: "Call Trainer",     path: "/student/call-trainer",     icon: Phone },
-      { name: "Recorded Classes", path: "/student/recorded-classes", icon: PlayCircle },
+      { name: "Live Classes",     path: "/student/live-classes",     icon: Radio       },
+      { name: "Recorded Classes", path: "/student/recorded-classes", icon: PlayCircle  },
+      { name: "Call Trainer",     path: "/student/call-trainer",     icon: Phone       },
     ],
   },
   {
-    name: "Learning Materials", icon: GraduationCap,
+    name: "Learning Materials",
+    icon: GraduationCap,
     children: [
-      { name: "Video Lectures", path: "/student/videos",    icon: Video },
-      { name: "Documents",      path: "/student/documents", icon: FileText },
-      { name: "Notebook",       path: "/student/notebook",  icon: BookOpen },
+      { name: "Video Lectures", path: "/student/videos",    icon: Video     },
+      { name: "Documents",      path: "/student/documents", icon: FileText  },
+      { name: "Notebook",       path: "/student/notebook",  icon: BookOpen  },
     ],
   },
   {
-    name: "My Courses", icon: BookOpen,
+    name: "My Learning",
+    icon: BookOpen,
     children: [
-      { name: "My Courses",      path: "/student/courses",      icon: BookOpen },
+      { name: "My Courses",      path: "/student/courses",      icon: BookOpen      },
       { name: "Assessments",     path: "/student/assessments",  icon: ClipboardCheck },
-      { name: "Assignments",     path: "/student/assignments",  icon: ClipboardEdit },
-      { name: "My Quiz History", path: "/student/my-quizzes",   icon: History },
-      { name: "Attendance",      path: "/student/attendance",   icon: CalendarDays },
-      { name: "Doubts",          path: "/student/doubts",       icon: MessageCircleQuestion },
+      { name: "Assignments",     path: "/student/assignments",  icon: ClipboardEdit  },
+      { name: "My Quiz History", path: "/student/my-quizzes",   icon: History        },
+      { name: "Attendance",      path: "/student/attendance",   icon: CalendarDays   },
+    ],
+  },
+  {
+    name: "Skill & Growth",
+    icon: TrendingUp,
+    children: [
+      { name: "Skill Map",    path: "/student/skill-map",    icon: Brain  },
+      { name: "Certificates", path: "/student/certificates", icon: Award  },
+    ],
+  },
+  {
+    name: "Support",
+    icon: MessageCircleQuestion,
+    children: [
+      { name: "Doubts",    path: "/student/doubts",    icon: MessageCircleQuestion },
+      { name: "Feedback",  path: "/student/feedback",  icon: MessageSquare         },
       {
-        name: "Feedback",
-        path: "/student/feedback",
-        icon: MessageCircleQuestion,
+        name: "Coding Lab",
+        path: "/student/compiler",
+        icon: FileText,
       },
-      { name: "Certificates",    path: "/student/certificates", icon: Award },
     ],
   },
 ];
+
+
+
+
+
+
 
 const trainerMenus = [
   { name: "Dashboard",        path: "/trainer",         icon: LayoutDashboard },
@@ -110,9 +179,20 @@ const trainerMenus = [
       { name: "Student Reports",      path: "/trainer/student-reports", icon: FileSearch },
       { name: "Batch Reports",        path: "/trainer/batch-reports",   icon: FileText },
       { name: "Performance Analysis", path: "/trainer/performance",     icon: TrendingUp },
+      { name: "Skill Analytics",      path: "/trainer/skill-analytics",  icon: Brain      },
+      {
+        name: "Coding Lab",
+        path: "/trainer/compiler",
+        icon: FileText,
+      },
     ],
   },
 ];
+
+
+
+
+
 
 const adminMenus = [
   { name: "Dashboard", path: "/admin", icon: LayoutDashboard },
@@ -158,6 +238,7 @@ const adminMenus = [
     name: "Insight Review", icon: BarChart3,
     children: [
       { name: "Usage Analytics", path: "/admin/usage",    icon: LineChart },
+      { name: "Skill Analytics",  path: "/admin/skill-analytics",   icon: Brain                  },
       // { name: "Feedback",        path: "/admin/feedback", icon: MessageCircleQuestion },
       {
         name: "Feedback Review",
@@ -654,6 +735,8 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
+
+
 
 
 

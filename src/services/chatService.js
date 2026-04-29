@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL:  import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api",
 });
 
 // attach JWT automatically
@@ -118,3 +118,53 @@ export const getAlertConfig = (batchId) =>
 /** DELETE /api/feedback/alert-config/{batchId} */
 export const deleteAlertConfig = (batchId) =>
   API.delete(`/feedback/alert-config/${batchId}`);
+
+// ── Notebook ───────────────────────────────────────────────────────────────
+
+/** GET /api/notebooks/my */
+export const getMyNotebooks = () => API.get("/notebooks/my");
+
+/** GET /api/notebooks/{id} */
+export const getNotebook = (id) => API.get(`/notebooks/${id}`);
+
+/** POST /api/notebooks */
+export const createNotebook = (payload) => API.post("/notebooks", payload);
+
+/** PUT /api/notebooks/{id} */
+export const updateNotebook = (id, payload) =>
+  API.put(`/notebooks/${id}`, payload);
+
+/** DELETE /api/notebooks/{id} */
+export const deleteNotebook = (id) => API.delete(`/notebooks/${id}`);
+
+/** POST /api/notebooks/sections */
+export const addSection = (payload) => API.post("/notebooks/sections", payload);
+
+/** PUT /api/notebooks/sections/{id} */
+export const updateSection = (id, payload) =>
+  API.put(`/notebooks/sections/${id}`, payload);
+
+/** DELETE /api/notebooks/sections/{id} */
+export const deleteSection = (id) => API.delete(`/notebooks/sections/${id}`);
+
+/** POST /api/notebooks/pages */
+export const addPage = (payload) => API.post("/notebooks/pages", payload);
+
+/** PUT /api/notebooks/pages/{id} — saves content + title */
+export const savePage = (id, payload) =>
+  API.put(`/notebooks/pages/${id}`, payload);
+
+/** DELETE /api/notebooks/pages/{id} */
+export const deletePage = (id) => API.delete(`/notebooks/pages/${id}`);
+
+export const addUrlSource = (notebookId, url) =>
+  API.post(`/notebooks/${notebookId}/sources/url`, { url });
+export const addFileSource = (notebookId, fd) =>
+  API.post(`/notebooks/${notebookId}/sources/file`, fd, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const deleteSource = (sourceId) =>
+  API.delete(`/notebooks/sources/${sourceId}`);
+
+export const notebookChat = ({ notebookId, message }) =>
+  API.post(`/notebooks/${notebookId}/chat`, { message });

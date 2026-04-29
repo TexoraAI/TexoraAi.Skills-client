@@ -87,9 +87,13 @@ const UpdateEmail           = lazyLoad(() => import("./Student/UpdateEmail"));
 const Certificates          = lazyLoad(() => import("./Student/certificates.jsx"));
 const Overview              = lazyLoad(() => import("./Student/overview.jsx"));
 const VideoLectures         = lazyLoad(() => import("./Student/videolecctures.jsx"));
-const StudentNotebook = lazyLoad(() => import("./Student/StudentNotebook.jsx"));
+const StudentNotebook       = lazyLoad(() => import("./Student/StudentNotebook.jsx"));
 const CallTrainer           = lazyLoad(() => import("./Student/CallTrainer.jsx"));
 const StudentFeedback = lazyLoad(() => import("./Student/Studentfeedback.jsx"));
+const SkillMap              = lazyLoad(() => import("./Student/SkillMap.jsx"));
+const StudentCompilerPage = lazyLoad(
+  () => import("./Student/StudentCompilerPage.jsx"),
+);
 
 /* ================= TRAINER ================= */
 const TrainerAssessments    = lazyLoad(() => import("./Trainer/Assessments"));
@@ -124,6 +128,10 @@ const TrainerLiveClasses    = lazyLoad(() => import("./Trainer/TrainerLiveClasse
 const UploadRecordedVideo   = lazyLoad(() => import("./Trainer/UploadRecordedVideo"));
 const TrainerJoinCall       = lazyLoad(() => import("./Trainer/TrainerJoinCall"));
 const TrainerFeedback = lazyLoad(() => import("./Trainer/Trainerfeedback.jsx"));
+const TrainerSkillMap      = lazyLoad(() => import("./Trainer/TrainerSkillMap.jsx"));
+const TrainerCompilerPage = lazyLoad(
+  () => import("./Trainer/TrainerCompilerPage.jsx"),
+);
 /* ================= ADMIN ================= */
 const AdminBatches              = lazyLoad(() => import("./Admin/AdminBatches"));
 const AdminDashboard            = lazyLoad(() => import("./Admin/AdminDashboard"));
@@ -147,7 +155,9 @@ const PendingUsers              = lazyLoad(() => import("./Admin/PendingUsers.js
 const StudentsAdmin             = lazyLoad(() => import("./Admin/StudentsAdmin"));
 const TrainersAdmin             = lazyLoad(() => import("./Admin/TrainersAdmin"));
 const UsageAnalytics            = lazyLoad(() => import("./Admin/UsageAnalytics"));
-const AdminFeedback   = lazyLoad(() => import("./Admin/Adminfeedback.jsx"));
+const AdminFeedback             = lazyLoad(() => import("./Admin/Adminfeedback.jsx"));
+const AdminSkillDashboard  = lazyLoad(() => import("./Admin/AdminSkillDashboard.jsx"));
+
 /* ================= BUSINESS ================= */
 const BusinessDashboard = lazyLoad(() => import("./Business/BusinessDashboard"));
 const NewEnrollments    = lazyLoad(() => import("./Business/Enrollments/NewEnrollments.jsx"));
@@ -279,7 +289,10 @@ useEffect(() => {
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="edit-profile" element={<EditProfile />} />
-              <Route path="student/feedback" element={<StudentFeedback />} />
+              <Route path="feedback" element={<StudentFeedback />} />
+              <Route path="skill-map" element={<SkillMap />} /> 
+              <Route path="compiler" element={<StudentCompilerPage />} />
+              
             </Route>
 
             {/* ================= TRAINER ================= */}
@@ -320,7 +333,9 @@ useEffect(() => {
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="edit-profile" element={<EditProfile />} />
-              <Route path="trainer/feedback" element={<TrainerFeedback />} />
+              <Route path="feedback" element={<TrainerFeedback />} />
+              <Route path="skill-analytics" element={<TrainerSkillMap />} />
+              <Route path="compiler" element={<TrainerCompilerPage />} />
             </Route>
 
             {/* ================= ADMIN ================= */}
@@ -352,6 +367,7 @@ useEffect(() => {
               <Route path="featured-course-upload" element={<Featuredcourseuploadform />} />
               <Route path="course-upload" element={<Admincourseuploadform />} />
               <Route path="feedback-review" element={<AdminFeedback />} />
+              <Route path="skill-analytics" element={<AdminSkillDashboard />} />
             </Route>
 
             {/* ================= BUSINESS ================= */}

@@ -89,12 +89,10 @@ const Overview              = lazyLoad(() => import("./Student/overview.jsx"));
 const VideoLectures         = lazyLoad(() => import("./Student/videolecctures.jsx"));
 const StudentNotebook       = lazyLoad(() => import("./Student/StudentNotebook.jsx"));
 const CallTrainer           = lazyLoad(() => import("./Student/CallTrainer.jsx"));
-const StudentFeedback = lazyLoad(() => import("./Student/Studentfeedback.jsx"));
+const StudentFeedback       = lazyLoad(() => import("./Student/Studentfeedback.jsx"));
 const SkillMap              = lazyLoad(() => import("./Student/SkillMap.jsx"));
-const StudentCompilerPage = lazyLoad(
-  () => import("./Student/StudentCompilerPage.jsx"),
-);
-
+const StudentCompilerPage   = lazyLoad(() => import("./Student/StudentCompilerPage.jsx"),);
+const ResumeBuilder = lazyLoad(() => import("./Student/ResumeBuilder.jsx"));
 /* ================= TRAINER ================= */
 const TrainerAssessments    = lazyLoad(() => import("./Trainer/Assessments"));
 const TrainerAttendance     = lazyLoad(() => import("./Trainer/Attendance"));
@@ -292,7 +290,7 @@ useEffect(() => {
               <Route path="feedback" element={<StudentFeedback />} />
               <Route path="skill-map" element={<SkillMap />} /> 
               <Route path="compiler" element={<StudentCompilerPage />} />
-              
+              <Route path="resume-builder" element={<ResumeBuilder />} />
             </Route>
 
             {/* ================= TRAINER ================= */}

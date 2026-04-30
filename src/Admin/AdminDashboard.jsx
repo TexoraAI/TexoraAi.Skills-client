@@ -639,7 +639,7 @@ const AdminDashboard = () => {
                     <div style={{ width: 6, height: 6, borderRadius: "50%", background: t.heroBadgeDot }} className="d1" />
                     <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: t.heroBadgeText, fontFamily: "'Poppins',sans-serif" }}>Manager Portal</span>
                   </div>
-                  <h1 style={{ fontFamily: "'Poppins',sans-serif", fontWeight: 900, fontSize: "clamp(1.3rem,2.5vw,1.9rem)", color: t.heroTitle, margin: "0 0 3px", lineHeight: 1.1, letterSpacing: "-0.02em" }}>
+                  <h1 style={{ fontFamily: "'Poppins',sans-serif", fontWeight: 650, fontSize: "clamp(1.3rem,2.5vw,1.9rem)", color: t.heroTitle, margin: "0 0 3px", lineHeight: 1.1, letterSpacing: "-0.02em" }}>
                     Manager <span style={{ background: "linear-gradient(135deg,#a78bfa,#22d3ee)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Dashboard</span>
                   </h1>
                   <p style={{ fontSize: 11, color: t.heroSub, margin: 0, fontWeight: 500, fontFamily: "'Poppins',sans-serif" }}>

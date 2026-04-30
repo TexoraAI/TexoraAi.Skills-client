@@ -1175,18 +1175,27 @@ const Dashboard = () => {
                   </span>
                 </div>
                 <h1
-                  style={{
-                    fontFamily: "'Poppins',sans-serif",
-                    fontWeight: 900,
-                    fontSize: "clamp(1.6rem,3vw,2.4rem)",
-                    color: t.text,
-                    margin: 0,
-                    lineHeight: 1.1,
-                    letterSpacing: "-0.02em",
-                  }}
-                >
-                  Trainer Dashboard
-                </h1>
+  style={{
+    fontFamily: "'Poppins',sans-serif",
+    fontWeight: 650,
+    fontSize: "clamp(1.6rem,3vw,2.4rem)",
+    margin: 0,
+    lineHeight: 1.1,
+    letterSpacing: "-0.02em",
+  }}
+>
+  Trainer{" "}
+  <span
+    style={{
+      background: "linear-gradient(135deg,#a78bfa,#22d3ee)",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+      backgroundClip: "text",
+    }}
+  >
+    Dashboard
+  </span>
+</h1>
                 <p
                   style={{
                     fontSize: 12,

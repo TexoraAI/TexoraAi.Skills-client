@@ -1171,9 +1171,20 @@ const DashboardPage = () => {
         <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#7c3aed" }} className="d1" />
         <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: t.textSub, fontFamily: "'Poppins',sans-serif" }}>Student Portal</span>
       </div>
-      <h1 style={{ fontFamily: "'Poppins',sans-serif", fontWeight: 900, fontSize: "clamp(1.5rem,3vw,2.2rem)", color: t.text, margin: "0 0 6px", lineHeight: 1.1, letterSpacing: "-0.02em" }}>
+      {/* <h1 style={{ fontFamily: "'Poppins',sans-serif", fontWeight: 600, fontSize: "clamp(1.5rem,3vw,2.2rem)", color: t.text, margin: "0 0 6px", lineHeight: 1.1, letterSpacing: "-0.02em" }}>
         Student Dashboard
-      </h1>
+      </h1> */}
+      <h1 style={{
+  fontFamily: "'Poppins',sans-serif",
+  fontWeight: 700,
+  fontSize: "clamp(1.5rem,3vw,2.2rem)",
+  color: "#3B82F6", // 🔵 Blue text
+  margin: "0 0 6px",
+  lineHeight: 1.1,
+  letterSpacing: "-0.02em"
+}}>
+  Student Dashboard
+</h1>
       <p style={{ fontSize: 12, color: t.textSub, margin: 0, fontWeight: 500, fontFamily: "'Poppins',sans-serif" }}>
         Your classroom &amp; learning overview
       </p>

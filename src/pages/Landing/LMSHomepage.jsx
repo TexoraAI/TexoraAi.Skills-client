@@ -10,7 +10,7 @@ import {
   GraduationCap, LogOut, Menu, Moon, Sparkles, Star, Sun,
   Target, TrendingUp, Trophy, User, Users, Zap
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
@@ -18,7 +18,305 @@ import auth from "../../auth";
 import heroStudent from "../../assets/hero-student.png";
 
 const GOOGLE_CLIENT_ID = "572421778240-akk3kkb4f60ukuv9pcfrpg2ielm09thk.apps.googleusercontent.com";
+const NEWSLETTER_KEY = "ilmora_newsletter_subscribers";
 
+/* ─────────────────────────────────────────
+   Newsletter helpers (localStorage)
+───────────────────────────────────────── */
+function getSubscribers() {
+  try { return JSON.parse(localStorage.getItem(NEWSLETTER_KEY) || "[]"); }
+  catch { return []; }
+}
+function saveSubscribers(list) {
+  localStorage.setItem(NEWSLETTER_KEY, JSON.stringify(list));
+}
+
+/* ─────────────────────────────────────────
+   NewsletterSection component
+───────────────────────────────────────── */
+function NewsletterSection() {
+  const [email, setEmail]             = useState("");
+  const [status, setStatus]           = useState("idle");
+  const [showAdmin, setShowAdmin]     = useState(false);
+  const [adminOk, setAdminOk]         = useState(false);
+  const [adminCode, setAdminCode]     = useState("");
+  const [subscribers, setSubscribers] = useState([]);
+  const inputRef = useRef(null);
+
+  const isValid = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+
+  const handleSubmit = () => {
+    const trimmed = email.trim().toLowerCase();
+    if (!isValid(trimmed)) { setStatus("error"); setTimeout(() => setStatus("idle"), 2500); return; }
+    setStatus("loading");
+    setTimeout(() => {
+      const current = getSubscribers();
+      if (current.some((s) => s.email === trimmed)) {
+        setStatus("duplicate"); setTimeout(() => setStatus("idle"), 3000); return;
+      }
+      saveSubscribers([...current, { email: trimmed, subscribedAt: new Date().toISOString() }]);
+      setStatus("success");
+      setEmail("");
+      setTimeout(() => setStatus("idle"), 3500);
+    }, 600);
+  };
+
+  const openAdmin = () => {
+    setSubscribers(getSubscribers());
+    setShowAdmin(true);
+  };
+
+  const unlockAdmin = () => {
+    if (adminCode === "ilmora2026") { setAdminOk(true); setAdminCode(""); }
+    else { alert("Incorrect code"); }
+  };
+
+  const deleteSubscriber = (emailToDel) => {
+    const updated = subscribers.filter((s) => s.email !== emailToDel);
+    saveSubscribers(updated);
+    setSubscribers(updated);
+  };
+
+  const formatDate = (iso) =>
+    new Date(iso).toLocaleDateString("en-IN", {
+      day: "2-digit", month: "short", year: "numeric",
+      hour: "2-digit", minute: "2-digit",
+    });
+
+  const statusMsg = {
+    success:   { text: "✓ You're subscribed! Welcome to ILM ORA.", color: "#68d391" },
+    error:     { text: "Please enter a valid email address.",       color: "#fc8181" },
+    duplicate: { text: "This email is already subscribed.",         color: "#f6ad55" },
+  }[status];
+
+  return (
+    <>
+      {/* ── Newsletter Banner ── */}
+      <section style={{ background: "#1a1f2e", padding: "3.5rem 1.5rem", textAlign: "center" }}>
+        <div style={{ maxWidth: "560px", margin: "0 auto" }}>
+
+          {/* Heading */}
+          <h2 style={{
+            color: "#fff",
+            fontSize: "clamp(1.3rem, 3vw, 1.75rem)",
+            fontWeight: 700,
+            margin: "0 0 1.6rem",
+            lineHeight: 1.35,
+            whiteSpace: "nowrap",
+          }}>
+            Be the first to know what's new on{" "}
+            <span style={{ color: "#22C55E" }}>ILM</span>{" "}
+            <span style={{ color: "#F97316" }}>ORA</span>
+          </h2>
+
+          {/* Input row — Maven style */}
+          <div
+            style={{
+              display: "flex",
+              maxWidth: "420px",
+              margin: "0 auto",
+              background: "rgba(255,255,255,0.07)",
+              borderRadius: "10px",
+              border: status === "error"   ? "1.5px solid #fc8181"
+                    : status === "success" ? "1.5px solid #68d391"
+                    : "1.5px solid rgba(255,255,255,0.18)",
+              overflow: "hidden",
+              transition: "border-color 0.25s",
+            }}
+          >
+            <input
+              ref={inputRef}
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+              placeholder="your@email.com"
+              disabled={status === "loading" || status === "success"}
+              style={{
+                flex: 1,
+                background: "transparent",
+                border: "none",
+                outline: "none",
+                color: "#fff",
+                fontSize: "15px",
+                padding: "13px 18px",
+                caretColor: "#F97316",
+              }}
+            />
+            <button
+              onClick={handleSubmit}
+              disabled={status === "loading" || status === "success"}
+              style={{
+                background: status === "success" ? "#38a169" : "rgba(255,255,255,0.1)",
+                border: "none",
+                borderLeft: "1.5px solid rgba(255,255,255,0.18)",
+                cursor: "pointer",
+                padding: "0 20px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                minWidth: "52px",
+                transition: "background 0.25s",
+              }}
+              onMouseEnter={e => { if (status !== "success") e.currentTarget.style.background = "rgba(249,115,22,0.8)"; }}
+              onMouseLeave={e => { if (status !== "success") e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
+            >
+              {status === "loading" ? (
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <circle cx="10" cy="10" r="8" stroke="rgba(255,255,255,0.3)" strokeWidth="2.5"/>
+                  <path d="M10 2a8 8 0 0 1 8 8" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
+                    <animateTransform attributeName="transform" type="rotate" from="0 10 10" to="360 10 10" dur="0.7s" repeatCount="indefinite"/>
+                  </path>
+                </svg>
+              ) : status === "success" ? (
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M4 10l4 4 8-8" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M4 10h12M10 4l6 6-6 6" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </button>
+          </div>
+
+          {statusMsg && (
+            <p style={{ marginTop: "0.7rem", fontSize: "13px", color: statusMsg.color, transition: "all 0.3s" }}>
+              {statusMsg.text}
+            </p>
+          )}
+
+          {/* Contact support line */}
+          <p style={{ color: "#6b7280", fontSize: "13px", marginTop: "1.4rem" }}>
+            Contact support:{" "}
+            <a
+              href="mailto:support@ilmora.com"
+              style={{ color: "#9ca3af", textDecoration: "none" }}
+              onMouseEnter={e => e.target.style.color = "#F97316"}
+              onMouseLeave={e => e.target.style.color = "#9ca3af"}
+            >
+              support@ilmora.com
+            </a>
+          </p>
+        </div>
+      </section>
+
+      {/* ── Admin Modal ── */}
+      {showAdmin && (
+        <div
+          style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)",
+            display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999,
+          }}
+          onClick={(e) => { if (e.target === e.currentTarget) { setShowAdmin(false); setAdminOk(false); } }}
+        >
+          <div style={{
+            background: "#fff", borderRadius: "14px", padding: "2rem",
+            width: "min(90vw,560px)", maxHeight: "80vh",
+            display: "flex", flexDirection: "column", gap: "1rem",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "#111" }}>📊 Subscriber Admin</h3>
+              <button
+                onClick={() => { setShowAdmin(false); setAdminOk(false); }}
+                style={{ background: "none", border: "none", fontSize: "20px", cursor: "pointer", color: "#888" }}
+              >✕</button>
+            </div>
+
+            {!adminOk ? (
+              <div>
+                <p style={{ color: "#666", fontSize: "14px", marginBottom: "1rem" }}>
+                  Enter admin code to view subscribers:
+                </p>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <input
+                    type="password"
+                    value={adminCode}
+                    onChange={(e) => setAdminCode(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && unlockAdmin()}
+                    placeholder="Admin code"
+                    style={{
+                      flex: 1, padding: "10px 14px",
+                      border: "1.5px solid #e0e0e0", borderRadius: "8px",
+                      fontSize: "14px", outline: "none",
+                    }}
+                  />
+                  <button
+                    onClick={unlockAdmin}
+                    style={{
+                      background: "#F97316", color: "#fff", border: "none",
+                      borderRadius: "8px", padding: "10px 20px",
+                      cursor: "pointer", fontSize: "14px", fontWeight: 600,
+                    }}
+                  >Unlock</button>
+                </div>
+                <p style={{ color: "#bbb", fontSize: "11px", marginTop: "8px" }}>Hint: ilmora2026</p>
+              </div>
+            ) : (
+              <>
+                <div style={{
+                  background: "#f8fffe", border: "1px solid #d4f5e8",
+                  borderRadius: "8px", padding: "12px 16px",
+                  display: "flex", justifyContent: "space-between", alignItems: "center",
+                }}>
+                  <span style={{ color: "#1a8f3c", fontWeight: 600, fontSize: "14px" }}>
+                    Total Subscribers: {subscribers.length}
+                  </span>
+                  <button
+                    onClick={() => setSubscribers(getSubscribers())}
+                    style={{ background: "none", border: "none", cursor: "pointer", color: "#888", fontSize: "13px" }}
+                  >↻ Refresh</button>
+                </div>
+                <div style={{ overflowY: "auto", flex: 1 }}>
+                  {subscribers.length === 0 ? (
+                    <p style={{ color: "#999", textAlign: "center", padding: "2rem", fontSize: "14px" }}>
+                      No subscribers yet. Share the page!
+                    </p>
+                  ) : (
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+                      <thead>
+                        <tr style={{ borderBottom: "2px solid #f0f0f0" }}>
+                          <th style={{ textAlign: "left", padding: "8px 12px", color: "#888", fontWeight: 600 }}>#</th>
+                          <th style={{ textAlign: "left", padding: "8px 12px", color: "#888", fontWeight: 600 }}>Email</th>
+                          <th style={{ textAlign: "left", padding: "8px 12px", color: "#888", fontWeight: 600 }}>Subscribed</th>
+                          <th style={{ padding: "8px 12px" }}></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {subscribers.map((sub, i) => (
+                          <tr key={sub.email} style={{ borderBottom: "1px solid #f5f5f5" }}>
+                            <td style={{ padding: "10px 12px", color: "#bbb" }}>{i + 1}</td>
+                            <td style={{ padding: "10px 12px", color: "#111", fontWeight: 500 }}>{sub.email}</td>
+                            <td style={{ padding: "10px 12px", color: "#888" }}>{formatDate(sub.subscribedAt)}</td>
+                            <td style={{ padding: "10px 12px", textAlign: "right" }}>
+                              <button
+                                onClick={() => deleteSubscriber(sub.email)}
+                                style={{ background: "none", border: "none", cursor: "pointer", color: "#fc8181", fontSize: "16px" }}
+                                title="Remove"
+                              >🗑</button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* hidden admin trigger */}
+      <div id="newsletter-admin-trigger" onClick={openAdmin} style={{ display: "none" }} />
+    </>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   Main Page
+═══════════════════════════════════════════════════════ */
 export default function LMSHomepage({ theme, toggleTheme }) {
   const [activeTab, setActiveTab] = useState("product");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -26,7 +324,6 @@ export default function LMSHomepage({ theme, toggleTheme }) {
   const [user, setUser] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
-  // Modal form states
   const [modalEmail, setModalEmail]       = useState("");
   const [modalPassword, setModalPassword] = useState("");
   const [modalLoading, setModalLoading]   = useState(false);
@@ -48,7 +345,6 @@ export default function LMSHomepage({ theme, toggleTheme }) {
     }
   }, []);
 
-  // Close modal on Escape key
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") setShowLoginModal(false); };
     if (showLoginModal) window.addEventListener("keydown", onKey);
@@ -74,7 +370,6 @@ export default function LMSHomepage({ theme, toggleTheme }) {
     }
   };
 
-  /* ─── Role-based redirect ── */
   const redirectByRole = (role) => {
     switch ((role || "").toUpperCase()) {
       case "ADMIN":    navigate("/admin",    { replace: true }); break;
@@ -84,7 +379,6 @@ export default function LMSHomepage({ theme, toggleTheme }) {
     }
   };
 
-  /* ─── Modal email/password login ── */
   const handleModalSubmit = async (e) => {
     e.preventDefault();
     if (modalLoading) return;
@@ -106,7 +400,6 @@ export default function LMSHomepage({ theme, toggleTheme }) {
     }
   };
 
-  /* ─── Modal Google login ── */
   const handleModalGoogle = async (res) => {
     try {
       localStorage.removeItem("lms_token");
@@ -157,7 +450,9 @@ export default function LMSHomepage({ theme, toggleTheme }) {
   };
 
   const CompanyLogo = ({ company }) =>
-    logoImages[company.name] ? <img src={logoImages[company.name]} alt={company.name} className="w-full h-full object-contain" /> : null;
+    logoImages[company.name]
+      ? <img src={logoImages[company.name]} alt={company.name} className="w-full h-full object-contain" />
+      : null;
 
   const courses = {
     product: [
@@ -192,34 +487,38 @@ export default function LMSHomepage({ theme, toggleTheme }) {
 
   const stats = [
     { value: "50K+", label: "Active Learners" },
-    { value: "95%", label: "Success Rate" },
+    { value: "95%",  label: "Success Rate" },
     { value: "100+", label: "Expert Mentors" },
     { value: "4.9★", label: "Average Rating" },
   ];
 
   const mentorBenefits = [
-    { icon: Award, text: "1:1 mentorship and small cohort learning" },
-    { icon: TrendingUp, text: "Project reviews with detailed feedback" },
-    { icon: Users, text: "Peer community for accountability and networking" },
+    { icon: Award,       text: "1:1 mentorship and small cohort learning" },
+    { icon: TrendingUp,  text: "Project reviews with detailed feedback" },
+    { icon: Users,       text: "Peer community for accountability and networking" },
   ];
 
   const careerSupport = [
-    { icon: Target, title: "Portfolio Support", description: "Turn your projects into case studies hiring managers love" },
-    { icon: Award, title: "Interview Prep", description: "Mock interviews, feedback and guidance on role expectations" },
-    { icon: Users, title: "Referrals & Network", description: "Warm intros to hiring teams and community-led referrals" },
+    { icon: Target, title: "Portfolio Support",   description: "Turn your projects into case studies hiring managers love" },
+    { icon: Award,  title: "Interview Prep",      description: "Mock interviews, feedback and guidance on role expectations" },
+    { icon: Users,  title: "Referrals & Network", description: "Warm intros to hiring teams and community-led referrals" },
   ];
 
   const getLevelColor = (level) => ({
-    Beginner: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+    Beginner:     "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
     Intermediate: "bg-[#F97316]/10 text-[#F97316] border border-[#F97316]/20",
-    Advanced: "bg-[#1E293B]/10 text-[#1E293B] dark:bg-white/10 dark:text-white border border-[#1E293B]/20 dark:border-white/20",
+    Advanced:     "bg-[#1E293B]/10 text-[#1E293B] dark:bg-white/10 dark:text-white border border-[#1E293B]/20 dark:border-white/20",
   }[level] || "bg-gray-100 text-gray-700");
 
   const navLinks = [
-    { text: "Courses", href: "#courses" },
-    { text: "Mentors", href: "#mentors" },
+    { text: "Courses",         href: "#courses" },
+    { text: "Mentors",         href: "#mentors" },
     { text: "Success Stories", href: "#successstories" },
   ];
+
+  const openNewsletterAdmin = () => {
+    document.getElementById("newsletter-admin-trigger")?.click();
+  };
 
   return (
     <div className="min-h-screen bg-[#F6EDE6] dark:bg-black text-[#1E293B] dark:text-white">
@@ -232,10 +531,9 @@ export default function LMSHomepage({ theme, toggleTheme }) {
             : "bg-white/80 dark:bg-black/80 backdrop-blur-md"
         } border-b border-[#F97316]/20 dark:border-gray-800`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">
 
-            {/* Logo */}
             <div
               className="flex items-center cursor-pointer hover:scale-105 transition-transform"
               onClick={() => navigate("/")}
@@ -283,7 +581,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                       <DropdownMenuSeparator />
                       {[
                         { icon: GraduationCap, label: "My Learning", desc: "View your courses", path: "/my-learning" },
-                        { icon: User, label: "Edit Profile", desc: "Update your info", path: "/edit-profile" },
+                        { icon: User,          label: "Edit Profile", desc: "Update your info",  path: "/edit-profile" },
                       ].map(item => (
                         <DropdownMenuItem key={item.label} onClick={() => navigate(item.path)} className="gap-3 cursor-pointer">
                           <div className="w-8 h-8 rounded-lg bg-[#F97316]/10 flex items-center justify-center">
@@ -303,7 +601,6 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                   </DropdownMenu>
                 </div>
               ) : (
-                /* ── Get Started → opens modal ── */
                 <Button
                   onClick={() => setShowLoginModal(true)}
                   className="bg-[#1E293B] hover:bg-[#334155] text-white font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
@@ -329,7 +626,6 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                         <Button variant="destructive" onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className="w-full">Logout</Button>
                       </>
                     ) : (
-                      /* ── Mobile Get Started → opens modal ── */
                       <Button
                         onClick={() => { setMobileMenuOpen(false); setShowLoginModal(true); }}
                         className="w-full bg-[#1E293B] hover:bg-[#334155] text-white font-bold flex items-center justify-center gap-2 rounded-xl"
@@ -351,7 +647,6 @@ export default function LMSHomepage({ theme, toggleTheme }) {
         <div className="absolute -bottom-20 right-[5%] w-[500px] h-[500px] bg-[#1E293B]/5 rounded-full blur-[120px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto relative z-10 grid lg:grid-cols-2 gap-16 items-center">
-          {/* LEFT */}
           <div className="text-center lg:text-left">
             <div className="mb-8 inline-flex">
               <div className="inline-flex items-center gap-2 bg-white dark:bg-gray-900 border border-[#F97316]/30 text-[#F97316] px-5 py-2.5 rounded-full text-sm font-semibold shadow-md">
@@ -359,15 +654,12 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                 Advanced Learning Platform for Modern Professionals
               </div>
             </div>
-
             <h1 className="text-4xl md:text-4xl lg:text-6xl font-bold mb-6 leading-tight text-[#1E293B] dark:text-white">
               Become the <span className="text-[#F97316]">Top 1%</span>
             </h1>
-
             <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-12 max-w-xl leading-relaxed">
               Learn Product, Design, Growth & Marketing from industry experts.
             </p>
-
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center lg:items-start">
               <button
                 onClick={() => navigate("/explore-programs")}
@@ -377,8 +669,6 @@ export default function LMSHomepage({ theme, toggleTheme }) {
               </button>
             </div>
           </div>
-
-          {/* RIGHT IMAGE */}
           <div className="flex justify-center">
             <img
               src={heroStudent}
@@ -581,65 +871,192 @@ export default function LMSHomepage({ theme, toggleTheme }) {
         </div>
       </section>
 
+      {/* ── Newsletter ── */}
+      <NewsletterSection />
+
       {/* ── Footer ── */}
       <footer className="bg-white text-[#1E293B]">
         <div className="max-w-7xl mx-auto px-6 py-20">
-          <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-5">
-            <div className="lg:col-span-2 space-y-5">
-              <h3 className="text-3xl font-extrabold">
+        <div className="grid gap-14 grid-cols-1 md:grid-cols-2 lg:grid-cols-5 items-start">
+
+            {/* ── Col 1: Logo + Desc + Social ── */}
+            <div className="flex flex-col gap-2.5 self-start text-left">
+              <h3 className="text-3xl font-extrabold leading-none">
                 <span className="text-green-600">ILM</span>{" "}
                 <span className="text-[#F97316]">ORA</span>
               </h3>
-              <p className="text-sm text-gray-600 max-w-sm leading-relaxed">Modern learning platform for ambitious professionals who want to break into product, design and growth roles.</p>
-              <div className="flex gap-3 pt-2">
-                <a href="https://www.youtube.com/@Texoraai" target="_blank" rel="noreferrer" className="h-8 w-8 rounded-full flex items-center justify-center text-white bg-red-600 hover:scale-110 transition-all shadow-md">
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Modern learning platform for ambitious professionals who want to break into product, design and growth roles.
+              </p>
+              <p className="text-sm text-gray-500">
+                📧{" "}
+                <a href="mailto:support@ilmora.com" className="hover:text-[#F97316] transition-colors">
+                  support@ilmora.com
                 </a>
-                <a href="https://www.linkedin.com/company/105596104" target="_blank" rel="noreferrer" className="h-8 w-8 rounded-full flex items-center justify-center text-white bg-blue-700 hover:scale-110 transition-all shadow-md">
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+              </p>
+              <p className="text-sm text-gray-500">📍 New Delhi, India</p>
+
+              {/* Social Icons */}
+              <div className="flex items-center gap-3 pt-1">
+                {/* YouTube */}
+                <a href="https://www.youtube.com/@Texoraai" target="_blank" rel="noreferrer"
+                  className="h-9 w-9 rounded-full flex items-center justify-center text-white bg-[#FF0000] hover:scale-110 hover:shadow-md transition-all">
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                  </svg>
                 </a>
-                <a href="https://api.whatsapp.com/send?phone=919210970334" target="_blank" rel="noreferrer" className="h-8 w-8 rounded-full flex items-center justify-center text-white bg-green-500 hover:scale-110 transition-all shadow-md">
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+                {/* LinkedIn */}
+                <a href="https://www.linkedin.com/company/105596104" target="_blank" rel="noreferrer"
+                  className="h-9 w-9 rounded-full flex items-center justify-center text-white bg-[#0A66C2] hover:scale-110 hover:shadow-md transition-all">
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                  </svg>
                 </a>
-                <a href="https://www.instagram.com/texora_ai" target="_blank" rel="noreferrer" className="h-8 w-8 rounded-full flex items-center justify-center text-white bg-pink-600 hover:scale-110 transition-all shadow-md">
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M7.75 2C4.574 2 2 4.574 2 7.75v8.5C2 19.426 4.574 22 7.75 22h8.5C19.426 22 22 19.426 22 16.25v-8.5C22 4.574 19.426 2 16.25 2h-8.5zm0 2h8.5C18.216 4 20 5.784 20 7.75v8.5C20 18.216 18.216 20 16.25 20h-8.5C5.784 20 4 18.216 4 16.25v-8.5C4 5.784 5.784 4 7.75 4zm4.25 3a5 5 0 100 10 5 5 0 000-10zm0 2a3 3 0 110 6 3 3 0 010-6zm4.5-.75a1.25 1.25 0 100 2.5 1.25 1.25 0 000-2.5z"/></svg>
+                {/* WhatsApp */}
+                <a href="https://api.whatsapp.com/send?phone=919210970334" target="_blank" rel="noreferrer"
+                  className="h-9 w-9 rounded-full flex items-center justify-center text-white bg-[#25D366] hover:scale-110 hover:shadow-md transition-all">
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
+                  </svg>
                 </a>
-                <a href="https://x.com/texoraai" target="_blank" rel="noreferrer" className="h-8 w-8 rounded-full flex items-center justify-center text-white bg-black hover:scale-110 transition-all shadow-md">
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2H21l-6.54 7.482L22 22h-6.828l-5.34-6.977L3.64 22H1l7.042-8.053L2 2h6.828l4.86 6.35L18.244 2zm-2.396 18h1.89L8.224 4H6.176l9.672 16z"/></svg>
+                {/* Instagram */}
+                <a href="https://www.instagram.com/texora_ai" target="_blank" rel="noreferrer"
+                  className="h-9 w-9 rounded-full flex items-center justify-center text-white hover:scale-110 hover:shadow-md transition-all"
+                  style={{ background: "radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%)" }}>
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>
+                  </svg>
+                </a>
+                {/* X (Twitter) */}
+                <a href="https://x.com/texoraai" target="_blank" rel="noreferrer"
+                  className="h-9 w-9 rounded-full flex items-center justify-center text-white bg-black hover:scale-110 hover:shadow-md transition-all">
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L2.062 2.25H8.28l4.259 5.63 5.704-5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
                 </a>
               </div>
             </div>
 
-            {[
-              { title: "Programs", items: [
-                { label: "Product Management", action: () => scrollToSection("courses", "product") },
-                { label: "Growth Marketing", action: () => scrollToSection("courses", "growth") },
-                { label: "UI / UX Design", action: () => scrollToSection("courses", "design") },
-              ]},
-              { title: "Resources", items: [
-                { label: "Success Stories", action: () => scrollToSection("successstories") },
-                { label: "Free Services", action: () => { navigate("/explore-programs"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 250); } },
-              ]},
-              { title: "Company", items: [
-                { label: "About Us", action: () => navigate("/about") },
-                { label: "Careers", action: () => navigate("/careers") },
-                { label: "Privacy Policy", action: () => navigate("/privacy-policy") },
-                { label: "Terms of Service", action: () => navigate("/terms-of-service") },
-              ]},
-            ].map((section, i) => (
-              <div key={i} className="space-y-4">
-                <h4 className="text-sm font-semibold tracking-wide">{section.title}</h4>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  {section.items.map(item => (
-                    <li key={item.label} onClick={item.action} className="hover:text-[#F97316] cursor-pointer transition-colors">{item.label}</li>
-                  ))}
-                </ul>
+            {/* ── Col 2: Programs ── */}
+            <div className="flex flex-col gap-4 items-center text-center">
+              <h4 className="text-sm font-bold tracking-widest text-[#1E293B] uppercase">Programs</h4>
+              <ul className="flex flex-col gap-2.5 text-sm text-gray-600">
+                {[
+                  { label: "Product Management", action: () => scrollToSection("courses", "product") },
+                  { label: "Growth Marketing",   action: () => scrollToSection("courses", "growth") },
+                  { label: "UI / UX Design",     action: () => scrollToSection("courses", "design") },
+                ].map(item => (
+                  <li key={item.label} onClick={item.action}
+                    className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group">
+                    <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
+                    {item.label}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* ── Col 3: Resources ── */}
+            <div className="flex flex-col gap-4 items-center text-center">
+              <h4 className="text-sm font-bold tracking-widest text-[#1E293B] uppercase">Resources</h4>
+              <ul className="flex flex-col gap-2.5 text-sm text-gray-600">
+                <li onClick={() => scrollToSection("successstories")}
+                  className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group">
+                  <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
+                  Success Stories
+                </li>
+                <li onClick={() => { navigate("/explore-programs"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 250); }}
+                  className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group">
+                  <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
+                  Free Services
+                </li>
+                <li onClick={() => window.open("https://texora.ai/blogs", "_blank")}
+                  className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group">
+                  <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
+                  Blogs
+                </li>
+                <li
+      onClick={() => window.open("https://texora.ai/use-cases", "_blank")}
+      className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group"
+    >
+      <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
+      Use Cases
+    </li>
+
+    <li
+      onClick={() => window.open("https://texora.ai/product-updates", "_blank")}
+      className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group"
+    >
+      <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
+      Product Updates
+    </li>
+
+    <li
+      onClick={() => window.open("https://texora.ai/company-news", "_blank")}
+      className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group"
+    >
+      <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
+      Company News
+    </li>
+
+              </ul>
+            </div>
+
+            {/* ── Col 4: Company ── */}
+            <div className="flex flex-col gap-4 self-start">
+              <h4 className="text-sm font-bold tracking-widest text-[#1E293B] uppercase">Company</h4>
+              <ul className="flex flex-col gap-2.5 text-sm text-gray-600">
+                {[
+                  { label: "About Us",         action: () => navigate("/about") },
+                  { label: "Careers",          action: () => navigate("/careers") },
+                  { label: "Pricing",          action: () => navigate("/pricing") },
+                  { label: "Privacy Policy",   action: () => navigate("/privacy-policy") },
+                  { label: "Terms of Service", action: () => navigate("/terms-of-service") },
+                  
+                ].map(item => (
+                  <li key={item.label} onClick={item.action}
+                    className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group">
+                    <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
+                    {item.label}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* ── Col 5: Support ── */}
+            <div className="flex flex-col gap-4 self-start">
+              <h4 className="text-sm font-bold tracking-widest text-[#1E293B] uppercase">Support</h4>
+              <ul className="flex flex-col gap-2.5 text-sm text-gray-600">
+                {[
+                  { label: "Help Center", action: () => navigate("/help-center") },
+                  { label: "Contact",     action: () => navigate("/contact") },
+                  { label: "FAQ",         action: () => navigate("/faq") },
+                ].map(item => (
+                  <li key={item.label} onClick={item.action}
+                    className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group">
+                    <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
+                    {item.label}
+                  </li>
+                ))}
+              </ul>
+              {/* Live status badge */}
+              <div className="pt-1">
+                <span className="inline-flex items-center gap-2 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full">
+                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  Status: Live
+                </span>
               </div>
-            ))}
+            </div>
+
           </div>
+
+          {/* ── Bottom bar ── */}
           <div className="border-t border-gray-200 mt-16 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
             <span>© {new Date().getFullYear()} ILM ORA All rights reserved.</span>
-            <span>Built with passion for modern learners 🚀</span>
+            <div className="flex items-center gap-2">
+              <span>Built with</span>
+              <span className="text-red-500 text-base">❤️</span>
+              <span>passion for modern learners</span>
+            </div>
           </div>
         </div>
       </footer>
@@ -649,13 +1066,11 @@ export default function LMSHomepage({ theme, toggleTheme }) {
       ══════════════════════════════════════════ */}
       {showLoginModal && (
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-          {/* Backdrop */}
           <div
             className="fixed inset-0 z-[100] flex items-center justify-center p-4"
             style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(5px)" }}
             onClick={(e) => { if (e.target === e.currentTarget) setShowLoginModal(false); }}
           >
-            {/* Modal Card */}
             <div
               className="relative w-full max-w-md rounded-2xl shadow-2xl"
               style={{
@@ -672,14 +1087,12 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                 }
               `}</style>
 
-              {/* Close button */}
               <button
                 onClick={() => setShowLoginModal(false)}
                 className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition text-xl font-bold leading-none"
                 aria-label="Close"
               >×</button>
 
-              {/* Logo */}
               <div className="flex justify-center mb-5">
                 <span className="text-4xl font-extrabold font-serif tracking-wide">
                   <span className="text-green-600">ILM</span>
@@ -687,7 +1100,6 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                 </span>
               </div>
 
-              {/* Heading */}
               <div className="text-center mb-6">
                 <h2 className="text-xl font-bold text-[#1e0e02] mb-1">Welcome back!</h2>
                 <p className="text-sm text-[#8a6040]">
@@ -699,7 +1111,6 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                 </p>
               </div>
 
-              {/* Google Login */}
               <div className="flex justify-center mb-5">
                 <GoogleLogin
                   onSuccess={handleModalGoogle}
@@ -714,17 +1125,13 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                 />
               </div>
 
-              {/* OR divider */}
               <div className="flex items-center gap-3 mb-5">
                 <div className="flex-1 h-px" style={{ background: "rgba(180,100,30,0.15)" }} />
                 <span className="text-xs text-[#b8906a] uppercase tracking-widest font-medium">OR</span>
                 <div className="flex-1 h-px" style={{ background: "rgba(180,100,30,0.15)" }} />
               </div>
 
-              {/* Email / Password Form */}
               <form onSubmit={handleModalSubmit}>
-
-                {/* Email */}
                 <div className="mb-3">
                   <label className="block text-xs font-bold text-[#8a6040] mb-1.5 uppercase tracking-widest">Email</label>
                   <input
@@ -735,16 +1142,12 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                     required
                     disabled={modalLoading}
                     className="w-full px-3.5 py-2.5 rounded-xl text-sm text-[#1a0e06] placeholder-[#c0a070] outline-none transition-all disabled:opacity-50"
-                    style={{
-                      background: "rgba(255,255,255,0.8)",
-                      border: "1.5px solid rgba(180,120,60,0.2)",
-                    }}
+                    style={{ background: "rgba(255,255,255,0.8)", border: "1.5px solid rgba(180,120,60,0.2)" }}
                     onFocus={e => { e.target.style.borderColor = "#F97316"; e.target.style.boxShadow = "0 0 0 3px rgba(249,115,22,0.1)"; e.target.style.background = "#fff"; }}
                     onBlur={e => { e.target.style.borderColor = "rgba(180,120,60,0.2)"; e.target.style.boxShadow = "none"; }}
                   />
                 </div>
 
-                {/* Password */}
                 <div className="mb-2">
                   <label className="block text-xs font-bold text-[#8a6040] mb-1.5 uppercase tracking-widest">Password</label>
                   <div className="relative">
@@ -756,10 +1159,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                       required
                       disabled={modalLoading}
                       className="w-full px-3.5 py-2.5 pr-11 rounded-xl text-sm text-[#1a0e06] placeholder-[#c0a070] outline-none transition-all disabled:opacity-50"
-                      style={{
-                        background: "rgba(255,255,255,0.8)",
-                        border: "1.5px solid rgba(180,120,60,0.2)",
-                      }}
+                      style={{ background: "rgba(255,255,255,0.8)", border: "1.5px solid rgba(180,120,60,0.2)" }}
                       onFocus={e => { e.target.style.borderColor = "#F97316"; e.target.style.boxShadow = "0 0 0 3px rgba(249,115,22,0.1)"; e.target.style.background = "#fff"; }}
                       onBlur={e => { e.target.style.borderColor = "rgba(180,120,60,0.2)"; e.target.style.boxShadow = "none"; }}
                     />
@@ -768,7 +1168,6 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                       onClick={() => setShowModalPw(p => !p)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-[#b8906a] hover:text-[#F97316] transition flex items-center justify-center p-0 bg-transparent border-none cursor-pointer"
                       tabIndex={-1}
-                      aria-label={showModalPw ? "Hide password" : "Show password"}
                     >
                       {showModalPw ? (
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -786,7 +1185,6 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                   </div>
                 </div>
 
-                {/* Forgot password */}
                 <div className="text-right mb-5">
                   <button
                     type="button"
@@ -797,29 +1195,21 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                   </button>
                 </div>
 
-                {/* Submit */}
                 <button
                   type="submit"
                   disabled={modalLoading}
                   className="w-full py-3 rounded-xl font-bold text-white text-sm transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  style={{
-                    background: "linear-gradient(135deg, #F97316, #ea580c)",
-                    boxShadow: "0 4px 18px rgba(249,115,22,0.32)",
-                  }}
+                  style={{ background: "linear-gradient(135deg,#F97316,#ea580c)", boxShadow: "0 4px 18px rgba(249,115,22,0.32)" }}
                 >
                   {modalLoading ? (
                     <>
-                      <span
-                        className="inline-block w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin"
-                      />
+                      <span className="inline-block w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
                       Signing in…
                     </>
                   ) : "Log in"}
                 </button>
-
               </form>
 
-              {/* Back to home */}
               <div className="text-center mt-5">
                 <button
                   onClick={() => setShowLoginModal(false)}
@@ -828,7 +1218,6 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                   ← Back to home
                 </button>
               </div>
-
             </div>
           </div>
         </GoogleOAuthProvider>

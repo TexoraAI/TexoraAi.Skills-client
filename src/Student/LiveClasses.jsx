@@ -320,7 +320,18 @@ const LiveClasses = () => {
             <div className="lc-header-icon"><Radio size={24} /></div>
             <div>
               <div className="lc-badge"><Radio size={10} /> Live & Recorded</div>
-              <h1 className="lc-h1">Live Classes</h1>
+              {/* <h1 className="lc-h1">Live Classes</h1> */}
+              <h1 style={{
+  fontFamily: "'Poppins',sans-serif",
+  fontWeight: 700,
+  fontSize: "clamp(1.5rem,3vw,2.2rem)",
+  color: "#3B82F6", // 🔵 Blue text
+  margin: "0 0 6px",
+  lineHeight: 1.1,
+  letterSpacing: "-0.02em"
+}}>
+  Live Classes
+</h1>
               <p className="lc-subtitle">Join your trainer's live sessions in real-time</p>
             </div>
           </div>

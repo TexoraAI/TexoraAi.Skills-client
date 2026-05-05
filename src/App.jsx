@@ -56,7 +56,10 @@ const AboutTexoraSkills = lazyLoad(() => import("./pages/About/AboutTexoraSkills
 const Careers           = lazyLoad(() => import("./pages/Company/Careers"));
 const PrivacyPolicy     = lazyLoad(() => import("./pages/Company/PrivacyPolicy"));
 const TermsOfService    = lazyLoad(() => import("./pages/Company/TermsOfService"));
-
+const ContactUs         = lazyLoad(() => import("./pages/Company/ContactUs"));
+const Pricing = lazyLoad(() => import("./pages/Company/Pricing"));
+const FAQ = lazyLoad(() => import("./pages/Company/FAQ"));
+const HelpCenter = lazyLoad(() => import("./pages/Company/HelpCenter"));
 /* ================= COMMON ================= */
 const NotificationsPage = lazyLoad(() => import("./pages/NotificationsPage"));
 const ProfilePage       = lazyLoad(() => import("./pages/ProfilePage"));
@@ -147,6 +150,7 @@ const CertificatesAdmin         = lazyLoad(() => import("./Admin/CertificatesAdm
 const DepartmentList            = lazyLoad(() => import("./Admin/DepartmentList"));
 const Featuredcourseuploadform  = lazyLoad(() => import("./Admin/Featuredcourseuploadform"));
 
+
 const OrgReports                = lazyLoad(() => import("./Admin/OrgReports"));
 const OrgSettings               = lazyLoad(() => import("./Admin/OrgSettings"));
 const PendingUsers              = lazyLoad(() => import("./Admin/PendingUsers.jsx"));
@@ -236,7 +240,10 @@ useEffect(() => {
             <Route path="/careers" element={<Careers />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
-
+            <Route path="/contact" element={<ContactUs />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/help-center" element={<HelpCenter />} />
             {/* ================= AUTH ================= */}
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />

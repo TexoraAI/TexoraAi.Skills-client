@@ -359,10 +359,16 @@ export default function MyQuizHistory() {
                   }}>Performance Tracking</span>
                 </div>
                 <h1 style={{
-                  fontFamily: "'Poppins',sans-serif", fontWeight: 900,
-                  fontSize: "clamp(1.6rem,3vw,2.4rem)", color: t.text,
-                  margin: 0, lineHeight: 1.1, letterSpacing: "-0.02em",
-                }}>My Quiz History</h1>
+  fontFamily: "'Poppins',sans-serif",
+  fontWeight: 700,
+  fontSize: "clamp(1.5rem,3vw,2.2rem)",
+  color: "#3B82F6", // 🔵 Blue text
+  margin: "0 0 6px",
+  lineHeight: 1.1,
+  letterSpacing: "-0.02em"
+}}>
+  My Quiz History
+</h1>
                 <p style={{
                   fontSize: 12, color: t.textSub, marginTop: 7,
                   fontWeight: 500, fontFamily: "'Poppins',sans-serif",

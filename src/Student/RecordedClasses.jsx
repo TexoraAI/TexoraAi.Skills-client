@@ -291,7 +291,18 @@ const RecordedClasses = () => {
             <div className="rc-header-icon"><Video size={24} /></div>
             <div>
               <div className="rc-badge"><Video size={10} /> Live & Recorded</div>
-              <h1 className="rc-h1">Video Lectures</h1>
+              {/* <h1 className="rc-h1">Video Lectures</h1> */}
+              <h1 style={{
+  fontFamily: "'Poppins',sans-serif",
+  fontWeight: 700,
+  fontSize: "clamp(1.5rem,3vw,2.2rem)",
+  color: "#3B82F6", // 🔵 Blue text
+  margin: "0 0 6px",
+  lineHeight: 1.1,
+  letterSpacing: "-0.02em"
+}}>
+  Video Lectures
+</h1>
               <p className="rc-subtitle">Watch your recorded and live sessions</p>
             </div>
           </div>

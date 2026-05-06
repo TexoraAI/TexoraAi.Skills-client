@@ -131,57 +131,74 @@ const SkillMap = () => {
       <div style={{ minHeight: "100vh", background: t.pageBg, fontFamily: "'Poppins',sans-serif" }}>
         <div style={{ maxWidth: 1300, margin: "0 auto", padding: 24, paddingBottom: 52 }}>
 
-          {/* ══ HERO ══ */}
-          <div className="sfade" style={{
-            // background: t.heroBg, border: `1px solid ${t.borderHero}`,
-            // borderRadius: 24, padding: "28px 32px", marginBottom: 20,
-            // boxShadow: t.shadow,
-            background: t.heroBg, border: `1px solid ${t.borderHero}`,
-borderRadius: 24, padding: "28px 32px", marginBottom: 20,
-boxShadow: "0 2px 24px rgba(180,120,70,0.10), 0 1px 0 rgba(255,255,255,0.7) inset",
+           {/* ══ HERO ══ */}
+           <div className="sfade" style={{
+            background: t.cardBg,
+            border: `1px solid ${t.border}`,
+            borderRadius: 24, padding: "28px 32px", marginBottom: 20,
+            boxShadow: t.shadow,
           }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
-              <div>
-                <button
-                  onClick={() => navigate("/student")}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 6,
-                    fontSize: 11, fontWeight: 600, color: t.textMuted,
-                    background: "transparent", border: "none", cursor: "pointer",
-                    fontFamily: "'Poppins',sans-serif", marginBottom: 12, padding: 0,
-                  }}
-                >
-                  <ArrowLeft size={13} /> Back to Dashboard
-                </button>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#a78bfa" }} />
-                  <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: t.textSub }}>
-                    Skill Intelligence
-                  </span>
-                </div>
-                <h1 style={{
-                  fontSize: "clamp(1.5rem,3vw,2rem)", fontWeight: 900,
-                  color: t.text, margin: "0 0 6px", lineHeight: 1.1, letterSpacing: "-0.02em",
+              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+
+                {/* Icon */}
+                <div style={{
+                  width: 52, height: 52, borderRadius: 14,
+                  background: "rgba(59,130,246,0.10)",
+                  border: "1px solid rgba(59,130,246,0.18)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  flexShrink: 0,
                 }}>
-                  Skill Map
-                </h1>
-                <p style={{ fontSize: 12, color: t.textSub, margin: 0, fontWeight: 500 }}>
-                  Your personalized skill analysis & career roadmap
-                </p>
-                {/* Tabs */}
-                <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
-                  {TABS.map((tab) => (
-                    <button key={tab} onClick={() => setActiveTab(tab)} style={{
-                      padding: "6px 16px", borderRadius: 10, fontSize: 11, fontWeight: 600,
-                      cursor: "pointer", fontFamily: "'Poppins',sans-serif",
-                      textTransform: "capitalize", transition: "all 0.2s",
-                      border: `1px solid ${activeTab === tab ? "rgba(167,139,250,0.5)" : t.borderHov}`,
-                      background: activeTab === tab ? "rgba(167,139,250,0.1)" : t.actBg,
-                      color: activeTab === tab ? "#a78bfa" : t.textSub,
-                    }}>
-                      {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                    </button>
-                  ))}
+                  <Brain size={24} color="#3B82F6" />
+                </div>
+
+                <div>
+                  
+
+                  {/* Badge */}
+                  <div style={{
+                    display: "inline-flex", alignItems: "center", gap: 6,
+                    padding: "4px 11px", borderRadius: 50,
+                    border: `1px solid ${t.border}`,
+                    background: "rgba(59,130,246,0.08)",
+                    color: "#3B82F6",
+                    fontSize: 10, fontWeight: 700,
+                    letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6,
+                  }}>
+                    <Brain size={10} /> Skill Intelligence
+                  </div>
+
+                  <h1 style={{
+                    fontFamily: "'Poppins', sans-serif",
+                    fontWeight: 620,
+                    fontSize: "clamp(1.5rem, 3vw, 2.2rem)",
+                    color: "#3B82F6",
+                    margin: "0 0 4px",
+                    lineHeight: 1.1,
+                    letterSpacing: "-0.02em",
+                  }}>
+                    Skill Map
+                  </h1>
+
+                  <p style={{ fontSize: 13, color: t.textSub, margin: 0 }}>
+                    Your personalized skill analysis & career road map
+                  </p>
+
+                  {/* Tabs */}
+                  <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
+                    {TABS.map((tab) => (
+                      <button key={tab} onClick={() => setActiveTab(tab)} style={{
+                        padding: "6px 16px", borderRadius: 10, fontSize: 11, fontWeight: 600,
+                        cursor: "pointer", fontFamily: "'Poppins',sans-serif",
+                        textTransform: "capitalize", transition: "all 0.2s",
+                        border: `1px solid ${activeTab === tab ? "rgba(59,130,246,0.5)" : t.borderHov}`,
+                        background: activeTab === tab ? "rgba(59,130,246,0.1)" : t.actBg,
+                        color: activeTab === tab ? "#3B82F6" : t.textSub,
+                      }}>
+                        {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -216,7 +233,6 @@ boxShadow: "0 2px 24px rgba(180,120,70,0.10), 0 1px 0 rgba(255,255,255,0.7) inse
               </div>
             </div>
           </div>
-
           {/* ══ SUMMARY STAT CARDS ══ */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 14, marginBottom: 20 }}>
             {[

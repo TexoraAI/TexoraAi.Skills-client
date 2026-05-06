@@ -1466,7 +1466,7 @@ export default function StudentFeedback() {
                   </div>
                   <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: t.textSub }}>Feedback Portal</span>
                 </div>
-                <h1 style={{ fontSize: "clamp(1.2rem,2.5vw,1.6rem)", fontWeight: 900, color: t.text, margin: "0 0 4px", letterSpacing: "-0.02em" }}>Session Feedback</h1>
+                <h1 style={{ fontFamily: "'Poppins',sans-serif",fontWeight: 700,fontSize: "clamp(1.5rem,3vw,2.2rem)",color: "#3B82F6",margin: "0 0 6px",lineHeight: 1.1,letterSpacing: "-0.02em",}}>Session Feedback</h1>
                 <p style={{ fontSize: 11, color: t.textSub, margin: 0, fontWeight: 500 }}>Share your honest experience with us</p>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>

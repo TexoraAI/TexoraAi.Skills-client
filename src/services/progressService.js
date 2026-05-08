@@ -137,4 +137,86 @@ export const progressService = {
       { headers: authHeader() },
     );
   },
+
+  // ============================
+  // SKILL MAP ENDPOINTS
+  // Controller: SkillMapController → /api/skill-map
+  // ============================
+
+  /**
+   * GET /api/skill-map/student?email=x&batchId=5
+   * Used by: SkillMap.jsx (Student view)
+   * Returns: StudentSkillMapResponse
+   *   { avgScore, strongCount, weakCount, totalSkills, skills: [{ id, skillName, score, quizScore,
+   *     assignmentScore, videoScore, isStrong, isWeak, level }], radarData, weakSkills }
+   */
+  getStudentSkillMap(email, batchId) {
+    return axios.get(`${API}/skill-map/student`, {
+      params: { email, batchId },
+      headers: authHeader(),
+    });
+  },
+
+  /**
+   * GET /api/skill-map/trainer/batch?batchId=5
+   * Used by: TrainerSkillMap.jsx
+   * Returns: TrainerBatchSkillResponse
+   *   { totalStudents, avgScore, strongStudents, weakStudents,
+   *     studentRows: [{ studentEmail, studentName, skills: [{skillName, score}] }],
+   *     skillAverages: [{ skillName, avg }],
+   *     weakStudentList: [{ studentEmail, studentName, weakSkills: [{skillName, score}] }] }
+   */
+  getBatchSkillAnalytics(batchId) {
+    return axios.get(`${API}/skill-map/trainer/batch`, {
+      params: { batchId },
+      headers: authHeader(),
+    });
+  },
+
+  seedSkillScores() {
+    return axios.post(`${API}/skill-map/seed`, null, {
+      headers: authHeader(),
+    });
+  },
+
+  /**
+   * GET /api/skill-map/trainer?trainerEmail=x
+   * Used by: TrainerSkillMap.jsx (when trainer manages multiple batches)
+   * Returns: List<TrainerBatchSkillResponse>
+   */
+  getTrainerAllBatchesSkill(trainerEmail) {
+    return axios.get(`${API}/skill-map/trainer`, {
+      params: { trainerEmail },
+      headers: authHeader(),
+    });
+  },
+
+  /**
+   * GET /api/skill-map/admin/org
+   * Used by: AdminSkillDashboard.jsx
+   * Returns: AdminOrgSkillResponse
+   *   { totalStudents, orgAvgScore, strongLearners, needAttention, activeBatches,
+   *     orgSkillDistribution: [{ subject, score, fullMark }],
+   *     orgSkillAverages: [{ skillName, avg }],
+   *     batchSummaries: [{ batchId, batchName, trainerName, students, avgScore, strong, weak }],
+   *     batchSkillMatrix: [{ skill, [batchName]: score, ... }],
+   *     trendData: [{ month, avg }] }
+   */
+  getOrgSkillDashboard() {
+    return axios.get(`${API}/skill-map/admin/org`, {
+      headers: authHeader(),
+    });
+  },
+
+  /**
+   * POST /api/skill-map/upsert
+   * Used internally (called by quiz/assignment/video progress services on backend)
+   * Body: { studentEmail, batchId, trainerEmail, skillName, quizScore, assignmentScore, videoScore }
+   * Returns: SkillEntryDTO
+   */
+  upsertSkill(payload) {
+    return axios.post(`${API}/skill-map/upsert`, payload, {
+      headers: authHeader(),
+    });
+  },
 };

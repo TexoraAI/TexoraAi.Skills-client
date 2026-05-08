@@ -1,587 +1,1019 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  FaArrowLeft,
-  FaSave,
-  FaTrash,
-  FaCloudUploadAlt,
-  FaTimes,
-  FaCheckCircle,
-  FaEye,
-  FaHeart,
-  FaStar,
-  FaVideo,
-  FaExclamationTriangle,
-} from "react-icons/fa";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+  getRecordingById,
+  updateRecording,
+  deleteRecording,
+  incrementRecordingViews,
+  uploadRecording,
+} from "@/services/liveSessionService";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
+  ArrowLeft,
+  Save,
+  Trash2,
+  UploadCloud,
+  CheckCircle2,
+  Eye,
+  Clock,
+  Video,
+  AlertTriangle,
+  X,
+} from "lucide-react";
+
+const T = {
+  dark: {
+    pageBg: "#0a0a0a",
+    cardBg: "#111111",
+    heroBg: "#141414",
+    border: "rgba(255,255,255,0.06)",
+    borderHero: "rgba(255,255,255,0.07)",
+    text: "#ffffff",
+    textSub: "rgba(255,255,255,0.3)",
+    textMuted: "rgba(255,255,255,0.2)",
+    labelColor: "rgba(255,255,255,0.4)",
+    inputBg: "#1a1a1a",
+    inputBorder: "rgba(255,255,255,0.08)",
+    inputText: "#ffffff",
+    shadow: "0 4px 20px rgba(0,0,0,0.4)",
+    gridLine: "rgba(255,255,255,0.5)",
+    barBg: "rgba(255,255,255,0.05)",
+  },
+  light: {
+    pageBg: "#f1f5f9",
+    cardBg: "#ffffff",
+    heroBg: "#ffffff",
+    border: "#e2e8f0",
+    borderHero: "#e2e8f0",
+    text: "#0f172a",
+    textSub: "#64748b",
+    textMuted: "#94a3b8",
+    labelColor: "#64748b",
+    inputBg: "#f8fafc",
+    inputBorder: "#e2e8f0",
+    inputText: "#0f172a",
+    shadow: "0 1px 8px rgba(0,0,0,0.07)",
+    gridLine: "rgba(0,0,0,0.12)",
+    barBg: "#f1f5f9",
+  },
+};
 
 const EditRecordedClass = () => {
   const navigate = useNavigate();
-  const { videoId } = useParams();
+  const { id } = useParams();
 
+  const [isDark, setIsDark] = useState(
+    () =>
+      typeof document !== "undefined" &&
+      (document.documentElement.classList.contains("dark") ||
+        document.documentElement.getAttribute("data-theme") === "dark"),
+  );
+  useEffect(() => {
+    const obs = new MutationObserver(() =>
+      setIsDark(
+        document.documentElement.classList.contains("dark") ||
+          document.documentElement.getAttribute("data-theme") === "dark",
+      ),
+    );
+    obs.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class", "data-theme"],
+    });
+    return () => obs.disconnect();
+  }, []);
+  const t = isDark ? T.dark : T.light;
+
+  const [recording, setRecording] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [error, setError] = useState(null);
 
-  const [tagInput, setTagInput] = useState("");
-  const [tags, setTags] = useState([]);
+  const [replaceFile, setReplaceFile] = useState(null);
+  const [replacing, setReplacing] = useState(false);
+  const [replaceSuccess, setReplaceSuccess] = useState(false);
 
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    category: "",
-    level: "",
-    status: "",
-    preview: false,
-    download: false,
-    notify: false,
-  });
-
-  const [stats, setStats] = useState({
-    views: 0,
-    likes: 0,
-    rating: null,
-    duration: "",
-    uploadedAt: "",
-  });
-
-  /* ================= FETCH VIDEO FROM BACKEND ================= */
-  useEffect(() => {
-    const fetchVideo = async () => {
-      try {
-        // 🔥 Future API Call
-        // const res = await fetch(`/api/trainer/videos/${videoId}`);
-        // const data = await res.json();
-        // setForm({
-        //   title: data.title,
-        //   description: data.description,
-        //   category: data.category,
-        //   level: data.level,
-        //   status: data.status,
-        //   preview: data.settings.preview,
-        //   download: data.settings.download,
-        //   notify: data.settings.notify,
-        // });
-        // setTags(data.tags || []);
-        // setStats(data.stats);
-
-        // For now empty
-        setForm({
-          title: "",
-          description: "",
-          category: "",
-          level: "",
-          status: "",
-          preview: false,
-          download: false,
-          notify: false,
-        });
-        setTags([]);
-        setStats({ views: 0, likes: 0, rating: null, duration: "", uploadedAt: "" });
-      } catch (error) {
-        console.error("Failed to fetch video:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchVideo();
-  }, [videoId]);
-
-  const set = (key, value) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
+  const [form, setForm] = useState({ title: "", description: "" });
+  const set = (key, val) => {
+    setForm((p) => ({ ...p, [key]: val }));
     setSaved(false);
   };
 
-  /* ================= SAVE CHANGES ================= */
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      // 🔥 Future API Call
-      // await fetch(`/api/trainer/videos/${videoId}`, {
-      //   method: "PUT",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ ...form, tags }),
-      // });
+  // ✅ GET /api/live-sessions/recording/{id}
+  useEffect(() => {
+    if (!id) return;
+    (async () => {
+      try {
+        const res = await getRecordingById(id);
+        const data = res.data;
+        setRecording(data);
+        setForm({
+          title: data.title || "",
+          description: data.description || "",
+        });
+        // ✅ POST /api/live-sessions/recording/{id}/view
+        incrementRecordingViews(id).catch(() => {});
+      } catch (err) {
+        console.error("Failed to load recording:", err);
+        setError("Recording not found.");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [id]);
 
-      await new Promise((r) => setTimeout(r, 800));
+  // ✅ PUT /api/live-sessions/recording/{id}
+  // Body: { title, description } — controller reads Map<String,String>
+  const handleSave = async () => {
+    if (!form.title.trim()) {
+      setError("Title is required");
+      return;
+    }
+    setError(null);
+    try {
+      setSaving(true);
+      const res = await updateRecording(id, {
+        title: form.title,
+        description: form.description,
+      });
+      setRecording(res.data);
       setSaved(true);
-    } catch (error) {
-      console.error("Failed to save:", error);
+    } catch (err) {
+      console.error("Save failed:", err);
+      setError("Failed to save changes.");
     } finally {
       setSaving(false);
     }
   };
 
-  /* ================= DELETE VIDEO ================= */
+  // ✅ DELETE /api/live-sessions/recording/{id}
   const handleDelete = async () => {
-    setDeleting(true);
     try {
-      // 🔥 Future API Call
-      // await fetch(`/api/trainer/videos/${videoId}`, { method: "DELETE" });
-
-      await new Promise((r) => setTimeout(r, 600));
-      navigate("/trainer/live/recorded");
-    } catch (error) {
-      console.error("Failed to delete:", error);
+      setDeleting(true);
+      await deleteRecording(id);
+      navigate("/trainer/recorded-list");
+    } catch (err) {
+      console.error("Delete failed:", err);
+      setError("Failed to delete recording.");
       setDeleting(false);
     }
   };
 
-  /* ================= TOGGLE PUBLISH STATUS ================= */
-  const handleTogglePublish = async () => {
-    const newStatus = form.status === "published" ? "draft" : "published";
+  // ✅ Replace = DELETE old + POST /api/live-sessions/recording/upload
+  // Controller reads trainerId from JWT (auth.getName()), NOT from formData
+  // Required params: file, batchId, title
+  // Optional params: sessionId, description, batchName, durationMinutes
+  const handleReplaceFile = async (file) => {
+    if (!file) return;
+    setError(null);
     try {
-      // 🔥 Future API Call
-      // await fetch(`/api/trainer/videos/${videoId}/status`, {
-      //   method: "PATCH",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ status: newStatus }),
-      // });
+      setReplacing(true);
 
-      set("status", newStatus);
-    } catch (error) {
-      console.error("Failed to toggle status:", error);
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("title", recording.title);
+      formData.append("batchId", recording.batchId);
+      // Optional fields — only append if present
+      if (recording.description)
+        formData.append("description", recording.description);
+      if (recording.batchName)
+        formData.append("batchName", recording.batchName);
+      if (recording.durationMinutes)
+        formData.append("durationMinutes", recording.durationMinutes);
+      if (recording.sessionId)
+        formData.append("sessionId", recording.sessionId);
+      // ✅ Do NOT append trainerId — controller extracts it from JWT via Authentication auth
+
+      // Delete the old recording first
+      await deleteRecording(id);
+
+      // Upload the replacement
+      await uploadRecording(formData);
+
+      setReplaceSuccess(true);
+      setTimeout(() => navigate("/trainer/recorded-list"), 1500);
+    } catch (err) {
+      console.error("Replace failed:", err);
+      setError("Failed to replace video file.");
+    } finally {
+      setReplacing(false);
     }
   };
 
-  /* ================= TAGS ================= */
-  const addTag = () => {
-    const t = tagInput.trim();
-    if (t && !tags.includes(t)) {
-      setTags((prev) => [...prev, t]);
-      setTagInput("");
-      setSaved(false);
-    }
+  const iStyle = {
+    width: "100%",
+    boxSizing: "border-box",
+    padding: "10px 14px",
+    borderRadius: 10,
+    border: `1px solid ${t.inputBorder}`,
+    background: t.inputBg,
+    color: t.inputText,
+    fontSize: 12,
+    fontFamily: "'Poppins',sans-serif",
+    fontWeight: 500,
+    outline: "none",
+    transition: "border 0.2s",
   };
-
-  const removeTag = (tag) => {
-    setTags((prev) => prev.filter((t) => t !== tag));
-    setSaved(false);
+  const lStyle = {
+    fontSize: 11,
+    fontWeight: 600,
+    color: t.labelColor,
+    fontFamily: "'Poppins',sans-serif",
+    letterSpacing: "0.04em",
+    marginBottom: 6,
+    display: "block",
   };
-
-  const categories = [
-    "Yoga",
-    "Cardio",
-    "Strength",
-    "Pilates",
-    "Mindfulness",
-    "Flexibility",
-    "Other",
-  ];
-
-  const levels = ["Beginner", "Intermediate", "Advanced", "All Levels"];
 
   if (loading) {
     return (
-      <div className="min-h-screen p-6 bg-gray-100 dark:bg-[#0B1120] dark:text-white flex items-center justify-center">
-        <p className="text-gray-500 dark:text-slate-400">Loading video...</p>
+      <div
+        style={{
+          minHeight: "100vh",
+          background: t.pageBg,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            width: 36,
+            height: 36,
+            border: "3px solid rgba(34,211,238,0.2)",
+            borderTop: "3px solid #22d3ee",
+            borderRadius: "50%",
+            animation: "spin 0.8s linear infinite",
+          }}
+        />
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      </div>
+    );
+  }
+
+  if (error && !recording) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          background: t.pageBg,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "column",
+          gap: 12,
+        }}
+      >
+        <AlertTriangle size={40} color="#f87171" />
+        <p
+          style={{
+            fontFamily: "'Poppins',sans-serif",
+            color: "#f87171",
+            fontSize: 14,
+            fontWeight: 600,
+          }}
+        >
+          {error}
+        </p>
+        <button
+          onClick={() => navigate("/trainer/recorded-list")}
+          style={{
+            padding: "8px 20px",
+            borderRadius: 10,
+            border: "1px solid rgba(244,63,94,0.25)",
+            background: "rgba(244,63,94,0.08)",
+            color: "#f43f5e",
+            fontSize: 11,
+            fontWeight: 700,
+            cursor: "pointer",
+            fontFamily: "'Poppins',sans-serif",
+          }}
+        >
+          ← Back to Library
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-6 bg-gray-100 text-gray-900 dark:bg-[#0B1120] dark:text-white">
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
+        @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+        .dfade{animation:fadeUp 0.45s ease both}
+        @keyframes spin{to{transform:rotate(360deg)}}
+      `}</style>
 
-      {/* ================= HEADER ================= */}
-      <div className="px-8 py-6 rounded-2xl mb-8 bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
-        <div className="flex justify-between items-center flex-wrap gap-4">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate("/trainer/live/recorded")}
-              className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition"
+      <div
+        style={{
+          minHeight: "100vh",
+          background: t.pageBg,
+          color: t.text,
+          fontFamily: "'Poppins',sans-serif",
+        }}
+      >
+        <div
+          style={{ maxWidth: 900, margin: "0 auto", padding: "24px 24px 52px" }}
+        >
+          {/* HERO */}
+          <div
+            className="dfade"
+            style={{
+              borderRadius: 24,
+              padding: "26px 32px",
+              background: t.heroBg,
+              border: `1px solid ${t.borderHero}`,
+              position: "relative",
+              overflow: "hidden",
+              marginBottom: 20,
+              boxShadow: t.shadow,
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                pointerEvents: "none",
+                opacity: isDark ? 0.04 : 0.025,
+                backgroundImage: `linear-gradient(${t.gridLine} 1px,transparent 1px),linear-gradient(90deg,${t.gridLine} 1px,transparent 1px)`,
+                backgroundSize: "40px 40px",
+              }}
+            />
+            <div
+              style={{
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                flexWrap: "wrap",
+                gap: 12,
+              }}
             >
-              <FaArrowLeft size={14} />
-            </button>
-            <div>
-              <h2 className="text-2xl font-semibold">✏️ Edit Recorded Class</h2>
-              <p className="text-sm opacity-90 mt-1">
-                Update video details and publishing settings
-              </p>
+              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                <button
+                  onClick={() => navigate("/trainer/recorded-list")}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    border: `1px solid ${t.border}`,
+                    background: "transparent",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: t.textMuted,
+                  }}
+                >
+                  <ArrowLeft size={15} />
+                </button>
+                <div>
+                  <p
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 700,
+                      letterSpacing: "0.22em",
+                      textTransform: "uppercase",
+                      color: t.textSub,
+                      fontFamily: "'Poppins',sans-serif",
+                      margin: "0 0 6px",
+                    }}
+                  >
+                    Edit Recording
+                  </p>
+                  <h1
+                    style={{
+                      fontFamily: "'Poppins',sans-serif",
+                      fontWeight: 900,
+                      fontSize: "clamp(1.2rem,2.5vw,1.7rem)",
+                      color: t.text,
+                      margin: 0,
+                      lineHeight: 1.1,
+                      letterSpacing: "-0.02em",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                    }}
+                  >
+                    <Video size={20} color="#22d3ee" />{" "}
+                    {recording?.title || "Recording"}
+                  </h1>
+                </div>
+              </div>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 7,
+                  padding: "9px 20px",
+                  borderRadius: 10,
+                  border: "none",
+                  background: saved ? "#34d399" : "#22d3ee",
+                  color: "#0f172a",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: saving ? "not-allowed" : "pointer",
+                  fontFamily: "'Poppins',sans-serif",
+                  transition: "all 0.2s",
+                  opacity: saving ? 0.7 : 1,
+                }}
+              >
+                {saving ? (
+                  <>
+                    <span
+                      style={{
+                        width: 12,
+                        height: 12,
+                        border: "2px solid rgba(15,23,42,0.3)",
+                        borderTop: "2px solid rgba(15,23,42,0.8)",
+                        borderRadius: "50%",
+                        display: "inline-block",
+                        animation: "spin 0.8s linear infinite",
+                      }}
+                    />{" "}
+                    Saving...
+                  </>
+                ) : saved ? (
+                  <>
+                    <CheckCircle2 size={14} /> Saved
+                  </>
+                ) : (
+                  <>
+                    <Save size={14} /> Save Changes
+                  </>
+                )}
+              </button>
             </div>
           </div>
-          <div className="flex gap-3">
-            <Button
-              onClick={handleTogglePublish}
-              className={
-                form.status === "published"
-                  ? "bg-yellow-500 hover:bg-yellow-400 text-white font-semibold"
-                  : "bg-green-500 hover:bg-green-400 text-white font-semibold"
-              }
+
+          {/* ERROR */}
+          {error && (
+            <div
+              style={{
+                background: "rgba(248,113,113,0.1)",
+                border: "1px solid rgba(248,113,113,0.3)",
+                borderRadius: 12,
+                padding: "12px 16px",
+                marginBottom: 14,
+                fontSize: 12,
+                color: "#f87171",
+                fontFamily: "'Poppins',sans-serif",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
             >
-              {form.status === "published" ? "Unpublish" : "Publish"}
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={saving}
-              className="bg-white text-blue-600 hover:bg-blue-50 font-semibold flex items-center gap-2"
-            >
-              {saved ? (
-                <>
-                  <FaCheckCircle size={13} className="text-green-500" /> Saved
-                </>
-              ) : (
-                <>
-                  <FaSave size={13} /> {saving ? "Saving..." : "Save Changes"}
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-      </div>
+              ⚠️ {error}
+              <button
+                onClick={() => setError(null)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#f87171",
+                  cursor: "pointer",
+                }}
+              >
+                <X size={14} />
+              </button>
+            </div>
+          )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        {/* ================= LEFT COLUMN: FORMS ================= */}
-        <div className="lg:col-span-2 space-y-6">
-
-          {/* Video Details */}
-          <Card className="bg-white dark:bg-[#111827] border border-gray-200 dark:border-white/10">
-            <CardContent className="p-6 space-y-5">
-              <h3 className="font-semibold text-lg border-b border-gray-100 dark:border-white/10 pb-3">
-                Video Details
-              </h3>
-
-              <div className="space-y-2">
-                <Label>Title</Label>
-                <Input
-                  placeholder="e.g. 60-Minute Morning Yoga Flow"
-                  value={form.title}
-                  onChange={(e) => set("title", e.target.value)}
-                  className="dark:bg-[#1F2937] dark:border-white/10"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Description</Label>
-                <Textarea
-                  placeholder="Describe what students will learn in this session..."
-                  value={form.description}
-                  onChange={(e) => set("description", e.target.value)}
-                  rows={4}
-                  className="dark:bg-[#1F2937] dark:border-white/10"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Category</Label>
-                  <Select
-                    value={form.category}
-                    onValueChange={(v) => set("category", v)}
-                  >
-                    <SelectTrigger className="dark:bg-[#1F2937] dark:border-white/10">
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((c) => (
-                        <SelectItem key={c} value={c}>
-                          {c}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Difficulty Level</Label>
-                  <Select
-                    value={form.level}
-                    onValueChange={(v) => set("level", v)}
-                  >
-                    <SelectTrigger className="dark:bg-[#1F2937] dark:border-white/10">
-                      <SelectValue placeholder="Select level" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {levels.map((l) => (
-                        <SelectItem key={l} value={l}>
-                          {l}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Tags */}
-              <div className="space-y-2">
-                <Label>Tags</Label>
-                <div className="flex flex-wrap gap-2">
-                  {tags.map((t) => (
-                    <Badge
-                      key={t}
-                      className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900/40 flex items-center gap-1 pr-1"
-                    >
-                      {t}
-                      <button
-                        onClick={() => removeTag(t)}
-                        className="ml-1 hover:text-red-500 transition"
-                      >
-                        <FaTimes size={9} />
-                      </button>
-                    </Badge>
-                  ))}
-                  <input
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && addTag()}
-                    placeholder="+ Add tag"
-                    className="px-3 py-1 rounded-full text-xs border border-dashed border-gray-300 dark:border-white/20 bg-transparent outline-none text-gray-600 dark:text-slate-300 w-24"
-                  />
-                </div>
-                <p className="text-xs text-gray-400 dark:text-slate-500">
-                  Press Enter to add a tag
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 300px",
+              gap: 16,
+              alignItems: "start",
+            }}
+          >
+            {/* LEFT */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              {/* Details */}
+              <div
+                className="dfade"
+                style={{
+                  background: t.cardBg,
+                  border: `1px solid ${t.border}`,
+                  borderRadius: 20,
+                  padding: 24,
+                  boxShadow: t.shadow,
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: t.text,
+                    fontFamily: "'Poppins',sans-serif",
+                    margin: "0 0 18px",
+                  }}
+                >
+                  Video Details
                 </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Publishing Settings */}
-          <Card className="bg-white dark:bg-[#111827] border border-gray-200 dark:border-white/10">
-            <CardContent className="p-6">
-              <h3 className="font-semibold text-lg border-b border-gray-100 dark:border-white/10 pb-3 mb-2">
-                Publishing Settings
-              </h3>
-              {[
-                {
-                  key: "preview",
-                  label: "Allow Free Preview",
-                  desc: "Let non-enrolled students watch the first 2 minutes",
-                },
-                {
-                  key: "download",
-                  label: "Allow Download",
-                  desc: "Students can download for offline viewing",
-                },
-                {
-                  key: "notify",
-                  label: "Notify on Update",
-                  desc: "Notify enrolled students when this video is updated",
-                },
-              ].map((sw) => (
                 <div
-                  key={sw.key}
-                  className="flex items-center justify-between py-4 border-b border-gray-100 dark:border-white/10 last:border-0"
+                  style={{ display: "flex", flexDirection: "column", gap: 14 }}
                 >
                   <div>
-                    <p className="font-medium text-sm">{sw.label}</p>
-                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
-                      {sw.desc}
-                    </p>
+                    <label style={lStyle}>Title *</label>
+                    <input
+                      style={iStyle}
+                      value={form.title}
+                      onChange={(e) => set("title", e.target.value)}
+                      placeholder="Lecture title..."
+                    />
                   </div>
-                  <Switch
-                    checked={form[sw.key]}
-                    onCheckedChange={(v) => set(sw.key, v)}
-                  />
+                  <div>
+                    <label style={lStyle}>Description</label>
+                    <textarea
+                      style={{ ...iStyle, resize: "vertical", minHeight: 100 }}
+                      value={form.description}
+                      onChange={(e) => set("description", e.target.value)}
+                      placeholder="Describe this recording..."
+                    />
+                  </div>
                 </div>
-              ))}
-            </CardContent>
-          </Card>
+              </div>
 
-          {/* Replace Video File */}
-          <Card className="bg-white dark:bg-[#111827] border border-gray-200 dark:border-white/10">
-            <CardContent className="p-6">
-              <h3 className="font-semibold text-lg border-b border-gray-100 dark:border-white/10 pb-3 mb-5">
-                Replace Video File
-              </h3>
+              {/* File Info */}
               <div
-                className="border-2 border-dashed border-gray-200 dark:border-white/10 rounded-2xl p-10 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/40 dark:hover:bg-blue-900/10 transition"
-                onClick={() => document.getElementById("replace-file-input").click()}
+                className="dfade"
+                style={{
+                  background: t.cardBg,
+                  border: `1px solid ${t.border}`,
+                  borderRadius: 20,
+                  padding: 24,
+                  boxShadow: t.shadow,
+                }}
               >
-                <FaCloudUploadAlt
-                  size={36}
-                  className="mx-auto mb-3 text-blue-400 opacity-60"
-                />
-                <p className="font-medium text-sm mb-1">
-                  Upload a new video file
-                </p>
-                <p className="text-xs text-gray-500 dark:text-slate-400">
-                  This will replace the existing video. Supports MP4, MOV, AVI
-                  — max 4GB
-                </p>
-                <input
-                  id="replace-file-input"
-                  type="file"
-                  accept="video/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    // 🔥 Future: handle file replacement upload
-                    console.log("Replace with:", e.target.files[0]);
+                <p
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: t.text,
+                    fontFamily: "'Poppins',sans-serif",
+                    margin: "0 0 16px",
                   }}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Save / Cancel */}
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={() => navigate("/trainer/live/recorded")}
-              className="dark:border-white/10 dark:text-slate-300"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-semibold flex items-center justify-center gap-2"
-            >
-              {saved ? (
-                <>
-                  <FaCheckCircle size={13} /> Changes Saved
-                </>
-              ) : (
-                <>
-                  <FaSave size={13} /> {saving ? "Saving..." : "Save Changes"}
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-
-        {/* ================= RIGHT COLUMN: SIDEBAR ================= */}
-        <div className="space-y-6">
-
-          {/* Video Preview Card */}
-          <Card className="bg-white dark:bg-[#111827] border border-gray-200 dark:border-white/10">
-            <CardContent className="p-5">
-              <h3 className="font-semibold mb-4">Video Preview</h3>
-              <div className="h-40 rounded-2xl bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 flex items-center justify-center mb-4 border border-blue-100 dark:border-blue-900/30">
-                <FaVideo size={36} className="text-blue-300 opacity-50" />
-              </div>
-              <p className="font-semibold text-sm truncate mb-1">
-                {form.title || "Untitled Video"}
-              </p>
-              <div className="flex items-center gap-2 mb-3">
-                <Badge
-                  className={
-                    form.status === "published"
-                      ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs"
-                      : "bg-gray-100 text-gray-500 dark:bg-[#374151] dark:text-slate-400 text-xs"
-                  }
                 >
-                  {form.status === "published" ? "✓ Published" : "Draft"}
-                </Badge>
-                {form.category && (
-                  <Badge className="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300 text-xs border border-blue-100 dark:border-blue-900/30">
-                    {form.category}
-                  </Badge>
+                  File Information
+                </p>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 10,
+                  }}
+                >
+                  {[
+                    { label: "File Name", value: recording?.fileName || "—" },
+                    { label: "File Size", value: recording?.fileSizeMb || "—" },
+                    { label: "File Type", value: recording?.fileType || "—" },
+                    {
+                      label: "Duration",
+                      value: recording?.durationMinutes
+                        ? `${recording.durationMinutes} min`
+                        : "—",
+                    },
+                    { label: "Batch", value: recording?.batchName || "—" },
+                    { label: "Type", value: recording?.recordingType || "—" },
+                    {
+                      label: "Uploaded",
+                      value: recording?.uploadedAt
+                        ? new Date(recording.uploadedAt).toLocaleDateString()
+                        : "—",
+                    },
+                    { label: "Status", value: recording?.status || "—" },
+                  ].map((item) => (
+                    <div
+                      key={item.label}
+                      style={{
+                        background: t.barBg,
+                        borderRadius: 10,
+                        padding: "10px 12px",
+                      }}
+                    >
+                      <p
+                        style={{
+                          fontSize: 9,
+                          fontWeight: 700,
+                          letterSpacing: "0.08em",
+                          textTransform: "uppercase",
+                          color: t.textMuted,
+                          fontFamily: "'Poppins',sans-serif",
+                          margin: "0 0 4px",
+                        }}
+                      >
+                        {item.label}
+                      </p>
+                      <p
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: t.text,
+                          fontFamily: "'Poppins',sans-serif",
+                          margin: 0,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {item.value}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Replace Video */}
+              <div
+                className="dfade"
+                style={{
+                  background: t.cardBg,
+                  border: `1px solid ${t.border}`,
+                  borderRadius: 20,
+                  padding: 24,
+                  boxShadow: t.shadow,
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: t.text,
+                    fontFamily: "'Poppins',sans-serif",
+                    margin: "0 0 16px",
+                  }}
+                >
+                  Replace Video File
+                </p>
+
+                {replaceSuccess ? (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      color: "#34d399",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      fontFamily: "'Poppins',sans-serif",
+                    }}
+                  >
+                    <CheckCircle2 size={18} /> File replaced! Redirecting...
+                  </div>
+                ) : replacing ? (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      color: t.textMuted,
+                      fontSize: 12,
+                      fontFamily: "'Poppins',sans-serif",
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 16,
+                        height: 16,
+                        border: "2px solid rgba(34,211,238,0.2)",
+                        borderTop: "2px solid #22d3ee",
+                        borderRadius: "50%",
+                        display: "inline-block",
+                        animation: "spin 0.8s linear infinite",
+                      }}
+                    />
+                    Replacing video... please wait
+                  </div>
+                ) : (
+                  <>
+                    <div
+                      onClick={() =>
+                        document.getElementById("replace-input").click()
+                      }
+                      style={{
+                        borderRadius: 14,
+                        border: `2px dashed ${replaceFile ? "#22d3ee" : t.border}`,
+                        background: replaceFile
+                          ? "rgba(34,211,238,0.04)"
+                          : t.barBg,
+                        padding: "32px 24px",
+                        textAlign: "center",
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      <UploadCloud
+                        size={28}
+                        color="#22d3ee"
+                        style={{ marginBottom: 8 }}
+                      />
+                      <p
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: t.text,
+                          fontFamily: "'Poppins',sans-serif",
+                          margin: "0 0 4px",
+                        }}
+                      >
+                        {replaceFile
+                          ? replaceFile.name
+                          : "Drop a new video file here"}
+                      </p>
+                      <p
+                        style={{
+                          fontSize: 11,
+                          color: t.textMuted,
+                          fontFamily: "'Poppins',sans-serif",
+                          margin: 0,
+                        }}
+                      >
+                        {replaceFile
+                          ? `${(replaceFile.size / (1024 * 1024)).toFixed(2)} MB`
+                          : "Replaces the current file · MP4, MOV, AVI"}
+                      </p>
+                      <input
+                        id="replace-input"
+                        type="file"
+                        accept="video/*"
+                        style={{ display: "none" }}
+                        onChange={(e) => {
+                          if (e.target.files[0])
+                            setReplaceFile(e.target.files[0]);
+                        }}
+                      />
+                    </div>
+                    {replaceFile && (
+                      <button
+                        onClick={() => handleReplaceFile(replaceFile)}
+                        style={{
+                          width: "100%",
+                          marginTop: 10,
+                          padding: "10px 0",
+                          borderRadius: 10,
+                          border: "none",
+                          background: "#22d3ee",
+                          color: "#0f172a",
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          fontFamily: "'Poppins',sans-serif",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: 7,
+                        }}
+                      >
+                        <UploadCloud size={14} /> Replace & Publish
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
-              {stats.duration && (
-                <p className="text-xs text-gray-500 dark:text-slate-400">
-                  ⏱ {stats.duration}
-                </p>
-              )}
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Stats */}
-          <Card className="bg-white dark:bg-[#111827] border border-gray-200 dark:border-white/10">
-            <CardContent className="p-5">
-              <h3 className="font-semibold mb-4">Video Stats</h3>
-              <div className="space-y-3">
+            {/* RIGHT SIDEBAR */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              {/* Stats */}
+              <div
+                className="dfade"
+                style={{
+                  background: t.cardBg,
+                  border: `1px solid ${t.border}`,
+                  borderRadius: 20,
+                  padding: 20,
+                  boxShadow: t.shadow,
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: t.text,
+                    fontFamily: "'Poppins',sans-serif",
+                    margin: "0 0 14px",
+                  }}
+                >
+                  Video Stats
+                </p>
                 {[
                   {
-                    icon: <FaEye className="text-blue-500" size={14} />,
+                    icon: <Eye size={13} color="#22d3ee" />,
                     label: "Total Views",
-                    value: stats.views,
+                    value: recording?.viewCount ?? 0,
                   },
                   {
-                    icon: <FaHeart className="text-red-400" size={14} />,
-                    label: "Likes",
-                    value: stats.likes,
-                  },
-                  {
-                    icon: <FaStar className="text-yellow-400" size={14} />,
-                    label: "Rating",
-                    value: stats.rating ? `${stats.rating} / 5` : "No ratings yet",
+                    icon: <Clock size={13} color="#a78bfa" />,
+                    label: "Duration",
+                    value: recording?.durationMinutes
+                      ? `${recording.durationMinutes} min`
+                      : "—",
                   },
                 ].map((s) => (
                   <div
                     key={s.label}
-                    className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-white/10 last:border-0"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "10px 0",
+                      borderBottom: `1px solid ${t.border}`,
+                    }}
                   >
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-300">
-                      {s.icon}
-                      {s.label}
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        fontSize: 12,
+                        color: t.textSub,
+                        fontFamily: "'Poppins',sans-serif",
+                      }}
+                    >
+                      {s.icon} {s.label}
                     </div>
-                    <span className="font-semibold text-sm">{s.value}</span>
+                    <span
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: t.text,
+                        fontFamily: "'Poppins',sans-serif",
+                      }}
+                    >
+                      {s.value}
+                    </span>
                   </div>
                 ))}
-                {stats.uploadedAt && (
-                  <p className="text-xs text-gray-400 dark:text-slate-500 pt-1">
-                    Uploaded: {stats.uploadedAt}
-                  </p>
+              </div>
+
+              {/* Status */}
+              <div
+                className="dfade"
+                style={{
+                  background: t.cardBg,
+                  border: `1px solid ${t.border}`,
+                  borderRadius: 20,
+                  padding: 20,
+                  boxShadow: t.shadow,
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: t.text,
+                    fontFamily: "'Poppins',sans-serif",
+                    margin: "0 0 12px",
+                  }}
+                >
+                  Status
+                </p>
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 800,
+                    letterSpacing: "0.08em",
+                    color:
+                      recording?.status === "READY"
+                        ? "#34d399"
+                        : recording?.status === "PROCESSING"
+                          ? "#f59e0b"
+                          : "#f87171",
+                    background:
+                      recording?.status === "READY"
+                        ? "rgba(52,211,153,0.1)"
+                        : recording?.status === "PROCESSING"
+                          ? "rgba(245,158,11,0.1)"
+                          : "rgba(248,113,113,0.1)",
+                    border: `1px solid ${recording?.status === "READY" ? "rgba(52,211,153,0.2)" : recording?.status === "PROCESSING" ? "rgba(245,158,11,0.2)" : "rgba(248,113,113,0.2)"}`,
+                    padding: "4px 12px",
+                    borderRadius: 999,
+                    fontFamily: "'Poppins',sans-serif",
+                  }}
+                >
+                  {recording?.status || "UNKNOWN"}
+                </span>
+              </div>
+
+              {/* Danger Zone */}
+              <div
+                className="dfade"
+                style={{
+                  background: t.cardBg,
+                  border: "1px solid rgba(248,113,113,0.2)",
+                  borderRadius: 20,
+                  padding: 20,
+                  boxShadow: t.shadow,
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: "#f87171",
+                    fontFamily: "'Poppins',sans-serif",
+                    margin: "0 0 6px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                >
+                  <AlertTriangle size={14} /> Danger Zone
+                </p>
+                <p
+                  style={{
+                    fontSize: 11,
+                    color: t.textMuted,
+                    fontFamily: "'Poppins',sans-serif",
+                    margin: "0 0 14px",
+                  }}
+                >
+                  Deleting removes the file permanently.
+                </p>
+                {!showDeleteConfirm ? (
+                  <button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    style={{
+                      width: "100%",
+                      padding: "9px 0",
+                      borderRadius: 10,
+                      border: "1px solid rgba(248,113,113,0.3)",
+                      background: "rgba(248,113,113,0.08)",
+                      color: "#f87171",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      fontFamily: "'Poppins',sans-serif",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <Trash2 size={12} /> Delete Recording
+                  </button>
+                ) : (
+                  <div
+                    style={{ display: "flex", flexDirection: "column", gap: 8 }}
+                  >
+                    <p
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: "#f87171",
+                        fontFamily: "'Poppins',sans-serif",
+                        margin: 0,
+                      }}
+                    >
+                      Are you sure? Cannot be undone.
+                    </p>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button
+                        onClick={() => setShowDeleteConfirm(false)}
+                        style={{
+                          flex: 1,
+                          padding: "8px 0",
+                          borderRadius: 9,
+                          border: `1px solid ${t.border}`,
+                          background: "transparent",
+                          color: t.textMuted,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          fontFamily: "'Poppins',sans-serif",
+                        }}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleDelete}
+                        disabled={deleting}
+                        style={{
+                          flex: 1,
+                          padding: "8px 0",
+                          borderRadius: 9,
+                          border: "none",
+                          background: "#ef4444",
+                          color: "#fff",
+                          fontSize: 11,
+                          fontWeight: 700,
+                          cursor: deleting ? "not-allowed" : "pointer",
+                          fontFamily: "'Poppins',sans-serif",
+                        }}
+                      >
+                        {deleting ? "Deleting..." : "Yes, Delete"}
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Danger Zone */}
-          <Card className="bg-white dark:bg-[#111827] border border-red-200 dark:border-red-900/30">
-            <CardContent className="p-5">
-              <h3 className="font-semibold mb-1 text-red-600 dark:text-red-400 flex items-center gap-2">
-                <FaExclamationTriangle size={14} /> Danger Zone
-              </h3>
-              <p className="text-xs text-gray-500 dark:text-slate-400 mb-4">
-                Deleting this video is permanent and cannot be undone.
-              </p>
-
-              {!showDeleteConfirm ? (
-                <Button
-                  variant="outline"
-                  onClick={() => setShowDeleteConfirm(true)}
-                  className="w-full border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
-                >
-                  <FaTrash size={12} /> Delete Video
-                </Button>
-              ) : (
-                <div className="space-y-3">
-                  <p className="text-sm font-medium text-red-600 dark:text-red-400">
-                    Are you sure? This cannot be undone.
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowDeleteConfirm(false)}
-                      className="flex-1 dark:border-white/10"
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={handleDelete}
-                      disabled={deleting}
-                      className="flex-1 bg-red-600 hover:bg-red-500 text-white"
-                    >
-                      {deleting ? "Deleting..." : "Yes, Delete"}
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

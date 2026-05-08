@@ -1,4 +1,3 @@
-
 import axios from "axios";
 
 /* ================= API SETUP ================= */
@@ -326,6 +325,75 @@ export const updateCodeFile = (id, data) =>
  */
 export const deleteCodeFile = (id) => API.delete(`/v1/code-files/${id}`);
 
+//* ========= 📚 STUDY PLAN — TRAINER ======================= */
+/* ========================================================= */
+
+/**
+ * Trainer: Create a new study plan
+ * POST /v1/study-plans
+ * Body: { title, description, batchId, thumbnailColor, icon, dueDate?, sections[] }
+ */
+export const createStudyPlan = (planData) =>
+  API.post("/v1/study-plans", planData);
+
+/**
+ * Trainer: Get all plans created by logged-in trainer
+ * GET /v1/study-plans/my
+ */
+export const getMyStudyPlans = () => API.get("/v1/study-plans/my");
+
+/**
+ * Trainer: Get a single plan by ID (must own it)
+ * GET /v1/study-plans/:id
+ */
+export const getStudyPlanById = (id) => API.get(`/v1/study-plans/${id}`);
+
+/**
+ * Trainer: Update an existing plan
+ * PUT /v1/study-plans/:id
+ */
+export const updateStudyPlan = (id, planData) =>
+  API.put(`/v1/study-plans/${id}`, planData);
+
+/**
+ * Trainer: Delete a plan
+ * DELETE /v1/study-plans/:id
+ */
+export const deleteStudyPlan = (id) => API.delete(`/v1/study-plans/${id}`);
+
+/**
+ * Trainer: Toggle plan active/inactive
+ * PATCH /v1/study-plans/:id/toggle-active
+ */
+export const toggleStudyPlanActive = (id) =>
+  API.patch(`/v1/study-plans/${id}/toggle-active`);
+
+/* ========================================================= */
+/* ========= 📚 STUDY PLAN — STUDENT ======================= */
+/* ========================================================= */
+
+/**
+ * Student: Get all active plans for their batch (with progress)
+ * GET /v1/study-plans/student?batchId=...
+ */
+export const getStudentStudyPlans = (batchId) =>
+  API.get("/v1/study-plans/student", { params: { batchId } });
+
+/**
+ * Student: Get a single plan with full section/item progress
+ * GET /v1/study-plans/student/:id
+ */
+export const getStudentStudyPlanById = (id) =>
+  API.get(`/v1/study-plans/student/${id}`);
+
+/**
+ * Student: Mark a study plan item as complete
+ * POST /v1/study-plans/progress/mark
+ * Body: { studyPlanItemId, batchId, problemId, marksObtained }
+ */
+export const markStudyPlanProgress = (progressData) =>
+  API.post("/v1/study-plans/progress/mark", progressData);
+
 /* ========================================================= */
 /* 🔥 DEFAULT EXPORT (FIXED) */
 /* ========================================================= */
@@ -386,4 +454,15 @@ export default {
   getCodeFileById,
   updateCodeFile,
   deleteCodeFile,
+
+  // ── Study Plans ──────────────────────────────────────────
+  createStudyPlan,
+  getMyStudyPlans,
+  getStudyPlanById,
+  updateStudyPlan,
+  deleteStudyPlan,
+  toggleStudyPlanActive,
+  getStudentStudyPlans,
+  getStudentStudyPlanById,
+  markStudyPlanProgress,
 };

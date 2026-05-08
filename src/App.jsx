@@ -43,6 +43,12 @@ const Signup          = lazyLoad(() => import("./pages/Auth/Register.jsx"));
 const ResetPassword   = lazyLoad(() => import("./pages/Auth/ResetPassword.jsx"));
 const VerifyEmail     = lazyLoad(() => import("./pages/Auth/VerifyEmail.jsx"));
 
+/*===============public live-session pages =========*/
+const PublicSessionsPage = lazyLoad(() => import("./pages/public/PublicSessionsPage"));
+const PublicBooking = lazyLoad(() => import("./pages/public/PublicBooking"));
+const PublicBookingConfirmation = lazyLoad(() => import("./pages/public/PublicBookingConfirmation"));
+const PublicJoinSession = lazyLoad(() => import("./pages/public/PublicJoinSession"));
+const PublicSessionComplete = lazyLoad(() => import("./pages/public/PublicSessionComplete"));
 /* ================= LANDING ================= */
 const CoursePreview        = lazyLoad(() => import("./pages/CoursePreview"));
 const CourseDetail         = lazyLoad(() => import("./pages/Landing/CourseDetailsPage"));
@@ -95,7 +101,8 @@ const CallTrainer           = lazyLoad(() => import("./Student/CallTrainer.jsx")
 const StudentFeedback       = lazyLoad(() => import("./Student/Studentfeedback.jsx"));
 const SkillMap              = lazyLoad(() => import("./Student/SkillMap.jsx"));
 const StudentCompilerPage   = lazyLoad(() => import("./Student/StudentCompilerPage.jsx"),);
-const ResumeBuilder = lazyLoad(() => import("./Student/ResumeBuilder.jsx"));
+const StudentStudyPlanPage = lazyLoad( () => import("./Student/StudentStudyPlanPage.jsx"),);
+const ResumeBuilder        = lazyLoad(() => import("./Student/ResumeBuilder.jsx"));
 /* ================= TRAINER ================= */
 const TrainerAssessments    = lazyLoad(() => import("./Trainer/Assessments"));
 const TrainerAttendance     = lazyLoad(() => import("./Trainer/Attendance"));
@@ -132,6 +139,9 @@ const TrainerFeedback = lazyLoad(() => import("./Trainer/Trainerfeedback.jsx"));
 const TrainerSkillMap      = lazyLoad(() => import("./Trainer/TrainerSkillMap.jsx"));
 const TrainerCompilerPage = lazyLoad(
   () => import("./Trainer/TrainerCompilerPage.jsx"),
+);
+const TrainerStudyPlanPage = lazyLoad(
+  () => import("./Trainer/TrainerStudyPlanPage.jsx"),
 );
 /* ================= ADMIN ================= */
 const AdminBatches              = lazyLoad(() => import("./Admin/AdminBatches"));
@@ -234,7 +244,13 @@ useEffect(() => {
             <Route path="/course/:id" element={<CoursePreview />} />
             <Route path="/course-details" element={<CourseDetail />} />
             <Route path="/syllabus" element={<SyllabusPage />} />
-
+              {/* ================= pages/PUBLIC ================= */}
+              <Route path="/public/book-session/:sessionId" element={<PublicBooking />} />
+            <Route path="/public/join-session/:token" element={<PublicJoinSession />} />
+            <Route path="/public/session-complete" element={<PublicSessionComplete />} />
+            <Route path="/public/booking-confirmation/:id" element={<PublicBookingConfirmation />} />
+            <Route path="/public/sessions" element={<PublicSessionsPage />} />
+            
             {/* ================= COMPANY ================= */}
             <Route path="/about" element={<AboutTexoraSkills />} />
             <Route path="/careers" element={<Careers />} />
@@ -297,6 +313,7 @@ useEffect(() => {
               <Route path="feedback" element={<StudentFeedback />} />
               <Route path="skill-map" element={<SkillMap />} /> 
               <Route path="compiler" element={<StudentCompilerPage />} />
+              <Route path="study-plan" element={<StudentStudyPlanPage />} />
               <Route path="resume-builder" element={<ResumeBuilder />} />
             </Route>
 
@@ -341,6 +358,7 @@ useEffect(() => {
               <Route path="feedback" element={<TrainerFeedback />} />
               <Route path="skill-analytics" element={<TrainerSkillMap />} />
               <Route path="compiler" element={<TrainerCompilerPage />} />
+              <Route path="study-plan" element={<TrainerStudyPlanPage />} />
             </Route>
 
             {/* ================= ADMIN ================= */}

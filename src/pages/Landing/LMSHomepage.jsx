@@ -1010,7 +1010,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                   { label: "Careers",          action: () => navigate("/careers") },
                   { label: "Pricing",          action: () => navigate("/pricing") },
                   { label: "Privacy Policy",   action: () => navigate("/privacy-policy") },
-                  { label: "Terms of Service", action: () => navigate("/terms-of-service") },
+                  // { label: "Terms of Service", action: () => navigate("/terms-of-service") },
                 ].map(item => (
                   <li key={item.label} onClick={item.action}
                     className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group">
@@ -1027,7 +1027,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
               <ul className="flex flex-col gap-2.5 text-sm text-gray-600">
                 {[
                   { label: "Help Center", action: () => navigate("/help-center") },
-                  { label: "Contact",     action: () => navigate("/contact") },
+                  // { label: "Contact",     action: () => navigate("/contact") },
                   { label: "FAQ",         action: () => navigate("/faq") },
                 ].map(item => (
                   <li key={item.label} onClick={item.action}

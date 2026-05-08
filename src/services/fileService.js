@@ -1,4 +1,3 @@
-
 import axios from "axios";
 
 const API_GATEWAY =
@@ -10,21 +9,93 @@ const authHeader = () => ({
 
 const fileService = {
   // ================= TRAINER UPLOAD =================
-  uploadFile(file, batchId, title, description, courseId, category) {
+  // uploadFile(file, batchId, title, description, courseId, category) {
+  //   const formData = new FormData();
+  //   formData.append("file", file);
+  //   formData.append("batchId", batchId);
+  //   formData.append("title", title || "");
+  //   formData.append("description", description || "");
+  //   if (courseId) formData.append("courseId", courseId);
+  //   if (category) formData.append("category", category);
+
+  //   return axios.post(`${API_GATEWAY}/file/upload`, formData, {
+  //     headers: {
+  //       ...authHeader(),
+  //       // ✅ No Content-Type — axios sets multipart/form-data + boundary automatically
+  //     },
+  //   });
+  // },
+  // ✅ UPDATED — batchId optional, status added
+  uploadFile(
+    file,
+    batchId,
+    title,
+    description,
+    courseId,
+    category,
+    status = "published",
+  ) {
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("batchId", batchId);
+    if (batchId !== null && batchId !== undefined) {
+      formData.append("batchId", batchId); // ✅ only append if real value
+    }
     formData.append("title", title || "");
     formData.append("description", description || "");
     if (courseId) formData.append("courseId", courseId);
     if (category) formData.append("category", category);
+    formData.append("status", status); // ✅ new
 
     return axios.post(`${API_GATEWAY}/file/upload`, formData, {
-      headers: {
-        ...authHeader(),
-        // ✅ No Content-Type — axios sets multipart/form-data + boundary automatically
-      },
+      headers: { ...authHeader() },
     });
+  },
+
+  //  ✅ NEW — EDIT FILE
+  //  PUT /api/file/{id}/edit
+  //  Pass newFile=null to keep the existing stored file.
+  // ═══════════════════════════════════════════════════════════════
+  editFile(
+    fileId,
+    newFile,
+    title,
+    description,
+    batchId,
+    courseId,
+    category,
+    status = "draft",
+  ) {
+    const formData = new FormData();
+    if (newFile) formData.append("file", newFile); // only if replacing
+    if (title) formData.append("title", title);
+    formData.append("description", description || "");
+    if (batchId !== null && batchId !== undefined) {
+      formData.append("batchId", batchId);
+    }
+    if (courseId !== null && courseId !== undefined && courseId !== "") {
+      formData.append("courseId", courseId);
+    }
+    if (category) formData.append("category", category);
+    formData.append("status", status);
+    return axios.put(`${API_GATEWAY}/file/${fileId}/edit`, formData, {
+      headers: { ...authHeader() },
+    });
+  },
+
+  // ✅ ADD — publish a draft that already has batch
+  publishFile(fileId) {
+    return axios.patch(`${API_GATEWAY}/file/${fileId}/publish`, null, {
+      headers: authHeader(),
+    });
+  },
+
+  // ✅ ADD — assign batch to a no-batch draft (auto-publishes)
+  assignFileBatch(fileId, batchId) {
+    return axios.patch(
+      `${API_GATEWAY}/file/${fileId}/assign-batch?batchId=${batchId}`,
+      null,
+      { headers: authHeader() },
+    );
   },
 
   // ================= TRAINER FILES =================
@@ -55,7 +126,7 @@ const fileService = {
   // Backend returns "attachment" for DOCX/ZIP/PPT → browser downloads them
   viewFileBlob(id) {
     return axios.get(`${API_GATEWAY}/file/view/${id}`, {
-      responseType: "arraybuffer",   // ✅ was "blob" — this was the bug
+      responseType: "arraybuffer", // ✅ was "blob" — this was the bug
       headers: authHeader(),
     });
   },

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getTrainerRecordings } from "@/services/liveSessionService";
+import { getMyRecordings } from "@/services/liveSessionService";
 import {
   ArrowLeft,
   Search,
@@ -108,6 +108,7 @@ const RecordedClassList = () => {
       (document.documentElement.classList.contains("dark") ||
         document.documentElement.getAttribute("data-theme") === "dark"),
   );
+
   useEffect(() => {
     const obs = new MutationObserver(() =>
       setIsDark(
@@ -121,6 +122,7 @@ const RecordedClassList = () => {
     });
     return () => obs.disconnect();
   }, []);
+
   const t = isDark ? T.dark : T.light;
 
   const [videos, setVideos] = useState([]);
@@ -128,21 +130,10 @@ const RecordedClassList = () => {
   const [search, setSearch] = useState("");
   const [error, setError] = useState(null);
 
-  // ✅ Fetch only THIS trainer's recordings
-  // GET /api/live-sessions/recording/trainer/{trainerId}
   useEffect(() => {
     (async () => {
       try {
-        const user = JSON.parse(localStorage.getItem("lms_user") || "{}");
-        const trainerId = user.id;
-
-        if (!trainerId) {
-          setError("Trainer not found. Please log in again.");
-          setLoading(false);
-          return;
-        }
-
-        const res = await getTrainerRecordings(trainerId);
+        const res = await getMyRecordings();
         setVideos(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
         console.error("Failed to fetch recordings:", err);

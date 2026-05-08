@@ -104,33 +104,7 @@ export const joinCall = (room) =>
     getAuthHeader(),
   );
 
-// ─── PARTICIPANTS ──────────────────────────────────────────────
 
-// export const participantJoin = (
-//   sessionId,
-//   batchId,
-//   studentEmail,
-//   trainerEmail,
-// ) =>
-//   axios.post(
-//     `${API_BASE}/live-sessions/${sessionId}/participant/join?batchId=${batchId}&studentEmail=${encodeURIComponent(studentEmail)}&trainerEmail=${encodeURIComponent(trainerEmail)}`,
-//     {},
-//     getAuthHeader(),
-//   );
-
-// export const participantLeave = (sessionId, studentEmail) =>
-//   axios.post(
-//     `${API_BASE}/live-sessions/${sessionId}/participant/leave?studentEmail=${encodeURIComponent(studentEmail)}`,
-//     {},
-//     getAuthHeader(),
-//   );
-
-// export const getSessionParticipants = (sessionId) =>
-//   axios.get(
-//     `${API_BASE}/live-sessions/${sessionId}/participants`,
-//     getAuthHeader(),
-//   );
-// studentEmail removed — backend gets it from JWT
 export const participantJoin = (sessionId, batchId, trainerEmail) =>
   axios.post(
     `${API_BASE}/live-sessions/${sessionId}/participant/join?batchId=${batchId}&trainerEmail=${encodeURIComponent(trainerEmail)}`,

@@ -806,6 +806,17 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 // src/Student/SkillMap.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -843,17 +854,10 @@ const T = {
     recentItemBorder: "rgba(255,255,255,0.05)",
     shadow: "0 4px 20px rgba(0,0,0,0.4)",
     shadowHov: "0 20px 60px rgba(0,0,0,0.6)",
-    heroBg: "#111827",
+    heroBg: "#111111",
     borderHero: "rgba(255,255,255,0.07)",
     actBg: "rgba(255,255,255,0.04)",
     actBorder: "rgba(255,255,255,0.07)",
-    heroLabel: "rgba(255,255,255,0.4)",
-    heroSubtext: "rgba(255,255,255,0.35)",
-    tabActiveBg: "#7c3aed",
-    tabActiveText: "#ffffff",
-    tabInactiveBg: "rgba(255,255,255,0.05)",
-    tabInactiveText: "rgba(255,255,255,0.4)",
-    tabInactiveBorder: "rgba(255,255,255,0.08)",
   },
   light: {
     pageBg: "#F8F9FB",
@@ -877,13 +881,6 @@ const T = {
     borderHero: "#e2e8f0",
     actBg: "#f8fafc",
     actBorder: "#e2e8f0",
-    heroLabel: "#7c3aed",
-    heroSubtext: "#64748b",
-    tabActiveBg: "#7c3aed",
-    tabActiveText: "#ffffff",
-    tabInactiveBg: "#f1f5f9",
-    tabInactiveText: "#64748b",
-    tabInactiveBorder: "#e2e8f0",
   },
 };
 
@@ -998,9 +995,11 @@ const SkillMap = () => {
       }
 
       // ── 3. SEED first so data always exists ──
+      // This calls POST /api/skill-map/seed to auto-populate from existing progress
       try {
         await progressService.seedSkillScores();
       } catch (seedErr) {
+        // seed failing is non-fatal — data may already exist
         console.warn("Seed attempt:", seedErr?.message);
       }
 
@@ -1222,90 +1221,137 @@ const SkillMap = () => {
             paddingBottom: 52,
           }}
         >
-          {/* ── HERO SECTION (updated) ── */}
+          {/* HERO */}
           <div
             className="sfade"
             style={{
               background: t.heroBg,
               border: `1px solid ${t.borderHero}`,
-              borderRadius: 20,
-              padding: "28px 32px 24px",
+              borderRadius: 24,
+              padding: "28px 32px",
               marginBottom: 20,
               boxShadow: t.shadow,
             }}
           >
-            {/* Top row: back button */}
-            <button
-              onClick={() => navigate("/student")}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 5,
-                fontSize: 11,
-                fontWeight: 600,
-                color: t.textMuted,
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
-                fontFamily: "'Poppins',sans-serif",
-                marginBottom: 16,
-                padding: 0,
-              }}
-            >
-              <ArrowLeft size={13} /> Back to Dashboard
-            </button>
-
-            {/* Main hero row */}
             <div
               style={{
                 display: "flex",
-                alignItems: "flex-start",
+                alignItems: "center",
                 justifyContent: "space-between",
                 flexWrap: "wrap",
-                gap: 20,
-                marginBottom: 24,
+                gap: 16,
               }}
             >
-              {/* Left: label + title + subtitle */}
               <div>
-                <p
+                <button
+                  onClick={() => navigate("/student")}
                   style={{
-                    fontSize: 10,
-                    fontWeight: 700,
-                    letterSpacing: "0.18em",
-                    textTransform: "uppercase",
-                    color: t.heroLabel,
-                    margin: "0 0 6px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: t.textMuted,
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    fontFamily: "'Poppins',sans-serif",
+                    marginBottom: 12,
+                    padding: 0,
                   }}
                 >
-                  • Skill Intelligence
-                </p>
+                  <ArrowLeft size={13} /> Back to Dashboard
+                </button>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    marginBottom: 8,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: "50%",
+                      background: "#a78bfa",
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      letterSpacing: "0.2em",
+                      textTransform: "uppercase",
+                      color: t.textSub,
+                    }}
+                  >
+                    Skill Intelligence
+                  </span>
+                </div>
                 <h1
                   style={{
-                    fontSize: "clamp(1.6rem,3vw,2.2rem)",
-                    fontWeight: 800,
+                    fontSize: "clamp(1.5rem,3vw,2rem)",
+                    fontWeight: 900,
                     color: t.text,
                     margin: "0 0 6px",
-                    lineHeight: 1.15,
-                    letterSpacing: "-0.025em",
+                    lineHeight: 1.1,
+                    letterSpacing: "-0.02em",
                   }}
                 >
                   Skill Map
                 </h1>
                 <p
                   style={{
-                    fontSize: 12.5,
-                    color: t.heroSubtext,
+                    fontSize: 12,
+                    color: t.textSub,
                     margin: 0,
-                    fontWeight: 400,
+                    fontWeight: 500,
                   }}
                 >
-                  Your personalized skill analysis &amp; career roadmap
+                  Your personalized skill analysis & career roadmap
                 </p>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 8,
+                    marginTop: 16,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  {TABS.map((tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveTab(tab)}
+                      style={{
+                        padding: "6px 16px",
+                        borderRadius: 10,
+                        fontSize: 11,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        fontFamily: "'Poppins',sans-serif",
+                        textTransform: "capitalize",
+                        transition: "all 0.2s",
+                        border: `1px solid ${activeTab === tab ? "rgba(167,139,250,0.5)" : t.borderHov}`,
+                        background:
+                          activeTab === tab ? "#a78bfa" : t.actBg,
+                        color: activeTab === tab ? "#ffffff" : t.textSub,
+                      }}
+                    >
+                      {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    </button>
+                  ))}
+                </div>
               </div>
-
-              {/* Right: stats pill + refresh */}
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  flexWrap: "wrap",
+                }}
+              >
                 <div
                   style={{
                     display: "flex",
@@ -1313,8 +1359,8 @@ const SkillMap = () => {
                     gap: 12,
                     background: t.actBg,
                     border: `1px solid ${t.actBorder}`,
-                    borderRadius: 10,
-                    padding: "7px 14px",
+                    borderRadius: 12,
+                    padding: "8px 16px",
                     fontSize: 11,
                     fontWeight: 600,
                     color: t.textSub,
@@ -1322,13 +1368,13 @@ const SkillMap = () => {
                 >
                   <span>{summaryStats.totalSkills} skills</span>
                   <span
-                    style={{ width: 1, height: 12, background: t.actBorder }}
+                    style={{ width: 1, height: 14, background: t.actBorder }}
                   />
                   <span style={{ color: "#34d399" }}>
                     {summaryStats.strongCount} strong
                   </span>
                   <span
-                    style={{ width: 1, height: 12, background: t.actBorder }}
+                    style={{ width: 1, height: 14, background: t.actBorder }}
                   />
                   {summaryStats.weakCount > 0 ? (
                     <span style={{ color: "#f87171" }}>
@@ -1341,9 +1387,9 @@ const SkillMap = () => {
                 <button
                   onClick={load}
                   style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 9,
+                    width: 38,
+                    height: 38,
+                    borderRadius: 10,
                     background: t.actBg,
                     border: `1px solid ${t.actBorder}`,
                     display: "flex",
@@ -1353,45 +1399,11 @@ const SkillMap = () => {
                     color: t.textMuted,
                   }}
                 >
-                  <RefreshCw size={14} />
+                  <RefreshCw size={15} />
                 </button>
               </div>
             </div>
-
-            {/* Tab row — styled like Student Dashboard pill tabs */}
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {TABS.map((tab) => {
-                const isActive = activeTab === tab;
-                return (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    style={{
-                      padding: "7px 18px",
-                      borderRadius: 20,
-                      fontSize: 12,
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      fontFamily: "'Poppins',sans-serif",
-                      textTransform: "capitalize",
-                      transition: "all 0.18s",
-                      border: isActive
-                        ? "1px solid transparent"
-                        : `1px solid ${t.tabInactiveBorder}`,
-                      background: isActive
-                        ? t.tabActiveBg
-                        : t.tabInactiveBg,
-                      color: isActive ? t.tabActiveText : t.tabInactiveText,
-                      letterSpacing: "0.01em",
-                    }}
-                  >
-                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                  </button>
-                );
-              })}
-            </div>
           </div>
-          {/* ── END HERO SECTION ── */}
 
           {/* SUMMARY STAT CARDS */}
           <div

@@ -291,18 +291,10 @@
 //             <div className="rc-header-icon"><Video size={24} /></div>
 //             <div>
 //               <div className="rc-badge"><Video size={10} /> Live & Recorded</div>
-//               {/* <h1 className="rc-h1">Video Lectures</h1> */}
-//               <h1 style={{
-//   fontFamily: "'Poppins',sans-serif",
-//   fontWeight: 700,
-//   fontSize: "clamp(1.5rem,3vw,2.2rem)",
-//   color: "#3B82F6", // 🔵 Blue text
-//   margin: "0 0 6px",
-//   lineHeight: 1.1,
-//   letterSpacing: "-0.02em"
+//               <h1 style={{ fontFamily: "'Poppins',sans-serif",fontWeight: 700,fontSize: "clamp(1.5rem,3vw,2.2rem)",color: "#3B82F6", // 🔵 Blue textmargin: "0 0 6px",lineHeight: 1.1,letterSpacing: "-0.02em"
 // }}>
 //   Video Lectures
-// </h1>
+//  </h1>
 //               <p className="rc-subtitle">Watch your recorded and live sessions</p>
 //             </div>
 //           </div>
@@ -380,6 +372,14 @@
 // };
 
 // export default RecordedClasses;
+
+
+
+
+
+
+
+
 
 
 
@@ -485,7 +485,7 @@ const styles = `
   }
 
   /* ── Main row ── */
-  .rc-main { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+  .rc-main { display: flex; gap: 20px; align-items: flex-start; }
 
   /* ── Playlist ── */
   .rc-playlist {
@@ -614,6 +614,162 @@ const styles = `
   }
 
   .rc-desc-text { font-size: 13px; color: var(--rc-muted); margin: 0; line-height: 1.6; }
+
+  /* ─── RESPONSIVE ────────────────────────────────────────────────── */
+
+  /* Tablet: 481px – 900px */
+  @media (max-width: 900px) {
+    .rc-root { padding: 16px; }
+
+    .rc-header {
+      padding: 20px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .rc-count-chip { align-self: flex-start; }
+
+    .rc-main {
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .rc-playlist {
+      width: 100%;
+      /* Horizontal scrollable playlist on tablet */
+    }
+
+    .rc-playlist-list {
+      display: flex;
+      flex-direction: row;
+      overflow-x: auto;
+      padding: 8px 8px;
+      gap: 8px;
+      scrollbar-width: thin;
+    }
+
+    .rc-lesson-btn {
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 12px;
+      border-left: none;
+      border-bottom: 3px solid transparent;
+      min-width: 110px;
+      max-width: 130px;
+      border-radius: 10px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .rc-lesson-btn.active {
+      border-left-color: transparent;
+      border-bottom-color: var(--rc-accent4);
+    }
+
+    .rc-lesson-info { width: 100%; }
+
+    .rc-lesson-title {
+      font-size: 11px;
+      white-space: normal;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    .rc-lesson-meta { justify-content: center; }
+
+    .rc-live-placeholder { height: 260px; }
+    .rc-select-placeholder { height: 260px; }
+
+    .rc-desc-card { padding: 16px 18px; }
+  }
+
+  /* Phone: up to 480px */
+  @media (max-width: 480px) {
+    .rc-root { padding: 10px; }
+
+    .rc-inner { gap: 12px; }
+
+    .rc-header {
+      padding: 14px;
+      border-radius: 16px;
+      gap: 12px;
+    }
+
+    .rc-header-left { gap: 10px; }
+
+    .rc-header-icon { width: 40px; height: 40px; border-radius: 10px; }
+
+    .rc-badge { font-size: 9px; padding: 3px 8px; }
+
+    .rc-subtitle { font-size: 11px; }
+
+    .rc-count-chip { font-size: 11px; padding: 6px 12px; border-radius: 10px; }
+
+    .rc-playlist { border-radius: 14px; }
+
+    .rc-playlist-head { padding: 12px 14px; font-size: 12px; }
+
+    .rc-playlist-list {
+      display: flex;
+      flex-direction: row;
+      overflow-x: auto;
+      padding: 6px 8px;
+      gap: 6px;
+      scrollbar-width: thin;
+    }
+
+    .rc-lesson-btn {
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 10px;
+      border-left: none;
+      border-bottom: 3px solid transparent;
+      min-width: 90px;
+      max-width: 110px;
+      border-radius: 8px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .rc-lesson-btn.active {
+      border-left-color: transparent;
+      border-bottom-color: var(--rc-accent4);
+    }
+
+    .rc-lesson-num { width: 24px; height: 24px; border-radius: 6px; font-size: 10px; }
+
+    .rc-lesson-title {
+      font-size: 10px;
+      white-space: normal;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    .rc-lesson-meta { font-size: 9px; justify-content: center; }
+
+    .rc-player-card { border-radius: 14px; }
+
+    .rc-live-placeholder { height: 200px; gap: 10px; }
+    .rc-live-icon-wrap { width: 48px; height: 48px; border-radius: 12px; }
+    .rc-live-text { font-size: 12px; }
+
+    .rc-select-placeholder { height: 200px; gap: 8px; }
+    .rc-select-icon { width: 44px; height: 44px; border-radius: 12px; }
+    .rc-select-text { font-size: 12px; }
+
+    .rc-desc-card { padding: 14px; border-radius: 14px; }
+    .rc-desc-title { font-size: 12px; margin-bottom: 8px; }
+    .rc-desc-text { font-size: 12px; }
+  }
 `;
 
 if (!document.getElementById("rc-styles")) {
@@ -690,7 +846,17 @@ const RecordedClasses = () => {
             <div className="rc-header-icon"><Video size={24} /></div>
             <div>
               <div className="rc-badge"><Video size={10} /> Live & Recorded</div>
-              <h1 className="rc-h1">Video Lectures</h1>
+              <h1 style={{
+                fontFamily: "'Poppins',sans-serif",
+                fontWeight: 700,
+                fontSize: "clamp(1.5rem,3vw,2.2rem)",
+                color: "#3B82F6",
+                margin: "0 0 6px",
+                lineHeight: 1.1,
+                letterSpacing: "-0.02em"
+              }}>
+                Video Lectures
+              </h1>
               <p className="rc-subtitle">Watch your recorded and live sessions</p>
             </div>
           </div>

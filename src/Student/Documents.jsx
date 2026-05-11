@@ -2,8 +2,13 @@
 // import fileService from "../services/fileService";
 // import { progressService } from "../services/progressService";
 // import {
-//   FaCheckCircle, FaEye, FaFile, FaFileAlt,
-//   FaFileImage, FaFilePdf, FaTimes,
+//   FaCheckCircle,
+//   FaEye,
+//   FaFile,
+//   FaFileAlt,
+//   FaFileImage,
+//   FaFilePdf,
+//   FaTimes,
 // } from "react-icons/fa";
 
 // /* ─── Styles ─────────────────────────────────────────────────── */
@@ -297,7 +302,10 @@
 // /* ─── Load scripts dynamically ──────────────────────────────── */
 // const loadScript = (src) =>
 //   new Promise((resolve, reject) => {
-//     if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+//     if (document.querySelector(`script[src="${src}"]`)) {
+//       resolve();
+//       return;
+//     }
 //     const s = document.createElement("script");
 //     s.src = src;
 //     s.onload = resolve;
@@ -311,7 +319,9 @@
 //     const token = localStorage.getItem("lms_token");
 //     if (!token) return null;
 //     return JSON.parse(atob(token.split(".")[1])).sub;
-//   } catch { return null; }
+//   } catch {
+//     return null;
+//   }
 // };
 
 // const isDarkMode = () =>
@@ -322,12 +332,13 @@
 // const getViewMode = (originalName = "", contentType = "") => {
 //   const name = originalName.toLowerCase();
 //   const type = contentType.toLowerCase();
-//   if (name.endsWith(".pdf")  || type.includes("pdf"))                         return "pdf";
-//   if (name.match(/\.(png|jpg|jpeg|gif|webp)$/) || type.startsWith("image"))  return "image";
-//   if (name.endsWith(".txt")  || type.includes("text/plain"))                  return "text";
-//   if (name.match(/\.(docx|doc)$/))                                            return "docx";
-//   if (name.match(/\.(xlsx|xls)$/))                                            return "xlsx";
-//   if (name.match(/\.(pptx|ppt)$/))                                            return "pptx";
+//   if (name.endsWith(".pdf") || type.includes("pdf")) return "pdf";
+//   if (name.match(/\.(png|jpg|jpeg|gif|webp)$/) || type.startsWith("image"))
+//     return "image";
+//   if (name.endsWith(".txt") || type.includes("text/plain")) return "text";
+//   if (name.match(/\.(docx|doc)$/)) return "docx";
+//   if (name.match(/\.(xlsx|xls)$/)) return "xlsx";
+//   if (name.match(/\.(pptx|ppt)$/)) return "pptx";
 //   return "none";
 // };
 
@@ -335,9 +346,17 @@
 //   const name = originalName.toLowerCase();
 //   const type = contentType.toLowerCase();
 //   if (name.endsWith(".pdf") || type.includes("pdf"))
-//     return { icon: <FaFilePdf />, bg: "rgba(251,146,60,0.10)", color: "#fb923c" };
+//     return {
+//       icon: <FaFilePdf />,
+//       bg: "rgba(251,146,60,0.10)",
+//       color: "#fb923c",
+//     };
 //   if (type.startsWith("image") || name.match(/\.(png|jpg|jpeg|gif|webp)$/))
-//     return { icon: <FaFileImage />, bg: "rgba(52,211,153,0.10)", color: "#34d399" };
+//     return {
+//       icon: <FaFileImage />,
+//       bg: "rgba(52,211,153,0.10)",
+//       color: "#34d399",
+//     };
 //   return { icon: <FaFile />, bg: "rgba(34,211,238,0.10)", color: "#22d3ee" };
 // };
 
@@ -349,7 +368,9 @@
 //   useEffect(() => {
 //     (async () => {
 //       try {
-//         await loadScript("https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js");
+//         await loadScript(
+//           "https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js",
+//         );
 //         const result = await window.mammoth.convertToHtml({ arrayBuffer });
 //         setHtml(result.value || "<p>No content found.</p>");
 //       } catch (e) {
@@ -359,19 +380,23 @@
 //     })();
 //   }, [arrayBuffer]);
 
-//   if (error) return (
-//     <div className="dc-no-preview">
-//       <div className="dc-no-preview-icon">📄</div>
-//       <p style={{ fontWeight: 700, margin: "0 0 6px", color: "#0f172a" }}>{error}</p>
-//     </div>
-//   );
+//   if (error)
+//     return (
+//       <div className="dc-no-preview">
+//         <div className="dc-no-preview-icon">📄</div>
+//         <p style={{ fontWeight: 700, margin: "0 0 6px", color: "#0f172a" }}>
+//           {error}
+//         </p>
+//       </div>
+//     );
 
-//   if (!html) return (
-//     <div className="dc-loading">
-//       <div className="dc-spinner" />
-//       Rendering document…
-//     </div>
-//   );
+//   if (!html)
+//     return (
+//       <div className="dc-loading">
+//         <div className="dc-spinner" />
+//         Rendering document…
+//       </div>
+//     );
 
 //   return (
 //     <div className="dc-office-body">
@@ -393,12 +418,17 @@
 //   useEffect(() => {
 //     (async () => {
 //       try {
-//         await loadScript("https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js");
+//         await loadScript(
+//           "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
+//         );
 //         const workbook = window.XLSX.read(arrayBuffer, { type: "array" });
 //         const names = workbook.SheetNames;
 //         const parsed = {};
 //         names.forEach((name) => {
-//           parsed[name] = window.XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1 });
+//           parsed[name] = window.XLSX.utils.sheet_to_json(
+//             workbook.Sheets[name],
+//             { header: 1 },
+//           );
 //         });
 //         setSheets(parsed);
 //         setSheetNames(names);
@@ -410,26 +440,37 @@
 //     })();
 //   }, [arrayBuffer]);
 
-//   if (error) return (
-//     <div className="dc-no-preview">
-//       <div className="dc-no-preview-icon">📊</div>
-//       <p style={{ fontWeight: 700, margin: "0 0 6px", color: "#0f172a" }}>{error}</p>
-//     </div>
-//   );
+//   if (error)
+//     return (
+//       <div className="dc-no-preview">
+//         <div className="dc-no-preview-icon">📊</div>
+//         <p style={{ fontWeight: 700, margin: "0 0 6px", color: "#0f172a" }}>
+//           {error}
+//         </p>
+//       </div>
+//     );
 
-//   if (!activeSheet) return (
-//     <div className="dc-loading">
-//       <div className="dc-spinner" />
-//       Rendering spreadsheet…
-//     </div>
-//   );
+//   if (!activeSheet)
+//     return (
+//       <div className="dc-loading">
+//         <div className="dc-spinner" />
+//         Rendering spreadsheet…
+//       </div>
+//     );
 
 //   const rows = sheets[activeSheet] || [];
 //   const headers = rows[0] || [];
 //   const dataRows = rows.slice(1);
 
 //   return (
-//     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+//     <div
+//       style={{
+//         display: "flex",
+//         flexDirection: "column",
+//         height: "100%",
+//         overflow: "hidden",
+//       }}
+//     >
 //       {sheetNames.length > 1 && (
 //         <div className="dc-xlsx-sheet-tabs">
 //           {sheetNames.map((name) => (
@@ -448,7 +489,9 @@
 //           <thead>
 //             <tr>
 //               {headers.map((h, i) => (
-//                 <th key={i}>{h !== undefined && h !== null ? String(h) : ""}</th>
+//                 <th key={i}>
+//                   {h !== undefined && h !== null ? String(h) : ""}
+//                 </th>
 //               ))}
 //             </tr>
 //           </thead>
@@ -456,14 +499,26 @@
 //             {dataRows.map((row, ri) => (
 //               <tr key={ri}>
 //                 {headers.map((_, ci) => (
-//                   <td key={ci}>{row[ci] !== undefined && row[ci] !== null ? String(row[ci]) : ""}</td>
+//                   <td key={ci}>
+//                     {row[ci] !== undefined && row[ci] !== null
+//                       ? String(row[ci])
+//                       : ""}
+//                   </td>
 //                 ))}
 //               </tr>
 //             ))}
 //           </tbody>
 //         </table>
 //         {dataRows.length === 0 && (
-//           <p style={{ color: "#64748b", fontFamily: "'Poppins',sans-serif", fontSize: 13, textAlign: "center", marginTop: 24 }}>
+//           <p
+//             style={{
+//               color: "#64748b",
+//               fontFamily: "'Poppins',sans-serif",
+//               fontSize: 13,
+//               textAlign: "center",
+//               marginTop: 24,
+//             }}
+//           >
 //             This sheet is empty.
 //           </p>
 //         )}
@@ -482,7 +537,9 @@
 //     (async () => {
 //       try {
 //         // Use JSZip to unzip the PPTX and extract slide text
-//         await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js");
+//         await loadScript(
+//           "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js",
+//         );
 
 //         const zip = await window.JSZip.loadAsync(arrayBuffer);
 //         const slideFiles = Object.keys(zip.files)
@@ -513,7 +570,7 @@
 //             });
 
 //             return texts;
-//           })
+//           }),
 //         );
 
 //         setSlides(parsedSlides);
@@ -525,56 +582,100 @@
 //     })();
 //   }, [arrayBuffer]);
 
-//   if (error) return (
-//     <div className="dc-no-preview">
-//       <div className="dc-no-preview-icon">📊</div>
-//       <p style={{ fontWeight: 700, margin: "0 0 6px", color: "#0f172a" }}>{error}</p>
-//     </div>
-//   );
+//   if (error)
+//     return (
+//       <div className="dc-no-preview">
+//         <div className="dc-no-preview-icon">📊</div>
+//         <p style={{ fontWeight: 700, margin: "0 0 6px", color: "#0f172a" }}>
+//           {error}
+//         </p>
+//       </div>
+//     );
 
-//   if (slides.length === 0) return (
-//     <div className="dc-loading">
-//       <div className="dc-spinner" />
-//       Rendering presentation…
-//     </div>
-//   );
+//   if (slides.length === 0)
+//     return (
+//       <div className="dc-loading">
+//         <div className="dc-spinner" />
+//         Rendering presentation…
+//       </div>
+//     );
 
 //   const slide = slides[currentSlide] || [];
 
 //   return (
-//     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden", background: "#1e1e2e" }}>
+//     <div
+//       style={{
+//         display: "flex",
+//         flexDirection: "column",
+//         height: "100%",
+//         overflow: "hidden",
+//         background: "#1e1e2e",
+//       }}
+//     >
 //       {/* Slide area */}
-//       <div style={{ flex: 1, overflow: "auto", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-//         <div style={{
-//           width: "100%", maxWidth: 720, minHeight: 380,
-//           background: "#ffffff", borderRadius: 12,
-//           boxShadow: "0 8px 40px rgba(0,0,0,0.4)",
-//           padding: "40px 48px", boxSizing: "border-box",
-//           display: "flex", flexDirection: "column", gap: 12,
-//         }}>
-//           <div style={{
-//             fontSize: 11, fontWeight: 700, color: "#6366f1",
-//             fontFamily: "'Poppins',sans-serif", letterSpacing: "0.08em",
-//             textTransform: "uppercase", marginBottom: 8,
-//           }}>
+//       <div
+//         style={{
+//           flex: 1,
+//           overflow: "auto",
+//           display: "flex",
+//           alignItems: "center",
+//           justifyContent: "center",
+//           padding: 24,
+//         }}
+//       >
+//         <div
+//           style={{
+//             width: "100%",
+//             maxWidth: 720,
+//             minHeight: 380,
+//             background: "#ffffff",
+//             borderRadius: 12,
+//             boxShadow: "0 8px 40px rgba(0,0,0,0.4)",
+//             padding: "40px 48px",
+//             boxSizing: "border-box",
+//             display: "flex",
+//             flexDirection: "column",
+//             gap: 12,
+//           }}
+//         >
+//           <div
+//             style={{
+//               fontSize: 11,
+//               fontWeight: 700,
+//               color: "#6366f1",
+//               fontFamily: "'Poppins',sans-serif",
+//               letterSpacing: "0.08em",
+//               textTransform: "uppercase",
+//               marginBottom: 8,
+//             }}
+//           >
 //             Slide {currentSlide + 1} / {slides.length}
 //           </div>
 //           {slide.length === 0 ? (
-//             <p style={{ color: "#94a3b8", fontFamily: "'Poppins',sans-serif", fontSize: 14 }}>
+//             <p
+//               style={{
+//                 color: "#94a3b8",
+//                 fontFamily: "'Poppins',sans-serif",
+//                 fontSize: 14,
+//               }}
+//             >
 //               (Empty slide or image-only content)
 //             </p>
 //           ) : (
 //             slide.map((text, i) => {
 //               const isTitle = i === 0;
 //               return (
-//                 <p key={i} style={{
-//                   margin: 0,
-//                   fontSize: isTitle ? 20 : 14,
-//                   fontWeight: isTitle ? 700 : 400,
-//                   color: isTitle ? "#1e1b4b" : "#374151",
-//                   fontFamily: "'Poppins',sans-serif",
-//                   lineHeight: 1.6,
-//                 }}>
+//                 <p
+//                   key={i}
+//                   style={{
+//                     margin: 0,
+//                     fontSize: isTitle ? 20 : 14,
+//                     fontWeight: isTitle ? 700 : 400,
+//                     color: isTitle ? "#1e1b4b" : "#374151",
+//                     fontFamily: "'Poppins',sans-serif",
+//                     lineHeight: 1.6,
+//                   }}
+//                 >
 //                   {isTitle ? text : `• ${text}`}
 //                 </p>
 //               );
@@ -584,20 +685,32 @@
 //       </div>
 
 //       {/* Navigation */}
-//       <div style={{
-//         display: "flex", alignItems: "center", justifyContent: "center",
-//         gap: 12, padding: "12px 20px", background: "rgba(0,0,0,0.4)",
-//         flexShrink: 0,
-//       }}>
+//       <div
+//         style={{
+//           display: "flex",
+//           alignItems: "center",
+//           justifyContent: "center",
+//           gap: 12,
+//           padding: "12px 20px",
+//           background: "rgba(0,0,0,0.4)",
+//           flexShrink: 0,
+//         }}
+//       >
 //         <button
 //           onClick={() => setCurrentSlide((p) => Math.max(0, p - 1))}
 //           disabled={currentSlide === 0}
 //           style={{
-//             padding: "8px 20px", borderRadius: 8, border: "none",
-//             background: currentSlide === 0 ? "rgba(255,255,255,0.1)" : "#6366f1",
+//             padding: "8px 20px",
+//             borderRadius: 8,
+//             border: "none",
+//             background:
+//               currentSlide === 0 ? "rgba(255,255,255,0.1)" : "#6366f1",
 //             color: currentSlide === 0 ? "rgba(255,255,255,0.3)" : "#fff",
-//             fontFamily: "'Poppins',sans-serif", fontSize: 12, fontWeight: 700,
-//             cursor: currentSlide === 0 ? "not-allowed" : "pointer", transition: "all 0.2s",
+//             fontFamily: "'Poppins',sans-serif",
+//             fontSize: 12,
+//             fontWeight: 700,
+//             cursor: currentSlide === 0 ? "not-allowed" : "pointer",
+//             transition: "all 0.2s",
 //           }}
 //         >
 //           ← Prev
@@ -609,22 +722,41 @@
 //               onClick={() => setCurrentSlide(i)}
 //               style={{
 //                 width: i === currentSlide ? 24 : 8,
-//                 height: 8, borderRadius: 4, border: "none",
-//                 background: i === currentSlide ? "#6366f1" : "rgba(255,255,255,0.3)",
-//                 cursor: "pointer", transition: "all 0.2s", padding: 0,
+//                 height: 8,
+//                 borderRadius: 4,
+//                 border: "none",
+//                 background:
+//                   i === currentSlide ? "#6366f1" : "rgba(255,255,255,0.3)",
+//                 cursor: "pointer",
+//                 transition: "all 0.2s",
+//                 padding: 0,
 //               }}
 //             />
 //           ))}
 //         </div>
 //         <button
-//           onClick={() => setCurrentSlide((p) => Math.min(slides.length - 1, p + 1))}
+//           onClick={() =>
+//             setCurrentSlide((p) => Math.min(slides.length - 1, p + 1))
+//           }
 //           disabled={currentSlide === slides.length - 1}
 //           style={{
-//             padding: "8px 20px", borderRadius: 8, border: "none",
-//             background: currentSlide === slides.length - 1 ? "rgba(255,255,255,0.1)" : "#6366f1",
-//             color: currentSlide === slides.length - 1 ? "rgba(255,255,255,0.3)" : "#fff",
-//             fontFamily: "'Poppins',sans-serif", fontSize: 12, fontWeight: 700,
-//             cursor: currentSlide === slides.length - 1 ? "not-allowed" : "pointer", transition: "all 0.2s",
+//             padding: "8px 20px",
+//             borderRadius: 8,
+//             border: "none",
+//             background:
+//               currentSlide === slides.length - 1
+//                 ? "rgba(255,255,255,0.1)"
+//                 : "#6366f1",
+//             color:
+//               currentSlide === slides.length - 1
+//                 ? "rgba(255,255,255,0.3)"
+//                 : "#fff",
+//             fontFamily: "'Poppins',sans-serif",
+//             fontSize: 12,
+//             fontWeight: 700,
+//             cursor:
+//               currentSlide === slides.length - 1 ? "not-allowed" : "pointer",
+//             transition: "all 0.2s",
 //           }}
 //         >
 //           Next →
@@ -636,27 +768,32 @@
 
 // /* ─── Component ─────────────────────────────────────────────── */
 // const Documents = () => {
-//   const [docs, setDocs]     = useState([]);
+//   const [docs, setDocs] = useState([]);
 //   const [preview, setPreview] = useState(null);
 
-//   const [downloadedFileIds, setDownloadedFileIds]   = useState([]);
+//   const [downloadedFileIds, setDownloadedFileIds] = useState([]);
 //   const [downloadPercentage, setDownloadPercentage] = useState(0);
 
 //   const [dark, setDark] = useState(isDarkMode);
-//   const studentEmail    = getEmailFromToken();
+//   const studentEmail = getEmailFromToken();
 
 //   useEffect(() => {
-//     fileService.getStudentFiles()
+//     fileService
+//       .getStudentFiles()
 //       .then(async (res) => {
 //         const data = res.data || [];
 //         setDocs(data);
 //         if (data.length > 0 && studentEmail) {
 //           try {
-//             const prog = await progressService.getFileProgress(studentEmail, data[0].batchId);
+//             const prog = await progressService.getFileProgress(
+//               studentEmail,
+//               data[0].batchId,
+//             );
 //             setDownloadedFileIds(prog.data.downloadedFileIds || []);
 //             setDownloadPercentage(prog.data.downloadPercentage || 0);
 //           } catch {
-//             setDownloadedFileIds([]); setDownloadPercentage(0);
+//             setDownloadedFileIds([]);
+//             setDownloadPercentage(0);
 //           }
 //         }
 //       })
@@ -665,26 +802,38 @@
 
 //   useEffect(() => {
 //     const obs = new MutationObserver(() => setDark(isDarkMode()));
-//     obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-//     obs.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+//     obs.observe(document.documentElement, {
+//       attributes: true,
+//       attributeFilter: ["class"],
+//     });
+//     obs.observe(document.body, {
+//       attributes: true,
+//       attributeFilter: ["class"],
+//     });
 //     return () => obs.disconnect();
 //   }, []);
 
 //   const openPreview = async (file) => {
 //     try {
 //       const res = await fileService.viewFileBlob(file.id);
-//       const contentType = res.headers["content-type"] || "application/octet-stream";
+//       const contentType =
+//         res.headers["content-type"] || "application/octet-stream";
 //       const mode = getViewMode(file.originalName, contentType);
 
 //       // Mark progress for all file types
 //       if (studentEmail && file.batchId) {
 //         try {
 //           const prog = await progressService.markFileDownloaded(
-//             studentEmail, file.batchId, file.id, docs.length,
+//             studentEmail,
+//             file.batchId,
+//             file.id,
+//             docs.length,
 //           );
 //           setDownloadedFileIds(prog.data.downloadedFileIds || []);
 //           setDownloadPercentage(prog.data.downloadPercentage || 0);
-//         } catch (err) { console.error("Mark progress failed", err); }
+//         } catch (err) {
+//           console.error("Mark progress failed", err);
+//         }
 //       }
 
 //       // For office files (docx/xlsx/pptx) — pass raw arrayBuffer
@@ -695,9 +844,8 @@
 
 //       // For pdf/image/text — create blob URL
 //       const blob = new Blob([res.data], { type: contentType });
-//       const url  = URL.createObjectURL(blob);
+//       const url = URL.createObjectURL(blob);
 //       setPreview({ mode, url, name: file.originalName });
-
 //     } catch {
 //       alert("Could not open file. Please try again.");
 //     }
@@ -708,33 +856,44 @@
 //     setPreview(null);
 //   };
 
-//   const totalSizeKB = Math.round(docs.reduce((acc, d) => acc + (d.size || 0), 0) / 1024);
+//   const totalSizeKB = Math.round(
+//     docs.reduce((acc, d) => acc + (d.size || 0), 0) / 1024,
+//   );
 
 //   return (
 //     <div className={`dc-root${dark ? " dc-dark" : ""}`}>
 //       <div className="dc-inner">
-
 //         {/* ── Header ── */}
 //         <div className="dc-header">
 //           <div className="dc-header-left">
-//             <div className="dc-header-icon-box"><FaFileAlt /></div>
+//             <div className="dc-header-icon-box">
+//               <FaFileAlt />
+//             </div>
 //             <div>
-//               <div className="dc-badge"><FaFileAlt style={{ fontSize: 9 }} /> Documents</div>
+//               <div className="dc-badge">
+//                 <FaFileAlt style={{ fontSize: 9 }} /> Documents
+//               </div>
 //               <h1 className="dc-h1">Documents</h1>
-//               <p className="dc-subtitle">Access all study materials shared by your trainers</p>
+//               <p className="dc-subtitle">
+//                 Access all study materials shared by your trainers
+//               </p>
 //             </div>
 //           </div>
 
 //           <div className="dc-stats">
 //             <div className="dc-stat">
-//               <div className="dc-stat-icon"><FaFileAlt /></div>
+//               <div className="dc-stat-icon">
+//                 <FaFileAlt />
+//               </div>
 //               <div>
 //                 <div className="dc-stat-val">{docs.length}</div>
 //                 <div className="dc-stat-lbl">Files</div>
 //               </div>
 //             </div>
 //             <div className="dc-stat">
-//               <div className="dc-stat-icon"><FaFile /></div>
+//               <div className="dc-stat-icon">
+//                 <FaFile />
+//               </div>
 //               <div>
 //                 <div className="dc-stat-val">{totalSizeKB}</div>
 //                 <div className="dc-stat-lbl">Storage KB</div>
@@ -742,12 +901,19 @@
 //             </div>
 //             {docs.length > 0 && (
 //               <div className="dc-stat">
-//                 <div className="dc-stat-icon"><FaCheckCircle /></div>
+//                 <div className="dc-stat-icon">
+//                   <FaCheckCircle />
+//                 </div>
 //                 <div>
-//                   <div className="dc-stat-val">{downloadedFileIds.length} / {docs.length}</div>
+//                   <div className="dc-stat-val">
+//                     {downloadedFileIds.length} / {docs.length}
+//                   </div>
 //                   <div className="dc-stat-lbl">Previewed</div>
 //                   <div className="dc-progress-bar-wrap">
-//                     <div className="dc-progress-bar" style={{ width: `${downloadPercentage}%` }} />
+//                     <div
+//                       className="dc-progress-bar"
+//                       style={{ width: `${downloadPercentage}%` }}
+//                     />
 //                   </div>
 //                 </div>
 //               </div>
@@ -758,17 +924,22 @@
 //         {/* ── Banner ── */}
 //         {docs.length > 0 && (
 //           <div className="dc-unlock-banner">
-//             🔓 Files are unlocked sequentially — preview each file to unlock the next one
+//             🔓 Files are unlocked sequentially — preview each file to unlock the
+//             next one
 //           </div>
 //         )}
 
 //         {/* ── List ── */}
 //         <div className="dc-list">
 //           {docs.map((d, index) => {
-//             const { icon, bg, color } = fileIconInfo(d.originalName, d.contentType || "");
-//             const isPreviewed    = downloadedFileIds.includes(d.id);
-//             const prevPreviewed  = index === 0 || downloadedFileIds.includes(docs[index - 1]?.id);
-//             const isLocked       = !isPreviewed && !prevPreviewed;
+//             const { icon, bg, color } = fileIconInfo(
+//               d.originalName,
+//               d.contentType || "",
+//             );
+//             const isPreviewed = downloadedFileIds.includes(d.id);
+//             const prevPreviewed =
+//               index === 0 || downloadedFileIds.includes(docs[index - 1]?.id);
+//             const isLocked = !isPreviewed && !prevPreviewed;
 
 //             const btnLabel = isLocked
 //               ? "🔒 Locked"
@@ -777,15 +948,33 @@
 //                 : "View";
 
 //             return (
-//               <div key={d.id} className={`dc-item${isPreviewed ? " previewed" : ""}${isLocked ? " locked" : ""}`}>
+//               <div
+//                 key={d.id}
+//                 className={`dc-item${isPreviewed ? " previewed" : ""}${isLocked ? " locked" : ""}`}
+//               >
 //                 <div className="dc-item-left">
-//                   <div className="dc-item-icon" style={{ background: bg, color }}>{icon}</div>
+//                   <div
+//                     className="dc-item-icon"
+//                     style={{ background: bg, color }}
+//                   >
+//                     {icon}
+//                   </div>
 //                   <div style={{ minWidth: 0 }}>
-//                     <p className="dc-item-name">{index + 1}. {d.originalName}</p>
+//                     <p className="dc-item-name">
+//                       {index + 1}. {d.originalName}
+//                     </p>
 //                     <div className="dc-item-meta">
-//                       <span className="dc-chip">{d.contentType || d.originalName?.split(".").pop()?.toUpperCase() || "FILE"}</span>
-//                       <span className="dc-chip">{Math.round((d.size || 0) / 1024)} KB</span>
-//                       {d.category && <span className="dc-category-chip">{d.category}</span>}
+//                       <span className="dc-chip">
+//                         {d.contentType ||
+//                           d.originalName?.split(".").pop()?.toUpperCase() ||
+//                           "FILE"}
+//                       </span>
+//                       <span className="dc-chip">
+//                         {Math.round((d.size || 0) / 1024)} KB
+//                       </span>
+//                       {d.category && (
+//                         <span className="dc-category-chip">{d.category}</span>
+//                       )}
 //                       {isPreviewed && (
 //                         <span className="dc-previewed-badge">
 //                           <FaCheckCircle size={10} /> Previewed
@@ -809,7 +998,9 @@
 
 //           {docs.length === 0 && (
 //             <div className="dc-empty">
-//               <div className="dc-empty-icon"><FaFileAlt /></div>
+//               <div className="dc-empty-icon">
+//                 <FaFileAlt />
+//               </div>
 //               No documents available
 //             </div>
 //           )}
@@ -822,30 +1013,50 @@
 //           <div className="dc-modal">
 //             <div className="dc-modal-head">
 //               <p className="dc-modal-name">{preview.name}</p>
-//               <button className="dc-modal-close" onClick={closePreview}><FaTimes /></button>
+//               <button className="dc-modal-close" onClick={closePreview}>
+//                 <FaTimes />
+//               </button>
 //             </div>
 
 //             {/* PDF */}
 //             {preview.mode === "pdf" && (
 //               <div className="dc-modal-body">
-//                 <iframe src={preview.url} title="PDF"
-//                   style={{ width: "100%", height: "100%", border: "none" }} />
+//                 <iframe
+//                   src={preview.url}
+//                   title="PDF"
+//                   style={{ width: "100%", height: "100%", border: "none" }}
+//                 />
 //               </div>
 //             )}
 
 //             {/* Image */}
 //             {preview.mode === "image" && (
 //               <div className="dc-modal-body">
-//                 <img src={preview.url} alt="Preview"
-//                   style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
+//                 <img
+//                   src={preview.url}
+//                   alt="Preview"
+//                   style={{
+//                     maxWidth: "100%",
+//                     maxHeight: "100%",
+//                     objectFit: "contain",
+//                   }}
+//                 />
 //               </div>
 //             )}
 
 //             {/* Plain text */}
 //             {preview.mode === "text" && (
 //               <div className="dc-modal-body">
-//                 <iframe src={preview.url} title="Text"
-//                   style={{ width: "100%", height: "100%", border: "none", background: "#fff" }} />
+//                 <iframe
+//                   src={preview.url}
+//                   title="Text"
+//                   style={{
+//                     width: "100%",
+//                     height: "100%",
+//                     border: "none",
+//                     background: "#fff",
+//                   }}
+//                 />
 //               </div>
 //             )}
 
@@ -861,7 +1072,10 @@
 
 //             {/* PPTX — slide-by-slide text viewer */}
 //             {preview.mode === "pptx" && (
-//               <PptxViewer arrayBuffer={preview.arrayBuffer} fileName={preview.name} />
+//               <PptxViewer
+//                 arrayBuffer={preview.arrayBuffer}
+//                 fileName={preview.name}
+//               />
 //             )}
 
 //             {/* Unknown / ZIP */}
@@ -869,7 +1083,13 @@
 //               <div className="dc-modal-body">
 //                 <div className="dc-no-preview">
 //                   <div className="dc-no-preview-icon">📦</div>
-//                   <p style={{ fontWeight: 700, margin: "0 0 6px", color: "var(--dc-text)" }}>
+//                   <p
+//                     style={{
+//                       fontWeight: 700,
+//                       margin: "0 0 6px",
+//                       color: "var(--dc-text)",
+//                     }}
+//                   >
 //                     Preview not available
 //                   </p>
 //                   <p style={{ margin: 0, fontSize: 12 }}>
@@ -886,6 +1106,26 @@
 // };
 
 // export default Documents;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -947,10 +1187,13 @@ const styles = `
 
   .dc-inner { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
 
+  /* ── Hero Header ── */
   .dc-header {
-    border-radius: var(--dc-radius); padding: 28px 32px;
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
-    box-shadow: 0 8px 32px rgba(99,102,241,0.3);
+    border-radius: var(--dc-radius);
+    padding: 28px 32px;
+    background: var(--dc-card);
+    border: 1px solid var(--dc-border);
+    box-shadow: var(--dc-shadow);
     display: flex; align-items: center; justify-content: space-between;
     gap: 20px; flex-wrap: wrap;
   }
@@ -959,44 +1202,49 @@ const styles = `
 
   .dc-header-icon-box {
     width: 52px; height: 52px; border-radius: 14px;
-    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(99,102,241,0.10);
+    border: 1px solid rgba(99,102,241,0.20);
     display: flex; align-items: center; justify-content: center;
-    color: #fff; flex-shrink: 0; font-size: 22px;
+    color: #6366f1; flex-shrink: 0; font-size: 22px;
   }
 
   .dc-badge {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 4px 11px; border-radius: 50px;
-    background: rgba(255,255,255,0.2); color: #fff;
+    background: rgba(99,102,241,0.08);
+    border: 1px solid rgba(99,102,241,0.18);
+    color: #6366f1;
     font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
     text-transform: uppercase; margin-bottom: 6px;
   }
 
-  .dc-h1   { font-size: 24px; font-weight: 800; color: #fff; margin: 0 0 2px; }
-  .dc-subtitle { font-size: 13px; color: rgba(255,255,255,0.85); margin: 0; }
+  .dc-subtitle { font-size: 13px; color: var(--dc-muted); margin: 0; }
 
+  /* ── Stats ── */
   .dc-stats { display: flex; gap: 12px; flex-wrap: wrap; }
 
   .dc-stat {
     display: flex; align-items: center; gap: 10px;
     padding: 12px 18px; border-radius: 14px;
-    background: rgba(255,255,255,0.15);
-    border: 1px solid rgba(255,255,255,0.20);
+    background: var(--dc-bg);
+    border: 1px solid var(--dc-border);
+    box-shadow: var(--dc-shadow);
   }
 
   .dc-stat-icon {
     width: 36px; height: 36px; border-radius: 10px;
-    background: rgba(255,255,255,0.15);
+    background: rgba(99,102,241,0.10);
+    border: 1px solid rgba(99,102,241,0.15);
     display: flex; align-items: center; justify-content: center;
-    font-size: 14px; flex-shrink: 0; color: #fff;
+    font-size: 14px; flex-shrink: 0; color: #6366f1;
   }
 
-  .dc-stat-val { font-size: 18px; font-weight: 800; line-height: 1; margin-bottom: 2px; color: #fff; }
-  .dc-stat-lbl { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.75); text-transform: uppercase; letter-spacing: 0.06em; }
+  .dc-stat-val { font-size: 18px; font-weight: 800; line-height: 1; margin-bottom: 2px; color: #6366f1; }
+  .dc-stat-lbl { font-size: 10px; font-weight: 600; color: var(--dc-muted); text-transform: uppercase; letter-spacing: 0.06em; }
 
   .dc-progress-bar-wrap {
     width: 64px; height: 4px; border-radius: 99px;
-    background: rgba(255,255,255,0.2); overflow: hidden; margin-top: 4px;
+    background: var(--dc-border); overflow: hidden; margin-top: 4px;
   }
   .dc-progress-bar { height: 100%; border-radius: 99px; background: #34d399; transition: width 0.5s ease; }
 
@@ -1022,7 +1270,7 @@ const styles = `
   .dc-item.previewed { background: rgba(52,211,153,0.04); border-color: rgba(52,211,153,0.25); }
   .dc-item.locked { opacity: 0.45; }
 
-  .dc-item-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .dc-item-left { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
 
   .dc-item-icon {
     width: 40px; height: 40px; border-radius: 11px;
@@ -1073,6 +1321,7 @@ const styles = `
   .dc-empty { text-align: center; padding: 60px 20px; color: var(--dc-muted); font-size: 14px; font-weight: 500; }
   .dc-empty-icon { font-size: 40px; opacity: 0.4; margin-bottom: 12px; }
 
+  /* ── Modal ── */
   .dc-modal-overlay {
     position: fixed; inset: 0; z-index: 50;
     background: rgba(0,0,0,0.75);
@@ -1121,35 +1370,16 @@ const styles = `
     font-size: 14px; line-height: 1.7; color: #1a1a1a;
   }
 
-  .dc-office-body .dc-docx-content table {
-    border-collapse: collapse; width: 100%; margin: 16px 0;
-  }
+  .dc-office-body .dc-docx-content table { border-collapse: collapse; width: 100%; margin: 16px 0; }
   .dc-office-body .dc-docx-content table td,
-  .dc-office-body .dc-docx-content table th {
-    border: 1px solid #d1d5db; padding: 8px 12px; font-size: 13px;
-  }
-  .dc-office-body .dc-docx-content table th {
-    background: #f3f4f6; font-weight: 700;
-  }
+  .dc-office-body .dc-docx-content table th { border: 1px solid #d1d5db; padding: 8px 12px; font-size: 13px; }
+  .dc-office-body .dc-docx-content table th { background: #f3f4f6; font-weight: 700; }
 
-  .dc-xlsx-body {
-    flex: 1; overflow: auto; background: #ffffff; padding: 24px;
-  }
+  .dc-xlsx-body { flex: 1; overflow: auto; background: #ffffff; padding: 24px; }
 
-  .dc-xlsx-table {
-    border-collapse: collapse; font-size: 12px;
-    font-family: 'Poppins', sans-serif; white-space: nowrap;
-  }
-
-  .dc-xlsx-table th {
-    background: #6366f1; color: #fff; padding: 8px 14px;
-    font-weight: 700; border: 1px solid #4f46e5; position: sticky; top: 0;
-  }
-
-  .dc-xlsx-table td {
-    padding: 7px 14px; border: 1px solid #e2e8f0; color: #1a1a1a;
-  }
-
+  .dc-xlsx-table { border-collapse: collapse; font-size: 12px; font-family: 'Poppins', sans-serif; white-space: nowrap; }
+  .dc-xlsx-table th { background: #6366f1; color: #fff; padding: 8px 14px; font-weight: 700; border: 1px solid #4f46e5; position: sticky; top: 0; }
+  .dc-xlsx-table td { padding: 7px 14px; border: 1px solid #e2e8f0; color: #1a1a1a; }
   .dc-xlsx-table tr:nth-child(even) td { background: #f8fafc; }
   .dc-xlsx-table tr:hover td { background: #ede9fe; }
 
@@ -1189,6 +1419,124 @@ const styles = `
     font-family: 'Poppins', sans-serif; text-align: center; padding: 40px;
   }
   .dc-no-preview-icon { font-size: 44px; opacity: 0.35; }
+
+  /* ─── RESPONSIVE ─────────────────────────────────────────────── */
+
+  /* Tablet: 481px – 768px */
+  @media (max-width: 768px) {
+    .dc-root { padding: 16px; }
+
+    .dc-header {
+      padding: 20px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+      border-radius: 16px;
+    }
+
+    .dc-header-left { gap: 12px; }
+
+    .dc-header-icon-box { width: 44px; height: 44px; border-radius: 12px; font-size: 18px; }
+
+    .dc-stats {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .dc-stat {
+      padding: 10px 12px;
+      border-radius: 12px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .dc-stat-icon { width: 30px; height: 30px; border-radius: 8px; font-size: 12px; }
+    .dc-stat-val { font-size: 16px; }
+
+    .dc-item { padding: 12px 14px; border-radius: 13px; gap: 10px; }
+
+    .dc-item-icon { width: 36px; height: 36px; border-radius: 9px; font-size: 14px; }
+
+    .dc-item-name { font-size: 12px; }
+
+    .dc-view-btn { padding: 8px 14px; font-size: 11px; border-radius: 9px; }
+
+    .dc-unlock-banner { font-size: 11px; padding: 9px 14px; border-radius: 10px; }
+
+    .dc-modal { width: 95vw; height: 92vh; border-radius: 16px; }
+  }
+
+  /* Phone: up to 480px */
+  @media (max-width: 480px) {
+    .dc-root { padding: 10px; }
+
+    .dc-inner { gap: 12px; }
+
+    .dc-header {
+      padding: 14px;
+      border-radius: 14px;
+      gap: 12px;
+    }
+
+    .dc-header-left { gap: 10px; }
+
+    .dc-header-icon-box { width: 38px; height: 38px; border-radius: 10px; font-size: 16px; }
+
+    .dc-badge { font-size: 9px; padding: 3px 8px; }
+
+    .dc-subtitle { font-size: 11px; }
+
+    .dc-stats {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+    }
+
+    .dc-stat {
+      padding: 8px 8px;
+      border-radius: 10px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+    }
+
+    .dc-stat-icon { width: 26px; height: 26px; border-radius: 7px; font-size: 11px; }
+    .dc-stat-val { font-size: 14px; }
+    .dc-stat-lbl { font-size: 9px; }
+
+    .dc-progress-bar-wrap { width: 48px; }
+
+    .dc-unlock-banner { font-size: 10px; padding: 8px 12px; flex-wrap: wrap; }
+
+    .dc-item { padding: 10px 12px; border-radius: 12px; gap: 8px; flex-wrap: nowrap; }
+
+    .dc-item-left { gap: 8px; min-width: 0; flex: 1; }
+
+    .dc-item-icon { width: 32px; height: 32px; border-radius: 8px; font-size: 13px; flex-shrink: 0; }
+
+    .dc-item-name { font-size: 11px; }
+
+    .dc-item-meta { gap: 5px; }
+    .dc-item-meta .dc-chip { font-size: 10px; padding: 1px 5px; }
+    .dc-category-chip { font-size: 10px; padding: 1px 5px; }
+    .dc-previewed-badge { font-size: 9px; }
+
+    .dc-view-btn { padding: 7px 10px; font-size: 10px; border-radius: 8px; gap: 4px; flex-shrink: 0; }
+
+    .dc-empty { padding: 40px 16px; font-size: 12px; }
+    .dc-empty-icon { font-size: 32px; }
+
+    .dc-modal { width: 98vw; height: 94vh; border-radius: 14px; }
+    .dc-modal-head { padding: 10px 14px; }
+    .dc-modal-name { font-size: 11px; }
+
+    .dc-office-body { padding: 20px 16px; }
+    .dc-office-body .dc-docx-content { font-size: 13px; }
+  }
 `;
 
 if (!document.getElementById("dc-styles")) {
@@ -1201,14 +1549,9 @@ if (!document.getElementById("dc-styles")) {
 /* ─── Load scripts dynamically ──────────────────────────────── */
 const loadScript = (src) =>
   new Promise((resolve, reject) => {
-    if (document.querySelector(`script[src="${src}"]`)) {
-      resolve();
-      return;
-    }
+    if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
     const s = document.createElement("script");
-    s.src = src;
-    s.onload = resolve;
-    s.onerror = reject;
+    s.src = src; s.onload = resolve; s.onerror = reject;
     document.head.appendChild(s);
   });
 
@@ -1218,9 +1561,7 @@ const getEmailFromToken = () => {
     const token = localStorage.getItem("lms_token");
     if (!token) return null;
     return JSON.parse(atob(token.split(".")[1])).sub;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 };
 
 const isDarkMode = () =>
@@ -1232,8 +1573,7 @@ const getViewMode = (originalName = "", contentType = "") => {
   const name = originalName.toLowerCase();
   const type = contentType.toLowerCase();
   if (name.endsWith(".pdf") || type.includes("pdf")) return "pdf";
-  if (name.match(/\.(png|jpg|jpeg|gif|webp)$/) || type.startsWith("image"))
-    return "image";
+  if (name.match(/\.(png|jpg|jpeg|gif|webp)$/) || type.startsWith("image")) return "image";
   if (name.endsWith(".txt") || type.includes("text/plain")) return "text";
   if (name.match(/\.(docx|doc)$/)) return "docx";
   if (name.match(/\.(xlsx|xls)$/)) return "xlsx";
@@ -1245,17 +1585,9 @@ const fileIconInfo = (originalName = "", contentType = "") => {
   const name = originalName.toLowerCase();
   const type = contentType.toLowerCase();
   if (name.endsWith(".pdf") || type.includes("pdf"))
-    return {
-      icon: <FaFilePdf />,
-      bg: "rgba(251,146,60,0.10)",
-      color: "#fb923c",
-    };
+    return { icon: <FaFilePdf />, bg: "rgba(251,146,60,0.10)", color: "#fb923c" };
   if (type.startsWith("image") || name.match(/\.(png|jpg|jpeg|gif|webp)$/))
-    return {
-      icon: <FaFileImage />,
-      bg: "rgba(52,211,153,0.10)",
-      color: "#34d399",
-    };
+    return { icon: <FaFileImage />, bg: "rgba(52,211,153,0.10)", color: "#34d399" };
   return { icon: <FaFile />, bg: "rgba(34,211,238,0.10)", color: "#22d3ee" };
 };
 
@@ -1267,9 +1599,7 @@ const DocxViewer = ({ arrayBuffer }) => {
   useEffect(() => {
     (async () => {
       try {
-        await loadScript(
-          "https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js",
-        );
+        await loadScript("https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js");
         const result = await window.mammoth.convertToHtml({ arrayBuffer });
         setHtml(result.value || "<p>No content found.</p>");
       } catch (e) {
@@ -1279,30 +1609,18 @@ const DocxViewer = ({ arrayBuffer }) => {
     })();
   }, [arrayBuffer]);
 
-  if (error)
-    return (
-      <div className="dc-no-preview">
-        <div className="dc-no-preview-icon">📄</div>
-        <p style={{ fontWeight: 700, margin: "0 0 6px", color: "#0f172a" }}>
-          {error}
-        </p>
-      </div>
-    );
+  if (error) return (
+    <div className="dc-no-preview">
+      <div className="dc-no-preview-icon">📄</div>
+      <p style={{ fontWeight: 700, margin: "0 0 6px", color: "#0f172a" }}>{error}</p>
+    </div>
+  );
 
-  if (!html)
-    return (
-      <div className="dc-loading">
-        <div className="dc-spinner" />
-        Rendering document…
-      </div>
-    );
+  if (!html) return <div className="dc-loading"><div className="dc-spinner" />Rendering document…</div>;
 
   return (
     <div className="dc-office-body">
-      <div
-        className="dc-docx-content"
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
+      <div className="dc-docx-content" dangerouslySetInnerHTML={{ __html: html }} />
     </div>
   );
 };
@@ -1317,21 +1635,14 @@ const XlsxViewer = ({ arrayBuffer }) => {
   useEffect(() => {
     (async () => {
       try {
-        await loadScript(
-          "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
-        );
+        await loadScript("https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js");
         const workbook = window.XLSX.read(arrayBuffer, { type: "array" });
         const names = workbook.SheetNames;
         const parsed = {};
         names.forEach((name) => {
-          parsed[name] = window.XLSX.utils.sheet_to_json(
-            workbook.Sheets[name],
-            { header: 1 },
-          );
+          parsed[name] = window.XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1 });
         });
-        setSheets(parsed);
-        setSheetNames(names);
-        setActiveSheet(names[0] || "");
+        setSheets(parsed); setSheetNames(names); setActiveSheet(names[0] || "");
       } catch (e) {
         console.error("XLSX render error:", e);
         setError("Could not render this spreadsheet.");
@@ -1339,95 +1650,45 @@ const XlsxViewer = ({ arrayBuffer }) => {
     })();
   }, [arrayBuffer]);
 
-  if (error)
-    return (
-      <div className="dc-no-preview">
-        <div className="dc-no-preview-icon">📊</div>
-        <p style={{ fontWeight: 700, margin: "0 0 6px", color: "#0f172a" }}>
-          {error}
-        </p>
-      </div>
-    );
+  if (error) return (
+    <div className="dc-no-preview">
+      <div className="dc-no-preview-icon">📊</div>
+      <p style={{ fontWeight: 700, margin: "0 0 6px", color: "#0f172a" }}>{error}</p>
+    </div>
+  );
 
-  if (!activeSheet)
-    return (
-      <div className="dc-loading">
-        <div className="dc-spinner" />
-        Rendering spreadsheet…
-      </div>
-    );
+  if (!activeSheet) return <div className="dc-loading"><div className="dc-spinner" />Rendering spreadsheet…</div>;
 
   const rows = sheets[activeSheet] || [];
   const headers = rows[0] || [];
   const dataRows = rows.slice(1);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-        overflow: "hidden",
-      }}
-    >
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       {sheetNames.length > 1 && (
         <div className="dc-xlsx-sheet-tabs">
           {sheetNames.map((name) => (
-            <button
-              key={name}
-              className={`dc-xlsx-tab${activeSheet === name ? " active" : ""}`}
-              onClick={() => setActiveSheet(name)}
-            >
-              {name}
-            </button>
+            <button key={name} className={`dc-xlsx-tab${activeSheet === name ? " active" : ""}`} onClick={() => setActiveSheet(name)}>{name}</button>
           ))}
         </div>
       )}
       <div className="dc-xlsx-body">
         <table className="dc-xlsx-table">
-          <thead>
-            <tr>
-              {headers.map((h, i) => (
-                <th key={i}>
-                  {h !== undefined && h !== null ? String(h) : ""}
-                </th>
-              ))}
-            </tr>
-          </thead>
+          <thead><tr>{headers.map((h, i) => <th key={i}>{h !== undefined && h !== null ? String(h) : ""}</th>)}</tr></thead>
           <tbody>
             {dataRows.map((row, ri) => (
-              <tr key={ri}>
-                {headers.map((_, ci) => (
-                  <td key={ci}>
-                    {row[ci] !== undefined && row[ci] !== null
-                      ? String(row[ci])
-                      : ""}
-                  </td>
-                ))}
-              </tr>
+              <tr key={ri}>{headers.map((_, ci) => <td key={ci}>{row[ci] !== undefined && row[ci] !== null ? String(row[ci]) : ""}</td>)}</tr>
             ))}
           </tbody>
         </table>
-        {dataRows.length === 0 && (
-          <p
-            style={{
-              color: "#64748b",
-              fontFamily: "'Poppins',sans-serif",
-              fontSize: 13,
-              textAlign: "center",
-              marginTop: 24,
-            }}
-          >
-            This sheet is empty.
-          </p>
-        )}
+        {dataRows.length === 0 && <p style={{ color: "#64748b", fontFamily: "'Poppins',sans-serif", fontSize: 13, textAlign: "center", marginTop: 24 }}>This sheet is empty.</p>}
       </div>
     </div>
   );
 };
 
 /* ─── PPTX Viewer ─────────────────────────────────────────── */
-const PptxViewer = ({ arrayBuffer, fileName }) => {
+const PptxViewer = ({ arrayBuffer }) => {
   const [slides, setSlides] = useState([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [error, setError] = useState("");
@@ -1435,45 +1696,24 @@ const PptxViewer = ({ arrayBuffer, fileName }) => {
   useEffect(() => {
     (async () => {
       try {
-        // Use JSZip to unzip the PPTX and extract slide text
-        await loadScript(
-          "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js",
-        );
-
+        await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js");
         const zip = await window.JSZip.loadAsync(arrayBuffer);
         const slideFiles = Object.keys(zip.files)
           .filter((f) => f.match(/^ppt\/slides\/slide\d+\.xml$/))
-          .sort((a, b) => {
-            const na = parseInt(a.match(/\d+/)[0]);
-            const nb = parseInt(b.match(/\d+/)[0]);
-            return na - nb;
-          });
+          .sort((a, b) => parseInt(a.match(/\d+/)[0]) - parseInt(b.match(/\d+/)[0]));
 
-        if (slideFiles.length === 0) {
-          setError("No slides found in this presentation.");
-          return;
-        }
+        if (slideFiles.length === 0) { setError("No slides found in this presentation."); return; }
 
         const parsedSlides = await Promise.all(
           slideFiles.map(async (slideFile) => {
             const xmlStr = await zip.files[slideFile].async("string");
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlStr, "application/xml");
-
-            // Extract all text runs
-            const textElements = xmlDoc.querySelectorAll("t");
+            const xmlDoc = new DOMParser().parseFromString(xmlStr, "application/xml");
             const texts = [];
-            textElements.forEach((el) => {
-              const text = el.textContent?.trim();
-              if (text) texts.push(text);
-            });
-
+            xmlDoc.querySelectorAll("t").forEach((el) => { const t = el.textContent?.trim(); if (t) texts.push(t); });
             return texts;
           }),
         );
-
-        setSlides(parsedSlides);
-        setCurrentSlide(0);
+        setSlides(parsedSlides); setCurrentSlide(0);
       } catch (e) {
         console.error("PPTX render error:", e);
         setError("Could not render this presentation.");
@@ -1481,183 +1721,42 @@ const PptxViewer = ({ arrayBuffer, fileName }) => {
     })();
   }, [arrayBuffer]);
 
-  if (error)
-    return (
-      <div className="dc-no-preview">
-        <div className="dc-no-preview-icon">📊</div>
-        <p style={{ fontWeight: 700, margin: "0 0 6px", color: "#0f172a" }}>
-          {error}
-        </p>
-      </div>
-    );
-
-  if (slides.length === 0)
-    return (
-      <div className="dc-loading">
-        <div className="dc-spinner" />
-        Rendering presentation…
-      </div>
-    );
+  if (error) return <div className="dc-no-preview"><div className="dc-no-preview-icon">📊</div><p style={{ fontWeight: 700, margin: "0 0 6px", color: "#0f172a" }}>{error}</p></div>;
+  if (slides.length === 0) return <div className="dc-loading"><div className="dc-spinner" />Rendering presentation…</div>;
 
   const slide = slides[currentSlide] || [];
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-        overflow: "hidden",
-        background: "#1e1e2e",
-      }}
-    >
-      {/* Slide area */}
-      <div
-        style={{
-          flex: 1,
-          overflow: "auto",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: 24,
-        }}
-      >
-        <div
-          style={{
-            width: "100%",
-            maxWidth: 720,
-            minHeight: 380,
-            background: "#ffffff",
-            borderRadius: 12,
-            boxShadow: "0 8px 40px rgba(0,0,0,0.4)",
-            padding: "40px 48px",
-            boxSizing: "border-box",
-            display: "flex",
-            flexDirection: "column",
-            gap: 12,
-          }}
-        >
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              color: "#6366f1",
-              fontFamily: "'Poppins',sans-serif",
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              marginBottom: 8,
-            }}
-          >
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden", background: "#1e1e2e" }}>
+      <div style={{ flex: 1, overflow: "auto", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <div style={{ width: "100%", maxWidth: 720, minHeight: 380, background: "#ffffff", borderRadius: 12, boxShadow: "0 8px 40px rgba(0,0,0,0.4)", padding: "40px 48px", boxSizing: "border-box", display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#6366f1", fontFamily: "'Poppins',sans-serif", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>
             Slide {currentSlide + 1} / {slides.length}
           </div>
           {slide.length === 0 ? (
-            <p
-              style={{
-                color: "#94a3b8",
-                fontFamily: "'Poppins',sans-serif",
-                fontSize: 14,
-              }}
-            >
-              (Empty slide or image-only content)
-            </p>
+            <p style={{ color: "#94a3b8", fontFamily: "'Poppins',sans-serif", fontSize: 14 }}>(Empty slide or image-only content)</p>
           ) : (
-            slide.map((text, i) => {
-              const isTitle = i === 0;
-              return (
-                <p
-                  key={i}
-                  style={{
-                    margin: 0,
-                    fontSize: isTitle ? 20 : 14,
-                    fontWeight: isTitle ? 700 : 400,
-                    color: isTitle ? "#1e1b4b" : "#374151",
-                    fontFamily: "'Poppins',sans-serif",
-                    lineHeight: 1.6,
-                  }}
-                >
-                  {isTitle ? text : `• ${text}`}
-                </p>
-              );
-            })
+            slide.map((text, i) => (
+              <p key={i} style={{ margin: 0, fontSize: i === 0 ? 20 : 14, fontWeight: i === 0 ? 700 : 400, color: i === 0 ? "#1e1b4b" : "#374151", fontFamily: "'Poppins',sans-serif", lineHeight: 1.6 }}>
+                {i === 0 ? text : `• ${text}`}
+              </p>
+            ))
           )}
         </div>
       </div>
-
-      {/* Navigation */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 12,
-          padding: "12px 20px",
-          background: "rgba(0,0,0,0.4)",
-          flexShrink: 0,
-        }}
-      >
-        <button
-          onClick={() => setCurrentSlide((p) => Math.max(0, p - 1))}
-          disabled={currentSlide === 0}
-          style={{
-            padding: "8px 20px",
-            borderRadius: 8,
-            border: "none",
-            background:
-              currentSlide === 0 ? "rgba(255,255,255,0.1)" : "#6366f1",
-            color: currentSlide === 0 ? "rgba(255,255,255,0.3)" : "#fff",
-            fontFamily: "'Poppins',sans-serif",
-            fontSize: 12,
-            fontWeight: 700,
-            cursor: currentSlide === 0 ? "not-allowed" : "pointer",
-            transition: "all 0.2s",
-          }}
-        >
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, padding: "12px 20px", background: "rgba(0,0,0,0.4)", flexShrink: 0 }}>
+        <button onClick={() => setCurrentSlide((p) => Math.max(0, p - 1))} disabled={currentSlide === 0}
+          style={{ padding: "8px 20px", borderRadius: 8, border: "none", background: currentSlide === 0 ? "rgba(255,255,255,0.1)" : "#6366f1", color: currentSlide === 0 ? "rgba(255,255,255,0.3)" : "#fff", fontFamily: "'Poppins',sans-serif", fontSize: 12, fontWeight: 700, cursor: currentSlide === 0 ? "not-allowed" : "pointer" }}>
           ← Prev
         </button>
         <div style={{ display: "flex", gap: 6 }}>
           {slides.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrentSlide(i)}
-              style={{
-                width: i === currentSlide ? 24 : 8,
-                height: 8,
-                borderRadius: 4,
-                border: "none",
-                background:
-                  i === currentSlide ? "#6366f1" : "rgba(255,255,255,0.3)",
-                cursor: "pointer",
-                transition: "all 0.2s",
-                padding: 0,
-              }}
-            />
+            <button key={i} onClick={() => setCurrentSlide(i)}
+              style={{ width: i === currentSlide ? 24 : 8, height: 8, borderRadius: 4, border: "none", background: i === currentSlide ? "#6366f1" : "rgba(255,255,255,0.3)", cursor: "pointer", transition: "all 0.2s", padding: 0 }} />
           ))}
         </div>
-        <button
-          onClick={() =>
-            setCurrentSlide((p) => Math.min(slides.length - 1, p + 1))
-          }
-          disabled={currentSlide === slides.length - 1}
-          style={{
-            padding: "8px 20px",
-            borderRadius: 8,
-            border: "none",
-            background:
-              currentSlide === slides.length - 1
-                ? "rgba(255,255,255,0.1)"
-                : "#6366f1",
-            color:
-              currentSlide === slides.length - 1
-                ? "rgba(255,255,255,0.3)"
-                : "#fff",
-            fontFamily: "'Poppins',sans-serif",
-            fontSize: 12,
-            fontWeight: 700,
-            cursor:
-              currentSlide === slides.length - 1 ? "not-allowed" : "pointer",
-            transition: "all 0.2s",
-          }}
-        >
+        <button onClick={() => setCurrentSlide((p) => Math.min(slides.length - 1, p + 1))} disabled={currentSlide === slides.length - 1}
+          style={{ padding: "8px 20px", borderRadius: 8, border: "none", background: currentSlide === slides.length - 1 ? "rgba(255,255,255,0.1)" : "#6366f1", color: currentSlide === slides.length - 1 ? "rgba(255,255,255,0.3)" : "#fff", fontFamily: "'Poppins',sans-serif", fontSize: 12, fontWeight: 700, cursor: currentSlide === slides.length - 1 ? "not-allowed" : "pointer" }}>
           Next →
         </button>
       </div>
@@ -1669,85 +1768,57 @@ const PptxViewer = ({ arrayBuffer, fileName }) => {
 const Documents = () => {
   const [docs, setDocs] = useState([]);
   const [preview, setPreview] = useState(null);
-
   const [downloadedFileIds, setDownloadedFileIds] = useState([]);
   const [downloadPercentage, setDownloadPercentage] = useState(0);
-
   const [dark, setDark] = useState(isDarkMode);
   const studentEmail = getEmailFromToken();
 
   useEffect(() => {
-    fileService
-      .getStudentFiles()
-      .then(async (res) => {
-        const data = res.data || [];
-        setDocs(data);
-        if (data.length > 0 && studentEmail) {
-          try {
-            const prog = await progressService.getFileProgress(
-              studentEmail,
-              data[0].batchId,
-            );
-            setDownloadedFileIds(prog.data.downloadedFileIds || []);
-            setDownloadPercentage(prog.data.downloadPercentage || 0);
-          } catch {
-            setDownloadedFileIds([]);
-            setDownloadPercentage(0);
-          }
+    fileService.getStudentFiles().then(async (res) => {
+      const data = res.data || [];
+      setDocs(data);
+      if (data.length > 0 && studentEmail) {
+        try {
+          const prog = await progressService.getFileProgress(studentEmail, data[0].batchId);
+          setDownloadedFileIds(prog.data.downloadedFileIds || []);
+          setDownloadPercentage(prog.data.downloadPercentage || 0);
+        } catch {
+          setDownloadedFileIds([]); setDownloadPercentage(0);
         }
-      })
-      .catch(console.error);
+      }
+    }).catch(console.error);
   }, []);
 
   useEffect(() => {
     const obs = new MutationObserver(() => setDark(isDarkMode()));
-    obs.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-    obs.observe(document.body, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    obs.observe(document.body, { attributes: true, attributeFilter: ["class"] });
     return () => obs.disconnect();
   }, []);
 
   const openPreview = async (file) => {
     try {
       const res = await fileService.viewFileBlob(file.id);
-      const contentType =
-        res.headers["content-type"] || "application/octet-stream";
+      const contentType = res.headers["content-type"] || "application/octet-stream";
       const mode = getViewMode(file.originalName, contentType);
 
-      // Mark progress for all file types
       if (studentEmail && file.batchId) {
         try {
-          const prog = await progressService.markFileDownloaded(
-            studentEmail,
-            file.batchId,
-            file.id,
-            docs.length,
-          );
+          const prog = await progressService.markFileDownloaded(studentEmail, file.batchId, file.id, docs.length);
           setDownloadedFileIds(prog.data.downloadedFileIds || []);
           setDownloadPercentage(prog.data.downloadPercentage || 0);
-        } catch (err) {
-          console.error("Mark progress failed", err);
-        }
+        } catch (err) { console.error("Mark progress failed", err); }
       }
 
-      // For office files (docx/xlsx/pptx) — pass raw arrayBuffer
       if (["docx", "xlsx", "pptx"].includes(mode)) {
         setPreview({ mode, arrayBuffer: res.data, name: file.originalName });
         return;
       }
 
-      // For pdf/image/text — create blob URL
       const blob = new Blob([res.data], { type: contentType });
       const url = URL.createObjectURL(blob);
       setPreview({ mode, url, name: file.originalName });
-    } catch {
-      alert("Could not open file. Please try again.");
-    }
+    } catch { alert("Could not open file. Please try again."); }
   };
 
   const closePreview = () => {
@@ -1755,14 +1826,13 @@ const Documents = () => {
     setPreview(null);
   };
 
-  const totalSizeKB = Math.round(
-    docs.reduce((acc, d) => acc + (d.size || 0), 0) / 1024,
-  );
+  const totalSizeKB = Math.round(docs.reduce((acc, d) => acc + (d.size || 0), 0) / 1024);
 
   return (
     <div className={`dc-root${dark ? " dc-dark" : ""}`}>
       <div className="dc-inner">
-        {/* ── Header ── */}
+
+        {/* ── Hero Header ── */}
         <div className="dc-header">
           <div className="dc-header-left">
             <div className="dc-header-icon-box">
@@ -1772,27 +1842,31 @@ const Documents = () => {
               <div className="dc-badge">
                 <FaFileAlt style={{ fontSize: 9 }} /> Documents
               </div>
-              <h1 className="dc-h1">Documents</h1>
-              <p className="dc-subtitle">
-                Access all study materials shared by your trainers
-              </p>
+              <h1 style={{
+                fontFamily: "'Poppins', sans-serif",
+                fontWeight: 700,
+                fontSize: "clamp(1.5rem, 3vw, 2.2rem)",
+                color: "#3B82F6",
+                margin: "0 0 6px",
+                lineHeight: 1.1,
+                letterSpacing: "-0.02em",
+              }}>
+                Documents
+              </h1>
+              <p className="dc-subtitle">Access all study materials shared by your trainers</p>
             </div>
           </div>
 
           <div className="dc-stats">
             <div className="dc-stat">
-              <div className="dc-stat-icon">
-                <FaFileAlt />
-              </div>
+              <div className="dc-stat-icon"><FaFileAlt /></div>
               <div>
                 <div className="dc-stat-val">{docs.length}</div>
                 <div className="dc-stat-lbl">Files</div>
               </div>
             </div>
             <div className="dc-stat">
-              <div className="dc-stat-icon">
-                <FaFile />
-              </div>
+              <div className="dc-stat-icon"><FaFile /></div>
               <div>
                 <div className="dc-stat-val">{totalSizeKB}</div>
                 <div className="dc-stat-lbl">Storage KB</div>
@@ -1800,19 +1874,12 @@ const Documents = () => {
             </div>
             {docs.length > 0 && (
               <div className="dc-stat">
-                <div className="dc-stat-icon">
-                  <FaCheckCircle />
-                </div>
+                <div className="dc-stat-icon"><FaCheckCircle /></div>
                 <div>
-                  <div className="dc-stat-val">
-                    {downloadedFileIds.length} / {docs.length}
-                  </div>
+                  <div className="dc-stat-val">{downloadedFileIds.length} / {docs.length}</div>
                   <div className="dc-stat-lbl">Previewed</div>
                   <div className="dc-progress-bar-wrap">
-                    <div
-                      className="dc-progress-bar"
-                      style={{ width: `${downloadPercentage}%` }}
-                    />
+                    <div className="dc-progress-bar" style={{ width: `${downloadPercentage}%` }} />
                   </div>
                 </div>
               </div>
@@ -1823,61 +1890,31 @@ const Documents = () => {
         {/* ── Banner ── */}
         {docs.length > 0 && (
           <div className="dc-unlock-banner">
-            🔓 Files are unlocked sequentially — preview each file to unlock the
-            next one
+            🔓 Files are unlocked sequentially — preview each file to unlock the next one
           </div>
         )}
 
         {/* ── List ── */}
         <div className="dc-list">
           {docs.map((d, index) => {
-            const { icon, bg, color } = fileIconInfo(
-              d.originalName,
-              d.contentType || "",
-            );
+            const { icon, bg, color } = fileIconInfo(d.originalName, d.contentType || "");
             const isPreviewed = downloadedFileIds.includes(d.id);
-            const prevPreviewed =
-              index === 0 || downloadedFileIds.includes(docs[index - 1]?.id);
+            const prevPreviewed = index === 0 || downloadedFileIds.includes(docs[index - 1]?.id);
             const isLocked = !isPreviewed && !prevPreviewed;
-
-            const btnLabel = isLocked
-              ? "🔒 Locked"
-              : isPreviewed
-                ? "View Again"
-                : "View";
+            const btnLabel = isLocked ? "🔒 Locked" : isPreviewed ? "View Again" : "View";
 
             return (
-              <div
-                key={d.id}
-                className={`dc-item${isPreviewed ? " previewed" : ""}${isLocked ? " locked" : ""}`}
-              >
+              <div key={d.id} className={`dc-item${isPreviewed ? " previewed" : ""}${isLocked ? " locked" : ""}`}>
                 <div className="dc-item-left">
-                  <div
-                    className="dc-item-icon"
-                    style={{ background: bg, color }}
-                  >
-                    {icon}
-                  </div>
+                  <div className="dc-item-icon" style={{ background: bg, color }}>{icon}</div>
                   <div style={{ minWidth: 0 }}>
-                    <p className="dc-item-name">
-                      {index + 1}. {d.originalName}
-                    </p>
+                    <p className="dc-item-name">{index + 1}. {d.originalName}</p>
                     <div className="dc-item-meta">
-                      <span className="dc-chip">
-                        {d.contentType ||
-                          d.originalName?.split(".").pop()?.toUpperCase() ||
-                          "FILE"}
-                      </span>
-                      <span className="dc-chip">
-                        {Math.round((d.size || 0) / 1024)} KB
-                      </span>
-                      {d.category && (
-                        <span className="dc-category-chip">{d.category}</span>
-                      )}
+                      <span className="dc-chip">{d.contentType || d.originalName?.split(".").pop()?.toUpperCase() || "FILE"}</span>
+                      <span className="dc-chip">{Math.round((d.size || 0) / 1024)} KB</span>
+                      {d.category && <span className="dc-category-chip">{d.category}</span>}
                       {isPreviewed && (
-                        <span className="dc-previewed-badge">
-                          <FaCheckCircle size={10} /> Previewed
-                        </span>
+                        <span className="dc-previewed-badge"><FaCheckCircle size={10} /> Previewed</span>
                       )}
                     </div>
                   </div>
@@ -1897,9 +1934,7 @@ const Documents = () => {
 
           {docs.length === 0 && (
             <div className="dc-empty">
-              <div className="dc-empty-icon">
-                <FaFileAlt />
-              </div>
+              <div className="dc-empty-icon"><FaFileAlt /></div>
               No documents available
             </div>
           )}
@@ -1912,88 +1947,33 @@ const Documents = () => {
           <div className="dc-modal">
             <div className="dc-modal-head">
               <p className="dc-modal-name">{preview.name}</p>
-              <button className="dc-modal-close" onClick={closePreview}>
-                <FaTimes />
-              </button>
+              <button className="dc-modal-close" onClick={closePreview}><FaTimes /></button>
             </div>
 
-            {/* PDF */}
             {preview.mode === "pdf" && (
               <div className="dc-modal-body">
-                <iframe
-                  src={preview.url}
-                  title="PDF"
-                  style={{ width: "100%", height: "100%", border: "none" }}
-                />
+                <iframe src={preview.url} title="PDF" style={{ width: "100%", height: "100%", border: "none" }} />
               </div>
             )}
-
-            {/* Image */}
             {preview.mode === "image" && (
               <div className="dc-modal-body">
-                <img
-                  src={preview.url}
-                  alt="Preview"
-                  style={{
-                    maxWidth: "100%",
-                    maxHeight: "100%",
-                    objectFit: "contain",
-                  }}
-                />
+                <img src={preview.url} alt="Preview" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
               </div>
             )}
-
-            {/* Plain text */}
             {preview.mode === "text" && (
               <div className="dc-modal-body">
-                <iframe
-                  src={preview.url}
-                  title="Text"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    border: "none",
-                    background: "#fff",
-                  }}
-                />
+                <iframe src={preview.url} title="Text" style={{ width: "100%", height: "100%", border: "none", background: "#fff" }} />
               </div>
             )}
-
-            {/* DOCX — mammoth renders to HTML */}
-            {preview.mode === "docx" && (
-              <DocxViewer arrayBuffer={preview.arrayBuffer} />
-            )}
-
-            {/* XLSX — SheetJS renders table */}
-            {preview.mode === "xlsx" && (
-              <XlsxViewer arrayBuffer={preview.arrayBuffer} />
-            )}
-
-            {/* PPTX — slide-by-slide text viewer */}
-            {preview.mode === "pptx" && (
-              <PptxViewer
-                arrayBuffer={preview.arrayBuffer}
-                fileName={preview.name}
-              />
-            )}
-
-            {/* Unknown / ZIP */}
+            {preview.mode === "docx" && <DocxViewer arrayBuffer={preview.arrayBuffer} />}
+            {preview.mode === "xlsx" && <XlsxViewer arrayBuffer={preview.arrayBuffer} />}
+            {preview.mode === "pptx" && <PptxViewer arrayBuffer={preview.arrayBuffer} fileName={preview.name} />}
             {preview.mode === "none" && (
               <div className="dc-modal-body">
                 <div className="dc-no-preview">
                   <div className="dc-no-preview-icon">📦</div>
-                  <p
-                    style={{
-                      fontWeight: 700,
-                      margin: "0 0 6px",
-                      color: "var(--dc-text)",
-                    }}
-                  >
-                    Preview not available
-                  </p>
-                  <p style={{ margin: 0, fontSize: 12 }}>
-                    This file type cannot be viewed in the browser.
-                  </p>
+                  <p style={{ fontWeight: 700, margin: "0 0 6px", color: "var(--dc-text)" }}>Preview not available</p>
+                  <p style={{ margin: 0, fontSize: 12 }}>This file type cannot be viewed in the browser.</p>
                 </div>
               </div>
             )}

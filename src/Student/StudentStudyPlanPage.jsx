@@ -1147,7 +1147,6 @@
 
 
 
-
 import { useState, useEffect, useRef } from "react";
 import {
   getStudentStudyPlans,
@@ -1296,7 +1295,7 @@ function Skeleton({ w = "100%", h = 16, r = 8, style = {} }) {
   );
 }
 
-/* ── useTheme hook — FIXED: returns { t, isDark } ── */
+/* ── useTheme hook ── */
 function useTheme() {
   const getIsDark = () =>
     typeof document !== "undefined" &&
@@ -1376,7 +1375,6 @@ const G = `
 `;
 
 export default function StudentStudyPlanPage() {
-  // ── FIXED: destructure { t, isDark } from useTheme ──
   const { t, isDark } = useTheme();
 
   const [batchId, setBatchId] = useState(null);
@@ -1573,7 +1571,6 @@ export default function StudentStudyPlanPage() {
     return total ? Math.round((done / total) * 100) : 0;
   };
 
-  /* ── Shared nav styles ── */
   const navStyle = {
     height: 56,
     background: t.navBg,
@@ -1589,7 +1586,6 @@ export default function StudentStudyPlanPage() {
     boxShadow: isDark ? "none" : "0 1px 3px rgba(0,0,0,0.06)",
   };
 
-  /* ── LOADING ── */
   if (batchLoading)
     return (
       <>
@@ -1622,7 +1618,6 @@ export default function StudentStudyPlanPage() {
       </>
     );
 
-  /* ── FLASH BAR ── */
   const FlashBar = () =>
     flashMsg ? (
       <div style={{
@@ -1637,7 +1632,7 @@ export default function StudentStudyPlanPage() {
     ) : null;
 
   /* ══════════════════════════════════════════════════════
-     COMPILER VIEW  (dark only — code editor)
+     COMPILER VIEW
   ══════════════════════════════════════════════════════ */
   if (view === "compiler") {
     const problem = problemDetail;
@@ -1650,7 +1645,6 @@ export default function StudentStudyPlanPage() {
         <style>{G + `.lang-tab:hover { background: rgba(255,255,255,0.06) !important; } .tc-pill { transition: transform 0.15s ease; } .tc-pill:hover { transform: scale(1.02); }`}</style>
         <div style={{ height: "100vh", background: "#0f172a", display: "flex", flexDirection: "column", fontFamily: "'Outfit', sans-serif", overflow: "hidden" }}>
 
-          {/* Judging overlay */}
           {(runLoading || submitLoading) && (
             <div style={{ position: "fixed", inset: 0, background: "rgba(10,15,30,0.88)", backdropFilter: "blur(10px)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <div style={{ background: "linear-gradient(145deg, #131c30 0%, #1a2540 100%)", border: "1px solid rgba(99,102,241,0.25)", borderRadius: 20, padding: "44px 60px", display: "flex", flexDirection: "column", alignItems: "center", gap: 18, boxShadow: "0 40px 80px rgba(0,0,0,0.6)" }}>
@@ -1669,7 +1663,6 @@ export default function StudentStudyPlanPage() {
             </div>
           )}
 
-          {/* Top Nav */}
           <div style={{ height: 52, background: "rgba(13,19,33,0.98)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", padding: "0 18px", gap: 10, flexShrink: 0, zIndex: 100 }}>
             <button className="btn-ghost" onClick={() => { setView("detail"); setCompilerItem(null); setProblemDetail(null); setJudgeResult(null); setCanMarkDone(false); }}
               style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.65)" }}>
@@ -1724,9 +1717,7 @@ export default function StudentStudyPlanPage() {
             </div>
           )}
 
-          {/* Editor Layout */}
           <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-            {/* LEFT: Problem Panel */}
             <div style={{ width: 370, flexShrink: 0, borderRight: "1px solid rgba(255,255,255,0.06)", overflowY: "auto", background: "#0d1424" }}>
               {problemLoading ? (
                 <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 14 }}>
@@ -1807,7 +1798,6 @@ export default function StudentStudyPlanPage() {
               )}
             </div>
 
-            {/* RIGHT: Code Editor + Output */}
             <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
               <div style={{ flex: 1, display: "flex", overflow: "hidden", background: "#020617" }}>
                 <div style={{ padding: "20px 12px 20px 16px", background: "#020617", borderRight: "1px solid rgba(255,255,255,0.04)", minWidth: 50, textAlign: "right", userSelect: "none", overflowY: "hidden", flexShrink: 0, fontFamily: "'JetBrains Mono', monospace" }}>
@@ -1821,7 +1811,6 @@ export default function StudentStudyPlanPage() {
                   spellCheck={false} autoCapitalize="none" autoCorrect="off" placeholder="// Start coding here…" />
               </div>
 
-              {/* Output panel */}
               <div style={{ height: 230, borderTop: "1px solid rgba(255,255,255,0.06)", background: "#0a1020", flexShrink: 0, display: "flex", flexDirection: "column" }}>
                 <div style={{ display: "flex", alignItems: "center", padding: "0 14px", borderBottom: "1px solid rgba(255,255,255,0.05)", height: 38, gap: 4, flexShrink: 0, background: "rgba(0,0,0,0.2)" }}>
                   {["output", "results"].map((tab) => (
@@ -1920,7 +1909,6 @@ export default function StudentStudyPlanPage() {
         <style>{G}</style>
         <div style={{ minHeight: "100vh", background: t.pageBg, fontFamily: "'Outfit', sans-serif", display: "flex", flexDirection: "column" }}>
 
-          {/* Top nav */}
           <div style={navStyle}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <div style={{ width: 30, height: 30, background: isDark ? "rgba(99,102,241,0.15)" : "#ede9fe", border: isDark ? "1px solid rgba(99,102,241,0.25)" : "1px solid #ddd6fe", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -2015,16 +2003,22 @@ export default function StudentStudyPlanPage() {
                         display: "flex",
                         flexDirection: "column",
                       }}>
-                      {/* Card banner */}
-                      <div style={{ height: 100, background: `linear-gradient(140deg, ${color}d0 0%, ${color}80 100%)`, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 22px", position: "relative", overflow: "hidden" }}>
-                        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 20% 50%, rgba(255,255,255,0.14) 0%, transparent 65%)" }} />
-                        <div style={{ position: "relative", fontSize: 40, lineHeight: 1, filter: "drop-shadow(0 3px 8px rgba(0,0,0,0.25))" }}>{plan.icon || "📘"}</div>
+
+                      {/* ── Card banner — FIXED: solid color, no washed-out transparency ── */}
+                      <div style={{
+                        height: 100,
+                        background: `linear-gradient(140deg, ${color} 0%, ${color}cc 100%)`,
+                        display: "flex", alignItems: "center", justifyContent: "space-between",
+                        padding: "0 22px", position: "relative", overflow: "hidden",
+                      }}>
+                        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 20% 50%, rgba(255,255,255,0.18) 0%, transparent 65%)" }} />
+                        <div style={{ position: "relative", fontSize: 40, lineHeight: 1, filter: "drop-shadow(0 3px 8px rgba(0,0,0,0.3))" }}>{plan.icon || "📘"}</div>
                         <div style={{ position: "relative" }}>
                           <ArcProgress pct={pct} size={68} color="rgba(255,255,255,0.95)" />
                         </div>
                       </div>
 
-                      {/* Card body — FIXED: explicit bg from theme token */}
+                      {/* Card body */}
                       <div style={{ padding: "16px 20px 14px", flex: 1, background: t.cardBg }}>
                         <div style={{ fontSize: 15, fontWeight: 800, color: t.text, marginBottom: 5, lineHeight: 1.25 }}>{plan.title}</div>
                         {plan.description && (
@@ -2053,7 +2047,7 @@ export default function StudentStudyPlanPage() {
                         </div>
                       </div>
 
-                      {/* Card footer — FIXED: explicit bg from theme token */}
+                      {/* Card footer */}
                       <div style={{ padding: "10px 20px", borderTop: `1px solid ${t.divider}`, background: t.cardBg }}>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                           <span style={{ fontSize: 12, color: t.textMuted, fontWeight: 500 }}>
@@ -2087,7 +2081,6 @@ export default function StudentStudyPlanPage() {
       <style>{G + `.solve-btn { transition: all 0.16s ease; } .solve-btn:hover { filter: brightness(1.1); transform: translateY(-1px); } .solve-btn:active { transform: scale(0.97); }`}</style>
       <div style={{ minHeight: "100vh", background: t.pageBg, fontFamily: "'Outfit', sans-serif", display: "flex", flexDirection: "column" }}>
 
-        {/* Top nav */}
         <div style={navStyle}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <button className="btn-ghost" onClick={() => { setView("list"); setSelectedPlan(null); }}
@@ -2123,15 +2116,20 @@ export default function StudentStudyPlanPage() {
           </div>
         ) : (
           <div style={{ flex: 1, paddingBottom: 80 }}>
-            {/* Hero */}
-            <div style={{ background: `linear-gradient(145deg, ${planColor}c0 0%, ${planColor}70 40%, ${isDark ? "rgba(15,23,42,0)" : "rgba(248,250,252,0)"} 100%)`, position: "relative", overflow: "hidden", padding: "44px 44px 52px" }}>
-              <div style={{ position: "absolute", right: -60, top: -60, width: 280, height: 280, background: `${planColor}15`, borderRadius: "50%", filter: "blur(40px)" }} />
+
+            {/* ── Hero — FIXED: solid color background, no washed-out transparency ── */}
+            <div style={{
+              background: `linear-gradient(145deg, ${planColor} 0%, ${planColor}dd 60%, ${planColor}99 100%)`,
+              position: "relative", overflow: "hidden", padding: "44px 44px 52px",
+            }}>
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0) 60%)" }} />
+              <div style={{ position: "absolute", right: -60, top: -60, width: 280, height: 280, background: "rgba(255,255,255,0.08)", borderRadius: "50%", filter: "blur(40px)" }} />
               <div style={{ position: "relative", maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "flex-start", gap: 28, justifyContent: "space-between" }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 50, marginBottom: 14, filter: "drop-shadow(0 5px 12px rgba(0,0,0,0.3))", lineHeight: 1 }}>{plan.icon || "📘"}</div>
-                  <h1 style={{ fontSize: 30, fontWeight: 900, color: "#f8fafc", marginBottom: 8, lineHeight: 1.1, letterSpacing: "-0.02em", textShadow: "0 2px 12px rgba(0,0,0,0.3)" }}>{plan.title}</h1>
+                  <h1 style={{ fontSize: 30, fontWeight: 900, color: "#fff", marginBottom: 8, lineHeight: 1.1, letterSpacing: "-0.02em", textShadow: "0 2px 12px rgba(0,0,0,0.3)" }}>{plan.title}</h1>
                   {plan.description && (
-                    <p style={{ fontSize: 13.5, color: "rgba(255,255,255,0.65)", marginBottom: 18, lineHeight: 1.65, maxWidth: 520 }}>{plan.description}</p>
+                    <p style={{ fontSize: 13.5, color: "rgba(255,255,255,0.75)", marginBottom: 18, lineHeight: 1.65, maxWidth: 520 }}>{plan.description}</p>
                   )}
                   <div style={{ display: "flex", gap: 9, flexWrap: "wrap" }}>
                     {[
@@ -2139,7 +2137,7 @@ export default function StudentStudyPlanPage() {
                       plan.dueDate && { icon: <Calendar size={12} />, label: `Due ${new Date(plan.dueDate).toLocaleDateString()}` },
                       { icon: overallPct === 100 ? <Check size={12} /> : <FileText size={12} />, label: overallPct === 100 ? "Completed" : `${overallPct}% done`, green: overallPct === 100 },
                     ].filter(Boolean).map((tag, i) => (
-                      <span key={i} style={{ fontSize: 12, fontWeight: 700, background: tag.green ? "rgba(34,197,94,0.2)" : "rgba(255,255,255,0.12)", backdropFilter: "blur(8px)", color: tag.green ? "#22c55e" : "#fff", borderRadius: 20, padding: "4px 12px", border: `1px solid ${tag.green ? "rgba(34,197,94,0.3)" : "rgba(255,255,255,0.18)"}`, display: "flex", alignItems: "center", gap: 5 }}>
+                      <span key={i} style={{ fontSize: 12, fontWeight: 700, background: tag.green ? "rgba(34,197,94,0.25)" : "rgba(255,255,255,0.18)", backdropFilter: "blur(8px)", color: tag.green ? "#22c55e" : "#fff", borderRadius: 20, padding: "4px 12px", border: `1px solid ${tag.green ? "rgba(34,197,94,0.4)" : "rgba(255,255,255,0.3)"}`, display: "flex", alignItems: "center", gap: 5 }}>
                         {tag.icon} {tag.label}
                       </span>
                     ))}
@@ -2147,7 +2145,7 @@ export default function StudentStudyPlanPage() {
                 </div>
                 <div style={{ textAlign: "center", flexShrink: 0 }}>
                   <ArcProgress pct={overallPct} size={100} color="rgba(255,255,255,0.95)" />
-                  <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 10, marginTop: 7, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>Overall Progress</div>
+                  <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 10, marginTop: 7, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>Overall Progress</div>
                 </div>
               </div>
             </div>
@@ -2157,9 +2155,7 @@ export default function StudentStudyPlanPage() {
               <div style={{ height: "100%", background: `linear-gradient(90deg, ${planColor}, ${planColor}80)`, width: `${overallPct}%`, transition: "width 0.9s cubic-bezier(0.4,0,0.2,1)", boxShadow: `0 0 10px ${planColor}60` }} />
             </div>
 
-            {/* Content */}
             <div style={{ maxWidth: 960, margin: "0 auto", padding: "0 36px" }}>
-              {/* Info banner */}
               <div style={{ background: isDark ? "rgba(99,102,241,0.06)" : "#f5f3ff", border: isDark ? "1px solid rgba(99,102,241,0.14)" : "1px solid #ddd6fe", borderRadius: 10, padding: "12px 16px", marginTop: 24, marginBottom: 28, fontSize: 13, lineHeight: 1.55 }}>
                 <span style={{ fontWeight: 700, color: "#7c3aed" }}>💡 How it works · </span>
                 <span style={{ color: t.textSub }}>
@@ -2167,7 +2163,6 @@ export default function StudentStudyPlanPage() {
                 </span>
               </div>
 
-              {/* Sections */}
               {!plan.sections || plan.sections.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "70px 0", display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
                   <div style={{ width: 60, height: 60, background: isDark ? "rgba(99,102,241,0.08)" : "#ede9fe", border: isDark ? "1px solid rgba(99,102,241,0.15)" : "1px solid #ddd6fe", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -2186,7 +2181,6 @@ export default function StudentStudyPlanPage() {
                     return (
                       <div key={section.id} className="fade-up"
                         style={{ animationDelay: `${si * 0.06}s`, background: t.cardBg, border: `1px solid ${t.cardBorder}`, borderRadius: 14, overflow: "hidden", boxShadow: isDark ? "0 4px 18px rgba(0,0,0,0.2)" : "0 2px 10px rgba(0,0,0,0.05)" }}>
-                        {/* Section header */}
                         <div className="section-header-row" onClick={() => setExpandedSection(isOpen ? null : section.id)}
                           style={{ borderLeft: `3px solid ${isOpen ? planColor : "transparent"}`, borderBottom: isOpen ? `1px solid ${t.divider}` : "none", background: t.cardBg }}>
                           <div style={{ flex: 1 }}>
@@ -2206,7 +2200,6 @@ export default function StudentStudyPlanPage() {
                           </div>
                         </div>
 
-                        {/* Items */}
                         {isOpen && (
                           <div style={{ background: t.cardBg }}>
                             {!section.items || section.items.length === 0 ? (
@@ -2253,7 +2246,6 @@ export default function StudentStudyPlanPage() {
                                 );
                               })
                             )}
-                            {/* Section progress bar */}
                             <div style={{ height: 3, background: isDark ? "rgba(255,255,255,0.04)" : "#e2e8f0" }}>
                               <div style={{ height: "100%", background: planColor, width: `${sPct}%`, transition: "width 0.6s ease", boxShadow: `0 0 6px ${planColor}50` }} />
                             </div>

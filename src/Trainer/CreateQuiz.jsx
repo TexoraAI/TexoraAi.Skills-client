@@ -407,17 +407,6 @@ const handleFileChosen = async (file) => {
 
   return (
     <PageShell t={t}>
-      {/* <PageHero
-        t={t} isDark={isDark} icon={ClipboardList} badge="Assessment Builder"
-        title="Quiz Builder" subtitle="Create quizzes with multiple choice questions for your batches." color="#22d3ee"
-        right={
-          <button onClick={() => navigate("/trainer/my-quizzes")}
-            style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 16px", borderRadius: 12, cursor: "pointer", background: t.actBg, border: `1px solid ${t.border}`, color: t.textSub, fontSize: 12, fontWeight: 600, fontFamily: "'Poppins',sans-serif", transition: "all 0.2s" }}>
-            <ClipboardCheck size={14} /> My Quizzes
-          </button>
-        }
-      /> */}
-
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {PANELS.map((key) => {
           const meta   = panelMeta[key];
@@ -653,3 +642,17 @@ const handleFileChosen = async (file) => {
 };
 
 export default CreateQuiz;
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -56,16 +56,21 @@ const ExploreFreeServices  = lazyLoad(() => import("./pages/Landing/ExploreFreeS
 const LMSHomepage          = lazyLoad(() => import("./pages/Landing/LMSHomepage"));
 const SyllabusPage         = lazyLoad(() => import("./pages/Landing/Syllabus.jsx"));
 const Watchnow             = lazyLoad(() => import("./pages/Landing/Watchnow"));
+const Schoolclass          = lazyLoad(() => import("./pages/Landing/Schoolclass"));
 
+/* ================= SUBJECTS ================= */
+const Class9Subjects       = lazyLoad(() => import("./pages/Landing/Subjects/Class9Subjects"));
+const Class9Math           = lazyLoad(() => import("./pages/Landing/Subjects/Class9Math"));
+const Class9AI = lazyLoad(() => import("./pages/Landing/Subjects/Class9AI"));
 /* ================= COMPANY ================= */
 const AboutTexoraSkills = lazyLoad(() => import("./pages/About/AboutTexoraSkills"));
 const Careers           = lazyLoad(() => import("./pages/Company/Careers"));
 const PrivacyPolicy     = lazyLoad(() => import("./pages/Company/PrivacyPolicy"));
 const TermsOfService    = lazyLoad(() => import("./pages/Company/TermsOfService"));
 const ContactUs         = lazyLoad(() => import("./pages/Company/ContactUs"));
-const Pricing = lazyLoad(() => import("./pages/Company/Pricing"));
-const FAQ = lazyLoad(() => import("./pages/Company/FAQ"));
-const HelpCenter = lazyLoad(() => import("./pages/Company/HelpCenter"));
+const Pricing           = lazyLoad(() => import("./pages/Company/Pricing"));
+const FAQ               = lazyLoad(() => import("./pages/Company/FAQ"));
+const HelpCenter        = lazyLoad(() => import("./pages/Company/HelpCenter"));
 /* ================= COMMON ================= */
 const NotificationsPage = lazyLoad(() => import("./pages/NotificationsPage"));
 const ProfilePage       = lazyLoad(() => import("./pages/ProfilePage"));
@@ -135,14 +140,10 @@ const StartLiveSession      = lazyLoad(() => import("./Trainer/StartLiveSession"
 const TrainerLiveClasses    = lazyLoad(() => import("./Trainer/TrainerLiveClasses"));
 const UploadRecordedVideo   = lazyLoad(() => import("./Trainer/UploadRecordedVideo"));
 const TrainerJoinCall       = lazyLoad(() => import("./Trainer/TrainerJoinCall"));
-const TrainerFeedback = lazyLoad(() => import("./Trainer/Trainerfeedback.jsx"));
-const TrainerSkillMap      = lazyLoad(() => import("./Trainer/TrainerSkillMap.jsx"));
-const TrainerCompilerPage = lazyLoad(
-  () => import("./Trainer/TrainerCompilerPage.jsx"),
-);
-const TrainerStudyPlanPage = lazyLoad(
-  () => import("./Trainer/TrainerStudyPlanPage.jsx"),
-);
+const TrainerFeedback       = lazyLoad(() => import("./Trainer/Trainerfeedback.jsx"));
+const TrainerSkillMap       = lazyLoad(() => import("./Trainer/TrainerSkillMap.jsx"));
+const TrainerCompilerPage   = lazyLoad(() => import("./Trainer/TrainerCompilerPage.jsx"),);
+const TrainerStudyPlanPage  = lazyLoad (() => import("./Trainer/TrainerStudyPlanPage.jsx"),);
 /* ================= ADMIN ================= */
 const AdminBatches              = lazyLoad(() => import("./Admin/AdminBatches"));
 const AdminDashboard            = lazyLoad(() => import("./Admin/AdminDashboard"));
@@ -237,13 +238,19 @@ useEffect(() => {
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>
 
-            {/* ================= PUBLIC ================= */}
+          {/* ================= LANDING ================= */}
             <Route path="/" element={<LMSHomepage theme={theme} toggleTheme={() => setTheme((prev) => (prev === "dark" ? "light" : "dark"))} />} />
             <Route path="/explore-programs" element={<ExploreFreeServices />} />
             <Route path="/watch-demo/:videoId" element={<Watchnow />} />
             <Route path="/course/:id" element={<CoursePreview />} />
             <Route path="/course-details" element={<CourseDetail />} />
             <Route path="/syllabus" element={<SyllabusPage />} />
+            <Route path="/school-class" element={<Schoolclass />} />
+
+            {/* ================= CLASS 9 ================= */}
+            <Route path="/school-class/9" element={<Class9Subjects />} />
+            <Route path="/school-class/9/math" element={<Class9Math />} />
+            <Route path="/school-class/9/ai" element={<Class9AI />} />
               {/* ================= pages/PUBLIC ================= */}
               <Route path="/public/book-session/:sessionId" element={<PublicBooking />} />
             <Route path="/public/join-session/:token" element={<PublicJoinSession />} />

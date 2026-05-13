@@ -545,13 +545,22 @@ export default function LMSHomepage({ theme, toggleTheme }) {
               </span>
             </div>
 
-            <div className="hidden lg:flex items-center gap-8">
+            <div className="hidden lg:flex items-center">
               {navLinks.map(link => (
-                <a key={link.text} href={link.href} className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors">{link.text}</a>
+                <a key={link.text} href={link.href} className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-[18px] py-2 whitespace-nowrap">{link.text}</a>
               ))}
-              <Button variant="ghost" onClick={() => navigate("/explore-programs")} className="font-medium text-[#1E293B] dark:text-gray-300 hover:text-[#F97316]">
+              <button
+                onClick={() => navigate("/explore-programs")}
+                className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-[18px] py-2 whitespace-nowrap bg-transparent border-none cursor-pointer"
+              >
                 Free Services
-              </Button>
+              </button>
+              <button
+                onClick={() => navigate("/school-class")}
+                className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-[18px] py-2 whitespace-nowrap bg-transparent border-none cursor-pointer"
+              >
+                School Programs
+              </button>
             </div>
 
             <div className="flex items-center gap-4">
@@ -619,7 +628,18 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                     {navLinks.map(link => (
                       <a key={link.text} href={link.href} className="text-lg font-medium hover:text-[#F97316] transition-colors" onClick={() => setMobileMenuOpen(false)}>{link.text}</a>
                     ))}
-                    <Button variant="ghost" onClick={() => { navigate("/explore-programs"); setMobileMenuOpen(false); }} className="justify-start text-lg font-medium">Free Services</Button>
+                    <button
+                      onClick={() => { navigate("/explore-programs"); setMobileMenuOpen(false); }}
+                      className="text-left text-lg font-medium hover:text-[#F97316] transition-colors bg-transparent border-none cursor-pointer"
+                    >
+                      Free Services
+                    </button>
+                    <button
+                      onClick={() => { navigate("/school-class"); setMobileMenuOpen(false); }}
+                      className="text-left text-lg font-medium hover:text-[#F97316] transition-colors bg-transparent border-none cursor-pointer"
+                    >
+                      School Programs
+                    </button>
                     <Separator className="my-4" />
                     {user ? (
                       <>
@@ -641,7 +661,6 @@ export default function LMSHomepage({ theme, toggleTheme }) {
           </div>
         </div>
       </nav>
-
       {/* ── Hero ── */}
       <section className="pt-32 pb-24 px-6 bg-[#F6EDE6] dark:bg-black relative overflow-hidden">
         <div className="absolute -top-32 left-[10%] w-[600px] h-[600px] bg-[#F97316]/8 dark:bg-[#F97316]/5 rounded-full blur-[120px] pointer-events-none" />

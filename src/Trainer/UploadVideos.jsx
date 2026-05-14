@@ -2427,14 +2427,13 @@ const TEXT_COLORS = [
 
 /* ─────────────────── RICH DESCRIPTION EDITOR ─────────────────── */
 const RichDescriptionEditor = ({ value, onChange, c }) => {
-  const [showColorPicker, setShowColorPicker] = useState(false); // "text" | false
+  const [showColorPicker, setShowColorPicker] = useState(false);
   const [activeFormats, setActiveFormats] = useState({ bold: false, italic: false, underline: false, strike: false, h1: false, h2: false });
   const [selectedTextColor, setSelectedTextColor] = useState("default");
 
   const colorPickerRef = useRef(null);
   const textareaRef    = useRef(null);
 
-  /* Close text-color popover on outside click */
   useEffect(() => {
     const handler = (e) => {
       if (colorPickerRef.current && !colorPickerRef.current.contains(e.target)) {
@@ -2445,15 +2444,8 @@ const RichDescriptionEditor = ({ value, onChange, c }) => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const handleChange = (e) => {
-    onChange(e.target.value);
-  };
-
-  const toggleFormat = (fmt) => {
-    setActiveFormats((p) => ({ ...p, [fmt]: !p[fmt] }));
-  };
-
-  /* Compute text color */
+  const handleChange = (e) => { onChange(e.target.value); };
+  const toggleFormat = (fmt) => { setActiveFormats((p) => ({ ...p, [fmt]: !p[fmt] })); };
   const getTextStyle = () => {
     if (selectedTextColor !== "default") return { color: selectedTextColor };
     return { color: c.textPrimary };
@@ -2476,7 +2468,6 @@ const RichDescriptionEditor = ({ value, onChange, c }) => {
       className="uv-note-editor-wrap"
       style={{ border: `1px solid ${c.inputBorder}`, borderRadius: 6, background: c.inputBg }}
     >
-      {/* ── Row 1: Heading + Text formatting ── */}
       <div className="uv-note-toolbar" style={{ borderBottomColor: c.divider }}>
         <ToolBtn active={activeFormats.h1} onClick={() => toggleFormat("h1")} title="Heading 1">
           <span style={{ fontSize: 12, fontWeight: 700, fontFamily: FF }}>H1</span>
@@ -2505,7 +2496,6 @@ const RichDescriptionEditor = ({ value, onChange, c }) => {
 
         <div className="uv-note-toolbar-sep" style={{ background: c.divider }} />
 
-        {/* Text color button */}
         <div style={{ position: "relative" }} ref={colorPickerRef}>
           <button
             type="button"
@@ -2520,22 +2510,8 @@ const RichDescriptionEditor = ({ value, onChange, c }) => {
             </div>
           </button>
 
-          {/* Text color popover */}
           {showColorPicker === "text" && (
-            <div
-              style={{
-                position: "absolute",
-                zIndex: 99999,
-                background: c.cardBg,
-                borderRadius: 8,
-                boxShadow: "0 4px 24px rgba(0,0,0,0.18)",
-                padding: "12px 14px",
-                minWidth: 280,
-                top: "100%",
-                left: 0,
-                border: `1px solid ${c.cardBorder}`,
-              }}
-            >
+            <div style={{ position: "absolute", zIndex: 99999, background: c.cardBg, borderRadius: 8, boxShadow: "0 4px 24px rgba(0,0,0,0.18)", padding: "12px 14px", minWidth: 280, top: "100%", left: 0, border: `1px solid ${c.cardBorder}` }}>
               <div style={{ fontSize: 11, fontWeight: 600, color: c.textSub, fontFamily: FF, marginBottom: 8, textTransform: "uppercase", letterSpacing: ".5px" }}>Text Color</div>
               <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                 {TEXT_COLORS.map((col) => (
@@ -2543,22 +2519,7 @@ const RichDescriptionEditor = ({ value, onChange, c }) => {
                     key={col.value}
                     title={col.label}
                     onClick={() => { setSelectedTextColor(col.value); setShowColorPicker(false); }}
-                    style={{
-                      width: 22,
-                      height: 22,
-                      borderRadius: "50%",
-                      cursor: "pointer",
-                      background: col.color,
-                      border: col.border
-                        ? `2px solid ${col.border}`
-                        : selectedTextColor === col.value
-                          ? `2px solid ${c.accent}`
-                          : "2px solid transparent",
-                      boxShadow: col.value === "default" ? "none" : "inset 0 0 0 1px rgba(0,0,0,0.08)",
-                      transform: selectedTextColor === col.value ? "scale(1.1)" : "scale(1)",
-                      transition: "transform 0.15s, border-color 0.15s",
-                      flexShrink: 0,
-                    }}
+                    style={{ width: 22, height: 22, borderRadius: "50%", cursor: "pointer", background: col.color, border: col.border ? `2px solid ${col.border}` : selectedTextColor === col.value ? `2px solid ${c.accent}` : "2px solid transparent", boxShadow: col.value === "default" ? "none" : "inset 0 0 0 1px rgba(0,0,0,0.08)", transform: selectedTextColor === col.value ? "scale(1.1)" : "scale(1)", transition: "transform 0.15s, border-color 0.15s", flexShrink: 0 }}
                   />
                 ))}
               </div>
@@ -2566,7 +2527,6 @@ const RichDescriptionEditor = ({ value, onChange, c }) => {
           )}
         </div>
 
-        {/* Pin */}
         <div style={{ marginLeft: "auto" }}>
           <ToolBtn title="Pin note">
             <Pin size={14} />
@@ -2574,7 +2534,6 @@ const RichDescriptionEditor = ({ value, onChange, c }) => {
         </div>
       </div>
 
-      {/* ── Textarea ── */}
       <textarea
         ref={textareaRef}
         rows={4}
@@ -2619,41 +2578,6 @@ const StepDetails = ({
 }) => (
   <div className="uv-step1-wrap">
 
-    {/* ── RIGHT: sticky preview sidebar (moves to top on mobile) ── */}
-    <div className="uv-step1-sidebar">
-      <div style={{ position: "sticky", top: 16 }}>
-        <div style={{ borderRadius: 4, overflow: "hidden", marginBottom: 12, background: "#000", aspectRatio: "16/9" }}>
-          <VideoPreviewPlayer
-            file={file}
-            videoUrl={videoType === "url" ? videoUrl : ""}
-            style={{ borderRadius: 0 }}
-          />
-        </div>
-        {(file || videoUrl) && (
-          <div style={{ fontSize: 12, color: c.textSub, fontFamily: FF, marginBottom: 10 }}>
-            <div style={{ fontWeight: 600, color: c.textPrimary, marginBottom: 3, fontSize: 12 }}>
-              {videoType === "url" ? "Video URL" : "Video link"}
-            </div>
-            <div style={{ color: c.accent, wordBreak: "break-all", cursor: "pointer", fontSize: 11 }}>
-              {videoType === "url" ? (videoUrl || "Enter URL above") : "Upload to get link"}
-            </div>
-          </div>
-        )}
-        <div style={{ borderTop: `1px solid ${c.divider}`, paddingTop: 10 }}>
-          <div style={{ fontSize: 12, color: c.textSub, fontFamily: FF, marginBottom: 5 }}>
-            <span style={{ fontWeight: 600, color: c.textPrimary }}>
-              {videoType === "url" ? "Source: " : "Filename: "}
-            </span>
-            {videoType === "url" ? (videoUrl ? "URL" : "—") : (file?.name ?? "—")}
-          </div>
-          <div style={{ fontSize: 12, color: c.textSub, fontFamily: FF }}>
-            <span style={{ fontWeight: 600, color: c.textPrimary }}>Size: </span>
-            {file ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : videoType === "url" && videoUrl ? "External" : "—"}
-          </div>
-        </div>
-      </div>
-    </div>
-
     {/* ── LEFT: main form ── */}
     <div className="uv-step1-form">
       <SecTitle title="Details" c={c} />
@@ -2682,7 +2606,6 @@ const StepDetails = ({
         <div style={{ fontSize: 11, color: c.textMuted, textAlign: "right", marginTop: 4, fontFamily: FF }}>{title.length}/100</div>
       </div>
 
-      {/* ── Rich Description Editor ── */}
       <div style={{ marginBottom: 14 }}>
         <label style={lbl(c)}>Description</label>
         <RichDescriptionEditor value={shortDesc} onChange={setShortDesc} c={c} />
@@ -2766,6 +2689,42 @@ const StepDetails = ({
         </div>
       </div>
     </div>
+
+    {/* ── RIGHT: sticky preview sidebar (moves to top on mobile) ── */}
+    <div className="uv-step1-sidebar">
+      <div style={{ position: "sticky", top: 16 }}>
+        <div style={{ borderRadius: 4, overflow: "hidden", marginBottom: 12, background: "#000", aspectRatio: "16/9" }}>
+          <VideoPreviewPlayer
+            file={file}
+            videoUrl={videoType === "url" ? videoUrl : ""}
+            style={{ borderRadius: 0 }}
+          />
+        </div>
+        {(file || videoUrl) && (
+          <div style={{ fontSize: 12, color: c.textSub, fontFamily: FF, marginBottom: 10 }}>
+            <div style={{ fontWeight: 600, color: c.textPrimary, marginBottom: 3, fontSize: 12 }}>
+              {videoType === "url" ? "Video URL" : "Video link"}
+            </div>
+            <div style={{ color: c.accent, wordBreak: "break-all", cursor: "pointer", fontSize: 11 }}>
+              {videoType === "url" ? (videoUrl || "Enter URL above") : "Upload to get link"}
+            </div>
+          </div>
+        )}
+        <div style={{ borderTop: `1px solid ${c.divider}`, paddingTop: 10 }}>
+          <div style={{ fontSize: 12, color: c.textSub, fontFamily: FF, marginBottom: 5 }}>
+            <span style={{ fontWeight: 600, color: c.textPrimary }}>
+              {videoType === "url" ? "Source: " : "Filename: "}
+            </span>
+            {videoType === "url" ? (videoUrl ? "URL" : "—") : (file?.name ?? "—")}
+          </div>
+          <div style={{ fontSize: 12, color: c.textSub, fontFamily: FF }}>
+            <span style={{ fontWeight: 600, color: c.textPrimary }}>Size: </span>
+            {file ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : videoType === "url" && videoUrl ? "External" : "—"}
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 );
 
@@ -2984,7 +2943,6 @@ const UploadVideoPanel = ({ t, isDark }) => {
     })();
   }, []);
 
-  /* ── Batch options: prepend "Default Segment" ── */
   const batchOptions = [
     { value: "default_segment", label: "Default Segment (No Batch)" },
     ...batches.map((b) => ({
@@ -2993,12 +2951,10 @@ const UploadVideoPanel = ({ t, isDark }) => {
     })),
   ];
 
-  /* ── Shared payload builder ── */
   const buildMeta = (status) => ({
     tags, category, language, visibility, audience, ageRestrict, course, status,
   });
 
-  /* ── Reset form ── */
   const resetForm = () => {
     setFile(null); setTitle(""); setShortDesc("");
     setBatchId("default_segment"); setVideoUrl(""); setTags([]);
@@ -3006,7 +2962,6 @@ const UploadVideoPanel = ({ t, isDark }) => {
     setVisibility("public"); setAudience("not-kids"); setActiveStep(1);
   };
 
-  /* ── PUBLISH ── */
   const handlePublish = async () => {
     if (videoType === "upload" && !file)            { setMessage("❌ Select a video file"); return; }
     if (videoType === "url"    && !videoUrl.trim()) { setMessage("❌ Enter a video URL"); return; }
@@ -3035,7 +2990,6 @@ const UploadVideoPanel = ({ t, isDark }) => {
     } finally { setLoading(false); }
   };
 
-  /* ── SAVE AS DRAFT ── */
   const handleDraft = async () => {
     const hasContent = videoType === "upload" ? !!file : !!videoUrl.trim();
     if (!hasContent) {
@@ -3094,7 +3048,6 @@ const UploadVideoPanel = ({ t, isDark }) => {
         </Modal>
       )}
 
-      {/* Step header */}
       <div style={{ background: c.cardBg, border: `1px solid ${c.cardBorder}`, borderRadius: 6, padding: "18px 16px 14px", marginBottom: 16 }}>
         <div className="uv-step-header-row">
           <div style={{ fontSize: 17, fontWeight: 600, color: c.textPrimary, fontFamily: FF }}>
@@ -3107,7 +3060,6 @@ const UploadVideoPanel = ({ t, isDark }) => {
         <StepProgressBar activeStep={activeStep} setActiveStep={setActiveStep} c={c} />
       </div>
 
-      {/* Step content */}
       <div style={{ background: c.cardBg, border: `1px solid ${c.cardBorder}`, borderRadius: 6, padding: "20px 16px", marginBottom: 14 }}>
         {activeStep === 1 && (
           <StepDetails
@@ -3133,7 +3085,6 @@ const UploadVideoPanel = ({ t, isDark }) => {
         {activeStep === 4 && <StepVisibility visibility={visibility} setVisibility={setVisibility} c={c} />}
       </div>
 
-      {/* ── Bottom action bar ── */}
       <div style={{ background: c.cardBg, border: `1px solid ${c.cardBorder}`, borderRadius: 6, padding: "12px 16px" }}>
         <div className="uv-action-bar">
           <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
@@ -3184,7 +3135,6 @@ const UploadVideoPanel = ({ t, isDark }) => {
         </div>
       </div>
 
-      {/* Video list below */}
       <div style={{ marginTop: 18 }}>
         <VideoList refreshKey={refreshKey} trainerMode={true} />
       </div>
@@ -3242,8 +3192,7 @@ const UploadVideos = () => {
 
   return (
     <PageShell t={t}>
-      {/* ── Gradient Hero Title + My Assignments button ── */}
-      <div style={{ position: "relative" }}>
+      <div style={{ position: "relative", borderRadius: 16, overflow: "hidden" }}>
         <PageHero
           t={t}
           isDark={isDark}
@@ -3251,6 +3200,10 @@ const UploadVideos = () => {
           badge="Trainer Studio"
           subtitle={heroMeta.subtitle}
           color={heroMeta.color}
+          heroStyle={{
+            background: "linear-gradient(135deg, #38bdf8 0%, #818cf8 40%, #7c3aed 75%, #6d28d9 100%)",
+            borderRadius: 16,
+          }}
           title={
             <h1
               style={{
@@ -3278,7 +3231,6 @@ const UploadVideos = () => {
             </h1>
           }
         />
-        {/* My Assignments button — top-right of hero, only on Create Assignment tab */}
         {activeTab === "create-assignment" && (
           <div style={{
             position: "absolute",

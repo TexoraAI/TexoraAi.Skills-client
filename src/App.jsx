@@ -58,6 +58,7 @@ const SyllabusPage         = lazyLoad(() => import("./pages/Landing/Syllabus.jsx
 const Watchnow             = lazyLoad(() => import("./pages/Landing/Watchnow"));
 const Schoolclass          = lazyLoad(() => import("./pages/Landing/Schoolclass"));
 
+
 /* ================= SUBJECTS ================= */
 const Class9Subjects       = lazyLoad(() => import("./pages/Landing/Subjects/Class9Subjects"));
 const Class9Math           = lazyLoad(() => import("./pages/Landing/Subjects/Class9Math"));
@@ -246,6 +247,7 @@ useEffect(() => {
             <Route path="/course-details" element={<CourseDetail />} />
             <Route path="/syllabus" element={<SyllabusPage />} />
             <Route path="/school-class" element={<Schoolclass />} />
+            
 
             {/* ================= CLASS 9 ================= */}
             <Route path="/school-class/9" element={<Class9Subjects />} />

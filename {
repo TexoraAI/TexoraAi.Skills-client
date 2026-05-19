@@ -1,0 +1,15 @@
+At line:1 char:91
++ ... min-control/OrganizationPage.jsx `nconst OrganizationPage = () = 
+retu ...
++                                                                  ~
+An expression was expected after '('.
+At line:1 char:108
++ ... /OrganizationPage.jsx `nconst OrganizationPage = () = return null; 
+};
++                                                                        
+~
+Unexpected token '}' in expression or statement.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRe 
+   cordException
+    + FullyQualifiedErrorId : ExpectedExpression
+ 

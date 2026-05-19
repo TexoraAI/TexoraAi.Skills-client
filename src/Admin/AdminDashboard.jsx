@@ -647,7 +647,7 @@ const AdminDashboard = () => {
                   </p>
                 </div>
 
-                {/* Panel Tabs Row */}
+                {/* Panel Tabs Row
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                   {["Admin", "Student", "Trainer", "Business"].map((role) => (
                     <button key={role} onClick={() => navigate(`/${role.toLowerCase()}`)} style={{
@@ -658,7 +658,32 @@ const AdminDashboard = () => {
                       fontFamily: "'Poppins',sans-serif", transition: "all 0.2s",
                     }}>{role} Panel</button>
                   ))}
-                </div>
+                </div> */}
+
+                {/* Panel Tabs Row */}
+<div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+  {[
+    { label: "Admin",       route: "/admin" },
+    { label: "Student",     route: "/student" },
+    { label: "Trainer",     route: "/trainer" },
+    { label: "Business",    route: "/business" },
+    { label: "Super Admin", route: "/superadmin" },  // ← add this
+  ].map(({ label, route }) => (
+    <button
+      key={label}
+      onClick={() => navigate(route)}   // ← uses explicit route, no .toLowerCase() bug
+      style={{
+        padding: "5px 12px", borderRadius: 8,
+        border: `1px solid ${t.heroBtnBorder}`,
+        background: t.heroBtnBg, color: t.heroBtnColor,
+        fontSize: 11, fontWeight: 600, cursor: "pointer",
+        fontFamily: "'Poppins',sans-serif", transition: "all 0.2s",
+      }}
+    >
+      {label} Panel
+    </button>
+  ))}
+</div>
 
                 {/* Status Row */}
                 <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>

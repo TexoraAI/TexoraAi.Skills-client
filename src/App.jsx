@@ -4,7 +4,8 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import LoadingSpinner from "./components/ui/LoadingSpinner";
 import ErrorBoundary from "./components/ui/ErrorBoundary";
 import { lazyLoad } from "./lib/lazyLoad";
-
+import { SaasProvider } from "./SuperAdmin/context/SaasContext";
+import { ROLES } from "./SuperAdmin/constants/permissions";
 /* ================= AUTH ================= */
 import auth from "./auth";
 
@@ -16,7 +17,7 @@ import AdminPanel from "./Admin/AdminPanel";
 import BusinessPanel from "./Business/BusinessPanel";
 import StudentPanel from "./Student/StudentPanel";
 import TrainerPanel from "./Trainer/TrainerPanel";
-import SuperAdminLayout from "./SuperAdmin/SuperAdminLayout";
+// import SuperAdminLayout from "./SuperAdmin/SuperAdminLayout";
 
 /* ================= APPLY ================= */
 const ApplyAdmin            = lazyLoad(() => import("./Admin/ApplyAdmin.jsx"));
@@ -25,15 +26,105 @@ const StudentApplicationForm = lazyLoad(() => import("./Student/StudentApplicati
 const ApplyTrainer          = lazyLoad(() => import("./Trainer/ApplyTrainer.jsx"));
 
 /* ================= SUPER ADMIN ================= */
-const SuperAdminDashboard       = lazyLoad(() => import("./SuperAdmin/SuperAdminDashboard"));
-const AdminOrganisationControl  = lazyLoad(() => import("./SuperAdmin/admin-control/AdminOrganisationControl"));
-const BusinessDashboardControl  = lazyLoad(() => import("./SuperAdmin/admin-control/business-control/BusinessDashboardControl"));
-const SuperAdminProfile         = lazyLoad(() => import("./SuperAdmin/profile/SuperAdminProfile"));
+
+/* Layout */
+import SuperAdminLayout from "./SuperAdmin/components/layout/SuperAdminLayout";
+import { UserManagementProvider } from "./SuperAdmin/context/UserManagementContext";
+import { PermissionProvider } from "./SuperAdmin/context/PermissionContext";
+import { AuthProvider } from "./SuperAdmin/context/AuthContext";
+
+/* Dashboard */
+const SuperAdminDashboard = lazyLoad(() =>
+  import("./SuperAdmin/dashboard/SuperAdminDashboard")
+);
+
+/* Student Control */
+const StudentControlPage = lazyLoad(() =>
+  import("./SuperAdmin/student-control/StudentControlPage")
+);
+
+const StudentAnalytics = lazyLoad(() =>
+  import("./SuperAdmin/student-control/StudentAnalytics")
+);
+
+const StudentReportsPage = lazyLoad(() =>
+  import("./SuperAdmin/student-control/StudentReports")
+);
+
+const StudentDetailsPage = lazyLoad(() =>
+  import("./SuperAdmin/student-control/StudentDetailsPage")
+);
+
+/* Trainer Control */
+const TrainerControlPage = lazyLoad(() =>
+  import("./SuperAdmin/trainer-control/TrainerControlPage")
+);
+
+const TrainerAnalytics = lazyLoad(() =>
+  import("./SuperAdmin/trainer-control/TrainerAnalytics")
+);
+
+const TrainerReports = lazyLoad(() =>
+  import("./SuperAdmin/trainer-control/TrainerReports")
+);
+
+const TrainerDetailsPage = lazyLoad(() =>
+  import("./SuperAdmin/trainer-control/TrainerDetailsPage")
+);
+
+const BatchDetailsPage = lazyLoad(() =>
+  import("./SuperAdmin/batch-control/BatchDetailsPage")
+);
+
+/* Admin Control */
+const AdminControlPage = lazyLoad(() =>
+  import("./SuperAdmin/admin-control/AdminControlPage")
+);
+
+const OrganizationPage = lazyLoad(() =>
+  import("./SuperAdmin/admin-control/OrganizationPage")
+);
+
+const OrganizationDetailsPage = lazyLoad(() =>
+  import("./SuperAdmin/admin-control/OrganizationDetailsPage")
+);
+
+const OrganizationAdminDetailsPage = lazyLoad(() =>
+  import("./SuperAdmin/admin-control/OrganizationAdminDetailsPage")
+);
+
+// ✅ ADD HERE 👇
+const NewOrganizationPage = lazyLoad(() =>
+  import("./SuperAdmin/admin-control/NewOrganizationPage")
+);
+// ✅ ADD HERE 👆
+const PermissionManagerPage = lazyLoad(() =>
+  import("./SuperAdmin/admin-control/PermissionManagerPage")
+);
+
+const PendingApprovalsPage = lazyLoad(() =>
+  import("./SuperAdmin/admin-control/PendingApprovalsPage")
+);
+
+/* Analytics */
+const AnalyticsDashboard = lazyLoad(() =>
+  import("./SuperAdmin/analytics/AnalyticsDashboard")
+);
+
+/* Settings */
+const GlobalSettings = lazyLoad(() =>
+  import("./SuperAdmin/settings/GlobalSettings")
+);
+
+const SecuritySettings = lazyLoad(() =>
+  import("./SuperAdmin/settings/SecuritySettings")
+);
 const AuditLogs                 = lazyLoad(() => import("./SuperAdmin/settings/AuditLogs"));
-const RolePageMatrix            = lazyLoad(() => import("./SuperAdmin/settings/RolePageMatrix"));
 const SendEmail                 = lazyLoad(() => import("./SuperAdmin/settings/SendEmail"));
-const StudentDashboardControl   = lazyLoad(() => import("./SuperAdmin/student-control/StudentDashboardControl"));
-const TrainerDashboardControl   = lazyLoad(() => import("./SuperAdmin/trainer-control/TrainerDashboardControl"));
+/* Profile */
+const SuperAdminProfile = lazyLoad(() =>
+  import("./SuperAdmin/profile/SuperAdminProfile")
+);
 
 /* ================= AUTH PAGES ================= */
 const ApprovalPending = lazyLoad(() => import("./pages/Auth/ApprovalPending.jsx"));
@@ -44,11 +135,11 @@ const ResetPassword   = lazyLoad(() => import("./pages/Auth/ResetPassword.jsx"))
 const VerifyEmail     = lazyLoad(() => import("./pages/Auth/VerifyEmail.jsx"));
 
 /*===============public live-session pages =========*/
-const PublicSessionsPage = lazyLoad(() => import("./pages/public/PublicSessionsPage"));
-const PublicBooking = lazyLoad(() => import("./pages/public/PublicBooking"));
+const PublicSessionsPage   = lazyLoad(() => import("./pages/public/PublicSessionsPage"));
+const PublicBooking        = lazyLoad(() => import("./pages/public/PublicBooking"));
 const PublicBookingConfirmation = lazyLoad(() => import("./pages/public/PublicBookingConfirmation"));
-const PublicJoinSession = lazyLoad(() => import("./pages/public/PublicJoinSession"));
-const PublicSessionComplete = lazyLoad(() => import("./pages/public/PublicSessionComplete"));
+const PublicJoinSession    = lazyLoad(() => import("./pages/public/PublicJoinSession"));
+const PublicSessionComplete  = lazyLoad(() => import("./pages/public/PublicSessionComplete"));
 /* ================= LANDING ================= */
 const CoursePreview        = lazyLoad(() => import("./pages/CoursePreview"));
 const CourseDetail         = lazyLoad(() => import("./pages/Landing/CourseDetailsPage"));
@@ -62,7 +153,7 @@ const Schoolclass          = lazyLoad(() => import("./pages/Landing/Schoolclass"
 /* ================= SUBJECTS ================= */
 const Class9Subjects       = lazyLoad(() => import("./pages/Landing/Subjects/Class9Subjects"));
 const Class9Math           = lazyLoad(() => import("./pages/Landing/Subjects/Class9Math"));
-const Class9AI = lazyLoad(() => import("./pages/Landing/Subjects/Class9AI"));
+const Class9AI             = lazyLoad(() => import("./pages/Landing/Subjects/Class9AI"));
 /* ================= COMPANY ================= */
 const AboutTexoraSkills = lazyLoad(() => import("./pages/About/AboutTexoraSkills"));
 const Careers           = lazyLoad(() => import("./pages/Company/Careers"));
@@ -311,9 +402,9 @@ useEffect(() => {
               <Route path="certificates" element={<Certificates />} />
               <Route path="overview" element={<Overview />} />
               <Route path="settings">
-                <Route index element={<Settings />} />
-                <Route path="2fa" element={<TwoFactorAuth />} />
-                <Route path="update-email" element={<UpdateEmail />} />
+              <Route index element={<Settings />} />
+              <Route path="2fa" element={<TwoFactorAuth />} />
+              <Route path="update-email" element={<UpdateEmail />} />
               </Route>
               <Route path="search" element={<SearchPage />} />
               <Route path="notifications" element={<NotificationsPage />} />
@@ -423,23 +514,76 @@ useEffect(() => {
               <Route path="profile" element={<ProfilePage />} />
               <Route path="edit-profile" element={<EditProfile />} />
             </Route>
-
-            {/* ================= SUPER ADMIN ================= */}
-            <Route path="/super-admin" element={<ProtectedRoute><RoleGuard allowedRoles={["SUPER_ADMIN"]}><SuperAdminLayout /></RoleGuard></ProtectedRoute>}>
+ {/* ================= SUPER ADMIN ================= */}
+ <Route
+              path="/superadmin"
+              element={
+                <ProtectedRoute>
+                  <AuthProvider>
+                  <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN]}>
+                      <SaasProvider>
+                        <UserManagementProvider>
+                          <PermissionProvider>
+                            <SuperAdminLayout />
+                          </PermissionProvider>
+                        </UserManagementProvider>
+                      </SaasProvider>
+                    </RoleGuard>
+                  </AuthProvider>
+                </ProtectedRoute>
+              }
+            >
+              {/* Dashboard */}
               <Route index element={<SuperAdminDashboard />} />
-              <Route path="dashboard" element={<SuperAdminDashboard />} />
-              <Route path="admin-control" element={<AdminOrganisationControl />} />
-              <Route path="business-control" element={<BusinessDashboardControl />} />
-              <Route path="trainer-control" element={<TrainerDashboardControl />} />
-              <Route path="student-control" element={<StudentDashboardControl />} />
-              <Route path="settings/role-matrix" element={<RolePageMatrix />} />
+
+              {/* ================= STUDENT CONTROL ================= */}
+              <Route path="students" element={<StudentControlPage />} />
+              <Route path="student-analytics" element={<StudentAnalytics />} />
+              <Route path="student-reports" element={<StudentReportsPage />} />
+              <Route path="students/:studentId" element={<StudentDetailsPage />} />
+
+              {/* ================= TRAINER CONTROL ================= */}
+              <Route path="trainers" element={<TrainerControlPage />} />
+              <Route path="trainer-analytics" element={<TrainerAnalytics />} />
+              <Route path="trainer-reports" element={<TrainerReports />} />
+              <Route path="trainers/:trainerId" element={<TrainerDetailsPage />} />
+              
+              {/* ================= ADMIN CONTROL ================= */}
+<Route path="admins" element={<AdminControlPage />} />
+<Route path="permissions" element={<PermissionManagerPage />} />
+<Route path="pending-approvals" element={<PendingApprovalsPage />} />
+
+{/* Organizations — static 'new' MUST be before dynamic :orgId */}
+<Route path="organizations" element={<OrganizationPage />} />
+<Route path="organizations/new" element={<NewOrganizationPage />} />
+<Route path="organizations/:orgId" element={<OrganizationDetailsPage />} />
+<Route path="organizations/:orgId/admins" element={<OrganizationDetailsPage defaultTab="admins" />} />
+<Route path="organizations/:orgId/trainers" element={<OrganizationDetailsPage defaultTab="trainers" />} />
+<Route path="organizations/:orgId/batches" element={<OrganizationDetailsPage defaultTab="batches" />} />
+<Route path="organizations/:orgId/students" element={<OrganizationDetailsPage defaultTab="students" />} />
+<Route path="organizations/:orgId/admins/:adminId" element={<OrganizationAdminDetailsPage />} />
+
+<Route path="batches/:batchId" element={<BatchDetailsPage />} />
+              {/* ================= ANALYTICS ================= */}
+              <Route path="analytics" element={<AnalyticsDashboard />} />
+
+              {/* ================= SETTINGS ================= */}
+              <Route path="global-settings" element={<GlobalSettings />} />
+              <Route path="security-settings" element={<SecuritySettings />} />
               <Route path="settings/send-email" element={<SendEmail />} />
               <Route path="settings/audit-logs" element={<AuditLogs />} />
+
+              {/* ================= PROFILE ================= */}
               <Route path="profile" element={<SuperAdminProfile />} />
+
+              {/* ================= COMMON ================= */}
+              <Route path="search" element={<SearchPage />} />
+              <Route path="notifications" element={<NotificationsPage />} />
+              <Route path="edit-profile" element={<EditProfile />} />
             </Route>
 
             {/* ================= FALLBACK ================= */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/superadmin" replace />} />
 
           </Routes>
         </Suspense>

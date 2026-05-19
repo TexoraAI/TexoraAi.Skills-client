@@ -1996,12 +1996,12 @@ export default function LMSHomepage({ theme, toggleTheme }) {
               Learn Product, Design, Growth & Marketing from industry experts.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center lg:items-start">
-              <button
-                onClick={() => navigate("/explore-programs")}
-                className="flex items-center gap-2 bg-[#1E293B] hover:bg-[#334155] text-white font-bold px-8 py-4 rounded-xl text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
-              >
-                Start Learning <ArrowRight className="w-5 h-5" />
-              </button>
+            <button
+  onClick={() => navigate("/watch-demo/1")}
+  className="flex items-center gap-2 bg-[#1E293B] hover:bg-[#334155] text-white font-bold px-8 py-4 rounded-xl text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
+>
+  Watch Now <ArrowRight className="w-5 h-5" />
+</button>
             </div>
           </div>
 

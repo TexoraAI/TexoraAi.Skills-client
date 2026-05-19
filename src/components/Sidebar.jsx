@@ -196,27 +196,6 @@ const adminMenus = [
   },
 ];
 
-const superAdminMenus = [
-  { name: "Dashboard", path: "/super-admin/dashboard", icon: LayoutDashboard },
-  {
-    name: "Controls", icon: ShieldCheck,
-    children: [
-      { name: "Manager",      path: "/super-admin/Manager",      icon: UserCog },
-      { name: "Tenant Admin", path: "/super-admin/Tenant Admin", icon: Briefcase },
-      { name: "Trainer",      path: "/super-admin/trainer",      icon: Users },
-      { name: "Student",      path: "/super-admin/student",      icon: GraduationCap },
-    ],
-  },
-  {
-    name: "Settings", icon: Settings,
-    children: [
-      { name: "Role Page Matrix", path: "/super-admin/settings/role-matrix", icon: ShieldCheck },
-      { name: "Send Email",       path: "/super-admin/settings/send-email",  icon: Mail },
-      { name: "Audit Logs",       path: "/super-admin/settings/audit-logs",  icon: FileSearch },
-    ],
-  },
-];
-
 const businessMenus = [
   { name: "Dashboard", path: "/business", icon: LayoutDashboard },
   {
@@ -601,7 +580,7 @@ const Sidebar = () => {
               <option value="/trainer">Trainer</option>
               <option value="/admin">Manager</option>
               <option value="/business">Tenant Admin</option>
-              <option value="/super-admin/dashboard">Super Admin</option>
+              <option value="/superadmin">Super Admin</option>
             </select>
           </div>
         )}

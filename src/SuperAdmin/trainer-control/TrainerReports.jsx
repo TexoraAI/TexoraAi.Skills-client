@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useUserManagement } from "../context/UserManagementContext";
-import { USER_STATUS, STATUS_CONFIG } from "../../constants/permissions";
-
+// import { USER_STATUS, STATUS_CONFIG } from "../../constants/permissions";
+import { USER_STATUS, STATUS_CONFIG } from "../constants/permissions";
 const REPORT_TYPES = [
   { key: "overview", label: "Overview Report", desc: "Trainer list with status and specialization" },
   { key: "performance", label: "Performance Report", desc: "Ratings, students, session metrics" },

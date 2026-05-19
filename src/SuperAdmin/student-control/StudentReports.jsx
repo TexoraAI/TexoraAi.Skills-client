@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useUserManagement } from "../context/UserManagementContext";
-import { USER_STATUS, STATUS_CONFIG } from "../../constants/permissions";
-
+// import { USER_STATUS, STATUS_CONFIG } from "../../constants/permissions";
+import { USER_STATUS, STATUS_CONFIG } from "../constants/permissions";
 // ─── Report Type Config ───────────────────────────────────────
 const REPORT_TYPES = [
   { key: "enrollment", label: "Enrollment Report", desc: "Students, courses, join dates" },

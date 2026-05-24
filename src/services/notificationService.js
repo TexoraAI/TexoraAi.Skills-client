@@ -9,7 +9,10 @@ const WS_URL =
     "/api",
     "",
   ) + "/ws";
-
+// ✅ ADD THIS FOR PUBLIC APIs: newsletter + contact form
+const publicHeaders = () => ({
+  "Content-Type": "application/json",
+});
 // ─── Token — matches authService.getToken() ──────────────────
 const getToken = () => localStorage.getItem("lms_token"); // ✅ fixed
 
@@ -125,6 +128,99 @@ export const removeDeviceToken = async (fcmToken) => {
     console.error("removeDeviceToken error:", err);
   }
 };
+
+// ─────────────────────────────────────────────────────────────
+//  NEWSLETTER ENDPOINTS
+//  POST   /api/v1/notification/newsletter/subscribe
+//  DELETE /api/v1/notification/newsletter/unsubscribe?email=
+// ─────────────────────────────────────────────────────────────
+ 
+/**
+ * Subscribe an email to the newsletter.
+ * Returns the full ApiResponse body from the server.
+ * Callers should check res.status === 409 for ALREADY_SUBSCRIBED.
+ *
+ * @param {string} email
+ * @returns {{ ok: boolean, status: number, data: object }}
+ */
+export const subscribeNewsletter = async (email) => {
+  try {
+    const res = await fetch(
+      `${API_BASE_URL}/v1/notification/newsletter/subscribe`,
+      {
+        method: "POST",
+        headers: publicHeaders(),
+        body: JSON.stringify({ email }),
+      },
+    );
+    const data = await res.json();
+    return { ok: res.ok, status: res.status, data };
+  } catch (err) {
+    console.error("subscribeNewsletter error:", err);
+    return { ok: false, status: 500, data: null };
+  }
+};
+ 
+/**
+ * Unsubscribe an email from the newsletter.
+ *
+ * @param {string} email
+ * @returns {{ ok: boolean, status: number, data: object }}
+ */
+export const unsubscribeNewsletter = async (email) => {
+  try {
+    const res = await fetch(
+      `${API_BASE_URL}/v1/notification/newsletter/unsubscribe?email=${encodeURIComponent(email)}`,
+      {
+        method: "DELETE",
+        headers: publicHeaders(),
+      },
+    );
+    const data = await res.json();
+    return { ok: res.ok, status: res.status, data };
+  } catch (err) {
+    console.error("unsubscribeNewsletter error:", err);
+    return { ok: false, status: 500, data: null };
+  }
+};
+ 
+// ─────────────────────────────────────────────────────────────
+//  CONTACT FORM ENDPOINT
+//  POST /api/v1/notification/contact
+// ─────────────────────────────────────────────────────────────
+ 
+/**
+ * Submit the contact form.
+ *
+ * @param {{ fullName: string, email: string, phoneNumber?: string, topic?: string, message: string }} payload
+ * @returns {{ ok: boolean, status: number, data: object }}
+ *
+ * On success (201) data.data contains:
+ *   { id, submittedAt, status }
+ */
+export const submitContactForm = async ({
+  fullName,
+  email,
+  phoneNumber,
+  topic,
+  message,
+}) => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/v1/notification/contact`, {
+      method: "POST",
+      headers: publicHeaders(),
+      body: JSON.stringify({ fullName, email, phoneNumber, topic, message }),
+    });
+    const data = await res.json();
+    return { ok: res.ok, status: res.status, data };
+  } catch (err) {
+    console.error("submitContactForm error:", err);
+    return { ok: false, status: 500, data: null };
+  }
+};
+
+
+
 // ─────────────────────────────────────────────────────────────
 //  WEBSOCKET
 // ─────────────────────────────────────────────────────────────

@@ -77,6 +77,11 @@ const BatchDetailsPage = lazyLoad(() =>
 );
 
 /* Admin Control */
+
+const Onboardingdashboard = lazyLoad(() =>
+  import("./SuperAdmin/admin-control/Onboardingdashboard")
+);
+
 const AdminControlPage = lazyLoad(() =>
   import("./SuperAdmin/admin-control/AdminControlPage")
 );
@@ -148,6 +153,7 @@ const LMSHomepage          = lazyLoad(() => import("./pages/Landing/LMSHomepage"
 const SyllabusPage         = lazyLoad(() => import("./pages/Landing/Syllabus.jsx"));
 const Watchnow             = lazyLoad(() => import("./pages/Landing/Watchnow"));
 const Schoolclass          = lazyLoad(() => import("./pages/Landing/Schoolclass"));
+const Platforms = lazyLoad(() => import("./pages/Landing/platforms"));
 
 
 /* ================= SUBJECTS ================= */
@@ -236,6 +242,12 @@ const TrainerFeedback       = lazyLoad(() => import("./Trainer/Trainerfeedback.j
 const TrainerSkillMap       = lazyLoad(() => import("./Trainer/TrainerSkillMap.jsx"));
 const TrainerCompilerPage   = lazyLoad(() => import("./Trainer/TrainerCompilerPage.jsx"),);
 const TrainerStudyPlanPage  = lazyLoad (() => import("./Trainer/TrainerStudyPlanPage.jsx"),);
+const WhiteboardPanel = lazyLoad(() => import("./Trainer/WhiteboardPanel.jsx"));
+
+// const AiCompanionPanel = lazyLoad(
+//   () => import("./Trainer/AiCompanionPanel.jsx"),
+// );
+const AiCompanionPage = lazyLoad(() => import("./Trainer/AiCompanionPage.jsx"));
 /* ================= ADMIN ================= */
 const AdminBatches              = lazyLoad(() => import("./Admin/AdminBatches"));
 const AdminDashboard            = lazyLoad(() => import("./Admin/AdminDashboard"));
@@ -338,7 +350,8 @@ useEffect(() => {
             <Route path="/course-details" element={<CourseDetail />} />
             <Route path="/syllabus" element={<SyllabusPage />} />
             <Route path="/school-class" element={<Schoolclass />} />
-            
+            {/* NEW */}
+            <Route path="/platforms" element={<Platforms />} />
 
             {/* ================= CLASS 9 ================= */}
             <Route path="/school-class/9" element={<Class9Subjects />} />
@@ -459,6 +472,9 @@ useEffect(() => {
               <Route path="skill-analytics" element={<TrainerSkillMap />} />
               <Route path="compiler" element={<TrainerCompilerPage />} />
               <Route path="study-plan" element={<TrainerStudyPlanPage />} />
+              <Route path="ai-companion" element={<AiCompanionPage />} />
+              <Route path="whiteboard" element={<WhiteboardPanel />} />
+              {/* <Route path="ai-companion" element={<AiCompanionPanel />} /> */}
             </Route>
 
             {/* ================= ADMIN ================= */}
@@ -550,6 +566,9 @@ useEffect(() => {
               
               {/* ================= ADMIN CONTROL ================= */}
 <Route path="admins" element={<AdminControlPage />} />
+{/* ================= ONBOARDING ================= */}
+<Route path="onboarding" element={<Onboardingdashboard />} />
+
 <Route path="permissions" element={<PermissionManagerPage />} />
 <Route path="pending-approvals" element={<PendingApprovalsPage />} />
 

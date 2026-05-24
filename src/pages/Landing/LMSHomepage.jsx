@@ -16,12 +16,18 @@
 // import { jwtDecode } from "jwt-decode";
 // import auth from "../../auth";
 // import heroStudent from "../../assets/hero-student.png";
+// import heroStudent2 from "../../assets/hero-student-2.png";
+// import heroStudent3 from "../../assets/hero-student-3.png";
+
+// // ✅ Real API for subscribing
+// import { subscribeNewsletter } from "../../services/notificationService";
 
 // const GOOGLE_CLIENT_ID = "572421778240-akk3kkb4f60ukuv9pcfrpg2ielm09thk.apps.googleusercontent.com";
 // const NEWSLETTER_KEY = "ilmora_newsletter_subscribers";
 
 // /* ─────────────────────────────────────────
-//    Newsletter helpers (localStorage)
+//    Admin localStorage helpers
+//    (read-only admin panel — separate from the real subscribe API)
 // ───────────────────────────────────────── */
 // function getSubscribers() {
 //   try { return JSON.parse(localStorage.getItem(NEWSLETTER_KEY) || "[]"); }
@@ -33,34 +39,60 @@
 
 // /* ─────────────────────────────────────────
 //    NewsletterSection component
+//    - Subscribe: calls real backend via subscribeNewsletter()
+//    - Admin panel: reads/manages localStorage for internal use
 // ───────────────────────────────────────── */
 // function NewsletterSection() {
 //   const [email, setEmail]             = useState("");
 //   const [status, setStatus]           = useState("idle");
+//   // "idle" | "loading" | "success" | "duplicate" | "error" | "apierror"
+
 //   const [showAdmin, setShowAdmin]     = useState(false);
 //   const [adminOk, setAdminOk]         = useState(false);
 //   const [adminCode, setAdminCode]     = useState("");
 //   const [subscribers, setSubscribers] = useState([]);
+
 //   const inputRef = useRef(null);
 
 //   const isValid = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
-//   const handleSubmit = () => {
+//   /* ── Subscribe: real API ── */
+//   const handleSubmit = async () => {
 //     const trimmed = email.trim().toLowerCase();
-//     if (!isValid(trimmed)) { setStatus("error"); setTimeout(() => setStatus("idle"), 2500); return; }
+
+//     if (!isValid(trimmed)) {
+//       setStatus("error");
+//       setTimeout(() => setStatus("idle"), 2500);
+//       return;
+//     }
+
 //     setStatus("loading");
-//     setTimeout(() => {
-//       const current = getSubscribers();
-//       if (current.some((s) => s.email === trimmed)) {
-//         setStatus("duplicate"); setTimeout(() => setStatus("idle"), 3000); return;
+
+//     try {
+//       // ✅ Real API call — POST /api/v1/notification/newsletter/subscribe
+//       const { ok, status: httpStatus } = await subscribeNewsletter(trimmed);
+
+//       if (httpStatus === 409) {
+//         setStatus("duplicate");
+//         setTimeout(() => setStatus("idle"), 3000);
+//         return;
 //       }
-//       saveSubscribers([...current, { email: trimmed, subscribedAt: new Date().toISOString() }]);
-//       setStatus("success");
-//       setEmail("");
-//       setTimeout(() => setStatus("idle"), 3500);
-//     }, 600);
+
+//       if (ok) {
+//         setStatus("success");
+//         setEmail("");
+//         setTimeout(() => setStatus("idle"), 3500);
+//       } else {
+//         setStatus("apierror");
+//         setTimeout(() => setStatus("idle"), 3000);
+//       }
+//     } catch {
+//       setStatus("apierror");
+//       setTimeout(() => setStatus("idle"), 3000);
+//     }
 //   };
 
+//   /* ── Admin panel ── */
 //   const openAdmin = () => {
 //     setSubscribers(getSubscribers());
 //     setShowAdmin(true);
@@ -84,9 +116,10 @@
 //     });
 
 //   const statusMsg = {
-//     success:   { text: "✓ You're subscribed! Welcome to ILM ORA.", color: "#68d391" },
-//     error:     { text: "Please enter a valid email address.",       color: "#fc8181" },
-//     duplicate: { text: "This email is already subscribed.",         color: "#f6ad55" },
+//     success:  { text: "✓ You're subscribed! Welcome to ILM ORA.", color: "#68d391" },
+//     error:    { text: "Please enter a valid email address.",        color: "#fc8181" },
+//     duplicate:{ text: "This email is already subscribed.",          color: "#f6ad55" },
+//     apierror: { text: "Something went wrong. Please try again.",    color: "#fc8181" },
 //   }[status];
 
 //   return (
@@ -97,19 +130,19 @@
 
 //           {/* Heading */}
 //           <h2 style={{
-//   color: "#fff",
-//   fontSize: "clamp(1.1rem, 2.2vw, 1.75rem)",
-//   fontWeight: 700,
-//   margin: "0 0 1.6rem",
-//   lineHeight: 1.35,
-//   whiteSpace: "nowrap",
-// }}>
-//   Be the first to know what's new on{" "}
-//   <span style={{ color: "#22C55E" }}>ILM</span>{" "}
-//   <span style={{ color: "#F97316" }}>ORA</span>
-// </h2>
+//             color: "#fff",
+//             fontSize: "clamp(1.1rem, 2.2vw, 1.75rem)",
+//             fontWeight: 700,
+//             margin: "0 0 1.6rem",
+//             lineHeight: 1.35,
+//             whiteSpace: "nowrap",
+//           }}>
+//             Be the first to know what's new on{" "}
+//             <span style={{ color: "#22C55E" }}>ILM</span>{" "}
+//             <span style={{ color: "#F97316" }}>ORA</span>
+//           </h2>
 
-//           {/* Input row — Maven style */}
+//           {/* Input row */}
 //           <div
 //             style={{
 //               display: "flex",
@@ -309,7 +342,7 @@
 //         </div>
 //       )}
 
-//       {/* hidden admin trigger */}
+//       {/* hidden admin trigger — callable from outside via openNewsletterAdmin() */}
 //       <div id="newsletter-admin-trigger" onClick={openAdmin} style={{ display: "none" }} />
 //     </>
 //   );
@@ -330,7 +363,29 @@
 //   const [modalLoading, setModalLoading]   = useState(false);
 //   const [showModalPw, setShowModalPw]     = useState(false);
 
+//   /* ── Hero Carousel State ── */
+//   const heroImages = [heroStudent, heroStudent2, heroStudent3];
+//   const [currentSlide, setCurrentSlide] = useState(0);
+//   const carouselTimerRef = useRef(null);
+
 //   const navigate = useNavigate();
+
+//   /* ── Auto-play carousel: advance every 3 seconds ── */
+//   useEffect(() => {
+//     carouselTimerRef.current = setInterval(() => {
+//       setCurrentSlide(prev => (prev + 1) % heroImages.length);
+//     }, 3000);
+//     return () => clearInterval(carouselTimerRef.current);
+//   }, [heroImages.length]);
+
+//   /* ── Manual dot click: reset timer ── */
+//   const goToSlide = (index) => {
+//     setCurrentSlide(index);
+//     clearInterval(carouselTimerRef.current);
+//     carouselTimerRef.current = setInterval(() => {
+//       setCurrentSlide(prev => (prev + 1) % heroImages.length);
+//     }, 3000);
+//   };
 
 //   useEffect(() => {
 //     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -439,6 +494,11 @@
 //     }
 //   };
 
+//   /* ── Admin trigger (callable from footer or elsewhere) ── */
+//   const openNewsletterAdmin = () => {
+//     document.getElementById("newsletter-admin-trigger")?.click();
+//   };
+
 //   const companies = [
 //     { name: "Capgemini" }, { name: "Microsoft" }, { name: "Google" }, { name: "Texora" },
 //     { name: "Amazon" }, { name: "UFS" }, { name: "Apple" }, { name: "Cognizant" },
@@ -517,10 +577,6 @@
 //     { text: "Success Stories", href: "#successstories" },
 //   ];
 
-//   const openNewsletterAdmin = () => {
-//     document.getElementById("newsletter-admin-trigger")?.click();
-//   };
-
 //   return (
 //     <div className="min-h-screen bg-[#F6EDE6] dark:bg-black text-[#1E293B] dark:text-white">
 
@@ -561,6 +617,12 @@
 //               >
 //                 School Programs
 //               </button>
+//               <button
+//                onClick={() => navigate("/platforms")}
+//             className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-[18px] py-2 whitespace-nowrap bg-transparent border-none cursor-pointer"
+//               >
+//           Career Tracks
+//            </button>
 //             </div>
 
 //             <div className="flex items-center gap-4">
@@ -661,12 +723,14 @@
 //           </div>
 //         </div>
 //       </nav>
+
 //       {/* ── Hero ── */}
 //       <section className="pt-32 pb-24 px-6 bg-[#F6EDE6] dark:bg-black relative overflow-hidden">
 //         <div className="absolute -top-32 left-[10%] w-[600px] h-[600px] bg-[#F97316]/8 dark:bg-[#F97316]/5 rounded-full blur-[120px] pointer-events-none" />
 //         <div className="absolute -bottom-20 right-[5%] w-[500px] h-[500px] bg-[#1E293B]/5 rounded-full blur-[120px] pointer-events-none" />
 
 //         <div className="max-w-7xl mx-auto relative z-10 grid lg:grid-cols-2 gap-16 items-center">
+//           {/* Left: Text content */}
 //           <div className="text-center lg:text-left">
 //             <div className="mb-8 inline-flex">
 //               <div className="inline-flex items-center gap-2 bg-white dark:bg-gray-900 border border-[#F97316]/30 text-[#F97316] px-5 py-2.5 rounded-full text-sm font-semibold shadow-md">
@@ -681,20 +745,63 @@
 //               Learn Product, Design, Growth & Marketing from industry experts.
 //             </p>
 //             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center lg:items-start">
-//               <button
-//                 onClick={() => navigate("/explore-programs")}
+//               {/* <button
+//                 onClick={() => navigate("/Watchnow")}
 //                 className="flex items-center gap-2 bg-[#1E293B] hover:bg-[#334155] text-white font-bold px-8 py-4 rounded-xl text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
 //               >
-//                 Start Learning <ArrowRight className="w-5 h-5" />
-//               </button>
+//                 Watch Now <ArrowRight className="w-5 h-5" />
+//               </button> */}
+//               <button
+//   onClick={() => navigate("/watch-demo/1")}
+//   className="flex items-center gap-2 bg-[#1E293B] hover:bg-[#334155] text-white font-bold px-8 py-4 rounded-xl text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
+// >
+//   Watch Now <ArrowRight className="w-5 h-5" />
+// </button>
 //             </div>
 //           </div>
-//           <div className="flex justify-center">
-//             <img
-//               src={heroStudent}
-//               alt="Hero Student"
-//               className="w-full max-w-lg object-contain drop-shadow-2xl hover:scale-105 transition duration-500"
-//             />
+
+//           {/* Right: Image Carousel */}
+//           <div className="flex flex-col items-center gap-4">
+//             <div
+//               className="relative w-full max-w-lg overflow-hidden rounded-2xl"
+//               style={{ aspectRatio: "4/3" }}
+//             >
+//               {heroImages.map((img, index) => (
+//                 <img
+//                   key={index}
+//                   src={img}
+//                   alt={`Hero Student ${index + 1}`}
+//                   className="absolute inset-0 w-full h-full object-contain drop-shadow-2xl"
+//                   style={{
+//                     opacity: currentSlide === index ? 1 : 0,
+//                     transform: currentSlide === index ? "scale(1)" : "scale(0.96)",
+//                     transition: "opacity 0.6s ease, transform 0.6s ease",
+//                     pointerEvents: currentSlide === index ? "auto" : "none",
+//                   }}
+//                 />
+//               ))}
+//             </div>
+
+//             {/* Dot indicators */}
+//             <div className="flex items-center gap-2.5">
+//               {heroImages.map((_, index) => (
+//                 <button
+//                   key={index}
+//                   onClick={() => goToSlide(index)}
+//                   aria-label={`Go to slide ${index + 1}`}
+//                   style={{
+//                     width: currentSlide === index ? "28px" : "10px",
+//                     height: "10px",
+//                     borderRadius: "9999px",
+//                     background: currentSlide === index ? "#F97316" : "#CBD5E1",
+//                     border: "none",
+//                     cursor: "pointer",
+//                     padding: 0,
+//                     transition: "width 0.35s ease, background 0.35s ease",
+//                   }}
+//                 />
+//               ))}
+//             </div>
 //           </div>
 //         </div>
 //       </section>
@@ -891,23 +998,15 @@
 //         </div>
 //       </section>
 
-//       {/* ── Newsletter ── */}
+//       {/* ── Newsletter — real API + admin panel ── */}
 //       <NewsletterSection />
 
 //       {/* ── Footer ── */}
-//       {/* ═══════════════════════════════════════════════════════
-//           RESPONSIVE FOOTER FIX:
-//           - Mobile (default):  single column, all sections stack
-//           - sm (≥640px):       2-column grid; logo spans both cols
-//           - lg (≥1024px):      5-column row (original desktop layout)
-//       ═══════════════════════════════════════════════════════ */}
 //       <footer className="bg-white text-[#1E293B]">
 //         <div className="max-w-7xl mx-auto px-6 py-20">
-
-//           {/* ── FIXED: responsive grid ── */}
 //           <div className="grid gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 items-start">
 
-//             {/* ── Col 1: Logo + Desc + Social — spans full width on sm ── */}
+//             {/* Col 1: Logo + Desc + Social */}
 //             <div className="flex flex-col gap-2.5 self-start text-left sm:col-span-2 lg:col-span-1">
 //               <h3 className="text-3xl font-extrabold leading-none">
 //                 <span className="text-green-600">ILM</span>{" "}
@@ -926,28 +1025,24 @@
 
 //               {/* Social Icons */}
 //               <div className="flex items-center gap-3 pt-1 flex-wrap">
-//                 {/* YouTube */}
 //                 <a href="https://www.youtube.com/@Texoraai" target="_blank" rel="noreferrer"
 //                   className="h-9 w-9 rounded-full flex items-center justify-center text-white bg-[#FF0000] hover:scale-110 hover:shadow-md transition-all">
 //                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
 //                     <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
 //                   </svg>
 //                 </a>
-//                 {/* LinkedIn */}
-//                 <a href="https://www.linkedin.com/company/105596104" target="_blank" rel="noreferrer"
+//                 <a href="https://www.linkedin.com/company/ilmora-texoraai/" target="_blank" rel="noreferrer"
 //                   className="h-9 w-9 rounded-full flex items-center justify-center text-white bg-[#0A66C2] hover:scale-110 hover:shadow-md transition-all">
 //                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
 //                     <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
 //                   </svg>
 //                 </a>
-//                 {/* WhatsApp */}
 //                 <a href="https://api.whatsapp.com/send?phone=919210970334" target="_blank" rel="noreferrer"
 //                   className="h-9 w-9 rounded-full flex items-center justify-center text-white bg-[#25D366] hover:scale-110 hover:shadow-md transition-all">
 //                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
 //                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
 //                   </svg>
 //                 </a>
-//                 {/* Instagram */}
 //                 <a href="https://www.instagram.com/texora_ai" target="_blank" rel="noreferrer"
 //                   className="h-9 w-9 rounded-full flex items-center justify-center text-white hover:scale-110 hover:shadow-md transition-all"
 //                   style={{ background: "radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%)" }}>
@@ -955,7 +1050,6 @@
 //                     <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>
 //                   </svg>
 //                 </a>
-//                 {/* X (Twitter) */}
 //                 <a href="https://x.com/texoraai" target="_blank" rel="noreferrer"
 //                   className="h-9 w-9 rounded-full flex items-center justify-center text-white bg-black hover:scale-110 hover:shadow-md transition-all">
 //                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
@@ -965,7 +1059,7 @@
 //               </div>
 //             </div>
 
-//             {/* ── Col 2: Programs ── */}
+//             {/* Col 2: Programs */}
 //             <div className="flex flex-col gap-4">
 //               <h4 className="text-sm font-bold tracking-widest text-[#1E293B] uppercase">Programs</h4>
 //               <ul className="flex flex-col gap-2.5 text-sm text-gray-600">
@@ -983,7 +1077,7 @@
 //               </ul>
 //             </div>
 
-//             {/* ── Col 3: Resources ── */}
+//             {/* Col 3: Resources */}
 //             <div className="flex flex-col gap-4">
 //               <h4 className="text-sm font-bold tracking-widest text-[#1E293B] uppercase">Resources</h4>
 //               <ul className="flex flex-col gap-2.5 text-sm text-gray-600">
@@ -1020,16 +1114,15 @@
 //               </ul>
 //             </div>
 
-//             {/* ── Col 4: Company ── */}
+//             {/* Col 4: Company */}
 //             <div className="flex flex-col gap-4 self-start">
 //               <h4 className="text-sm font-bold tracking-widest text-[#1E293B] uppercase">Company</h4>
 //               <ul className="flex flex-col gap-2.5 text-sm text-gray-600">
 //                 {[
-//                   { label: "About Us",         action: () => navigate("/about") },
-//                   { label: "Careers",          action: () => navigate("/careers") },
-//                   { label: "Pricing",          action: () => navigate("/pricing") },
-//                   { label: "Privacy Policy",   action: () => navigate("/privacy-policy") },
-//                   // { label: "Terms of Service", action: () => navigate("/terms-of-service") },
+//                   { label: "About Us",       action: () => navigate("/about") },
+//                   { label: "Careers",        action: () => navigate("/careers") },
+//                   { label: "Pricing",        action: () => navigate("/pricing") },
+//                   { label: "Privacy Policy", action: () => navigate("/privacy-policy") },
 //                 ].map(item => (
 //                   <li key={item.label} onClick={item.action}
 //                     className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group">
@@ -1040,13 +1133,12 @@
 //               </ul>
 //             </div>
 
-//             {/* ── Col 5: Support ── */}
+//             {/* Col 5: Support */}
 //             <div className="flex flex-col gap-4 self-start">
 //               <h4 className="text-sm font-bold tracking-widest text-[#1E293B] uppercase">Support</h4>
 //               <ul className="flex flex-col gap-2.5 text-sm text-gray-600">
 //                 {[
 //                   { label: "Help Center", action: () => navigate("/help-center") },
-//                   // { label: "Contact",     action: () => navigate("/contact") },
 //                   { label: "FAQ",         action: () => navigate("/faq") },
 //                 ].map(item => (
 //                   <li key={item.label} onClick={item.action}
@@ -1056,7 +1148,6 @@
 //                   </li>
 //                 ))}
 //               </ul>
-//               {/* Live status badge */}
 //               <div className="pt-1">
 //                 <span className="inline-flex items-center gap-2 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full">
 //                   <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -1067,7 +1158,7 @@
 
 //           </div>
 
-//           {/* ── Bottom bar ── */}
+//           {/* Bottom bar */}
 //           <div className="border-t border-gray-200 mt-16 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
 //             <span>© {new Date().getFullYear()} ILM ORA All rights reserved.</span>
 //             <div className="flex items-center gap-2">
@@ -1079,9 +1170,7 @@
 //         </div>
 //       </footer>
 
-//       {/* ══════════════════════════════════════════
-//           ── Login Modal Popup ──
-//       ══════════════════════════════════════════ */}
+//       {/* ── Login Modal ── */}
 //       {showLoginModal && (
 //         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
 //           <div
@@ -1278,15 +1367,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -1308,12 +1388,11 @@ import heroStudent from "../../assets/hero-student.png";
 import heroStudent2 from "../../assets/hero-student-2.png";
 import heroStudent3 from "../../assets/hero-student-3.png";
 
+import { subscribeNewsletter } from "../../services/notificationService";
+
 const GOOGLE_CLIENT_ID = "572421778240-akk3kkb4f60ukuv9pcfrpg2ielm09thk.apps.googleusercontent.com";
 const NEWSLETTER_KEY = "ilmora_newsletter_subscribers";
 
-/* ─────────────────────────────────────────
-   Newsletter helpers (localStorage)
-───────────────────────────────────────── */
 function getSubscribers() {
   try { return JSON.parse(localStorage.getItem(NEWSLETTER_KEY) || "[]"); }
   catch { return []; }
@@ -1323,286 +1402,137 @@ function saveSubscribers(list) {
 }
 
 /* ─────────────────────────────────────────
-   NewsletterSection component
+   Compact Newsletter — used inside footer
 ───────────────────────────────────────── */
-function NewsletterSection() {
-  const [email, setEmail]             = useState("");
-  const [status, setStatus]           = useState("idle");
-  const [showAdmin, setShowAdmin]     = useState(false);
-  const [adminOk, setAdminOk]         = useState(false);
-  const [adminCode, setAdminCode]     = useState("");
-  const [subscribers, setSubscribers] = useState([]);
-  const inputRef = useRef(null);
+function FooterNewsletter() {
+  const [email, setEmail]   = useState("");
+  const [status, setStatus] = useState("idle");
 
   const isValid = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const trimmed = email.trim().toLowerCase();
-    if (!isValid(trimmed)) { setStatus("error"); setTimeout(() => setStatus("idle"), 2500); return; }
+    if (!isValid(trimmed)) {
+      setStatus("error");
+      setTimeout(() => setStatus("idle"), 2500);
+      return;
+    }
     setStatus("loading");
-    setTimeout(() => {
-      const current = getSubscribers();
-      if (current.some((s) => s.email === trimmed)) {
-        setStatus("duplicate"); setTimeout(() => setStatus("idle"), 3000); return;
-      }
-      saveSubscribers([...current, { email: trimmed, subscribedAt: new Date().toISOString() }]);
-      setStatus("success");
-      setEmail("");
-      setTimeout(() => setStatus("idle"), 3500);
-    }, 600);
+    try {
+      const { ok, status: httpStatus } = await subscribeNewsletter(trimmed);
+      if (httpStatus === 409) { setStatus("duplicate"); setTimeout(() => setStatus("idle"), 3000); return; }
+      if (ok) { setStatus("success"); setEmail(""); setTimeout(() => setStatus("idle"), 3500); }
+      else    { setStatus("apierror"); setTimeout(() => setStatus("idle"), 3000); }
+    } catch {
+      setStatus("apierror");
+      setTimeout(() => setStatus("idle"), 3000);
+    }
   };
-
-  const openAdmin = () => {
-    setSubscribers(getSubscribers());
-    setShowAdmin(true);
-  };
-
-  const unlockAdmin = () => {
-    if (adminCode === "ilmora2026") { setAdminOk(true); setAdminCode(""); }
-    else { alert("Incorrect code"); }
-  };
-
-  const deleteSubscriber = (emailToDel) => {
-    const updated = subscribers.filter((s) => s.email !== emailToDel);
-    saveSubscribers(updated);
-    setSubscribers(updated);
-  };
-
-  const formatDate = (iso) =>
-    new Date(iso).toLocaleDateString("en-IN", {
-      day: "2-digit", month: "short", year: "numeric",
-      hour: "2-digit", minute: "2-digit",
-    });
 
   const statusMsg = {
-    success:   { text: "✓ You're subscribed! Welcome to ILM ORA.", color: "#68d391" },
-    error:     { text: "Please enter a valid email address.",       color: "#fc8181" },
-    duplicate: { text: "This email is already subscribed.",         color: "#f6ad55" },
+    success:  { text: "✓ You're subscribed!",                color: "#22c55e" },
+    error:    { text: "Enter a valid email.",                 color: "#f87171" },
+    duplicate:{ text: "Already subscribed.",                  color: "#fb923c" },
+    apierror: { text: "Something went wrong. Try again.",     color: "#f87171" },
   }[status];
 
   return (
-    <>
-      {/* ── Newsletter Banner ── */}
-      <section style={{ background: "#1a1f2e", padding: "3.5rem 1.5rem", textAlign: "center" }}>
-        <div style={{ maxWidth: "560px", margin: "0 auto" }}>
-
-          {/* Heading */}
-          <h2 style={{
-  color: "#fff",
-  fontSize: "clamp(1.1rem, 2.2vw, 1.75rem)",
-  fontWeight: 700,
-  margin: "0 0 1.6rem",
-  lineHeight: 1.35,
-  whiteSpace: "nowrap",
-}}>
-  Be the first to know what's new on{" "}
-  <span style={{ color: "#22C55E" }}>ILM</span>{" "}
-  <span style={{ color: "#F97316" }}>ORA</span>
-</h2>
-
-          {/* Input row — Maven style */}
-          <div
-            style={{
-              display: "flex",
-              maxWidth: "420px",
-              margin: "0 auto",
-              background: "rgba(255,255,255,0.07)",
-              borderRadius: "10px",
-              border: status === "error"   ? "1.5px solid #fc8181"
-                    : status === "success" ? "1.5px solid #68d391"
-                    : "1.5px solid rgba(255,255,255,0.18)",
-              overflow: "hidden",
-              transition: "border-color 0.25s",
-            }}
-          >
-            <input
-              ref={inputRef}
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-              placeholder="your@email.com"
-              disabled={status === "loading" || status === "success"}
-              style={{
-                flex: 1,
-                background: "transparent",
-                border: "none",
-                outline: "none",
-                color: "#fff",
-                fontSize: "15px",
-                padding: "13px 18px",
-                caretColor: "#F97316",
-                minWidth: 0,
-              }}
-            />
-            <button
-              onClick={handleSubmit}
-              disabled={status === "loading" || status === "success"}
-              style={{
-                background: status === "success" ? "#38a169" : "rgba(255,255,255,0.1)",
-                border: "none",
-                borderLeft: "1.5px solid rgba(255,255,255,0.18)",
-                cursor: "pointer",
-                padding: "0 20px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                minWidth: "52px",
-                transition: "background 0.25s",
-              }}
-              onMouseEnter={e => { if (status !== "success") e.currentTarget.style.background = "rgba(249,115,22,0.8)"; }}
-              onMouseLeave={e => { if (status !== "success") e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
-            >
-              {status === "loading" ? (
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <circle cx="10" cy="10" r="8" stroke="rgba(255,255,255,0.3)" strokeWidth="2.5"/>
-                  <path d="M10 2a8 8 0 0 1 8 8" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
-                    <animateTransform attributeName="transform" type="rotate" from="0 10 10" to="360 10 10" dur="0.7s" repeatCount="indefinite"/>
-                  </path>
-                </svg>
-              ) : status === "success" ? (
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <path d="M4 10l4 4 8-8" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              ) : (
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <path d="M4 10h12M10 4l6 6-6 6" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              )}
-            </button>
-          </div>
-
-          {statusMsg && (
-            <p style={{ marginTop: "0.7rem", fontSize: "13px", color: statusMsg.color, transition: "all 0.3s" }}>
-              {statusMsg.text}
-            </p>
-          )}
-
-          {/* Contact support line */}
-          <p style={{ color: "#6b7280", fontSize: "13px", marginTop: "1.4rem" }}>
-            Contact support:{" "}
-            <a
-              href="mailto:support@ilmora.com"
-              style={{ color: "#9ca3af", textDecoration: "none" }}
-              onMouseEnter={e => e.target.style.color = "#F97316"}
-              onMouseLeave={e => e.target.style.color = "#9ca3af"}
-            >
-              support@ilmora.com
-            </a>
-          </p>
-        </div>
-      </section>
-
-      {/* ── Admin Modal ── */}
-      {showAdmin && (
-        <div
+    <div className="flex flex-col gap-1">
+  <h4 className="text-sm md:text-base font-bold tracking-wide text-[#1E293B] leading-snug">
+    Be the first to know
+  </h4>
+      {/* Input row */}
+      <div
+        style={{
+          display: "flex",
+          background: status === "error" ? "rgba(248,113,113,0.06)" : "#f8fafc",
+          borderRadius: "8px",
+          border: status === "error"   ? "1.5px solid #f87171"
+                : status === "success" ? "1.5px solid #22c55e"
+                : "1.5px solid #e2e8f0",
+          overflow: "hidden",
+          transition: "border-color 0.2s",
+        }}
+      >
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+          placeholder="your@email.com"
+          disabled={status === "loading" || status === "success"}
           style={{
-            position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)",
-            display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999,
+            flex: 1,
+            background: "transparent",
+            border: "none",
+            outline: "none",
+            color: "#1E293B",
+            fontSize: "13px",
+            padding: "9px 12px",
+            minWidth: 0,
           }}
-          onClick={(e) => { if (e.target === e.currentTarget) { setShowAdmin(false); setAdminOk(false); } }}
+        />
+        <button
+          onClick={handleSubmit}
+          disabled={status === "loading" || status === "success"}
+          style={{
+            background: status === "success" ? "#22c55e" : "#1E293B",
+            border: "none",
+            cursor: "pointer",
+            padding: "0 14px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            minWidth: "42px",
+            transition: "background 0.2s",
+            flexShrink: 0,
+          }}
+          onMouseEnter={e => { if (status !== "success") e.currentTarget.style.background = "#F97316"; }}
+          onMouseLeave={e => { if (status !== "success") e.currentTarget.style.background = "#1E293B"; }}
         >
-          <div style={{
-            background: "#fff", borderRadius: "14px", padding: "2rem",
-            width: "min(90vw,560px)", maxHeight: "80vh",
-            display: "flex", flexDirection: "column", gap: "1rem",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
-          }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "#111" }}>📊 Subscriber Admin</h3>
-              <button
-                onClick={() => { setShowAdmin(false); setAdminOk(false); }}
-                style={{ background: "none", border: "none", fontSize: "20px", cursor: "pointer", color: "#888" }}
-              >✕</button>
-            </div>
+          {status === "loading" ? (
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+              <circle cx="10" cy="10" r="8" stroke="rgba(255,255,255,0.3)" strokeWidth="2.5"/>
+              <path d="M10 2a8 8 0 0 1 8 8" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
+                <animateTransform attributeName="transform" type="rotate" from="0 10 10" to="360 10 10" dur="0.7s" repeatCount="indefinite"/>
+              </path>
+            </svg>
+          ) : status === "success" ? (
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+              <path d="M4 10l4 4 8-8" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+              <path d="M4 10h12M10 4l6 6-6 6" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          )}
+        </button>
+      </div>
 
-            {!adminOk ? (
-              <div>
-                <p style={{ color: "#666", fontSize: "14px", marginBottom: "1rem" }}>
-                  Enter admin code to view subscribers:
-                </p>
-                <div style={{ display: "flex", gap: "8px" }}>
-                  <input
-                    type="password"
-                    value={adminCode}
-                    onChange={(e) => setAdminCode(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && unlockAdmin()}
-                    placeholder="Admin code"
-                    style={{
-                      flex: 1, padding: "10px 14px",
-                      border: "1.5px solid #e0e0e0", borderRadius: "8px",
-                      fontSize: "14px", outline: "none",
-                    }}
-                  />
-                  <button
-                    onClick={unlockAdmin}
-                    style={{
-                      background: "#F97316", color: "#fff", border: "none",
-                      borderRadius: "8px", padding: "10px 20px",
-                      cursor: "pointer", fontSize: "14px", fontWeight: 600,
-                    }}
-                  >Unlock</button>
-                </div>
-                <p style={{ color: "#bbb", fontSize: "11px", marginTop: "8px" }}>Hint: ilmora2026</p>
-              </div>
-            ) : (
-              <>
-                <div style={{
-                  background: "#f8fffe", border: "1px solid #d4f5e8",
-                  borderRadius: "8px", padding: "12px 16px",
-                  display: "flex", justifyContent: "space-between", alignItems: "center",
-                }}>
-                  <span style={{ color: "#1a8f3c", fontWeight: 600, fontSize: "14px" }}>
-                    Total Subscribers: {subscribers.length}
-                  </span>
-                  <button
-                    onClick={() => setSubscribers(getSubscribers())}
-                    style={{ background: "none", border: "none", cursor: "pointer", color: "#888", fontSize: "13px" }}
-                  >↻ Refresh</button>
-                </div>
-                <div style={{ overflowY: "auto", flex: 1 }}>
-                  {subscribers.length === 0 ? (
-                    <p style={{ color: "#999", textAlign: "center", padding: "2rem", fontSize: "14px" }}>
-                      No subscribers yet. Share the page!
-                    </p>
-                  ) : (
-                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
-                      <thead>
-                        <tr style={{ borderBottom: "2px solid #f0f0f0" }}>
-                          <th style={{ textAlign: "left", padding: "8px 12px", color: "#888", fontWeight: 600 }}>#</th>
-                          <th style={{ textAlign: "left", padding: "8px 12px", color: "#888", fontWeight: 600 }}>Email</th>
-                          <th style={{ textAlign: "left", padding: "8px 12px", color: "#888", fontWeight: 600 }}>Subscribed</th>
-                          <th style={{ padding: "8px 12px" }}></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {subscribers.map((sub, i) => (
-                          <tr key={sub.email} style={{ borderBottom: "1px solid #f5f5f5" }}>
-                            <td style={{ padding: "10px 12px", color: "#bbb" }}>{i + 1}</td>
-                            <td style={{ padding: "10px 12px", color: "#111", fontWeight: 500 }}>{sub.email}</td>
-                            <td style={{ padding: "10px 12px", color: "#888" }}>{formatDate(sub.subscribedAt)}</td>
-                            <td style={{ padding: "10px 12px", textAlign: "right" }}>
-                              <button
-                                onClick={() => deleteSubscriber(sub.email)}
-                                style={{ background: "none", border: "none", cursor: "pointer", color: "#fc8181", fontSize: "16px" }}
-                                title="Remove"
-                              >🗑</button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
+      {statusMsg && (
+        <p style={{ fontSize: "12px", color: statusMsg.color, margin: "-8px 0 0" }}>
+          {statusMsg.text}
+        </p>
       )}
 
-      {/* hidden admin trigger */}
-      <div id="newsletter-admin-trigger" onClick={openAdmin} style={{ display: "none" }} />
-    </>
+      <p className="text-xs text-gray-400">
+        Contact support:{" "}
+        <a
+          href="mailto:support@ilmora.com"
+          className="text-gray-500 hover:text-[#F97316] transition-colors"
+        >
+          support@ilmora.com
+        </a>
+      </p>
+
+      {/* Status pill */}
+      <div>
+        <span className="inline-flex items-center gap-2 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full">
+          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          Status: Live
+        </span>
+      </div>
+    </div>
   );
 }
 
@@ -1621,14 +1551,12 @@ export default function LMSHomepage({ theme, toggleTheme }) {
   const [modalLoading, setModalLoading]   = useState(false);
   const [showModalPw, setShowModalPw]     = useState(false);
 
-  /* ── Hero Carousel State ── */
   const heroImages = [heroStudent, heroStudent2, heroStudent3];
   const [currentSlide, setCurrentSlide] = useState(0);
   const carouselTimerRef = useRef(null);
 
   const navigate = useNavigate();
 
-  /* ── Auto-play carousel: advance every 3 seconds ── */
   useEffect(() => {
     carouselTimerRef.current = setInterval(() => {
       setCurrentSlide(prev => (prev + 1) % heroImages.length);
@@ -1636,7 +1564,6 @@ export default function LMSHomepage({ theme, toggleTheme }) {
     return () => clearInterval(carouselTimerRef.current);
   }, [heroImages.length]);
 
-  /* ── Manual dot click: reset timer ── */
   const goToSlide = (index) => {
     setCurrentSlide(index);
     clearInterval(carouselTimerRef.current);
@@ -1830,10 +1757,6 @@ export default function LMSHomepage({ theme, toggleTheme }) {
     { text: "Success Stories", href: "#successstories" },
   ];
 
-  const openNewsletterAdmin = () => {
-    document.getElementById("newsletter-admin-trigger")?.click();
-  };
-
   return (
     <div className="min-h-screen bg-[#F6EDE6] dark:bg-black text-[#1E293B] dark:text-white">
 
@@ -1862,25 +1785,13 @@ export default function LMSHomepage({ theme, toggleTheme }) {
               {navLinks.map(link => (
                 <a key={link.text} href={link.href} className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-[18px] py-2 whitespace-nowrap">{link.text}</a>
               ))}
-              <button
-                onClick={() => navigate("/explore-programs")}
-                className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-[18px] py-2 whitespace-nowrap bg-transparent border-none cursor-pointer"
-              >
-                Free Services
-              </button>
-              <button
-                onClick={() => navigate("/school-class")}
-                className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-[18px] py-2 whitespace-nowrap bg-transparent border-none cursor-pointer"
-              >
-                School Programs
-              </button>
+              <button onClick={() => navigate("/explore-programs")} className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-[18px] py-2 whitespace-nowrap bg-transparent border-none cursor-pointer">Free Services</button>
+              <button onClick={() => navigate("/school-class")} className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-[18px] py-2 whitespace-nowrap bg-transparent border-none cursor-pointer">School Programs</button>
+              <button onClick={() => navigate("/platforms")} className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-[18px] py-2 whitespace-nowrap bg-transparent border-none cursor-pointer">Career Tracks</button>
             </div>
 
             <div className="flex items-center gap-4">
-              <button
-                onClick={toggleTheme}
-                className="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-[#F6EDE6] dark:hover:bg-gray-900 transition shadow-sm bg-white dark:bg-black"
-              >
+              <button onClick={toggleTheme} className="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-[#F6EDE6] dark:hover:bg-gray-900 transition shadow-sm bg-white dark:bg-black">
                 {theme === "dark" ? <Sun className="w-5 h-5 text-[#F97316]" /> : <Moon className="w-5 h-5 text-[#1E293B]" />}
               </button>
 
@@ -1924,10 +1835,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                   </DropdownMenu>
                 </div>
               ) : (
-                <Button
-                  onClick={() => setShowLoginModal(true)}
-                  className="bg-[#1E293B] hover:bg-[#334155] text-white font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
-                >
+                <Button onClick={() => setShowLoginModal(true)} className="bg-[#1E293B] hover:bg-[#334155] text-white font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 shadow-md hover:shadow-lg transition-all">
                   <Sparkles className="w-4 h-4" /> Get Started
                 </Button>
               )}
@@ -1941,18 +1849,8 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                     {navLinks.map(link => (
                       <a key={link.text} href={link.href} className="text-lg font-medium hover:text-[#F97316] transition-colors" onClick={() => setMobileMenuOpen(false)}>{link.text}</a>
                     ))}
-                    <button
-                      onClick={() => { navigate("/explore-programs"); setMobileMenuOpen(false); }}
-                      className="text-left text-lg font-medium hover:text-[#F97316] transition-colors bg-transparent border-none cursor-pointer"
-                    >
-                      Free Services
-                    </button>
-                    <button
-                      onClick={() => { navigate("/school-class"); setMobileMenuOpen(false); }}
-                      className="text-left text-lg font-medium hover:text-[#F97316] transition-colors bg-transparent border-none cursor-pointer"
-                    >
-                      School Programs
-                    </button>
+                    <button onClick={() => { navigate("/explore-programs"); setMobileMenuOpen(false); }} className="text-left text-lg font-medium hover:text-[#F97316] transition-colors bg-transparent border-none cursor-pointer">Free Services</button>
+                    <button onClick={() => { navigate("/school-class"); setMobileMenuOpen(false); }} className="text-left text-lg font-medium hover:text-[#F97316] transition-colors bg-transparent border-none cursor-pointer">School Programs</button>
                     <Separator className="my-4" />
                     {user ? (
                       <>
@@ -1960,10 +1858,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                         <Button variant="destructive" onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className="w-full">Logout</Button>
                       </>
                     ) : (
-                      <Button
-                        onClick={() => { setMobileMenuOpen(false); setShowLoginModal(true); }}
-                        className="w-full bg-[#1E293B] hover:bg-[#334155] text-white font-bold flex items-center justify-center gap-2 rounded-xl"
-                      >
+                      <Button onClick={() => { setMobileMenuOpen(false); setShowLoginModal(true); }} className="w-full bg-[#1E293B] hover:bg-[#334155] text-white font-bold flex items-center justify-center gap-2 rounded-xl">
                         <Sparkles className="w-4 h-4" /> Get Started
                       </Button>
                     )}
@@ -1981,7 +1876,6 @@ export default function LMSHomepage({ theme, toggleTheme }) {
         <div className="absolute -bottom-20 right-[5%] w-[500px] h-[500px] bg-[#1E293B]/5 rounded-full blur-[120px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto relative z-10 grid lg:grid-cols-2 gap-16 items-center">
-          {/* Left: Text content */}
           <div className="text-center lg:text-left">
             <div className="mb-8 inline-flex">
               <div className="inline-flex items-center gap-2 bg-white dark:bg-gray-900 border border-[#F97316]/30 text-[#F97316] px-5 py-2.5 rounded-full text-sm font-semibold shadow-md">
@@ -1996,22 +1890,17 @@ export default function LMSHomepage({ theme, toggleTheme }) {
               Learn Product, Design, Growth & Marketing from industry experts.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center lg:items-start">
-            <button
-  onClick={() => navigate("/watch-demo/1")}
-  className="flex items-center gap-2 bg-[#1E293B] hover:bg-[#334155] text-white font-bold px-8 py-4 rounded-xl text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
->
-  Watch Now <ArrowRight className="w-5 h-5" />
-</button>
+              <button
+                onClick={() => navigate("/watch-demo/1")}
+                className="flex items-center gap-2 bg-[#1E293B] hover:bg-[#334155] text-white font-bold px-8 py-4 rounded-xl text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
+              >
+                Watch Now <ArrowRight className="w-5 h-5" />
+              </button>
             </div>
           </div>
 
-          {/* Right: Image Carousel */}
           <div className="flex flex-col items-center gap-4">
-            {/* Carousel track */}
-            <div
-              className="relative w-full max-w-lg overflow-hidden rounded-2xl"
-              style={{ aspectRatio: "4/3" }}
-            >
+            <div className="relative w-full max-w-lg overflow-hidden rounded-2xl" style={{ aspectRatio: "4/3" }}>
               {heroImages.map((img, index) => (
                 <img
                   key={index}
@@ -2027,8 +1916,6 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                 />
               ))}
             </div>
-
-            {/* Dot indicators */}
             <div className="flex items-center gap-2.5">
               {heroImages.map((_, index) => (
                 <button
@@ -2117,25 +2004,17 @@ export default function LMSHomepage({ theme, toggleTheme }) {
             <h2 className="text-4xl md:text-5xl font-bold mb-4 text-[#1E293B] dark:text-white">Featured <span className="text-[#F97316]">Programs</span></h2>
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">Choose your path and start building skills that matter</p>
           </div>
-
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-12 p-1.5 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
               {["product", "design", "growth"].map(tab => (
-                <TabsTrigger key={tab} value={tab} className="rounded-xl capitalize font-semibold data-[state=active]:bg-[#1E293B] data-[state=active]:text-white dark:data-[state=active]:bg-[#F97316] transition-all">
-                  {tab}
-                </TabsTrigger>
+                <TabsTrigger key={tab} value={tab} className="rounded-xl capitalize font-semibold data-[state=active]:bg-[#1E293B] data-[state=active]:text-white dark:data-[state=active]:bg-[#F97316] transition-all">{tab}</TabsTrigger>
               ))}
             </TabsList>
-
             {Object.entries(courses).map(([category, categoryCourses]) => (
               <TabsContent key={category} value={category}>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {categoryCourses.map(course => (
-                    <div
-                      key={course.id}
-                      onClick={() => navigate("/course-details", { state: { course } })}
-                      className="group bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer"
-                    >
+                    <div key={course.id} onClick={() => navigate("/course-details", { state: { course } })} className="group bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer">
                       <div className="h-1 bg-[#F97316]" />
                       <div className="p-6">
                         <div className="flex items-start justify-between mb-4">
@@ -2230,10 +2109,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
               <h3 className="text-3xl md:text-5xl font-bold mb-6 text-white">Ready to Transform Your Career?</h3>
               <p className="text-lg text-gray-300 mb-10">Join 50,000+ professionals who've already taken the leap</p>
               <button
-                onClick={() => {
-                  navigate("/explore-programs");
-                  setTimeout(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, 200);
-                }}
+                onClick={() => { navigate("/explore-programs"); setTimeout(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, 200); }}
                 className="group inline-flex items-center gap-2 bg-[#F97316] hover:bg-[#ea6c0a] text-white px-10 py-4 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
               >
                 Explore Free Services
@@ -2244,10 +2120,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
         </div>
       </section>
 
-      {/* ── Newsletter ── */}
-      <NewsletterSection />
-
-      {/* ── Footer ── */}
+      {/* ── Footer — newsletter moved INSIDE as last column ── */}
       <footer className="bg-white text-[#1E293B]">
         <div className="max-w-7xl mx-auto px-6 py-20">
           <div className="grid gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 items-start">
@@ -2271,28 +2144,24 @@ export default function LMSHomepage({ theme, toggleTheme }) {
 
               {/* Social Icons */}
               <div className="flex items-center gap-3 pt-1 flex-wrap">
-                {/* YouTube */}
                 <a href="https://www.youtube.com/@Texoraai" target="_blank" rel="noreferrer"
                   className="h-9 w-9 rounded-full flex items-center justify-center text-white bg-[#FF0000] hover:scale-110 hover:shadow-md transition-all">
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
                   </svg>
                 </a>
-                {/* LinkedIn */}
                 <a href="https://www.linkedin.com/company/ilmora-texoraai/" target="_blank" rel="noreferrer"
                   className="h-9 w-9 rounded-full flex items-center justify-center text-white bg-[#0A66C2] hover:scale-110 hover:shadow-md transition-all">
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
                   </svg>
                 </a>
-                {/* WhatsApp */}
                 <a href="https://api.whatsapp.com/send?phone=919210970334" target="_blank" rel="noreferrer"
                   className="h-9 w-9 rounded-full flex items-center justify-center text-white bg-[#25D366] hover:scale-110 hover:shadow-md transition-all">
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
                   </svg>
                 </a>
-                {/* Instagram */}
                 <a href="https://www.instagram.com/texora_ai" target="_blank" rel="noreferrer"
                   className="h-9 w-9 rounded-full flex items-center justify-center text-white hover:scale-110 hover:shadow-md transition-all"
                   style={{ background: "radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%)" }}>
@@ -2300,7 +2169,6 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                     <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>
                   </svg>
                 </a>
-                {/* X (Twitter) */}
                 <a href="https://x.com/texoraai" target="_blank" rel="noreferrer"
                   className="h-9 w-9 rounded-full flex items-center justify-center text-white bg-black hover:scale-110 hover:shadow-md transition-all">
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
@@ -2319,8 +2187,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                   { label: "Growth Marketing",   action: () => scrollToSection("courses", "growth") },
                   { label: "UI / UX Design",     action: () => scrollToSection("courses", "design") },
                 ].map(item => (
-                  <li key={item.label} onClick={item.action}
-                    className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group">
+                  <li key={item.label} onClick={item.action} className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group">
                     <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
                     {item.label}
                   </li>
@@ -2332,36 +2199,19 @@ export default function LMSHomepage({ theme, toggleTheme }) {
             <div className="flex flex-col gap-4">
               <h4 className="text-sm font-bold tracking-widest text-[#1E293B] uppercase">Resources</h4>
               <ul className="flex flex-col gap-2.5 text-sm text-gray-600">
-                <li onClick={() => scrollToSection("successstories")}
-                  className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group">
-                  <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
-                  Success Stories
-                </li>
-                <li onClick={() => { navigate("/explore-programs"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 250); }}
-                  className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group">
-                  <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
-                  Free Services
-                </li>
-                <li onClick={() => window.open("https://texora.ai/blogs", "_blank")}
-                  className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group">
-                  <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
-                  Blogs
-                </li>
-                <li onClick={() => window.open("https://texora.ai/use-cases", "_blank")}
-                  className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group">
-                  <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
-                  Use Cases
-                </li>
-                <li onClick={() => window.open("https://texora.ai/product-updates", "_blank")}
-                  className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group">
-                  <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
-                  Product Updates
-                </li>
-                <li onClick={() => window.open("https://texora.ai/company-news", "_blank")}
-                  className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group">
-                  <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
-                  Company News
-                </li>
+                {[
+                  { label: "Success Stories", action: () => scrollToSection("successstories") },
+                  { label: "Free Services",   action: () => { navigate("/explore-programs"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 250); } },
+                  { label: "Blogs",           action: () => window.open("https://texora.ai/blogs", "_blank") },
+                  { label: "Use Cases",       action: () => window.open("https://texora.ai/use-cases", "_blank") },
+                  { label: "Product Updates", action: () => window.open("https://texora.ai/product-updates", "_blank") },
+                  { label: "Company News",    action: () => window.open("https://texora.ai/company-news", "_blank") },
+                ].map(item => (
+                  <li key={item.label} onClick={item.action} className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group">
+                    <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
+                    {item.label}
+                  </li>
+                ))}
               </ul>
             </div>
 
@@ -2370,13 +2220,14 @@ export default function LMSHomepage({ theme, toggleTheme }) {
               <h4 className="text-sm font-bold tracking-widest text-[#1E293B] uppercase">Company</h4>
               <ul className="flex flex-col gap-2.5 text-sm text-gray-600">
                 {[
-                  { label: "About Us",         action: () => navigate("/about") },
-                  { label: "Careers",          action: () => navigate("/careers") },
-                  { label: "Pricing",          action: () => navigate("/pricing") },
-                  { label: "Privacy Policy",   action: () => navigate("/privacy-policy") },
+                  { label: "About Us",       action: () => navigate("/about") },
+                  { label: "Careers",        action: () => navigate("/careers") },
+                  { label: "Pricing",        action: () => navigate("/pricing") },
+                  { label: "Privacy Policy", action: () => navigate("/privacy-policy") },
+                  { label: "Help Center",    action: () => navigate("/help-center") },
+                  { label: "FAQ",            action: () => navigate("/faq") },
                 ].map(item => (
-                  <li key={item.label} onClick={item.action}
-                    className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group">
+                  <li key={item.label} onClick={item.action} className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group">
                     <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
                     {item.label}
                   </li>
@@ -2384,28 +2235,8 @@ export default function LMSHomepage({ theme, toggleTheme }) {
               </ul>
             </div>
 
-            {/* Col 5: Support */}
-            <div className="flex flex-col gap-4 self-start">
-              <h4 className="text-sm font-bold tracking-widest text-[#1E293B] uppercase">Support</h4>
-              <ul className="flex flex-col gap-2.5 text-sm text-gray-600">
-                {[
-                  { label: "Help Center", action: () => navigate("/help-center") },
-                  { label: "FAQ",         action: () => navigate("/faq") },
-                ].map(item => (
-                  <li key={item.label} onClick={item.action}
-                    className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group">
-                    <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
-                    {item.label}
-                  </li>
-                ))}
-              </ul>
-              <div className="pt-1">
-                <span className="inline-flex items-center gap-2 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full">
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  Status: Live
-                </span>
-              </div>
-            </div>
+            {/* Col 5: Newsletter — replaces old "Support" column, Maven style */}
+            <FooterNewsletter />
 
           </div>
 
@@ -2445,11 +2276,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                 }
               `}</style>
 
-              <button
-                onClick={() => setShowLoginModal(false)}
-                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition text-xl font-bold leading-none"
-                aria-label="Close"
-              >×</button>
+              <button onClick={() => setShowLoginModal(false)} className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition text-xl font-bold leading-none" aria-label="Close">×</button>
 
               <div className="flex justify-center mb-5">
                 <span className="text-4xl font-extrabold font-serif tracking-wide">
@@ -2462,25 +2289,12 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                 <h2 className="text-xl font-bold text-[#1e0e02] mb-1">Welcome back!</h2>
                 <p className="text-sm text-[#8a6040]">
                   Don't have an account?{" "}
-                  <button
-                    onClick={() => { setShowLoginModal(false); navigate("/complete-profile"); }}
-                    className="text-[#F97316] font-bold hover:underline bg-transparent border-none cursor-pointer text-sm p-0"
-                  >Apply now</button>
+                  <button onClick={() => { setShowLoginModal(false); navigate("/complete-profile"); }} className="text-[#F97316] font-bold hover:underline bg-transparent border-none cursor-pointer text-sm p-0">Apply now</button>
                 </p>
               </div>
 
               <div className="flex justify-center mb-5">
-                <GoogleLogin
-                  onSuccess={handleModalGoogle}
-                  onError={() => console.error("Google OAuth failed")}
-                  theme="outline"
-                  size="large"
-                  text="continue_with"
-                  shape="rectangular"
-                  width="360"
-                  auto_select={false}
-                  cancel_on_tap_outside={true}
-                />
+                <GoogleLogin onSuccess={handleModalGoogle} onError={() => console.error("Google OAuth failed")} theme="outline" size="large" text="continue_with" shape="rectangular" width="360" auto_select={false} cancel_on_tap_outside={true} />
               </div>
 
               <div className="flex items-center gap-3 mb-5">
@@ -2492,13 +2306,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
               <form onSubmit={handleModalSubmit}>
                 <div className="mb-3">
                   <label className="block text-xs font-bold text-[#8a6040] mb-1.5 uppercase tracking-widest">Email</label>
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    value={modalEmail}
-                    onChange={e => setModalEmail(e.target.value)}
-                    required
-                    disabled={modalLoading}
+                  <input type="email" placeholder="Enter your email" value={modalEmail} onChange={e => setModalEmail(e.target.value)} required disabled={modalLoading}
                     className="w-full px-3.5 py-2.5 rounded-xl text-sm text-[#1a0e06] placeholder-[#c0a070] outline-none transition-all disabled:opacity-50"
                     style={{ background: "rgba(255,255,255,0.8)", border: "1.5px solid rgba(180,120,60,0.2)" }}
                     onFocus={e => { e.target.style.borderColor = "#F97316"; e.target.style.boxShadow = "0 0 0 3px rgba(249,115,22,0.1)"; e.target.style.background = "#fff"; }}
@@ -2509,24 +2317,13 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                 <div className="mb-2">
                   <label className="block text-xs font-bold text-[#8a6040] mb-1.5 uppercase tracking-widest">Password</label>
                   <div className="relative">
-                    <input
-                      type={showModalPw ? "text" : "password"}
-                      placeholder="Enter your password"
-                      value={modalPassword}
-                      onChange={e => setModalPassword(e.target.value)}
-                      required
-                      disabled={modalLoading}
+                    <input type={showModalPw ? "text" : "password"} placeholder="Enter your password" value={modalPassword} onChange={e => setModalPassword(e.target.value)} required disabled={modalLoading}
                       className="w-full px-3.5 py-2.5 pr-11 rounded-xl text-sm text-[#1a0e06] placeholder-[#c0a070] outline-none transition-all disabled:opacity-50"
                       style={{ background: "rgba(255,255,255,0.8)", border: "1.5px solid rgba(180,120,60,0.2)" }}
                       onFocus={e => { e.target.style.borderColor = "#F97316"; e.target.style.boxShadow = "0 0 0 3px rgba(249,115,22,0.1)"; e.target.style.background = "#fff"; }}
                       onBlur={e => { e.target.style.borderColor = "rgba(180,120,60,0.2)"; e.target.style.boxShadow = "none"; }}
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowModalPw(p => !p)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#b8906a] hover:text-[#F97316] transition flex items-center justify-center p-0 bg-transparent border-none cursor-pointer"
-                      tabIndex={-1}
-                    >
+                    <button type="button" onClick={() => setShowModalPw(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#b8906a] hover:text-[#F97316] transition flex items-center justify-center p-0 bg-transparent border-none cursor-pointer" tabIndex={-1}>
                       {showModalPw ? (
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
@@ -2544,37 +2341,21 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                 </div>
 
                 <div className="text-right mb-5">
-                  <button
-                    type="button"
-                    onClick={() => { setShowLoginModal(false); navigate("/forgot-password"); }}
-                    className="text-xs text-[#F97316] hover:underline bg-transparent border-none cursor-pointer font-medium p-0"
-                  >
-                    Forgot password?
-                  </button>
+                  <button type="button" onClick={() => { setShowLoginModal(false); navigate("/forgot-password"); }} className="text-xs text-[#F97316] hover:underline bg-transparent border-none cursor-pointer font-medium p-0">Forgot password?</button>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={modalLoading}
+                <button type="submit" disabled={modalLoading}
                   className="w-full py-3 rounded-xl font-bold text-white text-sm transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   style={{ background: "linear-gradient(135deg,#F97316,#ea580c)", boxShadow: "0 4px 18px rgba(249,115,22,0.32)" }}
                 >
                   {modalLoading ? (
-                    <>
-                      <span className="inline-block w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                      Signing in…
-                    </>
+                    <><span className="inline-block w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />Signing in…</>
                   ) : "Log in"}
                 </button>
               </form>
 
               <div className="text-center mt-5">
-                <button
-                  onClick={() => setShowLoginModal(false)}
-                  className="text-xs text-[#b8906a] hover:text-[#8a6040] bg-transparent border-none cursor-pointer transition-colors"
-                >
-                  ← Back to home
-                </button>
+                <button onClick={() => setShowLoginModal(false)} className="text-xs text-[#b8906a] hover:text-[#8a6040] bg-transparent border-none cursor-pointer transition-colors">← Back to home</button>
               </div>
             </div>
           </div>

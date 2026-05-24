@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from "react";
 import { useUserManagement } from "../context/UserManagementContext";
-// import { USER_STATUS } from "../../constants/permissions";
 import { USER_STATUS } from "../constants/permissions";
 // ─── Mini Sparkline Bar ───────────────────────────────────────
 const SparkBar = ({ values = [], color = "#8b5cf6", height = 40 }) => {

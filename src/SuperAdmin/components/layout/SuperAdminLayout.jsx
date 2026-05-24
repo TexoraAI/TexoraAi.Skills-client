@@ -1,14 +1,11 @@
 // src/SuperAdmin/components/layout/SuperAdminLayout.jsx
-import React, { useState } from "react";
+import React from "react";
 import { Outlet } from "react-router-dom";
-import SuperAdminSidebar from "./SuperAdminSidebar";
-import SuperAdminTopbar from "./SuperAdminTopbar";
+import SuperAdminNavbar from "./SuperAdminNavbar";
 import { useUserManagement } from "../../context/UserManagementContext";
-import { ThemeProvider, useTheme } from "../../context/ThemeContext"; // ← FIXED: ../../ instead of ../
+import { ThemeProvider, useTheme } from "../../context/ThemeContext";
 
-// ── Inner layout (must be inside ThemeProvider to use useTheme) ──
 const LayoutInner = () => {
-  const [collapsed, setCollapsed] = useState(false);
   const { dark } = useTheme();
 
   const { pendingApprovals, getStats } = useUserManagement();
@@ -17,29 +14,26 @@ const LayoutInner = () => {
   })();
 
   return (
-    <div className={`min-h-screen ${dark ? "dark bg-[#0a0a0f] text-white" : "bg-gray-50 text-gray-900"}`}>
-
-      <SuperAdminSidebar
-        collapsed={collapsed}
-        onToggle={() => setCollapsed((c) => !c)}
+    <div style={{
+      minHeight: "100vh",
+      background: dark ? "#090910" : "#f8fafc",
+      color: dark ? "#e2e8f0" : "#1e293b",
+    }}>
+      <SuperAdminNavbar
         pendingCount={pendingApprovals?.length ?? 0}
-      />
-
-      <SuperAdminTopbar
-        collapsed={collapsed}
         activeUsers={stats.activeUsers ?? 0}
-        pendingUsers={stats.pendingUsers ?? 0}
       />
 
-      <main
-        style={{
-          marginLeft: collapsed ? 64 : 240,
-          paddingTop: 64,
-          transition: "margin-left 0.3s",
-          minHeight: "100vh",
-          overflowX: "hidden",
-        }}
-      >
+      {/*
+        Desktop: paddingTop = 52px (Row1) + 44px (Row2) = 96px
+        Mobile:  paddingTop = 52px only (Row2 hidden)
+      */}
+      <main style={{ paddingTop: 96, minHeight: "100vh", boxSizing: "border-box" }}>
+        <style>{`
+          @media (max-width: 768px) {
+            main { padding-top: 52px !important; }
+          }
+        `}</style>
         <div style={{ padding: 24 }}>
           <Outlet />
         </div>
@@ -48,7 +42,6 @@ const LayoutInner = () => {
   );
 };
 
-// ── Exported layout — wraps everything in ThemeProvider ──
 const SuperAdminLayout = () => (
   <ThemeProvider>
     <LayoutInner />

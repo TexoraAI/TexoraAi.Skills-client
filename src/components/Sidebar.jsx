@@ -1,26 +1,55 @@
-
-/**
- * Sidebar.jsx  (Updated)
- *
- * ✅ useAvatarContext se profileImage read karta hai
- * ✅ Image upload hone par user-card avatar instantly update
- * ✅ Fallback: image nahi hai toh initials + gradient background
- * ✅ Existing UI/styling/colors — kuch nahi badla
- * ✅ studentMenus: AI Tools group added (Notebook AI + Resume Builder)
- */
-
 import React from "react";
 import {
-  LayoutDashboard, GraduationCap, Video, FileText, FolderOpen,
-  BookOpen, ClipboardCheck, ClipboardEdit, History, CalendarDays,
-  MessageCircleQuestion, Award, Users, UserCog, ShieldCheck, BarChart3,
-  Activity, TrendingUp, LineChart, Briefcase, Building2, Layers, Target,
-  DollarSign, Receipt, Settings, Mail, FileSearch, ChevronDown,
-  Sun, Moon, LogOut, Radio, PlayCircle, Mic, Upload,
-  List, Star, Menu, Brain, MessageSquare,
-  // ✅ New icons for AI Tools
-  Sparkles, Bot, FileCode2, NotebookPen,
+  LayoutDashboard,
+  GraduationCap,
+  Video,
+  Brain,
+  FileText,
+  FolderOpen,
+  BookOpen,
+  ClipboardCheck,
+  ClipboardEdit,
+  History,
+  CalendarDays,
+  MessageCircleQuestion,
+  Award,
+  Users,
+  UserCog,
+  ShieldCheck,
+  BarChart3,
+  Activity,
+  TrendingUp,
+  LineChart,
+  Briefcase,
+  Building2,
+  Layers,
+  Target,
+  DollarSign,
+  Receipt,
+  Settings,
+  Mail,
+  FileSearch,
+  ChevronDown,
+  Sun,
+  Moon,
+  LogOut,
+  Radio,
+  PlayCircle,
+  Mic,
+  Upload,
+  List,
+  Star,
+  Menu,
+  MessageSquare,
+  PanelTop,
+
+  // ✅ AI Tools Icons
+  Sparkles,
+  Bot,
+  FileCode2,
+  NotebookPen,
 } from "lucide-react";
+
 import { useLocation, useNavigate } from "react-router-dom";
 import auth from "../auth";
 import { Phone } from "lucide-react";
@@ -127,6 +156,16 @@ const trainerMenus = [
     name: "Live Classes", icon: Video,
     children: [
       { name: "Live Dashboard", path: "/trainer/live", icon: LayoutDashboard },
+      {
+        name: "Whiteboard",
+        path: "/trainer/whiteboard",
+        icon: PanelTop,
+      },
+      {
+        name: "AI Companion",
+        path: "/trainer/ai-companion",
+        icon: Bot,
+      },
     ],
   },
   {

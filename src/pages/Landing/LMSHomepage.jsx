@@ -1332,27 +1332,7 @@
 
 //     </div>
 //   );
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// }old working
 
 
 
@@ -1751,10 +1731,18 @@ export default function LMSHomepage({ theme, toggleTheme }) {
     Advanced:     "bg-[#1E293B]/10 text-[#1E293B] dark:bg-white/10 dark:text-white border border-[#1E293B]/20 dark:border-white/20",
   }[level] || "bg-gray-100 text-gray-700");
 
+  // ── Nav links (anchor-based)
   const navLinks = [
     { text: "Courses",         href: "#courses" },
     { text: "Mentors",         href: "#mentors" },
     { text: "Success Stories", href: "#successstories" },
+  ];
+
+  // ── Nav buttons (navigate-based) — shown on desktop inline, and in mobile sheet
+  const navButtons = [
+    { text: "Free Services",    action: () => navigate("/explore-programs") },
+    { text: "School Programs",  action: () => navigate("/school-class") },
+    { text: "Career Tracks",    action: () => navigate("/platforms") },
   ];
 
   return (
@@ -1768,43 +1756,69 @@ export default function LMSHomepage({ theme, toggleTheme }) {
             : "bg-white/80 dark:bg-black/80 backdrop-blur-md"
         } border-b border-[#F97316]/20 dark:border-gray-800`}
       >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 sm:h-20">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-[68px]">
 
+            {/* ── Logo ── */}
             <div
-              className="flex items-center cursor-pointer hover:scale-105 transition-transform"
+              className="flex items-center cursor-pointer hover:scale-105 transition-transform flex-shrink-0"
               onClick={() => navigate("/")}
             >
-              <span className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-wide font-serif whitespace-nowrap">
+              <span className="text-[28px] sm:text-[32px] font-extrabold tracking-wide font-serif leading-none whitespace-nowrap">
                 <span className="text-green-600">ILM</span>
-                <span className="text-[#F97316] ml-1 sm:ml-2">ORA</span>
+                <span className="text-[#F97316] ml-1">ORA</span>
               </span>
             </div>
 
-            <div className="hidden lg:flex items-center">
+            {/* ── Desktop Nav Links — only shown at 1280px+ ── */}
+            <div className="hidden xl:flex items-center gap-1 flex-1 justify-center mx-6">
               {navLinks.map(link => (
-                <a key={link.text} href={link.href} className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-[18px] py-2 whitespace-nowrap">{link.text}</a>
+                <a
+                  key={link.text}
+                  href={link.href}
+                  className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-4 py-2 rounded-lg hover:bg-[#F97316]/5 text-[15px] whitespace-nowrap"
+                >
+                  {link.text}
+                </a>
               ))}
-              <button onClick={() => navigate("/explore-programs")} className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-[18px] py-2 whitespace-nowrap bg-transparent border-none cursor-pointer">Free Services</button>
-              <button onClick={() => navigate("/school-class")} className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-[18px] py-2 whitespace-nowrap bg-transparent border-none cursor-pointer">School Programs</button>
-              <button onClick={() => navigate("/platforms")} className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-[18px] py-2 whitespace-nowrap bg-transparent border-none cursor-pointer">Career Tracks</button>
+              {navButtons.map(btn => (
+                <button
+                  key={btn.text}
+                  onClick={btn.action}
+                  className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-4 py-2 rounded-lg hover:bg-[#F97316]/5 text-[15px] whitespace-nowrap bg-transparent border-none cursor-pointer"
+                >
+                  {btn.text}
+                </button>
+              ))}
             </div>
 
-            <div className="flex items-center gap-4">
-              <button onClick={toggleTheme} className="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-[#F6EDE6] dark:hover:bg-gray-900 transition shadow-sm bg-white dark:bg-black">
-                {theme === "dark" ? <Sun className="w-5 h-5 text-[#F97316]" /> : <Moon className="w-5 h-5 text-[#1E293B]" />}
+            {/* ── Right: Theme + Get Started (desktop) + Hamburger (mobile/tablet) ── */}
+            <div className="flex items-center gap-3 flex-shrink-0">
+
+              {/* Theme Toggle — always visible */}
+              <button
+                onClick={toggleTheme}
+                className="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-[#F6EDE6] dark:hover:bg-gray-900 transition shadow-sm bg-white dark:bg-black flex-shrink-0"
+              >
+                {theme === "dark"
+                  ? <Sun className="w-[18px] h-[18px] text-[#F97316]" />
+                  : <Moon className="w-[18px] h-[18px] text-[#1E293B]" />
+                }
               </button>
 
+              {/* User Avatar Dropdown — desktop only (xl+) */}
               {user ? (
-                <div className="hidden lg:block">
+                <div className="hidden xl:block">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="gap-3 rounded-xl border-gray-200 dark:border-gray-700">
-                        <Avatar className="w-8 h-8">
+                      <Button variant="outline" className="gap-2 rounded-xl border-gray-200 dark:border-gray-700 h-10 px-3">
+                        <Avatar className="w-7 h-7">
                           <AvatarImage src={user.picture} alt={user.name} />
-                          <AvatarFallback className="bg-[#1E293B] text-white">{user.name?.charAt(0) || <User className="w-4 h-4" />}</AvatarFallback>
+                          <AvatarFallback className="bg-[#1E293B] text-white text-xs">
+                            {user.name?.charAt(0) || <User className="w-3 h-3" />}
+                          </AvatarFallback>
                         </Avatar>
-                        <ChevronDown className="w-4 h-4" />
+                        <ChevronDown className="w-3 h-3" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-72 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
@@ -1835,36 +1849,108 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                   </DropdownMenu>
                 </div>
               ) : (
-                <Button onClick={() => setShowLoginModal(true)} className="bg-[#1E293B] hover:bg-[#334155] text-white font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 shadow-md hover:shadow-lg transition-all">
+                /* Get Started — desktop only (xl+) */
+                <Button
+                  onClick={() => setShowLoginModal(true)}
+                  className="hidden xl:flex bg-[#1E293B] hover:bg-[#334155] text-white font-bold px-5 py-2.5 rounded-xl items-center gap-2 shadow-md hover:shadow-lg transition-all text-[15px] h-10 whitespace-nowrap"
+                >
                   <Sparkles className="w-4 h-4" /> Get Started
                 </Button>
               )}
 
+              {/* ── Hamburger — visible on mobile, tablet, and laptop (below xl) ── */}
               <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-                <SheetTrigger asChild className="lg:hidden">
-                  <Button variant="ghost" size="icon" className="rounded-xl"><Menu className="w-6 h-6" /></Button>
+                <SheetTrigger asChild>
+                  <button
+                    className="xl:hidden flex items-center justify-center w-10 h-10 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black hover:bg-[#F6EDE6] dark:hover:bg-gray-900 transition shadow-sm"
+                    aria-label="Open menu"
+                  >
+                    <Menu className="w-5 h-5 text-[#1E293B] dark:text-white" />
+                  </button>
                 </SheetTrigger>
-                <SheetContent className="bg-white dark:bg-gray-900">
-                  <div className="flex flex-col gap-4 mt-8">
+
+                {/* ── Mobile / Tablet Slide-out Menu ── */}
+                <SheetContent side="right" className="bg-white dark:bg-gray-950 w-[300px] sm:w-[340px] p-0 border-l border-gray-100 dark:border-gray-800">
+
+                  {/* Sheet Header */}
+                  <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-800">
+                    <span className="text-[26px] font-extrabold font-serif leading-none">
+                      <span className="text-green-600">ILM</span>
+                      <span className="text-[#F97316] ml-1">ORA</span>
+                    </span>
+                  </div>
+
+                  {/* Nav Items */}
+                  <div className="flex flex-col px-4 py-4 gap-1 overflow-y-auto">
+
+                    {/* Section label */}
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 px-3 mb-1">Navigation</p>
+
+                    {/* Anchor links */}
                     {navLinks.map(link => (
-                      <a key={link.text} href={link.href} className="text-lg font-medium hover:text-[#F97316] transition-colors" onClick={() => setMobileMenuOpen(false)}>{link.text}</a>
+                      <a
+                        key={link.text}
+                        href={link.href}
+                        className="flex items-center text-[15px] font-semibold text-[#1E293B] dark:text-gray-100 hover:text-[#F97316] dark:hover:text-[#F97316] transition-colors py-3 px-3 rounded-xl hover:bg-[#F97316]/8 dark:hover:bg-[#F97316]/10"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        {link.text}
+                      </a>
                     ))}
-                    <button onClick={() => { navigate("/explore-programs"); setMobileMenuOpen(false); }} className="text-left text-lg font-medium hover:text-[#F97316] transition-colors bg-transparent border-none cursor-pointer">Free Services</button>
-                    <button onClick={() => { navigate("/school-class"); setMobileMenuOpen(false); }} className="text-left text-lg font-medium hover:text-[#F97316] transition-colors bg-transparent border-none cursor-pointer">School Programs</button>
-                    <Separator className="my-4" />
+
+                    {/* Button nav items */}
+                    {navButtons.map(btn => (
+                      <button
+                        key={btn.text}
+                        onClick={() => { btn.action(); setMobileMenuOpen(false); }}
+                        className="flex items-center text-left text-[15px] font-semibold text-[#1E293B] dark:text-gray-100 hover:text-[#F97316] dark:hover:text-[#F97316] transition-colors py-3 px-3 rounded-xl hover:bg-[#F97316]/8 dark:hover:bg-[#F97316]/10 bg-transparent border-none cursor-pointer w-full"
+                      >
+                        {btn.text}
+                      </button>
+                    ))}
+
+                    <div className="my-3 h-px bg-gray-100 dark:bg-gray-800" />
+
+                    {/* CTA / Auth */}
                     {user ? (
-                      <>
-                        <Button onClick={() => { navigate("/my-learning"); setMobileMenuOpen(false); }} className="w-full bg-[#1E293B] hover:bg-[#334155]">My Learning</Button>
-                        <Button variant="destructive" onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className="w-full">Logout</Button>
-                      </>
+                      <div className="flex flex-col gap-2 px-1">
+                        <div className="flex items-center gap-3 px-3 py-3 bg-[#F6EDE6] dark:bg-gray-900 rounded-xl mb-1">
+                          <div className="w-9 h-9 bg-[#1E293B] rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                            {user.name?.charAt(0) || "U"}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-semibold text-sm text-[#1E293B] dark:text-white truncate">{user.name || "User"}</p>
+                            <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                          </div>
+                        </div>
+                        <Button
+                          onClick={() => { navigate("/my-learning"); setMobileMenuOpen(false); }}
+                          className="w-full bg-[#1E293B] hover:bg-[#334155] text-white rounded-xl h-11 text-[15px] font-semibold"
+                        >
+                          My Learning
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
+                          className="w-full border-red-200 text-red-600 hover:bg-red-50 rounded-xl h-11 text-[15px] font-semibold"
+                        >
+                          <LogOut className="w-4 h-4 mr-2" /> Logout
+                        </Button>
+                      </div>
                     ) : (
-                      <Button onClick={() => { setMobileMenuOpen(false); setShowLoginModal(true); }} className="w-full bg-[#1E293B] hover:bg-[#334155] text-white font-bold flex items-center justify-center gap-2 rounded-xl">
-                        <Sparkles className="w-4 h-4" /> Get Started
-                      </Button>
+                      <div className="px-1">
+                        <Button
+                          onClick={() => { setMobileMenuOpen(false); setShowLoginModal(true); }}
+                          className="w-full bg-[#1E293B] hover:bg-[#334155] text-white font-bold flex items-center justify-center gap-2 rounded-xl h-12 text-[15px] shadow-md"
+                        >
+                          <Sparkles className="w-4 h-4" /> Get Started
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </SheetContent>
               </Sheet>
+
             </div>
           </div>
         </div>
@@ -2120,7 +2206,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
         </div>
       </section>
 
-      {/* ── Footer — newsletter moved INSIDE as last column ── */}
+      {/* ── Footer ── */}
       <footer className="bg-white text-[#1E293B]">
         <div className="max-w-7xl mx-auto px-6 py-20">
           <div className="grid gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 items-start">
@@ -2235,7 +2321,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
               </ul>
             </div>
 
-            {/* Col 5: Newsletter — replaces old "Support" column, Maven style */}
+            {/* Col 5: Newsletter */}
             <FooterNewsletter />
 
           </div>

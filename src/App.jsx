@@ -117,19 +117,12 @@ const AnalyticsDashboard = lazyLoad(() =>
 );
 
 /* Settings */
-const GlobalSettings = lazyLoad(() =>
-  import("./SuperAdmin/settings/GlobalSettings")
-);
-
-const SecuritySettings = lazyLoad(() =>
-  import("./SuperAdmin/settings/SecuritySettings")
-);
+const GlobalSettings            = lazyLoad(()   => import("./SuperAdmin/settings/GlobalSettings"));
+const SecuritySettings          = lazyLoad(() => import("./SuperAdmin/settings/SecuritySettings"));
 const AuditLogs                 = lazyLoad(() => import("./SuperAdmin/settings/AuditLogs"));
 const SendEmail                 = lazyLoad(() => import("./SuperAdmin/settings/SendEmail"));
 /* Profile */
-const SuperAdminProfile = lazyLoad(() =>
-  import("./SuperAdmin/profile/SuperAdminProfile")
-);
+const SuperAdminProfile         = lazyLoad(() => import("./SuperAdmin/profile/SuperAdminProfile"));
 
 /* ================= AUTH PAGES ================= */
 const ApprovalPending = lazyLoad(() => import("./pages/Auth/ApprovalPending.jsx"));
@@ -140,11 +133,11 @@ const ResetPassword   = lazyLoad(() => import("./pages/Auth/ResetPassword.jsx"))
 const VerifyEmail     = lazyLoad(() => import("./pages/Auth/VerifyEmail.jsx"));
 
 /*===============public live-session pages =========*/
-const PublicSessionsPage   = lazyLoad(() => import("./pages/public/PublicSessionsPage"));
-const PublicBooking        = lazyLoad(() => import("./pages/public/PublicBooking"));
-const PublicBookingConfirmation = lazyLoad(() => import("./pages/public/PublicBookingConfirmation"));
-const PublicJoinSession    = lazyLoad(() => import("./pages/public/PublicJoinSession"));
-const PublicSessionComplete  = lazyLoad(() => import("./pages/public/PublicSessionComplete"));
+const PublicSessionsPage            = lazyLoad(() => import("./pages/public/PublicSessionsPage"));
+const PublicBooking                 = lazyLoad(() => import("./pages/public/PublicBooking"));
+const PublicBookingConfirmation     = lazyLoad(() => import("./pages/public/PublicBookingConfirmation"));
+const PublicJoinSession             = lazyLoad(() => import("./pages/public/PublicJoinSession"));
+const PublicSessionComplete         = lazyLoad(() => import("./pages/public/PublicSessionComplete"));
 /* ================= LANDING ================= */
 const CoursePreview        = lazyLoad(() => import("./pages/CoursePreview"));
 const CourseDetail         = lazyLoad(() => import("./pages/Landing/CourseDetailsPage"));
@@ -153,9 +146,10 @@ const LMSHomepage          = lazyLoad(() => import("./pages/Landing/LMSHomepage"
 const SyllabusPage         = lazyLoad(() => import("./pages/Landing/Syllabus.jsx"));
 const Watchnow             = lazyLoad(() => import("./pages/Landing/Watchnow"));
 const Schoolclass          = lazyLoad(() => import("./pages/Landing/Schoolclass"));
-const Platforms = lazyLoad(() => import("./pages/Landing/platforms"));
-
-
+const Platforms            = lazyLoad(() => import("./pages/Landing/platforms"));
+const IlmoraMeet           = lazyLoad(() => import("./pages/Landing/ilmorameet"));
+const IlmoraTalk           = lazyLoad(() => import("./pages/Landing/IlmoraTalk"));
+const StudyAbroad          = lazyLoad(() => import("./pages/Landing/StudyAbroad"));
 /* ================= SUBJECTS ================= */
 const Class9Subjects       = lazyLoad(() => import("./pages/Landing/Subjects/Class9Subjects"));
 const Class9Math           = lazyLoad(() => import("./pages/Landing/Subjects/Class9Math"));
@@ -352,7 +346,9 @@ useEffect(() => {
             <Route path="/school-class" element={<Schoolclass />} />
             {/* NEW */}
             <Route path="/platforms" element={<Platforms />} />
-
+            <Route path="/ilm-ora-meet" element={<IlmoraMeet />} />
+            <Route path="/ilm-ora-talk" element={<IlmoraTalk />} />
+            <Route path="/study-abroad" element={<StudyAbroad />} />
             {/* ================= CLASS 9 ================= */}
             <Route path="/school-class/9" element={<Class9Subjects />} />
             <Route path="/school-class/9/math" element={<Class9Math />} />

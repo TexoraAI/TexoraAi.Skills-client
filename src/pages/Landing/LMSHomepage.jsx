@@ -145,7 +145,7 @@ function FooterNewsletter() {
       <p className="text-xs text-gray-400">
         Contact support:{" "}
         <a href="mailto:support@ilmora.com" className="text-gray-500 hover:text-[#F97316] transition-colors">
-          support@ilmora.com
+          marketing@texora.ai
         </a>
       </p>
 
@@ -393,6 +393,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
 
   const navButtons = [
     { text: "ILM ORA Meet", action: () => navigate("/ilm-ora-meet") },
+    { text: "AI Resume Builder", action: () => navigate("/resume-builder") },
   ];
 
   return (
@@ -409,7 +410,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-[68px]">
 
-            {/* Logo */}
+            {/* Logo
             <div
               className="flex items-center cursor-pointer hover:scale-105 transition-transform flex-shrink-0"
               onClick={() => navigate("/")}
@@ -418,7 +419,20 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                 <span className="text-green-600">ILM</span>
                 <span className="text-[#F97316] ml-1">ORA</span>
               </span>
-            </div>
+            </div> */}
+            {/* Logo */}
+<div
+  className="flex items-center cursor-pointer hover:scale-105 transition-transform flex-shrink-0"
+  onClick={() => navigate("/")}
+>
+  <span className="text-[28px] sm:text-[32px] font-extrabold tracking-wide font-serif leading-none whitespace-nowrap">
+    <span className="text-green-600">ILM</span>
+    <span className="text-[#F97316] ml-1">ORA</span>
+    <span className="inline-flex items-center bg-orange-50 border border-[#F97316] rounded ml-1.5 px-1.5 py-0.5 text-[0.45rem] sm:text-[0.5rem] font-sans font-semibold tracking-widest text-[#F97316] uppercase leading-snug align-middle">
+      Beta
+    </span>
+  </span>
+</div>
 
             {/* Desktop Nav */}
             <div className="hidden xl:flex items-center gap-1 flex-1 justify-center mx-6">
@@ -860,10 +874,10 @@ export default function LMSHomepage({ theme, toggleTheme }) {
               <p className="text-sm text-gray-500">
                 📧{" "}
                 <a href="mailto:support@ilmora.com" className="hover:text-[#F97316] transition-colors">
-                  support@ilmora.com
+                  marketing@texora.ai
                 </a>
               </p>
-              <p className="text-sm text-gray-500">📍 New Delhi, India</p>
+              {/* <p className="text-sm text-gray-500">📍 New Delhi, India</p> */}
               <div className="flex items-center gap-3 pt-1 flex-wrap">
                 <a href="https://www.youtube.com/@Texoraai" target="_blank" rel="noreferrer"
                   className="h-9 w-9 rounded-full flex items-center justify-center text-white bg-[#FF0000] hover:scale-110 hover:shadow-md transition-all">

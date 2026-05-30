@@ -150,6 +150,8 @@ const Platforms            = lazyLoad(() => import("./pages/Landing/platforms"))
 const IlmoraMeet           = lazyLoad(() => import("./pages/Landing/ilmorameet"));
 const IlmoraTalk           = lazyLoad(() => import("./pages/Landing/IlmoraTalk"));
 const StudyAbroad          = lazyLoad(() => import("./pages/Landing/StudyAbroad"));
+const ILMORAGulf           = lazyLoad(() => import("./pages/Landing/ILMORAGulf"));
+const ResumeBuilderLanding = lazyLoad(() => import("./pages/Landing/ResumeBuilderLanding"));
 /* ================= SUBJECTS ================= */
 const Class9Subjects       = lazyLoad(() => import("./pages/Landing/Subjects/Class9Subjects"));
 const Class9Math           = lazyLoad(() => import("./pages/Landing/Subjects/Class9Math"));
@@ -349,6 +351,8 @@ useEffect(() => {
             <Route path="/ilm-ora-meet" element={<IlmoraMeet />} />
             <Route path="/ilm-ora-talk" element={<IlmoraTalk />} />
             <Route path="/study-abroad" element={<StudyAbroad />} />
+            <Route path="/ilm-ora-gulf" element={<ILMORAGulf />} />
+            <Route path="/resume-builder" element={<ResumeBuilderLanding />} />
             {/* ================= CLASS 9 ================= */}
             <Route path="/school-class/9" element={<Class9Subjects />} />
             <Route path="/school-class/9/math" element={<Class9Math />} />

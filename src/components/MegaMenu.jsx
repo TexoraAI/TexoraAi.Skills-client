@@ -94,22 +94,58 @@ const CATEGORIES = [
       { name: "Study in Germany",  desc: "Germany programs", Icon: Flag,          route: "/study-abroad" },
     ],
   },
+  {
+    id: "ilm-ora-gulf",
+    label: "ILM ORA Gulf",
+    description: "UAE, Oman, Kuwait, Qatar & more",
+    Icon: Flag,
+    isGulf: true,
+    items: [
+      { name: "Oman",         flagCode: "om", route: "/ilm-ora-gulf" },
+      { name: "UAE",          flagCode: "ae", route: "/ilm-ora-gulf" },
+      { name: "Malaysia",     flagCode: "my", route: "/ilm-ora-gulf" },
+      { name: "Kuwait",       flagCode: "kw", route: "/ilm-ora-gulf" },
+      { name: "Qatar",        flagCode: "qa", route: "/ilm-ora-gulf" },
+      { name: "Saudi Arabia", flagCode: "sa", route: "/ilm-ora-gulf" },
+      { name: "Bahrain",      flagCode: "bh", route: "/ilm-ora-gulf" },
+      { name: "Uganda",       flagCode: "ug", route: "/ilm-ora-gulf" },
+      { name: "Nigeria",      flagCode: "ng", route: "/ilm-ora-gulf" },
+      { name: "Tanzania",     flagCode: "tz", route: "/ilm-ora-gulf" },
+      { name: "Singapore",    flagCode: "sg", route: "/ilm-ora-gulf" },
+    ],
+  },
+];
+
+const COURSE_GROUPS = [
+  { key: "product", label: "Product",  Icon: Target     },
+  { key: "design",  label: "Design",   Icon: Palette    },
+  { key: "growth",  label: "Growth",   Icon: TrendingUp },
 ];
 
 export default function MegaMenu({ onItemClick }) {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState(CATEGORIES[0].id);
+  const [expandedMobileCats, setExpandedMobileCats] = useState({ courses: true });
   const menuRef = useRef(null);
   const timeoutRef = useRef(null);
-  const [isMobile, setIsMobile] = useState(false);
+  const [screenSize, setScreenSize] = useState("desktop");
 
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 1024);
+    const check = () => {
+      const w = window.innerWidth;
+      if (w < 768) setScreenSize("mobile");
+      else if (w < 1024) setScreenSize("tablet");
+      else setScreenSize("desktop");
+    };
     check();
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, []);
+
+  const isMobile = screenSize === "mobile";
+  const isTablet = screenSize === "tablet";
+  const isDesktop = screenSize === "desktop";
 
   useEffect(() => {
     const onEsc = (e) => { if (e.key === "Escape") setIsOpen(false); };
@@ -126,10 +162,14 @@ export default function MegaMenu({ onItemClick }) {
   }, [isOpen]);
 
   const handleMouseEnter = () => {
-    if (!isMobile) { clearTimeout(timeoutRef.current); setIsOpen(true); }
+    if (isDesktop) { clearTimeout(timeoutRef.current); setIsOpen(true); }
   };
   const handleMouseLeave = () => {
-    if (!isMobile) { timeoutRef.current = setTimeout(() => setIsOpen(false), 180); }
+    if (isDesktop) { timeoutRef.current = setTimeout(() => setIsOpen(false), 180); }
+  };
+
+  const toggleMobileCat = (id) => {
+    setExpandedMobileCats((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   const handleItemClick = (item) => {
@@ -138,7 +178,6 @@ export default function MegaMenu({ onItemClick }) {
 
     if (item.tab) {
       window.dispatchEvent(new CustomEvent("mm-course-tab", { detail: { tab: item.tab } }));
-
       if (window.location.pathname === "/") {
         setTimeout(() => {
           const el = document.getElementById("courses");
@@ -159,11 +198,266 @@ export default function MegaMenu({ onItemClick }) {
 
   const activeCat = CATEGORIES.find((c) => c.id === activeCategory);
 
-  const COURSE_GROUPS = [
-    { key: "product", label: "Product",  Icon: Target     },
-    { key: "design",  label: "Design",   Icon: Palette    },
-    { key: "growth",  label: "Growth",   Icon: TrendingUp },
-  ];
+  /* ─── MOBILE & TABLET ACCORDION ─── */
+  const renderMobileMenu = () => (
+    <div className="mm-mobile-wrap">
+      {/* Header */}
+      <div className="mm-mobile-header">
+        <span className="mm-mobile-title">All Courses</span>
+        <button className="mm-mobile-close" onClick={() => setIsOpen(false)} aria-label="Close">
+          <X size={18} />
+        </button>
+      </div>
+
+      {/* Categories */}
+      <div className="mm-mobile-body">
+        {CATEGORIES.map((cat) => {
+          const CatIcon = cat.Icon;
+          const isExpanded = !!expandedMobileCats[cat.id];
+          return (
+            <div key={cat.id} className="mm-mobile-cat-row">
+              {/* Category button */}
+              <button
+                className={`mm-mobile-cat-btn ${isExpanded ? "mm-mobile-cat-btn--open" : ""}`}
+                onClick={() => toggleMobileCat(cat.id)}
+              >
+                <span className="mm-mobile-cat-left">
+                  <span className={`mm-mobile-cat-icon ${isExpanded ? "mm-mobile-cat-icon--active" : ""}`}>
+                    <CatIcon size={17} />
+                  </span>
+                  <span className="mm-mobile-cat-text">
+                    <span className="mm-mobile-cat-name">{cat.label}</span>
+                    <span className="mm-mobile-cat-desc">{cat.description}</span>
+                  </span>
+                </span>
+                <ChevronRight
+                  size={16}
+                  className={`mm-mobile-cat-arrow ${isExpanded ? "mm-mobile-cat-arrow--open" : ""}`}
+                />
+              </button>
+
+              {/* Expanded items */}
+              {isExpanded && (
+                <div className="mm-mobile-items-panel">
+                  {cat.id === "courses"
+                    ? COURSE_GROUPS.map(({ key, label, Icon: GIcon }) => {
+                        const groupItems = cat.items.filter((i) => i.tab === key);
+                        if (!groupItems.length) return null;
+                        return (
+                          <div key={key}>
+                            <div className="mm-mobile-group-label">
+                              <GIcon size={10} />
+                              {label}
+                            </div>
+                            <div className="mm-mobile-grid">
+                              {groupItems.map((item) => {
+                                const ItemIcon = item.Icon;
+                                return (
+                                  <button
+                                    key={item.name}
+                                    className="mm-mobile-item-card"
+                                    onClick={() => handleItemClick(item)}
+                                  >
+                                    <span className="mm-mobile-item-icon"><ItemIcon size={16} /></span>
+                                    <span className="mm-mobile-item-body">
+                                      <span className="mm-mobile-item-name">{item.name}</span>
+                                      <span className="mm-mobile-item-desc">{item.desc}</span>
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })
+                    : cat.isGulf ? (
+                      <div className="mm-mobile-grid">
+                        {cat.items.map((item) => (
+                          <button
+                            key={item.name}
+                            className="mm-mobile-item-card mm-mobile-gulf-card"
+                            onClick={() => handleItemClick(item)}
+                          >
+                            <span className="mm-gulf-flag-mobile">
+                              <img
+                                src={`https://flagcdn.com/w40/${item.flagCode}.png`}
+                                alt={item.name}
+                                width="32"
+                                height="21"
+                                style={{ borderRadius: "4px", objectFit: "cover", display: "block" }}
+                              />
+                            </span>
+                            <span className="mm-mobile-item-body">
+                              <span className="mm-mobile-item-name">{item.name}</span>
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="mm-mobile-grid">
+                        {cat.items.map((item) => {
+                          const ItemIcon = item.Icon;
+                          return (
+                            <button
+                              key={item.name}
+                              className="mm-mobile-item-card"
+                              onClick={() => handleItemClick(item)}
+                            >
+                              <span className="mm-mobile-item-icon"><ItemIcon size={16} /></span>
+                              <span className="mm-mobile-item-body">
+                                <span className="mm-mobile-item-name">{item.name}</span>
+                                <span className="mm-mobile-item-desc">{item.desc}</span>
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  /* ─── DESKTOP TWO-PANEL ─── */
+  const renderDesktopMenu = () => (
+    <div className="mm-desktop">
+      {/* Left panel */}
+      <div className="mm-left">
+        <div className="mm-left-header">Browse Categories</div>
+        {CATEGORIES.map((cat) => {
+          const isActive = activeCategory === cat.id;
+          const CatIcon = cat.Icon;
+          return (
+            <button
+              key={cat.id}
+              className={`mm-left-item ${isActive ? "mm-left-item--active" : ""}`}
+              onMouseEnter={() => setActiveCategory(cat.id)}
+              onClick={() => setActiveCategory(cat.id)}
+            >
+              <div className="mm-left-item-inner">
+                <span className="mm-left-icon"><CatIcon size={17} /></span>
+                <div className="mm-left-text">
+                  <span className="mm-left-label">{cat.label}</span>
+                  <span className="mm-left-desc">{cat.description}</span>
+                </div>
+              </div>
+              {isActive && <span className="mm-left-active-dot" />}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Right panel */}
+      <div className="mm-right">
+        <div className="mm-right-header">
+          {activeCat && (
+            <>
+              <div className="mm-right-header-top">
+                <span className="mm-right-badge">
+                  <activeCat.Icon size={13} />
+                  {activeCat.label}
+                </span>
+                {activeCat.id === "courses" && (
+                  <span className="mm-right-note">↗ Opens on homepage</span>
+                )}
+              </div>
+              <h3 className="mm-right-heading">Explore {activeCat.label}</h3>
+              <p className="mm-right-sub">{activeCat.description}</p>
+            </>
+          )}
+        </div>
+
+        {activeCat?.id === "courses" ? (
+          <div className="mm-course-tabs">
+            {COURSE_GROUPS.map(({ key, label, Icon: GIcon }) => {
+              const items = activeCat.items.filter((i) => i.tab === key);
+              if (!items.length) return null;
+              return (
+                <div key={key} className="mm-course-group">
+                  <div className="mm-course-group-label">
+                    <GIcon size={11} />
+                    {label}
+                  </div>
+                  <div className="mm-right-grid">
+                    {items.map((item) => {
+                      const ItemIcon = item.Icon;
+                      return (
+                        <button
+                          key={item.name}
+                          className="mm-item-card"
+                          onClick={() => handleItemClick(item)}
+                        >
+                          <span className="mm-item-icon-wrap"><ItemIcon size={17} /></span>
+                          <div className="mm-item-body">
+                            <span className="mm-item-name">{item.name}</span>
+                            <span className="mm-item-desc">{item.desc}</span>
+                          </div>
+                          <ChevronRight size={13} className="mm-item-arrow" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : activeCat?.isGulf ? (
+          <div className="mm-right-grid mm-right-grid--flat">
+            {activeCat.items.map((item) => (
+              <button
+                key={item.name}
+                className="mm-item-card mm-gulf-card"
+                onClick={() => handleItemClick(item)}
+              >
+                <span className="mm-gulf-flag">
+                  <img
+                    src={`https://flagcdn.com/w40/${item.flagCode}.png`}
+                    alt={item.name}
+                    width="36"
+                    height="24"
+                    style={{ borderRadius: "4px", objectFit: "cover", display: "block" }}
+                  />
+                </span>
+                <div className="mm-item-body">
+                  <span className="mm-item-name">{item.name}</span>
+                </div>
+                <ChevronRight size={13} className="mm-item-arrow" />
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="mm-right-grid mm-right-grid--flat">
+            {activeCat?.items.map((item) => {
+              const ItemIcon = item.Icon;
+              return (
+                <button
+                  key={item.name}
+                  className="mm-item-card"
+                  onClick={() => handleItemClick(item)}
+                >
+                  <span className="mm-item-icon-wrap"><ItemIcon size={17} /></span>
+                  <div className="mm-item-body">
+                    <span className="mm-item-name">{item.name}</span>
+                    <span className="mm-item-desc">{item.desc}</span>
+                  </div>
+                  <ChevronRight size={13} className="mm-item-arrow" />
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="mm-right-footer">
+          <span className="mm-footer-text">Not sure where to start?</span>
+          <button className="mm-footer-cta">Explore All Programs →</button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -186,225 +480,21 @@ export default function MegaMenu({ onItemClick }) {
 
         {/* DROPDOWN */}
         {isOpen && (
-          <div className={`mm-dropdown ${isMobile ? "mm-dropdown--mobile" : ""}`}>
-
-            {/* MOBILE */}
-            {isMobile ? (
-              <div className="mm-mobile-wrap">
-                <div className="mm-mobile-header">
-                  <span className="mm-mobile-title">All Courses</span>
-                  <button className="mm-mobile-close" onClick={() => setIsOpen(false)}>
-                    <X size={18} />
-                  </button>
-                </div>
-                {CATEGORIES.map((cat) => {
-                  const CatIcon = cat.Icon;
-                  return (
-                    <div key={cat.id} className="mm-mobile-section">
-                      <button
-                        className="mm-mobile-cat-btn"
-                        onClick={() =>
-                          setActiveCategory(activeCategory === cat.id ? null : cat.id)
-                        }
-                      >
-                        <span className="mm-mobile-cat-left">
-                          <span className="mm-mobile-cat-icon"><CatIcon size={18} /></span>
-                          <span className="mm-mobile-cat-label">{cat.label}</span>
-                        </span>
-                        <ChevronRight
-                          size={15}
-                          style={{
-                            transform: activeCategory === cat.id ? "rotate(90deg)" : "none",
-                            transition: "transform 0.2s",
-                            color: "#94a3b8",
-                          }}
-                        />
-                      </button>
-                      {activeCategory === cat.id && (
-                        <div className="mm-mobile-items">
-                          {cat.id === "courses"
-                            ? COURSE_GROUPS.map(({ key, label, Icon: GIcon }) => {
-                                const groupItems = cat.items.filter((i) => i.tab === key);
-                                if (!groupItems.length) return null;
-                                return (
-                                  <div key={key}>
-                                    <div className="mm-mobile-group-label">
-                                      <GIcon size={10} /> {label}
-                                    </div>
-                                    {groupItems.map((item) => {
-                                      const ItemIcon = item.Icon;
-                                      return (
-                                        <button
-                                          key={item.name}
-                                          className="mm-mobile-item"
-                                          onClick={() => handleItemClick(item)}
-                                        >
-                                          <span className="mm-mobile-item-icon"><ItemIcon size={17} /></span>
-                                          <div>
-                                            <div className="mm-mobile-item-name">{item.name}</div>
-                                            <div className="mm-mobile-item-desc">{item.desc}</div>
-                                          </div>
-                                        </button>
-                                      );
-                                    })}
-                                  </div>
-                                );
-                              })
-                            : cat.items.map((item) => {
-                                const ItemIcon = item.Icon;
-                                return (
-                                  <button
-                                    key={item.name}
-                                    className="mm-mobile-item"
-                                    onClick={() => handleItemClick(item)}
-                                  >
-                                    <span className="mm-mobile-item-icon"><ItemIcon size={17} /></span>
-                                    <div>
-                                      <div className="mm-mobile-item-name">{item.name}</div>
-                                      <div className="mm-mobile-item-desc">{item.desc}</div>
-                                    </div>
-                                  </button>
-                                );
-                              })}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-            ) : (
-              /* DESKTOP */
-              <div className="mm-desktop">
-
-                {/* Left panel */}
-                <div className="mm-left">
-                  <div className="mm-left-header">Browse Categories</div>
-                  {CATEGORIES.map((cat) => {
-                    const isActive = activeCategory === cat.id;
-                    const CatIcon = cat.Icon;
-                    return (
-                      <button
-                        key={cat.id}
-                        className={`mm-left-item ${isActive ? "mm-left-item--active" : ""}`}
-                        onMouseEnter={() => setActiveCategory(cat.id)}
-                        onClick={() => setActiveCategory(cat.id)}
-                      >
-                        <div className="mm-left-item-inner">
-                          <span className="mm-left-icon"><CatIcon size={17} /></span>
-                          <div className="mm-left-text">
-                            <span className="mm-left-label">{cat.label}</span>
-                            <span className="mm-left-desc">{cat.description}</span>
-                          </div>
-                        </div>
-                        {isActive && (
-                          <span className="mm-left-active-dot" />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Right panel */}
-                <div className="mm-right">
-                  <div className="mm-right-header">
-                    {activeCat && (
-                      <>
-                        <div className="mm-right-header-top">
-                          <span className="mm-right-badge">
-                            <activeCat.Icon size={13} />
-                            {activeCat.label}
-                          </span>
-                          {activeCat.id === "courses" && (
-                            <span className="mm-right-note">↗ Opens on homepage</span>
-                          )}
-                        </div>
-                        <h3 className="mm-right-heading">
-                          Explore {activeCat.label}
-                        </h3>
-                        <p className="mm-right-sub">{activeCat.description}</p>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Courses: grouped by tab */}
-                  {activeCat?.id === "courses" ? (
-                    <div className="mm-course-tabs">
-                      {COURSE_GROUPS.map(({ key, label, Icon: GIcon }) => {
-                        const items = activeCat.items.filter((i) => i.tab === key);
-                        if (!items.length) return null;
-                        return (
-                          <div key={key} className="mm-course-group">
-                            <div className="mm-course-group-label">
-                              <GIcon size={11} />
-                              {label}
-                            </div>
-                            <div className="mm-right-grid">
-                              {items.map((item) => {
-                                const ItemIcon = item.Icon;
-                                return (
-                                  <button
-                                    key={item.name}
-                                    className="mm-item-card"
-                                    onClick={() => handleItemClick(item)}
-                                  >
-                                    <span className="mm-item-icon-wrap"><ItemIcon size={17} /></span>
-                                    <div className="mm-item-body">
-                                      <span className="mm-item-name">{item.name}</span>
-                                      <span className="mm-item-desc">{item.desc}</span>
-                                    </div>
-                                    <ChevronRight size={13} className="mm-item-arrow" />
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    /* Other categories: flat grid */
-                    <div className="mm-right-grid mm-right-grid--flat">
-                      {activeCat?.items.map((item) => {
-                        const ItemIcon = item.Icon;
-                        return (
-                          <button
-                            key={item.name}
-                            className="mm-item-card"
-                            onClick={() => handleItemClick(item)}
-                          >
-                            <span className="mm-item-icon-wrap"><ItemIcon size={17} /></span>
-                            <div className="mm-item-body">
-                              <span className="mm-item-name">{item.name}</span>
-                              <span className="mm-item-desc">{item.desc}</span>
-                            </div>
-                            <ChevronRight size={13} className="mm-item-arrow" />
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {/* Footer CTA strip matching ILM ORA style */}
-                  <div className="mm-right-footer">
-                    <span className="mm-footer-text">Not sure where to start?</span>
-                    <button className="mm-footer-cta">Explore All Programs →</button>
-                  </div>
-                </div>
-              </div>
-            )}
+          <div className={`mm-dropdown ${!isDesktop ? "mm-dropdown--mobile" : ""}`}>
+            {isDesktop ? renderDesktopMenu() : renderMobileMenu()}
           </div>
         )}
       </div>
 
-      {isOpen && isMobile && (
+      {/* Overlay for mobile/tablet */}
+      {isOpen && !isDesktop && (
         <div className="mm-overlay" onClick={() => setIsOpen(false)} />
       )}
 
       <style>{`
-        /* ─── Fonts matching ILM ORA site ─── */
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
+        /* ─── Root ─── */
         .mm-root {
           position: relative;
           display: inline-flex;
@@ -446,7 +536,7 @@ export default function MegaMenu({ onItemClick }) {
           position: absolute;
           top: calc(100% + 12px);
           left: 0;
-          z-index: 1000;
+          z-index: 9999;
           background: #ffffff;
           border: 1px solid rgba(226,232,240,0.8);
           border-radius: 20px;
@@ -458,12 +548,37 @@ export default function MegaMenu({ onItemClick }) {
           animation: mmIn 0.2s cubic-bezier(.16,1,.3,1);
           min-width: 860px;
         }
+
+        /* Mobile/Tablet dropdown: fixed full-screen sheet */
+        .mm-dropdown--mobile {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          min-width: unset;
+          border-radius: 0;
+          box-shadow: none;
+          border: none;
+          overflow-y: auto;
+          animation: mmSlideUp 0.25s cubic-bezier(.16,1,.3,1);
+          z-index: 9999;
+          display: flex;
+          flex-direction: column;
+        }
+
         @keyframes mmIn {
           from { opacity: 0; transform: translateY(-10px) scale(0.97); }
           to   { opacity: 1; transform: translateY(0) scale(1); }
         }
+        @keyframes mmSlideUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
 
-        /* ─── Desktop layout ─── */
+        /* ══════════════════════════════════════
+           DESKTOP LAYOUT
+        ══════════════════════════════════════ */
         .mm-desktop { display: flex; height: 490px; }
 
         /* LEFT PANEL */
@@ -485,7 +600,6 @@ export default function MegaMenu({ onItemClick }) {
           text-transform: uppercase;
           color: #a0aec0;
           padding: 0 16px 10px;
-          font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
         .mm-left-item {
@@ -500,7 +614,6 @@ export default function MegaMenu({ onItemClick }) {
           cursor: pointer;
           text-align: left;
           transition: background 0.15s;
-          position: relative;
         }
         .mm-left-item:hover { background: #f5f5f5; }
         .mm-left-item--active {
@@ -537,7 +650,6 @@ export default function MegaMenu({ onItemClick }) {
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
-          font-family: 'Plus Jakarta Sans', sans-serif;
           transition: color 0.15s;
         }
         .mm-left-item--active .mm-left-label { color: #f97316; }
@@ -548,9 +660,7 @@ export default function MegaMenu({ onItemClick }) {
           overflow: hidden;
           text-overflow: ellipsis;
           margin-top: 1px;
-          font-family: 'Plus Jakarta Sans', sans-serif;
         }
-
         .mm-left-active-dot {
           width: 6px;
           height: 6px;
@@ -572,7 +682,6 @@ export default function MegaMenu({ onItemClick }) {
         .mm-right::-webkit-scrollbar { width: 4px; }
         .mm-right::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
 
-        /* Right Header — ILM ORA hero-style */
         .mm-right-header {
           margin-bottom: 14px;
           padding-bottom: 14px;
@@ -595,13 +704,11 @@ export default function MegaMenu({ onItemClick }) {
           color: #f97316;
           font-size: 11px;
           font-weight: 700;
-          font-family: 'Plus Jakarta Sans', sans-serif;
         }
         .mm-right-note {
           font-size: 10.5px;
           color: #9ca3af;
           font-style: italic;
-          font-family: 'Plus Jakarta Sans', sans-serif;
         }
         .mm-right-heading {
           font-size: 20px;
@@ -610,17 +717,13 @@ export default function MegaMenu({ onItemClick }) {
           letter-spacing: -0.03em;
           margin: 0 0 3px;
           line-height: 1.2;
-          font-family: 'Plus Jakarta Sans', sans-serif;
         }
-        /* ILM ORA style: last word in orange */
         .mm-right-sub {
           font-size: 12px;
           color: #6b7280;
           margin: 0;
-          font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
-        /* Course tab groups */
         .mm-course-tabs { display: flex; flex-direction: column; gap: 14px; flex: 1; }
         .mm-course-group-label {
           display: inline-flex;
@@ -639,7 +742,6 @@ export default function MegaMenu({ onItemClick }) {
           width: fit-content;
         }
 
-        /* Items grid */
         .mm-right-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
@@ -706,7 +808,6 @@ export default function MegaMenu({ onItemClick }) {
           overflow: hidden;
           text-overflow: ellipsis;
           transition: color 0.15s;
-          font-family: 'Plus Jakarta Sans', sans-serif;
           letter-spacing: -0.01em;
         }
         .mm-item-desc {
@@ -716,7 +817,6 @@ export default function MegaMenu({ onItemClick }) {
           overflow: hidden;
           text-overflow: ellipsis;
           margin-top: 1px;
-          font-family: 'Plus Jakarta Sans', sans-serif;
         }
         .mm-item-arrow {
           color: #d1d5db;
@@ -725,12 +825,10 @@ export default function MegaMenu({ onItemClick }) {
           transition: all 0.18s ease;
         }
 
-        /* Footer strip — matches ILM ORA CTA style */
         .mm-right-footer {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-top: auto;
           padding: 12px 0 14px;
           border-top: 1px solid #f3f4f6;
           margin-top: 14px;
@@ -738,7 +836,6 @@ export default function MegaMenu({ onItemClick }) {
         .mm-footer-text {
           font-size: 12px;
           color: #6b7280;
-          font-family: 'Plus Jakarta Sans', sans-serif;
         }
         .mm-footer-cta {
           display: inline-flex;
@@ -751,10 +848,10 @@ export default function MegaMenu({ onItemClick }) {
           color: #fff;
           font-size: 12px;
           font-weight: 700;
-          font-family: 'Plus Jakarta Sans', sans-serif;
           cursor: pointer;
           transition: all 0.18s ease;
           letter-spacing: -0.01em;
+          font-family: 'Plus Jakarta Sans', sans-serif;
         }
         .mm-footer-cta:hover {
           background: #ea6c0a;
@@ -762,141 +859,330 @@ export default function MegaMenu({ onItemClick }) {
           box-shadow: 0 4px 14px rgba(249,115,22,0.35);
         }
 
-        /* ─── Mobile ─── */
-        .mm-dropdown--mobile {
-          position: fixed;
-          top: 60px;
-          left: 0;
-          right: 0;
-          min-width: unset;
-          border-radius: 0 0 20px 20px;
-          max-height: 75vh;
-          overflow-y: auto;
+        /* ══════════════════════════════════════
+           MOBILE & TABLET LAYOUT  (PW-style)
+        ══════════════════════════════════════ */
+        .mm-mobile-wrap {
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+          background: #fff;
         }
-        .mm-mobile-wrap { padding: 0; }
+
+        /* Sticky header */
         .mm-mobile-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 14px 18px;
+          padding: 16px 18px;
           border-bottom: 1px solid #f3f4f6;
+          background: #fff;
+          position: sticky;
+          top: 0;
+          z-index: 10;
+          flex-shrink: 0;
         }
         .mm-mobile-title {
-          font-size: 15px;
+          font-size: 16px;
           font-weight: 800;
           color: #1a1a2e;
-          font-family: 'Plus Jakarta Sans', sans-serif;
+          letter-spacing: -0.02em;
         }
         .mm-mobile-close {
           border: none;
           background: #f5f5f5;
-          border-radius: 8px;
-          width: 30px;
-          height: 30px;
+          border-radius: 9px;
+          width: 32px;
+          height: 32px;
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
           color: #6b7280;
+          flex-shrink: 0;
+          transition: background 0.15s;
         }
-        .mm-mobile-section { border-bottom: 1px solid #f9fafb; }
+        .mm-mobile-close:hover { background: #ffe8d6; color: #f97316; }
+
+        /* Scrollable body */
+        .mm-mobile-body {
+          flex: 1;
+          overflow-y: auto;
+          padding-bottom: 24px;
+          scrollbar-width: none;
+        }
+        .mm-mobile-body::-webkit-scrollbar { display: none; }
+
+        /* Category row */
+        .mm-mobile-cat-row {
+          border-bottom: 1px solid #f9fafb;
+        }
+
+        /* Category header button */
         .mm-mobile-cat-btn {
           width: 100%;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 13px 18px;
+          padding: 14px 18px;
           border: none;
           background: transparent;
           cursor: pointer;
           text-align: left;
+          transition: background 0.15s;
         }
-        .mm-mobile-cat-left { display: flex; align-items: center; gap: 10px; }
+        .mm-mobile-cat-btn:hover { background: #fafafa; }
+        .mm-mobile-cat-btn--open { background: #fff9f5; }
+
+        .mm-mobile-cat-left {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          flex: 1;
+          min-width: 0;
+        }
+
         .mm-mobile-cat-icon {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 34px;
-          height: 34px;
-          border-radius: 9px;
+          width: 38px;
+          height: 38px;
+          border-radius: 10px;
           background: #fff5ee;
           color: #f97316;
           flex-shrink: 0;
           border: 1px solid rgba(249,115,22,0.12);
+          transition: all 0.18s;
         }
-        .mm-mobile-cat-label {
+        .mm-mobile-cat-icon--active {
+          background: #f97316;
+          color: #fff;
+          border-color: #f97316;
+          box-shadow: 0 4px 12px rgba(249,115,22,0.3);
+        }
+
+        .mm-mobile-cat-text {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+        }
+        .mm-mobile-cat-name {
           font-size: 14px;
           font-weight: 700;
           color: #1a1a2e;
-          font-family: 'Plus Jakarta Sans', sans-serif;
+          display: block;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
-        .mm-mobile-items {
-          padding: 8px 14px 12px;
+        .mm-mobile-cat-desc {
+          font-size: 11.5px;
+          color: #9ca3af;
+          display: block;
+          margin-top: 1px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .mm-mobile-cat-arrow {
+          color: #cbd5e1;
+          flex-shrink: 0;
+          transition: transform 0.22s cubic-bezier(.4,0,.2,1);
+          margin-left: 8px;
+        }
+        .mm-mobile-cat-arrow--open {
+          transform: rotate(90deg);
+          color: #f97316;
+        }
+
+        /* Expanded items panel */
+        .mm-mobile-items-panel {
           background: #fafafa;
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
+          padding: 10px 14px 14px;
+          border-top: 1px solid #f3f4f6;
         }
+
+        /* Group label (Product / Design / Growth) */
         .mm-mobile-group-label {
           display: inline-flex;
           align-items: center;
-          gap: 4px;
-          font-size: 9.5px;
+          gap: 5px;
+          font-size: 10px;
           font-weight: 800;
           text-transform: uppercase;
-          letter-spacing: 0.08em;
+          letter-spacing: 0.09em;
           color: #f97316;
           background: #fff5ee;
-          border: 1px solid rgba(249,115,22,0.15);
-          padding: 2px 9px;
+          border: 1px solid rgba(249,115,22,0.18);
+          padding: 3px 10px;
           border-radius: 100px;
-          margin: 6px 0 4px;
+          margin: 8px 0 8px;
           width: fit-content;
         }
-        .mm-mobile-item {
+
+        /* ── 2-column grid for items (PW style) ── */
+        .mm-mobile-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 6px;
+          margin-bottom: 4px;
+        }
+
+        .mm-mobile-item-card {
           display: flex;
           align-items: center;
-          gap: 10px;
-          padding: 10px 12px;
+          gap: 8px;
+          padding: 10px 10px;
           border-radius: 10px;
-          border: none;
+          border: 1px solid #efefef;
           background: #ffffff;
           cursor: pointer;
           text-align: left;
-          transition: background 0.15s;
-          border: 1px solid #f3f4f6;
+          transition: all 0.16s ease;
+          width: 100%;
         }
-        .mm-mobile-item:hover { background: #fff7ed; border-color: rgba(249,115,22,0.2); }
+        .mm-mobile-item-card:hover {
+          background: #fff7ed;
+          border-color: rgba(249,115,22,0.25);
+          box-shadow: 0 2px 8px rgba(249,115,22,0.08);
+        }
+        .mm-mobile-item-card:hover .mm-mobile-item-name { color: #f97316; }
+        .mm-mobile-item-card:hover .mm-mobile-item-icon {
+          background: #f97316;
+          color: #fff;
+        }
+
         .mm-mobile-item-icon {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 34px;
-          height: 34px;
-          border-radius: 9px;
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
           background: #fff5ee;
           color: #f97316;
           flex-shrink: 0;
-        }
-        .mm-mobile-item-name {
-          font-size: 13px;
-          font-weight: 700;
-          color: #1a1a2e;
-          font-family: 'Plus Jakarta Sans', sans-serif;
-        }
-        .mm-mobile-item-desc {
-          font-size: 11px;
-          color: #9ca3af;
-          font-family: 'Plus Jakarta Sans', sans-serif;
-          margin-top: 1px;
+          border: 1px solid rgba(249,115,22,0.1);
+          transition: all 0.16s;
         }
 
+        .mm-mobile-item-body {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+          flex: 1;
+        }
+        .mm-mobile-item-name {
+          font-size: 12px;
+          font-weight: 700;
+          color: #1a1a2e;
+          display: block;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          transition: color 0.15s;
+          letter-spacing: -0.01em;
+        }
+        .mm-mobile-item-desc {
+          font-size: 10px;
+          color: #9ca3af;
+          display: block;
+          margin-top: 1px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        /* ─── Gulf flag cards ─── */
+        .mm-gulf-card {
+          align-items: center;
+        }
+        .mm-gulf-flag {
+          flex-shrink: 0;
+          width: 44px;
+          height: 30px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 6px;
+          overflow: hidden;
+          background: #f0f0f0;
+          border: 1px solid #e8e8e8;
+        }
+        .mm-gulf-flag img {
+          width: 44px;
+          height: 30px;
+          object-fit: cover;
+          display: block;
+          border-radius: 4px;
+        }
+        .mm-gulf-flag-mobile {
+          flex-shrink: 0;
+          width: 38px;
+          height: 26px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 5px;
+          overflow: hidden;
+          background: #f0f0f0;
+          border: 1px solid #e8e8e8;
+        }
+        .mm-gulf-flag-mobile img {
+          width: 38px;
+          height: 26px;
+          object-fit: cover;
+          display: block;
+          border-radius: 3px;
+        }
+
+        /* ─── Overlay ─── */
         .mm-overlay {
           position: fixed;
           inset: 0;
-          background: rgba(0,0,0,0.3);
-          z-index: 999;
+          background: rgba(0,0,0,0.45);
+          z-index: 9998;
           backdrop-filter: blur(2px);
+        }
+
+        /* ══════════════════════════════════════
+           TABLET-SPECIFIC TWEAKS (768–1023px)
+        ══════════════════════════════════════ */
+        @media (min-width: 768px) and (max-width: 1023px) {
+          .mm-dropdown--mobile {
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 0;
+          }
+          .mm-mobile-header {
+            padding: 18px 24px;
+          }
+          .mm-mobile-title {
+            font-size: 18px;
+          }
+          .mm-mobile-cat-btn {
+            padding: 16px 24px;
+          }
+          .mm-mobile-items-panel {
+            padding: 12px 20px 16px;
+          }
+          .mm-mobile-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+          }
+          .mm-mobile-item-card {
+            padding: 12px 12px;
+          }
+          .mm-mobile-item-name {
+            font-size: 13px;
+          }
+          .mm-mobile-item-desc {
+            font-size: 11px;
+          }
         }
       `}</style>
     </>

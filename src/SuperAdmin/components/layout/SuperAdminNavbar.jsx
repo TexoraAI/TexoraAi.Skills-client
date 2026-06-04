@@ -20,6 +20,7 @@ const ic = {
   moon:          "M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z",
   user:          "M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2 M12 11a4 4 0 100-8 4 4 0 000 8z",
   bell:          "M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0",
+  featuredPrograms: "M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2z M9 7h6 M9 11h6 M9 15h4",
 };
 
 const SvgIcon = ({ d, size = 15 }) => (
@@ -55,13 +56,7 @@ const NAV = [
         icon: ic.organizations,
         permission: PERMISSIONS.VIEW_ORGANIZATIONS,
       },
-      // {
-      //   label: "Pending Approvals",
-      //   path: "/superadmin/pending-approvals",
-      //   icon: ic.approvals,
-      //   permission: PERMISSIONS.APPROVE_TRAINER,
-      //   badge: true,
-      // },
+      
       {
         label: "Permissions",
         path: "/superadmin/permissions",
@@ -76,6 +71,13 @@ const NAV = [
     path: "/superadmin/analytics",
     icon: ic.analytics,
     permission: PERMISSIONS.VIEW_ANALYTICS,
+  },
+  {
+    type: "item",
+    label: "Featured Programs",
+    path: "/superadmin/featured-programs",
+    icon: ic.featuredPrograms,
+    permission: null,
   },
   {
     type: "item",

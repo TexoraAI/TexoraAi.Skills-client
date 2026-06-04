@@ -116,6 +116,14 @@ const AnalyticsDashboard = lazyLoad(() =>
   import("./SuperAdmin/analytics/AnalyticsDashboard")
 );
 
+const FeaturedProgramsList = lazyLoad(() =>
+  import("./SuperAdmin/featured-programs/pages/FeaturedProgramsList")
+);
+
+const AddEditProgram = lazyLoad(() =>
+  import("./SuperAdmin/featured-programs/pages/AddEditProgram")
+);
+
 /* Settings */
 const GlobalSettings            = lazyLoad(()   => import("./SuperAdmin/settings/GlobalSettings"));
 const SecuritySettings          = lazyLoad(() => import("./SuperAdmin/settings/SecuritySettings"));
@@ -240,9 +248,6 @@ const TrainerCompilerPage   = lazyLoad(() => import("./Trainer/TrainerCompilerPa
 const TrainerStudyPlanPage  = lazyLoad (() => import("./Trainer/TrainerStudyPlanPage.jsx"),);
 const WhiteboardPanel = lazyLoad(() => import("./Trainer/WhiteboardPanel.jsx"));
 
-// const AiCompanionPanel = lazyLoad(
-//   () => import("./Trainer/AiCompanionPanel.jsx"),
-// );
 const AiCompanionPage = lazyLoad(() => import("./Trainer/AiCompanionPage.jsx"));
 /* ================= ADMIN ================= */
 const AdminBatches              = lazyLoad(() => import("./Admin/AdminBatches"));
@@ -269,7 +274,7 @@ const StudentsAdmin             = lazyLoad(() => import("./Admin/StudentsAdmin")
 const TrainersAdmin             = lazyLoad(() => import("./Admin/TrainersAdmin"));
 const UsageAnalytics            = lazyLoad(() => import("./Admin/UsageAnalytics"));
 const AdminFeedback             = lazyLoad(() => import("./Admin/Adminfeedback.jsx"));
-const AdminSkillDashboard  = lazyLoad(() => import("./Admin/AdminSkillDashboard.jsx"));
+const AdminSkillDashboard       = lazyLoad(() => import("./Admin/AdminSkillDashboard.jsx"));
 
 /* ================= BUSINESS ================= */
 const BusinessDashboard = lazyLoad(() => import("./Business/BusinessDashboard"));
@@ -583,8 +588,25 @@ useEffect(() => {
 <Route path="organizations/:orgId/admins/:adminId" element={<OrganizationAdminDetailsPage />} />
 
 <Route path="batches/:batchId" element={<BatchDetailsPage />} />
+{/* ================= FEATURED PROGRAMS ================= */}
+
+<Route
+  path="featured-programs"
+  element={<FeaturedProgramsList />}
+/>
+
+<Route
+  path="featured-programs/add"
+  element={<AddEditProgram />}
+/>
+
+<Route
+  path="featured-programs/edit/:id"
+  element={<AddEditProgram />}
+/>
               {/* ================= ANALYTICS ================= */}
               <Route path="analytics" element={<AnalyticsDashboard />} />
+              
 
               {/* ================= SETTINGS ================= */}
               <Route path="global-settings" element={<GlobalSettings />} />

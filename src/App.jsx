@@ -123,7 +123,13 @@ const FeaturedProgramsList = lazyLoad(() =>
 const AddEditProgram = lazyLoad(() =>
   import("./SuperAdmin/featured-programs/pages/AddEditProgram")
 );
+const TopGlobalCompanies = lazyLoad(() =>
+  import("./SuperAdmin/components/layout/TopGlobalCompanies")
+);
 
+const MentorsManagement = lazyLoad(() =>
+  import("./SuperAdmin/featured-programs/MentorsManagement")
+);
 /* Settings */
 const GlobalSettings            = lazyLoad(()   => import("./SuperAdmin/settings/GlobalSettings"));
 const SecuritySettings          = lazyLoad(() => import("./SuperAdmin/settings/SecuritySettings"));
@@ -603,6 +609,15 @@ useEffect(() => {
 <Route
   path="featured-programs/edit/:id"
   element={<AddEditProgram />}
+/>
+<Route
+  path="top-global-companies"
+  element={<TopGlobalCompanies />}
+/>
+
+<Route
+  path="mentors"
+  element={<MentorsManagement />}
 />
               {/* ================= ANALYTICS ================= */}
               <Route path="analytics" element={<AnalyticsDashboard />} />

@@ -72,12 +72,37 @@ const NAV = [
     icon: ic.analytics,
     permission: PERMISSIONS.VIEW_ANALYTICS,
   },
+  // {
+  //   type: "item",
+  //   label: "Featured Programs",
+  //   path: "/superadmin/featured-programs",
+  //   icon: ic.featuredPrograms,
+  //   permission: null,
+  // },
+
   {
-    type: "item",
-    label: "Featured Programs",
-    path: "/superadmin/featured-programs",
-    icon: ic.featuredPrograms,
-    permission: null,
+    type: "dropdown",
+    label: "Landing Pages",
+    children: [
+      {
+        label: "Featured Programs",
+        path: "/superadmin/featured-programs",
+        icon: ic.featuredPrograms,
+        permission: null,
+      },
+      {
+        label: "Top Global Companies",
+        path: "/superadmin/top-global-companies",
+        icon: ic.featuredPrograms,
+        permission: null,
+      },
+      {
+        label: "Mentors",
+        path: "/superadmin/mentors",
+        icon: ic.featuredPrograms,
+        permission: null,
+      },
+    ],
   },
   {
     type: "item",

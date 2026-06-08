@@ -376,6 +376,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
   const navLinks = [
     { text: "Mentors",         href: "#mentors" },
     { text: "Success Stories", href: "#successstories" },
+   
   ];
 
   const navButtons = [
@@ -426,7 +427,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
             {/* Desktop Nav */}
             <div className="hidden xl:flex items-center gap-1 flex-1 justify-center mx-6">
               <MegaMenu />
-              {navLinks.map(link => (
+              {/* {navLinks.map(link => (
                 <a
                   key={link.text}
                   href={link.href}
@@ -434,7 +435,24 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                 >
                   {link.text}
                 </a>
-              ))}
+              ))} */}
+              {navLinks.map((link) => (
+  <button
+    key={link.text}
+    onClick={() => {
+      if (link.action) {
+        link.action();
+      } else if (link.href) {
+        document
+          .querySelector(link.href)
+          ?.scrollIntoView({ behavior: "smooth" });
+      }
+    }}
+    className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-4 py-2 rounded-lg hover:bg-[#F97316]/5 text-[15px] whitespace-nowrap bg-transparent border-none cursor-pointer"
+  >
+    {link.text}
+  </button>
+))}
               {navButtons.map(btn => (
                 <button
                   key={btn.text}

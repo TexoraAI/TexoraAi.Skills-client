@@ -166,6 +166,8 @@ const IlmoraTalk           = lazyLoad(() => import("./pages/Landing/IlmoraTalk")
 const StudyAbroad          = lazyLoad(() => import("./pages/Landing/StudyAbroad"));
 const ILMORAGulf           = lazyLoad(() => import("./pages/Landing/ILMORAGulf"));
 const ResumeBuilderLanding = lazyLoad(() => import("./pages/Landing/ResumeBuilderLanding"));
+const FDEAcademy           = lazyLoad(() =>import("./pages/Landing/FDEAcademy")
+);
 /* ================= SUBJECTS ================= */
 const Class9Subjects       = lazyLoad(() => import("./pages/Landing/Subjects/Class9Subjects"));
 const Class9Math           = lazyLoad(() => import("./pages/Landing/Subjects/Class9Math"));
@@ -364,6 +366,15 @@ useEffect(() => {
             <Route path="/study-abroad" element={<StudyAbroad />} />
             <Route path="/ilm-ora-gulf" element={<ILMORAGulf />} />
             <Route path="/resume-builder" element={<ResumeBuilderLanding />} />
+            <Route
+  path="fde-academy"
+  element={
+    <FDEAcademy
+      theme={theme}
+      toggleTheme={() => setTheme(prev => prev === "dark" ? "light" : "dark")}
+    />
+  }
+/>
             {/* ================= CLASS 9 ================= */}
             <Route path="/school-class/9" element={<Class9Subjects />} />
             <Route path="/school-class/9/math" element={<Class9Math />} />

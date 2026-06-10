@@ -1325,10 +1325,9 @@ export const CATEGORIES = [
       },
       {
         name: "Trainer Hub",
-        desc: "Training Management & Mentorship (Coming Soon)",
+        desc: "Training Management & Mentorship",
         Icon: Users,
-        route: "#",
-        comingSoon: true,
+        route: "/trainer-hub",
       },
       {
         name: "Manager Hub",

@@ -168,6 +168,7 @@ const ILMORAGulf           = lazyLoad(() => import("./pages/Landing/ILMORAGulf")
 const ResumeBuilderLanding = lazyLoad(() => import("./pages/Landing/ResumeBuilderLanding"));
 const FDEAcademy           = lazyLoad(() =>import("./pages/Landing/FDEAcademy"));
 const LearningHub          = lazyLoad(() => import("./pages/Landing/LearningHub"));
+const TrainerHub           = lazyLoad(() => import("./pages/Landing/TrainerHub"));
 
 /* ================= SUBJECTS ================= */
 const Class9Subjects       = lazyLoad(() => import("./pages/Landing/Subjects/Class9Subjects"));
@@ -369,14 +370,19 @@ useEffect(() => {
             <Route path="/resume-builder" element={<ResumeBuilderLanding />} />
             <Route path="/learning-hub" element={<LearningHub />} />
             <Route
-  path="fde-academy"
+  path="/trainer-hub"
   element={
-    <FDEAcademy
+    <TrainerHub
       theme={theme}
-      toggleTheme={() => setTheme(prev => prev === "dark" ? "light" : "dark")}
+      toggleTheme={() =>
+        setTheme(prev =>
+          prev === "dark" ? "light" : "dark"
+        )
+      }
     />
   }
 />
+            <Route path="fde-academy" element={<FDEAcademy theme={theme} toggleTheme={() => setTheme(prev => prev === "dark" ? "light" : "dark")}/>}/>
             {/* ================= CLASS 9 ================= */}
             <Route path="/school-class/9" element={<Class9Subjects />} />
             <Route path="/school-class/9/math" element={<Class9Math />} />

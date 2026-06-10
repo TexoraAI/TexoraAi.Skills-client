@@ -1660,33 +1660,61 @@ function MobileFullScreenMenu({ onClose, navLinks, navButtons, user, navigate, h
           </button>
 
           {/* Trainer Hub */}
-          <div
-            style={{
-              width: "100%",
-              display: "flex",
-              alignItems: "flex-start",
-              gap: 12,
-              padding: "12px 24px",
-              opacity: 0.6,
-            }}
-          >
-            <div style={{
-              width: 36, height: 36,
-              background: "#eff6ff",
-              borderRadius: 8,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0,
-            }}>
-              <Users size={18} style={{ color: "#2563eb" }} />
-            </div>
-            <div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: "#1e293b", margin: 0 }}>
-                Trainer Hub{" "}
-                <span style={{ fontSize: 11, color: "#f97316", marginLeft: 6 }}>Coming Soon</span>
-              </p>
-              <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>Training Management &amp; Mentorship</p>
-            </div>
-          </div>
+<button
+  onClick={() => {
+    navigate("/trainer-hub");
+    onClose();
+  }}
+  style={{
+    width: "100%",
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 12,
+    padding: "12px 24px",
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    textAlign: "left",
+  }}
+>
+  <div
+    style={{
+      width: 36,
+      height: 36,
+      background: "#eff6ff",
+      borderRadius: 8,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+    }}
+  >
+    <Users size={18} style={{ color: "#2563eb" }} />
+  </div>
+
+  <div>
+    <p
+      style={{
+        fontSize: 14,
+        fontWeight: 600,
+        color: "#1e293b",
+        margin: 0,
+      }}
+    >
+      Trainer Hub
+    </p>
+
+    <p
+      style={{
+        fontSize: 12,
+        color: "#6b7280",
+        margin: "2px 0 0",
+      }}
+    >
+      Training Management &amp; Mentorship
+    </p>
+  </div>
+</button>
 
           {/* Manager Hub */}
           <div
@@ -2249,18 +2277,22 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                     </div>
                   </button>
 
-                  <div className="p-3 rounded-lg opacity-70">
-                    <div className="flex items-start gap-3">
-                      <Users className="w-5 h-5 text-blue-600 mt-1" />
-                      <div>
-                        <div className="font-semibold text-sm">
-                          Trainer Hub
-                          <span className="ml-2 text-xs text-orange-500">Coming Soon</span>
-                        </div>
-                        <div className="text-xs text-gray-500">Training Management & Mentorship</div>
-                      </div>
-                    </div>
-                  </div>
+                  <button
+  onClick={() => navigate("/trainer-hub")}
+  className="w-full text-left p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-gray-800"
+>
+  <div className="flex items-start gap-3">
+    <Users className="w-5 h-5 text-blue-600 mt-1" />
+    <div>
+      <div className="font-semibold text-sm">
+        Trainer Hub
+      </div>
+      <div className="text-xs text-gray-500">
+        Training Management & Mentorship
+      </div>
+    </div>
+  </div>
+</button>
 
                   <div className="p-3 rounded-lg opacity-70">
                     <div className="flex items-start gap-3">

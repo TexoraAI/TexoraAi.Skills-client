@@ -168,7 +168,7 @@ const ResumeBuilderLanding = lazyLoad(() => import("./pages/Landing/ResumeBuilde
 const FDEAcademy           = lazyLoad(() =>import("./pages/Landing/FDEAcademy"));
 const StudentHub           = lazyLoad(() => import("./pages/Landing/StudentHub"));
 const TrainerHub           = lazyLoad(() => import("./pages/Landing/TrainerHub"));
-const ManagerHub           = lazyLoad(() => import("./pages/Landing/Managerhub"));
+const ManagerHub           = lazyLoad(() => import("./pages/Landing/ManagerHub"));
 
 /* ================= SUBJECTS ================= */
 const Class9Subjects       = lazyLoad(() => import("./pages/Landing/Subjects/Class9Subjects"));

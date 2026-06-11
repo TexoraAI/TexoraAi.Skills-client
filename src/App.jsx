@@ -155,7 +155,6 @@ const PublicSessionComplete         = lazyLoad(() => import("./pages/public/Publ
 /* ================= LANDING ================= */
 const CoursePreview        = lazyLoad(() => import("./pages/CoursePreview"));
 const CourseDetail         = lazyLoad(() => import("./pages/Landing/CourseDetailsPage"));
-const ExploreFreeServices  = lazyLoad(() => import("./pages/Landing/ExploreFreeServices"));
 const LMSHomepage          = lazyLoad(() => import("./pages/Landing/LMSHomepage"));
 const SyllabusPage         = lazyLoad(() => import("./pages/Landing/Syllabus.jsx"));
 const Watchnow             = lazyLoad(() => import("./pages/Landing/Watchnow"));
@@ -167,8 +166,9 @@ const StudyAbroad          = lazyLoad(() => import("./pages/Landing/StudyAbroad"
 const ILMORAGulf           = lazyLoad(() => import("./pages/Landing/ILMORAGulf"));
 const ResumeBuilderLanding = lazyLoad(() => import("./pages/Landing/ResumeBuilderLanding"));
 const FDEAcademy           = lazyLoad(() =>import("./pages/Landing/FDEAcademy"));
-const LearningHub          = lazyLoad(() => import("./pages/Landing/LearningHub"));
+const StudentHub           = lazyLoad(() => import("./pages/Landing/StudentHub"));
 const TrainerHub           = lazyLoad(() => import("./pages/Landing/TrainerHub"));
+const ManagerHub           = lazyLoad(() => import("./pages/Landing/Managerhub"));
 
 /* ================= SUBJECTS ================= */
 const Class9Subjects       = lazyLoad(() => import("./pages/Landing/Subjects/Class9Subjects"));
@@ -256,9 +256,9 @@ const TrainerFeedback       = lazyLoad(() => import("./Trainer/Trainerfeedback.j
 const TrainerSkillMap       = lazyLoad(() => import("./Trainer/TrainerSkillMap.jsx"));
 const TrainerCompilerPage   = lazyLoad(() => import("./Trainer/TrainerCompilerPage.jsx"),);
 const TrainerStudyPlanPage  = lazyLoad (() => import("./Trainer/TrainerStudyPlanPage.jsx"),);
-const WhiteboardPanel = lazyLoad(() => import("./Trainer/WhiteboardPanel.jsx"));
+const WhiteboardPanel       = lazyLoad(() => import("./Trainer/WhiteboardPanel.jsx"));
 
-const AiCompanionPage = lazyLoad(() => import("./Trainer/AiCompanionPage.jsx"));
+const AiCompanionPage       = lazyLoad(() => import("./Trainer/AiCompanionPage.jsx"));
 /* ================= ADMIN ================= */
 const AdminBatches              = lazyLoad(() => import("./Admin/AdminBatches"));
 const AdminDashboard            = lazyLoad(() => import("./Admin/AdminDashboard"));
@@ -355,7 +355,6 @@ useEffect(() => {
 
           {/* ================= LANDING ================= */}
             <Route path="/" element={<LMSHomepage theme={theme} toggleTheme={() => setTheme((prev) => (prev === "dark" ? "light" : "dark"))} />} />
-            <Route path="/explore-programs" element={<ExploreFreeServices />} />
             <Route path="/watch-demo/:videoId" element={<Watchnow />} />
             <Route path="/course/:id" element={<CoursePreview />} />
             <Route path="/course-details" element={<CourseDetail />} />
@@ -368,7 +367,20 @@ useEffect(() => {
             <Route path="/study-abroad" element={<StudyAbroad />} />
             <Route path="/ilm-ora-gulf" element={<ILMORAGulf />} />
             <Route path="/resume-builder" element={<ResumeBuilderLanding />} />
-            <Route path="/learning-hub" element={<LearningHub />} />
+            <Route path="/student-hub" element={<StudentHub />} />
+            <Route
+  path="/manager-hub"
+  element={
+    <ManagerHub
+      theme={theme}
+      toggleTheme={() =>
+        setTheme(prev =>
+          prev === "dark" ? "light" : "dark"
+        )
+      }
+    />
+  }
+/>
             <Route
   path="/trainer-hub"
   element={

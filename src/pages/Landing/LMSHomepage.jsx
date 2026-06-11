@@ -1631,7 +1631,7 @@ function MobileFullScreenMenu({ onClose, navLinks, navButtons, user, navigate, h
         >
           {/* Student Hub */}
           <button
-            onClick={() => { navigate("/learning-hub"); onClose(); }}
+            onClick={() => { navigate("/student-hub"); onClose(); }}
             style={{
               width: "100%",
               display: "flex",
@@ -1717,33 +1717,61 @@ function MobileFullScreenMenu({ onClose, navLinks, navButtons, user, navigate, h
 </button>
 
           {/* Manager Hub */}
-          <div
-            style={{
-              width: "100%",
-              display: "flex",
-              alignItems: "flex-start",
-              gap: 12,
-              padding: "12px 24px",
-              opacity: 0.6,
-            }}
-          >
-            <div style={{
-              width: 36, height: 36,
-              background: "#faf5ff",
-              borderRadius: 8,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0,
-            }}>
-              <BarChart3 size={18} style={{ color: "#9333ea" }} />
-            </div>
-            <div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: "#1e293b", margin: 0 }}>
-                Manager Hub{" "}
-                <span style={{ fontSize: 11, color: "#f97316", marginLeft: 6 }}>Coming Soon</span>
-              </p>
-              <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>Analytics, Performance &amp; Team Development</p>
-            </div>
-          </div>
+<button
+  onClick={() => {
+    navigate("/manager-hub");
+    onClose();
+  }}
+  style={{
+    width: "100%",
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 12,
+    padding: "12px 24px",
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    textAlign: "left",
+  }}
+>
+  <div
+    style={{
+      width: 36,
+      height: 36,
+      background: "#faf5ff",
+      borderRadius: 8,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+    }}
+  >
+    <BarChart3 size={18} style={{ color: "#9333ea" }} />
+  </div>
+
+  <div>
+    <p
+      style={{
+        fontSize: 14,
+        fontWeight: 600,
+        color: "#1e293b",
+        margin: 0,
+      }}
+    >
+      Manager Hub
+    </p>
+
+    <p
+      style={{
+        fontSize: 12,
+        color: "#6b7280",
+        margin: "2px 0 0",
+      }}
+    >
+      Analytics, Performance &amp; Team Development
+    </p>
+  </div>
+</button>
         </AccordionSection>
 
         {/* ── More Accordion (Mentors + Success Stories) ── */}
@@ -1965,7 +1993,7 @@ function FooterNewsletter() {
     </div>
   );
 }
-
+// ─────────────────────────────────────────────────────────────────────────────
 export default function LMSHomepage({ theme, toggleTheme }) {
   const [activeTab, setActiveTab] = useState("product");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -2265,7 +2293,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
 
                 <div className="absolute top-full left-0 mt-2 w-80 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                   <button
-                    onClick={() => navigate("/learning-hub")}
+                    onClick={() => navigate("/student-hub")}
                     className="w-full text-left p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-gray-800"
                   >
                     <div className="flex items-start gap-3">
@@ -2294,18 +2322,22 @@ export default function LMSHomepage({ theme, toggleTheme }) {
   </div>
 </button>
 
-                  <div className="p-3 rounded-lg opacity-70">
-                    <div className="flex items-start gap-3">
-                      <BarChart3 className="w-5 h-5 text-purple-600 mt-1" />
-                      <div>
-                        <div className="font-semibold text-sm">
-                          Manager Hub
-                          <span className="ml-2 text-xs text-orange-500">Coming Soon</span>
-                        </div>
-                        <div className="text-xs text-gray-500">Analytics, Performance & Team Development</div>
-                      </div>
-                    </div>
-                  </div>
+                 <button
+  onClick={() => navigate("/manager-hub")}
+  className="w-full text-left p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-gray-800"
+>
+  <div className="flex items-start gap-3">
+    <BarChart3 className="w-5 h-5 text-purple-600 mt-1" />
+    <div>
+      <div className="font-semibold text-sm">
+        Manager Hub
+      </div>
+      <div className="text-xs text-gray-500">
+        Analytics, Performance & Team Development
+      </div>
+    </div>
+  </div>
+</button>
                 </div>
               </div>
 
@@ -2406,7 +2438,9 @@ export default function LMSHomepage({ theme, toggleTheme }) {
           </div>
         </div>
       </nav>
-
+      
+      
+      
       {/* ── Hero ── */}
       <section className="pt-32 pb-24 px-6 bg-[#F6EDE6] dark:bg-black relative overflow-hidden">
         <div className="absolute -top-32 left-[10%] w-[600px] h-[600px] bg-[#F97316]/8 dark:bg-[#F97316]/5 rounded-full blur-[120px] pointer-events-none" />

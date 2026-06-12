@@ -1425,7 +1425,7 @@ import {
   ArrowRight, Award, BookOpen,
   ChevronDown, Clock, ClipboardList,
   GraduationCap, Lightbulb, LogOut, Menu, Moon, Sparkles, Star, Sun,
-  Target, TrendingUp, Trophy, User, Users, X, Zap, BarChart3
+  Target, TrendingUp, Trophy, User, Users, X, Zap, BarChart3,FileText
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -1569,35 +1569,28 @@ function MobileFullScreenMenu({ onClose, navLinks, navButtons, user, navigate, h
         {/* Divider */}
         <div style={{ height: 1, background: "#f3f4f6", margin: "4px 20px 4px" }} />
 
-        {/* Nav links */}
-        {navLinks.map(link => (
-          <button
-            key={link.text}
-            onClick={() => {
-              if (link.action) { link.action(); }
-              else if (link.href) {
-                document.querySelector(link.href)?.scrollIntoView({ behavior: "smooth" });
-              }
-              onClose();
-            }}
-            style={{
-              width: "100%",
-              display: "flex",
-              alignItems: "center",
-              padding: "15px 20px",
-              border: "none",
-              borderBottom: "1px solid #f9fafb",
-              background: "transparent",
-              cursor: "pointer",
-              textAlign: "left",
-              fontSize: 15,
-              fontWeight: 600,
-              color: "#1e293b",
-            }}
-          >
-            {link.text}
-          </button>
-        ))}
+        <button
+  onClick={() => {
+    window.open("https://texora.ai/", "_blank");
+    onClose();
+  }}
+  style={{
+    width: "100%",
+    display: "flex",
+    alignItems: "center",
+    padding: "15px 20px",
+    border: "none",
+    borderBottom: "1px solid #f9fafb",
+    background: "transparent",
+    cursor: "pointer",
+    textAlign: "left",
+    fontSize: 15,
+    fontWeight: 600,
+    color: "#1e293b",
+  }}
+>
+  Texora.ai
+</button>
 
         {/* Nav buttons */}
         {navButtons.map(btn => (
@@ -1769,6 +1762,127 @@ function MobileFullScreenMenu({ onClose, navLinks, navButtons, user, navigate, h
       }}
     >
       Analytics, Performance &amp; Team Development
+    </p>
+  </div>
+</button>
+{/* Divider */}
+<div
+  style={{
+    borderTop: "1px solid #e5e7eb",
+    margin: "8px 24px",
+  }}
+/>
+
+{/* ILM ORA Meet */}
+<button
+  onClick={() => {
+    navigate("/ilm-ora-meet");
+    onClose();
+  }}
+  style={{
+    width: "100%",
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 12,
+    padding: "12px 24px",
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    textAlign: "left",
+  }}
+>
+  <div
+    style={{
+      width: 36,
+      height: 36,
+      background: "#fff7ed",
+      borderRadius: 8,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+    }}
+  >
+    <Users size={18} style={{ color: "#f97316" }} />
+  </div>
+
+  <div>
+    <p
+      style={{
+        fontSize: 14,
+        fontWeight: 600,
+        color: "#1e293b",
+        margin: 0,
+      }}
+    >
+      ILM ORA Meet
+    </p>
+
+    <p
+      style={{
+        fontSize: 12,
+        color: "#6b7280",
+        margin: "2px 0 0",
+      }}
+    >
+      Virtual Meetings & Collaboration
+    </p>
+  </div>
+</button>
+
+{/* AI Resume Builder */}
+<button
+  onClick={() => {
+    navigate("/resume-builder");
+    onClose();
+  }}
+  style={{
+    width: "100%",
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 12,
+    padding: "12px 24px",
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    textAlign: "left",
+  }}
+>
+  <div
+    style={{
+      width: 36,
+      height: 36,
+      background: "#f0fdf4",
+      borderRadius: 8,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+    }}
+  >
+    <FileText size={18} style={{ color: "#16a34a" }} />
+  </div>
+
+  <div>
+    <p
+      style={{
+        fontSize: 14,
+        fontWeight: 600,
+        color: "#1e293b",
+        margin: 0,
+      }}
+    >
+      AI Resume Builder
+    </p>
+
+    <p
+      style={{
+        fontSize: 12,
+        color: "#6b7280",
+        margin: "2px 0 0",
+      }}
+    >
+      Create ATS-Friendly Professional Resumes
     </p>
   </div>
 </button>
@@ -2210,10 +2324,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
     { text: "Success Stories", href: "#successstories" },
   ];
 
-  const navButtons = [
-    { text: "ILM ORA Meet", action: () => navigate("/ilm-ora-meet") },
-    { text: "AI Resume Builder", action: () => navigate("/resume-builder") },
-  ];
+  const navButtons = [];
 
   const techPartners = [
     { src: "/aws.png",        name: "AWS",             desc: "Amazon Web Services"      },
@@ -2274,15 +2385,13 @@ export default function LMSHomepage({ theme, toggleTheme }) {
             <div className="hidden lg:flex items-center gap-1 flex-1 justify-center mx-4 xl:mx-6">
               <MegaMenu />
 
-              {navButtons.map(btn => (
-                <button
-                  key={btn.text}
-                  onClick={btn.action}
-                  className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-3 xl:px-4 py-2 rounded-lg hover:bg-[#F97316]/5 text-[13px] xl:text-[15px] whitespace-nowrap bg-transparent border-none cursor-pointer"
-                >
-                  {btn.text}
-                </button>
-              ))}
+            {/* Texora.ai */}
+             <button
+             onClick={() => window.open("https://texora.ai/", "_blank")}
+            className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-3 xl:px-4 py-2 rounded-lg hover:bg-[#F97316]/5 text-[13px] xl:text-[15px] whitespace-nowrap bg-transparent border-none cursor-pointer"
+            >
+            Texora.ai
+            </button>
 
               {/* ILM ORA Feature Dropdown */}
               <div className="relative group">
@@ -2334,6 +2443,44 @@ export default function LMSHomepage({ theme, toggleTheme }) {
       </div>
       <div className="text-xs text-gray-500">
         Analytics, Performance & Team Development
+      </div>
+    </div>
+  </div>
+</button>
+{/* Divider */}
+<div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+
+{/* ILM ORA Meet */}
+<button
+  onClick={() => navigate("/ilm-ora-meet")}
+  className="w-full text-left p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-gray-800"
+>
+  <div className="flex items-start gap-3">
+    <Users className="w-5 h-5 text-orange-500 mt-1" />
+    <div>
+      <div className="font-semibold text-sm">
+        ILM ORA Meet
+      </div>
+      <div className="text-xs text-gray-500">
+        Virtual Meetings & Collaboration
+      </div>
+    </div>
+  </div>
+</button>
+
+{/* AI Resume Builder */}
+<button
+  onClick={() => navigate("/resume-builder")}
+  className="w-full text-left p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-gray-800"
+>
+  <div className="flex items-start gap-3">
+    <FileText className="w-5 h-5 text-green-600 mt-1" />
+    <div>
+      <div className="font-semibold text-sm">
+        AI Resume Builder
+      </div>
+      <div className="text-xs text-gray-500">
+        Create ATS-Friendly Professional Resumes
       </div>
     </div>
   </div>

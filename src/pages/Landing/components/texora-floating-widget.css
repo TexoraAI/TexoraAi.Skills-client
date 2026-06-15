@@ -1,0 +1,490 @@
+/* src/pages/Landing/components/texora-floating-widget.css */
+
+/* ============ Tailwind Preflight Reset Fix ============ */
+/* Tailwind's preflight strips default margins/sizes from h1-h6, p, a, button.
+   These overrides force our intended typography regardless of Tailwind. */
+
+   .texora-widget,
+   .texora-widget * {
+     box-sizing: border-box;
+   }
+   
+   .texora-widget h1,
+   .texora-widget h2,
+   .texora-widget h3,
+   .texora-widget h4,
+   .texora-widget p,
+   .texora-widget span,
+   .texora-widget a,
+   .texora-widget button {
+     font-family: inherit;
+     line-height: normal;
+   }
+   
+   .texora-widget a {
+     text-decoration: none;
+     color: inherit;
+   }
+   
+   .texora-widget button {
+     font: inherit;
+     color: inherit;
+     background: none;
+     outline: none;
+   }
+   
+   .texora-widget {
+     position: fixed;
+     bottom: 24px;
+     right: 24px;
+     z-index: 9999;
+     display: flex;
+     flex-direction: column;
+     align-items: flex-end;
+   }
+   
+   /* ============ Floating Action Button ============ */
+   
+   .texora-fab {
+     position: relative;
+     width: 60px;
+     height: 60px;
+     border-radius: 50%;
+     border: none;
+     cursor: pointer;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     background: linear-gradient(135deg, #ff9a3c 0%, #ff6a00 100%);
+     color: #ffffff;
+     box-shadow: 0 8px 24px rgba(255, 106, 0, 0.4);
+     transition: all 0.3s ease;
+   }
+   
+   .texora-fab:hover {
+     transform: translateY(-4px) scale(1.05);
+     box-shadow: 0 12px 32px rgba(255, 106, 0, 0.5);
+   }
+   
+   .texora-fab:active {
+     transform: translateY(-1px) scale(0.98);
+   }
+   
+   .texora-fab--active {
+     background: linear-gradient(135deg, #ff6a00 0%, #e8590c 100%);
+     transform: rotate(0deg);
+   }
+   
+   .texora-fab__icon {
+     position: relative;
+     z-index: 2;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     animation: texora-spin-slow 6s linear infinite;
+   }
+   
+   .texora-fab--active .texora-fab__icon {
+     animation: none;
+   }
+   
+   .texora-fab__pulse {
+     position: absolute;
+     inset: 0;
+     border-radius: 50%;
+     background: rgba(255, 106, 0, 0.4);
+     animation: texora-pulse 2.4s ease-out infinite;
+     z-index: 1;
+   }
+   
+   .texora-fab--active .texora-fab__pulse {
+     display: none;
+   }
+   
+   @keyframes texora-pulse {
+     0% {
+       transform: scale(1);
+       opacity: 0.6;
+     }
+     70% {
+       transform: scale(1.6);
+       opacity: 0;
+     }
+     100% {
+       transform: scale(1.6);
+       opacity: 0;
+     }
+   }
+   
+   @keyframes texora-spin-slow {
+     from {
+       transform: rotate(0deg);
+     }
+     to {
+       transform: rotate(360deg);
+     }
+   }
+   
+   /* ============ Popup Panel (compact, light, list style) ============ */
+   
+   .texora-panel {
+     width: 360px;
+     max-width: calc(100vw - 32px);
+     max-height: 80vh;
+     overflow-y: auto;
+     margin-bottom: 16px;
+     padding: 18px;
+     border-radius: 20px;
+     background: #ffffff;
+     box-shadow: 0 16px 48px rgba(20, 20, 40, 0.18);
+     border: 1px solid rgba(20, 20, 40, 0.06);
+     position: relative;
+   
+     transform: translateY(20px);
+     opacity: 0;
+     transition: all 0.3s ease;
+   }
+   
+   .texora-panel--open {
+     transform: translateY(0);
+     opacity: 1;
+     animation: texora-slide-in 0.3s ease forwards;
+   }
+   
+   @keyframes texora-slide-in {
+     from {
+       transform: translateY(20px);
+       opacity: 0;
+     }
+     to {
+       transform: translateY(0);
+       opacity: 1;
+     }
+   }
+   
+   /* Custom scrollbar */
+   .texora-panel::-webkit-scrollbar {
+     width: 6px;
+   }
+   
+   .texora-panel::-webkit-scrollbar-thumb {
+     background: rgba(255, 122, 26, 0.3);
+     border-radius: 10px;
+   }
+   
+   /* Close button — solid dark circle so it stays visible
+      on light or dark page backgrounds behind the widget */
+   .texora-panel__close {
+     position: absolute;
+     top: 12px;
+     right: 12px;
+     width: 28px;
+     height: 28px;
+     border-radius: 50%;
+     border: none;
+     background: #1a1a2e;
+     color: #ffffff;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     cursor: pointer;
+     transition: all 0.2s ease;
+     z-index: 5;
+   }
+   
+   .texora-panel__close:hover {
+     background: #ff6a00;
+     transform: rotate(90deg);
+   }
+   
+   /* Header */
+   .texora-panel__header {
+     display: flex;
+     align-items: flex-start;
+     justify-content: space-between;
+     gap: 10px;
+     padding-right: 28px;
+     margin-bottom: 12px;
+   }
+   
+   .texora-panel__header-text {
+     flex: 1;
+     min-width: 0;
+   }
+   
+   .texora-panel__logo {
+     display: flex;
+     align-items: center;
+     gap: 8px;
+     margin-bottom: 4px;
+   }
+   
+   .texora-panel__logo-icon {
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     width: 28px;
+     height: 28px;
+     border-radius: 9px;
+     background: linear-gradient(135deg, #ff9a3c 0%, #ff6a00 100%);
+     color: #ffffff;
+     flex-shrink: 0;
+   }
+   
+   .texora-panel__title {
+     font-size: 17px !important;
+     font-weight: 800 !important;
+     letter-spacing: 0.4px;
+     margin: 0 !important;
+     line-height: 1.2 !important;
+     display: block;
+   }
+   
+   .texora-panel__title-light {
+     color: #1a1a2e;
+   }
+   
+   .texora-panel__title-bold {
+     color: #ff6a00;
+   }
+   
+   .texora-panel__subtitle {
+     font-size: 11.5px !important;
+     font-weight: 600 !important;
+     color: #9ca3af;
+     margin: 0 !important;
+     line-height: 1.4 !important;
+     display: block;
+   }
+   
+   .texora-panel__mascot {
+     flex-shrink: 0;
+     display: flex;
+     align-items: flex-start;
+   }
+   
+   /* ============ Tool list sections ============ */
+   
+   .texora-menu-section {
+     margin-top: 12px;
+   }
+   
+   .texora-menu-section__label {
+     display: flex;
+     align-items: center;
+     gap: 8px;
+     font-size: 10.5px !important;
+     font-weight: 800 !important;
+     letter-spacing: 1px;
+     text-transform: uppercase;
+     color: #ff6a00;
+     margin: 0 0 4px;
+     padding: 0 6px;
+   }
+   
+   .texora-menu-section__label::after {
+     content: "";
+     flex: 1;
+     height: 1px;
+     background: rgba(255, 106, 0, 0.18);
+   }
+   
+   .texora-menu-section--plain {
+     border-top: 1px solid #f0f0f0;
+     padding-top: 8px;
+   }
+   
+   .texora-menu-list {
+     display: flex;
+     flex-direction: column;
+     gap: 1px;
+   }
+   
+   /* Individual list row */
+   
+   .texora-menu-item {
+     display: flex;
+     align-items: center;
+     gap: 10px;
+     width: 100%;
+     padding: 7px 6px;
+     border-radius: 12px;
+     border: none;
+     cursor: pointer;
+     text-align: left;
+     background: transparent;
+     transition: background 0.2s ease;
+   }
+   
+   .texora-menu-item:hover {
+     background: #fff6ee;
+   }
+   
+   .texora-menu-item__icon {
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     width: 34px;
+     height: 34px;
+     min-width: 34px;
+     border-radius: 10px;
+     background: #fff1e6;
+     color: #ff7a1a;
+     flex-shrink: 0;
+   }
+   
+   .texora-menu-item__content {
+     display: flex;
+     flex-direction: column;
+     gap: 1px;
+     flex: 1;
+     min-width: 0;
+   }
+   
+   .texora-menu-item__title {
+     font-size: 13px !important;
+     font-weight: 700 !important;
+     color: #1a1a2e;
+     line-height: 1.25 !important;
+     display: block;
+   }
+   
+   .texora-menu-item__desc {
+     font-size: 11px !important;
+     font-weight: 500 !important;
+     color: #9ca3af;
+     line-height: 1.3 !important;
+     display: block;
+   }
+   
+   .texora-menu-item__arrow {
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     color: #d1d5db;
+     flex-shrink: 0;
+     transition: transform 0.2s ease, color 0.2s ease;
+   }
+   
+   .texora-menu-item:hover .texora-menu-item__arrow {
+     transform: translateX(2px);
+     color: #ff6a00;
+   }
+   
+   /* CTA */
+   .texora-panel__cta {
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     gap: 6px;
+     width: 100%;
+     padding: 11px;
+     border-radius: 12px;
+     border: none;
+     cursor: pointer;
+     background: linear-gradient(135deg, #ff9a3c 0%, #ff6a00 100%);
+     color: #ffffff;
+     font-size: 13.5px;
+     font-weight: 700;
+     text-decoration: none;
+     margin-top: 12px;
+     box-shadow: 0 6px 16px rgba(255, 106, 0, 0.3);
+     transition: all 0.25s ease;
+   }
+   
+   .texora-panel__cta:hover {
+     transform: translateY(-2px);
+     box-shadow: 0 10px 22px rgba(255, 106, 0, 0.4);
+   }
+   
+   /* ============ Mobile Responsive ============ */
+   
+   @media (max-width: 480px) {
+     .texora-widget {
+       bottom: 16px;
+       right: 16px;
+     }
+   
+     .texora-fab {
+       width: 54px;
+       height: 54px;
+     }
+   
+     .texora-panel {
+       width: calc(100vw - 24px);
+       max-height: 75vh;
+       padding: 16px;
+       border-radius: 18px;
+     }
+   
+     .texora-panel__title {
+       font-size: 16px !important;
+     }
+   
+     .texora-panel__subtitle {
+       font-size: 11px !important;
+     }
+   
+     .texora-panel__mascot svg {
+       width: 44px;
+       height: 44px;
+     }
+   
+     .texora-menu-item__title {
+       font-size: 12.5px !important;
+     }
+   
+     .texora-menu-item__desc {
+       font-size: 10.5px !important;
+     }
+   }
+   
+   /* Reduced motion */
+   @media (prefers-reduced-motion: reduce) {
+     .texora-fab,
+     .texora-menu-item,
+     .texora-panel,
+     .texora-panel__cta,
+     .texora-panel__close,
+     .texora-fab__icon,
+     .texora-fab__pulse {
+       animation: none !important;
+       transition: none !important;
+     }
+   }
+   /* ================= DARK MODE ================= */
+
+html.dark .texora-panel {
+  background: #111827 !important;
+  border: 1px solid #374151 !important;
+}
+
+html.dark .texora-panel__title-light,
+html.dark .texora-menu-item__title {
+  color: #ffffff !important;
+}
+
+html.dark .texora-panel__subtitle,
+html.dark .texora-menu-item__desc {
+  color: #9ca3af !important;
+}
+
+html.dark .texora-menu-item:hover {
+  background: #1f2937 !important;
+}
+
+html.dark .texora-menu-item__icon {
+  background: #1f2937 !important;
+}
+
+html.dark .texora-menu-section--plain {
+  border-top: 1px solid #374151 !important;
+}
+
+html.dark .texora-panel__close {
+  background: #374151 !important;
+}
+
+html.dark .texora-panel__cta {
+  background: linear-gradient(135deg, #ff9a3c 0%, #ff6a00 100%);
+}

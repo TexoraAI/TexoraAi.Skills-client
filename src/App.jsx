@@ -6,6 +6,7 @@ import ErrorBoundary from "./components/ui/ErrorBoundary";
 import { lazyLoad } from "./lib/lazyLoad";
 import { SaasProvider } from "./SuperAdmin/context/SaasContext";
 import { ROLES } from "./SuperAdmin/constants/permissions";
+import { seedCMSData } from "./SuperAdmin/cms-management/services/cmsSeed";
 /* ================= AUTH ================= */
 import auth from "./auth";
 
@@ -137,6 +138,20 @@ const AuditLogs                 = lazyLoad(() => import("./SuperAdmin/settings/A
 const SendEmail                 = lazyLoad(() => import("./SuperAdmin/settings/SendEmail"));
 /* Profile */
 const SuperAdminProfile         = lazyLoad(() => import("./SuperAdmin/profile/SuperAdminProfile"));
+
+/* ================= CMS MANAGEMENT ================= */
+
+const StudentHubCMS = lazyLoad(() =>
+  import("./SuperAdmin/cms-management/pages/StudentHubCMS")
+);
+
+const TrainerHubCMS = lazyLoad(() =>
+  import("./SuperAdmin/cms-management/pages/TrainerHubCMS")
+);
+
+const AdminHubCMS = lazyLoad(() =>
+  import("./SuperAdmin/cms-management/pages/AdminHubCMS")
+);
 
 /* ================= AUTH PAGES ================= */
 const ApprovalPending = lazyLoad(() => import("./pages/Auth/ApprovalPending.jsx"));
@@ -328,7 +343,10 @@ export default function App() {
 
  // ✅ Register SW always + FCM token only if already logged in
 useEffect(() => {
+seedCMSData();
+}, []);
   // SW registration — needs no auth
+  useEffect(() => {
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker
       .register("/firebase-messaging-sw.js", { scope: "/" })
@@ -662,6 +680,23 @@ useEffect(() => {
 
               {/* ================= PROFILE ================= */}
               <Route path="profile" element={<SuperAdminProfile />} />
+
+              {/* ================= CMS MANAGEMENT ================= */}
+
+<Route
+  path="cms/student-hub"
+  element={<StudentHubCMS />}
+/>
+
+<Route
+  path="cms/trainer-hub"
+  element={<TrainerHubCMS />}
+/>
+
+<Route
+  path="cms/admin-hub"
+  element={<AdminHubCMS />}
+/>
 
               {/* ================= COMMON ================= */}
               <Route path="search" element={<SearchPage />} />

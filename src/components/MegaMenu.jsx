@@ -1,4 +1,3 @@
-
 // import React, { useState, useEffect, useRef } from "react";
 // import {
 //   ChevronDown, ChevronRight, X, Target, Palette, TrendingUp,
@@ -556,11 +555,6 @@
 //     return () => window.removeEventListener("resize", handleResize);
 //   }, []);
 
-//   /* ─────────────────────────────────────────────────────────────────
-//      KEY CHANGE: threshold is now 1024 (matches `lg` in LMSHomepage).
-//      - windowWidth < 1024  → mobile full-screen nav (hamburger visible)
-//      - windowWidth >= 1024 → desktop dropdown (full navbar visible)
-//   ───────────────────────────────────────────────────────────────── */
 //   const isMobile = windowWidth < 1024;
 
 //   useEffect(() => {
@@ -767,6 +761,7 @@
 //           display: inline-flex;
 //           align-items: center;
 //           font-family: 'Plus Jakarta Sans', sans-serif;
+//           /* Mobile resets are in the @media block below */
 //         }
 
 //         .mm-trigger {
@@ -780,7 +775,7 @@
 //           font-family: 'Plus Jakarta Sans', inherit !important;
 //           font-size: 14.5px !important;
 //           font-weight: 600 !important;
-//           color: #1a1a2e !important;
+//           color: inherit !important;
 //           cursor: pointer !important;
 //           transition: all 0.18s ease !important;
 //           white-space: nowrap !important;
@@ -790,6 +785,75 @@
 //           background: rgba(249,115,22,0.06) !important;
 //           color: #f97316 !important;
 //         }
+//         html.dark .mm-trigger {
+//         color: #e5e7eb !important;
+//         }
+
+//         html.dark .mm-trigger:hover {
+//         color: #f97316 !important;
+//         background: rgba(249,115,22,0.08) !important;
+//         }
+//         /* ── MOBILE ONLY: make All Courses row identical to ILM ORA Feature / More ── */
+//         @media (max-width: 1023px) {
+//           .mm-root {
+//             /* Completely reset — no flex/inline-flex, no position offset, no size constraint */
+//             all: unset !important;
+//             display: block !important;
+//             width: 100% !important;
+//             box-sizing: border-box !important;
+//           }
+//           .mm-trigger {
+//             /* Reset button defaults first */
+//             all: unset !important;
+//             /* Then apply exactly matching styles as ILM ORA Feature / More rows */
+//             display: flex !important;
+//             width: 100% !important;
+//             box-sizing: border-box !important;
+//             flex-direction: row !important;
+//             align-items: center !important;
+//             justify-content: space-between !important;
+//             /* Padding: 0 horizontal (parent nav's px-6 = 24px handles it),
+//                vertical matches accordion sibling rows */
+//             padding: 14px 0px 14px 0px !important;
+//             margin: 0 !important;
+//             border: none !important;
+//             border-bottom: 1px solid #f3f4f6 !important;
+//             border-radius: 0 !important;
+//             background: transparent !important;
+//             cursor: pointer !important;
+//             /* Font — match exactly to ILM ORA Feature / More / ILM ORA Meet */
+//             font-family: inherit !important;
+//             font-size: 15px !important;
+//             font-weight: 600 !important;
+//             line-height: 1.5 !important;
+//             color: #1a1a2e !important;
+//             letter-spacing: 0 !important;
+//             white-space: nowrap !important;
+//             text-align: left !important;
+//             -webkit-appearance: none !important;
+//             appearance: none !important;
+//           }
+//           .mm-trigger:hover,
+// .mm-trigger:focus {
+//   background: transparent !important;
+//   color: #1a1a2e !important;
+//   outline: none !important;
+// }
+//           .mm-trigger .mm-chevron {
+//             color: #6b7280 !important;
+//             flex-shrink: 0 !important;
+//             opacity: 1 !important;
+//           }
+//         html.dark .mm-trigger {
+//   color: #ffffff !important;
+// }
+
+// html.dark .mm-trigger:hover,
+// html.dark .mm-trigger:focus {
+//   color: #ffffff !important;
+// }
+//         }
+
 //         .mm-chevron {
 //           transition: transform 0.25s cubic-bezier(.4,0,.2,1);
 //           flex-shrink: 0;
@@ -1126,23 +1190,57 @@
 //         />
 //       )}
 
-//       {/* ── Desktop trigger + dropdown (>= 1024px) ── */}
+//       {/* ── Trigger + dropdown wrapper ── */}
 //       <div
 //         ref={menuRef}
 //         className="mm-root"
 //         onMouseEnter={handleMouseEnter}
 //         onMouseLeave={handleMouseLeave}
+//         style={isMobile ? {
+//           position: "static",
+//           display: "block",
+//           width: "100%",
+//           margin: 0,
+//           padding: 0,
+//           boxSizing: "border-box",
+//           alignSelf: "stretch",
+//         } : {}}
 //       >
 //         <button
 //           className="mm-trigger"
 //           onClick={() => setIsOpen((p) => !p)}
 //           aria-expanded={isOpen}
 //           aria-haspopup="true"
+//           style={isMobile ? {
+//             display: "flex",
+//             width: "100%",
+//             boxSizing: "border-box",
+//             alignItems: "center",
+//             justifyContent: "space-between",
+//             padding: "14px 0",
+//             margin: 0,
+//             border: "none",
+//             borderBottom: "1px solid #f3f4f6",
+//             borderRadius: 0,
+//             background: "transparent",
+//             fontFamily: "inherit",
+//             fontSize: "15px",
+//             fontWeight: 600,
+//             lineHeight: 1.5,
+//             color: "inherit",
+//             letterSpacing: 0,
+//             cursor: "pointer",
+//             textAlign: "left",
+//             WebkitAppearance: "none",
+//           } : {}}
 //         >
+//           <span className="mm-trigger-label">
 //           All Courses
+//          </span>
 //           <ChevronDown
-//             size={16}
+//             size={18}
 //             className={`mm-chevron ${isOpen ? "mm-chevron--open" : ""}`}
+//             style={isMobile ? { color: "#6b7280", flexShrink: 0 } : {}}
 //           />
 //         </button>
 
@@ -1156,6 +1254,8 @@
 //     </>
 //   );
 // }
+
+
 
 
 
@@ -1350,10 +1450,9 @@ const COURSE_GROUPS = [
 
 /* ─────────────────────────────────────────────────────────────────
    MOBILE FULL-SCREEN NAVIGATION
-   Only rendered when windowWidth < 1024  (matches LMSHomepage lg breakpoint)
 ───────────────────────────────────────────── */
 function MobileFullScreenNav({ onItemClick, onClose }) {
-  const [view, setView] = useState("main"); // "main" | "category"
+  const [view, setView] = useState("main");
   const [selectedCategory, setSelectedCategory] = useState(null);
 
   const handleCategoryClick = (cat) => {
@@ -1559,13 +1658,11 @@ function MobileFullScreenNav({ onItemClick, onClose }) {
         {/* Items */}
         <div style={{ flex: 1, padding: "8px 0 32px" }}>
           {cat.id === "courses" ? (
-            /* Courses: grouped by Product / Design / Growth */
             COURSE_GROUPS.map(({ key, label, Icon: GIcon }) => {
               const groupItems = cat.items.filter((i) => i.tab === key);
               if (!groupItems.length) return null;
               return (
                 <div key={key}>
-                  {/* Group label */}
                   <div style={{
                     display: "flex",
                     alignItems: "center",
@@ -1629,7 +1726,6 @@ function MobileFullScreenNav({ onItemClick, onClose }) {
               );
             })
           ) : cat.isGulf ? (
-            /* Gulf: flag + country name */
             cat.items.map((item) => (
               <button
                 key={item.name}
@@ -1674,7 +1770,6 @@ function MobileFullScreenNav({ onItemClick, onClose }) {
               </button>
             ))
           ) : (
-            /* All other categories (including ilm-ora-feature) */
             cat.items.map((item) => {
               const ItemIcon = item.Icon;
               return (
@@ -1960,7 +2055,6 @@ export default function MegaMenu({ onItemClick }) {
           display: inline-flex;
           align-items: center;
           font-family: 'Plus Jakarta Sans', sans-serif;
-          /* Mobile resets are in the @media block below */
         }
 
         .mm-trigger {
@@ -1974,7 +2068,7 @@ export default function MegaMenu({ onItemClick }) {
           font-family: 'Plus Jakarta Sans', inherit !important;
           font-size: 14.5px !important;
           font-weight: 600 !important;
-          color: #1a1a2e !important;
+          color: inherit !important;
           cursor: pointer !important;
           transition: all 0.18s ease !important;
           white-space: nowrap !important;
@@ -1985,27 +2079,31 @@ export default function MegaMenu({ onItemClick }) {
           color: #f97316 !important;
         }
 
-        /* ── MOBILE ONLY: make All Courses row identical to ILM ORA Feature / More ── */
+        /* ── Desktop dark mode ── */
+        html.dark .mm-trigger {
+          color: #e5e7eb !important;
+        }
+        html.dark .mm-trigger:hover {
+          color: #f97316 !important;
+          background: rgba(249,115,22,0.08) !important;
+        }
+
+        /* ── MOBILE ONLY (< 1024px) ── */
         @media (max-width: 1023px) {
           .mm-root {
-            /* Completely reset — no flex/inline-flex, no position offset, no size constraint */
             all: unset !important;
             display: block !important;
             width: 100% !important;
             box-sizing: border-box !important;
           }
           .mm-trigger {
-            /* Reset button defaults first */
             all: unset !important;
-            /* Then apply exactly matching styles as ILM ORA Feature / More rows */
             display: flex !important;
             width: 100% !important;
             box-sizing: border-box !important;
             flex-direction: row !important;
             align-items: center !important;
             justify-content: space-between !important;
-            /* Padding: 0 horizontal (parent nav's px-6 = 24px handles it),
-               vertical matches accordion sibling rows */
             padding: 14px 0px 14px 0px !important;
             margin: 0 !important;
             border: none !important;
@@ -2013,11 +2111,11 @@ export default function MegaMenu({ onItemClick }) {
             border-radius: 0 !important;
             background: transparent !important;
             cursor: pointer !important;
-            /* Font — match exactly to ILM ORA Feature / More / ILM ORA Meet */
             font-family: inherit !important;
             font-size: 15px !important;
             font-weight: 600 !important;
             line-height: 1.5 !important;
+            /* ── KEY FIX: always dark text on mobile regardless of dark mode ── */
             color: #1a1a2e !important;
             letter-spacing: 0 !important;
             white-space: nowrap !important;
@@ -2035,6 +2133,37 @@ export default function MegaMenu({ onItemClick }) {
             color: #6b7280 !important;
             flex-shrink: 0 !important;
             opacity: 1 !important;
+          }
+
+          /* ── DARK MODE inside mobile: keep trigger text dark (white overlay always) ── */
+          html.dark .mm-trigger {
+            color: #1a1a2e !important;
+            border-bottom-color: rgba(0,0,0,0.08) !important;
+          }
+          html.dark .mm-trigger:hover,
+          html.dark .mm-trigger:focus {
+            color: #1a1a2e !important;
+            background: transparent !important;
+          }
+          html.dark .mm-trigger .mm-chevron {
+            color: #6b7280 !important;
+          }
+        }
+
+        /* Trigger label — explicit dark text always on mobile */
+        .mm-trigger-label {
+          color: #1a1a2e;
+        }
+        html.dark .mm-trigger-label {
+          color: #ffffff;
+        }
+        @media (max-width: 1023px) {
+          .mm-trigger-label {
+            color: #1a1a2e !important;
+          }
+          /* ── KEY FIX: on mobile, label is ALWAYS dark — the overlay is white ── */
+          html.dark .mm-trigger-label {
+            color: #1a1a2e !important;
           }
         }
 
@@ -2411,14 +2540,17 @@ export default function MegaMenu({ onItemClick }) {
             fontSize: "15px",
             fontWeight: 600,
             lineHeight: 1.5,
-            color: "#1a1a2e",
             letterSpacing: 0,
             cursor: "pointer",
             textAlign: "left",
             WebkitAppearance: "none",
+            /* Inline style also forces dark text on mobile */
+            color: "#1a1a2e",
           } : {}}
         >
-          All Courses
+          <span className="mm-trigger-label">
+            All Courses
+          </span>
           <ChevronDown
             size={18}
             className={`mm-chevron ${isOpen ? "mm-chevron--open" : ""}`}

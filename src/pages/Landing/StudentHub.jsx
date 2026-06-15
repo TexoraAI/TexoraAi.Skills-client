@@ -135,6 +135,7 @@ const GLOBAL_STYLES = `
 `;
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
+
 const FEATURES = [
   { color: "#F97316", title: "Live Sessions",         desc: "Join real-time classes with industry trainers. Ask questions, collaborate and learn live.",        icon: <Video size={22} /> },
   { color: "#3b82f6", title: "Skill Mapping",         desc: "AI-driven skill gap analysis to identify your strengths and areas for improvement.",              icon: <BrainCircuit size={22} /> },
@@ -1902,3 +1903,57 @@ function CodingLab() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -604,7 +604,7 @@ seedCMSData();
               element={
                 <ProtectedRoute>
                   <AuthProvider>
-                  <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN]}>
+                  <RoleGuard allowedRoles={["SUPER_ADMIN"]}>
                       <SaasProvider>
                         <UserManagementProvider>
                           <PermissionProvider>
@@ -718,7 +718,8 @@ seedCMSData();
             </Route>
 
             {/* ================= FALLBACK ================= */}
-            <Route path="*" element={<Navigate to="/superadmin" replace />} />
+            {/* <Route path="*" element={<Navigate to="/superadmin" replace />} /> */}
+            <Route path="*" element={<Navigate to="/login" replace />} />
 
           </Routes>
         </Suspense>

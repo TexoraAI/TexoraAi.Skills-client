@@ -152,7 +152,6 @@ function Navbar({ isDark, toggleTheme }) {
   const NAV = [
     { label: "Mentors",         path: "/mentors" },
     { label: "Success Stories", path: "/success-stories" },
-    { label: "Free Services",   path: "/free-services" },
     { label: "School Programs", path: "/school-class" },
   ];
 

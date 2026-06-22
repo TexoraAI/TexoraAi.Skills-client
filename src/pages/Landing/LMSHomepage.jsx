@@ -1,49 +1,89 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import TexoraFloatingWidget from "./components/TexoraFloatingWidget";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  ArrowRight, Award, BookOpen,
-  ChevronDown, Clock, ClipboardList,
-  GraduationCap, Lightbulb, LogOut, Menu, Moon, Sparkles, Star, Sun,
-  Target, TrendingUp, Trophy, User, Users, X, Zap, BarChart3, FileText
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
+import { jwtDecode } from "jwt-decode";
+import {
+  ArrowRight,
+  Award,
+  BarChart3,
+  BookOpen,
+  ChevronDown,
+  ClipboardList,
+  Clock,
+  FileText,
+  GraduationCap,
+  Lightbulb,
+  LogOut,
+  Menu,
+  Moon,
+  Sparkles,
+  Star,
+  Sun,
+  Target,
+  TrendingUp,
+  Trophy,
+  User,
+  Users,
+  X,
+  Zap,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
-import { jwtDecode } from "jwt-decode";
-import auth from "../../auth";
-import heroStudent from "../../assets/hero-student.png";
+import heroVideo from "../../assets/hero-1.mp4";
 import heroStudent2 from "../../assets/hero-student-2.png";
 import heroStudent3 from "../../assets/hero-student-3.png";
-import heroVideo from "../../assets/hero-1.mp4";
-import { subscribeNewsletter } from "../../services/notificationService";
+import heroStudent from "../../assets/hero-student.png";
+import auth from "../../auth";
 import MegaMenu from "../../components/MegaMenu";
- 
-const GOOGLE_CLIENT_ID = "572421778240-akk3kkb4f60ukuv9pcfrpg2ielm09thk.apps.googleusercontent.com";
+import authService from "../../services/authService";
+import { subscribeNewsletter } from "../../services/notificationService";
+import TexoraFloatingWidget from "./components/TexoraFloatingWidget";
+
+const GOOGLE_CLIENT_ID =
+  "572421778240-akk3kkb4f60ukuv9pcfrpg2ielm09thk.apps.googleusercontent.com";
 const NEWSLETTER_KEY = "ilmora_newsletter_subscribers";
- 
+
 function getSubscribers() {
-  try { return JSON.parse(localStorage.getItem(NEWSLETTER_KEY) || "[]"); }
-  catch { return []; }
+  try {
+    return JSON.parse(localStorage.getItem(NEWSLETTER_KEY) || "[]");
+  } catch {
+    return [];
+  }
 }
 function saveSubscribers(list) {
   localStorage.setItem(NEWSLETTER_KEY, JSON.stringify(list));
 }
- 
+
 /* ─────────────────────────────────────────────────────────────────
    FULL-SCREEN MOBILE MENU
 ───────────────────────────────────────────────────────────────── */
-function MobileFullScreenMenu({ onClose, navLinks, navButtons, user, navigate, handleLogout, setShowLoginModal }) {
+function MobileFullScreenMenu({
+  onClose,
+  navLinks,
+  navButtons,
+  user,
+  navigate,
+  handleLogout,
+  setShowLoginModal,
+}) {
   const [ilmoraFeatureOpen, setIlmoraFeatureOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
- 
+
   useEffect(() => {
     document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, []);
- 
+
   const AccordionSection = ({ label, isOpen, onToggle, children }) => (
     <div style={{ borderBottom: "1px solid #f3f4f6" }}>
       <button
@@ -64,28 +104,32 @@ function MobileFullScreenMenu({ onClose, navLinks, navButtons, user, navigate, h
         }}
       >
         {label}
-        <span style={{
-          transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
-          transition: "transform 0.2s ease",
-          display: "flex",
-          alignItems: "center",
-          color: "#6b7280",
-        }}>
+        <span
+          style={{
+            transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+            transition: "transform 0.2s ease",
+            display: "flex",
+            alignItems: "center",
+            color: "#6b7280",
+          }}
+        >
           <ChevronDown size={16} />
         </span>
       </button>
       {isOpen && (
-        <div style={{
-          background: "#f9fafb",
-          borderTop: "1px solid #f3f4f6",
-          padding: "8px 0",
-        }}>
+        <div
+          style={{
+            background: "#f9fafb",
+            borderTop: "1px solid #f3f4f6",
+            padding: "8px 0",
+          }}
+        >
           {children}
         </div>
       )}
     </div>
   );
- 
+
   return (
     <div
       style={{
@@ -102,19 +146,28 @@ function MobileFullScreenMenu({ onClose, navLinks, navButtons, user, navigate, h
       }}
     >
       {/* ── Header ── */}
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "16px 20px",
-        borderBottom: "1px solid #f3f4f6",
-        background: "#fff",
-        position: "sticky",
-        top: 0,
-        zIndex: 10,
-        flexShrink: 0,
-      }}>
-        <span style={{ fontSize: 26, fontWeight: 800, fontFamily: "serif", lineHeight: 1 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "16px 20px",
+          borderBottom: "1px solid #f3f4f6",
+          background: "#fff",
+          position: "sticky",
+          top: 0,
+          zIndex: 10,
+          flexShrink: 0,
+        }}
+      >
+        <span
+          style={{
+            fontSize: 26,
+            fontWeight: 800,
+            fontFamily: "serif",
+            lineHeight: 1,
+          }}
+        >
           <span style={{ color: "#16a34a" }}>ILM</span>
           <span style={{ color: "#f97316", marginLeft: 4 }}>ORA</span>
         </span>
@@ -137,22 +190,33 @@ function MobileFullScreenMenu({ onClose, navLinks, navButtons, user, navigate, h
           <X size={18} />
         </button>
       </div>
- 
+
       {/* ── Body ── */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "12px 0 32px" }}>
- 
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          padding: "12px 0 32px",
+        }}
+      >
         {/* MegaMenu — All Courses */}
         <div style={{ padding: "0 16px 8px" }}>
           <MegaMenu onItemClick={onClose} />
         </div>
- 
+
         {/* Divider */}
-        <div style={{ height: 1, background: "#f3f4f6", margin: "4px 20px 4px" }} />
+        <div
+          style={{ height: 1, background: "#f3f4f6", margin: "4px 20px 4px" }}
+        />
         {/* Nav buttons */}
-        {navButtons.map(btn => (
+        {navButtons.map((btn) => (
           <button
             key={btn.text}
-            onClick={() => { btn.action(); onClose(); }}
+            onClick={() => {
+              btn.action();
+              onClose();
+            }}
             style={{
               width: "100%",
               display: "flex",
@@ -171,16 +235,19 @@ function MobileFullScreenMenu({ onClose, navLinks, navButtons, user, navigate, h
             {btn.text}
           </button>
         ))}
- 
+
         {/* ── ILM ORA Feature Accordion ── */}
         <AccordionSection
           label="ILM ORA Feature"
           isOpen={ilmoraFeatureOpen}
-          onToggle={() => setIlmoraFeatureOpen(p => !p)}
+          onToggle={() => setIlmoraFeatureOpen((p) => !p)}
         >
           {/* Student Hub */}
           <button
-            onClick={() => { navigate("/student-hub"); onClose(); }}
+            onClick={() => {
+              navigate("/student-hub");
+              onClose();
+            }}
             style={{
               width: "100%",
               display: "flex",
@@ -193,24 +260,43 @@ function MobileFullScreenMenu({ onClose, navLinks, navButtons, user, navigate, h
               textAlign: "left",
             }}
           >
-            <div style={{
-              width: 36, height: 36,
-              background: "#f0fdf4",
-              borderRadius: 8,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0,
-            }}>
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                background: "#f0fdf4",
+                borderRadius: 8,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
               <GraduationCap size={18} style={{ color: "#16a34a" }} />
             </div>
             <div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: "#1e293b", margin: 0 }}>Student Hub</p>
-              <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>AI-Powered Learning &amp; Career Growth</p>
+              <p
+                style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: "#1e293b",
+                  margin: 0,
+                }}
+              >
+                Student Hub
+              </p>
+              <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>
+                AI-Powered Learning &amp; Career Growth
+              </p>
             </div>
           </button>
- 
+
           {/* Trainer Hub */}
           <button
-            onClick={() => { navigate("/trainer-hub"); onClose(); }}
+            onClick={() => {
+              navigate("/trainer-hub");
+              onClose();
+            }}
             style={{
               width: "100%",
               display: "flex",
@@ -223,23 +309,42 @@ function MobileFullScreenMenu({ onClose, navLinks, navButtons, user, navigate, h
               textAlign: "left",
             }}
           >
-            <div style={{
-              width: 36, height: 36,
-              background: "#eff6ff",
-              borderRadius: 8,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0,
-            }}>
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                background: "#eff6ff",
+                borderRadius: 8,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
               <Users size={18} style={{ color: "#2563eb" }} />
             </div>
             <div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: "#1e293b", margin: 0 }}>Trainer Hub</p>
-              <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>Training Management &amp; Mentorship</p>
+              <p
+                style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: "#1e293b",
+                  margin: 0,
+                }}
+              >
+                Trainer Hub
+              </p>
+              <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>
+                Training Management &amp; Mentorship
+              </p>
             </div>
           </button>
           {/* Manager Hub */}
           <button
-            onClick={() => { navigate("/manager-hub"); onClose(); }}
+            onClick={() => {
+              navigate("/manager-hub");
+              onClose();
+            }}
             style={{
               width: "100%",
               display: "flex",
@@ -252,27 +357,46 @@ function MobileFullScreenMenu({ onClose, navLinks, navButtons, user, navigate, h
               textAlign: "left",
             }}
           >
-            <div style={{
-              width: 36, height: 36,
-              background: "#faf5ff",
-              borderRadius: 8,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0,
-            }}>
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                background: "#faf5ff",
+                borderRadius: 8,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
               <BarChart3 size={18} style={{ color: "#9333ea" }} />
             </div>
             <div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: "#1e293b", margin: 0 }}>Manager Hub</p>
-              <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>Analytics, Performance &amp; Team Development</p>
+              <p
+                style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: "#1e293b",
+                  margin: 0,
+                }}
+              >
+                Manager Hub
+              </p>
+              <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>
+                Analytics, Performance &amp; Team Development
+              </p>
             </div>
           </button>
- 
+
           {/* Divider */}
           <div style={{ borderTop: "1px solid #e5e7eb", margin: "8px 24px" }} />
- 
+
           {/* ILM ORA Meet */}
           <button
-            onClick={() => { navigate("/ilm-ora-meet"); onClose(); }}
+            onClick={() => {
+              navigate("/ilm-ora-meet");
+              onClose();
+            }}
             style={{
               width: "100%",
               display: "flex",
@@ -285,24 +409,43 @@ function MobileFullScreenMenu({ onClose, navLinks, navButtons, user, navigate, h
               textAlign: "left",
             }}
           >
-            <div style={{
-              width: 36, height: 36,
-              background: "#fff7ed",
-              borderRadius: 8,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0,
-            }}>
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                background: "#fff7ed",
+                borderRadius: 8,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
               <Users size={18} style={{ color: "#f97316" }} />
             </div>
             <div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: "#1e293b", margin: 0 }}>ILM ORA Meet</p>
-              <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>Virtual Meetings &amp; Collaboration</p>
+              <p
+                style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: "#1e293b",
+                  margin: 0,
+                }}
+              >
+                ILM ORA Meet
+              </p>
+              <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>
+                Virtual Meetings &amp; Collaboration
+              </p>
             </div>
           </button>
- 
+
           {/* AI Resume Builder */}
           <button
-            onClick={() => { navigate("/resume-builder"); onClose(); }}
+            onClick={() => {
+              navigate("/resume-builder");
+              onClose();
+            }}
             style={{
               width: "100%",
               display: "flex",
@@ -315,34 +458,52 @@ function MobileFullScreenMenu({ onClose, navLinks, navButtons, user, navigate, h
               textAlign: "left",
             }}
           >
-            <div style={{
-              width: 36, height: 36,
-              background: "#f0fdf4",
-              borderRadius: 8,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0,
-            }}>
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                background: "#f0fdf4",
+                borderRadius: 8,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
               <FileText size={18} style={{ color: "#16a34a" }} />
             </div>
             <div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: "#1e293b", margin: 0 }}>AI Resume Builder</p>
-              <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>Create ATS-Friendly Professional Resumes</p>
+              <p
+                style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: "#1e293b",
+                  margin: 0,
+                }}
+              >
+                AI Resume Builder
+              </p>
+              <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>
+                Create ATS-Friendly Professional Resumes
+              </p>
             </div>
           </button>
         </AccordionSection>
- 
+
         {/* ── More Accordion ── */}
         <AccordionSection
           label="More"
           isOpen={moreOpen}
-          onToggle={() => setMoreOpen(p => !p)}
+          onToggle={() => setMoreOpen((p) => !p)}
         >
-          {navLinks.map(link => (
+          {navLinks.map((link) => (
             <button
               key={link.text}
               onClick={() => {
                 if (link.href) {
-                  document.querySelector(link.href)?.scrollIntoView({ behavior: "smooth" });
+                  document
+                    .querySelector(link.href)
+                    ?.scrollIntoView({ behavior: "smooth" });
                 }
                 onClose();
               }}
@@ -364,53 +525,110 @@ function MobileFullScreenMenu({ onClose, navLinks, navButtons, user, navigate, h
             </button>
           ))}
         </AccordionSection>
- 
+
         {/* Divider */}
-        <div style={{ height: 1, background: "#f3f4f6", margin: "12px 20px" }} />
- 
+        <div
+          style={{ height: 1, background: "#f3f4f6", margin: "12px 20px" }}
+        />
+
         {/* Auth section */}
         <div style={{ padding: "0 16px" }}>
           {user ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <div style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: "12px 16px",
-                background: "#fdf4ec",
-                borderRadius: 14,
-                marginBottom: 4,
-              }}>
-                <div style={{
-                  width: 38, height: 38,
-                  background: "#1e293b",
-                  borderRadius: "50%",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  color: "#fff", fontWeight: 700, fontSize: 14, flexShrink: 0,
-                }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "12px 16px",
+                  background: "#fdf4ec",
+                  borderRadius: 14,
+                  marginBottom: 4,
+                }}
+              >
+                <div
+                  style={{
+                    width: 38,
+                    height: 38,
+                    background: "#1e293b",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#fff",
+                    fontWeight: 700,
+                    fontSize: 14,
+                    flexShrink: 0,
+                  }}
+                >
                   {user.name?.charAt(0) || "U"}
                 </div>
                 <div style={{ minWidth: 0 }}>
-                  <p style={{ fontWeight: 600, fontSize: 14, color: "#1e293b", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.name || "User"}</p>
-                  <p style={{ fontSize: 12, color: "#6b7280", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</p>
+                  <p
+                    style={{
+                      fontWeight: 600,
+                      fontSize: 14,
+                      color: "#1e293b",
+                      margin: 0,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {user.name || "User"}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: 12,
+                      color: "#6b7280",
+                      margin: 0,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {user.email}
+                  </p>
                 </div>
               </div>
               <button
-                onClick={() => { navigate("/my-learning"); onClose(); }}
+                onClick={() => {
+                  navigate("/my-learning");
+                  onClose();
+                }}
                 style={{
-                  width: "100%", padding: "13px", borderRadius: 14, border: "none",
-                  background: "#1e293b", color: "#fff", fontWeight: 600, fontSize: 15, cursor: "pointer",
+                  width: "100%",
+                  padding: "13px",
+                  borderRadius: 14,
+                  border: "none",
+                  background: "#1e293b",
+                  color: "#fff",
+                  fontWeight: 600,
+                  fontSize: 15,
+                  cursor: "pointer",
                 }}
               >
                 My Learning
               </button>
               <button
-                onClick={() => { handleLogout(); onClose(); }}
+                onClick={() => {
+                  handleLogout();
+                  onClose();
+                }}
                 style={{
-                  width: "100%", padding: "13px", borderRadius: 14,
-                  border: "1.5px solid #fecaca", background: "transparent",
-                  color: "#dc2626", fontWeight: 600, fontSize: 15, cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  width: "100%",
+                  padding: "13px",
+                  borderRadius: 14,
+                  border: "1.5px solid #fecaca",
+                  background: "transparent",
+                  color: "#dc2626",
+                  fontWeight: 600,
+                  fontSize: 15,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
                 }}
               >
                 <LogOut size={16} /> Logout
@@ -418,13 +636,24 @@ function MobileFullScreenMenu({ onClose, navLinks, navButtons, user, navigate, h
             </div>
           ) : (
             <button
-              onClick={() => { onClose(); setShowLoginModal(true); }}
+              onClick={() => {
+                onClose();
+                setShowLoginModal(true);
+              }}
               style={{
-                width: "100%", padding: "14px",
-                borderRadius: 14, border: "none",
-                background: "#1e293b", color: "#fff",
-                fontWeight: 700, fontSize: 15, cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                width: "100%",
+                padding: "14px",
+                borderRadius: 14,
+                border: "none",
+                background: "#1e293b",
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: 15,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
               }}
             >
               <Sparkles size={16} /> Get Started
@@ -435,18 +664,26 @@ function MobileFullScreenMenu({ onClose, navLinks, navButtons, user, navigate, h
     </div>
   );
 }
- 
+
 // ─────────────────────────────────────────────────────────────────────────────
 // FooterNewsletter
-// CHANGED: Removed "Contact support: marketing@texora.ai" placeholder text from contact line.
-//          Now shows: Contact support: marketing@texora.ai
+// Subscribe form uses the real backend API (subscribeNewsletter). A hidden
+// subscriber-admin panel (callable via openNewsletterAdmin / the hidden
+// trigger element) is kept for internal use — it does not alter the visible
+// design of the footer.
 // ─────────────────────────────────────────────────────────────────────────────
 function FooterNewsletter() {
-  const [email, setEmail]   = useState("");
+  const [email, setEmail] = useState("");
   const [status, setStatus] = useState("idle");
- 
+
+  // Hidden subscriber-admin panel state
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [adminOk, setAdminOk] = useState(false);
+  const [adminCode, setAdminCode] = useState("");
+  const [subscribers, setSubscribers] = useState([]);
+
   const isValid = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
- 
+
   const handleSubmit = async () => {
     const trimmed = email.trim().toLowerCase();
     if (!isValid(trimmed)) {
@@ -457,22 +694,62 @@ function FooterNewsletter() {
     setStatus("loading");
     try {
       const { ok, status: httpStatus } = await subscribeNewsletter(trimmed);
-      if (httpStatus === 409) { setStatus("duplicate"); setTimeout(() => setStatus("idle"), 3000); return; }
-      if (ok) { setStatus("success"); setEmail(""); setTimeout(() => setStatus("idle"), 3500); }
-      else    { setStatus("apierror"); setTimeout(() => setStatus("idle"), 3000); }
+      if (httpStatus === 409) {
+        setStatus("duplicate");
+        setTimeout(() => setStatus("idle"), 3000);
+        return;
+      }
+      if (ok) {
+        setStatus("success");
+        setEmail("");
+        setTimeout(() => setStatus("idle"), 3500);
+      } else {
+        setStatus("apierror");
+        setTimeout(() => setStatus("idle"), 3000);
+      }
     } catch {
       setStatus("apierror");
       setTimeout(() => setStatus("idle"), 3000);
     }
   };
- 
+
+  /* ── Hidden subscriber-admin panel ── */
+  const openAdmin = () => {
+    setSubscribers(getSubscribers());
+    setShowAdmin(true);
+  };
+
+  const unlockAdmin = () => {
+    if (adminCode === "ilmora2026") {
+      setAdminOk(true);
+      setAdminCode("");
+    } else {
+      alert("Incorrect code");
+    }
+  };
+
+  const deleteSubscriber = (emailToDel) => {
+    const updated = subscribers.filter((s) => s.email !== emailToDel);
+    saveSubscribers(updated);
+    setSubscribers(updated);
+  };
+
+  const formatDate = (iso) =>
+    new Date(iso).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
   const statusMsg = {
-    success:  { text: "✓ You're subscribed!",            color: "#22c55e" },
-    error:    { text: "Enter a valid email.",             color: "#f87171" },
-    duplicate:{ text: "Already subscribed.",              color: "#fb923c" },
+    success: { text: "✓ You're subscribed!", color: "#22c55e" },
+    error: { text: "Enter a valid email.", color: "#f87171" },
+    duplicate: { text: "Already subscribed.", color: "#fb923c" },
     apierror: { text: "Something went wrong. Try again.", color: "#f87171" },
   }[status];
- 
+
   return (
     <div className="flex flex-col gap-1">
       <h4 className="text-sm md:text-base font-bold tracking-wide text-[#1E293B] leading-snug">
@@ -483,8 +760,11 @@ function FooterNewsletter() {
           display: "flex",
           background: status === "error" ? "rgba(248,113,113,0.06)" : "#f8fafc",
           borderRadius: "8px",
-          border: status === "error"   ? "1.5px solid #f87171"
-                : status === "success" ? "1.5px solid #22c55e"
+          border:
+            status === "error"
+              ? "1.5px solid #f87171"
+              : status === "success"
+                ? "1.5px solid #22c55e"
                 : "1.5px solid #e2e8f0",
           overflow: "hidden",
           transition: "border-color 0.2s",
@@ -498,8 +778,14 @@ function FooterNewsletter() {
           placeholder="Contact support: marketing@texora.ai"
           disabled={status === "loading" || status === "success"}
           style={{
-            flex: 1, background: "transparent", border: "none", outline: "none",
-            color: "#1E293B", fontSize: "13px", padding: "9px 12px", minWidth: 0,
+            flex: 1,
+            background: "transparent",
+            border: "none",
+            outline: "none",
+            color: "#1E293B",
+            fontSize: "13px",
+            padding: "9px 12px",
+            minWidth: 0,
           }}
         />
         <button
@@ -507,51 +793,356 @@ function FooterNewsletter() {
           disabled={status === "loading" || status === "success"}
           style={{
             background: status === "success" ? "#22c55e" : "#1E293B",
-            border: "none", cursor: "pointer", padding: "0 14px",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            minWidth: "42px", transition: "background 0.2s", flexShrink: 0,
+            border: "none",
+            cursor: "pointer",
+            padding: "0 14px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            minWidth: "42px",
+            transition: "background 0.2s",
+            flexShrink: 0,
           }}
-          onMouseEnter={e => { if (status !== "success") e.currentTarget.style.background = "#F97316"; }}
-          onMouseLeave={e => { if (status !== "success") e.currentTarget.style.background = "#1E293B"; }}
+          onMouseEnter={(e) => {
+            if (status !== "success")
+              e.currentTarget.style.background = "#F97316";
+          }}
+          onMouseLeave={(e) => {
+            if (status !== "success")
+              e.currentTarget.style.background = "#1E293B";
+          }}
         >
           {status === "loading" ? (
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-              <circle cx="10" cy="10" r="8" stroke="rgba(255,255,255,0.3)" strokeWidth="2.5"/>
-              <path d="M10 2a8 8 0 0 1 8 8" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
-                <animateTransform attributeName="transform" type="rotate" from="0 10 10" to="360 10 10" dur="0.7s" repeatCount="indefinite"/>
+              <circle
+                cx="10"
+                cy="10"
+                r="8"
+                stroke="rgba(255,255,255,0.3)"
+                strokeWidth="2.5"
+              />
+              <path
+                d="M10 2a8 8 0 0 1 8 8"
+                stroke="#fff"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              >
+                <animateTransform
+                  attributeName="transform"
+                  type="rotate"
+                  from="0 10 10"
+                  to="360 10 10"
+                  dur="0.7s"
+                  repeatCount="indefinite"
+                />
               </path>
             </svg>
           ) : status === "success" ? (
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-              <path d="M4 10l4 4 8-8" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path
+                d="M4 10l4 4 8-8"
+                stroke="#fff"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           ) : (
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-              <path d="M4 10h12M10 4l6 6-6 6" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path
+                d="M4 10h12M10 4l6 6-6 6"
+                stroke="#fff"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           )}
         </button>
       </div>
- 
+
       {statusMsg && (
-        <p style={{ fontSize: "12px", color: statusMsg.color, margin: "-8px 0 0" }}>
+        <p
+          style={{
+            fontSize: "12px",
+            color: statusMsg.color,
+            margin: "-8px 0 0",
+          }}
+        >
           {statusMsg.text}
         </p>
       )}
- 
-      {/* CHANGED: removed "your@email.com" — now just shows the support email link */}
-      
- 
+
       <div>
         <span className="inline-flex items-center gap-2 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full">
           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
           Status: Live
         </span>
       </div>
+
+      {/* ── Hidden subscriber-admin modal ── */}
+      {showAdmin && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowAdmin(false);
+              setAdminOk(false);
+            }
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: "14px",
+              padding: "2rem",
+              width: "min(90vw,560px)",
+              maxHeight: "80vh",
+              display: "flex",
+              flexDirection: "column",
+              gap: "1rem",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <h3
+                style={{
+                  margin: 0,
+                  fontSize: "18px",
+                  fontWeight: 700,
+                  color: "#111",
+                }}
+              >
+                📊 Subscriber Admin
+              </h3>
+              <button
+                onClick={() => {
+                  setShowAdmin(false);
+                  setAdminOk(false);
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: "20px",
+                  cursor: "pointer",
+                  color: "#888",
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {!adminOk ? (
+              <div>
+                <p
+                  style={{
+                    color: "#666",
+                    fontSize: "14px",
+                    marginBottom: "1rem",
+                  }}
+                >
+                  Enter admin code to view subscribers:
+                </p>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <input
+                    type="password"
+                    value={adminCode}
+                    onChange={(e) => setAdminCode(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && unlockAdmin()}
+                    placeholder="Admin code"
+                    style={{
+                      flex: 1,
+                      padding: "10px 14px",
+                      border: "1.5px solid #e0e0e0",
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                      outline: "none",
+                    }}
+                  />
+                  <button
+                    onClick={unlockAdmin}
+                    style={{
+                      background: "#F97316",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "8px",
+                      padding: "10px 20px",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Unlock
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div
+                  style={{
+                    background: "#f8fffe",
+                    border: "1px solid #d4f5e8",
+                    borderRadius: "8px",
+                    padding: "12px 16px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <span
+                    style={{
+                      color: "#1a8f3c",
+                      fontWeight: 600,
+                      fontSize: "14px",
+                    }}
+                  >
+                    Total Subscribers: {subscribers.length}
+                  </span>
+                  <button
+                    onClick={() => setSubscribers(getSubscribers())}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      color: "#888",
+                      fontSize: "13px",
+                    }}
+                  >
+                    ↻ Refresh
+                  </button>
+                </div>
+                <div style={{ overflowY: "auto", flex: 1 }}>
+                  {subscribers.length === 0 ? (
+                    <p
+                      style={{
+                        color: "#999",
+                        textAlign: "center",
+                        padding: "2rem",
+                        fontSize: "14px",
+                      }}
+                    >
+                      No subscribers yet. Share the page!
+                    </p>
+                  ) : (
+                    <table
+                      style={{
+                        width: "100%",
+                        borderCollapse: "collapse",
+                        fontSize: "13px",
+                      }}
+                    >
+                      <thead>
+                        <tr style={{ borderBottom: "2px solid #f0f0f0" }}>
+                          <th
+                            style={{
+                              textAlign: "left",
+                              padding: "8px 12px",
+                              color: "#888",
+                              fontWeight: 600,
+                            }}
+                          >
+                            #
+                          </th>
+                          <th
+                            style={{
+                              textAlign: "left",
+                              padding: "8px 12px",
+                              color: "#888",
+                              fontWeight: 600,
+                            }}
+                          >
+                            Email
+                          </th>
+                          <th
+                            style={{
+                              textAlign: "left",
+                              padding: "8px 12px",
+                              color: "#888",
+                              fontWeight: 600,
+                            }}
+                          >
+                            Subscribed
+                          </th>
+                          <th style={{ padding: "8px 12px" }}></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {subscribers.map((sub, i) => (
+                          <tr
+                            key={sub.email}
+                            style={{ borderBottom: "1px solid #f5f5f5" }}
+                          >
+                            <td style={{ padding: "10px 12px", color: "#bbb" }}>
+                              {i + 1}
+                            </td>
+                            <td
+                              style={{
+                                padding: "10px 12px",
+                                color: "#111",
+                                fontWeight: 500,
+                              }}
+                            >
+                              {sub.email}
+                            </td>
+                            <td style={{ padding: "10px 12px", color: "#888" }}>
+                              {formatDate(sub.subscribedAt)}
+                            </td>
+                            <td
+                              style={{
+                                padding: "10px 12px",
+                                textAlign: "right",
+                              }}
+                            >
+                              <button
+                                onClick={() => deleteSubscriber(sub.email)}
+                                style={{
+                                  background: "none",
+                                  border: "none",
+                                  cursor: "pointer",
+                                  color: "#fc8181",
+                                  fontSize: "16px",
+                                }}
+                                title="Remove"
+                              >
+                                🗑
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* hidden admin trigger — callable from outside via openNewsletterAdmin() */}
+      <div
+        id="newsletter-admin-trigger"
+        onClick={openAdmin}
+        style={{ display: "none" }}
+      />
     </div>
   );
 }
- 
+
 // ─────────────────────────────────────────────────────────────────────────────
 export default function LMSHomepage({ theme, toggleTheme }) {
   const [activeTab, setActiveTab] = useState("product");
@@ -559,59 +1150,64 @@ export default function LMSHomepage({ theme, toggleTheme }) {
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
- 
-  const [modalEmail, setModalEmail]       = useState("");
+
+  const [modalEmail, setModalEmail] = useState("");
   const [modalPassword, setModalPassword] = useState("");
-  const [modalLoading, setModalLoading]   = useState(false);
-  const [showModalPw, setShowModalPw]     = useState(false);
- 
+  const [modalLoading, setModalLoading] = useState(false);
+  const [showModalPw, setShowModalPw] = useState(false);
+
   const heroImages = [heroStudent, heroStudent2, heroStudent3];
   const [currentSlide, setCurrentSlide] = useState(-1);
   const carouselTimerRef = useRef(null);
- 
+
   const navigate = useNavigate();
- 
+
   const startCarouselTimer = () => {
     clearInterval(carouselTimerRef.current);
     carouselTimerRef.current = setInterval(() => {
-      setCurrentSlide(prev => {
+      setCurrentSlide((prev) => {
         if (prev === -1) return 0;
         if (prev >= heroImages.length - 1) return -1;
         return prev + 1;
       });
     }, 3500);
   };
- 
+
   useEffect(() => {
     startCarouselTimer();
     return () => clearInterval(carouselTimerRef.current);
   }, []);
- 
+
   const goToSlide = (index) => {
     setCurrentSlide(index);
     startCarouselTimer();
   };
- 
+
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
- 
+
   useEffect(() => {
     const userData = sessionStorage.getItem("user");
     if (userData) {
-      try { setUser(JSON.parse(userData)); }
-      catch { sessionStorage.removeItem("user"); }
+      try {
+        setUser(JSON.parse(userData));
+      } catch {
+        sessionStorage.removeItem("user");
+      }
     }
   }, []);
- 
+
   useEffect(() => {
-    const onKey = (e) => { if (e.key === "Escape") setShowLoginModal(false); };
+    const onKey = (e) => {
+      if (e.key === "Escape") setShowLoginModal(false);
+    };
     if (showLoginModal) window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [showLoginModal]);
- 
+
   useEffect(() => {
     const handler = (e) => {
       const { tab } = e.detail || {};
@@ -620,41 +1216,62 @@ export default function LMSHomepage({ theme, toggleTheme }) {
     window.addEventListener("mm-course-tab", handler);
     return () => window.removeEventListener("mm-course-tab", handler);
   }, []);
- 
+
   const handleLogout = () => {
     sessionStorage.removeItem("user");
     setUser(null);
     navigate("/login");
   };
- 
+
   const scrollToSection = (sectionId, tabName = null) => {
     if (window.location.pathname !== "/") {
       navigate("/");
       setTimeout(() => {
         if (tabName) setActiveTab(tabName);
-        document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        document
+          .getElementById(sectionId)
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 150);
     } else {
       if (tabName) setActiveTab(tabName);
-      document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      document
+        .getElementById(sectionId)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
- 
+
+  /* ── Role-based redirect (full role map, incl. SUPER_ADMIN / TENANT_ADMIN) ── */
   const redirectByRole = (role) => {
     switch ((role || "").toUpperCase()) {
-      case "ADMIN":    navigate("/admin",    { replace: true }); break;
-      case "TRAINER":  navigate("/trainer",  { replace: true }); break;
-      case "BUSINESS": navigate("/business", { replace: true }); break;
-      default:         navigate("/student",  { replace: true });
+      case "SUPER_ADMIN":
+        navigate("/superadmin", { replace: true });
+        break;
+      case "ADMIN":
+        navigate("/admin", { replace: true });
+        break;
+      case "TENANT_ADMIN":
+        navigate("/admin", { replace: true });
+        break;
+      case "BUSINESS":
+        navigate("/admin", { replace: true });
+        break;
+      case "TRAINER":
+        navigate("/trainer", { replace: true });
+        break;
+      default:
+        navigate("/student", { replace: true });
     }
   };
- 
+
   const handleModalSubmit = async (e) => {
     e.preventDefault();
     if (modalLoading) return;
     setModalLoading(true);
     try {
-      const ok = await auth.login({ email: modalEmail, password: modalPassword });
+      const ok = await auth.login({
+        email: modalEmail,
+        password: modalPassword,
+      });
       if (ok) {
         const role = (auth.getCurrentRole() || "STUDENT").toUpperCase();
         localStorage.setItem("role", role);
@@ -669,123 +1286,453 @@ export default function LMSHomepage({ theme, toggleTheme }) {
       setModalLoading(false);
     }
   };
- 
+
+  /* ── Google Sign-In — full backend-aware flow ──────────────────────────────
+     Existing users: backend issues a token + role (+ organizationId) and we
+     redirect by role. Brand-new users: we hand off to /complete-profile so
+     they can finish signing up. */
   const handleModalGoogle = async (res) => {
     try {
       localStorage.removeItem("lms_token");
       localStorage.removeItem("lms_user");
       localStorage.removeItem("role");
-      const dec  = jwtDecode(res.credential);
-      const resp = await auth.googleLogin({ idToken: res.credential });
-      if (resp?.isNewUser === true) {
-        localStorage.setItem("role", "STUDENT");
-        localStorage.setItem("lms_user", JSON.stringify({
-          name: dec.name, email: dec.email, role: "student", isNewUser: true,
-        }));
-        setShowLoginModal(false);
-        navigate("/ilm-demo", { replace: true });
-      } else {
-        const role = (resp?.role || "STUDENT").toUpperCase();
+
+      const dec = jwtDecode(res.credential);
+
+      const check = await authService.checkGoogleUser({
+        idToken: res.credential,
+      });
+
+      // ── EXISTING USER ──────────────────────────────────────────
+      if (check.isNewUser === false && check.token && check.role) {
+        const role = check.role.toUpperCase();
+        localStorage.setItem("lms_token", check.token);
         localStorage.setItem("role", role);
-        localStorage.setItem("lms_user", JSON.stringify({
-          name: dec.name, email: dec.email, role: role.toLowerCase(),
-        }));
+
+        if (check.organizationId) {
+          localStorage.setItem("organizationId", check.organizationId);
+        } else {
+          localStorage.removeItem("organizationId");
+        }
+
+        localStorage.setItem(
+          "lms_user",
+          JSON.stringify({
+            name: check.name || dec.name,
+            email: check.email || dec.email,
+            role: ["TENANT_ADMIN", "ADMIN", "BUSINESS"].includes(role)
+              ? "admin"
+              : role.toLowerCase(),
+            isGoogleUser: true,
+            profileCompleted: true,
+            organizationId: check.organizationId || null,
+          }),
+        );
         setShowLoginModal(false);
         redirectByRole(role);
+        return;
       }
+
+      // ── BRAND NEW USER ─────────────────────────────────────────
+      sessionStorage.setItem("ilmora_google_credential", res.credential);
+      setShowLoginModal(false);
+      navigate("/complete-profile", {
+        replace: true,
+        state: {
+          name: dec.name,
+          email: dec.email,
+          googleCredential: res.credential,
+          isGoogleUser: true,
+          fromGoogleLogin: true,
+        },
+      });
     } catch (err) {
-      try {
-        const dec = jwtDecode(res.credential);
-        localStorage.setItem("role", "STUDENT");
-        localStorage.setItem("lms_user", JSON.stringify({
-          name: dec.name, email: dec.email, role: "student", isNewUser: true,
-        }));
-        setShowLoginModal(false);
-        navigate("/ilm-demo", { replace: true });
-      } catch (_) {
-        alert("Google login failed. Please try again.");
-      }
+      // Surface the real backend message — blocked user / inactive org / etc.
+      const message =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Google login failed. Please try again.";
+      alert(message);
     }
   };
- 
+
+  /* ── Hidden subscriber-admin trigger (callable from elsewhere if needed) ── */
+  const openNewsletterAdmin = () => {
+    document.getElementById("newsletter-admin-trigger")?.click();
+  };
+
   const courses = {
     product: [
-      { id: 1, title: "Product Management Mastery", instructor: "Ex-Google PM", duration: "8 weeks", students: "2,500+", rating: 4.9, level: "Intermediate", description: "Master product lifecycle from ideation to launch. Learn roadmapping, prioritization, stakeholder management & metrics that matter.", modules: ["Discovery & Research", "Roadmapping", "Prioritization Frameworks", "Launch Strategy", "Metrics & Analytics"], price: "₹49,000", highlights: ["Live sessions with Google PMs", "Real case studies", "1:1 mentorship", "Job referral support"], liveSessions: 5, totalLessons: 81, projects: 3 },
-      { id: 2, title: "Product Analytics", instructor: "Ex-Amazon", duration: "6 weeks", students: "1,800+", rating: 4.8, level: "Advanced", description: "Data-driven product decisions. Master A/B testing, cohort analysis, funnel optimization & retention strategies.", modules: ["SQL for Product Managers", "Experimentation", "Funnel Analysis", "Retention Metrics", "Customer Segmentation"], price: "₹39,000", highlights: ["Amazon case studies", "Live SQL projects", "Advanced Mixpanel", "Retention frameworks"], liveSessions: 4, totalLessons: 60, projects: 2 },
-      { id: 3, title: "Product Strategy", instructor: "Ex-Meta", duration: "10 weeks", students: "2,100+", rating: 4.9, level: "Advanced", description: "Strategic frameworks for product success. Positioning, competitive analysis, growth strategies & portfolio management.", modules: ["Market Analysis", "Competitive Strategy", "Growth Playbooks", "Portfolio Management", "Pricing Strategy"], price: "₹59,000", highlights: ["Meta growth case studies", "Strategy templates", "Live workshops", "Executive simulations"], liveSessions: 6, totalLessons: 90, projects: 4 },
+      {
+        id: 1,
+        title: "Product Management Mastery",
+        instructor: "Ex-Google PM",
+        duration: "8 weeks",
+        students: "2,500+",
+        rating: 4.9,
+        level: "Intermediate",
+        description:
+          "Master product lifecycle from ideation to launch. Learn roadmapping, prioritization, stakeholder management & metrics that matter.",
+        modules: [
+          "Discovery & Research",
+          "Roadmapping",
+          "Prioritization Frameworks",
+          "Launch Strategy",
+          "Metrics & Analytics",
+        ],
+        price: "₹49,000",
+        highlights: [
+          "Live sessions with Google PMs",
+          "Real case studies",
+          "1:1 mentorship",
+          "Job referral support",
+        ],
+        liveSessions: 5,
+        totalLessons: 81,
+        projects: 3,
+      },
+      {
+        id: 2,
+        title: "Product Analytics",
+        instructor: "Ex-Amazon",
+        duration: "6 weeks",
+        students: "1,800+",
+        rating: 4.8,
+        level: "Advanced",
+        description:
+          "Data-driven product decisions. Master A/B testing, cohort analysis, funnel optimization & retention strategies.",
+        modules: [
+          "SQL for Product Managers",
+          "Experimentation",
+          "Funnel Analysis",
+          "Retention Metrics",
+          "Customer Segmentation",
+        ],
+        price: "₹39,000",
+        highlights: [
+          "Amazon case studies",
+          "Live SQL projects",
+          "Advanced Mixpanel",
+          "Retention frameworks",
+        ],
+        liveSessions: 4,
+        totalLessons: 60,
+        projects: 2,
+      },
+      {
+        id: 3,
+        title: "Product Strategy",
+        instructor: "Ex-Meta",
+        duration: "10 weeks",
+        students: "2,100+",
+        rating: 4.9,
+        level: "Advanced",
+        description:
+          "Strategic frameworks for product success. Positioning, competitive analysis, growth strategies & portfolio management.",
+        modules: [
+          "Market Analysis",
+          "Competitive Strategy",
+          "Growth Playbooks",
+          "Portfolio Management",
+          "Pricing Strategy",
+        ],
+        price: "₹59,000",
+        highlights: [
+          "Meta growth case studies",
+          "Strategy templates",
+          "Live workshops",
+          "Executive simulations",
+        ],
+        liveSessions: 6,
+        totalLessons: 90,
+        projects: 4,
+      },
     ],
     design: [
-      { id: 4, title: "UI/UX Design Bootcamp", instructor: "Ex-Airbnb Designer", duration: "12 weeks", students: "3,200+", rating: 5.0, level: "Beginner", description: "Complete UI/UX journey from research to prototype. Figma mastery, design systems & portfolio projects.", modules: ["User Research", "Wireframing", "Prototyping", "Design Systems", "Portfolio Building"], price: "₹69,000", highlights: ["Airbnb case studies", "Figma certification", "Live design reviews", "Job ready portfolio"], liveSessions: 8, totalLessons: 110, projects: 5 },
-      { id: 5, title: "Design Systems", instructor: "Ex-Netflix", duration: "8 weeks", students: "1,500+", rating: 4.8, level: "Advanced", description: "Build scalable design systems like Netflix. Components, tokens, documentation & developer handoff.", modules: ["Component Libraries", "Design Tokens", "Documentation", "Dev Handoff", "Scale Patterns"], price: "₹45,000", highlights: ["Netflix system breakdown", "Figma + Storybook", "Live system audits", "Enterprise patterns"], liveSessions: 4, totalLessons: 70, projects: 3 },
-      { id: 6, title: "User Research Pro", instructor: "Ex-Microsoft", duration: "6 weeks", students: "1,900+", rating: 4.7, level: "Intermediate", description: "Research methods that drive product decisions. Interviews, surveys, usability testing & synthesis.", modules: ["Interview Techniques", "Survey Design", "Usability Testing", "Synthesis Methods", "Stakeholder Reports"], price: "₹35,000", highlights: ["Microsoft research frameworks", "Live user testing", "Report templates", "Stakeholder presentations"], liveSessions: 3, totalLessons: 55, projects: 2 },
+      {
+        id: 4,
+        title: "UI/UX Design Bootcamp",
+        instructor: "Ex-Airbnb Designer",
+        duration: "12 weeks",
+        students: "3,200+",
+        rating: 5.0,
+        level: "Beginner",
+        description:
+          "Complete UI/UX journey from research to prototype. Figma mastery, design systems & portfolio projects.",
+        modules: [
+          "User Research",
+          "Wireframing",
+          "Prototyping",
+          "Design Systems",
+          "Portfolio Building",
+        ],
+        price: "₹69,000",
+        highlights: [
+          "Airbnb case studies",
+          "Figma certification",
+          "Live design reviews",
+          "Job ready portfolio",
+        ],
+        liveSessions: 8,
+        totalLessons: 110,
+        projects: 5,
+      },
+      {
+        id: 5,
+        title: "Design Systems",
+        instructor: "Ex-Netflix",
+        duration: "8 weeks",
+        students: "1,500+",
+        rating: 4.8,
+        level: "Advanced",
+        description:
+          "Build scalable design systems like Netflix. Components, tokens, documentation & developer handoff.",
+        modules: [
+          "Component Libraries",
+          "Design Tokens",
+          "Documentation",
+          "Dev Handoff",
+          "Scale Patterns",
+        ],
+        price: "₹45,000",
+        highlights: [
+          "Netflix system breakdown",
+          "Figma + Storybook",
+          "Live system audits",
+          "Enterprise patterns",
+        ],
+        liveSessions: 4,
+        totalLessons: 70,
+        projects: 3,
+      },
+      {
+        id: 6,
+        title: "User Research Pro",
+        instructor: "Ex-Microsoft",
+        duration: "6 weeks",
+        students: "1,900+",
+        rating: 4.7,
+        level: "Intermediate",
+        description:
+          "Research methods that drive product decisions. Interviews, surveys, usability testing & synthesis.",
+        modules: [
+          "Interview Techniques",
+          "Survey Design",
+          "Usability Testing",
+          "Synthesis Methods",
+          "Stakeholder Reports",
+        ],
+        price: "₹35,000",
+        highlights: [
+          "Microsoft research frameworks",
+          "Live user testing",
+          "Report templates",
+          "Stakeholder presentations",
+        ],
+        liveSessions: 3,
+        totalLessons: 55,
+        projects: 2,
+      },
     ],
     growth: [
-      { id: 7, title: "Growth Marketing", instructor: "Ex-Uber Growth", duration: "8 weeks", students: "2,800+", rating: 4.9, level: "Intermediate", description: "Growth loops, viral mechanics & acquisition strategies that scale businesses.", modules: ["Growth Frameworks", "Viral Loops", "Acquisition Channels", "Experimentation", "Scaling"], price: "₹49,000", highlights: ["Uber growth case studies", "Live experiments", "Channel deep dives", "Scaling frameworks"], liveSessions: 5, totalLessons: 75, projects: 3 },
-      { id: 8, title: "SEO & Content Strategy", instructor: "Ex-Spotify", duration: "10 weeks", students: "2,300+", rating: 4.8, level: "Intermediate", description: "Organic growth mastery. Technical SEO, content systems & link building at scale.", modules: ["Technical SEO", "Content Systems", "Link Building", "Analytics", "Scaling Organic"], price: "₹55,000", highlights: ["Spotify SEO case studies", "Live audits", "Content calendars", "Enterprise SEO"], liveSessions: 5, totalLessons: 85, projects: 3 },
-      { id: 9, title: "Performance Marketing", instructor: "Ex-Swiggy", duration: "8 weeks", students: "2,600+", rating: 4.9, level: "Advanced", description: "Paid acquisition at scale. Facebook, Google, creative testing & LTV optimization.", modules: ["Facebook Ads", "Google Ads", "Creative Strategy", "LTV Optimization", "Scaling"], price: "₹47,000", highlights: ["Swiggy ad case studies", "Live campaign builds", "Creative testing", "ROAS frameworks"], liveSessions: 5, totalLessons: 72, projects: 4 },
+      {
+        id: 7,
+        title: "Growth Marketing",
+        instructor: "Ex-Uber Growth",
+        duration: "8 weeks",
+        students: "2,800+",
+        rating: 4.9,
+        level: "Intermediate",
+        description:
+          "Growth loops, viral mechanics & acquisition strategies that scale businesses.",
+        modules: [
+          "Growth Frameworks",
+          "Viral Loops",
+          "Acquisition Channels",
+          "Experimentation",
+          "Scaling",
+        ],
+        price: "₹49,000",
+        highlights: [
+          "Uber growth case studies",
+          "Live experiments",
+          "Channel deep dives",
+          "Scaling frameworks",
+        ],
+        liveSessions: 5,
+        totalLessons: 75,
+        projects: 3,
+      },
+      {
+        id: 8,
+        title: "SEO & Content Strategy",
+        instructor: "Ex-Spotify",
+        duration: "10 weeks",
+        students: "2,300+",
+        rating: 4.8,
+        level: "Intermediate",
+        description:
+          "Organic growth mastery. Technical SEO, content systems & link building at scale.",
+        modules: [
+          "Technical SEO",
+          "Content Systems",
+          "Link Building",
+          "Analytics",
+          "Scaling Organic",
+        ],
+        price: "₹55,000",
+        highlights: [
+          "Spotify SEO case studies",
+          "Live audits",
+          "Content calendars",
+          "Enterprise SEO",
+        ],
+        liveSessions: 5,
+        totalLessons: 85,
+        projects: 3,
+      },
+      {
+        id: 9,
+        title: "Performance Marketing",
+        instructor: "Ex-Swiggy",
+        duration: "8 weeks",
+        students: "2,600+",
+        rating: 4.9,
+        level: "Advanced",
+        description:
+          "Paid acquisition at scale. Facebook, Google, creative testing & LTV optimization.",
+        modules: [
+          "Facebook Ads",
+          "Google Ads",
+          "Creative Strategy",
+          "LTV Optimization",
+          "Scaling",
+        ],
+        price: "₹47,000",
+        highlights: [
+          "Swiggy ad case studies",
+          "Live campaign builds",
+          "Creative testing",
+          "ROAS frameworks",
+        ],
+        liveSessions: 5,
+        totalLessons: 72,
+        projects: 4,
+      },
     ],
   };
- 
+
   const testimonials = [
-    { name: "Priya Sharma", role: "Product Manager @ Flipkart", text: "LMS helped me transition from engineering to PM. The mentorship was invaluable!" },
-    { name: "Rahul Verma", role: "UX Designer @ Zomato", text: "Best investment in my career. Landed my dream job within 3 months of completing the course." },
-    { name: "Ananya Singh", role: "Growth Lead @ CRED", text: "The practical insights and real-world case studies made all the difference." },
+    {
+      name: "Priya Sharma",
+      role: "Product Manager @ Flipkart",
+      text: "LMS helped me transition from engineering to PM. The mentorship was invaluable!",
+    },
+    {
+      name: "Rahul Verma",
+      role: "UX Designer @ Zomato",
+      text: "Best investment in my career. Landed my dream job within 3 months of completing the course.",
+    },
+    {
+      name: "Ananya Singh",
+      role: "Growth Lead @ CRED",
+      text: "The practical insights and real-world case studies made all the difference.",
+    },
   ];
- 
+
   const features = [
-    { icon: Target, title: "Project-Based Learning", description: "Build real-world projects that showcase your skills" },
-    { icon: Users, title: "Expert Mentorship", description: "Learn from professionals at top tech companies" },
-    { icon: Trophy, title: "Career Support", description: "Get help with resumes, interviews & job referrals" },
-    { icon: Zap, title: "Live Sessions", description: "Interactive workshops with industry experts" },
+    {
+      icon: Target,
+      title: "Project-Based Learning",
+      description: "Build real-world projects that showcase your skills",
+    },
+    {
+      icon: Users,
+      title: "Expert Mentorship",
+      description: "Learn from professionals at top tech companies",
+    },
+    {
+      icon: Trophy,
+      title: "Career Support",
+      description: "Get help with resumes, interviews & job referrals",
+    },
+    {
+      icon: Zap,
+      title: "Live Sessions",
+      description: "Interactive workshops with industry experts",
+    },
   ];
- 
+
   const stats = [
     { value: "50K+", label: "Active Learners" },
-    { value: "95%",  label: "Success Rate" },
+    { value: "95%", label: "Success Rate" },
     { value: "100+", label: "Expert Mentors" },
     { value: "4.9★", label: "Average Rating" },
   ];
- 
+
   const mentorBenefits = [
-    { icon: Award,      text: "1:1 mentorship and small cohort learning" },
+    { icon: Award, text: "1:1 mentorship and small cohort learning" },
     { icon: TrendingUp, text: "Project reviews with detailed feedback" },
-    { icon: Users,      text: "Peer community for accountability and networking" },
+    { icon: Users, text: "Peer community for accountability and networking" },
   ];
- 
+
   const careerSupport = [
-    { icon: Target, title: "Portfolio Support",   description: "Turn your projects into case studies hiring managers love" },
-    { icon: Award,  title: "Interview Prep",      description: "Mock interviews, feedback and guidance on role expectations" },
-    { icon: Users,  title: "Referrals & Network", description: "Warm intros to hiring teams and community-led referrals" },
+    {
+      icon: Target,
+      title: "Portfolio Support",
+      description: "Turn your projects into case studies hiring managers love",
+    },
+    {
+      icon: Award,
+      title: "Interview Prep",
+      description:
+        "Mock interviews, feedback and guidance on role expectations",
+    },
+    {
+      icon: Users,
+      title: "Referrals & Network",
+      description: "Warm intros to hiring teams and community-led referrals",
+    },
   ];
- 
-  const getLevelColor = (level) => ({
-    Beginner:     "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-    Intermediate: "bg-[#F97316]/10 text-[#F97316] border border-[#F97316]/20",
-    Advanced:     "bg-[#1E293B]/10 text-[#1E293B] dark:bg-white/10 dark:text-white border border-[#1E293B]/20 dark:border-white/20",
-  }[level] || "bg-gray-100 text-gray-700");
- 
+
+  const getLevelColor = (level) =>
+    ({
+      Beginner:
+        "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+      Intermediate: "bg-[#F97316]/10 text-[#F97316] border border-[#F97316]/20",
+      Advanced:
+        "bg-[#1E293B]/10 text-[#1E293B] dark:bg-white/10 dark:text-white border border-[#1E293B]/20 dark:border-white/20",
+    })[level] || "bg-gray-100 text-gray-700";
+
   const navLinks = [
-    { text: "Mentors",         href: "#mentors" },
+    { text: "Mentors", href: "#mentors" },
     { text: "Success Stories", href: "#successstories" },
   ];
- 
+
   const navButtons = [];
- 
+
   const techPartners = [
-    { src: "/aws.png",        name: "AWS",             desc: "Amazon Web Services"      },
-    { src: "/Google.jpg",     name: "Google Cloud",    desc: "Google Cloud Platform"    },
-    { src: "/Amazone.jpg",    name: "Amazon AWS",      desc: "Amazon Web Services"      },
-    { src: "/Micrososft.jpg", name: "Microsoft Azure", desc: "Microsoft Cloud Platform" },
+    { src: "/aws.png", name: "AWS", desc: "Amazon Web Services" },
+    { src: "/Google.jpg", name: "Google Cloud", desc: "Google Cloud Platform" },
+    { src: "/Amazone.jpg", name: "Amazon AWS", desc: "Amazon Web Services" },
+    {
+      src: "/Micrososft.jpg",
+      name: "Microsoft Azure",
+      desc: "Microsoft Cloud Platform",
+    },
   ];
- 
+
   const bizPartners = [
-    { src: "/Picture1.jpg", name: "Texora AI",   desc: "AI & Digital Solutions"       },
-    { src: "/UFS-Logo.jpg", name: "UFS Network", desc: "Unified Consultancy Services" },
+    { src: "/Picture1.jpg", name: "Texora AI", desc: "AI & Digital Solutions" },
+    {
+      src: "/UFS-Logo.jpg",
+      name: "UFS Network",
+      desc: "Unified Consultancy Services",
+    },
   ];
- 
+
   return (
     <div className="min-h-screen bg-[#F6EDE6] dark:bg-black text-[#1E293B] dark:text-white">
- 
       {/* ── Full-Screen Mobile Menu ── */}
       {mobileMenuOpen && (
         <MobileFullScreenMenu
@@ -798,7 +1745,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
           setShowLoginModal={setShowLoginModal}
         />
       )}
- 
+
       {/* ── Nav ── */}
       <nav
         className={`fixed top-0 w-full z-50 transition-all duration-300 ${
@@ -809,7 +1756,6 @@ export default function LMSHomepage({ theme, toggleTheme }) {
       >
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-[68px]">
- 
             {/* Logo */}
             <div
               className="flex items-center cursor-pointer hover:scale-105 transition-transform flex-shrink-0"
@@ -823,7 +1769,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                 </span>
               </span>
             </div>
- 
+
             {/* Desktop Nav — visible from lg (1024px) and above */}
             <div className="hidden lg:flex items-center gap-1 flex-1 justify-center mx-4 xl:mx-6">
               <MegaMenu />
@@ -833,7 +1779,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                   ILM ORA Feature
                   <ChevronDown className="w-4 h-4" />
                 </button>
- 
+
                 <div className="absolute top-full left-0 mt-2 w-80 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                   <button
                     onClick={() => navigate("/student-hub")}
@@ -843,11 +1789,13 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                       <GraduationCap className="w-5 h-5 text-green-600 mt-1" />
                       <div>
                         <div className="font-semibold text-sm">Student Hub</div>
-                        <div className="text-xs text-gray-500">AI-Powered Learning & Career Growth</div>
+                        <div className="text-xs text-gray-500">
+                          AI-Powered Learning & Career Growth
+                        </div>
                       </div>
                     </div>
                   </button>
- 
+
                   <button
                     onClick={() => navigate("/trainer-hub")}
                     className="w-full text-left p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-gray-800"
@@ -856,11 +1804,13 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                       <Users className="w-5 h-5 text-blue-600 mt-1" />
                       <div>
                         <div className="font-semibold text-sm">Trainer Hub</div>
-                        <div className="text-xs text-gray-500">Training Management & Mentorship</div>
+                        <div className="text-xs text-gray-500">
+                          Training Management & Mentorship
+                        </div>
                       </div>
                     </div>
                   </button>
- 
+
                   <button
                     onClick={() => navigate("/manager-hub")}
                     className="w-full text-left p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-gray-800"
@@ -869,14 +1819,16 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                       <BarChart3 className="w-5 h-5 text-purple-600 mt-1" />
                       <div>
                         <div className="font-semibold text-sm">Manager Hub</div>
-                        <div className="text-xs text-gray-500">Analytics, Performance & Team Development</div>
+                        <div className="text-xs text-gray-500">
+                          Analytics, Performance & Team Development
+                        </div>
                       </div>
                     </div>
                   </button>
- 
+
                   {/* Divider */}
                   <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
- 
+
                   {/* ILM ORA Meet */}
                   <button
                     onClick={() => navigate("/ilm-ora-meet")}
@@ -885,12 +1837,16 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                     <div className="flex items-start gap-3">
                       <Users className="w-5 h-5 text-orange-500 mt-1" />
                       <div>
-                        <div className="font-semibold text-sm">ILM ORA Meet</div>
-                        <div className="text-xs text-gray-500">Virtual Meetings & Collaboration</div>
+                        <div className="font-semibold text-sm">
+                          ILM ORA Meet
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          Virtual Meetings & Collaboration
+                        </div>
                       </div>
                     </div>
                   </button>
- 
+
                   {/* AI Resume Builder */}
                   <button
                     onClick={() => navigate("/resume-builder")}
@@ -899,27 +1855,33 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                     <div className="flex items-start gap-3">
                       <FileText className="w-5 h-5 text-green-600 mt-1" />
                       <div>
-                        <div className="font-semibold text-sm">AI Resume Builder</div>
-                        <div className="text-xs text-gray-500">Create ATS-Friendly Professional Resumes</div>
+                        <div className="font-semibold text-sm">
+                          AI Resume Builder
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          Create ATS-Friendly Professional Resumes
+                        </div>
                       </div>
                     </div>
                   </button>
                 </div>
               </div>
- 
+
               {/* More Dropdown */}
               <div className="relative group">
                 <button className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-3 xl:px-4 py-2 rounded-lg hover:bg-[#F97316]/5 text-[13px] xl:text-[15px] whitespace-nowrap bg-transparent border-none cursor-pointer flex items-center gap-1">
                   More
                   <ChevronDown className="w-4 h-4" />
                 </button>
- 
+
                 <div className="absolute top-full left-0 mt-2 w-52 bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                   {navLinks.map((link) => (
                     <button
                       key={link.text}
                       onClick={() => {
-                        document.querySelector(link.href)?.scrollIntoView({ behavior: "smooth" });
+                        document
+                          .querySelector(link.href)
+                          ?.scrollIntoView({ behavior: "smooth" });
                       }}
                       className="w-full text-left px-4 py-3 hover:bg-orange-50 dark:hover:bg-gray-800 text-sm"
                     >
@@ -929,44 +1891,71 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                 </div>
               </div>
             </div>
- 
+
             {/* Right side */}
             <div className="flex items-center gap-2 xl:gap-3 flex-shrink-0">
               <button
                 onClick={toggleTheme}
                 className="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-[#F6EDE6] dark:hover:bg-gray-900 transition shadow-sm bg-white dark:bg-black flex-shrink-0"
               >
-                {theme === "dark"
-                  ? <Sun className="w-[18px] h-[18px] text-[#F97316]" />
-                  : <Moon className="w-[18px] h-[18px] text-[#1E293B]" />
-                }
+                {theme === "dark" ? (
+                  <Sun className="w-[18px] h-[18px] text-[#F97316]" />
+                ) : (
+                  <Moon className="w-[18px] h-[18px] text-[#1E293B]" />
+                )}
               </button>
- 
+
               {user ? (
                 <div className="hidden lg:block">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="gap-2 rounded-xl border-gray-200 dark:border-gray-700 h-10 px-3">
+                      <Button
+                        variant="outline"
+                        className="gap-2 rounded-xl border-gray-200 dark:border-gray-700 h-10 px-3"
+                      >
                         <Avatar className="w-7 h-7">
                           <AvatarImage src={user.picture} alt={user.name} />
                           <AvatarFallback className="bg-[#1E293B] text-white text-xs">
-                            {user.name?.charAt(0) || <User className="w-3 h-3" />}
+                            {user.name?.charAt(0) || (
+                              <User className="w-3 h-3" />
+                            )}
                           </AvatarFallback>
                         </Avatar>
                         <ChevronDown className="w-3 h-3" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-72 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+                    <DropdownMenuContent
+                      align="end"
+                      className="w-72 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"
+                    >
                       <div className="px-3 py-3 bg-[#F6EDE6] dark:bg-gray-800 rounded-t-md">
-                        <p className="font-semibold text-sm text-[#1E293B] dark:text-white truncate">{user.name || "User"}</p>
-                        <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                        <p className="font-semibold text-sm text-[#1E293B] dark:text-white truncate">
+                          {user.name || "User"}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate">
+                          {user.email}
+                        </p>
                       </div>
                       <DropdownMenuSeparator />
                       {[
-                        { icon: GraduationCap, label: "My Learning", desc: "View your courses", path: "/my-learning" },
-                        { icon: User,          label: "Edit Profile", desc: "Update your info",  path: "/edit-profile" },
-                      ].map(item => (
-                        <DropdownMenuItem key={item.label} onClick={() => navigate(item.path)} className="gap-3 cursor-pointer">
+                        {
+                          icon: GraduationCap,
+                          label: "My Learning",
+                          desc: "View your courses",
+                          path: "/my-learning",
+                        },
+                        {
+                          icon: User,
+                          label: "Edit Profile",
+                          desc: "Update your info",
+                          path: "/edit-profile",
+                        },
+                      ].map((item) => (
+                        <DropdownMenuItem
+                          key={item.label}
+                          onClick={() => navigate(item.path)}
+                          className="gap-3 cursor-pointer"
+                        >
                           <div className="w-8 h-8 rounded-lg bg-[#F97316]/10 flex items-center justify-center">
                             <item.icon className="w-4 h-4 text-[#F97316]" />
                           </div>
@@ -977,8 +1966,12 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                         </DropdownMenuItem>
                       ))}
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleLogout} className="gap-3 text-red-600 cursor-pointer">
-                        <LogOut className="w-4 h-4" /><span className="text-sm font-medium">Logout</span>
+                      <DropdownMenuItem
+                        onClick={handleLogout}
+                        className="gap-3 text-red-600 cursor-pointer"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span className="text-sm font-medium">Logout</span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -991,7 +1984,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                   <Sparkles className="w-4 h-4" /> Get Started
                 </Button>
               )}
- 
+
               {/* Hamburger — only shown below lg (below 1024px) */}
               <button
                 className="lg:hidden flex items-center justify-center w-10 h-10 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black hover:bg-[#F6EDE6] dark:hover:bg-gray-900 transition shadow-sm"
@@ -1004,12 +1997,12 @@ export default function LMSHomepage({ theme, toggleTheme }) {
           </div>
         </div>
       </nav>
- 
+
       {/* ── Hero ── */}
       <section className="pt-32 pb-24 px-6 bg-[#F6EDE6] dark:bg-black relative overflow-hidden">
         <div className="absolute -top-32 left-[10%] w-[600px] h-[600px] bg-[#F97316]/8 dark:bg-[#F97316]/5 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute -bottom-20 right-[5%] w-[500px] h-[500px] bg-[#1E293B]/5 rounded-full blur-[120px] pointer-events-none" />
- 
+
         <div className="max-w-7xl mx-auto relative z-10 grid lg:grid-cols-2 gap-16 items-center">
           <div className="text-center lg:text-left">
             <div className="mb-8 inline-flex">
@@ -1033,7 +2026,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
               </button>
             </div>
           </div>
- 
+
           <div className="flex flex-col items-center gap-4">
             <div
               className="relative w-full max-w-lg overflow-hidden rounded-2xl shadow-2xl"
@@ -1041,7 +2034,10 @@ export default function LMSHomepage({ theme, toggleTheme }) {
             >
               <video
                 src={heroVideo}
-                autoPlay loop muted playsInline
+                autoPlay
+                loop
+                muted
+                playsInline
                 className="absolute inset-0 w-full h-full object-cover rounded-2xl"
                 style={{
                   opacity: currentSlide === -1 ? 1 : 0,
@@ -1059,7 +2055,8 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                   className="absolute inset-0 w-full h-full object-contain drop-shadow-2xl"
                   style={{
                     opacity: currentSlide === index ? 1 : 0,
-                    transform: currentSlide === index ? "scale(1)" : "scale(0.96)",
+                    transform:
+                      currentSlide === index ? "scale(1)" : "scale(0.96)",
                     transition: "opacity 0.6s ease, transform 0.6s ease",
                     zIndex: currentSlide === index ? 2 : 1,
                     pointerEvents: currentSlide === index ? "auto" : "none",
@@ -1067,16 +2064,19 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                 />
               ))}
             </div>
- 
+
             <div className="flex items-center gap-2.5">
               <button
                 onClick={() => goToSlide(-1)}
                 aria-label="Show video"
                 style={{
-                  width: currentSlide === -1 ? "28px" : "10px", height: "10px",
+                  width: currentSlide === -1 ? "28px" : "10px",
+                  height: "10px",
                   borderRadius: "9999px",
                   background: currentSlide === -1 ? "#22c55e" : "#CBD5E1",
-                  border: "none", cursor: "pointer", padding: 0,
+                  border: "none",
+                  cursor: "pointer",
+                  padding: 0,
                   transition: "width 0.35s ease, background 0.35s ease",
                 }}
               />
@@ -1086,10 +2086,13 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                   onClick={() => goToSlide(index)}
                   aria-label={`Go to slide ${index + 1}`}
                   style={{
-                    width: currentSlide === index ? "28px" : "10px", height: "10px",
+                    width: currentSlide === index ? "28px" : "10px",
+                    height: "10px",
                     borderRadius: "9999px",
                     background: currentSlide === index ? "#F97316" : "#CBD5E1",
-                    border: "none", cursor: "pointer", padding: 0,
+                    border: "none",
+                    cursor: "pointer",
+                    padding: 0,
                     transition: "width 0.35s ease, background 0.35s ease",
                   }}
                 />
@@ -1098,19 +2101,26 @@ export default function LMSHomepage({ theme, toggleTheme }) {
           </div>
         </div>
       </section>
- 
+
       {/* ── Stats ── */}
       <section className="py-16 px-6 bg-white dark:bg-gray-900/50">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6">
           {stats.map((stat, i) => (
-            <div key={i} className="bg-[#F6EDE6] dark:bg-gray-900 rounded-2xl p-8 text-center border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all">
-              <div className="text-4xl md:text-5xl font-bold text-[#F97316] mb-2">{stat.value}</div>
-              <p className="text-gray-600 dark:text-gray-300 font-medium">{stat.label}</p>
+            <div
+              key={i}
+              className="bg-[#F6EDE6] dark:bg-gray-900 rounded-2xl p-8 text-center border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all"
+            >
+              <div className="text-4xl md:text-5xl font-bold text-[#F97316] mb-2">
+                {stat.value}
+              </div>
+              <p className="text-gray-600 dark:text-gray-300 font-medium">
+                {stat.label}
+              </p>
             </div>
           ))}
         </div>
       </section>
- 
+
       {/* ── Features ── */}
       <section className="py-24 px-6 bg-[#F6EDE6] dark:bg-black">
         <div className="max-w-7xl mx-auto">
@@ -1122,139 +2132,288 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                 <span className="text-[#F97316]">ORA</span>
               </span>
             </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">Everything you need to accelerate your career growth</p>
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              Everything you need to accelerate your career growth
+            </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature, i) => (
-              <div key={i} className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all group">
+              <div
+                key={i}
+                className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all group"
+              >
                 <div className="w-14 h-14 bg-[#1E293B] dark:bg-[#F97316] rounded-2xl flex items-center justify-center mb-5 group-hover:scale-105 transition-transform shadow-sm">
                   <feature.icon className="w-7 h-7 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-[#1E293B] dark:text-white mb-2">{feature.title}</h3>
-                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{feature.description}</p>
+                <h3 className="text-xl font-bold text-[#1E293B] dark:text-white mb-2">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                  {feature.description}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
- 
+
       {/* ── Companies ── */}
       <section className="py-20 px-4 sm:px-6 bg-white dark:bg-gray-900/30">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-10 sm:mb-14">
-            <p className="text-[11px] sm:text-xs uppercase tracking-[0.22em] text-gray-400 font-bold mb-3">Trusted By Professionals At</p>
-            <h2 className="text-4xl md:text-5xl font-bold text-[#1E293B] dark:text-white">Top Global <span className="text-[#F97316]">Companies</span></h2>
+            <p className="text-[11px] sm:text-xs uppercase tracking-[0.22em] text-gray-400 font-bold mb-3">
+              Trusted By Professionals At
+            </p>
+            <h2 className="text-4xl md:text-5xl font-bold text-[#1E293B] dark:text-white">
+              Top Global <span className="text-[#F97316]">Companies</span>
+            </h2>
             <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mt-3 max-w-[600px] mx-auto leading-relaxed">
-              We collaborate with leading technology providers and business organizations to deliver innovative digital solutions.
+              We collaborate with leading technology providers and business
+              organizations to deliver innovative digital solutions.
             </p>
           </div>
- 
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 sm:p-8">
               <div className="flex flex-col items-center mb-2">
                 <div className="flex items-center gap-2.5 mb-5">
                   <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 flex items-center justify-center flex-shrink-0">
-                    <svg viewBox="0 0 24 24" className="w-5 h-5 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+                    <svg
+                      viewBox="0 0 24 24"
+                      className="w-5 h-5 text-blue-500 dark:text-blue-400"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <rect x="2" y="3" width="20" height="14" rx="2" />
+                      <path d="M8 21h8M12 17v4" />
                     </svg>
                   </div>
-                  <span className="text-[13px] font-black tracking-[0.13em] uppercase text-blue-600 dark:text-blue-400">Technology Partners</span>
+                  <span className="text-[13px] font-black tracking-[0.13em] uppercase text-blue-600 dark:text-blue-400">
+                    Technology Partners
+                  </span>
                 </div>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {techPartners.map((p) => (
-                  <div key={p.name} className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 sm:p-5 flex flex-col items-center gap-3 shadow-sm hover:shadow-lg hover:-translate-y-2 transition-all duration-300">
+                  <div
+                    key={p.name}
+                    className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 sm:p-5 flex flex-col items-center gap-3 shadow-sm hover:shadow-lg hover:-translate-y-2 transition-all duration-300"
+                  >
                     <div className="w-full h-11 flex items-center justify-center">
-                      <img src={p.src} alt={p.name} className="max-w-full max-h-10 object-contain"
-                        onError={(e) => { e.currentTarget.style.display = "none"; const sib = e.currentTarget.nextSibling; if (sib) sib.style.display = "flex"; }}
+                      <img
+                        src={p.src}
+                        alt={p.name}
+                        className="max-w-full max-h-10 object-contain"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                          const sib = e.currentTarget.nextSibling;
+                          if (sib) sib.style.display = "flex";
+                        }}
                       />
-                      <div className="hidden w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 items-center justify-center text-[10px] font-bold text-gray-400 text-center leading-tight px-1">{p.name}</div>
+                      <div className="hidden w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 items-center justify-center text-[10px] font-bold text-gray-400 text-center leading-tight px-1">
+                        {p.name}
+                      </div>
                     </div>
                     <div className="text-center">
-                      <p className="text-[12px] sm:text-[13px] font-bold text-[#0F172A] dark:text-white leading-tight">{p.name}</p>
-                      <p className="text-[10px] sm:text-[11px] text-gray-400 dark:text-gray-500 mt-0.5 leading-snug">{p.desc}</p>
+                      <p className="text-[12px] sm:text-[13px] font-bold text-[#0F172A] dark:text-white leading-tight">
+                        {p.name}
+                      </p>
+                      <p className="text-[10px] sm:text-[11px] text-gray-400 dark:text-gray-500 mt-0.5 leading-snug">
+                        {p.desc}
+                      </p>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
- 
+
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 sm:p-8">
               <div className="flex flex-col items-center mb-2">
                 <div className="flex items-center gap-2.5 mb-5">
                   <div className="w-10 h-10 rounded-full bg-green-50 dark:bg-green-900/30 border border-green-100 dark:border-green-800 flex items-center justify-center flex-shrink-0">
-                    <svg viewBox="0 0 24 24" className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    <svg
+                      viewBox="0 0 24 24"
+                      className="w-5 h-5 text-green-600 dark:text-green-400"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                      <circle cx="9" cy="7" r="4" />
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                     </svg>
                   </div>
-                  <span className="text-[13px] font-black tracking-[0.13em] uppercase text-green-600 dark:text-green-400">Business Partners</span>
+                  <span className="text-[13px] font-black tracking-[0.13em] uppercase text-green-600 dark:text-green-400">
+                    Business Partners
+                  </span>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 {bizPartners.map((p) => (
-                  <div key={p.name} className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-2xl p-5 sm:p-7 flex flex-col items-center gap-4 shadow-sm hover:shadow-lg hover:-translate-y-2 transition-all duration-300">
+                  <div
+                    key={p.name}
+                    className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-2xl p-5 sm:p-7 flex flex-col items-center gap-4 shadow-sm hover:shadow-lg hover:-translate-y-2 transition-all duration-300"
+                  >
                     <div className="w-full h-14 sm:h-16 flex items-center justify-center">
-                      <img src={p.src} alt={p.name} className="max-w-full max-h-12 object-contain"
-                        onError={(e) => { e.currentTarget.style.display = "none"; const sib = e.currentTarget.nextSibling; if (sib) sib.style.display = "flex"; }}
+                      <img
+                        src={p.src}
+                        alt={p.name}
+                        className="max-w-full max-h-12 object-contain"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                          const sib = e.currentTarget.nextSibling;
+                          if (sib) sib.style.display = "flex";
+                        }}
                       />
-                      <div className="hidden w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-800 items-center justify-center text-[10px] font-bold text-gray-400 text-center leading-tight px-1">{p.name}</div>
+                      <div className="hidden w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-800 items-center justify-center text-[10px] font-bold text-gray-400 text-center leading-tight px-1">
+                        {p.name}
+                      </div>
                     </div>
                     <div className="text-center">
-                      <p className="text-[13px] sm:text-[14px] font-bold text-[#0F172A] dark:text-white leading-tight">{p.name}</p>
-                      <p className="text-[11px] sm:text-[12px] text-gray-400 dark:text-gray-500 mt-1 leading-snug">{p.desc}</p>
+                      <p className="text-[13px] sm:text-[14px] font-bold text-[#0F172A] dark:text-white leading-tight">
+                        {p.name}
+                      </p>
+                      <p className="text-[11px] sm:text-[12px] text-gray-400 dark:text-gray-500 mt-1 leading-snug">
+                        {p.desc}
+                      </p>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
           </div>
- 
+
           <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 sm:p-8">
             <div className="flex items-center gap-3 sm:gap-5 mb-7 sm:mb-9">
               <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
               <div className="flex-shrink-0 text-center">
-                <p className="text-[12px] sm:text-[13px] font-black tracking-[0.15em] uppercase text-[#0F172A] dark:text-white whitespace-nowrap">Texora Product Ecosystem</p>
+                <p className="text-[12px] sm:text-[13px] font-black tracking-[0.15em] uppercase text-[#0F172A] dark:text-white whitespace-nowrap">
+                  Texora Product Ecosystem
+                </p>
                 <div className="w-8 h-[3px] bg-[#F97316] rounded-full mx-auto mt-1.5" />
               </div>
               <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
             </div>
- 
+
             <style>{`
               .eco-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
               @media (max-width: 1279px) { .eco-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
               @media (max-width: 639px)  { .eco-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); } }
             `}</style>
- 
+
             <div className="eco-grid">
               {[
-                { label: "TORA CX",     color: "blue",   desc: "Customer experience platform", Icon: null, svgPath: <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/> },
-                { label: "UNIFIED CRM", color: "orange", desc: "AI-driven CRM for sales",       Icon: Users },
-                { label: "ILM ORA",     color: "purple", desc: "LMS with AI learning paths",    Icon: GraduationCap },
-                { label: "INNOVORA AI", color: "green",  desc: "AI-powered innovation suite",   Icon: Lightbulb },
-                { label: "TASK ORBIT",  color: "rose",   desc: "AI-powered task management",    Icon: ClipboardList },
+                {
+                  label: "TORA CX",
+                  color: "blue",
+                  desc: "Customer experience platform",
+                  Icon: null,
+                  svgPath: (
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  ),
+                },
+                {
+                  label: "UNIFIED CRM",
+                  color: "orange",
+                  desc: "AI-driven CRM for sales",
+                  Icon: Users,
+                },
+                {
+                  label: "ILM ORA",
+                  color: "purple",
+                  desc: "LMS with AI learning paths",
+                  Icon: GraduationCap,
+                },
+                {
+                  label: "INNOVORA AI",
+                  color: "green",
+                  desc: "AI-powered innovation suite",
+                  Icon: Lightbulb,
+                },
+                {
+                  label: "TASK ORBIT",
+                  color: "rose",
+                  desc: "AI-powered task management",
+                  Icon: ClipboardList,
+                },
               ].map((item) => {
                 const colorMap = {
-                  blue:   { bg: "bg-blue-100 dark:bg-blue-900/30",    text: "text-blue-600 dark:text-blue-400",     label: "text-blue-700 dark:text-blue-300"    },
-                  orange: { bg: "bg-orange-100 dark:bg-orange-900/30", text: "text-[#F97316]",                       label: "text-[#F97316]"                      },
-                  purple: { bg: "bg-purple-100 dark:bg-purple-900/30", text: "text-purple-600 dark:text-purple-400", label: "text-purple-700 dark:text-purple-300" },
-                  green:  { bg: "bg-green-100 dark:bg-green-900/30",   text: "text-green-600 dark:text-green-400",  label: "text-green-700 dark:text-green-300"  },
-                  rose:   { bg: "bg-rose-100 dark:bg-rose-900/30",     text: "text-rose-600 dark:text-rose-400",    label: "text-rose-700 dark:text-rose-300"    },
+                  blue: {
+                    bg: "bg-blue-100 dark:bg-blue-900/30",
+                    text: "text-blue-600 dark:text-blue-400",
+                    label: "text-blue-700 dark:text-blue-300",
+                  },
+                  orange: {
+                    bg: "bg-orange-100 dark:bg-orange-900/30",
+                    text: "text-[#F97316]",
+                    label: "text-[#F97316]",
+                  },
+                  purple: {
+                    bg: "bg-purple-100 dark:bg-purple-900/30",
+                    text: "text-purple-600 dark:text-purple-400",
+                    label: "text-purple-700 dark:text-purple-300",
+                  },
+                  green: {
+                    bg: "bg-green-100 dark:bg-green-900/30",
+                    text: "text-green-600 dark:text-green-400",
+                    label: "text-green-700 dark:text-green-300",
+                  },
+                  rose: {
+                    bg: "bg-rose-100 dark:bg-rose-900/30",
+                    text: "text-rose-600 dark:text-rose-400",
+                    label: "text-rose-700 dark:text-rose-300",
+                  },
                 };
                 const c = colorMap[item.color];
                 return (
-                  <div key={item.label} className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 sm:p-5 flex flex-col gap-2.5 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
-                    <div className={`w-12 h-12 rounded-xl ${c.bg} flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform`}>
-                      {item.Icon
-                        ? <item.Icon className={`w-6 h-6 ${c.text}`} />
-                        : <svg xmlns="http://www.w3.org/2000/svg" className={`w-6 h-6 ${c.text}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{item.svgPath}</svg>
-                      }
+                  <div
+                    key={item.label}
+                    className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 sm:p-5 flex flex-col gap-2.5 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group"
+                  >
+                    <div
+                      className={`w-12 h-12 rounded-xl ${c.bg} flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform`}
+                    >
+                      {item.Icon ? (
+                        <item.Icon className={`w-6 h-6 ${c.text}`} />
+                      ) : (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className={`w-6 h-6 ${c.text}`}
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          {item.svgPath}
+                        </svg>
+                      )}
                     </div>
-                    <p className={`text-[13px] font-black tracking-wide ${c.label}`}>{item.label}</p>
-                    <div className={`w-7 h-[3px] rounded-full bg-current ${c.text}`} />
-                    <p className="text-[11px] sm:text-[12px] text-gray-500 dark:text-gray-400 leading-relaxed flex-1">{item.desc}</p>
-                    <a href="/" onClick={(e) => e.preventDefault()} className={`text-[11px] sm:text-[12px] font-semibold flex items-center gap-1 mt-1 transition-opacity hover:opacity-70 ${c.text}`}>
-                      Explore <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                    <p
+                      className={`text-[13px] font-black tracking-wide ${c.label}`}
+                    >
+                      {item.label}
+                    </p>
+                    <div
+                      className={`w-7 h-[3px] rounded-full bg-current ${c.text}`}
+                    />
+                    <p className="text-[11px] sm:text-[12px] text-gray-500 dark:text-gray-400 leading-relaxed flex-1">
+                      {item.desc}
+                    </p>
+                    <a
+                      href="/"
+                      onClick={(e) => e.preventDefault()}
+                      className={`text-[11px] sm:text-[12px] font-semibold flex items-center gap-1 mt-1 transition-opacity hover:opacity-70 ${c.text}`}
+                    >
+                      Explore{" "}
+                      <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                     </a>
                   </div>
                 );
@@ -1263,43 +2422,87 @@ export default function LMSHomepage({ theme, toggleTheme }) {
           </div>
         </div>
       </section>
- 
+
       {/* ── Courses ── */}
-      <section id="courses" className="py-24 px-6 scroll-mt-20 bg-[#F6EDE6] dark:bg-black">
+      <section
+        id="courses"
+        className="py-24 px-6 scroll-mt-20 bg-[#F6EDE6] dark:bg-black"
+      >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-[#1E293B] dark:text-white">Featured <span className="text-[#F97316]">Programs</span></h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">Choose your path and start building skills that matter</p>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-[#1E293B] dark:text-white">
+              Featured <span className="text-[#F97316]">Programs</span>
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              Choose your path and start building skills that matter
+            </p>
           </div>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
             <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-12 p-1.5 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
-              {["product", "design", "growth"].map(tab => (
-                <TabsTrigger key={tab} value={tab} className="rounded-xl capitalize font-semibold data-[state=active]:bg-[#1E293B] data-[state=active]:text-white dark:data-[state=active]:bg-[#F97316] transition-all">{tab}</TabsTrigger>
+              {["product", "design", "growth"].map((tab) => (
+                <TabsTrigger
+                  key={tab}
+                  value={tab}
+                  className="rounded-xl capitalize font-semibold data-[state=active]:bg-[#1E293B] data-[state=active]:text-white dark:data-[state=active]:bg-[#F97316] transition-all"
+                >
+                  {tab}
+                </TabsTrigger>
               ))}
             </TabsList>
             {Object.entries(courses).map(([category, categoryCourses]) => (
               <TabsContent key={category} value={category}>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {categoryCourses.map(course => (
-                    <div key={course.id} onClick={() => navigate("/course-details", { state: { course } })} className="group bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer">
+                  {categoryCourses.map((course) => (
+                    <div
+                      key={course.id}
+                      onClick={() =>
+                        navigate("/course-details", { state: { course } })
+                      }
+                      className="group bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer"
+                    >
                       <div className="h-1 bg-[#F97316]" />
                       <div className="p-6">
                         <div className="flex items-start justify-between mb-4">
-                          <span className={`text-xs font-semibold px-3 py-1 rounded-full ${getLevelColor(course.level)}`}>{course.level}</span>
+                          <span
+                            className={`text-xs font-semibold px-3 py-1 rounded-full ${getLevelColor(course.level)}`}
+                          >
+                            {course.level}
+                          </span>
                           <span className="flex items-center gap-1 text-xs font-semibold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-full border border-amber-200 dark:border-amber-800">
-                            <Star className="w-3 h-3 fill-amber-400 text-amber-400" />{course.rating}
+                            <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                            {course.rating}
                           </span>
                         </div>
-                        <h3 className="text-xl font-bold text-[#1E293B] dark:text-white mb-1 group-hover:text-[#F97316] transition-colors">{course.title}</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{course.instructor}</p>
-                        <p className="text-gray-600 dark:text-gray-300 mb-6 line-clamp-2 leading-relaxed text-sm">{course.description}</p>
+                        <h3 className="text-xl font-bold text-[#1E293B] dark:text-white mb-1 group-hover:text-[#F97316] transition-colors">
+                          {course.title}
+                        </h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                          {course.instructor}
+                        </p>
+                        <p className="text-gray-600 dark:text-gray-300 mb-6 line-clamp-2 leading-relaxed text-sm">
+                          {course.description}
+                        </p>
                         <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-6 pb-4 border-b border-gray-100 dark:border-gray-800">
-                          <div className="flex items-center gap-1"><Clock className="w-4 h-4 text-[#F97316]" />{course.duration}</div>
-                          <div className="flex items-center gap-1"><Users className="w-4 h-4 text-[#F97316]" />{course.students}</div>
-                          <div className="flex items-center gap-1"><BookOpen className="w-4 h-4 text-[#F97316]" />{course.modules.length}</div>
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-4 h-4 text-[#F97316]" />
+                            {course.duration}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Users className="w-4 h-4 text-[#F97316]" />
+                            {course.students}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <BookOpen className="w-4 h-4 text-[#F97316]" />
+                            {course.modules.length}
+                          </div>
                         </div>
                         <button className="w-full bg-[#1E293B] hover:bg-[#334155] text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all group-hover:scale-[1.02] shadow-sm">
-                          View Details <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                          View Details{" "}
+                          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </button>
                       </div>
                     </div>
@@ -1310,37 +2513,67 @@ export default function LMSHomepage({ theme, toggleTheme }) {
           </Tabs>
         </div>
       </section>
- 
+
       {/* ── Mentors ── */}
-      <section id="mentors" className="py-24 px-6 scroll-mt-20 bg-white dark:bg-gray-900/30">
+      <section
+        id="mentors"
+        className="py-24 px-6 scroll-mt-20 bg-white dark:bg-gray-900/30"
+      >
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-[#1E293B] dark:text-white">Learn from <span className="text-[#F97316]">Industry Experts</span></h2>
-              <p className="text-lg text-gray-600 dark:text-gray-300 mb-10 max-w-xl">Sessions led by operators from top product companies so you understand how work happens in the real world.</p>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-[#1E293B] dark:text-white">
+                Learn from{" "}
+                <span className="text-[#F97316]">Industry Experts</span>
+              </h2>
+              <p className="text-lg text-gray-600 dark:text-gray-300 mb-10 max-w-xl">
+                Sessions led by operators from top product companies so you
+                understand how work happens in the real world.
+              </p>
               <div className="space-y-4">
                 {mentorBenefits.map((item, i) => (
-                  <div key={i} className="bg-[#F6EDE6] dark:bg-gray-900 rounded-2xl p-5 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex items-start gap-4">
+                  <div
+                    key={i}
+                    className="bg-[#F6EDE6] dark:bg-gray-900 rounded-2xl p-5 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex items-start gap-4"
+                  >
                     <div className="w-10 h-10 bg-[#1E293B] dark:bg-[#F97316] rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
                       <item.icon className="w-5 h-5 text-white" />
                     </div>
-                    <p className="text-gray-700 dark:text-gray-300 font-medium pt-1">{item.text}</p>
+                    <p className="text-gray-700 dark:text-gray-300 font-medium pt-1">
+                      {item.text}
+                    </p>
                   </div>
                 ))}
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {testimonials.map((t, i) => (
-                <div key={i} className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all">
+                <div
+                  key={i}
+                  className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all"
+                >
                   <div className="flex items-center gap-1 mb-4">
-                    {[...Array(5)].map((_, j) => <Star key={j} className="w-4 h-4 fill-amber-400 text-amber-400" />)}
+                    {[...Array(5)].map((_, j) => (
+                      <Star
+                        key={j}
+                        className="w-4 h-4 fill-amber-400 text-amber-400"
+                      />
+                    ))}
                   </div>
-                  <p className="text-gray-600 dark:text-gray-300 mb-5 italic leading-relaxed text-sm">"{t.text}"</p>
+                  <p className="text-gray-600 dark:text-gray-300 mb-5 italic leading-relaxed text-sm">
+                    "{t.text}"
+                  </p>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#1E293B] dark:bg-[#F97316] rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">{t.name.charAt(0)}</div>
+                    <div className="w-10 h-10 bg-[#1E293B] dark:bg-[#F97316] rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+                      {t.name.charAt(0)}
+                    </div>
                     <div>
-                      <p className="font-semibold text-[#1E293B] dark:text-white text-sm">{t.name}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{t.role}</p>
+                      <p className="font-semibold text-[#1E293B] dark:text-white text-sm">
+                        {t.name}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {t.role}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -1349,56 +2582,78 @@ export default function LMSHomepage({ theme, toggleTheme }) {
           </div>
         </div>
       </section>
- 
+
       {/* ── Career Support ── */}
-      <section id="successstories" className="py-24 px-6 scroll-mt-20 bg-[#F6EDE6] dark:bg-black">
+      <section
+        id="successstories"
+        className="py-24 px-6 scroll-mt-20 bg-[#F6EDE6] dark:bg-black"
+      >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-[#1E293B] dark:text-white">Career Support That <span className="text-[#F97316]">Delivers Results</span></h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">Get help with interview prep, portfolios, referrals and role mapping</p>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-[#1E293B] dark:text-white">
+              Career Support That{" "}
+              <span className="text-[#F97316]">Delivers Results</span>
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+              Get help with interview prep, portfolios, referrals and role
+              mapping
+            </p>
           </div>
           <div className="grid lg:grid-cols-3 gap-8 mb-16">
             {careerSupport.map((item, i) => (
-              <div key={i} className="group bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all">
+              <div
+                key={i}
+                className="group bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all"
+              >
                 <div className="w-16 h-16 bg-[#1E293B] dark:bg-[#F97316] rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform shadow-sm">
                   <item.icon className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-[#1E293B] dark:text-white mb-3">{item.title}</h3>
-                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{item.description}</p>
+                <h3 className="text-xl font-bold text-[#1E293B] dark:text-white mb-3">
+                  {item.title}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                  {item.description}
+                </p>
               </div>
             ))}
           </div>
           <div className="bg-[#1E293B] dark:bg-gray-900 rounded-3xl p-14 text-center relative overflow-hidden border border-[#F97316]/20 shadow-xl">
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-[#F97316]" />
             <div className="relative max-w-3xl mx-auto">
-              <h3 className="text-3xl md:text-5xl font-bold mb-6 text-white">Ready to Transform Your Career?</h3>
-              <p className="text-lg text-gray-300 mb-10">Join 50,000+ professionals who've already taken the leap</p>
+              <h3 className="text-3xl md:text-5xl font-bold mb-6 text-white">
+                Ready to Transform Your Career?
+              </h3>
+              <p className="text-lg text-gray-300 mb-10">
+                Join 50,000+ professionals who've already taken the leap
+              </p>
             </div>
           </div>
         </div>
       </section>
- 
+
       {/* ── Footer ── */}
       <footer className="bg-white text-[#1E293B]">
         <div className="max-w-7xl mx-auto px-6 py-20">
           <div className="grid gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 items-start">
             <div className="flex flex-col gap-2.5 self-start text-left sm:col-span-2 lg:col-span-1">
               <h3 className="text-3xl font-extrabold leading-none">
-                <span className="text-green-600">ILM</span>{" "}<span className="text-[#F97316]">ORA</span>
+                <span className="text-green-600">ILM</span>{" "}
+                <span className="text-[#F97316]">ORA</span>
               </h3>
-              <p className="text-sm text-gray-600 leading-relaxed">Modern learning platform for ambitious professionals who want to break into product, design and growth roles.</p>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Modern learning platform for ambitious professionals who want to
+                break into product, design and growth roles.
+              </p>
               <p className="text-sm text-gray-500">
                 📧{" "}
-                <a href="mailto:marketing@texora.ai" className="hover:text-[#F97316] transition-colors">
+                <a
+                  href="mailto:marketing@texora.ai"
+                  className="hover:text-[#F97316] transition-colors"
+                >
                   marketing@texora.ai
                 </a>
               </p>
- 
-              {/* ── Social Icons ──
-                  CHANGED vs uncommented code: WhatsApp (#25D366) and Instagram (gradient) are
-                  restored here, matching the original commented-out code exactly.
-                  Order: Instagram, YouTube, LinkedIn, WhatsApp, X
-              */}
+
               <div className="flex items-center gap-3 pt-1 flex-wrap">
                 {/* Instagram */}
                 <a
@@ -1406,13 +2661,20 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                   target="_blank"
                   rel="noreferrer"
                   className="h-9 w-9 rounded-full flex items-center justify-center text-white hover:scale-110 hover:shadow-md transition-all"
-                  style={{ background: "radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%)" }}
+                  style={{
+                    background:
+                      "radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%)",
+                  }}
                 >
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>
+                  <svg
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z" />
                   </svg>
                 </a>
- 
+
                 {/* YouTube */}
                 <a
                   href="https://www.youtube.com/@Texoraai"
@@ -1420,11 +2682,15 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                   rel="noreferrer"
                   className="h-9 w-9 rounded-full flex items-center justify-center text-white bg-[#FF0000] hover:scale-110 hover:shadow-md transition-all"
                 >
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                  <svg
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
                   </svg>
                 </a>
- 
+
                 {/* LinkedIn */}
                 <a
                   href="https://www.linkedin.com/company/ilmora-texoraai/"
@@ -1432,11 +2698,15 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                   rel="noreferrer"
                   className="h-9 w-9 rounded-full flex items-center justify-center text-white bg-[#0A66C2] hover:scale-110 hover:shadow-md transition-all"
                 >
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                  <svg
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
                   </svg>
                 </a>
- 
+
                 {/* WhatsApp */}
                 <a
                   href="https://api.whatsapp.com/send?phone=919210970334"
@@ -1444,11 +2714,15 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                   rel="noreferrer"
                   className="h-9 w-9 rounded-full flex items-center justify-center text-white bg-[#25D366] hover:scale-110 hover:shadow-md transition-all"
                 >
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
+                  <svg
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z" />
                   </svg>
                 </a>
- 
+
                 {/* X / Twitter */}
                 <a
                   href="https://x.com/texoraai"
@@ -1456,2035 +2730,342 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                   rel="noreferrer"
                   className="h-9 w-9 rounded-full flex items-center justify-center text-white bg-black hover:scale-110 hover:shadow-md transition-all"
                 >
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L2.062 2.25H8.28l4.259 5.63 5.704-5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  <svg
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L2.062 2.25H8.28l4.259 5.63 5.704-5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                   </svg>
                 </a>
               </div>
             </div>
- 
+
             <div className="flex flex-col gap-4">
-              <h4 className="text-sm font-bold tracking-widest text-[#1E293B] uppercase">Programs</h4>
+              <h4 className="text-sm font-bold tracking-widest text-[#1E293B] uppercase">
+                Programs
+              </h4>
               <ul className="flex flex-col gap-2.5 text-sm text-gray-600">
                 {[
-                  { label: "Product Management", action: () => scrollToSection("courses", "product") },
-                  { label: "Growth Marketing",   action: () => scrollToSection("courses", "growth") },
-                  { label: "UI / UX Design",     action: () => scrollToSection("courses", "design") },
-                ].map(item => (
-                  <li key={item.label} onClick={item.action} className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group">
-                    <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />{item.label}
+                  {
+                    label: "Product Management",
+                    action: () => scrollToSection("courses", "product"),
+                  },
+                  {
+                    label: "Growth Marketing",
+                    action: () => scrollToSection("courses", "growth"),
+                  },
+                  {
+                    label: "UI / UX Design",
+                    action: () => scrollToSection("courses", "design"),
+                  },
+                ].map((item) => (
+                  <li
+                    key={item.label}
+                    onClick={item.action}
+                    className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group"
+                  >
+                    <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
+                    {item.label}
                   </li>
                 ))}
               </ul>
             </div>
- 
+
             <div className="flex flex-col gap-4">
-              <h4 className="text-sm font-bold tracking-widest text-[#1E293B] uppercase">Resources</h4>
+              <h4 className="text-sm font-bold tracking-widest text-[#1E293B] uppercase">
+                Resources
+              </h4>
               <ul className="flex flex-col gap-2.5 text-sm text-gray-600">
                 {[
-                  { label: "Success Stories", action: () => scrollToSection("successstories") },
-                  { label: "Blogs",           action: () => window.open("https://texora.ai/blogs", "_blank") },
-                  { label: "Use Cases",       action: () => window.open("https://texora.ai/use-cases", "_blank") },
-                ].map(item => (
-                  <li key={item.label} onClick={item.action} className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group">
-                    <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />{item.label}
+                  {
+                    label: "Success Stories",
+                    action: () => scrollToSection("successstories"),
+                  },
+                  {
+                    label: "Blogs",
+                    action: () =>
+                      window.open("https://texora.ai/blogs", "_blank"),
+                  },
+                  {
+                    label: "Use Cases",
+                    action: () =>
+                      window.open("https://texora.ai/use-cases", "_blank"),
+                  },
+                ].map((item) => (
+                  <li
+                    key={item.label}
+                    onClick={item.action}
+                    className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group"
+                  >
+                    <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
+                    {item.label}
                   </li>
                 ))}
               </ul>
             </div>
- 
+
             <div className="flex flex-col gap-4 self-start">
-              <h4 className="text-sm font-bold tracking-widest text-[#1E293B] uppercase">Company</h4>
+              <h4 className="text-sm font-bold tracking-widest text-[#1E293B] uppercase">
+                Company
+              </h4>
               <ul className="flex flex-col gap-2.5 text-sm text-gray-600">
                 {[
-                  { label: "About Us",       action: () => navigate("/about") },
-                  { label: "Careers",        action: () => navigate("/careers") },
-                  { label: "Pricing",        action: () => navigate("/pricing") },
-                  { label: "Privacy Policy", action: () => navigate("/privacy-policy") },
-                  { label: "Help Center",    action: () => navigate("/help-center") },
-                  { label: "FAQ",            action: () => navigate("/faq") },
-                ].map(item => (
-                  <li key={item.label} onClick={item.action} className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group">
-                    <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />{item.label}
+                  { label: "About Us", action: () => navigate("/about") },
+                  { label: "Careers", action: () => navigate("/careers") },
+                  { label: "Pricing", action: () => navigate("/pricing") },
+                  {
+                    label: "Privacy Policy",
+                    action: () => navigate("/privacy-policy"),
+                  },
+                  {
+                    label: "Help Center",
+                    action: () => navigate("/help-center"),
+                  },
+                  { label: "FAQ", action: () => navigate("/faq") },
+                ].map((item) => (
+                  <li
+                    key={item.label}
+                    onClick={item.action}
+                    className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group"
+                  >
+                    <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
+                    {item.label}
                   </li>
                 ))}
               </ul>
             </div>
- 
+
             <FooterNewsletter />
           </div>
- 
+
           <div className="border-t border-gray-200 mt-16 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
-            <span>© {new Date().getFullYear()} ILM ORA All rights reserved.</span>
+            <span>
+              © {new Date().getFullYear()} ILM ORA All rights reserved.
+            </span>
             <div className="flex items-center gap-2">
-              <span>Built with</span><span className="text-red-500 text-base">❤️</span><span>passion for modern learners</span>
+              <span>Built with</span>
+              <span className="text-red-500 text-base">❤️</span>
+              <span>passion for modern learners</span>
             </div>
           </div>
         </div>
       </footer>
- 
+
       {/* ── Login Modal ── */}
       {showLoginModal && (
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
           <div
             className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-            style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(5px)" }}
-            onClick={(e) => { if (e.target === e.currentTarget) setShowLoginModal(false); }}
+            style={{
+              background: "rgba(0,0,0,0.55)",
+              backdropFilter: "blur(5px)",
+            }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setShowLoginModal(false);
+            }}
           >
             <div
               className="relative w-full max-w-md rounded-2xl shadow-2xl"
-              style={{ background: "rgba(255,255,255,0.97)", border: "1px solid rgba(249,115,22,0.18)", padding: "36px 32px 28px", animation: "modalFadeUp 0.3s ease both" }}
+              style={{
+                background: "rgba(255,255,255,0.97)",
+                border: "1px solid rgba(249,115,22,0.18)",
+                padding: "36px 32px 28px",
+                animation: "modalFadeUp 0.3s ease both",
+              }}
             >
               <style>{`@keyframes modalFadeUp { from { opacity:0; transform:translateY(20px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }`}</style>
- 
-              <button onClick={() => setShowLoginModal(false)} className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition text-xl font-bold leading-none" aria-label="Close">×</button>
- 
+
+              <button
+                onClick={() => setShowLoginModal(false)}
+                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition text-xl font-bold leading-none"
+                aria-label="Close"
+              >
+                ×
+              </button>
+
               <div className="flex justify-center mb-5">
                 <span className="text-4xl font-extrabold font-serif tracking-wide">
                   <span className="text-green-600">ILM</span>
                   <span className="text-[#F97316] ml-2">ORA</span>
                 </span>
               </div>
- 
+
               <div className="text-center mb-6">
-                <h2 className="text-xl font-bold text-[#1e0e02] mb-1">Welcome back!</h2>
-                <p className="text-sm text-[#8a6040]">
-                  Don't have an account?{" "}
-                  <button onClick={() => { setShowLoginModal(false); navigate("/complete-profile"); }} className="text-[#F97316] font-bold hover:underline bg-transparent border-none cursor-pointer text-sm p-0">Apply now</button>
-                </p>
+                <h2 className="text-xl font-bold text-[#1e0e02] mb-1">
+                  Welcome back!
+                </h2>
               </div>
- 
+
               <div className="flex justify-center mb-5">
-                <GoogleLogin onSuccess={handleModalGoogle} onError={() => console.error("Google OAuth failed")} theme="outline" size="large" text="continue_with" shape="rectangular" width="360" auto_select={false} cancel_on_tap_outside={true} />
+                <GoogleLogin
+                  onSuccess={handleModalGoogle}
+                  onError={() => console.error("Google OAuth failed")}
+                  theme="outline"
+                  size="large"
+                  text="continue_with"
+                  shape="rectangular"
+                  width="360"
+                  auto_select={false}
+                  cancel_on_tap_outside={true}
+                />
               </div>
- 
+
               <div className="flex items-center gap-3 mb-5">
-                <div className="flex-1 h-px" style={{ background: "rgba(180,100,30,0.15)" }} />
-                <span className="text-xs text-[#b8906a] uppercase tracking-widest font-medium">OR</span>
-                <div className="flex-1 h-px" style={{ background: "rgba(180,100,30,0.15)" }} />
+                <div
+                  className="flex-1 h-px"
+                  style={{ background: "rgba(180,100,30,0.15)" }}
+                />
+                <span className="text-xs text-[#b8906a] uppercase tracking-widest font-medium">
+                  OR
+                </span>
+                <div
+                  className="flex-1 h-px"
+                  style={{ background: "rgba(180,100,30,0.15)" }}
+                />
               </div>
- 
+
               <form onSubmit={handleModalSubmit}>
                 <div className="mb-3">
-                  <label className="block text-xs font-bold text-[#8a6040] mb-1.5 uppercase tracking-widest">Email</label>
-                  <input type="email" placeholder="Enter your email" value={modalEmail} onChange={e => setModalEmail(e.target.value)} required disabled={modalLoading}
+                  <label className="block text-xs font-bold text-[#8a6040] mb-1.5 uppercase tracking-widest">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={modalEmail}
+                    onChange={(e) => setModalEmail(e.target.value)}
+                    required
+                    disabled={modalLoading}
                     className="w-full px-3.5 py-2.5 rounded-xl text-sm text-[#1a0e06] placeholder-[#c0a070] outline-none transition-all disabled:opacity-50"
-                    style={{ background: "rgba(255,255,255,0.8)", border: "1.5px solid rgba(180,120,60,0.2)" }}
-                    onFocus={e => { e.target.style.borderColor="#F97316"; e.target.style.boxShadow="0 0 0 3px rgba(249,115,22,0.1)"; e.target.style.background="#fff"; }}
-                    onBlur={e => { e.target.style.borderColor="rgba(180,120,60,0.2)"; e.target.style.boxShadow="none"; }}
+                    style={{
+                      background: "rgba(255,255,255,0.8)",
+                      border: "1.5px solid rgba(180,120,60,0.2)",
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = "#F97316";
+                      e.target.style.boxShadow =
+                        "0 0 0 3px rgba(249,115,22,0.1)";
+                      e.target.style.background = "#fff";
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = "rgba(180,120,60,0.2)";
+                      e.target.style.boxShadow = "none";
+                    }}
                   />
                 </div>
                 <div className="mb-2">
-                  <label className="block text-xs font-bold text-[#8a6040] mb-1.5 uppercase tracking-widest">Password</label>
+                  <label className="block text-xs font-bold text-[#8a6040] mb-1.5 uppercase tracking-widest">
+                    Password
+                  </label>
                   <div className="relative">
-                    <input type={showModalPw ? "text" : "password"} placeholder="Enter your password" value={modalPassword} onChange={e => setModalPassword(e.target.value)} required disabled={modalLoading}
+                    <input
+                      type={showModalPw ? "text" : "password"}
+                      placeholder="Enter your password"
+                      value={modalPassword}
+                      onChange={(e) => setModalPassword(e.target.value)}
+                      required
+                      disabled={modalLoading}
                       className="w-full px-3.5 py-2.5 pr-11 rounded-xl text-sm text-[#1a0e06] placeholder-[#c0a070] outline-none transition-all disabled:opacity-50"
-                      style={{ background: "rgba(255,255,255,0.8)", border: "1.5px solid rgba(180,120,60,0.2)" }}
-                      onFocus={e => { e.target.style.borderColor="#F97316"; e.target.style.boxShadow="0 0 0 3px rgba(249,115,22,0.1)"; e.target.style.background="#fff"; }}
-                      onBlur={e => { e.target.style.borderColor="rgba(180,120,60,0.2)"; e.target.style.boxShadow="none"; }}
+                      style={{
+                        background: "rgba(255,255,255,0.8)",
+                        border: "1.5px solid rgba(180,120,60,0.2)",
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = "#F97316";
+                        e.target.style.boxShadow =
+                          "0 0 0 3px rgba(249,115,22,0.1)";
+                        e.target.style.background = "#fff";
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = "rgba(180,120,60,0.2)";
+                        e.target.style.boxShadow = "none";
+                      }}
                     />
-                    <button type="button" onClick={() => setShowModalPw(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#b8906a] hover:text-[#F97316] transition p-0 bg-transparent border-none cursor-pointer" tabIndex={-1}>
-                      {showModalPw
-                        ? <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                        : <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                      }
+                    <button
+                      type="button"
+                      onClick={() => setShowModalPw((p) => !p)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#b8906a] hover:text-[#F97316] transition p-0 bg-transparent border-none cursor-pointer"
+                      tabIndex={-1}
+                    >
+                      {showModalPw ? (
+                        <svg
+                          width="17"
+                          height="17"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                          <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                          <line x1="1" y1="1" x2="23" y2="23" />
+                        </svg>
+                      ) : (
+                        <svg
+                          width="17"
+                          height="17"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
                     </button>
                   </div>
                 </div>
                 <div className="text-right mb-5">
-                  <button type="button" onClick={() => { setShowLoginModal(false); navigate("/forgot-password"); }} className="text-xs text-[#F97316] hover:underline bg-transparent border-none cursor-pointer font-medium p-0">Forgot password?</button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowLoginModal(false);
+                      navigate("/forgot-password");
+                    }}
+                    className="text-xs text-[#F97316] hover:underline bg-transparent border-none cursor-pointer font-medium p-0"
+                  >
+                    Forgot password?
+                  </button>
                 </div>
-                <button type="submit" disabled={modalLoading}
+                <button
+                  type="submit"
+                  disabled={modalLoading}
                   className="w-full py-3 rounded-xl font-bold text-white text-sm transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  style={{ background: "linear-gradient(135deg,#F97316,#ea580c)", boxShadow: "0 4px 18px rgba(249,115,22,0.32)" }}
+                  style={{
+                    background: "linear-gradient(135deg,#F97316,#ea580c)",
+                    boxShadow: "0 4px 18px rgba(249,115,22,0.32)",
+                  }}
                 >
-                  {modalLoading ? <><span className="inline-block w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />Signing in…</> : "Log in"}
+                  {modalLoading ? (
+                    <>
+                      <span className="inline-block w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                      Signing in…
+                    </>
+                  ) : (
+                    "Log in"
+                  )}
                 </button>
               </form>
- 
+
               <div className="text-center mt-5">
-                <button onClick={() => setShowLoginModal(false)} className="text-xs text-[#b8906a] hover:text-[#8a6040] bg-transparent border-none cursor-pointer transition-colors">← Back to home</button>
+                <button
+                  onClick={() => setShowLoginModal(false)}
+                  className="text-xs text-[#b8906a] hover:text-[#8a6040] bg-transparent border-none cursor-pointer transition-colors"
+                >
+                  ← Back to home
+                </button>
               </div>
             </div>
           </div>
         </GoogleOAuthProvider>
-        
       )}
       <TexoraFloatingWidget />
     </div>
   );
-}  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-// import { Button } from "@/components/ui/button";
-// import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-// import {
-//   ArrowRight, Award, BookOpen,
-//   ChevronDown, Clock, ClipboardList,
-//   GraduationCap, Lightbulb, LogOut, Menu, Moon, Sparkles, Star, Sun,
-//   Target, TrendingUp, Trophy, User, Users, X, Zap, BarChart3,FileText
-// } from "lucide-react";
-// import { useEffect, useRef, useState } from "react";
-// import { useNavigate } from "react-router-dom";
-// import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
-// import { jwtDecode } from "jwt-decode";
-// import auth from "../../auth";
-// import heroStudent from "../../assets/hero-student.png";
-// import heroStudent2 from "../../assets/hero-student-2.png";
-// import heroStudent3 from "../../assets/hero-student-3.png";
-// import heroVideo from "../../assets/hero-1.mp4";
-// import { subscribeNewsletter } from "../../services/notificationService";
-// import MegaMenu from "../../components/MegaMenu";
-
-// const GOOGLE_CLIENT_ID = "572421778240-akk3kkb4f60ukuv9pcfrpg2ielm09thk.apps.googleusercontent.com";
-// const NEWSLETTER_KEY = "ilmora_newsletter_subscribers";
-
-// function getSubscribers() {
-//   try { return JSON.parse(localStorage.getItem(NEWSLETTER_KEY) || "[]"); }
-//   catch { return []; }
-// }
-// function saveSubscribers(list) {
-//   localStorage.setItem(NEWSLETTER_KEY, JSON.stringify(list));
-// }
-
-// /* ─────────────────────────────────────────────────────────────────
-//    FULL-SCREEN MOBILE MENU
-//    Now includes expandable "ILM ORA Feature" and "More" sections
-//    matching desktop dropdown content exactly.
-// ───────────────────────────────────────────────────────────────── */
-// function MobileFullScreenMenu({ onClose, navLinks, navButtons, user, navigate, handleLogout, setShowLoginModal }) {
-//   const [ilmoraFeatureOpen, setIlmoraFeatureOpen] = useState(false);
-//   const [moreOpen, setMoreOpen] = useState(false);
-
-//   useEffect(() => {
-//     document.body.style.overflow = "hidden";
-//     return () => { document.body.style.overflow = ""; };
-//   }, []);
-
-//   const AccordionSection = ({ label, isOpen, onToggle, children }) => (
-//     <div style={{ borderBottom: "1px solid #f3f4f6" }}>
-//       <button
-//         onClick={onToggle}
-//         style={{
-//           width: "100%",
-//           display: "flex",
-//           alignItems: "center",
-//           justifyContent: "space-between",
-//           padding: "15px 20px",
-//           border: "none",
-//           background: "transparent",
-//           cursor: "pointer",
-//           textAlign: "left",
-//           fontSize: 15,
-//           fontWeight: 600,
-//           color: "#1e293b",
-//         }}
-//       >
-//         {label}
-//         <span style={{
-//           transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
-//           transition: "transform 0.2s ease",
-//           display: "flex",
-//           alignItems: "center",
-//           color: "#6b7280",
-//         }}>
-//           <ChevronDown size={16} />
-//         </span>
-//       </button>
-//       {isOpen && (
-//         <div style={{
-//           background: "#f9fafb",
-//           borderTop: "1px solid #f3f4f6",
-//           padding: "8px 0",
-//         }}>
-//           {children}
-//         </div>
-//       )}
-//     </div>
-//   );
-
-//   return (
-//     <div
-//       style={{
-//         position: "fixed",
-//         inset: 0,
-//         width: "100vw",
-//         height: "100vh",
-//         background: "#ffffff",
-//         zIndex: 99999,
-//         overflowY: "auto",
-//         fontFamily: "'Plus Jakarta Sans', sans-serif",
-//         display: "flex",
-//         flexDirection: "column",
-//       }}
-//     >
-//       {/* ── Header ── */}
-//       <div style={{
-//         display: "flex",
-//         alignItems: "center",
-//         justifyContent: "space-between",
-//         padding: "16px 20px",
-//         borderBottom: "1px solid #f3f4f6",
-//         background: "#fff",
-//         position: "sticky",
-//         top: 0,
-//         zIndex: 10,
-//         flexShrink: 0,
-//       }}>
-//         <span style={{ fontSize: 26, fontWeight: 800, fontFamily: "serif", lineHeight: 1 }}>
-//           <span style={{ color: "#16a34a" }}>ILM</span>
-//           <span style={{ color: "#f97316", marginLeft: 4 }}>ORA</span>
-//         </span>
-//         <button
-//           onClick={onClose}
-//           style={{
-//             border: "none",
-//             background: "#f5f5f5",
-//             borderRadius: 10,
-//             width: 36,
-//             height: 36,
-//             display: "flex",
-//             alignItems: "center",
-//             justifyContent: "center",
-//             cursor: "pointer",
-//             color: "#6b7280",
-//           }}
-//           aria-label="Close menu"
-//         >
-//           <X size={18} />
-//         </button>
-//       </div>
-
-//       {/* ── Body ── */}
-//       <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "12px 0 32px" }}>
-
-//         {/* MegaMenu — All Courses */}
-//         <div style={{ padding: "0 16px 8px" }}>
-//           <MegaMenu onItemClick={onClose} />
-//         </div>
-
-//         {/* Divider */}
-//         <div style={{ height: 1, background: "#f3f4f6", margin: "4px 20px 4px" }} />
-
-//         <button
-//   onClick={() => {
-//     window.open("https://texora.ai/", "_blank");
-//     onClose();
-//   }}
-//   style={{
-//     width: "100%",
-//     display: "flex",
-//     alignItems: "center",
-//     padding: "15px 20px",
-//     border: "none",
-//     borderBottom: "1px solid #f9fafb",
-//     background: "transparent",
-//     cursor: "pointer",
-//     textAlign: "left",
-//     fontSize: 15,
-//     fontWeight: 600,
-//     color: "#1e293b",
-//   }}
-// >
-//   Texora.ai
-// </button>
-
-//         {/* Nav buttons */}
-//         {navButtons.map(btn => (
-//           <button
-//             key={btn.text}
-//             onClick={() => { btn.action(); onClose(); }}
-//             style={{
-//               width: "100%",
-//               display: "flex",
-//               alignItems: "center",
-//               padding: "15px 20px",
-//               border: "none",
-//               borderBottom: "1px solid #f9fafb",
-//               background: "transparent",
-//               cursor: "pointer",
-//               textAlign: "left",
-//               fontSize: 15,
-//               fontWeight: 600,
-//               color: "#1e293b",
-//             }}
-//           >
-//             {btn.text}
-//           </button>
-//         ))}
-
-//         {/* ── ILM ORA Feature Accordion (matches desktop dropdown exactly) ── */}
-//         <AccordionSection
-//           label="ILM ORA Feature"
-//           isOpen={ilmoraFeatureOpen}
-//           onToggle={() => setIlmoraFeatureOpen(p => !p)}
-//         >
-//           {/* Student Hub */}
-//           <button
-//             onClick={() => { navigate("/student-hub"); onClose(); }}
-//             style={{
-//               width: "100%",
-//               display: "flex",
-//               alignItems: "flex-start",
-//               gap: 12,
-//               padding: "12px 24px",
-//               border: "none",
-//               background: "transparent",
-//               cursor: "pointer",
-//               textAlign: "left",
-//             }}
-//           >
-//             <div style={{
-//               width: 36, height: 36,
-//               background: "#f0fdf4",
-//               borderRadius: 8,
-//               display: "flex", alignItems: "center", justifyContent: "center",
-//               flexShrink: 0,
-//             }}>
-//               <GraduationCap size={18} style={{ color: "#16a34a" }} />
-//             </div>
-//             <div>
-//               <p style={{ fontSize: 14, fontWeight: 600, color: "#1e293b", margin: 0 }}>Student Hub</p>
-//               <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>AI-Powered Learning &amp; Career Growth</p>
-//             </div>
-//           </button>
-
-//           {/* Trainer Hub */}
-// <button
-//   onClick={() => {
-//     navigate("/trainer-hub");
-//     onClose();
-//   }}
-//   style={{
-//     width: "100%",
-//     display: "flex",
-//     alignItems: "flex-start",
-//     gap: 12,
-//     padding: "12px 24px",
-//     border: "none",
-//     background: "transparent",
-//     cursor: "pointer",
-//     textAlign: "left",
-//   }}
-// >
-//   <div
-//     style={{
-//       width: 36,
-//       height: 36,
-//       background: "#eff6ff",
-//       borderRadius: 8,
-//       display: "flex",
-//       alignItems: "center",
-//       justifyContent: "center",
-//       flexShrink: 0,
-//     }}
-//   >
-//     <Users size={18} style={{ color: "#2563eb" }} />
-//   </div>
-
-//   <div>
-//     <p
-//       style={{
-//         fontSize: 14,
-//         fontWeight: 600,
-//         color: "#1e293b",
-//         margin: 0,
-//       }}
-//     >
-//       Trainer Hub
-//     </p>
-
-//     <p
-//       style={{
-//         fontSize: 12,
-//         color: "#6b7280",
-//         margin: "2px 0 0",
-//       }}
-//     >
-//       Training Management &amp; Mentorship
-//     </p>
-//   </div>
-// </button>
-
-//           {/* Manager Hub */}
-// <button
-//   onClick={() => {
-//     navigate("/manager-hub");
-//     onClose();
-//   }}
-//   style={{
-//     width: "100%",
-//     display: "flex",
-//     alignItems: "flex-start",
-//     gap: 12,
-//     padding: "12px 24px",
-//     border: "none",
-//     background: "transparent",
-//     cursor: "pointer",
-//     textAlign: "left",
-//   }}
-// >
-//   <div
-//     style={{
-//       width: 36,
-//       height: 36,
-//       background: "#faf5ff",
-//       borderRadius: 8,
-//       display: "flex",
-//       alignItems: "center",
-//       justifyContent: "center",
-//       flexShrink: 0,
-//     }}
-//   >
-//     <BarChart3 size={18} style={{ color: "#9333ea" }} />
-//   </div>
-
-//   <div>
-//     <p
-//       style={{
-//         fontSize: 14,
-//         fontWeight: 600,
-//         color: "#1e293b",
-//         margin: 0,
-//       }}
-//     >
-//       Manager Hub
-//     </p>
-
-//     <p
-//       style={{
-//         fontSize: 12,
-//         color: "#6b7280",
-//         margin: "2px 0 0",
-//       }}
-//     >
-//       Analytics, Performance &amp; Team Development
-//     </p>
-//   </div>
-// </button>
-// {/* Divider */}
-// <div
-//   style={{
-//     borderTop: "1px solid #e5e7eb",
-//     margin: "8px 24px",
-//   }}
-// />
-
-// {/* ILM ORA Meet */}
-// <button
-//   onClick={() => {
-//     navigate("/ilm-ora-meet");
-//     onClose();
-//   }}
-//   style={{
-//     width: "100%",
-//     display: "flex",
-//     alignItems: "flex-start",
-//     gap: 12,
-//     padding: "12px 24px",
-//     border: "none",
-//     background: "transparent",
-//     cursor: "pointer",
-//     textAlign: "left",
-//   }}
-// >
-//   <div
-//     style={{
-//       width: 36,
-//       height: 36,
-//       background: "#fff7ed",
-//       borderRadius: 8,
-//       display: "flex",
-//       alignItems: "center",
-//       justifyContent: "center",
-//       flexShrink: 0,
-//     }}
-//   >
-//     <Users size={18} style={{ color: "#f97316" }} />
-//   </div>
-
-//   <div>
-//     <p
-//       style={{
-//         fontSize: 14,
-//         fontWeight: 600,
-//         color: "#1e293b",
-//         margin: 0,
-//       }}
-//     >
-//       ILM ORA Meet
-//     </p>
-
-//     <p
-//       style={{
-//         fontSize: 12,
-//         color: "#6b7280",
-//         margin: "2px 0 0",
-//       }}
-//     >
-//       Virtual Meetings & Collaboration
-//     </p>
-//   </div>
-// </button>
-
-// {/* AI Resume Builder */}
-// <button
-//   onClick={() => {
-//     navigate("/resume-builder");
-//     onClose();
-//   }}
-//   style={{
-//     width: "100%",
-//     display: "flex",
-//     alignItems: "flex-start",
-//     gap: 12,
-//     padding: "12px 24px",
-//     border: "none",
-//     background: "transparent",
-//     cursor: "pointer",
-//     textAlign: "left",
-//   }}
-// >
-//   <div
-//     style={{
-//       width: 36,
-//       height: 36,
-//       background: "#f0fdf4",
-//       borderRadius: 8,
-//       display: "flex",
-//       alignItems: "center",
-//       justifyContent: "center",
-//       flexShrink: 0,
-//     }}
-//   >
-//     <FileText size={18} style={{ color: "#16a34a" }} />
-//   </div>
-
-//   <div>
-//     <p
-//       style={{
-//         fontSize: 14,
-//         fontWeight: 600,
-//         color: "#1e293b",
-//         margin: 0,
-//       }}
-//     >
-//       AI Resume Builder
-//     </p>
-
-//     <p
-//       style={{
-//         fontSize: 12,
-//         color: "#6b7280",
-//         margin: "2px 0 0",
-//       }}
-//     >
-//       Create ATS-Friendly Professional Resumes
-//     </p>
-//   </div>
-// </button>
-//         </AccordionSection>
-
-//         {/* ── More Accordion (Mentors + Success Stories) ── */}
-//         <AccordionSection
-//           label="More"
-//           isOpen={moreOpen}
-//           onToggle={() => setMoreOpen(p => !p)}
-//         >
-//           {navLinks.map(link => (
-//             <button
-//               key={link.text}
-//               onClick={() => {
-//                 if (link.href) {
-//                   document.querySelector(link.href)?.scrollIntoView({ behavior: "smooth" });
-//                 }
-//                 onClose();
-//               }}
-//               style={{
-//                 width: "100%",
-//                 display: "flex",
-//                 alignItems: "center",
-//                 padding: "12px 24px",
-//                 border: "none",
-//                 background: "transparent",
-//                 cursor: "pointer",
-//                 textAlign: "left",
-//                 fontSize: 14,
-//                 fontWeight: 500,
-//                 color: "#374151",
-//               }}
-//             >
-//               {link.text}
-//             </button>
-//           ))}
-//         </AccordionSection>
-
-//         {/* Divider */}
-//         <div style={{ height: 1, background: "#f3f4f6", margin: "12px 20px" }} />
-
-//         {/* Auth section */}
-//         <div style={{ padding: "0 16px" }}>
-//           {user ? (
-//             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-//               <div style={{
-//                 display: "flex",
-//                 alignItems: "center",
-//                 gap: 12,
-//                 padding: "12px 16px",
-//                 background: "#fdf4ec",
-//                 borderRadius: 14,
-//                 marginBottom: 4,
-//               }}>
-//                 <div style={{
-//                   width: 38, height: 38,
-//                   background: "#1e293b",
-//                   borderRadius: "50%",
-//                   display: "flex", alignItems: "center", justifyContent: "center",
-//                   color: "#fff", fontWeight: 700, fontSize: 14, flexShrink: 0,
-//                 }}>
-//                   {user.name?.charAt(0) || "U"}
-//                 </div>
-//                 <div style={{ minWidth: 0 }}>
-//                   <p style={{ fontWeight: 600, fontSize: 14, color: "#1e293b", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.name || "User"}</p>
-//                   <p style={{ fontSize: 12, color: "#6b7280", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</p>
-//                 </div>
-//               </div>
-//               <button
-//                 onClick={() => { navigate("/my-learning"); onClose(); }}
-//                 style={{
-//                   width: "100%", padding: "13px", borderRadius: 14, border: "none",
-//                   background: "#1e293b", color: "#fff", fontWeight: 600, fontSize: 15, cursor: "pointer",
-//                 }}
-//               >
-//                 My Learning
-//               </button>
-//               <button
-//                 onClick={() => { handleLogout(); onClose(); }}
-//                 style={{
-//                   width: "100%", padding: "13px", borderRadius: 14,
-//                   border: "1.5px solid #fecaca", background: "transparent",
-//                   color: "#dc2626", fontWeight: 600, fontSize: 15, cursor: "pointer",
-//                   display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-//                 }}
-//               >
-//                 <LogOut size={16} /> Logout
-//               </button>
-//             </div>
-//           ) : (
-//             <button
-//               onClick={() => { onClose(); setShowLoginModal(true); }}
-//               style={{
-//                 width: "100%", padding: "14px",
-//                 borderRadius: 14, border: "none",
-//                 background: "#1e293b", color: "#fff",
-//                 fontWeight: 700, fontSize: 15, cursor: "pointer",
-//                 display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-//               }}
-//             >
-//               <Sparkles size={16} /> Get Started
-//             </button>
-//           )}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
-// function FooterNewsletter() {
-//   const [email, setEmail]   = useState("");
-//   const [status, setStatus] = useState("idle");
-
-//   const isValid = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
-
-//   const handleSubmit = async () => {
-//     const trimmed = email.trim().toLowerCase();
-//     if (!isValid(trimmed)) {
-//       setStatus("error");
-//       setTimeout(() => setStatus("idle"), 2500);
-//       return;
-//     }
-//     setStatus("loading");
-//     try {
-//       const { ok, status: httpStatus } = await subscribeNewsletter(trimmed);
-//       if (httpStatus === 409) { setStatus("duplicate"); setTimeout(() => setStatus("idle"), 3000); return; }
-//       if (ok) { setStatus("success"); setEmail(""); setTimeout(() => setStatus("idle"), 3500); }
-//       else    { setStatus("apierror"); setTimeout(() => setStatus("idle"), 3000); }
-//     } catch {
-//       setStatus("apierror");
-//       setTimeout(() => setStatus("idle"), 3000);
-//     }
-//   };
-
-//   const statusMsg = {
-//     success:  { text: "✓ You're subscribed!",            color: "#22c55e" },
-//     error:    { text: "Enter a valid email.",             color: "#f87171" },
-//     duplicate:{ text: "Already subscribed.",              color: "#fb923c" },
-//     apierror: { text: "Something went wrong. Try again.", color: "#f87171" },
-//   }[status];
-
-//   return (
-//     <div className="flex flex-col gap-1">
-//       <h4 className="text-sm md:text-base font-bold tracking-wide text-[#1E293B] leading-snug">
-//         Be the first to know
-//       </h4>
-//       <div
-//         style={{
-//           display: "flex",
-//           background: status === "error" ? "rgba(248,113,113,0.06)" : "#f8fafc",
-//           borderRadius: "8px",
-//           border: status === "error"   ? "1.5px solid #f87171"
-//                 : status === "success" ? "1.5px solid #22c55e"
-//                 : "1.5px solid #e2e8f0",
-//           overflow: "hidden",
-//           transition: "border-color 0.2s",
-//         }}
-//       >
-//         <input
-//           type="email"
-//           value={email}
-//           onChange={(e) => setEmail(e.target.value)}
-//           onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-//           placeholder="your@email.com"
-//           disabled={status === "loading" || status === "success"}
-//           style={{
-//             flex: 1, background: "transparent", border: "none", outline: "none",
-//             color: "#1E293B", fontSize: "13px", padding: "9px 12px", minWidth: 0,
-//           }}
-//         />
-//         <button
-//           onClick={handleSubmit}
-//           disabled={status === "loading" || status === "success"}
-//           style={{
-//             background: status === "success" ? "#22c55e" : "#1E293B",
-//             border: "none", cursor: "pointer", padding: "0 14px",
-//             display: "flex", alignItems: "center", justifyContent: "center",
-//             minWidth: "42px", transition: "background 0.2s", flexShrink: 0,
-//           }}
-//           onMouseEnter={e => { if (status !== "success") e.currentTarget.style.background = "#F97316"; }}
-//           onMouseLeave={e => { if (status !== "success") e.currentTarget.style.background = "#1E293B"; }}
-//         >
-//           {status === "loading" ? (
-//             <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-//               <circle cx="10" cy="10" r="8" stroke="rgba(255,255,255,0.3)" strokeWidth="2.5"/>
-//               <path d="M10 2a8 8 0 0 1 8 8" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
-//                 <animateTransform attributeName="transform" type="rotate" from="0 10 10" to="360 10 10" dur="0.7s" repeatCount="indefinite"/>
-//               </path>
-//             </svg>
-//           ) : status === "success" ? (
-//             <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-//               <path d="M4 10l4 4 8-8" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-//             </svg>
-//           ) : (
-//             <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-//               <path d="M4 10h12M10 4l6 6-6 6" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-//             </svg>
-//           )}
-//         </button>
-//       </div>
-
-//       {statusMsg && (
-//         <p style={{ fontSize: "12px", color: statusMsg.color, margin: "-8px 0 0" }}>
-//           {statusMsg.text}
-//         </p>
-//       )}
-
-//       <p className="text-xs text-gray-400">
-//         Contact support:{" "}
-//         <a href="mailto:support@ilmora.com" className="text-gray-500 hover:text-[#F97316] transition-colors">
-//           marketing@texora.ai
-//         </a>
-//       </p>
-
-//       <div>
-//         <span className="inline-flex items-center gap-2 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full">
-//           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-//           Status: Live
-//         </span>
-//       </div>
-//     </div>
-//   );
-// }
-// // ─────────────────────────────────────────────────────────────────────────────
-// export default function LMSHomepage({ theme, toggleTheme }) {
-//   const [activeTab, setActiveTab] = useState("product");
-//   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-//   const [scrolled, setScrolled] = useState(false);
-//   const [user, setUser] = useState(null);
-//   const [showLoginModal, setShowLoginModal] = useState(false);
-
-//   const [modalEmail, setModalEmail]       = useState("");
-//   const [modalPassword, setModalPassword] = useState("");
-//   const [modalLoading, setModalLoading]   = useState(false);
-//   const [showModalPw, setShowModalPw]     = useState(false);
-
-//   const heroImages = [heroStudent, heroStudent2, heroStudent3];
-//   const [currentSlide, setCurrentSlide] = useState(-1);
-//   const carouselTimerRef = useRef(null);
-
-//   const navigate = useNavigate();
-
-//   const startCarouselTimer = () => {
-//     clearInterval(carouselTimerRef.current);
-//     carouselTimerRef.current = setInterval(() => {
-//       setCurrentSlide(prev => {
-//         if (prev === -1) return 0;
-//         if (prev >= heroImages.length - 1) return -1;
-//         return prev + 1;
-//       });
-//     }, 3500);
-//   };
-
-//   useEffect(() => {
-//     startCarouselTimer();
-//     return () => clearInterval(carouselTimerRef.current);
-//   }, []);
-
-//   const goToSlide = (index) => {
-//     setCurrentSlide(index);
-//     startCarouselTimer();
-//   };
-
-//   useEffect(() => {
-//     const handleScroll = () => setScrolled(window.scrollY > 20);
-//     window.addEventListener("scroll", handleScroll);
-//     return () => window.removeEventListener("scroll", handleScroll);
-//   }, []);
-
-//   useEffect(() => {
-//     const userData = sessionStorage.getItem("user");
-//     if (userData) {
-//       try { setUser(JSON.parse(userData)); }
-//       catch { sessionStorage.removeItem("user"); }
-//     }
-//   }, []);
-
-//   useEffect(() => {
-//     const onKey = (e) => { if (e.key === "Escape") setShowLoginModal(false); };
-//     if (showLoginModal) window.addEventListener("keydown", onKey);
-//     return () => window.removeEventListener("keydown", onKey);
-//   }, [showLoginModal]);
-
-//   useEffect(() => {
-//     const handler = (e) => {
-//       const { tab } = e.detail || {};
-//       if (tab) setActiveTab(tab);
-//     };
-//     window.addEventListener("mm-course-tab", handler);
-//     return () => window.removeEventListener("mm-course-tab", handler);
-//   }, []);
-
-//   const handleLogout = () => {
-//     sessionStorage.removeItem("user");
-//     setUser(null);
-//     navigate("/login");
-//   };
-
-//   const scrollToSection = (sectionId, tabName = null) => {
-//     if (window.location.pathname !== "/") {
-//       navigate("/");
-//       setTimeout(() => {
-//         if (tabName) setActiveTab(tabName);
-//         document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
-//       }, 150);
-//     } else {
-//       if (tabName) setActiveTab(tabName);
-//       document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
-//     }
-//   };
-
-//   const redirectByRole = (role) => {
-//     switch ((role || "").toUpperCase()) {
-//       case "ADMIN":    navigate("/admin",    { replace: true }); break;
-//       case "TRAINER":  navigate("/trainer",  { replace: true }); break;
-//       case "BUSINESS": navigate("/business", { replace: true }); break;
-//       default:         navigate("/student",  { replace: true });
-//     }
-//   };
-
-//   const handleModalSubmit = async (e) => {
-//     e.preventDefault();
-//     if (modalLoading) return;
-//     setModalLoading(true);
-//     try {
-//       const ok = await auth.login({ email: modalEmail, password: modalPassword });
-//       if (ok) {
-//         const role = (auth.getCurrentRole() || "STUDENT").toUpperCase();
-//         localStorage.setItem("role", role);
-//         setShowLoginModal(false);
-//         redirectByRole(role);
-//       } else {
-//         alert("Login failed! Check your credentials.");
-//       }
-//     } catch (err) {
-//       alert("Login error: " + err.message);
-//     } finally {
-//       setModalLoading(false);
-//     }
-//   };
-
-//   const handleModalGoogle = async (res) => {
-//     try {
-//       localStorage.removeItem("lms_token");
-//       localStorage.removeItem("lms_user");
-//       localStorage.removeItem("role");
-//       const dec  = jwtDecode(res.credential);
-//       const resp = await auth.googleLogin({ idToken: res.credential });
-//       if (resp?.isNewUser === true) {
-//         localStorage.setItem("role", "STUDENT");
-//         localStorage.setItem("lms_user", JSON.stringify({
-//           name: dec.name, email: dec.email, role: "student", isNewUser: true,
-//         }));
-//         setShowLoginModal(false);
-//         navigate("/ilm-demo", { replace: true });
-//       } else {
-//         const role = (resp?.role || "STUDENT").toUpperCase();
-//         localStorage.setItem("role", role);
-//         localStorage.setItem("lms_user", JSON.stringify({
-//           name: dec.name, email: dec.email, role: role.toLowerCase(),
-//         }));
-//         setShowLoginModal(false);
-//         redirectByRole(role);
-//       }
-//     } catch (err) {
-//       try {
-//         const dec = jwtDecode(res.credential);
-//         localStorage.setItem("role", "STUDENT");
-//         localStorage.setItem("lms_user", JSON.stringify({
-//           name: dec.name, email: dec.email, role: "student", isNewUser: true,
-//         }));
-//         setShowLoginModal(false);
-//         navigate("/ilm-demo", { replace: true });
-//       } catch (_) {
-//         alert("Google login failed. Please try again.");
-//       }
-//     }
-//   };
-
-//   const courses = {
-//     product: [
-//       { id: 1, title: "Product Management Mastery", instructor: "Ex-Google PM", duration: "8 weeks", students: "2,500+", rating: 4.9, level: "Intermediate", description: "Master product lifecycle from ideation to launch. Learn roadmapping, prioritization, stakeholder management & metrics that matter.", modules: ["Discovery & Research", "Roadmapping", "Prioritization Frameworks", "Launch Strategy", "Metrics & Analytics"], price: "₹49,000", highlights: ["Live sessions with Google PMs", "Real case studies", "1:1 mentorship", "Job referral support"], liveSessions: 5, totalLessons: 81, projects: 3 },
-//       { id: 2, title: "Product Analytics", instructor: "Ex-Amazon", duration: "6 weeks", students: "1,800+", rating: 4.8, level: "Advanced", description: "Data-driven product decisions. Master A/B testing, cohort analysis, funnel optimization & retention strategies.", modules: ["SQL for Product Managers", "Experimentation", "Funnel Analysis", "Retention Metrics", "Customer Segmentation"], price: "₹39,000", highlights: ["Amazon case studies", "Live SQL projects", "Advanced Mixpanel", "Retention frameworks"], liveSessions: 4, totalLessons: 60, projects: 2 },
-//       { id: 3, title: "Product Strategy", instructor: "Ex-Meta", duration: "10 weeks", students: "2,100+", rating: 4.9, level: "Advanced", description: "Strategic frameworks for product success. Positioning, competitive analysis, growth strategies & portfolio management.", modules: ["Market Analysis", "Competitive Strategy", "Growth Playbooks", "Portfolio Management", "Pricing Strategy"], price: "₹59,000", highlights: ["Meta growth case studies", "Strategy templates", "Live workshops", "Executive simulations"], liveSessions: 6, totalLessons: 90, projects: 4 },
-//     ],
-//     design: [
-//       { id: 4, title: "UI/UX Design Bootcamp", instructor: "Ex-Airbnb Designer", duration: "12 weeks", students: "3,200+", rating: 5.0, level: "Beginner", description: "Complete UI/UX journey from research to prototype. Figma mastery, design systems & portfolio projects.", modules: ["User Research", "Wireframing", "Prototyping", "Design Systems", "Portfolio Building"], price: "₹69,000", highlights: ["Airbnb case studies", "Figma certification", "Live design reviews", "Job ready portfolio"], liveSessions: 8, totalLessons: 110, projects: 5 },
-//       { id: 5, title: "Design Systems", instructor: "Ex-Netflix", duration: "8 weeks", students: "1,500+", rating: 4.8, level: "Advanced", description: "Build scalable design systems like Netflix. Components, tokens, documentation & developer handoff.", modules: ["Component Libraries", "Design Tokens", "Documentation", "Dev Handoff", "Scale Patterns"], price: "₹45,000", highlights: ["Netflix system breakdown", "Figma + Storybook", "Live system audits", "Enterprise patterns"], liveSessions: 4, totalLessons: 70, projects: 3 },
-//       { id: 6, title: "User Research Pro", instructor: "Ex-Microsoft", duration: "6 weeks", students: "1,900+", rating: 4.7, level: "Intermediate", description: "Research methods that drive product decisions. Interviews, surveys, usability testing & synthesis.", modules: ["Interview Techniques", "Survey Design", "Usability Testing", "Synthesis Methods", "Stakeholder Reports"], price: "₹35,000", highlights: ["Microsoft research frameworks", "Live user testing", "Report templates", "Stakeholder presentations"], liveSessions: 3, totalLessons: 55, projects: 2 },
-//     ],
-//     growth: [
-//       { id: 7, title: "Growth Marketing", instructor: "Ex-Uber Growth", duration: "8 weeks", students: "2,800+", rating: 4.9, level: "Intermediate", description: "Growth loops, viral mechanics & acquisition strategies that scale businesses.", modules: ["Growth Frameworks", "Viral Loops", "Acquisition Channels", "Experimentation", "Scaling"], price: "₹49,000", highlights: ["Uber growth case studies", "Live experiments", "Channel deep dives", "Scaling frameworks"], liveSessions: 5, totalLessons: 75, projects: 3 },
-//       { id: 8, title: "SEO & Content Strategy", instructor: "Ex-Spotify", duration: "10 weeks", students: "2,300+", rating: 4.8, level: "Intermediate", description: "Organic growth mastery. Technical SEO, content systems & link building at scale.", modules: ["Technical SEO", "Content Systems", "Link Building", "Analytics", "Scaling Organic"], price: "₹55,000", highlights: ["Spotify SEO case studies", "Live audits", "Content calendars", "Enterprise SEO"], liveSessions: 5, totalLessons: 85, projects: 3 },
-//       { id: 9, title: "Performance Marketing", instructor: "Ex-Swiggy", duration: "8 weeks", students: "2,600+", rating: 4.9, level: "Advanced", description: "Paid acquisition at scale. Facebook, Google, creative testing & LTV optimization.", modules: ["Facebook Ads", "Google Ads", "Creative Strategy", "LTV Optimization", "Scaling"], price: "₹47,000", highlights: ["Swiggy ad case studies", "Live campaign builds", "Creative testing", "ROAS frameworks"], liveSessions: 5, totalLessons: 72, projects: 4 },
-//     ],
-//   };
-
-//   const testimonials = [
-//     { name: "Priya Sharma", role: "Product Manager @ Flipkart", text: "LMS helped me transition from engineering to PM. The mentorship was invaluable!" },
-//     { name: "Rahul Verma", role: "UX Designer @ Zomato", text: "Best investment in my career. Landed my dream job within 3 months of completing the course." },
-//     { name: "Ananya Singh", role: "Growth Lead @ CRED", text: "The practical insights and real-world case studies made all the difference." },
-//   ];
-
-//   const features = [
-//     { icon: Target, title: "Project-Based Learning", description: "Build real-world projects that showcase your skills" },
-//     { icon: Users, title: "Expert Mentorship", description: "Learn from professionals at top tech companies" },
-//     { icon: Trophy, title: "Career Support", description: "Get help with resumes, interviews & job referrals" },
-//     { icon: Zap, title: "Live Sessions", description: "Interactive workshops with industry experts" },
-//   ];
-
-//   const stats = [
-//     { value: "50K+", label: "Active Learners" },
-//     { value: "95%",  label: "Success Rate" },
-//     { value: "100+", label: "Expert Mentors" },
-//     { value: "4.9★", label: "Average Rating" },
-//   ];
-
-//   const mentorBenefits = [
-//     { icon: Award,      text: "1:1 mentorship and small cohort learning" },
-//     { icon: TrendingUp, text: "Project reviews with detailed feedback" },
-//     { icon: Users,      text: "Peer community for accountability and networking" },
-//   ];
-
-//   const careerSupport = [
-//     { icon: Target, title: "Portfolio Support",   description: "Turn your projects into case studies hiring managers love" },
-//     { icon: Award,  title: "Interview Prep",      description: "Mock interviews, feedback and guidance on role expectations" },
-//     { icon: Users,  title: "Referrals & Network", description: "Warm intros to hiring teams and community-led referrals" },
-//   ];
-
-//   const getLevelColor = (level) => ({
-//     Beginner:     "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-//     Intermediate: "bg-[#F97316]/10 text-[#F97316] border border-[#F97316]/20",
-//     Advanced:     "bg-[#1E293B]/10 text-[#1E293B] dark:bg-white/10 dark:text-white border border-[#1E293B]/20 dark:border-white/20",
-//   }[level] || "bg-gray-100 text-gray-700");
-
-//   const navLinks = [
-//     { text: "Mentors",         href: "#mentors" },
-//     { text: "Success Stories", href: "#successstories" },
-//   ];
-
-//   const navButtons = [];
-
-//   const techPartners = [
-//     { src: "/aws.png",        name: "AWS",             desc: "Amazon Web Services"      },
-//     { src: "/Google.jpg",     name: "Google Cloud",    desc: "Google Cloud Platform"    },
-//     { src: "/Amazone.jpg",    name: "Amazon AWS",      desc: "Amazon Web Services"      },
-//     { src: "/Micrososft.jpg", name: "Microsoft Azure", desc: "Microsoft Cloud Platform" },
-//   ];
-
-//   const bizPartners = [
-//     { src: "/Picture1.jpg", name: "Texora AI",   desc: "AI & Digital Solutions"       },
-//     { src: "/UFS-Logo.jpg", name: "UFS Network", desc: "Unified Consultancy Services" },
-//   ];
-
-//   return (
-//     <div className="min-h-screen bg-[#F6EDE6] dark:bg-black text-[#1E293B] dark:text-white">
-
-//       {/* ── Full-Screen Mobile Menu ── */}
-//       {mobileMenuOpen && (
-//         <MobileFullScreenMenu
-//           onClose={() => setMobileMenuOpen(false)}
-//           navLinks={navLinks}
-//           navButtons={navButtons}
-//           user={user}
-//           navigate={navigate}
-//           handleLogout={handleLogout}
-//           setShowLoginModal={setShowLoginModal}
-//         />
-//       )}
-
-//       {/* ── Nav ── */}
-//       {/* CHANGED: xl: → lg: so tablet (iPad mini 768px+) gets full desktop navbar */}
-//       <nav
-//         className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-//           scrolled
-//             ? "bg-white/95 dark:bg-black/95 backdrop-blur-xl shadow-md"
-//             : "bg-white/80 dark:bg-black/80 backdrop-blur-md"
-//         } border-b border-[#F97316]/20 dark:border-gray-800`}
-//       >
-//         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-//           <div className="flex items-center justify-between h-[68px]">
-
-//             {/* Logo */}
-//             <div
-//               className="flex items-center cursor-pointer hover:scale-105 transition-transform flex-shrink-0"
-//               onClick={() => navigate("/")}
-//             >
-//               <span className="text-[28px] sm:text-[32px] font-extrabold tracking-wide font-serif leading-none whitespace-nowrap">
-//                 <span className="text-green-600">ILM</span>
-//                 <span className="text-[#F97316] ml-1">ORA</span>
-//                 <span className="inline-flex items-center bg-orange-50 border border-[#F97316] rounded ml-1.5 px-1.5 py-0.5 text-[0.45rem] sm:text-[0.5rem] font-sans font-semibold tracking-widest text-[#F97316] uppercase leading-snug align-middle">
-//                   Beta
-//                 </span>
-//               </span>
-//             </div>
-
-//             {/* Desktop Nav — visible from lg (1024px) and above */}
-//             {/* On md (768px–1023px) tablet the items are slightly smaller but still visible */}
-//             <div className="hidden lg:flex items-center gap-1 flex-1 justify-center mx-4 xl:mx-6">
-//               <MegaMenu />
-
-//             {/* Texora.ai */}
-//              <button
-//              onClick={() => window.open("https://texora.ai/", "_blank")}
-//             className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-3 xl:px-4 py-2 rounded-lg hover:bg-[#F97316]/5 text-[13px] xl:text-[15px] whitespace-nowrap bg-transparent border-none cursor-pointer"
-//             >
-//             Texora.ai
-//             </button>
-
-//               {/* ILM ORA Feature Dropdown */}
-//               <div className="relative group">
-//                 <button className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-3 xl:px-4 py-2 rounded-lg hover:bg-[#F97316]/5 text-[13px] xl:text-[15px] whitespace-nowrap bg-transparent border-none cursor-pointer flex items-center gap-1">
-//                   ILM ORA Feature
-//                   <ChevronDown className="w-4 h-4" />
-//                 </button>
-
-//                 <div className="absolute top-full left-0 mt-2 w-80 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-//                   <button
-//                     onClick={() => navigate("/student-hub")}
-//                     className="w-full text-left p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-gray-800"
-//                   >
-//                     <div className="flex items-start gap-3">
-//                       <GraduationCap className="w-5 h-5 text-green-600 mt-1" />
-//                       <div>
-//                         <div className="font-semibold text-sm">Student Hub</div>
-//                         <div className="text-xs text-gray-500">AI-Powered Learning & Career Growth</div>
-//                       </div>
-//                     </div>
-//                   </button>
-
-//                   <button
-//   onClick={() => navigate("/trainer-hub")}
-//   className="w-full text-left p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-gray-800"
-// >
-//   <div className="flex items-start gap-3">
-//     <Users className="w-5 h-5 text-blue-600 mt-1" />
-//     <div>
-//       <div className="font-semibold text-sm">
-//         Trainer Hub
-//       </div>
-//       <div className="text-xs text-gray-500">
-//         Training Management & Mentorship
-//       </div>
-//     </div>
-//   </div>
-// </button>
-
-//                  <button
-//   onClick={() => navigate("/manager-hub")}
-//   className="w-full text-left p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-gray-800"
-// >
-//   <div className="flex items-start gap-3">
-//     <BarChart3 className="w-5 h-5 text-purple-600 mt-1" />
-//     <div>
-//       <div className="font-semibold text-sm">
-//         Manager Hub
-//       </div>
-//       <div className="text-xs text-gray-500">
-//         Analytics, Performance & Team Development
-//       </div>
-//     </div>
-//   </div>
-// </button>
-// {/* Divider */}
-// <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
-
-// {/* ILM ORA Meet */}
-// <button
-//   onClick={() => navigate("/ilm-ora-meet")}
-//   className="w-full text-left p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-gray-800"
-// >
-//   <div className="flex items-start gap-3">
-//     <Users className="w-5 h-5 text-orange-500 mt-1" />
-//     <div>
-//       <div className="font-semibold text-sm">
-//         ILM ORA Meet
-//       </div>
-//       <div className="text-xs text-gray-500">
-//         Virtual Meetings & Collaboration
-//       </div>
-//     </div>
-//   </div>
-// </button>
-
-// {/* AI Resume Builder */}
-// <button
-//   onClick={() => navigate("/resume-builder")}
-//   className="w-full text-left p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-gray-800"
-// >
-//   <div className="flex items-start gap-3">
-//     <FileText className="w-5 h-5 text-green-600 mt-1" />
-//     <div>
-//       <div className="font-semibold text-sm">
-//         AI Resume Builder
-//       </div>
-//       <div className="text-xs text-gray-500">
-//         Create ATS-Friendly Professional Resumes
-//       </div>
-//     </div>
-//   </div>
-// </button>
-//                 </div>
-//               </div>
-
-//               {/* More Dropdown */}
-//               <div className="relative group">
-//                 <button className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-3 xl:px-4 py-2 rounded-lg hover:bg-[#F97316]/5 text-[13px] xl:text-[15px] whitespace-nowrap bg-transparent border-none cursor-pointer flex items-center gap-1">
-//                   More
-//                   <ChevronDown className="w-4 h-4" />
-//                 </button>
-
-//                 <div className="absolute top-full left-0 mt-2 w-52 bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-//                   {navLinks.map((link) => (
-//                     <button
-//                       key={link.text}
-//                       onClick={() => {
-//                         document.querySelector(link.href)?.scrollIntoView({ behavior: "smooth" });
-//                       }}
-//                       className="w-full text-left px-4 py-3 hover:bg-orange-50 dark:hover:bg-gray-800 text-sm"
-//                     >
-//                       {link.text}
-//                     </button>
-//                   ))}
-//                 </div>
-//               </div>
-//             </div>
-
-//             {/* Right side */}
-//             <div className="flex items-center gap-2 xl:gap-3 flex-shrink-0">
-//               <button
-//                 onClick={toggleTheme}
-//                 className="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-[#F6EDE6] dark:hover:bg-gray-900 transition shadow-sm bg-white dark:bg-black flex-shrink-0"
-//               >
-//                 {theme === "dark"
-//                   ? <Sun className="w-[18px] h-[18px] text-[#F97316]" />
-//                   : <Moon className="w-[18px] h-[18px] text-[#1E293B]" />
-//                 }
-//               </button>
-
-//               {user ? (
-//                 <div className="hidden lg:block">
-//                   <DropdownMenu>
-//                     <DropdownMenuTrigger asChild>
-//                       <Button variant="outline" className="gap-2 rounded-xl border-gray-200 dark:border-gray-700 h-10 px-3">
-//                         <Avatar className="w-7 h-7">
-//                           <AvatarImage src={user.picture} alt={user.name} />
-//                           <AvatarFallback className="bg-[#1E293B] text-white text-xs">
-//                             {user.name?.charAt(0) || <User className="w-3 h-3" />}
-//                           </AvatarFallback>
-//                         </Avatar>
-//                         <ChevronDown className="w-3 h-3" />
-//                       </Button>
-//                     </DropdownMenuTrigger>
-//                     <DropdownMenuContent align="end" className="w-72 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
-//                       <div className="px-3 py-3 bg-[#F6EDE6] dark:bg-gray-800 rounded-t-md">
-//                         <p className="font-semibold text-sm text-[#1E293B] dark:text-white truncate">{user.name || "User"}</p>
-//                         <p className="text-xs text-gray-500 truncate">{user.email}</p>
-//                       </div>
-//                       <DropdownMenuSeparator />
-//                       {[
-//                         { icon: GraduationCap, label: "My Learning", desc: "View your courses", path: "/my-learning" },
-//                         { icon: User,          label: "Edit Profile", desc: "Update your info",  path: "/edit-profile" },
-//                       ].map(item => (
-//                         <DropdownMenuItem key={item.label} onClick={() => navigate(item.path)} className="gap-3 cursor-pointer">
-//                           <div className="w-8 h-8 rounded-lg bg-[#F97316]/10 flex items-center justify-center">
-//                             <item.icon className="w-4 h-4 text-[#F97316]" />
-//                           </div>
-//                           <div>
-//                             <p className="text-sm font-medium">{item.label}</p>
-//                             <p className="text-xs text-gray-500">{item.desc}</p>
-//                           </div>
-//                         </DropdownMenuItem>
-//                       ))}
-//                       <DropdownMenuSeparator />
-//                       <DropdownMenuItem onClick={handleLogout} className="gap-3 text-red-600 cursor-pointer">
-//                         <LogOut className="w-4 h-4" /><span className="text-sm font-medium">Logout</span>
-//                       </DropdownMenuItem>
-//                     </DropdownMenuContent>
-//                   </DropdownMenu>
-//                 </div>
-//               ) : (
-//                 <Button
-//                   onClick={() => setShowLoginModal(true)}
-//                   className="hidden lg:flex bg-[#1E293B] hover:bg-[#334155] text-white font-bold px-4 xl:px-5 py-2.5 rounded-xl items-center gap-2 shadow-md hover:shadow-lg transition-all text-[13px] xl:text-[15px] h-10 whitespace-nowrap"
-//                 >
-//                   <Sparkles className="w-4 h-4" /> Get Started
-//                 </Button>
-//               )}
-
-//               {/* Hamburger — only shown below lg (below 1024px) */}
-//               <button
-//                 className="lg:hidden flex items-center justify-center w-10 h-10 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black hover:bg-[#F6EDE6] dark:hover:bg-gray-900 transition shadow-sm"
-//                 aria-label="Open menu"
-//                 onClick={() => setMobileMenuOpen(true)}
-//               >
-//                 <Menu className="w-5 h-5 text-[#1E293B] dark:text-white" />
-//               </button>
-//             </div>
-//           </div>
-//         </div>
-//       </nav>
-      
-      
-      
-//       {/* ── Hero ── */}
-//       <section className="pt-32 pb-24 px-6 bg-[#F6EDE6] dark:bg-black relative overflow-hidden">
-//         <div className="absolute -top-32 left-[10%] w-[600px] h-[600px] bg-[#F97316]/8 dark:bg-[#F97316]/5 rounded-full blur-[120px] pointer-events-none" />
-//         <div className="absolute -bottom-20 right-[5%] w-[500px] h-[500px] bg-[#1E293B]/5 rounded-full blur-[120px] pointer-events-none" />
-
-//         <div className="max-w-7xl mx-auto relative z-10 grid lg:grid-cols-2 gap-16 items-center">
-//           <div className="text-center lg:text-left">
-//             <div className="mb-8 inline-flex">
-//               <div className="inline-flex items-center gap-2 bg-white dark:bg-gray-900 border border-[#F97316]/30 text-[#F97316] px-5 py-2.5 rounded-full text-sm font-semibold shadow-md">
-//                 <Sparkles className="w-4 h-4" />
-//                 Advanced Learning Platform for Modern Professionals
-//               </div>
-//             </div>
-//             <h1 className="text-4xl md:text-4xl lg:text-6xl font-bold mb-6 leading-tight text-[#1E293B] dark:text-white">
-//               Become the <span className="text-[#F97316]">Top 1%</span>
-//             </h1>
-//             <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-12 max-w-xl leading-relaxed">
-//               Learn Product, Design, Growth & Marketing from industry experts.
-//             </p>
-//             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center lg:items-start">
-//               <button
-//                 onClick={() => navigate("/watch-demo/1")}
-//                 className="flex items-center gap-2 bg-[#1E293B] hover:bg-[#334155] text-white font-bold px-8 py-4 rounded-xl text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
-//               >
-//                 Watch Now <ArrowRight className="w-5 h-5" />
-//               </button>
-//             </div>
-//           </div>
-
-//           <div className="flex flex-col items-center gap-4">
-//             <div
-//               className="relative w-full max-w-lg overflow-hidden rounded-2xl shadow-2xl"
-//               style={{ aspectRatio: "4/3" }}
-//             >
-//               <video
-//                 src={heroVideo}
-//                 autoPlay loop muted playsInline
-//                 className="absolute inset-0 w-full h-full object-cover rounded-2xl"
-//                 style={{
-//                   opacity: currentSlide === -1 ? 1 : 0,
-//                   transform: currentSlide === -1 ? "scale(1)" : "scale(0.96)",
-//                   transition: "opacity 0.6s ease, transform 0.6s ease",
-//                   zIndex: currentSlide === -1 ? 2 : 1,
-//                   pointerEvents: currentSlide === -1 ? "auto" : "none",
-//                 }}
-//               />
-//               {heroImages.map((img, index) => (
-//                 <img
-//                   key={index}
-//                   src={img}
-//                   alt={`Hero Student ${index + 1}`}
-//                   className="absolute inset-0 w-full h-full object-contain drop-shadow-2xl"
-//                   style={{
-//                     opacity: currentSlide === index ? 1 : 0,
-//                     transform: currentSlide === index ? "scale(1)" : "scale(0.96)",
-//                     transition: "opacity 0.6s ease, transform 0.6s ease",
-//                     zIndex: currentSlide === index ? 2 : 1,
-//                     pointerEvents: currentSlide === index ? "auto" : "none",
-//                   }}
-//                 />
-//               ))}
-//             </div>
-
-//             <div className="flex items-center gap-2.5">
-//               <button
-//                 onClick={() => goToSlide(-1)}
-//                 aria-label="Show video"
-//                 style={{
-//                   width: currentSlide === -1 ? "28px" : "10px", height: "10px",
-//                   borderRadius: "9999px",
-//                   background: currentSlide === -1 ? "#22c55e" : "#CBD5E1",
-//                   border: "none", cursor: "pointer", padding: 0,
-//                   transition: "width 0.35s ease, background 0.35s ease",
-//                 }}
-//               />
-//               {heroImages.map((_, index) => (
-//                 <button
-//                   key={index}
-//                   onClick={() => goToSlide(index)}
-//                   aria-label={`Go to slide ${index + 1}`}
-//                   style={{
-//                     width: currentSlide === index ? "28px" : "10px", height: "10px",
-//                     borderRadius: "9999px",
-//                     background: currentSlide === index ? "#F97316" : "#CBD5E1",
-//                     border: "none", cursor: "pointer", padding: 0,
-//                     transition: "width 0.35s ease, background 0.35s ease",
-//                   }}
-//                 />
-//               ))}
-//             </div>
-//           </div>
-//         </div>
-//       </section>
-
-//       {/* ── Stats ── */}
-//       <section className="py-16 px-6 bg-white dark:bg-gray-900/50">
-//         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6">
-//           {stats.map((stat, i) => (
-//             <div key={i} className="bg-[#F6EDE6] dark:bg-gray-900 rounded-2xl p-8 text-center border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all">
-//               <div className="text-4xl md:text-5xl font-bold text-[#F97316] mb-2">{stat.value}</div>
-//               <p className="text-gray-600 dark:text-gray-300 font-medium">{stat.label}</p>
-//             </div>
-//           ))}
-//         </div>
-//       </section>
-
-//       {/* ── Features ── */}
-//       <section className="py-24 px-6 bg-[#F6EDE6] dark:bg-black">
-//         <div className="max-w-7xl mx-auto">
-//           <div className="text-center mb-16">
-//             <h2 className="text-4xl md:text-5xl font-bold mb-4 text-[#1E293B] dark:text-white">
-//               Why Choose
-//               <span className="ml-2">
-//                 <span className="text-green-600">ILM</span>{" "}
-//                 <span className="text-[#F97316]">ORA</span>
-//               </span>
-//             </h2>
-//             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">Everything you need to accelerate your career growth</p>
-//           </div>
-//           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-//             {features.map((feature, i) => (
-//               <div key={i} className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all group">
-//                 <div className="w-14 h-14 bg-[#1E293B] dark:bg-[#F97316] rounded-2xl flex items-center justify-center mb-5 group-hover:scale-105 transition-transform shadow-sm">
-//                   <feature.icon className="w-7 h-7 text-white" />
-//                 </div>
-//                 <h3 className="text-xl font-bold text-[#1E293B] dark:text-white mb-2">{feature.title}</h3>
-//                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{feature.description}</p>
-//               </div>
-//             ))}
-//           </div>
-//         </div>
-//       </section>
-
-//       {/* ── Companies ── */}
-//       <section className="py-20 px-4 sm:px-6 bg-white dark:bg-gray-900/30">
-//         <div className="max-w-7xl mx-auto">
-//           <div className="text-center mb-10 sm:mb-14">
-//             <p className="text-[11px] sm:text-xs uppercase tracking-[0.22em] text-gray-400 font-bold mb-3">Trusted By Professionals At</p>
-//             <h2 className="text-4xl md:text-5xl font-bold text-[#1E293B] dark:text-white">Top Global <span className="text-[#F97316]">Companies</span></h2>
-//             <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mt-3 max-w-[600px] mx-auto leading-relaxed">
-//               We collaborate with leading technology providers and business organizations to deliver innovative digital solutions.
-//             </p>
-//           </div>
-
-//           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
-//             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 sm:p-8">
-//               <div className="flex flex-col items-center mb-2">
-//                 <div className="flex items-center gap-2.5 mb-5">
-//                   <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 flex items-center justify-center flex-shrink-0">
-//                     <svg viewBox="0 0 24 24" className="w-5 h-5 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-//                       <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
-//                     </svg>
-//                   </div>
-//                   <span className="text-[13px] font-black tracking-[0.13em] uppercase text-blue-600 dark:text-blue-400">Technology Partners</span>
-//                 </div>
-//               </div>
-//               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-//                 {techPartners.map((p) => (
-//                   <div key={p.name} className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 sm:p-5 flex flex-col items-center gap-3 shadow-sm hover:shadow-lg hover:-translate-y-2 transition-all duration-300">
-//                     <div className="w-full h-11 flex items-center justify-center">
-//                       <img src={p.src} alt={p.name} className="max-w-full max-h-10 object-contain"
-//                         onError={(e) => { e.currentTarget.style.display = "none"; const sib = e.currentTarget.nextSibling; if (sib) sib.style.display = "flex"; }}
-//                       />
-//                       <div className="hidden w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 items-center justify-center text-[10px] font-bold text-gray-400 text-center leading-tight px-1">{p.name}</div>
-//                     </div>
-//                     <div className="text-center">
-//                       <p className="text-[12px] sm:text-[13px] font-bold text-[#0F172A] dark:text-white leading-tight">{p.name}</p>
-//                       <p className="text-[10px] sm:text-[11px] text-gray-400 dark:text-gray-500 mt-0.5 leading-snug">{p.desc}</p>
-//                     </div>
-//                   </div>
-//                 ))}
-//               </div>
-//             </div>
-
-//             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 sm:p-8">
-//               <div className="flex flex-col items-center mb-2">
-//                 <div className="flex items-center gap-2.5 mb-5">
-//                   <div className="w-10 h-10 rounded-full bg-green-50 dark:bg-green-900/30 border border-green-100 dark:border-green-800 flex items-center justify-center flex-shrink-0">
-//                     <svg viewBox="0 0 24 24" className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-//                       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-//                       <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-//                     </svg>
-//                   </div>
-//                   <span className="text-[13px] font-black tracking-[0.13em] uppercase text-green-600 dark:text-green-400">Business Partners</span>
-//                 </div>
-//               </div>
-//               <div className="grid grid-cols-2 gap-4">
-//                 {bizPartners.map((p) => (
-//                   <div key={p.name} className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-2xl p-5 sm:p-7 flex flex-col items-center gap-4 shadow-sm hover:shadow-lg hover:-translate-y-2 transition-all duration-300">
-//                     <div className="w-full h-14 sm:h-16 flex items-center justify-center">
-//                       <img src={p.src} alt={p.name} className="max-w-full max-h-12 object-contain"
-//                         onError={(e) => { e.currentTarget.style.display = "none"; const sib = e.currentTarget.nextSibling; if (sib) sib.style.display = "flex"; }}
-//                       />
-//                       <div className="hidden w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-800 items-center justify-center text-[10px] font-bold text-gray-400 text-center leading-tight px-1">{p.name}</div>
-//                     </div>
-//                     <div className="text-center">
-//                       <p className="text-[13px] sm:text-[14px] font-bold text-[#0F172A] dark:text-white leading-tight">{p.name}</p>
-//                       <p className="text-[11px] sm:text-[12px] text-gray-400 dark:text-gray-500 mt-1 leading-snug">{p.desc}</p>
-//                     </div>
-//                   </div>
-//                 ))}
-//               </div>
-//             </div>
-//           </div>
-
-//           <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 sm:p-8">
-//             <div className="flex items-center gap-3 sm:gap-5 mb-7 sm:mb-9">
-//               <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-//               <div className="flex-shrink-0 text-center">
-//                 <p className="text-[12px] sm:text-[13px] font-black tracking-[0.15em] uppercase text-[#0F172A] dark:text-white whitespace-nowrap">Texora Product Ecosystem</p>
-//                 <div className="w-8 h-[3px] bg-[#F97316] rounded-full mx-auto mt-1.5" />
-//               </div>
-//               <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-//             </div>
-
-//             <style>{`
-//               .eco-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
-//               @media (max-width: 1279px) { .eco-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-//               @media (max-width: 639px)  { .eco-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); } }
-//             `}</style>
-
-//             <div className="eco-grid">
-//               {[
-//                 { label: "TORA CX",       color: "blue",   desc: "Customer experience platform",  Icon: null, svgPath: <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/> },
-//                 { label: "UNIFIED CRM",   color: "orange", desc: "AI-driven CRM for sales",        Icon: Users },
-//                 { label: "ILM ORA",       color: "purple", desc: "LMS with AI learning paths",     Icon: GraduationCap },
-//                 { label: "INNOVORA AI",   color: "green",  desc: "AI-powered innovation suite",    Icon: Lightbulb },
-//                 { label: "TASK ORBIT",    color: "rose",   desc: "AI-powered task management",     Icon: ClipboardList },
-//               ].map((item) => {
-//                 const colorMap = {
-//                   blue:   { bg: "bg-blue-100 dark:bg-blue-900/30",   text: "text-blue-600 dark:text-blue-400",     label: "text-blue-700 dark:text-blue-300"   },
-//                   orange: { bg: "bg-orange-100 dark:bg-orange-900/30", text: "text-[#F97316]",                      label: "text-[#F97316]"                     },
-//                   purple: { bg: "bg-purple-100 dark:bg-purple-900/30", text: "text-purple-600 dark:text-purple-400", label: "text-purple-700 dark:text-purple-300" },
-//                   green:  { bg: "bg-green-100 dark:bg-green-900/30",  text: "text-green-600 dark:text-green-400",  label: "text-green-700 dark:text-green-300"  },
-//                   rose:   { bg: "bg-rose-100 dark:bg-rose-900/30",    text: "text-rose-600 dark:text-rose-400",    label: "text-rose-700 dark:text-rose-300"    },
-//                 };
-//                 const c = colorMap[item.color];
-//                 return (
-//                   <div key={item.label} className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 sm:p-5 flex flex-col gap-2.5 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
-//                     <div className={`w-12 h-12 rounded-xl ${c.bg} flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform`}>
-//                       {item.Icon
-//                         ? <item.Icon className={`w-6 h-6 ${c.text}`} />
-//                         : <svg xmlns="http://www.w3.org/2000/svg" className={`w-6 h-6 ${c.text}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{item.svgPath}</svg>
-//                       }
-//                     </div>
-//                     <p className={`text-[13px] font-black tracking-wide ${c.label}`}>{item.label}</p>
-//                     <div className={`w-7 h-[3px] rounded-full bg-current ${c.text}`} />
-//                     <p className="text-[11px] sm:text-[12px] text-gray-500 dark:text-gray-400 leading-relaxed flex-1">{item.desc}</p>
-//                     <a href="/" onClick={(e) => e.preventDefault()} className={`text-[11px] sm:text-[12px] font-semibold flex items-center gap-1 mt-1 transition-opacity hover:opacity-70 ${c.text}`}>
-//                       Explore <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-//                     </a>
-//                   </div>
-//                 );
-//               })}
-//             </div>
-//           </div>
-//         </div>
-//       </section>
-
-//       {/* ── Courses ── */}
-//       <section id="courses" className="py-24 px-6 scroll-mt-20 bg-[#F6EDE6] dark:bg-black">
-//         <div className="max-w-7xl mx-auto">
-//           <div className="text-center mb-14">
-//             <h2 className="text-4xl md:text-5xl font-bold mb-4 text-[#1E293B] dark:text-white">Featured <span className="text-[#F97316]">Programs</span></h2>
-//             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">Choose your path and start building skills that matter</p>
-//           </div>
-//           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-//             <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-12 p-1.5 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
-//               {["product", "design", "growth"].map(tab => (
-//                 <TabsTrigger key={tab} value={tab} className="rounded-xl capitalize font-semibold data-[state=active]:bg-[#1E293B] data-[state=active]:text-white dark:data-[state=active]:bg-[#F97316] transition-all">{tab}</TabsTrigger>
-//               ))}
-//             </TabsList>
-//             {Object.entries(courses).map(([category, categoryCourses]) => (
-//               <TabsContent key={category} value={category}>
-//                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-//                   {categoryCourses.map(course => (
-//                     <div key={course.id} onClick={() => navigate("/course-details", { state: { course } })} className="group bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer">
-//                       <div className="h-1 bg-[#F97316]" />
-//                       <div className="p-6">
-//                         <div className="flex items-start justify-between mb-4">
-//                           <span className={`text-xs font-semibold px-3 py-1 rounded-full ${getLevelColor(course.level)}`}>{course.level}</span>
-//                           <span className="flex items-center gap-1 text-xs font-semibold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-full border border-amber-200 dark:border-amber-800">
-//                             <Star className="w-3 h-3 fill-amber-400 text-amber-400" />{course.rating}
-//                           </span>
-//                         </div>
-//                         <h3 className="text-xl font-bold text-[#1E293B] dark:text-white mb-1 group-hover:text-[#F97316] transition-colors">{course.title}</h3>
-//                         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{course.instructor}</p>
-//                         <p className="text-gray-600 dark:text-gray-300 mb-6 line-clamp-2 leading-relaxed text-sm">{course.description}</p>
-//                         <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-6 pb-4 border-b border-gray-100 dark:border-gray-800">
-//                           <div className="flex items-center gap-1"><Clock className="w-4 h-4 text-[#F97316]" />{course.duration}</div>
-//                           <div className="flex items-center gap-1"><Users className="w-4 h-4 text-[#F97316]" />{course.students}</div>
-//                           <div className="flex items-center gap-1"><BookOpen className="w-4 h-4 text-[#F97316]" />{course.modules.length}</div>
-//                         </div>
-//                         <button className="w-full bg-[#1E293B] hover:bg-[#334155] text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all group-hover:scale-[1.02] shadow-sm">
-//                           View Details <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-//                         </button>
-//                       </div>
-//                     </div>
-//                   ))}
-//                 </div>
-//               </TabsContent>
-//             ))}
-//           </Tabs>
-//         </div>
-//       </section>
-
-//       {/* ── Mentors ── */}
-//       <section id="mentors" className="py-24 px-6 scroll-mt-20 bg-white dark:bg-gray-900/30">
-//         <div className="max-w-7xl mx-auto">
-//           <div className="grid lg:grid-cols-2 gap-16 items-center">
-//             <div>
-//               <h2 className="text-4xl md:text-5xl font-bold mb-6 text-[#1E293B] dark:text-white">Learn from <span className="text-[#F97316]">Industry Experts</span></h2>
-//               <p className="text-lg text-gray-600 dark:text-gray-300 mb-10 max-w-xl">Sessions led by operators from top product companies so you understand how work happens in the real world.</p>
-//               <div className="space-y-4">
-//                 {mentorBenefits.map((item, i) => (
-//                   <div key={i} className="bg-[#F6EDE6] dark:bg-gray-900 rounded-2xl p-5 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex items-start gap-4">
-//                     <div className="w-10 h-10 bg-[#1E293B] dark:bg-[#F97316] rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-//                       <item.icon className="w-5 h-5 text-white" />
-//                     </div>
-//                     <p className="text-gray-700 dark:text-gray-300 font-medium pt-1">{item.text}</p>
-//                   </div>
-//                 ))}
-//               </div>
-//             </div>
-//             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-//               {testimonials.map((t, i) => (
-//                 <div key={i} className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all">
-//                   <div className="flex items-center gap-1 mb-4">
-//                     {[...Array(5)].map((_, j) => <Star key={j} className="w-4 h-4 fill-amber-400 text-amber-400" />)}
-//                   </div>
-//                   <p className="text-gray-600 dark:text-gray-300 mb-5 italic leading-relaxed text-sm">"{t.text}"</p>
-//                   <div className="flex items-center gap-3">
-//                     <div className="w-10 h-10 bg-[#1E293B] dark:bg-[#F97316] rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">{t.name.charAt(0)}</div>
-//                     <div>
-//                       <p className="font-semibold text-[#1E293B] dark:text-white text-sm">{t.name}</p>
-//                       <p className="text-xs text-gray-500 dark:text-gray-400">{t.role}</p>
-//                     </div>
-//                   </div>
-//                 </div>
-//               ))}
-//             </div>
-//           </div>
-//         </div>
-//       </section>
-
-//       {/* ── Career Support ── */}
-//       <section id="successstories" className="py-24 px-6 scroll-mt-20 bg-[#F6EDE6] dark:bg-black">
-//         <div className="max-w-7xl mx-auto">
-//           <div className="text-center mb-14">
-//             <h2 className="text-4xl md:text-5xl font-bold mb-4 text-[#1E293B] dark:text-white">Career Support That <span className="text-[#F97316]">Delivers Results</span></h2>
-//             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">Get help with interview prep, portfolios, referrals and role mapping</p>
-//           </div>
-//           <div className="grid lg:grid-cols-3 gap-8 mb-16">
-//             {careerSupport.map((item, i) => (
-//               <div key={i} className="group bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all">
-//                 <div className="w-16 h-16 bg-[#1E293B] dark:bg-[#F97316] rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform shadow-sm">
-//                   <item.icon className="w-8 h-8 text-white" />
-//                 </div>
-//                 <h3 className="text-xl font-bold text-[#1E293B] dark:text-white mb-3">{item.title}</h3>
-//                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{item.description}</p>
-//               </div>
-//             ))}
-//           </div>
-//           <div className="bg-[#1E293B] dark:bg-gray-900 rounded-3xl p-14 text-center relative overflow-hidden border border-[#F97316]/20 shadow-xl">
-//             <div className="absolute top-0 left-0 right-0 h-1.5 bg-[#F97316]" />
-//             <div className="relative max-w-3xl mx-auto">
-//               <h3 className="text-3xl md:text-5xl font-bold mb-6 text-white">Ready to Transform Your Career?</h3>
-//               <p className="text-lg text-gray-300 mb-10">Join 50,000+ professionals who've already taken the leap</p>
-              
-//             </div>
-//           </div>
-//         </div>
-//       </section>
-
-//       {/* ── Footer ── */}
-//       <footer className="bg-white text-[#1E293B]">
-//         <div className="max-w-7xl mx-auto px-6 py-20">
-//           <div className="grid gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 items-start">
-//             <div className="flex flex-col gap-2.5 self-start text-left sm:col-span-2 lg:col-span-1">
-//               <h3 className="text-3xl font-extrabold leading-none">
-//                 <span className="text-green-600">ILM</span>{" "}<span className="text-[#F97316]">ORA</span>
-//               </h3>
-//               <p className="text-sm text-gray-600 leading-relaxed">Modern learning platform for ambitious professionals who want to break into product, design and growth roles.</p>
-//               <p className="text-sm text-gray-500">📧 <a href="mailto:marketing@texora.ai" className="hover:text-[#F97316] transition-colors">marketing@texora.ai</a></p>
-//               <div className="flex items-center gap-3 pt-1 flex-wrap">
-//                 {[
-//                   { href: "https://www.youtube.com/@Texoraai", bg: "#FF0000", d: "M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" },
-//                   { href: "https://www.linkedin.com/company/ilmora-texoraai/", bg: "#0A66C2", d: "M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" },
-//                   { href: "https://x.com/texoraai", bg: "#000", d: "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L2.062 2.25H8.28l4.259 5.63 5.704-5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z" },
-//                 ].map(({ href, bg, d }) => (
-//                   <a key={href} href={href} target="_blank" rel="noreferrer"
-//                     className="h-9 w-9 rounded-full flex items-center justify-center text-white hover:scale-110 hover:shadow-md transition-all"
-//                     style={{ background: bg }}>
-//                     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d={d}/></svg>
-//                   </a>
-//                 ))}
-//               </div>
-//             </div>
-
-//             <div className="flex flex-col gap-4">
-//               <h4 className="text-sm font-bold tracking-widest text-[#1E293B] uppercase">Programs</h4>
-//               <ul className="flex flex-col gap-2.5 text-sm text-gray-600">
-//                 {[
-//                   { label: "Product Management", action: () => scrollToSection("courses", "product") },
-//                   { label: "Growth Marketing",   action: () => scrollToSection("courses", "growth") },
-//                   { label: "UI / UX Design",     action: () => scrollToSection("courses", "design") },
-//                 ].map(item => (
-//                   <li key={item.label} onClick={item.action} className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group">
-//                     <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />{item.label}
-//                   </li>
-//                 ))}
-//               </ul>
-//             </div>
-
-//             <div className="flex flex-col gap-4">
-//               <h4 className="text-sm font-bold tracking-widests text-[#1E293B] uppercase">Resources</h4>
-//               <ul className="flex flex-col gap-2.5 text-sm text-gray-600">
-//                 {[
-//                   { label: "Success Stories", action: () => scrollToSection("successstories") },
-                 
-//                   { label: "Blogs",           action: () => window.open("https://texora.ai/blogs", "_blank") },
-//                   { label: "Use Cases",       action: () => window.open("https://texora.ai/use-cases", "_blank") },
-//                 ].map(item => (
-//                   <li key={item.label} onClick={item.action} className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group">
-//                     <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />{item.label}
-//                   </li>
-//                 ))}
-//               </ul>
-//             </div>
-
-//             <div className="flex flex-col gap-4 self-start">
-//               <h4 className="text-sm font-bold tracking-widest text-[#1E293B] uppercase">Company</h4>
-//               <ul className="flex flex-col gap-2.5 text-sm text-gray-600">
-//                 {[
-//                   { label: "About Us",       action: () => navigate("/about") },
-//                   { label: "Careers",        action: () => navigate("/careers") },
-//                   { label: "Pricing",        action: () => navigate("/pricing") },
-//                   { label: "Privacy Policy", action: () => navigate("/privacy-policy") },
-//                   { label: "Help Center",    action: () => navigate("/help-center") },
-//                   { label: "FAQ",            action: () => navigate("/faq") },
-//                 ].map(item => (
-//                   <li key={item.label} onClick={item.action} className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group">
-//                     <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />{item.label}
-//                   </li>
-//                 ))}
-//               </ul>
-//             </div>
-
-//             <FooterNewsletter />
-//           </div>
-
-//           <div className="border-t border-gray-200 mt-16 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
-//             <span>© {new Date().getFullYear()} ILM ORA All rights reserved.</span>
-//             <div className="flex items-center gap-2">
-//               <span>Built with</span><span className="text-red-500 text-base">❤️</span><span>passion for modern learners</span>
-//             </div>
-//           </div>
-//         </div>
-//       </footer>
-
-//       {/* ── Login Modal ── */}
-//       {showLoginModal && (
-//         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-//           <div
-//             className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-//             style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(5px)" }}
-//             onClick={(e) => { if (e.target === e.currentTarget) setShowLoginModal(false); }}
-//           >
-//             <div
-//               className="relative w-full max-w-md rounded-2xl shadow-2xl"
-//               style={{ background: "rgba(255,255,255,0.97)", border: "1px solid rgba(249,115,22,0.18)", padding: "36px 32px 28px", animation: "modalFadeUp 0.3s ease both" }}
-//             >
-//               <style>{`@keyframes modalFadeUp { from { opacity:0; transform:translateY(20px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }`}</style>
-
-//               <button onClick={() => setShowLoginModal(false)} className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition text-xl font-bold leading-none" aria-label="Close">×</button>
-
-//               <div className="flex justify-center mb-5">
-//                 <span className="text-4xl font-extrabold font-serif tracking-wide">
-//                   <span className="text-green-600">ILM</span>
-//                   <span className="text-[#F97316] ml-2">ORA</span>
-//                 </span>
-//               </div>
-
-//               <div className="text-center mb-6">
-//                 <h2 className="text-xl font-bold text-[#1e0e02] mb-1">Welcome back!</h2>
-//                 <p className="text-sm text-[#8a6040]">
-//                   Don't have an account?{" "}
-//                   <button onClick={() => { setShowLoginModal(false); navigate("/complete-profile"); }} className="text-[#F97316] font-bold hover:underline bg-transparent border-none cursor-pointer text-sm p-0">Apply now</button>
-//                 </p>
-//               </div>
-
-//               <div className="flex justify-center mb-5">
-//                 <GoogleLogin onSuccess={handleModalGoogle} onError={() => console.error("Google OAuth failed")} theme="outline" size="large" text="continue_with" shape="rectangular" width="360" auto_select={false} cancel_on_tap_outside={true} />
-//               </div>
-
-//               <div className="flex items-center gap-3 mb-5">
-//                 <div className="flex-1 h-px" style={{ background: "rgba(180,100,30,0.15)" }} />
-//                 <span className="text-xs text-[#b8906a] uppercase tracking-widest font-medium">OR</span>
-//                 <div className="flex-1 h-px" style={{ background: "rgba(180,100,30,0.15)" }} />
-//               </div>
-
-//               <form onSubmit={handleModalSubmit}>
-//                 <div className="mb-3">
-//                   <label className="block text-xs font-bold text-[#8a6040] mb-1.5 uppercase tracking-widest">Email</label>
-//                   <input type="email" placeholder="Enter your email" value={modalEmail} onChange={e => setModalEmail(e.target.value)} required disabled={modalLoading}
-//                     className="w-full px-3.5 py-2.5 rounded-xl text-sm text-[#1a0e06] placeholder-[#c0a070] outline-none transition-all disabled:opacity-50"
-//                     style={{ background: "rgba(255,255,255,0.8)", border: "1.5px solid rgba(180,120,60,0.2)" }}
-//                     onFocus={e => { e.target.style.borderColor="#F97316"; e.target.style.boxShadow="0 0 0 3px rgba(249,115,22,0.1)"; e.target.style.background="#fff"; }}
-//                     onBlur={e => { e.target.style.borderColor="rgba(180,120,60,0.2)"; e.target.style.boxShadow="none"; }}
-//                   />
-//                 </div>
-//                 <div className="mb-2">
-//                   <label className="block text-xs font-bold text-[#8a6040] mb-1.5 uppercase tracking-widest">Password</label>
-//                   <div className="relative">
-//                     <input type={showModalPw ? "text" : "password"} placeholder="Enter your password" value={modalPassword} onChange={e => setModalPassword(e.target.value)} required disabled={modalLoading}
-//                       className="w-full px-3.5 py-2.5 pr-11 rounded-xl text-sm text-[#1a0e06] placeholder-[#c0a070] outline-none transition-all disabled:opacity-50"
-//                       style={{ background: "rgba(255,255,255,0.8)", border: "1.5px solid rgba(180,120,60,0.2)" }}
-//                       onFocus={e => { e.target.style.borderColor="#F97316"; e.target.style.boxShadow="0 0 0 3px rgba(249,115,22,0.1)"; e.target.style.background="#fff"; }}
-//                       onBlur={e => { e.target.style.borderColor="rgba(180,120,60,0.2)"; e.target.style.boxShadow="none"; }}
-//                     />
-//                     <button type="button" onClick={() => setShowModalPw(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#b8906a] hover:text-[#F97316] transition p-0 bg-transparent border-none cursor-pointer" tabIndex={-1}>
-//                       {showModalPw
-//                         ? <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-//                         : <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-//                       }
-//                     </button>
-//                   </div>
-//                 </div>
-//                 <div className="text-right mb-5">
-//                   <button type="button" onClick={() => { setShowLoginModal(false); navigate("/forgot-password"); }} className="text-xs text-[#F97316] hover:underline bg-transparent border-none cursor-pointer font-medium p-0">Forgot password?</button>
-//                 </div>
-//                 <button type="submit" disabled={modalLoading}
-//                   className="w-full py-3 rounded-xl font-bold text-white text-sm transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-//                   style={{ background: "linear-gradient(135deg,#F97316,#ea580c)", boxShadow: "0 4px 18px rgba(249,115,22,0.32)" }}
-//                 >
-//                   {modalLoading ? <><span className="inline-block w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />Signing in…</> : "Log in"}
-//                 </button>
-//               </form>
-
-//               <div className="text-center mt-5">
-//                 <button onClick={() => setShowLoginModal(false)} className="text-xs text-[#b8906a] hover:text-[#8a6040] bg-transparent border-none cursor-pointer transition-colors">← Back to home</button>
-//               </div>
-//             </div>
-//           </div>
-//         </GoogleOAuthProvider>
-//       )}
-
-//     </div>
-//   );
-// }
+}

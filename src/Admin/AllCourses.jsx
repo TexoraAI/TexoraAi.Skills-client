@@ -1,7 +1,13 @@
 import { courseService } from "@/services/courseService";
 import {
-  ArrowLeft, BookOpen, Folder, Mail, Plus,
-  Search, Tag, Users, X,
+  ArrowLeft,
+  BookOpen,
+  Folder,
+  Mail,
+  Search,
+  Tag,
+  Users,
+  X
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -125,13 +131,34 @@ const isDark = () =>
 
 /* ── category tag colours ── */
 const CAT_COLORS = [
-  { bg:"rgba(34,211,238,.10)",  color:"var(--c1)", bd:"rgba(34,211,238,.20)"  },
-  { bg:"rgba(167,139,250,.10)", color:"var(--c4)", bd:"rgba(167,139,250,.20)" },
-  { bg:"rgba(251,146,60,.10)",  color:"var(--c2)", bd:"rgba(251,146,60,.20)"  },
-  { bg:"rgba(52,211,153,.10)",  color:"var(--c3)", bd:"rgba(52,211,153,.20)"  },
-  { bg:"rgba(248,113,113,.10)", color:"var(--cr)", bd:"rgba(248,113,113,.20)" },
+  {
+    bg: "rgba(34,211,238,.10)",
+    color: "var(--c1)",
+    bd: "rgba(34,211,238,.20)",
+  },
+  {
+    bg: "rgba(167,139,250,.10)",
+    color: "var(--c4)",
+    bd: "rgba(167,139,250,.20)",
+  },
+  {
+    bg: "rgba(251,146,60,.10)",
+    color: "var(--c2)",
+    bd: "rgba(251,146,60,.20)",
+  },
+  {
+    bg: "rgba(52,211,153,.10)",
+    color: "var(--c3)",
+    bd: "rgba(52,211,153,.20)",
+  },
+  {
+    bg: "rgba(248,113,113,.10)",
+    color: "var(--cr)",
+    bd: "rgba(248,113,113,.20)",
+  },
 ];
-const catColor = val => CAT_COLORS[(String(val)?.charCodeAt(0) ?? 0) % CAT_COLORS.length];
+const catColor = (val) =>
+  CAT_COLORS[(String(val)?.charCodeAt(0) ?? 0) % CAT_COLORS.length];
 
 /* ── avatar gradients ── */
 const GRAD_BG = [
@@ -142,7 +169,8 @@ const GRAD_BG = [
   "linear-gradient(135deg,#047857,#065f46)",
   "linear-gradient(135deg,#1d4ed8,#1e40af)",
 ];
-const gradBg = val => GRAD_BG[(String(val)?.charCodeAt(0) ?? 0) % GRAD_BG.length];
+const gradBg = (val) =>
+  GRAD_BG[(String(val)?.charCodeAt(0) ?? 0) % GRAD_BG.length];
 
 /* ════════════════════════════════════════════════════════════════════
    MAIN
@@ -151,31 +179,36 @@ const AllCourses = () => {
   const navigate = useNavigate();
   const [dark, setDark] = useState(isDark);
 
-  const [search, setSearch]   = useState("");
-  const [open, setOpen]       = useState(false);
+  const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const o = new MutationObserver(() => setDark(isDark()));
-    o.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    o.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
     o.observe(document.body, { attributes: true, attributeFilter: ["class"] });
     return () => o.disconnect();
   }, []);
 
   /* ── LOAD (unchanged) ── */
-  useEffect(() => { loadCourses(); }, []);
+  useEffect(() => {
+    loadCourses();
+  }, []);
 
   const loadCourses = () => {
     courseService
-      .getAllCoursesForAdmin()
+      .getOrgAdminCourses()
       .then((res) => {
         const mapped = res.data.map((c) => ({
-          id:          c.id,
-          name:        c.title,
-          category:    c.category,
+          id: c.id,
+          name: c.title,
+          category: c.category,
           trainerName: c.ownerEmail,
-          status:      "PUBLISHED",
+          status: "PUBLISHED",
           enrollments: 0,
         }));
         setCourses(mapped);
@@ -185,7 +218,7 @@ const AllCourses = () => {
   };
 
   const filteredCourses = courses.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase())
+    c.name.toLowerCase().includes(search.toLowerCase()),
   );
 
   const publishedCount = courses.filter((c) => c.status === "PUBLISHED").length;
@@ -193,30 +226,43 @@ const AllCourses = () => {
   return (
     <div className={`ac${dark ? " ac-dk" : ""}`}>
       <div className="ac-inner">
-
         {/* ── Header ── */}
         <div className="ac-hdr">
           <div className="ac-hdr-l">
             <button className="ac-back" onClick={() => navigate(-1)}>
               <ArrowLeft size={14} /> Back
             </button>
-            <div className="ac-hdr-ico"><BookOpen size={24} /></div>
+            <div className="ac-hdr-ico">
+              <BookOpen size={24} />
+            </div>
             <div>
-              <div className="ac-bdg"><BookOpen size={10} /> Course Management</div>
+              <div className="ac-bdg">
+                <BookOpen size={10} /> Course Management
+              </div>
               <h1 className="ac-h1">All Courses</h1>
-              <p className="ac-sub">Approve, publish and manage all courses on the platform</p>
+              <p className="ac-sub">
+                Approve, publish and manage all courses on the platform
+              </p>
             </div>
           </div>
           <div className="ac-chips">
             <div className="ac-chip">
               <BookOpen size={14} style={{ color: "var(--c1)" }} />
-              <span style={{ fontWeight: 800, color: "var(--c1)" }}>{courses.length}</span>
-              <span style={{ color: "var(--mu)", fontWeight: 500 }}>Courses</span>
+              <span style={{ fontWeight: 800, color: "var(--c1)" }}>
+                {courses.length}
+              </span>
+              <span style={{ color: "var(--mu)", fontWeight: 500 }}>
+                Courses
+              </span>
             </div>
             <div className="ac-chip">
               <Users size={14} style={{ color: "var(--c3)" }} />
-              <span style={{ fontWeight: 800, color: "var(--c3)" }}>{publishedCount}</span>
-              <span style={{ color: "var(--mu)", fontWeight: 500 }}>Published</span>
+              <span style={{ fontWeight: 800, color: "var(--c3)" }}>
+                {publishedCount}
+              </span>
+              <span style={{ color: "var(--mu)", fontWeight: 500 }}>
+                Published
+              </span>
             </div>
           </div>
         </div>
@@ -232,7 +278,17 @@ const AllCourses = () => {
             />
           </div>
           <div className="ac-abar-r">
-            <button className="ac-btn ac-btn-outline" onClick={() => navigate("/admin/categories")}>
+            {/* <button
+              className="ac-btn ac-btn-outline"
+              onClick={() => navigate("/admin/categories")}
+            >
+              <Folder size={14} style={{ color: "var(--c1)" }} /> Categories
+            </button> */}
+            <button
+              className="ac-btn ac-btn-outline"
+              // onClick={() => navigate("/org-admin/categories")}
+              onClick={() => navigate("/admin/categories")}
+            >
               <Folder size={14} style={{ color: "var(--c1)" }} /> Categories
             </button>
           </div>
@@ -244,31 +300,40 @@ const AllCourses = () => {
             <div>
               <p className="ac-thead-title">Course List</p>
               <p className="ac-thead-sub">
-                {filteredCourses.length} course{filteredCourses.length !== 1 && "s"} found
+                {filteredCourses.length} course
+                {filteredCourses.length !== 1 && "s"} found
               </p>
             </div>
           </div>
 
           {/* skeleton */}
-          {loading && [1, 2, 3].map(i => (
-            <div key={i} className="ac-skel-row">
-              <div className="ac-skel-l">
-                <div className="ac-skel-sq" />
-                <div>
-                  <div className="ac-skel-line" style={{ width: 160, marginBottom: 8 }} />
-                  <div className="ac-skel-line" style={{ width: 100 }} />
+          {loading &&
+            [1, 2, 3].map((i) => (
+              <div key={i} className="ac-skel-row">
+                <div className="ac-skel-l">
+                  <div className="ac-skel-sq" />
+                  <div>
+                    <div
+                      className="ac-skel-line"
+                      style={{ width: 160, marginBottom: 8 }}
+                    />
+                    <div className="ac-skel-line" style={{ width: 100 }} />
+                  </div>
                 </div>
+                <div className="ac-skel-pill" />
               </div>
-              <div className="ac-skel-pill" />
-            </div>
-          ))}
+            ))}
 
           {/* empty */}
           {!loading && filteredCourses.length === 0 && (
             <div className="ac-empty">
-              <div className="ac-empty-ico"><BookOpen size={26} /></div>
+              <div className="ac-empty-ico">
+                <BookOpen size={26} />
+              </div>
               <p className="ac-empty-t">No courses available</p>
-              <p className="ac-empty-s">Courses created by trainers will appear here</p>
+              <p className="ac-empty-s">
+                Courses created by trainers will appear here
+              </p>
             </div>
           )}
 
@@ -290,17 +355,31 @@ const AllCourses = () => {
                   const cc = catColor(c.category);
                   return (
                     <tr key={c.id}>
-                      <td><span className="ac-idx">{String(index + 1).padStart(2, "0")}</span></td>
+                      <td>
+                        <span className="ac-idx">
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
+                      </td>
                       <td>
                         <div className="ac-course-cell">
-                          <div className="ac-course-av" style={{ background: gradBg(c.name) }}>
+                          <div
+                            className="ac-course-av"
+                            style={{ background: gradBg(c.name) }}
+                          >
                             <BookOpen size={16} color="white" />
                           </div>
                           <span className="ac-course-name">{c.name}</span>
                         </div>
                       </td>
                       <td>
-                        <span className="ac-cat-tag" style={{ background: cc.bg, color: cc.color, borderColor: cc.bd }}>
+                        <span
+                          className="ac-cat-tag"
+                          style={{
+                            background: cc.bg,
+                            color: cc.color,
+                            borderColor: cc.bd,
+                          }}
+                        >
                           <Tag size={11} /> {c.category || "—"}
                         </span>
                       </td>
@@ -316,7 +395,8 @@ const AllCourses = () => {
                       </td>
                       <td>
                         <div className="ac-enroll-cell">
-                          <Users size={13} style={{ color: "var(--mu)" }} /> {c.enrollments}
+                          <Users size={13} style={{ color: "var(--mu)" }} />{" "}
+                          {c.enrollments}
                         </div>
                       </td>
                     </tr>
@@ -326,40 +406,57 @@ const AllCourses = () => {
             </table>
           )}
         </div>
-
       </div>
 
       {/* ── Modal (unchanged logic) ── */}
       {open && (
-        <div className={`ac-modal-overlay${dark ? " ac-dk" : ""}`} onClick={() => setOpen(false)}>
-          <div className="ac-modal" onClick={e => e.stopPropagation()}>
+        <div
+          className={`ac-modal-overlay${dark ? " ac-dk" : ""}`}
+          onClick={() => setOpen(false)}
+        >
+          <div className="ac-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ac-modal-head">
               <div className="ac-modal-head-row">
                 <div className="ac-modal-head-l">
-                  <div className="ac-modal-ico"><BookOpen size={17} /></div>
+                  <div className="ac-modal-ico">
+                    <BookOpen size={17} />
+                  </div>
                   <div>
                     <p className="ac-modal-title">Create Course</p>
                     <p className="ac-modal-sub">Fill in the details below</p>
                   </div>
                 </div>
-                <button className="ac-modal-close" onClick={() => setOpen(false)}><X size={14} /></button>
+                <button
+                  className="ac-modal-close"
+                  onClick={() => setOpen(false)}
+                >
+                  <X size={14} />
+                </button>
               </div>
             </div>
             <div className="ac-modal-body">
               <div className="ac-field">
                 <label>Course Name</label>
-                <input className="ac-input" placeholder="e.g. React for Beginners" />
+                <input
+                  className="ac-input"
+                  placeholder="e.g. React for Beginners"
+                />
               </div>
               <div className="ac-field">
                 <label>Category</label>
-                <input className="ac-input" placeholder="e.g. Web Development" />
+                <input
+                  className="ac-input"
+                  placeholder="e.g. Web Development"
+                />
               </div>
               <div className="ac-field">
                 <label>Trainer Name</label>
                 <input className="ac-input" placeholder="trainer@example.com" />
               </div>
               <div className="ac-modal-footer">
-                <button className="ac-cancel" onClick={() => setOpen(false)}>Cancel</button>
+                <button className="ac-cancel" onClick={() => setOpen(false)}>
+                  Cancel
+                </button>
                 <button className="ac-submit">Create</button>
               </div>
             </div>

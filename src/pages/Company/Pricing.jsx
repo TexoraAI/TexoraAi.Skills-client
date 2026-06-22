@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Lock } from "lucide-react";
 
 /* ── Design tokens (identical to PrivacyPolicy.jsx) ── */
@@ -134,9 +134,9 @@ a { text-decoration: none; transition: color 0.18s; }
 }
 `;
 
-const plans = [
+const studentPlans = [
   {
-    id: "starter",
+    id: "student-starter",
     name: "Starter",
     monthlyPrice: 0,
     annualPrice: 0,
@@ -157,7 +157,7 @@ const plans = [
     ],
   },
   {
-    id: "pro",
+    id: "student-pro",
     name: "Pro Learner",
     monthlyPrice: 1499,
     annualPrice: 999,
@@ -178,7 +178,7 @@ const plans = [
     ],
   },
   {
-    id: "elite",
+    id: "student-elite",
     name: "Elite",
     monthlyPrice: 3999,
     annualPrice: 2799,
@@ -200,6 +200,211 @@ const plans = [
   },
 ];
 
+const trainerPlans = [
+  {
+    id: "trainer-basic",
+    name: "Trainer Basic",
+    monthlyPrice: 0,
+    annualPrice: 0,
+    period: "Free forever",
+    desc: "Get started teaching on ILM ORA with essential tools.",
+    cta: "Get Started Free",
+    ctaType: "outline",
+    popular: false,
+    accentColor: T.green,
+    features: [
+      { text: "Create up to 2 batches",        included: true  },
+      { text: "Basic attendance & reports",    included: true  },
+      { text: "Community support",             included: true  },
+      { text: "Upload recorded classes",       included: true  },
+      { text: "AI Companion for content",      included: false },
+      { text: "Live session analytics",        included: false },
+      { text: "Payout priority processing",    included: false },
+    ],
+  },
+  {
+    id: "trainer-elite",
+    name: "Trainer Elite",
+    monthlyPrice: 1299,
+    annualPrice: 899,
+    period: "/month · billed as shown",
+    desc: "For trainers who want to scale batches and earnings with AI tools.",
+    cta: "Go Elite →",
+    ctaType: "primary",
+    popular: true,
+    accentColor: T.orange,
+    features: [
+      { text: "Unlimited batches",              included: true },
+      { text: "AI Companion for content & quiz", included: true },
+      { text: "Advanced performance analytics",  included: true },
+      { text: "Live session tools & recordings", included: true },
+      { text: "Priority payouts",                included: true },
+      { text: "Skill map builder",                included: true },
+      { text: "Dedicated trainer success manager", included: false },
+    ],
+  },
+  {
+    id: "trainer-pro-plus",
+    name: "Trainer Pro+",
+    monthlyPrice: 2999,
+    annualPrice: 2099,
+    period: "/month · billed as shown",
+    desc: "For top trainers running multiple cohorts with a dedicated success manager.",
+    cta: "Go Pro+ →",
+    ctaType: "navy",
+    popular: false,
+    accentColor: T.indigo,
+    features: [
+      { text: "Everything in Trainer Elite",      included: true },
+      { text: "Dedicated trainer success manager", included: true },
+      { text: "Co-marketing & featured placement", included: true },
+      { text: "Custom branded classroom",          included: true },
+      { text: "Early access to new tools",          included: true },
+      { text: "Highest revenue share tier",         included: true },
+      { text: "1-on-1 strategy sessions",            included: true },
+    ],
+  },
+];
+
+const businessPlans = [
+  {
+    id: "business-starter",
+    name: "Business Starter",
+    monthlyPrice: 0,
+    annualPrice: 0,
+    period: "Free forever",
+    desc: "Try ILM ORA for Business with a small team before scaling up.",
+    cta: "Get Started Free",
+    ctaType: "outline",
+    popular: false,
+    accentColor: T.green,
+    features: [
+      { text: "Up to 10 employee seats",     included: true  },
+      { text: "Basic org dashboard",          included: true  },
+      { text: "Assign from course catalog",   included: true  },
+      { text: "Email support",                included: true  },
+      { text: "Advanced analytics & ROI",     included: false },
+      { text: "Multiple branches",            included: false },
+      { text: "Dedicated account manager",    included: false },
+    ],
+  },
+  {
+    id: "business-pro",
+    name: "Business Pro",
+    monthlyPrice: 8999,
+    annualPrice: 6299,
+    period: "/month · billed as shown",
+    desc: "For growing organizations training teams across departments.",
+    cta: "Go Pro →",
+    ctaType: "primary",
+    popular: true,
+    accentColor: T.orange,
+    features: [
+      { text: "Up to 200 employee seats",        included: true },
+      { text: "Advanced analytics & ROI tracking", included: true },
+      { text: "Multiple branches & departments",   included: true },
+      { text: "Bulk batch creation",                included: true },
+      { text: "Priority support",                   included: true },
+      { text: "Custom reports for leadership",       included: true },
+      { text: "Dedicated account manager",           included: false },
+    ],
+  },
+  {
+    id: "business-enterprise",
+    name: "Enterprise",
+    monthlyPrice: 24999,
+    annualPrice: 17499,
+    period: "/month · billed as shown",
+    desc: "For large enterprises needing unlimited scale and dedicated support.",
+    cta: "Contact Sales →",
+    ctaType: "navy",
+    popular: false,
+    accentColor: T.indigo,
+    features: [
+      { text: "Unlimited employee seats",       included: true },
+      { text: "Unlimited branches & departments", included: true },
+      { text: "Dedicated account manager",        included: true },
+      { text: "Custom integrations & SSO",         included: true },
+      { text: "SLA-backed priority support",       included: true },
+      { text: "Co-branded certification programs", included: true },
+      { text: "Quarterly business reviews",         included: true },
+    ],
+  },
+];
+
+const partnershipPlans = [
+  {
+    id: "partnership-starter",
+    name: "Partner Starter",
+    monthlyPrice: 0,
+    annualPrice: 0,
+    period: "Free forever",
+    desc: "Explore co-branded partnership opportunities with ILM ORA.",
+    cta: "Get Started Free",
+    ctaType: "outline",
+    popular: false,
+    accentColor: T.green,
+    features: [
+      { text: "1 active partnership program",  included: true  },
+      { text: "Basic lead tracking",            included: true  },
+      { text: "Co-branded course (1)",          included: true  },
+      { text: "Community support",              included: true  },
+      { text: "Revenue sharing dashboard",      included: false },
+      { text: "Marketing co-promotion",         included: false },
+      { text: "Dedicated partnership manager",  included: false },
+    ],
+  },
+  {
+    id: "partnership-growth",
+    name: "Partner Growth",
+    monthlyPrice: 4999,
+    annualPrice: 3499,
+    period: "/month · billed as shown",
+    desc: "For partners actively growing leads, co-branded courses and revenue.",
+    cta: "Grow With Us →",
+    ctaType: "primary",
+    popular: true,
+    accentColor: T.orange,
+    features: [
+      { text: "Up to 5 active programs",       included: true },
+      { text: "Full revenue sharing dashboard", included: true },
+      { text: "Co-branded courses (up to 5)",   included: true },
+      { text: "Lead pipeline & reports",         included: true },
+      { text: "Marketing co-promotion",          included: true },
+      { text: "Priority certification issuance",  included: true },
+      { text: "Dedicated partnership manager",    included: false },
+    ],
+  },
+  {
+    id: "partnership-elite",
+    name: "Partner Elite",
+    monthlyPrice: 12999,
+    annualPrice: 8999,
+    period: "/month · billed as shown",
+    desc: "For strategic partners running large-scale joint certification programs.",
+    cta: "Go Elite →",
+    ctaType: "navy",
+    popular: false,
+    accentColor: T.indigo,
+    features: [
+      { text: "Unlimited active programs",         included: true },
+      { text: "Unlimited co-branded courses",        included: true },
+      { text: "Dedicated partnership manager",       included: true },
+      { text: "Highest revenue share tier",          included: true },
+      { text: "Featured placement on ILM ORA",       included: true },
+      { text: "Joint marketing campaigns",           included: true },
+      { text: "Quarterly strategy reviews",           included: true },
+    ],
+  },
+];
+
+const PLAN_SETS = {
+  student: { label: "Student", plans: studentPlans },
+  trainer: { label: "Trainer", plans: trainerPlans },
+  business: { label: "Business", plans: businessPlans },
+  partnership: { label: "Partnership", plans: partnershipPlans },
+};
+
 const faqs = [
   { q: "Can I switch plans anytime?",               a: "Yes! You can upgrade or downgrade your plan at any time from your account settings. Changes take effect from your next billing cycle." },
   { q: "Are the courses taught in Hindi or English?", a: "Our courses are available in both Hindi and English. Each course listing clearly indicates the language of instruction so you can choose what suits you best." },
@@ -212,8 +417,39 @@ const fmt = (n) => (n === 0 ? "0" : n.toLocaleString("en-IN"));
 
 export default function Pricing() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.get("returnTo");
   const [isAnnual, setIsAnnual] = useState(false);
   const [openFaq,  setOpenFaq]  = useState(null);
+  const [toast, setToast] = useState({ msg: "", show: false });
+
+  /* Resolve which plan-set to show based on logged-in user's role */
+  const storedRole = (localStorage.getItem("role") || "student").toLowerCase();
+  const roleKey = ["tenant_admin", "admin", "business"].includes(storedRole)
+    ? "business"
+    : ["trainer"].includes(storedRole)
+      ? "trainer"
+      : ["partnership"].includes(storedRole)
+        ? "partnership"
+        : "student";
+  const activePlanSet = PLAN_SETS[roleKey];
+  const plans = activePlanSet.plans;
+
+  const showToast = (msg) => {
+    setToast({ msg, show: true });
+    setTimeout(() => setToast((t) => ({ ...t, show: false })), 2400);
+  };
+
+  const handleChoosePlan = (plan) => {
+    // Placeholder until the backend "save selected plan" endpoint exists.
+    // TODO: replace with a real API call, e.g. userService.selectPlan(plan.id)
+    localStorage.setItem("selectedPlan", plan.id);
+    showToast(`"${plan.name}" selected!`);
+    setTimeout(() => {
+      navigate(returnTo || "/");
+    }, 700);
+  };
 
   /* Scroll to top on route change — same as PrivacyPolicy */
   useEffect(() => { window.scrollTo({ top: 0 }); }, [pathname]);
@@ -282,6 +518,15 @@ export default function Pricing() {
               </span>{" "}
               Future
             </h1>
+
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              fontSize: 12.5, fontWeight: 700, color: T.muted, marginBottom: 8,
+              fontFamily: "'Sora',sans-serif",
+            }}>
+              Showing plans for{" "}
+              <span style={{ color: T.orange, fontWeight: 800 }}>{activePlanSet.label}</span>
+            </div>
 
             <p style={{
               fontSize: 16.5, color: T.muted, lineHeight: 1.82, fontWeight: 500,
@@ -409,6 +654,7 @@ export default function Pricing() {
                 {/* CTA */}
                 {plan.ctaType === "outline" && (
                   <button
+                    onClick={() => handleChoosePlan(plan)}
                     style={{ width: "100%", padding: "14px", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: "pointer", background: "transparent", border: `1.5px solid ${T.border}`, color: T.navy, fontFamily: "'Plus Jakarta Sans',sans-serif", transition: "all .2s" }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = T.orange; e.currentTarget.style.color = T.orange; e.currentTarget.style.background = T.orangeL; }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = T.border;  e.currentTarget.style.color = T.navy;   e.currentTarget.style.background = "transparent"; }}
@@ -416,6 +662,7 @@ export default function Pricing() {
                 )}
                 {plan.ctaType === "primary" && (
                   <button
+                    onClick={() => handleChoosePlan(plan)}
                     style={{ width: "100%", padding: "14px", borderRadius: 12, fontSize: 14, fontWeight: 800, cursor: "pointer", background: `linear-gradient(135deg,${T.orange},#fb923c)`, border: "none", color: "#fff", fontFamily: "'Plus Jakarta Sans',sans-serif", boxShadow: "0 6px 20px rgba(249,115,22,0.35)", transition: "all .2s" }}
                     onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 10px 28px rgba(249,115,22,0.5)"; }}
                     onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)";    e.currentTarget.style.boxShadow = "0 6px 20px rgba(249,115,22,0.35)"; }}
@@ -423,6 +670,7 @@ export default function Pricing() {
                 )}
                 {plan.ctaType === "navy" && (
                   <button
+                    onClick={() => handleChoosePlan(plan)}
                     style={{ width: "100%", padding: "14px", borderRadius: 12, fontSize: 14, fontWeight: 800, cursor: "pointer", background: `linear-gradient(135deg,${T.navy},#263059)`, border: "none", color: "#fff", fontFamily: "'Plus Jakarta Sans',sans-serif", boxShadow: "0 6px 20px rgba(26,35,64,0.25)", transition: "all .2s" }}
                     onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; }}
                     onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; }}
@@ -554,6 +802,18 @@ export default function Pricing() {
               Secure &amp; Privacy-First Platform
             </span>
           </div>
+        </div>
+
+        {/* Toast */}
+        <div style={{
+          position: "fixed", bottom: 28, left: "50%",
+          transform: `translateX(-50%) translateY(${toast.show ? "0" : "20px"})`,
+          background: T.navy, color: "#fff", padding: "14px 24px", borderRadius: 12,
+          fontSize: "0.84rem", fontWeight: 600, boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
+          zIndex: 2000, opacity: toast.show ? 1 : 0, transition: "0.3s",
+          pointerEvents: "none", whiteSpace: "nowrap", fontFamily: "'Sora',sans-serif",
+        }}>
+          {toast.msg}
         </div>
 
       </div>

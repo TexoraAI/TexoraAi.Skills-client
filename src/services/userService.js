@@ -59,15 +59,31 @@ const userService = {
   // =========================
   // 🔓 PUBLIC AUTH REGISTER (SIGNUP ONLY – NOT USED BY ADMIN)
   // =========================
+  // createAuthUser(data) {
+  //   return axios.post(`${API_GATEWAY}/auth/register`, {
+  //     email: data.email,
+  //     password: data.password,
+  //     name: data.displayName,
+  //     role: data.roles?.replace("ROLE_", "") || "STUDENT",
+  //   });
+  // },
   createAuthUser(data) {
-    return axios.post(`${API_GATEWAY}/auth/register`, {
-      email: data.email,
-      password: data.password,
-      name: data.displayName,
-      role: data.roles?.replace("ROLE_", "") || "STUDENT",
-    });
+    return axios.post(
+      `${API_GATEWAY}/auth/register`,
+      {
+        email: data.email,
+        password: data.password,
+        name: data.displayName,
+        role: data.roles?.replace("ROLE_", "") || "STUDENT",
+        organizationId: data.organizationId, // ← add this
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("lms_token")}`,
+        },
+      },
+    );
   },
-
   // =========================
   // Delete user
   // =========================
@@ -93,6 +109,41 @@ const userService = {
         Authorization: `Bearer ${localStorage.getItem("lms_token")}`,
       },
     });
+  },
+
+  // GET ALL USERS OF AN ORG (SuperAdmin: by-org, TENANT_ADMIN: my-org)
+  // =========================
+  // getUsersByOrg(orgId) {
+  //   return axios
+  //     .get(`${API_GATEWAY}/users/by-org/${orgId}`, {
+  //       headers: {
+  //         Authorization: `Bearer ${localStorage.getItem("lms_token")}`,
+  //       },
+  //     })
+  //     .then((res) => res.data);
+  // },
+  getUsersByOrg(orgId, page = 0, size = 100) {
+    return (
+      axios
+        .get(`${API_GATEWAY}/users/by-org/${orgId}`, {
+          params: { page, size },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("lms_token")}`,
+          },
+        })
+        // FIX: extract content array from Page object so all callers get plain array
+        .then((res) => res.data?.content ?? res.data ?? [])
+    );
+  },
+
+  getMyOrgUsers() {
+    return axios
+      .get(`${API_GATEWAY}/users/my-org`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("lms_token")}`,
+        },
+      })
+      .then((res) => res.data);
   },
 
   // =============================================================
@@ -208,7 +259,6 @@ const userService = {
     );
   },
 
-  
   linkedInScrape(
     userId,
     linkedInUrl,
@@ -242,6 +292,68 @@ const userService = {
       headers: authHeader(),
     });
   },
+  // =========================
+  // ✅ GET STUDENT PROFILE DETAILS
+  // =========================
+  getStudentProfile() {
+    return axios.get(`${API_GATEWAY}/users/me/profile`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("lms_token")}`,
+      },
+    });
+  },
+
+  // =========================
+  // ✅ UPDATE STUDENT PROFILE DETAILS
+  // =========================
+  updateStudentProfile(data) {
+    return axios.put(`${API_GATEWAY}/users/me/profile`, data, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("lms_token")}`,
+      },
+    });
+  },
+
+  getStudentProfileByEmail(email) {
+    return axios.get(`${API_GATEWAY}/users/profile/by-email/${email}`, {
+      headers: authHeader(),
+    });
+  },
+
+  updateStudentProfileByEmail(email, data) {
+    return axios.put(`${API_GATEWAY}/users/profile/by-email/${email}`, data, {
+      headers: authHeader(),
+    });
+  },
+  // TRAINER PROFILE
+  getTrainerProfile() {
+    return axios.get(`${API_GATEWAY}/users/me/trainer-profile`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("lms_token")}` },
+    });
+  },
+  updateTrainerProfile(data) {
+    return axios.put(`${API_GATEWAY}/users/me/trainer-profile`, data, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("lms_token")}` },
+    });
+  },
+
+ 
+
+  getTrainerProfileByEmail(email) {
+    return axios.get(`${API_GATEWAY}/users/trainer-profile/by-email/${email}`, {
+      headers: authHeader(),
+    });
+  },
+  updateTrainerProfileByEmail(email, data) {
+    return axios.put(
+      `${API_GATEWAY}/users/trainer-profile/by-email/${email}`,
+      data,
+      {
+        headers: authHeader(),
+      },
+    );
+  },
+ 
 };
 
 export default userService;

@@ -1,22 +1,21 @@
 // src/pages/Landing/components/TexoraFloatingWidget.jsx
 
-import React, { useState, useRef, useEffect } from "react";
-import { X, ArrowUpRight, Sparkles } from "lucide-react";
-import TexoraFloatingButton from "./TexoraFloatingButton";
+import { ArrowUpRight, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import texoraLogo from "../../../assets/texora-logo.png";
 import TexoraFloatingCard from "./TexoraFloatingCard";
-import TexoraMascot from "./TexoraMascot";
+import "./texora-floating-widget.css";
 import {
-  TEXORA_HEADER,
-  TEXORA_TOOL_GROUPS,
   TEXORA_BENCH_RESOURCE,
   TEXORA_CTA,
+  TEXORA_HEADER,
+  TEXORA_TOOL_GROUPS,
 } from "./texoraData";
-import "./texora-floating-widget.css";
 
 const TexoraFloatingWidget = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const panelRef = useRef(null);
-  const fabRef = useRef(null);
+  
 
   const togglePanel = () => setIsOpen((prev) => !prev);
   const closePanel = () => setIsOpen(false);
@@ -26,10 +25,9 @@ const TexoraFloatingWidget = () => {
     const handleClickOutside = (event) => {
       if (
         panelRef.current &&
-        !panelRef.current.contains(event.target) &&
-        fabRef.current &&
-        !fabRef.current.contains(event.target)
-      ) {
+        !panelRef.current.contains(event.target)
+      )
+       {
         setIsOpen(false);
       }
     };
@@ -84,25 +82,15 @@ const TexoraFloatingWidget = () => {
           {/* Header */}
           <div className="texora-panel__header">
             <div className="texora-panel__header-text">
-              <div className="texora-panel__logo">
-                <span className="texora-panel__logo-icon">
-                  <Sparkles size={16} strokeWidth={2.2} />
-                </span>
-                <h3 className="texora-panel__title">
-                  <span className="texora-panel__title-light">TEX</span>
-                  <span className="texora-panel__title-bold">ORA.AI</span>
-                </h3>
-              </div>
-              <p className="texora-panel__subtitle">
-                {TEXORA_HEADER.subtitle}
-              </p>
-            </div>
-
-            <div className="texora-panel__mascot">
-              <TexoraMascot size={52} />
-            </div>
+            <div className="texora-panel__logo">
+  <img
+    src={texoraLogo}
+    alt="Texora AI"
+    className="texora-panel__logo-image"
+  />
+</div>      
+            </div>    
           </div>
-
           {/* Candidate / Enterprise tool sections */}
           {TEXORA_TOOL_GROUPS.map((group) => (
             <div className="texora-menu-section" key={group.id}>
@@ -144,11 +132,6 @@ const TexoraFloatingWidget = () => {
           </button>
         </div>
       )}
-
-      {/* Floating Action Button */}
-      <div ref={fabRef}>
-        <TexoraFloatingButton isOpen={isOpen} onClick={togglePanel} />
-      </div>
     </div>
   );
 };

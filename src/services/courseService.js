@@ -1,6 +1,3 @@
-
-
-
 import axios from "axios";
 
 const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api";
@@ -44,19 +41,52 @@ export const courseService = {
     });
   },
   // 🔐 ADMIN - Get All Courses
-  getAllCoursesForAdmin() {
-    return axios.get(`${API}/courses/admin`, {
+  // getAllCoursesForAdmin() {
+  //   return axios.get(`${API}/courses/admin`, {
+  //     headers: authHeader(),
+  //   });
+  // },
+
+  // // 🔐 ADMIN - Get Courses By Category
+  // getCoursesByCategory(category) {
+  //   return axios.get(`${API}/courses/admin/category/${category}`, {
+  //     headers: authHeader(),
+  //   });
+  // },
+  // Org Admin — sees only their org's courses
+  getOrgAdminCourses() {
+    return axios.get(`${API}/courses/org-admin`, {
+      headers: authHeader(),
+    });
+  },
+  // Categories for super admin
+  getAllCategories() {
+    return axios.get(`${API}/courses/categories`, {
       headers: authHeader(),
     });
   },
 
-  // 🔐 ADMIN - Get Courses By Category
-  getCoursesByCategory(category) {
-    return axios.get(`${API}/courses/admin/category/${category}`, {
+  // Super Admin — courses with no organizationId (independent trainers only)
+  // Super Admin — independent trainer courses (organizationId IS NULL)
+  getIndependentTrainerCourses() {
+    return axios.get(`${API}/courses/super-admin/independent`, {
       headers: authHeader(),
     });
   },
 
+  // Super Admin — categories from independent trainer courses only
+  getIndependentTrainerCategories() {
+    return axios.get(`${API}/courses/super-admin/independent-categories`, {
+      headers: authHeader(),
+    });
+  },
+
+  // Super Admin — get courses for a specific organization
+  getCoursesByOrgId(organizationId) {
+    return axios.get(`${API}/courses/org/${organizationId}`, {
+      headers: authHeader(),
+    });
+  },
   ////featured ciurses
   // Featured Courses
   // createFeaturedCourse(data) {
@@ -81,6 +111,36 @@ export const courseService = {
   },
   deleteFeaturedCourse(id) {
     return axios.delete(`${API}/featured-courses/${id}`, {
+      headers: authHeader(),
+    });
+  },
+
+  //flag servcie endpoint
+
+  // Course Feature Flags — org scoped
+  getCourseFeatureFlags(orgId) {
+    return axios.get(`${API}/course-feature-flags/org/${orgId}`, {
+      headers: authHeader(),
+    });
+  },
+
+  updateCourseFeatureFlags(orgId, dto) {
+    return axios.put(`${API}/course-feature-flags/org/${orgId}`, dto, {
+      headers: authHeader(),
+    });
+  },
+
+  // Course Feature Flags — individual (org-less users)
+  getIndividualCourseFeatureFlags(email) {
+    return axios.get(`${API}/course-feature-flags/individual`, {
+      params: { email },
+      headers: authHeader(),
+    });
+  },
+
+  updateIndividualCourseFeatureFlags(email, dto) {
+    return axios.put(`${API}/course-feature-flags/individual`, dto, {
+      params: { email },
       headers: authHeader(),
     });
   },

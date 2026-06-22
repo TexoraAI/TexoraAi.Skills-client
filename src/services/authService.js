@@ -1,141 +1,26 @@
-// import axios from "axios";
-
-// // ✅ Use Vercel env when deployed, fallback to localhost for local dev
-// const API_BASE_URL =
-//   import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api";
-
-// const authService = {
-//   // ================= LOGIN =================
-//   login(email, password) {
-//     return axios.post(`${API_BASE_URL}/auth/login`, {
-//       email,
-//       password,
-//     });
-//   },
-
-//   // ================= GOOGLE LOGIN =================
-//   googleLogin({ idToken, role }) {
-//     return axios.post(
-//       `${API_BASE_URL}/auth/google`,
-//       {
-//         idToken,
-//         role,
-//       },
-//       {
-//         headers: { "Content-Type": "application/json" },
-//       },
-//     );
-//   },
-
-//   // ================= REGISTER =================
-//   register({ name, email, password, role }) {
-//     return axios.post(`${API_BASE_URL}/auth/register`, {
-//       name,
-//       email,
-//       password,
-//       role,
-//     });
-//   },
-
-//   // ================= FORGOT PASSWORD =================
-//   forgotPassword(email) {
-//     return axios.post(`${API_BASE_URL}/auth/forgot-password`, {
-//       email,
-//     });
-//   },
-
-//   // ================= RESET PASSWORD =================
-//   resetPassword(token, newPassword) {
-//     return axios.post(
-//       `${API_BASE_URL}/auth/reset-password?token=${token}&newPassword=${newPassword}`,
-//     );
-//   },
-
-//   // ================= VERIFY EMAIL =================
-//   verifyEmail(token, email) {
-//     return axios.post(`${API_BASE_URL}/auth/verify-email`, {
-//       token,
-//       email,
-//     });
-//   },
-
-//   // ================= RESEND VERIFICATION =================
-//   resendVerification(email) {
-//     return axios.post(`${API_BASE_URL}/auth/resend-verification`, {
-//       email,
-//     });
-//   },
-
-//   // ================= CHANGE PASSWORD =================
-//   changePassword(newPassword, confirmPassword) {
-//     return axios.post(
-//       `${API_BASE_URL}/auth/change-password`,
-//       {
-//         newPassword,
-//         confirmPassword,
-//       },
-//       {
-//         headers: {
-//           Authorization: `Bearer ${localStorage.getItem("lms_token")}`,
-//         },
-//       },
-//     );
-//   },
-
-//   // ================= TOKEN HELPERS =================
-//   saveToken(token) {
-//     localStorage.setItem("lms_token", token);
-//   },
-
-//   getToken() {
-//     return localStorage.getItem("lms_token");
-//   },
-
-//   logout() {
-//     localStorage.removeItem("lms_token");
-//   },
-// };
-
-// export default authService;
-
-
-
 import axios from "axios";
 
-// ✅ Use Vercel env when deployed, fallback to localhost for local dev
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api";
 
-/* ══════════════════════════════════════════════════════════════
-   AXIOS INSTANCE — automatically attaches Bearer token on
-   every request so you never have to pass headers manually.
-   This is why change-password was returning 401: the token
-   from localStorage was null or the key name was wrong.
-══════════════════════════════════════════════════════════════ */
-const api = axios.create({
-  baseURL: API_BASE_URL,
-});
+const api = axios.create({ baseURL: API_BASE_URL });
 
-// ✅ REQUEST INTERCEPTOR — runs before every request
+// ✅ REQUEST INTERCEPTOR
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("lms_token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
   (error) => Promise.reject(error),
 );
 
-// ✅ RESPONSE INTERCEPTOR — handle 401 globally (token expired / missing)
+// ✅ RESPONSE INTERCEPTOR
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error?.response?.status === 401) {
-      // Token is invalid or expired — clear it and redirect to login
       localStorage.removeItem("lms_token");
-      // Only redirect if not already on a public page
       const publicPaths = ["/", "/login", "/register", "/forgot-password"];
       if (!publicPaths.includes(window.location.pathname)) {
         window.location.href = "/";
@@ -146,59 +31,164 @@ api.interceptors.response.use(
 );
 
 const authService = {
-  // ================= LOGIN =================
-  login(email, password) {
-    return api.post("/auth/login", { email, password });
+  // ✅ EMAIL LOGIN
+  login({ email, password }) {
+    return api.post("/auth/login", { email, password }).then((res) => res.data);
   },
 
-  // ================= GOOGLE LOGIN =================
-  googleLogin({ idToken, role }) {
-    return api.post(
-      "/auth/google",
-      { idToken, role },
-      { headers: { "Content-Type": "application/json" } },
-    );
+  // ✅ CHECK GOOGLE USER (before complete-profile)
+  // Returns: { isNewUser, profileCompleted, role, name, email }
+  checkGoogleUser({ idToken }) {
+    console.log("📡 POST /auth/check-google");
+    return api
+      .post("/auth/check-google", { idToken })
+      .then((res) => {
+        console.log("✅ checkGoogleUser response:", res.data);
+        return res.data; // Already the response body
+      })
+      .catch((err) => {
+        console.error("❌ checkGoogleUser error:", err);
+        throw err;
+      });
   },
 
-  // ================= REGISTER =================
+  // ✅ GOOGLE LOGIN (after complete-profile with onboarding answers)
+  // Input: { idToken, role, onboardingAnswers }
+  // Returns: { token, email, role, name, profileCompleted, newUser }
+  googleLogin({ idToken, role, onboardingAnswers }) {
+    console.log("📡 POST /auth/google", {
+      role,
+      onboardingAnswersCount: onboardingAnswers
+        ? Object.keys(onboardingAnswers).length
+        : 0,
+    });
+    return api
+      .post(
+        "/auth/google",
+        {
+          idToken,
+          role,
+          onboardingAnswers: onboardingAnswers || {}, // Send even if empty
+        },
+        { headers: { "Content-Type": "application/json" } },
+      )
+      .then((res) => {
+        console.log("✅ googleLogin full response:", res.data);
+        return res.data; // Return the data directly
+      })
+      .catch((err) => {
+        console.error("❌ googleLogin error:", err);
+        throw err;
+      });
+  },
+
+  // Mark profile as completed
+  markProfileCompleted() {
+    return api.patch("/auth/me/profile-completed").then((res) => res.data);
+  },
+
+  // ================= SUPERADMIN: DELETE USER =================
+  deleteUser(userId) {
+    return api.delete(`/auth/users/${userId}`).then((res) => res.data);
+  },
+
+  // ================= ORGANIZATIONS =================
+
+  // GET all orgs (super admin)
+  getAllOrganizations() {
+    return api.get("/organizations").then((res) => res.data);
+  },
+
+  // POST create org (super admin)
+  createOrganization(payload) {
+    return api.post("/organizations", payload).then((res) => res.data);
+  },
+
+  // GET single org
+  getOrganizationById(id) {
+    return api.get(`/organizations/${id}`).then((res) => res.data);
+  },
+
+  // GET capacity + full profile (admin profile tab uses this)
+  getOrgCapacity(orgId) {
+    return api.get(`/organizations/${orgId}/capacity`).then((res) => res.data);
+  },
+
+  // PUT full update (super admin edit org)
+  updateOrganization(id, payload) {
+    return api.put(`/organizations/${id}`, payload).then((res) => res.data);
+  },
+
+  // PATCH status only (super admin suspend/activate)
+  updateOrganizationStatus(id, status) {
+    return api
+      .patch(`/organizations/${id}/status?status=${status}`)
+      .then((res) => res.data);
+  },
+
+  // PATCH admin self-update (only editable fields, locked fields untouched)
+  updateAdminOrgProfile(orgId, payload) {
+    return api
+      .patch(`/organizations/${orgId}/profile`, payload)
+      .then((res) => res.data);
+  },
+
+  // GET public list (student signup dropdown, no auth)
+  getPublicOrganizations() {
+    return api.get("/organizations/public").then((res) => res.data);
+  },
+
+  //super admin sees admin onboadring responses this endpoint is used for that
+
+  getAdminOnboardingByEmail(email) {
+    return api
+      .get(`/auth/admin/onboarding-by-email?email=${encodeURIComponent(email)}`)
+      .then((res) => res.data);
+  },
+
+  // DELETE org (super admin)
+  deleteOrganizationById(id) {
+    return api.delete(`/organizations/${id}`).then((res) => res.data);
+  },
+  // Block/unblock individual user (onboarding page)
+  toggleUserBlock(userId, blocked) {
+    return api
+      .patch(`/auth/users/${userId}/block?blocked=${blocked}`)
+      .then((res) => res.data);
+  },
+
   register({ name, email, password, role }) {
     return api.post("/auth/register", { name, email, password, role });
   },
 
-  // ================= FORGOT PASSWORD =================
   forgotPassword(email) {
     return api.post("/auth/forgot-password", { email });
   },
 
-  // ================= RESET PASSWORD =================
   resetPassword(token, newPassword) {
     return api.post(
       `/auth/reset-password?token=${token}&newPassword=${newPassword}`,
     );
   },
 
-  // ================= VERIFY EMAIL =================
   verifyEmail(token, email) {
     return api.post("/auth/verify-email", { token, email });
   },
 
-  // ================= RESEND VERIFICATION =================
   resendVerification(email) {
     return api.post("/auth/resend-verification", { email });
   },
 
-  // ================= CHANGE PASSWORD =================
-  // ✅ FIX: No need to manually set Authorization header anymore —
-  // the interceptor above handles it automatically for every request.
-  // Previously this was failing with 401 because:
-  //   1. localStorage.getItem("lms_token") returned null (wrong key or not saved)
-  //   2. The header was "Bearer null" which the Gateway rejected
   changePassword(newPassword, confirmPassword) {
-    return api.post("/auth/change-password", { newPassword, confirmPassword });
+    return api.post("/auth/change-password", {
+      newPassword,
+      confirmPassword,
+    });
   },
-
-  // ================= TOKEN HELPERS =================
-  // ✅ Always use these helpers — never read/write localStorage directly
+  // ================= SUPERADMIN: GET ONBOARDING RESPONSES =================
+  getOnboardingResponses() {
+    return api.get("/auth/admin/onboarding-responses").then((res) => res.data);
+  },
   saveToken(token) {
     localStorage.setItem("lms_token", token);
   },
@@ -213,10 +203,13 @@ const authService = {
 
   logout() {
     localStorage.removeItem("lms_token");
+    localStorage.removeItem("organizationId"); // ✅ ADD THIS
+    localStorage.removeItem("role"); // ✅ ADD THIS too
+    localStorage.removeItem("lms_user");
   },
-  // ================= CHECK GOOGLE USER (read-only, no DB write) =================
-  checkGoogleUser({ idToken }) {
-    return api.post("/auth/check-google", { idToken }).then(res => res.data);
+
+  getCurrentRole() {
+    return localStorage.getItem("role");
   },
 };
 

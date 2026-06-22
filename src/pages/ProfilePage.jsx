@@ -1,11 +1,13 @@
-import React, { useState, useRef, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+// export default ProfilePage;
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
   User,
   Mail,
   IdCard,
   Lock,
   LogOut,
+  Layers,
   Shield,
   CreditCard,
   Award,
@@ -16,17 +18,53 @@ import {
   Zap,
   Building2,
   GraduationCap,
+  GitBranch,
   BadgeCheck,
   Upload,
   Camera,
+  Phone,
+  MapPin,
+  Calendar,
+  Briefcase,
+  BookOpen,
+  Globe,
+  TrendingUp,
+  Users,
 } from "lucide-react";
 
 import { useAvatarContext } from "../context/AvatarContext";
 import authService from "../services/authService";
 import userService from "@/services/userService";
-
+import { getOrgSummary } from "../services/batchService";
+/* ── Mark the profile as complete — both locally and on the backend ──
+   Call this right after ANY of the 4 Details/Org tabs saves successfully.
+   It doesn't matter which service stored the actual fields — this always
+   hits the Auth Service, which is the single source of truth the dashboard
+   gate reads at login. Requires authService.markProfileCompleted() — see
+   note below if you haven't added it yet. */
+const syncProfileCompleted = (value) => {
+  try {
+    const cached = JSON.parse(localStorage.getItem("lms_user") || "{}");
+    localStorage.setItem(
+      "lms_user",
+      JSON.stringify({ ...cached, profileCompleted: !!value }),
+    );
+  } catch {
+    localStorage.setItem(
+      "lms_user",
+      JSON.stringify({ profileCompleted: !!value }),
+    );
+  }
+  if (value) {
+    authService
+      .markProfileCompleted()
+      .catch((err) =>
+        console.error("Failed to sync profileCompleted with backend:", err),
+      );
+  }
+};
 /* ══════════════════════════════════════════════════════════════
-   AVATAR COMPONENT
+   AVATAR COMPONENT  — UNCHANGED
 ══════════════════════════════════════════════════════════════ */
 export const Avatar = ({
   initials = "U",
@@ -187,7 +225,7 @@ export const Avatar = ({
 };
 
 /* ══════════════════════════════════════════════════════════════
-   ROLE CONFIG
+   ROLE CONFIG  — UNCHANGED
 ══════════════════════════════════════════════════════════════ */
 const ROLE_CONFIG = {
   student: {
@@ -245,7 +283,7 @@ const ROLE_CONFIG = {
 };
 
 /* ══════════════════════════════════════════════════════════════
-   ACCENT MAP
+   ACCENT MAP  — UNCHANGED
 ══════════════════════════════════════════════════════════════ */
 const ACCENT = {
   violet: {
@@ -287,7 +325,7 @@ const ACCENT = {
 };
 
 /* ══════════════════════════════════════════════════════════════
-   TAB BUTTON
+   TAB BUTTON  — UNCHANGED
 ══════════════════════════════════════════════════════════════ */
 const TabButton = ({ label, icon: Icon, active, onClick }) => (
   <button
@@ -304,7 +342,7 @@ const TabButton = ({ label, icon: Icon, active, onClick }) => (
 );
 
 /* ══════════════════════════════════════════════════════════════
-   TOAST COMPONENT — replaces alert()
+   TOAST COMPONENT  — UNCHANGED
 ══════════════════════════════════════════════════════════════ */
 const Toast = ({ message, type, onClose }) => {
   useEffect(() => {
@@ -337,9 +375,10 @@ const Toast = ({ message, type, onClose }) => {
 };
 
 /* ══════════════════════════════════════════════════════════════
-   PROFILE INFO TAB
+   PROFILE INFO TAB  — UNCHANGED
 ══════════════════════════════════════════════════════════════ */
-const ProfileInfoTab = ({ user, accent, onProfileUpdate }) => {
+const ProfileInfoTab = ({ user, accent, onProfileUpdate, returnTo }) => {
+  const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState(user.name);
@@ -362,9 +401,17 @@ const ProfileInfoTab = ({ user, accent, onProfileUpdate }) => {
     setSaving(true);
     try {
       await userService.updateMyProfile({ displayName: name.trim() });
+
       if (onProfileUpdate) onProfileUpdate({ name: name.trim() });
+
       setEditing(false);
       showToast("Profile updated successfully");
+
+      if (returnTo) {
+        setTimeout(() => {
+          navigate(returnTo);
+        }, 900);
+      }
     } catch (err) {
       console.error("Save failed:", err);
       showToast("Failed to update profile. Please try again.", "error");
@@ -480,7 +527,7 @@ const ProfileInfoTab = ({ user, accent, onProfileUpdate }) => {
 
       {/* Fields */}
       <div className="space-y-4">
-        {/* Full Name — editable */}
+        {/* Full Name */}
         <div className="space-y-1.5">
           <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-widest">
             <User className="w-3.5 h-3.5" /> Full Name
@@ -499,7 +546,7 @@ const ProfileInfoTab = ({ user, accent, onProfileUpdate }) => {
           )}
         </div>
 
-        {/* Role — locked */}
+        {/* Role */}
         <div className="space-y-1.5">
           <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-widest">
             <IdCard className="w-3.5 h-3.5" /> Role
@@ -517,7 +564,7 @@ const ProfileInfoTab = ({ user, accent, onProfileUpdate }) => {
           </p>
         </div>
 
-        {/* Email — locked */}
+        {/* Email */}
         <div className="space-y-1.5">
           <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-widest">
             <Mail className="w-3.5 h-3.5" /> Email Address
@@ -540,8 +587,1819 @@ const ProfileInfoTab = ({ user, accent, onProfileUpdate }) => {
 };
 
 /* ══════════════════════════════════════════════════════════════
-   SECURITY TAB — FIXED: no alert(), correct token from
-   authService.getToken(), proper error handling
+   COUNTRY CODES
+══════════════════════════════════════════════════════════════ */
+const COUNTRY_CODES = [
+  { code: "+91", label: "🇮🇳 +91  India" },
+  { code: "+1", label: "🇺🇸 +1   USA / Canada" },
+  { code: "+44", label: "🇬🇧 +44  UK" },
+  { code: "+61", label: "🇦🇺 +61  Australia" },
+  { code: "+971", label: "🇦🇪 +971 UAE" },
+  { code: "+65", label: "🇸🇬 +65  Singapore" },
+  { code: "+60", label: "🇲🇾 +60  Malaysia" },
+  { code: "+49", label: "🇩🇪 +49  Germany" },
+  { code: "+33", label: "🇫🇷 +33  France" },
+  { code: "+81", label: "🇯🇵 +81  Japan" },
+  { code: "+86", label: "🇨🇳 +86  China" },
+  { code: "+7", label: "🇷🇺 +7   Russia" },
+  { code: "+55", label: "🇧🇷 +55  Brazil" },
+  { code: "+27", label: "🇿🇦 +27  South Africa" },
+  { code: "+92", label: "🇵🇰 +92  Pakistan" },
+  { code: "+880", label: "🇧🇩 +880 Bangladesh" },
+  { code: "+94", label: "🇱🇰 +94  Sri Lanka" },
+  { code: "+977", label: "🇳🇵 +977 Nepal" },
+];
+
+/* ══════════════════════════════════════════════════════════════
+   DETAILS TAB HELPERS — defined at MODULE level (NOT inside DetailsTab)
+══════════════════════════════════════════════════════════════ */
+const LABEL_CLS =
+  "flex items-center gap-1.5 text-xs font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-widest mb-1.5";
+
+const STATIC_CLS =
+  "px-4 py-2.5 rounded-xl text-sm bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-800 dark:text-white/85 min-h-[42px]";
+
+const DetailField = ({ icon: Icon, label, children }) => (
+  <div className="space-y-1.5">
+    <label className={LABEL_CLS}>
+      {Icon && <Icon className="w-3.5 h-3.5" />}
+      {label}
+    </label>
+    {children}
+  </div>
+);
+
+const StaticVal = ({ val }) => <p className={STATIC_CLS}>{val || "—"}</p>;
+
+const ErrorMsg = ({ msg }) =>
+  msg ? (
+    <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+      <X className="w-3 h-3" /> {msg}
+    </p>
+  ) : null;
+
+const PLATFORMS_LIST = [
+  "Blog",
+  "YouTube",
+  "Podcast",
+  "LinkedIn",
+  "Instagram",
+  "Twitter/X",
+  "Newsletter",
+  "TikTok",
+  "Other",
+];
+
+const ADMIN_TYPES = [
+  "Super Admin",
+  "Content Admin",
+  "Support Admin",
+  "Finance Admin",
+];
+const DEPARTMENTS = [
+  "Engineering",
+  "Marketing",
+  "Operations",
+  "HR",
+  "Finance",
+  "Content",
+  "Support",
+];
+
+const INDUSTRIES = [
+  "EdTech",
+  "FinTech",
+  "HealthTech",
+  "E-Commerce",
+  "Consulting",
+  "Manufacturing",
+  "Retail",
+  "Logistics",
+  "Real Estate",
+  "Media",
+  "Government",
+  "NGO",
+  "Other",
+];
+
+/* ── STUDENT DETAILS TAB ── */
+const StudentDetailsTab = ({ accent, returnTo }) => {
+  const navigate = useNavigate();
+  const ac = ACCENT[accent];
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [errors, setErrors] = useState({});
+
+  const empty = {
+    dialCode: "+91",
+    localNumber: "",
+    dateOfBirth: "",
+    gender: "",
+    city: "",
+    state: "",
+    country: "",
+    qualification: "",
+    collegeName: "",
+    yearOfPassing: "",
+    domain: "",
+    experience: "",
+  };
+  const [form, setForm] = useState(empty);
+  const [draft, setDraft] = useState(empty);
+
+  const parseMobile = useCallback((raw = "") => {
+    if (!raw) return { dialCode: "+91", localNumber: "" };
+    const match = COUNTRY_CODES.find((c) => raw.startsWith(c.code));
+    return match
+      ? {
+          dialCode: match.code,
+          localNumber: raw.slice(match.code.length).trim(),
+        }
+      : { dialCode: "+91", localNumber: raw };
+  }, []);
+
+  useEffect(() => {
+    userService
+      .getStudentProfile()
+      .then((res) => {
+        const d = res.data || {};
+        const { dialCode, localNumber } = parseMobile(d.mobileNumber);
+        const loaded = {
+          dialCode,
+          localNumber,
+          dateOfBirth: d.dateOfBirth || "",
+          gender: d.gender || "",
+          city: d.city || "",
+          state: d.state || "",
+          country: d.country || "",
+          qualification: d.qualification || "",
+          collegeName: d.collegeName || "",
+          yearOfPassing: d.yearOfPassing || "",
+          domain: d.domain || "",
+          experience: d.experience || "",
+        };
+        setForm(loaded);
+        setDraft(loaded);
+      })
+      .catch(() => {});
+  }, [parseMobile]);
+
+  const showToast = (msg, type = "success") => setToast({ message: msg, type });
+  const startEdit = () => {
+    setDraft({ ...form });
+    setErrors({});
+    setEditing(true);
+  };
+  const cancelEdit = () => {
+    setDraft({ ...form });
+    setErrors({});
+    setEditing(false);
+  };
+  const handleChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setDraft((p) => ({ ...p, [name]: value }));
+    setErrors((p) => ({ ...p, [name]: "" }));
+  }, []);
+
+  const validate = (d) => {
+    const errs = {};
+    if (d.localNumber && !/^\d{6,15}$/.test(d.localNumber.trim()))
+      errs.localNumber = "Enter 6–15 digits only";
+    if (d.yearOfPassing) {
+      const y = Number(d.yearOfPassing),
+        cur = new Date().getFullYear();
+      if (!/^\d{4}$/.test(d.yearOfPassing) || y < 1980 || y > cur + 5)
+        errs.yearOfPassing = `Valid year between 1980–${cur + 5}`;
+    }
+    if (d.dateOfBirth) {
+      const dob = new Date(d.dateOfBirth);
+      if (dob >= new Date()) errs.dateOfBirth = "Must be in the past";
+      else if (new Date().getFullYear() - dob.getFullYear() < 10)
+        errs.dateOfBirth = "Age must be at least 10";
+    }
+    return errs;
+  };
+
+  const handleSave = async () => {
+    const errs = validate(draft);
+    if (Object.keys(errs).length) {
+      setErrors(errs);
+      showToast("Fix errors first", "error");
+      return;
+    }
+    setSaving(true);
+    try {
+      const payload = {
+        mobileNumber: draft.localNumber.trim()
+          ? `${draft.dialCode}${draft.localNumber.trim()}`
+          : "",
+        dateOfBirth: draft.dateOfBirth,
+        gender: draft.gender,
+        city: draft.city,
+        state: draft.state,
+        country: draft.country,
+        qualification: draft.qualification,
+        collegeName: draft.collegeName,
+        yearOfPassing: draft.yearOfPassing,
+        domain: draft.domain,
+        experience: draft.experience,
+      };
+      await userService.updateStudentProfile(payload);
+      setForm({ ...draft });
+      setEditing(false);
+      showToast("Details saved successfully");
+      syncProfileCompleted(true);
+      if (returnTo) {
+        setTimeout(() => {
+          navigate(returnTo);
+        }, 900);
+      }
+    } catch {
+      showToast("Failed to save. Try again.", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const inputCls = (f) =>
+    `w-full px-4 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border ${
+      errors[f]
+        ? "border-red-400 focus:ring-red-400"
+        : `border-gray-300 dark:border-white/20 focus:ring-2 ${ac.ring}`
+    } text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none`;
+
+  const displayMobile = form.localNumber
+    ? `${form.dialCode} ${form.localNumber}`
+    : "";
+
+  return (
+    <div className="space-y-8">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+            Profile Details
+          </h3>
+          <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
+            Personal, location and education details
+          </p>
+        </div>
+        <div className="flex gap-2">
+          {editing ? (
+            <>
+              <button
+                onClick={cancelEdit}
+                disabled={saving}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-white/70 hover:bg-gray-200 dark:hover:bg-white/20 transition-colors"
+              >
+                <X className="w-3.5 h-3.5" /> Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm text-white ${ac.btn} shadow transition-colors disabled:opacity-60`}
+              >
+                {saving ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />{" "}
+                    Saving…
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-3.5 h-3.5" /> Save Details
+                  </>
+                )}
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={startEdit}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gray-700 dark:text-white/80 hover:bg-gray-200 dark:hover:bg-white/20 transition-colors"
+            >
+              <Edit3 className="w-3.5 h-3.5" /> Edit Details
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Personal Info */}
+      <div>
+        <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <User className="w-3.5 h-3.5" /> Personal Info
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          <DetailField icon={Phone} label="Mobile Number">
+            {editing ? (
+              <div className="space-y-1">
+                <div className="flex gap-2">
+                  <select
+                    name="dialCode"
+                    value={draft.dialCode}
+                    onChange={handleChange}
+                    className={`shrink-0 w-36 px-2 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-900 dark:text-white focus:outline-none focus:ring-2 ${ac.ring}`}
+                  >
+                    {COUNTRY_CODES.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="tel"
+                    name="localNumber"
+                    placeholder="9876543210"
+                    value={draft.localNumber}
+                    onChange={handleChange}
+                    maxLength={15}
+                    className={inputCls("localNumber")}
+                  />
+                </div>
+                <ErrorMsg msg={errors.localNumber} />
+              </div>
+            ) : (
+              <StaticVal val={displayMobile} />
+            )}
+          </DetailField>
+          <DetailField icon={Calendar} label="Date of Birth">
+            {editing ? (
+              <div>
+                <input
+                  type="date"
+                  name="dateOfBirth"
+                  value={draft.dateOfBirth}
+                  onChange={handleChange}
+                  max={new Date().toISOString().split("T")[0]}
+                  className={inputCls("dateOfBirth")}
+                />
+                <ErrorMsg msg={errors.dateOfBirth} />
+              </div>
+            ) : (
+              <StaticVal val={form.dateOfBirth} />
+            )}
+          </DetailField>
+          <DetailField icon={Users} label="Gender">
+            {editing ? (
+              <select
+                name="gender"
+                value={draft.gender}
+                onChange={handleChange}
+                className={inputCls("gender")}
+              >
+                <option value="">Select gender</option>
+                <option>Male</option>
+                <option>Female</option>
+                <option>Other</option>
+                <option>Prefer not to say</option>
+              </select>
+            ) : (
+              <StaticVal val={form.gender} />
+            )}
+          </DetailField>
+        </div>
+      </div>
+
+      {/* Location */}
+      <div>
+        <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <MapPin className="w-3.5 h-3.5" /> Location
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          {[
+            ["city", "City", "e.g. Hyderabad"],
+            ["state", "State", "e.g. Telangana"],
+            ["country", "Country", "e.g. India"],
+          ].map(([name, label, ph]) => (
+            <DetailField key={name} icon={MapPin} label={label}>
+              {editing ? (
+                <input
+                  type="text"
+                  name={name}
+                  placeholder={ph}
+                  value={draft[name]}
+                  onChange={handleChange}
+                  className={inputCls(name)}
+                />
+              ) : (
+                <StaticVal val={form[name]} />
+              )}
+            </DetailField>
+          ))}
+        </div>
+      </div>
+
+      {/* Education */}
+      <div>
+        <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <GraduationCap className="w-3.5 h-3.5" /> Education & Professional
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <DetailField icon={BookOpen} label="Qualification">
+            {editing ? (
+              <input
+                type="text"
+                name="qualification"
+                placeholder="e.g. B.Tech"
+                value={draft.qualification}
+                onChange={handleChange}
+                className={inputCls("qualification")}
+              />
+            ) : (
+              <StaticVal val={form.qualification} />
+            )}
+          </DetailField>
+          <DetailField icon={Building2} label="College / Institute">
+            {editing ? (
+              <input
+                type="text"
+                name="collegeName"
+                placeholder="e.g. JNTU"
+                value={draft.collegeName}
+                onChange={handleChange}
+                className={inputCls("collegeName")}
+              />
+            ) : (
+              <StaticVal val={form.collegeName} />
+            )}
+          </DetailField>
+          <DetailField icon={Calendar} label="Year of Passing">
+            {editing ? (
+              <div>
+                <input
+                  type="text"
+                  name="yearOfPassing"
+                  placeholder={`${new Date().getFullYear()}`}
+                  value={draft.yearOfPassing}
+                  onChange={handleChange}
+                  maxLength={4}
+                  className={inputCls("yearOfPassing")}
+                />
+                <ErrorMsg msg={errors.yearOfPassing} />
+              </div>
+            ) : (
+              <StaticVal val={form.yearOfPassing} />
+            )}
+          </DetailField>
+          <DetailField icon={Briefcase} label="Domain / Area of Interest">
+            {editing ? (
+              <input
+                type="text"
+                name="domain"
+                placeholder="e.g. Full Stack"
+                value={draft.domain}
+                onChange={handleChange}
+                className={inputCls("domain")}
+              />
+            ) : (
+              <StaticVal val={form.domain} />
+            )}
+          </DetailField>
+          <div className="sm:col-span-2">
+            <DetailField icon={TrendingUp} label="Experience">
+              {editing ? (
+                <input
+                  type="text"
+                  name="experience"
+                  placeholder="e.g. Fresher, 2 years"
+                  value={draft.experience}
+                  onChange={handleChange}
+                  className={inputCls("experience")}
+                />
+              ) : (
+                <StaticVal val={form.experience} />
+              )}
+            </DetailField>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ── TRAINER DETAILS TAB ── */
+const TrainerDetailsTab = ({ accent, returnTo }) => {
+  const navigate = useNavigate();
+  const ac = ACCENT[accent];
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const empty = {
+    linkedinUrl: "",
+    country: "",
+    audienceSize: "",
+    fullTimeRole: "",
+    courseTopic: "",
+    platforms: [],
+  };
+  const [form, setForm] = useState(empty);
+  const [draft, setDraft] = useState(empty);
+
+  // useEffect(() => {
+  //   userService
+  //     .getTrainerProfile()
+  //     .then((res) => {
+  //       const d = res.data || {};
+  //       const loaded = {
+  //         linkedinUrl: d.linkedinUrl || "",
+  //         country: d.country || "",
+  //         audienceSize: d.audienceSize || "",
+  //         fullTimeRole: d.fullTimeRole || "",
+  //         courseTopic: d.courseTopic || "",
+  //         platforms: d.platforms || [],
+  //       };
+  //       setForm(loaded);
+  //       setDraft(loaded);
+  //     })
+  //     .catch(() => {});
+  // }, []);
+  useEffect(() => {
+    userService
+      .getTrainerProfile()
+      .then((res) => {
+        const d = res.data || {};
+        const loaded = {
+          linkedinUrl: d.linkedinUrl || "",
+          country: d.country || "",
+          audienceSize: d.audienceSize || "",
+          fullTimeRole: d.fullTimeRole || "",
+          courseTopic: d.courseTopic || "",
+          platforms: Array.isArray(d.platforms)
+            ? d.platforms
+            : d.platforms
+              ? d.platforms
+                  .split(",")
+                  .map((p) => p.trim())
+                  .filter(Boolean)
+              : [],
+        };
+        setForm(loaded);
+        setDraft(loaded);
+      })
+      .catch(() => {});
+  }, []);
+  const showToast = (msg, type = "success") => setToast({ message: msg, type });
+  const startEdit = () => {
+    setDraft({ ...form, platforms: [...(form.platforms || [])] });
+    setEditing(true);
+  };
+  const cancelEdit = () => {
+    setDraft({ ...form, platforms: [...(form.platforms || [])] });
+    setEditing(false);
+  };
+
+  const handleChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setDraft((p) => ({ ...p, [name]: value }));
+  }, []);
+
+  const togglePlatform = useCallback((platform) => {
+    setDraft((p) => ({
+      ...p,
+      platforms: p.platforms.includes(platform)
+        ? p.platforms.filter((x) => x !== platform)
+        : [...p.platforms, platform],
+    }));
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await userService.updateTrainerProfile(draft);
+      setForm({ ...draft });
+      setEditing(false);
+      showToast("Trainer profile saved");
+      syncProfileCompleted(true);
+      if (returnTo) {
+        setTimeout(() => {
+          navigate(returnTo);
+        }, 900);
+      }
+    } catch {
+      showToast("Failed to save. Try again.", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const inputCls = `w-full px-4 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:ring-2 ${ac.ring}`;
+
+  return (
+    <div className="space-y-8">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+            Trainer Profile
+          </h3>
+          <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
+            Your training background and platform details
+          </p>
+        </div>
+        <div className="flex gap-2">
+          {editing ? (
+            <>
+              <button
+                onClick={cancelEdit}
+                disabled={saving}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-white/70 hover:bg-gray-200 transition-colors"
+              >
+                <X className="w-3.5 h-3.5" /> Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm text-white ${ac.btn} shadow transition-colors disabled:opacity-60`}
+              >
+                {saving ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />{" "}
+                    Saving…
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-3.5 h-3.5" /> Save Profile
+                  </>
+                )}
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={startEdit}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gray-700 dark:text-white/80 hover:bg-gray-200 transition-colors"
+            >
+              <Edit3 className="w-3.5 h-3.5" /> Edit Profile
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Basic Info */}
+      <div>
+        <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <Globe className="w-3.5 h-3.5" /> Basic Info
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <DetailField icon={Globe} label="LinkedIn URL">
+            {editing ? (
+              <input
+                type="url"
+                name="linkedinUrl"
+                placeholder="https://linkedin.com/in/..."
+                value={draft.linkedinUrl}
+                onChange={handleChange}
+                className={inputCls}
+              />
+            ) : (
+              <StaticVal val={form.linkedinUrl} />
+            )}
+          </DetailField>
+          <DetailField icon={MapPin} label="Country">
+            {editing ? (
+              <input
+                type="text"
+                name="country"
+                placeholder="e.g. India"
+                value={draft.country}
+                onChange={handleChange}
+                className={inputCls}
+              />
+            ) : (
+              <StaticVal val={form.country} />
+            )}
+          </DetailField>
+          <DetailField icon={BookOpen} label="Course Topic">
+            {editing ? (
+              <input
+                type="text"
+                name="courseTopic"
+                placeholder="e.g. React, Python, AWS"
+                value={draft.courseTopic}
+                onChange={handleChange}
+                className={inputCls}
+              />
+            ) : (
+              <StaticVal val={form.courseTopic} />
+            )}
+          </DetailField>
+          <DetailField icon={Users} label="Audience Size">
+            {editing ? (
+              <select
+                name="audienceSize"
+                value={draft.audienceSize}
+                onChange={handleChange}
+                className={inputCls}
+              >
+                <option value="">Select range</option>
+                <option>0–1K</option>
+                <option>1K–10K</option>
+                <option>10K–100K</option>
+                <option>100K+</option>
+              </select>
+            ) : (
+              <StaticVal val={form.audienceSize} />
+            )}
+          </DetailField>
+          <DetailField icon={Briefcase} label="Full-Time Role?">
+            {editing ? (
+              <select
+                name="fullTimeRole"
+                value={draft.fullTimeRole}
+                onChange={handleChange}
+                className={inputCls}
+              >
+                <option value="">Select</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+            ) : (
+              <StaticVal val={form.fullTimeRole} />
+            )}
+          </DetailField>
+        </div>
+      </div>
+
+      {/* Platforms */}
+      <div>
+        <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <TrendingUp className="w-3.5 h-3.5" /> Platforms
+        </p>
+        {editing ? (
+          <div className="flex flex-wrap gap-3">
+            {PLATFORMS_LIST.map((p) => {
+              const checked = draft.platforms.includes(p);
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => togglePlatform(p)}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
+                    checked
+                      ? `${ac.badge} border-current`
+                      : "bg-gray-100 dark:bg-white/10 border-gray-200 dark:border-white/10 text-gray-600 dark:text-white/60"
+                  }`}
+                >
+                  {checked ? (
+                    <CheckCircle className="w-3.5 h-3.5 inline mr-1.5" />
+                  ) : null}
+                  {p}
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {(form.platforms || []).length === 0 ? (
+              <p className={STATIC_CLS}>—</p>
+            ) : (
+              (form.platforms || []).map((p) => (
+                <span
+                  key={p}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold border ${ac.badge}`}
+                >
+                  {p}
+                </span>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// /* ── ADMIN DETAILS TAB ── */
+// const AdminDetailsTab = ({ accent }) => {
+//   const ac = ACCENT[accent];
+//   const [editing, setEditing] = useState(false);
+//   const [saving, setSaving] = useState(false);
+//   const [toast, setToast] = useState(null);
+
+//   const empty = {
+//     organizationName: "",
+//     domain: "",
+//     contactEmail: "",
+//     location: "",
+//     industry: "",
+//     description: "",
+//     mobileNumber: "",
+//     plan: "",
+//     status: "",
+//     planExpiryDate: "",
+//     maxStudents: "",
+//     maxTrainers: "",
+//   };
+//   const [form, setForm] = useState(empty);
+//   const [draft, setDraft] = useState(empty);
+
+//   useEffect(() => {
+//     userService
+//       .getAdminProfile()
+//       .then((res) => {
+//         const d = res.data || {};
+//         const loaded = {
+//           organizationName: d.organizationName || "",
+//           domain: d.domain || "",
+//           contactEmail: d.contactEmail || "",
+//           location: d.location || "",
+//           industry: d.industry || "",
+//           description: d.description || "",
+//           mobileNumber: d.mobileNumber || "",
+//           plan: d.plan || "",
+//           status: d.status || "",
+//           planExpiryDate: d.planExpiryDate || "",
+//           maxStudents: d.maxStudents || "",
+//           maxTrainers: d.maxTrainers || "",
+//         };
+//         setForm(loaded);
+//         setDraft(loaded);
+//       })
+//       .catch(() => {});
+//   }, []);
+
+//   const showToast = (msg, type = "success") => setToast({ message: msg, type });
+//   const startEdit = () => {
+//     setDraft({ ...form });
+//     setEditing(true);
+//   };
+//   const cancelEdit = () => {
+//     setDraft({ ...form });
+//     setEditing(false);
+//   };
+
+//   const handleChange = useCallback((e) => {
+//     const { name, value } = e.target;
+//     setDraft((p) => ({ ...p, [name]: value }));
+//   }, []);
+
+//   const handleSave = async () => {
+//     setSaving(true);
+//     try {
+//       const payload = {
+//         organizationName: draft.organizationName,
+//         domain: draft.domain,
+//         contactEmail: draft.contactEmail,
+//         location: draft.location,
+//         industry: draft.industry,
+//         description: draft.description,
+//         mobileNumber: draft.mobileNumber,
+//       };
+//       await userService.updateAdminProfile(payload);
+//       setForm({ ...form, ...payload });
+//       setEditing(false);
+//       showToast("Organization details saved");
+//     } catch {
+//       showToast("Failed to save. Try again.", "error");
+//     } finally {
+//       setSaving(false);
+//     }
+//   };
+
+//   const inputCls = `w-full px-4 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:ring-2 ${ac.ring}`;
+
+//   return (
+//     <div className="space-y-8">
+//       {toast && (
+//         <Toast
+//           message={toast.message}
+//           type={toast.type}
+//           onClose={() => setToast(null)}
+//         />
+//       )}
+
+//       {/* Header */}
+//       <div className="flex items-center justify-between">
+//         <div>
+//           <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+//             Organization Details
+//           </h3>
+//           <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
+//             Your organization information
+//           </p>
+//         </div>
+//         <div className="flex gap-2">
+//           {editing ? (
+//             <>
+//               <button
+//                 onClick={cancelEdit}
+//                 disabled={saving}
+//                 className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-white/70 hover:bg-gray-200 transition-colors"
+//               >
+//                 <X className="w-3.5 h-3.5" /> Cancel
+//               </button>
+//               <button
+//                 onClick={handleSave}
+//                 disabled={saving}
+//                 className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm text-white ${ac.btn} shadow transition-colors disabled:opacity-60`}
+//               >
+//                 {saving ? (
+//                   <>
+//                     <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />{" "}
+//                     Saving…
+//                   </>
+//                 ) : (
+//                   <>
+//                     <Save className="w-3.5 h-3.5" /> Save Details
+//                   </>
+//                 )}
+//               </button>
+//             </>
+//           ) : (
+//             <button
+//               onClick={startEdit}
+//               className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gray-700 dark:text-white/80 hover:bg-gray-200 transition-colors"
+//             >
+//               <Edit3 className="w-3.5 h-3.5" /> Edit Details
+//             </button>
+//           )}
+//         </div>
+//       </div>
+
+//       {/* Editable Section */}
+//       <div>
+//         <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+//           <Building2 className="w-3.5 h-3.5" /> Organization Info
+//         </p>
+//         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+//           <DetailField icon={Building2} label="Organization Name">
+//             {editing ? (
+//               <input
+//                 type="text"
+//                 name="organizationName"
+//                 placeholder="e.g. Texora AI"
+//                 value={draft.organizationName}
+//                 onChange={handleChange}
+//                 className={inputCls}
+//               />
+//             ) : (
+//               <StaticVal val={form.organizationName} />
+//             )}
+//           </DetailField>
+//           <DetailField icon={Globe} label="Domain">
+//             {editing ? (
+//               <input
+//                 type="text"
+//                 name="domain"
+//                 placeholder="e.g. texora.ai"
+//                 value={draft.domain}
+//                 onChange={handleChange}
+//                 className={inputCls}
+//               />
+//             ) : (
+//               <StaticVal val={form.domain} />
+//             )}
+//           </DetailField>
+//           <DetailField icon={Mail} label="Contact Email">
+//             {editing ? (
+//               <input
+//                 type="email"
+//                 name="contactEmail"
+//                 placeholder="e.g. admin@texora.ai"
+//                 value={draft.contactEmail}
+//                 onChange={handleChange}
+//                 className={inputCls}
+//               />
+//             ) : (
+//               <StaticVal val={form.contactEmail} />
+//             )}
+//           </DetailField>
+//           <DetailField icon={MapPin} label="Location">
+//             {editing ? (
+//               <input
+//                 type="text"
+//                 name="location"
+//                 placeholder="e.g. Hyderabad, India"
+//                 value={draft.location}
+//                 onChange={handleChange}
+//                 className={inputCls}
+//               />
+//             ) : (
+//               <StaticVal val={form.location} />
+//             )}
+//           </DetailField>
+//           <DetailField icon={Briefcase} label="Industry">
+//             {editing ? (
+//               <select
+//                 name="industry"
+//                 value={draft.industry}
+//                 onChange={handleChange}
+//                 className={inputCls}
+//               >
+//                 <option value="">Select industry</option>
+//                 {INDUSTRIES.map((i) => (
+//                   <option key={i}>{i}</option>
+//                 ))}
+//               </select>
+//             ) : (
+//               <StaticVal val={form.industry} />
+//             )}
+//           </DetailField>
+//           <DetailField icon={Phone} label="Mobile Number">
+//             {editing ? (
+//               <input
+//                 type="tel"
+//                 name="mobileNumber"
+//                 placeholder="+91 9876543210"
+//                 value={draft.mobileNumber}
+//                 onChange={handleChange}
+//                 className={inputCls}
+//               />
+//             ) : (
+//               <StaticVal val={form.mobileNumber} />
+//             )}
+//           </DetailField>
+//           <div className="sm:col-span-2">
+//             <DetailField icon={BookOpen} label="Description">
+//               {editing ? (
+//                 <textarea
+//                   name="description"
+//                   placeholder="Brief description of your organization"
+//                   value={draft.description}
+//                   onChange={handleChange}
+//                   rows={3}
+//                   className={`${inputCls} resize-none`}
+//                 />
+//               ) : (
+//                 <StaticVal val={form.description} />
+//               )}
+//             </DetailField>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Locked Section */}
+//       <div>
+//         <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+//           <Lock className="w-3.5 h-3.5" /> Plan & Limits
+//           <span className="ml-1 text-xs font-normal normal-case text-gray-400 dark:text-slate-500">
+//             — managed by SuperAdmin
+//           </span>
+//         </p>
+//         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+//           {[
+//             { icon: CreditCard, label: "Plan", val: form.plan },
+//             { icon: Shield, label: "Status", val: form.status },
+//             { icon: Calendar, label: "Plan Expiry", val: form.planExpiryDate },
+//             { icon: Users, label: "Max Students", val: form.maxStudents },
+//             { icon: Users, label: "Max Trainers", val: form.maxTrainers },
+//           ].map(({ icon: Ic, label, val }) => (
+//             <div key={label} className="space-y-1.5">
+//               <label className={LABEL_CLS}>
+//                 <Ic className="w-3.5 h-3.5" /> {label}
+//               </label>
+//               <div className="relative">
+//                 <p className="px-4 py-2.5 rounded-xl text-sm bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-500 dark:text-white/50 select-none pr-16">
+//                   {val || "—"}
+//                 </p>
+//                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs px-2 py-0.5 rounded-full bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-white/40 border border-gray-300 dark:border-white/10">
+//                   Locked
+//                 </span>
+//               </div>
+//             </div>
+//           ))}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+/* ── ADMIN DETAILS TAB ── */
+const AdminDetailsTab = ({ accent, returnTo }) => {
+  const navigate = useNavigate();
+  const ac = ACCENT[accent];
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState(null);
+
+  const empty = {
+    organizationName: "",
+    domain: "",
+    contactEmail: "",
+    location: "",
+    industry: "",
+    description: "",
+    mobileNumber: "",
+    // locked — read only
+    plan: "",
+    status: "",
+    planExpiryDate: "",
+    maxStudents: "",
+    maxTrainers: "",
+    currentStudents: "",
+    currentTrainers: "",
+    maxDepartments: "",
+    maxBranchesPerDept: "",
+    maxBatchesPerBranch: "",
+    currentDepartments: "",
+    currentBranches: "",
+    currentBatches: "",
+  };
+  const [form, setForm] = useState(empty);
+  const [draft, setDraft] = useState(empty);
+
+  // ── Load from auth-service org capacity endpoint ──
+  useEffect(() => {
+    const orgId = localStorage.getItem("organizationId");
+    if (!orgId) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+
+    authService
+      .getOrgCapacity(orgId)
+      .then((capacityData) => {
+        // getOrgSummary is non-critical — if it 403s, default to zeros
+        return getOrgSummary()
+          .catch(() => ({
+            currentDepartments: 0,
+            currentBranches: 0,
+            currentBatches: 0,
+          }))
+          .then((summaryData) => {
+            const loaded = {
+              organizationName: capacityData.organizationName || "",
+              domain: capacityData.domain || "",
+              contactEmail: capacityData.contactEmail || "",
+              location: capacityData.location || "",
+              industry: capacityData.industry || "",
+              description: capacityData.description || "",
+              mobileNumber: capacityData.mobileNumber || "",
+              plan: capacityData.plan || "",
+              status: capacityData.status || "",
+              planExpiryDate: capacityData.planExpiryDate || "",
+              maxStudents:
+                capacityData.maxStudents != null
+                  ? String(capacityData.maxStudents)
+                  : "",
+              maxTrainers:
+                capacityData.maxTrainers != null
+                  ? String(capacityData.maxTrainers)
+                  : "",
+              currentStudents:
+                capacityData.currentStudents != null
+                  ? String(capacityData.currentStudents)
+                  : "",
+              currentTrainers:
+                capacityData.currentTrainers != null
+                  ? String(capacityData.currentTrainers)
+                  : "",
+              maxDepartments:
+                capacityData.maxDepartments != null
+                  ? String(capacityData.maxDepartments)
+                  : "",
+              maxBranchesPerDept:
+                capacityData.maxBranchesPerDept != null
+                  ? String(capacityData.maxBranchesPerDept)
+                  : "",
+              maxBatchesPerBranch:
+                capacityData.maxBatchesPerBranch != null
+                  ? String(capacityData.maxBatchesPerBranch)
+                  : "",
+              currentDepartments:
+                summaryData.currentDepartments != null
+                  ? String(summaryData.currentDepartments)
+                  : "0",
+              currentBranches:
+                summaryData.currentBranches != null
+                  ? String(summaryData.currentBranches)
+                  : "0",
+              currentBatches:
+                summaryData.currentBatches != null
+                  ? String(summaryData.currentBatches)
+                  : "0",
+            };
+            setForm(loaded);
+            setDraft(loaded);
+          });
+      })
+      .catch(() => {
+        // silently fail — form stays empty
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const showToast = (msg, type = "success") => setToast({ message: msg, type });
+
+  const startEdit = () => {
+    setDraft({ ...form });
+    setEditing(true);
+  };
+  const cancelEdit = () => {
+    setDraft({ ...form });
+    setEditing(false);
+  };
+
+  const handleChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setDraft((p) => ({ ...p, [name]: value }));
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const orgId = localStorage.getItem("organizationId");
+      const payload = {
+        organizationName: draft.organizationName,
+        domain: draft.domain,
+        contactEmail: draft.contactEmail,
+        location: draft.location,
+        industry: draft.industry,
+        description: draft.description,
+        mobileNumber: draft.mobileNumber,
+        // maxStudents, maxTrainers, plan, status — NOT sent ✅
+      };
+      await authService.updateAdminOrgProfile(orgId, payload);
+
+      // Update form with saved editable fields, keep locked fields as-is
+      setForm((prev) => ({ ...prev, ...payload }));
+
+      setEditing(false);
+      showToast("Organization details saved");
+      syncProfileCompleted(true);
+
+      if (returnTo) {
+        setTimeout(() => {
+          navigate(returnTo);
+        }, 900);
+      }
+    } catch {
+      showToast("Failed to save. Try again.", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const inputCls = `w-full px-4 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:ring-2 ${ac.ring}`;
+
+  if (loading) {
+    return (
+      <div className="space-y-4 animate-pulse">
+        <div className="h-8 w-48 rounded-xl bg-gray-200 dark:bg-white/10" />
+        <div className="grid grid-cols-2 gap-4">
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              className="h-12 rounded-xl bg-gray-200 dark:bg-white/10"
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+            Organization Details
+          </h3>
+          <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
+            Your organization information
+          </p>
+        </div>
+        <div className="flex gap-2">
+          {editing ? (
+            <>
+              <button
+                onClick={cancelEdit}
+                disabled={saving}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-white/70 hover:bg-gray-200 transition-colors"
+              >
+                <X className="w-3.5 h-3.5" /> Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm text-white ${ac.btn} shadow transition-colors disabled:opacity-60`}
+              >
+                {saving ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Saving…
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-3.5 h-3.5" /> Save Details
+                  </>
+                )}
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={startEdit}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gray-700 dark:text-white/80 hover:bg-gray-200 transition-colors"
+            >
+              <Edit3 className="w-3.5 h-3.5" /> Edit Details
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ── Editable: Organization Info ── */}
+      <div>
+        <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <Building2 className="w-3.5 h-3.5" /> Organization Info
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <DetailField icon={Building2} label="Organization Name">
+            {editing ? (
+              <input
+                type="text"
+                name="organizationName"
+                placeholder="e.g. Texora AI"
+                value={draft.organizationName}
+                onChange={handleChange}
+                className={inputCls}
+              />
+            ) : (
+              <StaticVal val={form.organizationName} />
+            )}
+          </DetailField>
+
+          <DetailField icon={Globe} label="Domain">
+            {editing ? (
+              <input
+                type="text"
+                name="domain"
+                placeholder="e.g. texora.ai"
+                value={draft.domain}
+                onChange={handleChange}
+                className={inputCls}
+              />
+            ) : (
+              <StaticVal val={form.domain} />
+            )}
+          </DetailField>
+
+          <DetailField icon={Mail} label="Contact Email">
+            {editing ? (
+              <input
+                type="email"
+                name="contactEmail"
+                placeholder="e.g. admin@texora.ai"
+                value={draft.contactEmail}
+                onChange={handleChange}
+                className={inputCls}
+              />
+            ) : (
+              <StaticVal val={form.contactEmail} />
+            )}
+          </DetailField>
+
+          <DetailField icon={MapPin} label="Location">
+            {editing ? (
+              <input
+                type="text"
+                name="location"
+                placeholder="e.g. Hyderabad, India"
+                value={draft.location}
+                onChange={handleChange}
+                className={inputCls}
+              />
+            ) : (
+              <StaticVal val={form.location} />
+            )}
+          </DetailField>
+
+          <DetailField icon={Briefcase} label="Industry">
+            {editing ? (
+              <select
+                name="industry"
+                value={draft.industry}
+                onChange={handleChange}
+                className={inputCls}
+              >
+                <option value="">Select industry</option>
+                {INDUSTRIES.map((i) => (
+                  <option key={i}>{i}</option>
+                ))}
+              </select>
+            ) : (
+              <StaticVal val={form.industry} />
+            )}
+          </DetailField>
+
+          <DetailField icon={Phone} label="Mobile Number">
+            {editing ? (
+              <input
+                type="tel"
+                name="mobileNumber"
+                placeholder="+91 9876543210"
+                value={draft.mobileNumber}
+                onChange={handleChange}
+                className={inputCls}
+              />
+            ) : (
+              <StaticVal val={form.mobileNumber} />
+            )}
+          </DetailField>
+
+          <div className="sm:col-span-2">
+            <DetailField icon={BookOpen} label="Description">
+              {editing ? (
+                <textarea
+                  name="description"
+                  rows={3}
+                  placeholder="Brief description of your organization"
+                  value={draft.description}
+                  onChange={handleChange}
+                  className={`${inputCls} resize-none`}
+                />
+              ) : (
+                <StaticVal val={form.description} />
+              )}
+            </DetailField>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Locked: Plan & Limits ── */}
+      <div>
+        <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <Lock className="w-3.5 h-3.5" /> Plan & Limits
+          <span className="ml-1 text-xs font-normal normal-case text-gray-400 dark:text-slate-500">
+            — managed by SuperAdmin
+          </span>
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          {[
+            { icon: CreditCard, label: "Plan", val: form.plan },
+            { icon: Shield, label: "Status", val: form.status },
+            { icon: Calendar, label: "Plan Expiry", val: form.planExpiryDate },
+            { icon: Users, label: "Max Students", val: form.maxStudents },
+            { icon: Users, label: "Max Trainers", val: form.maxTrainers },
+            {
+              icon: Building2,
+              label: "Max Departments",
+              val: form.maxDepartments,
+            },
+            {
+              icon: GitBranch,
+              label: "Max Branches / Dept",
+              val: form.maxBranchesPerDept,
+            },
+            {
+              icon: Layers,
+              label: "Max Batches / Branch",
+              val: form.maxBatchesPerBranch,
+            },
+          ].map(({ icon: Ic, label, val }) => (
+            <div key={label} className="space-y-1.5">
+              <label className={LABEL_CLS}>
+                <Ic className="w-3.5 h-3.5" /> {label}
+              </label>
+              <div className="relative">
+                <p className="px-4 py-2.5 rounded-xl text-sm bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-500 dark:text-white/50 select-none pr-16">
+                  {val || "—"}
+                </p>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs px-2 py-0.5 rounded-full bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-white/40 border border-gray-300 dark:border-white/10">
+                  Locked
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Live usage counts ── */}
+        <div className="grid grid-cols-2 gap-4 mt-4">
+          {[
+            {
+              icon: Users,
+              label: "Current Students",
+              val: form.currentStudents,
+            },
+            {
+              icon: Users,
+              label: "Current Trainers",
+              val: form.currentTrainers,
+            },
+            {
+              icon: Building2,
+              label: "Current Departments",
+              val: form.currentDepartments,
+            },
+            {
+              icon: GitBranch,
+              label: "Current Branches",
+              val: form.currentBranches,
+            },
+            {
+              icon: Layers,
+              label: "Current Batches",
+              val: form.currentBatches,
+            },
+          ].map(({ icon: Ic, label, val }) => (
+            <div key={label} className="space-y-1.5">
+              <label className={LABEL_CLS}>
+                <Ic className="w-3.5 h-3.5" /> {label}
+              </label>
+              <p
+                className={`${STATIC_CLS} text-emerald-600 dark:text-emerald-400 font-semibold`}
+              >
+                {val || "0"}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+/* ── BUSINESS DETAILS TAB ── */
+const BusinessDetailsTab = ({ accent, returnTo }) => {
+  const navigate = useNavigate();
+  const ac = ACCENT[accent];
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const empty = {
+    companyName: "",
+    industry: "",
+    location: "",
+    website: "",
+    contactEmail: "",
+    mobileNumber: "",
+    description: "",
+  };
+  const [form, setForm] = useState(empty);
+  const [draft, setDraft] = useState(empty);
+
+  useEffect(() => {
+    userService
+      .getBusinessProfile()
+      .then((res) => {
+        const d = res.data || {};
+        const loaded = {
+          companyName: d.companyName || "",
+          industry: d.industry || "",
+          location: d.location || "",
+          website: d.website || "",
+          contactEmail: d.contactEmail || "",
+          mobileNumber: d.mobileNumber || "",
+          description: d.description || "",
+        };
+        setForm(loaded);
+        setDraft(loaded);
+      })
+      .catch(() => {});
+  }, []);
+
+  const showToast = (msg, type = "success") => setToast({ message: msg, type });
+  const startEdit = () => {
+    setDraft({ ...form });
+    setEditing(true);
+  };
+  const cancelEdit = () => {
+    setDraft({ ...form });
+    setEditing(false);
+  };
+
+  const handleChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setDraft((p) => ({ ...p, [name]: value }));
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await userService.updateBusinessProfile(draft);
+
+      setForm({ ...draft });
+      setEditing(false);
+
+      showToast("Business details saved");
+      syncProfileCompleted(true);
+
+      if (returnTo) {
+        setTimeout(() => {
+          navigate(returnTo);
+        }, 900);
+      }
+    } catch {
+      showToast("Failed to save. Try again.", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const inputCls = `w-full px-4 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:ring-2 ${ac.ring}`;
+
+  return (
+    <div className="space-y-8">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+            Business Details
+          </h3>
+          <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
+            Your company and contact information
+          </p>
+        </div>
+        <div className="flex gap-2">
+          {editing ? (
+            <>
+              <button
+                onClick={cancelEdit}
+                disabled={saving}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-white/70 hover:bg-gray-200 transition-colors"
+              >
+                <X className="w-3.5 h-3.5" /> Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm text-white ${ac.btn} shadow transition-colors disabled:opacity-60`}
+              >
+                {saving ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />{" "}
+                    Saving…
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-3.5 h-3.5" /> Save Details
+                  </>
+                )}
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={startEdit}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gray-700 dark:text-white/80 hover:bg-gray-200 transition-colors"
+            >
+              <Edit3 className="w-3.5 h-3.5" /> Edit Details
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div>
+        <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <Building2 className="w-3.5 h-3.5" /> Company Info
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <DetailField icon={Building2} label="Company Name">
+            {editing ? (
+              <input
+                type="text"
+                name="companyName"
+                placeholder="e.g. Acme Corp"
+                value={draft.companyName}
+                onChange={handleChange}
+                className={inputCls}
+              />
+            ) : (
+              <StaticVal val={form.companyName} />
+            )}
+          </DetailField>
+          <DetailField icon={Briefcase} label="Industry">
+            {editing ? (
+              <select
+                name="industry"
+                value={draft.industry}
+                onChange={handleChange}
+                className={inputCls}
+              >
+                <option value="">Select industry</option>
+                {INDUSTRIES.map((i) => (
+                  <option key={i}>{i}</option>
+                ))}
+              </select>
+            ) : (
+              <StaticVal val={form.industry} />
+            )}
+          </DetailField>
+          <DetailField icon={MapPin} label="Location">
+            {editing ? (
+              <input
+                type="text"
+                name="location"
+                placeholder="e.g. Mumbai, India"
+                value={draft.location}
+                onChange={handleChange}
+                className={inputCls}
+              />
+            ) : (
+              <StaticVal val={form.location} />
+            )}
+          </DetailField>
+          <DetailField icon={Globe} label="Website">
+            {editing ? (
+              <input
+                type="url"
+                name="website"
+                placeholder="https://example.com"
+                value={draft.website}
+                onChange={handleChange}
+                className={inputCls}
+              />
+            ) : (
+              <StaticVal val={form.website} />
+            )}
+          </DetailField>
+          <DetailField icon={Mail} label="Contact Email">
+            {editing ? (
+              <input
+                type="email"
+                name="contactEmail"
+                placeholder="e.g. contact@company.com"
+                value={draft.contactEmail}
+                onChange={handleChange}
+                className={inputCls}
+              />
+            ) : (
+              <StaticVal val={form.contactEmail} />
+            )}
+          </DetailField>
+          <DetailField icon={Phone} label="Mobile Number">
+            {editing ? (
+              <input
+                type="tel"
+                name="mobileNumber"
+                placeholder="+91 9876543210"
+                value={draft.mobileNumber}
+                onChange={handleChange}
+                className={inputCls}
+              />
+            ) : (
+              <StaticVal val={form.mobileNumber} />
+            )}
+          </DetailField>
+          <div className="sm:col-span-2">
+            <DetailField icon={BookOpen} label="Description">
+              {editing ? (
+                <textarea
+                  name="description"
+                  placeholder="Brief description of your business"
+                  value={draft.description}
+                  onChange={handleChange}
+                  rows={3}
+                  className={`${inputCls} resize-none`}
+                />
+              ) : (
+                <StaticVal val={form.description} />
+              )}
+            </DetailField>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ── DETAILS TAB ROUTER ── */
+const DetailsTab = ({ accent, roleKey, returnTo }) => {
+  if (roleKey === "trainer")
+    return <TrainerDetailsTab accent={accent} returnTo={returnTo} />;
+
+  if (roleKey === "admin")
+    return <AdminDetailsTab accent={accent} returnTo={returnTo} />;
+
+  if (roleKey === "business")
+    return <BusinessDetailsTab accent={accent} returnTo={returnTo} />;
+
+  return <StudentDetailsTab accent={accent} returnTo={returnTo} />;
+};
+
+/* ══════════════════════════════════════════════════════════════
+   SECURITY TAB  — UNCHANGED (restored from old code)
 ══════════════════════════════════════════════════════════════ */
 const SecurityTab = ({ accent }) => {
   const [newPassword, setNewPassword] = useState("");
@@ -553,7 +2411,6 @@ const SecurityTab = ({ accent }) => {
   const showToast = (message, type = "success") => setToast({ message, type });
 
   const handlePasswordChange = async () => {
-    // — Validate inputs
     if (!newPassword || !confirmPassword) {
       showToast("Both fields are required", "error");
       return;
@@ -566,11 +2423,8 @@ const SecurityTab = ({ accent }) => {
       showToast("Passwords do not match", "error");
       return;
     }
-
     setLoading(true);
     try {
-      // authService.changePassword already attaches the Bearer token
-      // via the Authorization header using authService.getToken()
       await authService.changePassword(newPassword, confirmPassword);
       showToast("Password updated successfully");
       setNewPassword("");
@@ -637,7 +2491,6 @@ const SecurityTab = ({ accent }) => {
             />
           </div>
 
-          {/* Password match indicator */}
           {confirmPassword && (
             <p
               className={`text-xs flex items-center gap-1.5 ${
@@ -678,7 +2531,6 @@ const SecurityTab = ({ accent }) => {
         </button>
       </div>
 
-      {/* Security tips */}
       <div className="rounded-2xl p-5 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10">
         <h4 className="text-sm font-semibold text-gray-700 dark:text-white/80 mb-3">
           Password Tips
@@ -705,7 +2557,7 @@ const SecurityTab = ({ accent }) => {
 };
 
 /* ══════════════════════════════════════════════════════════════
-   BILLING TAB
+   BILLING TAB  — UNCHANGED (restored from old code)
 ══════════════════════════════════════════════════════════════ */
 const BillingTab = ({ user, accent }) => {
   const ac = ACCENT[accent];
@@ -738,7 +2590,6 @@ const BillingTab = ({ user, accent }) => {
 
   return (
     <div className="space-y-6">
-      {/* Current Plan Card */}
       <div
         className={`relative overflow-hidden rounded-2xl p-6 bg-gradient-to-r ${user.heroGradient} shadow-xl`}
       >
@@ -768,7 +2619,6 @@ const BillingTab = ({ user, accent }) => {
         </div>
       </div>
 
-      {/* Payment Method */}
       <div className="rounded-2xl p-6 shadow-sm bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-gray-900 dark:text-white">
@@ -798,7 +2648,6 @@ const BillingTab = ({ user, accent }) => {
         </div>
       </div>
 
-      {/* Payment History */}
       <div className="rounded-2xl p-6 shadow-sm bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 space-y-4">
         <h3 className="font-semibold text-gray-900 dark:text-white">
           Payment History
@@ -839,7 +2688,7 @@ const BillingTab = ({ user, accent }) => {
 };
 
 /* ══════════════════════════════════════════════════════════════
-   SKELETON
+   SKELETON  — UNCHANGED
 ══════════════════════════════════════════════════════════════ */
 const Skeleton = () => (
   <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0f] p-8 space-y-6 animate-pulse">
@@ -855,9 +2704,12 @@ const ProfilePage = () => {
   const location = useLocation();
   const { pathname } = location;
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.get("returnTo");
   const [activeTab, setActiveTab] = useState("profile");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showReturnBanner, setShowReturnBanner] = useState(!!returnTo);
 
   const roleKey = pathname.startsWith("/trainer")
     ? "trainer"
@@ -921,8 +2773,19 @@ const ProfilePage = () => {
     }));
   };
 
+  // const tabs = [
+  //   { id: "profile", label: "Profile Info", icon: User },
+  //   { id: "details", label: "Details", icon: GraduationCap },
+  //   { id: "security", label: "Security", icon: Shield },
+  //   { id: "billing", label: "Billing", icon: CreditCard },
+  // ];
   const tabs = [
     { id: "profile", label: "Profile Info", icon: User },
+    {
+      id: "details",
+      label: roleKey === "admin" ? "Organization Details" : "Details",
+      icon: roleKey === "admin" ? Building2 : GraduationCap,
+    },
     { id: "security", label: "Security", icon: Shield },
     { id: "billing", label: "Billing", icon: CreditCard },
   ];
@@ -935,6 +2798,20 @@ const ProfilePage = () => {
         {error && (
           <div className="px-4 py-3 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 text-sm">
             {error}
+          </div>
+        )}
+
+        {showReturnBanner && (
+          <div className="px-4 py-3 rounded-2xl bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 text-orange-700 dark:text-orange-400 text-sm flex items-center justify-between gap-3">
+            <span>
+              Complete your profile below to continue to your dashboard.
+            </span>
+            <button
+              onClick={() => setShowReturnBanner(false)}
+              className="text-xs underline opacity-70 hover:opacity-100 shrink-0"
+            >
+              Dismiss
+            </button>
           </div>
         )}
 
@@ -1001,6 +2878,14 @@ const ProfilePage = () => {
                 user={user}
                 accent={user.accent}
                 onProfileUpdate={handleProfileUpdate}
+                returnTo={returnTo}
+              />
+            )}
+            {activeTab === "details" && (
+              <DetailsTab
+                accent={user.accent}
+                roleKey={roleKey}
+                returnTo={returnTo}
               />
             )}
             {activeTab === "security" && <SecurityTab accent={user.accent} />}

@@ -1,6 +1,11 @@
 import { courseService } from "@/services/courseService";
 import {
-  ArrowLeft, BookOpen, Layers, Plus, Search, Tag, X,
+  ArrowLeft,
+  BookOpen,
+  Layers,
+  Search,
+  Tag,
+  X
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -117,13 +122,34 @@ const isDark = () =>
 
 /* ── category colours ── */
 const CAT_COLORS = [
-  { bg:"rgba(34,211,238,.10)",  color:"var(--c1)", bd:"rgba(34,211,238,.20)"  },
-  { bg:"rgba(167,139,250,.10)", color:"var(--c4)", bd:"rgba(167,139,250,.20)" },
-  { bg:"rgba(251,146,60,.10)",  color:"var(--c2)", bd:"rgba(251,146,60,.20)"  },
-  { bg:"rgba(52,211,153,.10)",  color:"var(--c3)", bd:"rgba(52,211,153,.20)"  },
-  { bg:"rgba(248,113,113,.10)", color:"var(--cr)", bd:"rgba(248,113,113,.20)" },
+  {
+    bg: "rgba(34,211,238,.10)",
+    color: "var(--c1)",
+    bd: "rgba(34,211,238,.20)",
+  },
+  {
+    bg: "rgba(167,139,250,.10)",
+    color: "var(--c4)",
+    bd: "rgba(167,139,250,.20)",
+  },
+  {
+    bg: "rgba(251,146,60,.10)",
+    color: "var(--c2)",
+    bd: "rgba(251,146,60,.20)",
+  },
+  {
+    bg: "rgba(52,211,153,.10)",
+    color: "var(--c3)",
+    bd: "rgba(52,211,153,.20)",
+  },
+  {
+    bg: "rgba(248,113,113,.10)",
+    color: "var(--cr)",
+    bd: "rgba(248,113,113,.20)",
+  },
 ];
-const catColor = val => CAT_COLORS[(String(val)?.charCodeAt(0) ?? 0) % CAT_COLORS.length];
+const catColor = (val) =>
+  CAT_COLORS[(String(val)?.charCodeAt(0) ?? 0) % CAT_COLORS.length];
 
 const GRAD_BG = [
   "linear-gradient(135deg,#6d28d9,#4338ca)",
@@ -133,7 +159,8 @@ const GRAD_BG = [
   "linear-gradient(135deg,#047857,#065f46)",
   "linear-gradient(135deg,#1d4ed8,#1e40af)",
 ];
-const gradBg = val => GRAD_BG[(String(val)?.charCodeAt(0) ?? 0) % GRAD_BG.length];
+const gradBg = (val) =>
+  GRAD_BG[(String(val)?.charCodeAt(0) ?? 0) % GRAD_BG.length];
 
 /* ════════════════════════════════════════════════════════════════════
    MAIN
@@ -142,24 +169,31 @@ const Categories = () => {
   const navigate = useNavigate();
   const [dark, setDark] = useState(isDark);
 
-  const [search, setSearch]         = useState("");
-  const [open, setOpen]             = useState(false);
+  const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
   const [categories, setCategories] = useState([]);
-  const [loading, setLoading]       = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const o = new MutationObserver(() => setDark(isDark()));
-    o.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    o.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
     o.observe(document.body, { attributes: true, attributeFilter: ["class"] });
     return () => o.disconnect();
   }, []);
 
   /* ── LOAD (unchanged) ── */
-  useEffect(() => { loadCategories(); }, []);
+  useEffect(() => {
+    loadCategories();
+  }, []);
 
   const loadCategories = () => {
+    // courseService
+    //   .getAllCoursesForAdmin()
     courseService
-      .getAllCoursesForAdmin()
+      .getOrgAdminCourses()
       .then((res) => {
         const courses = res.data;
         const grouped = {};
@@ -169,10 +203,10 @@ const Categories = () => {
           grouped[category]++;
         });
         const formatted = Object.keys(grouped).map((categoryName, index) => ({
-          id:          index + 1,
-          name:        categoryName,
+          id: index + 1,
+          name: categoryName,
           courseCount: grouped[categoryName],
-          active:      true,
+          active: true,
         }));
         setCategories(formatted);
       })
@@ -181,7 +215,7 @@ const Categories = () => {
   };
 
   const filteredCategories = categories.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase())
+    c.name.toLowerCase().includes(search.toLowerCase()),
   );
 
   const activeCount = categories.filter((c) => c.active).length;
@@ -189,32 +223,47 @@ const Categories = () => {
   return (
     <div className={`ca${dark ? " ca-dk" : ""}`}>
       <div className="ca-inner">
-
         {/* ── Header ── */}
         <div className="ca-hdr">
           <div className="ca-hdr-l">
-            <button className="ca-back" onClick={() => navigate("/admin/courses")}>
+            <button
+              className="ca-back"
+              // onClick={() => navigate("/admin/courses")}
+              onClick={() => navigate("/admin/courses")}
+            >
               <ArrowLeft size={14} /> Back
             </button>
-            <div className="ca-hdr-ico"><Layers size={24} /></div>
+            <div className="ca-hdr-ico">
+              <Layers size={24} />
+            </div>
             <div>
-              <div className="ca-bdg"><Layers size={10} /> Content Management</div>
+              <div className="ca-bdg">
+                <Layers size={10} /> Content Management
+              </div>
               <h1 className="ca-h1">Course Categories</h1>
-              <p className="ca-sub">Organize courses into meaningful categories</p>
+              <p className="ca-sub">
+                Organize courses into meaningful categories
+              </p>
             </div>
           </div>
           <div className="ca-chips">
             <div className="ca-chip">
               <Layers size={14} style={{ color: "var(--c4)" }} />
-              <span style={{ fontWeight: 800, color: "var(--c4)" }}>{categories.length}</span>
-              <span style={{ color: "var(--mu)", fontWeight: 500 }}>Categories</span>
+              <span style={{ fontWeight: 800, color: "var(--c4)" }}>
+                {categories.length}
+              </span>
+              <span style={{ color: "var(--mu)", fontWeight: 500 }}>
+                Categories
+              </span>
             </div>
             <div className="ca-chip">
               <BookOpen size={14} style={{ color: "var(--c1)" }} />
               <span style={{ fontWeight: 800, color: "var(--c1)" }}>
                 {categories.reduce((a, c) => a + c.courseCount, 0)}
               </span>
-              <span style={{ color: "var(--mu)", fontWeight: 500 }}>Courses</span>
+              <span style={{ color: "var(--mu)", fontWeight: 500 }}>
+                Courses
+              </span>
             </div>
           </div>
         </div>
@@ -237,31 +286,37 @@ const Categories = () => {
             <div>
               <p className="ca-thead-title">Category List</p>
               <p className="ca-thead-sub">
-                {filteredCategories.length} categor{filteredCategories.length !== 1 ? "ies" : "y"} found
+                {filteredCategories.length} categor
+                {filteredCategories.length !== 1 ? "ies" : "y"} found
               </p>
             </div>
           </div>
 
           {/* skeleton */}
-          {loading && [1, 2, 3].map(i => (
-            <div key={i} className="ca-skel-row">
-              <div className="ca-skel-l">
-                <div className="ca-skel-sq" />
-                <div className="ca-skel-line" style={{ width: 140 }} />
+          {loading &&
+            [1, 2, 3].map((i) => (
+              <div key={i} className="ca-skel-row">
+                <div className="ca-skel-l">
+                  <div className="ca-skel-sq" />
+                  <div className="ca-skel-line" style={{ width: 140 }} />
+                </div>
+                <div style={{ display: "flex", gap: 12 }}>
+                  <div className="ca-skel-pill" />
+                  <div className="ca-skel-pill" style={{ width: 60 }} />
+                </div>
               </div>
-              <div style={{ display: "flex", gap: 12 }}>
-                <div className="ca-skel-pill" />
-                <div className="ca-skel-pill" style={{ width: 60 }} />
-              </div>
-            </div>
-          ))}
+            ))}
 
           {/* empty */}
           {!loading && filteredCategories.length === 0 && (
             <div className="ca-empty">
-              <div className="ca-empty-ico"><Layers size={26} /></div>
+              <div className="ca-empty-ico">
+                <Layers size={26} />
+              </div>
               <p className="ca-empty-t">No categories yet</p>
-              <p className="ca-empty-s">Create categories to organize courses</p>
+              <p className="ca-empty-s">
+                Create categories to organize courses
+              </p>
             </div>
           )}
 
@@ -281,13 +336,27 @@ const Categories = () => {
                   const cc = catColor(c.name);
                   return (
                     <tr key={c.id}>
-                      <td><span className="ca-idx">{String(index + 1).padStart(2, "0")}</span></td>
+                      <td>
+                        <span className="ca-idx">
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
+                      </td>
                       <td>
                         <div className="ca-cat-cell">
-                          <div className="ca-cat-av" style={{ background: gradBg(c.name) }}>
+                          <div
+                            className="ca-cat-av"
+                            style={{ background: gradBg(c.name) }}
+                          >
                             <Tag size={16} color="white" />
                           </div>
-                          <span className="ca-cat-tag" style={{ background: cc.bg, color: cc.color, borderColor: cc.bd }}>
+                          <span
+                            className="ca-cat-tag"
+                            style={{
+                              background: cc.bg,
+                              color: cc.color,
+                              borderColor: cc.bd,
+                            }}
+                          >
                             {c.name}
                           </span>
                         </div>
@@ -296,7 +365,9 @@ const Categories = () => {
                         <div className="ca-course-cnt">
                           <BookOpen size={13} style={{ color: "var(--mu)" }} />
                           <span className="ca-cnt-num">{c.courseCount}</span>
-                          <span className="ca-cnt-lbl">course{c.courseCount !== 1 && "s"}</span>
+                          <span className="ca-cnt-lbl">
+                            course{c.courseCount !== 1 && "s"}
+                          </span>
                         </div>
                       </td>
                       <td>
@@ -317,30 +388,41 @@ const Categories = () => {
             </table>
           )}
         </div>
-
       </div>
 
       {/* ── Modal (unchanged logic) ── */}
       {open && (
-        <div className={`ca-modal-overlay${dark ? " ca-dk" : ""}`} onClick={() => setOpen(false)}>
-          <div className="ca-modal" onClick={e => e.stopPropagation()}>
+        <div
+          className={`ca-modal-overlay${dark ? " ca-dk" : ""}`}
+          onClick={() => setOpen(false)}
+        >
+          <div className="ca-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ca-modal-head">
               <div className="ca-modal-head-l">
-                <div className="ca-modal-ico"><Layers size={17} /></div>
+                <div className="ca-modal-ico">
+                  <Layers size={17} />
+                </div>
                 <div>
                   <p className="ca-modal-title">Add Category</p>
                   <p className="ca-modal-sub">Create a new course category</p>
                 </div>
               </div>
-              <button className="ca-modal-close" onClick={() => setOpen(false)}><X size={14} /></button>
+              <button className="ca-modal-close" onClick={() => setOpen(false)}>
+                <X size={14} />
+              </button>
             </div>
             <div className="ca-modal-body">
               <div className="ca-field">
                 <label>Category Name</label>
-                <input className="ca-input" placeholder="e.g. Web Development" />
+                <input
+                  className="ca-input"
+                  placeholder="e.g. Web Development"
+                />
               </div>
               <div className="ca-modal-footer">
-                <button className="ca-cancel" onClick={() => setOpen(false)}>Cancel</button>
+                <button className="ca-cancel" onClick={() => setOpen(false)}>
+                  Cancel
+                </button>
                 <button className="ca-submit">Create</button>
               </div>
             </div>

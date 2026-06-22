@@ -1,3 +1,4 @@
+// export default videoService;
 import axios from "axios";
 
 const API_GATEWAY =
@@ -12,6 +13,7 @@ const getAuthHeaders = () => {
 };
 
 const videoService = {
+  // ✅ FIXED uploadVideo
   uploadVideo(
     file,
     title,
@@ -205,12 +207,17 @@ const videoService = {
     });
   },
 
-  // Trainer/Admin list
-  getAllVideos() {
+  // ✅ UPDATED — Admin / Trainer list, now supports an optional video-type
+  // filter: "UPLOADED_FILE" | "YOUTUBE" | "VIMEO" | "DIRECT_URL" | "ALL".
+  // Pass nothing (or "ALL") to get every video, same as before — fully
+  // backward compatible with existing callers.
+  getAllVideos(type) {
+    const params = type && type !== "ALL" ? { type } : {};
     return axios.get(`${API_GATEWAY}/video`, {
       headers: {
         ...getAuthHeaders(),
       },
+      params,
     });
   },
 

@@ -1073,9 +1073,7 @@ function Navbar({ darkMode, onToggleTheme }) {
               </a>
             </li>
             <li>
-              <button onClick={() => navigate("/explore-programs")}>
-                Free Services
-              </button>
+              
             </li>
             <li>
               <button onClick={() => navigate("/school-class")}>

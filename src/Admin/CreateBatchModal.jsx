@@ -1,32 +1,28 @@
 
-
-
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createBatch, getBranches } from "../services/batchService";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const CreateBatchModal = ({ onClose, onSuccess, inline = false }) => {
   const [loading, setLoading] = useState(false);
   const [branches, setBranches] = useState([]);
+  const [limitError, setLimitError] = useState(null);
+  const [error, setError] = useState("");
   const [form, setForm] = useState({ batchName: "", branchId: "" });
 
   useEffect(() => {
     getBranches().then((res) => {
-      const list =
-        res?.data?.data ||
-        res?.data?.branches ||
-        res?.data ||
-        [];
+      const list = res?.data?.data || res?.data?.branches || res?.data || [];
       setBranches(Array.isArray(list) ? list : []);
     });
   }, []);
 
   const handleSubmit = async () => {
     if (!form.batchName || !form.branchId) return;
+    setError("");
     try {
       setLoading(true);
       const res = await createBatch({
@@ -36,15 +32,150 @@ const CreateBatchModal = ({ onClose, onSuccess, inline = false }) => {
       onSuccess(res.data);
       onClose();
     } catch (err) {
-      console.error(err);
-      alert("Batch creation failed");
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data ||
+        "Something went wrong.";
+      const text = typeof msg === "string" ? msg : "Something went wrong.";
+      if (
+        text.toLowerCase().includes("limit") ||
+        text.toLowerCase().includes("max")
+      ) {
+        setLimitError(text);
+      } else {
+        setError(text);
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  // ── rendered in BOTH inline and modal mode ──
+  const limitModal = limitError && (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 9999,
+        background: "rgba(0,0,0,0.55)",
+        backdropFilter: "blur(4px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 20,
+      }}
+    >
+      <div
+        style={{
+          background: "#ffffff",
+          borderRadius: 20,
+          padding: "32px 28px",
+          maxWidth: 420,
+          width: "100%",
+          textAlign: "center",
+          border: "1px solid #e2e8f0",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
+        }}
+      >
+        <div
+          style={{
+            width: 56,
+            height: 56,
+            borderRadius: "50%",
+            background: "rgba(244,63,94,0.1)",
+            border: "1.5px solid rgba(244,63,94,0.3)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            margin: "0 auto 16px",
+          }}
+        >
+          <span style={{ fontSize: 24 }}>🚫</span>
+        </div>
+
+        <p
+          style={{
+            fontSize: 16,
+            fontWeight: 800,
+            color: "#0f172a",
+            fontFamily: "'Poppins',sans-serif",
+            margin: "0 0 8px",
+          }}
+        >
+          Batch Limit Reached
+        </p>
+
+        <p
+          style={{
+            fontSize: 12,
+            color: "#64748b",
+            fontFamily: "'Poppins',sans-serif",
+            margin: "0 0 20px",
+            lineHeight: 1.6,
+          }}
+        >
+          {limitError}. Please contact your Super Admin to upgrade your plan.
+        </p>
+
+        <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+          <button
+            onClick={() => setLimitError(null)}
+            style={{
+              padding: "9px 22px",
+              borderRadius: 10,
+              border: "1px solid #e2e8f0",
+              background: "#f8fafc",
+              color: "#64748b",
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: "pointer",
+              fontFamily: "'Poppins',sans-serif",
+            }}
+          >
+            Close
+          </button>
+          <button
+            onClick={() => setLimitError(null)}
+            style={{
+              padding: "9px 22px",
+              borderRadius: 10,
+              border: "none",
+              background: "linear-gradient(135deg,#f43f5e,#be123c)",
+              color: "#fff",
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: "pointer",
+              fontFamily: "'Poppins',sans-serif",
+            }}
+          >
+            Upgrade Plan
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   const formContent = (
     <div className="space-y-4">
+      {error && (
+        <div
+          style={{
+            padding: "10px 14px",
+            borderRadius: 8,
+            background: "rgba(244,63,94,0.08)",
+            border: "1px solid rgba(244,63,94,0.25)",
+            color: "#f43f5e",
+            fontSize: 12,
+            fontFamily: "'Poppins',sans-serif",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          ⚠️ {error}
+        </div>
+      )}
+
       <div>
         <Label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
           Batch Name
@@ -94,14 +225,17 @@ const CreateBatchModal = ({ onClose, onSuccess, inline = false }) => {
     </div>
   );
 
+  // ── inline mode — used inside AdminBatches panel ──
   if (inline) {
     return (
-      <div className="p-5 bg-white dark:bg-slate-900">
-        {formContent}
-      </div>
+      <>
+        <div className="p-5 bg-white dark:bg-slate-900">{formContent}</div>
+        {limitModal}
+      </>
     );
   }
 
+  // ── modal mode ──
   return (
     <>
       <div className="fixed inset-0 z-40 bg-black/60" onClick={onClose} />
@@ -119,6 +253,7 @@ const CreateBatchModal = ({ onClose, onSuccess, inline = false }) => {
           {formContent}
         </div>
       </div>
+      {limitModal}
     </>
   );
 };

@@ -56,6 +56,18 @@ const NAV = [
         icon: ic.organizations,
         permission: PERMISSIONS.VIEW_ORGANIZATIONS,
       },
+      {
+        label: "Batch Management", // ✅ ADD THIS
+        path: "/superadmin/batch-control", // ✅ matches App.jsx route
+        icon: ic.permissions, // reuse any icon, or add a new one
+        permission: PERMISSIONS.MANAGE_PERMISSIONS,
+      },
+      {
+        label: "Course Management",
+        path: "/superadmin/courses",
+        icon: ic.organizations,
+        permission: null,
+      },
       
       {
         label: "Permissions",

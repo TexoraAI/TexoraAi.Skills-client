@@ -1,58 +1,51 @@
-import React from "react";
 import {
-  LayoutDashboard,
-  GraduationCap,
-  Video,
-  Brain,
-  FileText,
-  FolderOpen,
-  BookOpen,
-  ClipboardCheck,
-  ClipboardEdit,
-  History,
-  CalendarDays,
-  MessageCircleQuestion,
-  Award,
-  Users,
-  UserCog,
-  ShieldCheck,
-  BarChart3,
   Activity,
-  TrendingUp,
-  LineChart,
+  Award,
+  BarChart3,
+  BookOpen,
+  Bot,
+  Brain,
   Briefcase,
   Building2,
-  Layers,
-  Target,
+  CalendarDays,
+  ChevronDown,
+  ClipboardCheck,
+  ClipboardEdit,
   DollarSign,
+  FileCode2,
+  FileSearch,
+  FileText,
+  FolderOpen,
+  GraduationCap,
+  History,
+  Layers,
+  LayoutDashboard,
+  LineChart,
+  LogOut,
+  Menu,
+  MessageCircleQuestion,
+  MessageSquare,
+  Moon,
+  NotebookPen,
+  PanelTop,
+  PlayCircle,
+  Radio,
   Receipt,
   Settings,
-  Mail,
-  FileSearch,
-  ChevronDown,
-  Sun,
-  Moon,
-  LogOut,
-  Radio,
-  PlayCircle,
-  Mic,
-  Upload,
-  List,
-  Star,
-  Menu,
-  MessageSquare,
-  PanelTop,
-
   // ✅ AI Tools Icons
   Sparkles,
-  Bot,
-  FileCode2,
-  NotebookPen,
+  Sun,
+  Target,
+  TrendingUp,
+  Upload,
+  Users,
+  Video
 } from "lucide-react";
+import React from "react";
 
+import { Phone } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import auth from "../auth";
-import { Phone } from "lucide-react";
 
 // ✅ Shared AvatarContext se import
 import { useAvatarContext } from "../context/AvatarContext";
@@ -203,6 +196,17 @@ const adminMenus = [
     name: "Course Management", icon: BookOpen,
     children: [
       { name: "All Courses", path: "/admin/courses", icon: BookOpen },
+    ],
+  },
+  {
+    name: "Video Management",
+    icon: Video,
+    children: [
+      {
+        name: "Admin Videos",
+        path: "/admin/videos",
+        icon: Video,
+      },
     ],
   },
   {

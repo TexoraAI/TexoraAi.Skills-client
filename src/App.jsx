@@ -1,12 +1,12 @@
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import { useEffect, useState, Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import LoadingSpinner from "./components/ui/LoadingSpinner";
 import ErrorBoundary from "./components/ui/ErrorBoundary";
+import LoadingSpinner from "./components/ui/LoadingSpinner";
 import { lazyLoad } from "./lib/lazyLoad";
-import { SaasProvider } from "./SuperAdmin/context/SaasContext";
-import { ROLES } from "./SuperAdmin/constants/permissions";
 import { seedCMSData } from "./SuperAdmin/cms-management/services/cmsSeed";
+import { ROLES } from "./SuperAdmin/constants/permissions";
+import { SaasProvider } from "./SuperAdmin/context/SaasContext";
 /* ================= AUTH ================= */
 import auth from "./auth";
 
@@ -30,9 +30,9 @@ const ApplyTrainer          = lazyLoad(() => import("./Trainer/ApplyTrainer.jsx"
 
 /* Layout */
 import SuperAdminLayout from "./SuperAdmin/components/layout/SuperAdminLayout";
-import { UserManagementProvider } from "./SuperAdmin/context/UserManagementContext";
-import { PermissionProvider } from "./SuperAdmin/context/PermissionContext";
 import { AuthProvider } from "./SuperAdmin/context/AuthContext";
+import { PermissionProvider } from "./SuperAdmin/context/PermissionContext";
+import { UserManagementProvider } from "./SuperAdmin/context/UserManagementContext";
 
 /* Dashboard */
 const SuperAdminDashboard = lazyLoad(() =>
@@ -93,6 +93,13 @@ const OrganizationPage = lazyLoad(() =>
 
 const OrganizationDetailsPage = lazyLoad(() =>
   import("./SuperAdmin/admin-control/OrganizationDetailsPage")
+);
+const SuperAdminCourseManagement = lazyLoad(
+  () => import("./SuperAdmin/admin-control/SuperAdminCourseManagement"),
+);
+// Near other SuperAdmin lazy imports
+const SuperAdminBatchControl = lazyLoad(
+  () => import("./SuperAdmin/admin-control/SuperAdminBatchControl"),
 );
 
 const OrganizationAdminDetailsPage = lazyLoad(() =>
@@ -290,7 +297,7 @@ const Categories                = lazyLoad(() => import("./Admin/Categories"));
 const CertificatesAdmin         = lazyLoad(() => import("./Admin/CertificatesAdmin"));
 const DepartmentList            = lazyLoad(() => import("./Admin/DepartmentList"));
 const Featuredcourseuploadform  = lazyLoad(() => import("./Admin/Featuredcourseuploadform"));
-
+const AdminVideos = lazyLoad(() => import("./Admin/AdminVideos"));
 
 const OrgReports                = lazyLoad(() => import("./Admin/OrgReports"));
 const OrgSettings               = lazyLoad(() => import("./Admin/OrgSettings"));
@@ -552,6 +559,7 @@ seedCMSData();
               <Route path="pending-users" element={<PendingUsers />} />
               <Route path="courses" element={<AllCourses />} />
               <Route path="categories" element={<Categories />} />
+              <Route path="videos" element={<AdminVideos />} />
               <Route path="certificates" element={<CertificatesAdmin />} />
               <Route path="reports" element={<OrgReports />} />
               <Route path="departmentlist" element={<DepartmentList />} />
@@ -631,7 +639,12 @@ seedCMSData();
 
 <Route path="permissions" element={<PermissionManagerPage />} />
 <Route path="pending-approvals" element={<PendingApprovalsPage />} />
-
+<Route
+                path="batch-control"
+                element={<SuperAdminBatchControl />}
+              />
+ <Route path="courses" element={<SuperAdminCourseManagement />} />
+ 
 {/* Organizations — static 'new' MUST be before dynamic :orgId */}
 <Route path="organizations" element={<OrganizationPage />} />
 <Route path="organizations/new" element={<NewOrganizationPage />} />

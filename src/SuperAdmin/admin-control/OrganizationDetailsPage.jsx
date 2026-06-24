@@ -15,6 +15,7 @@ import {
   getOrgFeatureFlags,
   updateOrgFeatureFlags,
 } from "../../services/batchService";
+import videoService from "../../services/videoService";
 import { courseService } from "../../services/courseService";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -461,11 +462,11 @@ export const SERVICES_CONFIG = [
           label: "Filter by category",
           endpoint: "GET /courses/admin/category/:cat",
         },
-        {
-          key: "manage_featured_courses",
-          label: "Manage featured courses",
-          endpoint: "POST /featured-courses/upload",
-        },
+        // {
+        //   key: "manage_featured_courses",
+        //   label: "Manage featured courses",
+        //   endpoint: "POST /featured-courses/upload",
+        // },
       ],
     },
   },
@@ -1391,6 +1392,22 @@ function buildDefaultCourseDTO(enabled = true) {
   return { enabled, features };
 }
 
+const VIDEO_SVC = SERVICES_CONFIG.find((s) => s.key === "video");
+
+function getAllVideoFeatureKeys() {
+  return Object.values(VIDEO_SVC.features)
+    .flat()
+    .map((f) => f.key);
+}
+
+function buildDefaultVideoDTO(enabled = true) {
+  const features = {};
+  getAllVideoFeatureKeys().forEach((k) => {
+    features[k] = enabled;
+  });
+  return { enabled, features };
+}
+
 // ─── SERVICE FEATURE DRAWER — operates directly on the flat batch DTO ────────
 const ServiceFeatureDrawer = ({
   dto, // flat { enabled, features }
@@ -1835,335 +1852,6 @@ const ServiceFeatureDrawer = ({
   );
 };
 
-// ─── FEATURE CONTROLS TAB — only the batch card, flat DTO, correct persistence ─
-// const FeatureControlsTab = ({ orgId, dark }) => {
-//   // dto is the FLAT shape the backend actually returns: { enabled, features: {key: bool} }
-//   const [dto, setDto] = useState(() => buildDefaultBatchDTO(true));
-//   const [loading, setLoading] = useState(true);
-//   const [saving, setSaving] = useState(false);
-//   const [savedMsg, setSavedMsg] = useState("");
-//   const [drawerOpen, setDrawerOpen] = useState(false);
-//   const [toasts, setToasts] = useState([]);
-//   const toastCounterRef = useRef(0);
-
-//   const cardBdr = dark ? "rgba(255,255,255,0.08)" : "#e5e7eb";
-//   const txtMain = dark ? "#f1f5f9" : "#0f172a";
-//   const txtSub = dark ? "#64748b" : "#94a3b8";
-
-//   const pushToast = useCallback(
-//     ({ serviceName, featureName, enabled, color }) => {
-//       const id = ++toastCounterRef.current;
-//       setToasts((prev) => [
-//         ...prev.slice(-3),
-//         { id, serviceName, featureName, enabled, color },
-//       ]);
-//       setTimeout(
-//         () => setToasts((prev) => prev.filter((t) => t.id !== id)),
-//         3200,
-//       );
-//     },
-//     [],
-//   );
-
-//   // ── LOAD: GET /feature-flags/org/:orgId returns the FLAT dto directly ──────
-//   useEffect(() => {
-//     if (!orgId) return;
-//     setLoading(true);
-//     getOrgFeatureFlags(orgId)
-//       .then((data) => {
-//         // data is already { enabled, features } — no per-service nesting exists.
-//         if (data && typeof data === "object" && data.features) {
-//           // Merge against defaults so any newly-added feature keys default to true
-//           // instead of being missing/undefined.
-//           const defaults = buildDefaultBatchDTO(true);
-//           setDto({
-//             enabled: data.enabled ?? true,
-//             features: { ...defaults.features, ...data.features },
-//           });
-//         } else {
-//           setDto(buildDefaultBatchDTO(true));
-//         }
-//       })
-//       .catch(() => setDto(buildDefaultBatchDTO(true)))
-//       .finally(() => setLoading(false));
-//   }, [orgId]);
-
-//   const handleToggleFeature = (featKey, val) => {
-//     setDto((prev) => {
-//       const newFeatures = { ...prev.features, [featKey]: val };
-//       const anyOn = Object.values(newFeatures).some(Boolean);
-//       return { enabled: anyOn, features: newFeatures };
-//     });
-//   };
-
-//   const handleToggleService = (val) => {
-//     setDto(buildDefaultBatchDTO(val));
-//   };
-
-//   const handleGlobalToggle = (val) => {
-//     setDto(buildDefaultBatchDTO(val));
-//     pushToast({
-//       serviceName: "Batch service",
-//       featureName: val ? "Everything" : "Everything",
-//       enabled: val,
-//       color: val ? "#10b981" : "#ef4444",
-//     });
-//   };
-
-//   // ── SAVE: PUT /feature-flags/org/:orgId with the FLAT dto, exactly as-is ───
-//   const handleSave = async () => {
-//     setSaving(true);
-//     try {
-//       await updateOrgFeatureFlags(orgId, dto);
-//       setSavedMsg("Changes saved!");
-//       setTimeout(() => setSavedMsg(""), 3000);
-//     } catch (err) {
-//       console.error("Failed to save feature flags", err);
-//     } finally {
-//       setSaving(false);
-//     }
-//   };
-
-//   if (loading) return <Spinner dark={dark} />;
-
-//   const svc = BATCH_SVC;
-//   const totalKeys = getAllBatchFeatureKeys().length;
-//   const onKeys = getAllBatchFeatureKeys().filter(
-//     (k) => dto.features[k] !== false,
-//   ).length;
-//   const pct = totalKeys > 0 ? Math.round((onKeys / totalKeys) * 100) : 0;
-//   const svcEnabled = dto.enabled ?? true;
-
-//   return (
-//     <>
-//       <ToastContainer toasts={toasts} />
-
-//       <div style={{ padding: "22px 22px 28px" }}>
-//         <div
-//           style={{
-//             display: "flex",
-//             alignItems: "flex-start",
-//             justifyContent: "space-between",
-//             marginBottom: 22,
-//             gap: 12,
-//             flexWrap: "wrap",
-//           }}
-//         >
-//           <div>
-//             <div
-//               style={{
-//                 fontSize: 16,
-//                 fontWeight: 800,
-//                 color: txtMain,
-//                 letterSpacing: "-0.02em",
-//               }}
-//             >
-//               Batch service feature controls
-//             </div>
-//             <div style={{ fontSize: 12, color: txtSub, marginTop: 3 }}>
-//               Disabling a feature blocks that API endpoint for every trainer,
-//               student and admin in this organization. Only the batch service has
-//               backend enforcement right now — other services are not shown here.
-//             </div>
-//           </div>
-//           <div
-//             style={{
-//               display: "flex",
-//               gap: 7,
-//               alignItems: "center",
-//               flexWrap: "wrap",
-//             }}
-//           >
-//             {savedMsg && (
-//               <span
-//                 style={{
-//                   fontSize: 11,
-//                   fontWeight: 700,
-//                   color: "#16a34a",
-//                   background: "#dcfce7",
-//                   padding: "4px 12px",
-//                   borderRadius: 99,
-//                   border: "1px solid #bbf7d0",
-//                 }}
-//               >
-//                 ✓ {savedMsg}
-//               </span>
-//             )}
-//             <button
-//               onClick={() => handleGlobalToggle(false)}
-//               style={{
-//                 fontSize: 11,
-//                 padding: "6px 12px",
-//                 border: `1px solid ${cardBdr}`,
-//                 borderRadius: 8,
-//                 background: dark ? "rgba(255,255,255,0.05)" : "#fff",
-//                 cursor: "pointer",
-//                 color: txtSub,
-//                 fontWeight: 600,
-//               }}
-//             >
-//               🚫 Disable all
-//             </button>
-//             <button
-//               onClick={() => handleGlobalToggle(true)}
-//               style={{
-//                 fontSize: 11,
-//                 padding: "6px 12px",
-//                 border: `1px solid ${svc.color}`,
-//                 borderRadius: 8,
-//                 background: svc.colorLight,
-//                 cursor: "pointer",
-//                 color: svc.color,
-//                 fontWeight: 600,
-//               }}
-//             >
-//               ✅ Enable all
-//             </button>
-//             <button
-//               onClick={handleSave}
-//               disabled={saving}
-//               style={{
-//                 fontSize: 11,
-//                 padding: "6px 16px",
-//                 border: "none",
-//                 borderRadius: 8,
-//                 background: saving
-//                   ? "#94a3b8"
-//                   : "linear-gradient(135deg,#6366f1,#8b5cf6)",
-//                 cursor: saving ? "not-allowed" : "pointer",
-//                 color: "white",
-//                 fontWeight: 700,
-//               }}
-//             >
-//               {saving ? "Saving…" : "💾 Save changes"}
-//             </button>
-//           </div>
-//         </div>
-
-//         {/* ONLY the batch card — no loop over SERVICES_CONFIG */}
-//         <div style={{ maxWidth: 260 }}>
-//           <div
-//             onClick={() => setDrawerOpen(true)}
-//             style={{
-//               background: svcEnabled
-//                 ? dark
-//                   ? svc.colorDark
-//                   : svc.colorLight
-//                 : dark
-//                   ? "rgba(255,255,255,0.02)"
-//                   : "#f8fafc",
-//               border: `1.5px solid ${svcEnabled ? svc.color + "40" : dark ? "rgba(255,255,255,0.07)" : "#e5e7eb"}`,
-//               borderRadius: 16,
-//               padding: "18px 16px",
-//               cursor: "pointer",
-//               position: "relative",
-//               overflow: "hidden",
-//             }}
-//           >
-//             <div
-//               style={{
-//                 display: "flex",
-//                 alignItems: "flex-start",
-//                 justifyContent: "space-between",
-//                 marginBottom: 12,
-//               }}
-//             >
-//               <div
-//                 style={{
-//                   width: 40,
-//                   height: 40,
-//                   borderRadius: 12,
-//                   background: svcEnabled
-//                     ? svc.gradient
-//                     : dark
-//                       ? "rgba(255,255,255,0.08)"
-//                       : "#e5e7eb",
-//                   display: "flex",
-//                   alignItems: "center",
-//                   justifyContent: "center",
-//                   fontSize: 20,
-//                 }}
-//               >
-//                 {svc.icon}
-//               </div>
-//               <div onClick={(e) => e.stopPropagation()}>
-//                 <MiniToggle
-//                   checked={svcEnabled}
-//                   onChange={(e) => {
-//                     handleToggleService(e.target.checked);
-//                     pushToast({
-//                       serviceName: svc.label,
-//                       featureName: "All features",
-//                       enabled: e.target.checked,
-//                       color: svc.color,
-//                     });
-//                   }}
-//                   color={svc.color}
-//                   size="sm"
-//                 />
-//               </div>
-//             </div>
-//             <div
-//               style={{
-//                 fontSize: 13,
-//                 fontWeight: 700,
-//                 color: svcEnabled ? txtMain : txtSub,
-//                 marginBottom: 4,
-//               }}
-//             >
-//               {svc.label}
-//             </div>
-//             <div style={{ fontSize: 10, color: txtSub, marginBottom: 10 }}>
-//               {onKeys}/{totalKeys} features on
-//             </div>
-//             <div
-//               style={{
-//                 height: 4,
-//                 borderRadius: 2,
-//                 background: dark ? "rgba(255,255,255,0.08)" : "#e2e8f0",
-//                 overflow: "hidden",
-//               }}
-//             >
-//               <div
-//                 style={{
-//                   height: "100%",
-//                   width: `${pct}%`,
-//                   background: svcEnabled ? svc.gradient : "#94a3b8",
-//                   borderRadius: 2,
-//                 }}
-//               />
-//             </div>
-//             <div
-//               style={{
-//                 marginTop: 10,
-//                 fontSize: 10,
-//                 color: svc.color,
-//                 fontWeight: 600,
-//               }}
-//             >
-//               Click to manage per-role →
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-
-//       {drawerOpen && (
-//         <ServiceFeatureDrawer
-//           dto={dto}
-//           onToggleFeature={handleToggleFeature}
-//           onToggleService={handleToggleService}
-//           onClose={() => setDrawerOpen(false)}
-//           dark={dark}
-//           onToast={pushToast}
-//           onSave={handleSave} // ← ADD
-//           saving={saving} // ← ADD
-//           savedMsg={savedMsg}
-//         />
-//       )}
-//     </>
-//   );
-// };
-
 const FeatureControlsTab = ({ orgId, dark }) => {
   // ── BATCH state ────────────────────────────────────────────────────────────
   const [batchDto, setBatchDto] = useState(() => buildDefaultBatchDTO(true));
@@ -2178,6 +1866,13 @@ const FeatureControlsTab = ({ orgId, dark }) => {
   const [courseSaving, setCourseSaving] = useState(false);
   const [courseSavedMsg, setCourseSavedMsg] = useState("");
   const [courseDrawerOpen, setCourseDrawerOpen] = useState(false);
+
+  // ── VIDEO state ─────────────────────────────────────────────────────────────
+  const [videoDto, setVideoDto] = useState(() => buildDefaultVideoDTO(true));
+  const [videoLoading, setVideoLoading] = useState(true);
+  const [videoSaving, setVideoSaving] = useState(false);
+  const [videoSavedMsg, setVideoSavedMsg] = useState("");
+  const [videoDrawerOpen, setVideoDrawerOpen] = useState(false);
 
   const [toasts, setToasts] = useState([]);
   const toastCounterRef = useRef(0);
@@ -2242,6 +1937,28 @@ const FeatureControlsTab = ({ orgId, dark }) => {
       .finally(() => setCourseLoading(false));
   }, [orgId]);
 
+  // ── Load VIDEO flags ─────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!orgId) return;
+    setVideoLoading(true);
+    videoService
+      .getOrgVideoFeatureFlags(orgId)
+      .then((res) => {
+        const data = res.data;
+        if (data && typeof data === "object" && data.features) {
+          const defaults = buildDefaultVideoDTO(true);
+          setVideoDto({
+            enabled: data.enabled ?? true,
+            features: { ...defaults.features, ...data.features },
+          });
+        } else {
+          setVideoDto(buildDefaultVideoDTO(true));
+        }
+      })
+      .catch(() => setVideoDto(buildDefaultVideoDTO(true)))
+      .finally(() => setVideoLoading(false));
+  }, [orgId]);
+
   // ── BATCH handlers ──────────────────────────────────────────────────────────
   const handleBatchToggleFeature = (featKey, val) => {
     setBatchDto((prev) => {
@@ -2291,8 +2008,33 @@ const FeatureControlsTab = ({ orgId, dark }) => {
       setCourseSaving(false);
     }
   };
+  // ── VIDEO handlers ───────────────────────────────────────────────────────────
+  const handleVideoToggleFeature = (featKey, val) => {
+    setVideoDto((prev) => {
+      const newFeatures = { ...prev.features, [featKey]: val };
+      return {
+        enabled: Object.values(newFeatures).some(Boolean),
+        features: newFeatures,
+      };
+    });
+  };
+  const handleVideoToggleService = (val) =>
+    setVideoDto(buildDefaultVideoDTO(val));
+  const handleVideoSave = async () => {
+    setVideoSaving(true);
+    try {
+      await videoService.updateOrgVideoFeatureFlags(orgId, videoDto);
+      setVideoSavedMsg("Changes saved!");
+      setTimeout(() => setVideoSavedMsg(""), 3000);
+    } catch (err) {
+      console.error("Failed to save video feature flags", err);
+    } finally {
+      setVideoSaving(false);
+    }
+  };
 
-  if (batchLoading && courseLoading) return <Spinner dark={dark} />;
+  if (batchLoading && courseLoading && videoLoading)
+    return <Spinner dark={dark} />;
 
   // ── Batch card values ───────────────────────────────────────────────────────
   const batchSvc = BATCH_SVC;
@@ -2315,6 +2057,16 @@ const FeatureControlsTab = ({ orgId, dark }) => {
       ? Math.round((courseOnKeys / courseTotalKeys) * 100)
       : 0;
   const courseEnabled = courseDto.enabled ?? true;
+
+  // ── Video card values ────────────────────────────────────────────────────────
+  const videoSvc = VIDEO_SVC;
+  const videoTotalKeys = getAllVideoFeatureKeys().length;
+  const videoOnKeys = getAllVideoFeatureKeys().filter(
+    (k) => videoDto.features[k] !== false,
+  ).length;
+  const videoPct =
+    videoTotalKeys > 0 ? Math.round((videoOnKeys / videoTotalKeys) * 100) : 0;
+  const videoEnabled = videoDto.enabled ?? true;
 
   // Reusable card renderer — renders one service card
   const ServiceCard = ({
@@ -2493,6 +2245,25 @@ const FeatureControlsTab = ({ orgId, dark }) => {
             onDrawerOpen={() => setCourseDrawerOpen(true)}
             loading={courseLoading}
           />
+          <ServiceCard
+            svc={videoSvc}
+            dto={videoDto}
+            onKeys={videoOnKeys}
+            totalKeys={videoTotalKeys}
+            pct={videoPct}
+            svcEnabled={videoEnabled}
+            onToggleService={(val) => {
+              handleVideoToggleService(val);
+              pushToast({
+                serviceName: videoSvc.label,
+                featureName: "All features",
+                enabled: val,
+                color: videoSvc.color,
+              });
+            }}
+            onDrawerOpen={() => setVideoDrawerOpen(true)}
+            loading={videoLoading}
+          />
         </div>
       </div>
 
@@ -2523,6 +2294,20 @@ const FeatureControlsTab = ({ orgId, dark }) => {
           onSave={handleCourseSave}
           saving={courseSaving}
           savedMsg={courseSavedMsg}
+        />
+      )}
+      {/* VIDEO drawer — reuses CourseServiceDrawer shape, just with video svc */}
+      {videoDrawerOpen && (
+        <VideoServiceDrawer
+          dto={videoDto}
+          onToggleFeature={handleVideoToggleFeature}
+          onToggleService={handleVideoToggleService}
+          onClose={() => setVideoDrawerOpen(false)}
+          dark={dark}
+          onToast={pushToast}
+          onSave={handleVideoSave}
+          saving={videoSaving}
+          savedMsg={videoSavedMsg}
         />
       )}
     </>
@@ -2705,6 +2490,442 @@ const CourseServiceDrawer = ({
               </div>
               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.65)" }}>
                 Disabling blocks all course features for all roles
+              </div>
+            </div>
+            <MiniToggle
+              checked={svcEnabled}
+              onChange={(e) => {
+                onToggleService(e.target.checked);
+                onToast({
+                  serviceName: svc.label,
+                  featureName: "All features",
+                  enabled: e.target.checked,
+                  color: svc.color,
+                });
+              }}
+              color="#fff"
+            />
+          </div>
+          {/* Save button */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              gap: 8,
+              marginTop: 12,
+            }}
+          >
+            {savedMsg && (
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "#bbf7d0",
+                  background: "rgba(255,255,255,0.15)",
+                  padding: "4px 12px",
+                  borderRadius: 99,
+                  border: "1px solid rgba(255,255,255,0.2)",
+                }}
+              >
+                ✓ {savedMsg}
+              </span>
+            )}
+            <button
+              onClick={onSave}
+              disabled={saving}
+              style={{
+                fontSize: 12,
+                padding: "8px 20px",
+                border: "none",
+                borderRadius: 10,
+                background: saving
+                  ? "rgba(255,255,255,0.2)"
+                  : "rgba(255,255,255,0.92)",
+                cursor: saving ? "not-allowed" : "pointer",
+                color: saving ? "rgba(255,255,255,0.5)" : svc.color,
+                fontWeight: 700,
+                transition: "all 0.15s",
+              }}
+            >
+              {saving ? "Saving…" : "💾 Save changes"}
+            </button>
+          </div>
+          {/* Role tabs */}
+          <div style={{ display: "flex", gap: 6, marginTop: 14 }}>
+            {roles.map((role) => {
+              const pill = ROLE_PILL[role];
+              const isActive = activeRole === role;
+              return (
+                <button
+                  key={role}
+                  onClick={() => setActiveRole(role)}
+                  style={{
+                    flex: 1,
+                    padding: "7px 10px",
+                    borderRadius: 9,
+                    border: "none",
+                    cursor: "pointer",
+                    background: isActive
+                      ? "rgba(255,255,255,0.92)"
+                      : "rgba(255,255,255,0.15)",
+                    color: isActive ? svc.color : "#fff",
+                    fontWeight: 700,
+                    fontSize: 12,
+                  }}
+                >
+                  {pill.label}
+                  <span
+                    style={{
+                      display: "block",
+                      fontSize: 10,
+                      fontWeight: 400,
+                      opacity: 0.75,
+                      marginTop: 1,
+                    }}
+                  >
+                    {countEnabled(role)}/{totalForRole(role)} on
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        {/* Feature list */}
+        <div style={{ flex: 1, padding: "16px 20px", overflowY: "auto" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 12,
+            }}
+          >
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: txtSub,
+              }}
+            >
+              {activeRole} features · {countEnabled(activeRole)}/
+              {totalForRole(activeRole)} enabled
+            </span>
+            <div style={{ display: "flex", gap: 6 }}>
+              <button
+                onClick={() => handleRoleAll(false)}
+                style={{
+                  fontSize: 10,
+                  padding: "4px 10px",
+                  border: `1px solid ${cardBdr}`,
+                  borderRadius: 6,
+                  background: "transparent",
+                  cursor: "pointer",
+                  color: txtSub,
+                  fontWeight: 600,
+                }}
+              >
+                All off
+              </button>
+              <button
+                onClick={() => handleRoleAll(true)}
+                style={{
+                  fontSize: 10,
+                  padding: "4px 10px",
+                  border: `1px solid ${svc.color}`,
+                  borderRadius: 6,
+                  background: svc.colorLight,
+                  cursor: "pointer",
+                  color: svc.color,
+                  fontWeight: 600,
+                }}
+              >
+                All on
+              </button>
+            </div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            {(svc.features[activeRole] || []).map((feat, idx) => {
+              const isOn = dto.features[feat.key] ?? true;
+              return (
+                <div
+                  key={feat.key}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    padding: "11px 14px",
+                    borderRadius: 11,
+                    background: isOn
+                      ? dark
+                        ? svc.colorDark
+                        : svc.colorLight + "80"
+                      : dark
+                        ? "rgba(255,255,255,0.02)"
+                        : "#f8fafc",
+                    border: `1px solid ${isOn ? svc.color + "30" : dark ? "rgba(255,255,255,0.06)" : "#f1f5f9"}`,
+                    cursor: "pointer",
+                  }}
+                  onClick={() => {
+                    onToggleFeature(feat.key, !isOn);
+                    onToast({
+                      serviceName: svc.label,
+                      featureName: feat.label,
+                      enabled: !isOn,
+                      color: svc.color,
+                    });
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: 7,
+                      background: isOn
+                        ? svc.color
+                        : dark
+                          ? "rgba(255,255,255,0.08)"
+                          : "#e5e7eb",
+                      color: isOn ? "#fff" : txtSub,
+                      fontSize: 10,
+                      fontWeight: 800,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {idx + 1}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: isOn ? txtMain : txtSub,
+                      }}
+                    >
+                      {feat.label}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 10,
+                        color: txtSub,
+                        fontFamily: "monospace",
+                        marginTop: 1,
+                        opacity: 0.7,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {feat.endpoint}
+                    </div>
+                  </div>
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <MiniToggle
+                      checked={isOn}
+                      onChange={(e) => {
+                        onToggleFeature(feat.key, e.target.checked);
+                        onToast({
+                          serviceName: svc.label,
+                          featureName: feat.label,
+                          enabled: e.target.checked,
+                          color: svc.color,
+                        });
+                      }}
+                      color={svc.color}
+                      size="sm"
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const VideoServiceDrawer = ({
+  dto,
+  onToggleFeature,
+  onToggleService,
+  onClose,
+  dark,
+  onToast,
+  onSave,
+  saving,
+  savedMsg,
+}) => {
+  const [activeRole, setActiveRole] = useState("trainer");
+  const svc = VIDEO_SVC;
+  const svcEnabled = dto.enabled ?? true;
+
+  const roles = Object.keys(svc.features).filter(
+    (r) => (svc.features[r] || []).length > 0,
+  );
+
+  const countEnabled = (role) =>
+    (svc.features[role] || []).filter((f) => dto.features[f.key] !== false)
+      .length;
+  const totalForRole = (role) => (svc.features[role] || []).length;
+
+  const txtMain = dark ? "#f1f5f9" : "#0f172a";
+  const txtSub = dark ? "#64748b" : "#94a3b8";
+  const cardBg = dark ? "#0f172a" : "#ffffff";
+  const cardBdr = dark ? "rgba(255,255,255,0.08)" : "#e2e8f0";
+
+  const totalKeys = getAllVideoFeatureKeys().length;
+  const onKeys = getAllVideoFeatureKeys().filter(
+    (k) => dto.features[k] !== false,
+  ).length;
+
+  const handleRoleAll = (val) => {
+    (svc.features[activeRole] || []).forEach((f) => {
+      if ((dto.features[f.key] ?? true) !== val) {
+        onToggleFeature(f.key, val);
+        onToast({
+          serviceName: svc.label,
+          featureName: f.label,
+          enabled: val,
+          color: svc.color,
+        });
+      }
+    });
+  };
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 8000,
+        display: "flex",
+        justifyContent: "flex-end",
+      }}
+    >
+      <div
+        onClick={onClose}
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "rgba(0,0,0,0.55)",
+          backdropFilter: "blur(6px)",
+        }}
+      />
+      <div
+        style={{
+          position: "relative",
+          width: 480,
+          height: "100%",
+          background: cardBg,
+          display: "flex",
+          flexDirection: "column",
+          boxShadow: `-20px 0 60px rgba(0,0,0,0.35), -4px 0 20px ${svc.color}30`,
+          border: `1px solid ${cardBdr}`,
+          animation: "drawerSlide 0.3s cubic-bezier(0.22,1,0.36,1)",
+          overflowY: "auto",
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            background: svc.gradient,
+            padding: "28px 24px 22px",
+            flexShrink: 0,
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              top: -30,
+              right: -30,
+              width: 120,
+              height: 120,
+              borderRadius: "50%",
+              background: "rgba(255,255,255,0.08)",
+            }}
+          />
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              position: "relative",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <div
+                style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: 16,
+                  background: "rgba(255,255,255,0.2)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 24,
+                }}
+              >
+                {svc.icon}
+              </div>
+              <div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: "#fff" }}>
+                  {svc.label}
+                </div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: "rgba(255,255,255,0.7)",
+                    marginTop: 3,
+                  }}
+                >
+                  {onKeys} / {totalKeys} features active
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 10,
+                background: "rgba(255,255,255,0.2)",
+                border: "none",
+                cursor: "pointer",
+                color: "#fff",
+                fontSize: 16,
+                fontWeight: 700,
+              }}
+            >
+              ✕
+            </button>
+          </div>
+          {/* Master switch */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginTop: 18,
+              background: "rgba(255,255,255,0.12)",
+              borderRadius: 12,
+              padding: "10px 14px",
+              border: "1px solid rgba(255,255,255,0.15)",
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>
+                Service master switch
+              </div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.65)" }}>
+                Disabling blocks all video features for all roles
               </div>
             </div>
             <MiniToggle

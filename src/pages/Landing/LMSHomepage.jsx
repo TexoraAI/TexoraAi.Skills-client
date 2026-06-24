@@ -2657,7 +2657,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
               <div className="flex items-center gap-3 pt-1 flex-wrap">
                 {/* Instagram */}
                 <a
-                  href="https://www.instagram.com/texoraai"
+                  href="https://www.instagram.com/texora_ai"
                   target="_blank"
                   rel="noreferrer"
                   className="h-9 w-9 rounded-full flex items-center justify-center text-white hover:scale-110 hover:shadow-md transition-all"

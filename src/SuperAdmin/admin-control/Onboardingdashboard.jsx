@@ -60,6 +60,7 @@ import {
   updateIndividualFeatureFlags,
 } from "../../services/batchService";
 import { courseService } from "../../services/courseService";
+import videoService from "../../services/videoService";
 export const SERVICES_CONFIG = [
   {
     key: "assessment",
@@ -922,6 +923,20 @@ function buildDefaultCourseDTOOM(enabled = true) {
   return { enabled, features };
 }
 
+const VIDEO_SVC_OM = SERVICES_CONFIG.find((s) => s.key === "video");
+function getAllVideoKeysOM() {
+  return Object.values(VIDEO_SVC_OM.features)
+    .flat()
+    .map((f) => f.key);
+}
+function buildDefaultVideoDTOOM(enabled = true) {
+  const features = {};
+  getAllVideoKeysOM().forEach((k) => {
+    features[k] = enabled;
+  });
+  return { enabled, features };
+}
+
 // const COURSE_SVC = SERVICES_CONFIG.find((s) => s.key === "course");
 
 // function getAllCourseFeatureKeys() {
@@ -1502,372 +1517,6 @@ const ServiceFeatureDrawer = ({
   );
 };
 //featurecontrolsection
-
-// const FeatureControlsSection = ({ userEmail, color, userRole }) => {
-//   const [dto, setDto] = useState(() => buildDefaultBatchDTOOM(true));
-//   const [loading, setLoading] = useState(true);
-//   const [saving, setSaving] = useState(false);
-//   const [saved, setSaved] = useState(false);
-//   const [drawerOpen, setDrawerOpen] = useState(false);
-//   const [toasts, setToasts] = useState([]);
-//   const toastRef = useRef(0);
-
-//   const svc = BATCH_SVC_OM;
-
-//   useEffect(() => {
-//     if (!userEmail) return;
-//     setLoading(true);
-//     getIndividualFeatureFlags(userEmail)
-//       .then((data) => {
-//         if (data && typeof data === "object" && data.features) {
-//           const defaults = buildDefaultBatchDTOOM(true);
-//           setDto({
-//             enabled: data.enabled ?? true,
-//             features: { ...defaults.features, ...data.features },
-//           });
-//         } else {
-//           setDto(buildDefaultBatchDTOOM(true));
-//         }
-//       })
-//       .catch(() => setDto(buildDefaultBatchDTOOM(true)))
-//       .finally(() => setLoading(false));
-//   }, [userEmail]);
-
-//   const pushToast = useCallback(
-//     ({ svcLabel, featLabel, enabled, color: c }) => {
-//       const id = ++toastRef.current;
-//       setToasts((p) => [
-//         ...p.slice(-3),
-//         { id, svcLabel, featLabel, enabled, color: c },
-//       ]);
-//       setTimeout(() => setToasts((p) => p.filter((t) => t.id !== id)), 2800);
-//     },
-//     [],
-//   );
-
-//   const handleToggleFeature = (featKey, val) => {
-//     setDto((prev) => {
-//       const newFeatures = { ...prev.features, [featKey]: val };
-//       const anyOn = Object.values(newFeatures).some(Boolean);
-//       return { enabled: anyOn, features: newFeatures };
-//     });
-//   };
-
-//   const handleToggleService = (val) => {
-//     setDto(buildDefaultBatchDTOOM(val));
-//   };
-
-//   const handleGlobalToggle = (val) => {
-//     setDto(buildDefaultBatchDTOOM(val));
-//     pushToast({
-//       svcLabel: "Batch",
-//       featLabel: "Everything",
-//       enabled: val,
-//       color: val ? "#10b981" : "#ef4444",
-//     });
-//   };
-
-//   const handleSave = async () => {
-//     setSaving(true);
-//     try {
-//       await updateIndividualFeatureFlags(userEmail, dto);
-//       setSaved(true);
-//       setTimeout(() => setSaved(false), 2800);
-//     } catch (e) {
-//       console.error(e);
-//     } finally {
-//       setSaving(false);
-//     }
-//   };
-
-//   const totalKeys = getAllBatchKeysOM().length;
-//   const onKeys = getAllBatchKeysOM().filter(
-//     (k) => dto.features[k] !== false,
-//   ).length;
-//   const pct = totalKeys > 0 ? Math.round((onKeys / totalKeys) * 100) : 0;
-//   const svcEnabled = dto.enabled ?? true;
-
-//   return (
-//     <>
-//       <FeatureToast toasts={toasts} />
-
-//       <div style={{ marginTop: 6 }}>
-//         <div
-//           style={{
-//             borderTop: "2px dashed #e2e8f0",
-//             paddingTop: 13,
-//             marginTop: 2,
-//           }}
-//         >
-//           {/* Header */}
-//           <div
-//             style={{
-//               display: "flex",
-//               alignItems: "center",
-//               justifyContent: "space-between",
-//               marginBottom: 10,
-//             }}
-//           >
-//             <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-//               <div
-//                 style={{
-//                   width: 24,
-//                   height: 24,
-//                   borderRadius: 7,
-//                   background: "#fef3c7",
-//                   display: "flex",
-//                   alignItems: "center",
-//                   justifyContent: "center",
-//                 }}
-//               >
-//                 <ShieldAlert size={13} color="#f59e0b" />
-//               </div>
-//               <span style={{ fontSize: 12, fontWeight: 700, color: "#0f172a" }}>
-//                 Feature controls
-//               </span>
-//               <span
-//                 style={{
-//                   fontSize: 9.5,
-//                   fontWeight: 700,
-//                   padding: "2px 7px",
-//                   borderRadius: 99,
-//                   background: "#fef3c7",
-//                   color: "#92400e",
-//                 }}
-//               >
-//                 No org — standalone
-//               </span>
-//             </div>
-//             <div style={{ display: "flex", gap: 5 }}>
-//               <button
-//                 onClick={() => handleGlobalToggle(false)}
-//                 style={{
-//                   fontSize: 9.5,
-//                   padding: "3px 9px",
-//                   border: "1px solid #e2e8f0",
-//                   borderRadius: 6,
-//                   background: "#fff",
-//                   cursor: "pointer",
-//                   color: "#64748b",
-//                   fontWeight: 600,
-//                   fontFamily: "inherit",
-//                 }}
-//               >
-//                 Disable all
-//               </button>
-//               <button
-//                 onClick={() => handleGlobalToggle(true)}
-//                 style={{
-//                   fontSize: 9.5,
-//                   padding: "3px 9px",
-//                   border: "1px solid #6366f140",
-//                   borderRadius: 6,
-//                   background: "#eef2ff",
-//                   cursor: "pointer",
-//                   color: "#6366f1",
-//                   fontWeight: 600,
-//                   fontFamily: "inherit",
-//                 }}
-//               >
-//                 Enable all
-//               </button>
-//               <button
-//                 onClick={handleSave}
-//                 disabled={saving}
-//                 style={{
-//                   fontSize: 10.5,
-//                   padding: "4px 11px",
-//                   border: "none",
-//                   borderRadius: 6,
-//                   background: saving ? "#94a3b8" : color,
-//                   color: "white",
-//                   cursor: saving ? "not-allowed" : "pointer",
-//                   fontWeight: 700,
-//                   display: "flex",
-//                   alignItems: "center",
-//                   gap: 4,
-//                   fontFamily: "inherit",
-//                   boxShadow: saving ? "none" : `0 2px 8px ${color}50`,
-//                 }}
-//               >
-//                 {saved ? (
-//                   <>
-//                     <CheckCircle size={10} /> Saved!
-//                   </>
-//                 ) : saving ? (
-//                   "Saving…"
-//                 ) : (
-//                   <>
-//                     <Save size={10} /> Save
-//                   </>
-//                 )}
-//               </button>
-//             </div>
-//           </div>
-
-//           {loading ? (
-//             <div
-//               style={{
-//                 padding: "18px 0",
-//                 textAlign: "center",
-//                 color: "#94a3b8",
-//                 fontSize: 12,
-//                 display: "flex",
-//                 alignItems: "center",
-//                 justifyContent: "center",
-//                 gap: 7,
-//               }}
-//             >
-//               <div
-//                 style={{
-//                   width: 14,
-//                   height: 14,
-//                   border: "2px solid #e2e8f0",
-//                   borderTop: `2px solid ${color}`,
-//                   borderRadius: "50%",
-//                   animation: "spin 0.7s linear infinite",
-//                 }}
-//               />
-//               Loading feature controls…
-//             </div>
-//           ) : (
-//             <div style={{ maxWidth: 200 }}>
-//               <div
-//                 onClick={() => setDrawerOpen(true)}
-//                 style={{
-//                   background: svcEnabled ? svc.colorLight : "#fff",
-//                   border: `1.5px solid ${svcEnabled ? svc.color + "40" : "#e2e8f0"}`,
-//                   borderRadius: 11,
-//                   padding: "11px 12px",
-//                   cursor: "pointer",
-//                   boxShadow: svcEnabled ? `0 3px 14px ${svc.glow}30` : "none",
-//                 }}
-//               >
-//                 <div
-//                   style={{
-//                     display: "flex",
-//                     alignItems: "center",
-//                     justifyContent: "space-between",
-//                     marginBottom: 8,
-//                   }}
-//                 >
-//                   <div
-//                     style={{
-//                       width: 30,
-//                       height: 30,
-//                       borderRadius: 9,
-//                       background: svcEnabled ? svc.gradient : "#f1f5f9",
-//                       display: "flex",
-//                       alignItems: "center",
-//                       justifyContent: "center",
-//                       fontSize: 15,
-//                     }}
-//                   >
-//                     {svc.icon}
-//                   </div>
-//                   <div onClick={(e) => e.stopPropagation()}>
-//                     <MiniTgl
-//                       checked={svcEnabled}
-//                       onChange={(e) => {
-//                         handleToggleService(e.target.checked);
-//                         pushToast({
-//                           svcLabel: svc.label,
-//                           featLabel: "All features",
-//                           enabled: e.target.checked,
-//                           color: svc.color,
-//                         });
-//                       }}
-//                       color={svc.color}
-//                     />
-//                   </div>
-//                 </div>
-//                 <div
-//                   style={{
-//                     fontSize: 11.5,
-//                     fontWeight: 700,
-//                     color: svcEnabled ? "#0f172a" : "#94a3b8",
-//                     marginBottom: 3,
-//                   }}
-//                 >
-//                   {svc.label}
-//                 </div>
-//                 <div
-//                   style={{ fontSize: 10, color: "#94a3b8", marginBottom: 7 }}
-//                 >
-//                   {onKeys}/{totalKeys} on
-//                 </div>
-//                 <div
-//                   style={{
-//                     height: 3,
-//                     borderRadius: 2,
-//                     background: "#e2e8f0",
-//                     overflow: "hidden",
-//                   }}
-//                 >
-//                   <div
-//                     style={{
-//                       height: "100%",
-//                       width: `${pct}%`,
-//                       background: svcEnabled ? svc.gradient : "#94a3b8",
-//                       borderRadius: 2,
-//                       transition: "width 0.3s",
-//                     }}
-//                   />
-//                 </div>
-//                 <div
-//                   style={{
-//                     marginTop: 6,
-//                     fontSize: 9.5,
-//                     color: svc.color,
-//                     fontWeight: 600,
-//                     opacity: 0.8,
-//                   }}
-//                 >
-//                   Click to manage →
-//                 </div>
-//               </div>
-//             </div>
-//           )}
-
-//           {drawerOpen && (
-//             <BatchDrawerOM
-//               dto={dto}
-//               onToggleFeature={handleToggleFeature}
-//               onToggleService={handleToggleService}
-//               onClose={() => setDrawerOpen(false)}
-//               onToast={pushToast}
-//               onSave={handleSave}
-//               saving={saving}
-//               saved={saved}
-//               userRole={userRole}
-//             />
-//           )}
-
-//           <div
-//             style={{
-//               marginTop: 10,
-//               padding: "8px 10px",
-//               borderRadius: 8,
-//               background: "#fffbeb",
-//               border: "1px solid #fde68a",
-//               fontSize: 10.5,
-//               color: "#92400e",
-//               display: "flex",
-//               alignItems: "flex-start",
-//               gap: 6,
-//             }}
-//           >
-//             <span style={{ flexShrink: 0, marginTop: 1 }}>ℹ️</span>
-//             <span>
-//               This user has no organization. Permissions set here apply to their
-//               standalone account.
-//             </span>
-//           </div>
-//         </div>
-//       </div>
-//     </>
-//   );
-// };
 const FeatureControlsSection = ({ userEmail, color, userRole }) => {
   // ── BATCH state (unchanged service, just renamed locally for clarity) ─────
   const [batchDto, setBatchDto] = useState(() => buildDefaultBatchDTOOM(true));
@@ -1887,6 +1536,15 @@ const FeatureControlsSection = ({ userEmail, color, userRole }) => {
 
   const [toasts, setToasts] = useState([]);
   const toastRef = useRef(0);
+
+  // ── VIDEO state ──────────────────────────────────────────────────────────────
+  const [videoDto, setVideoDto] = useState(() => buildDefaultVideoDTOOM(true));
+  const [videoLoading, setVideoLoading] = useState(true);
+  const [videoSaving, setVideoSaving] = useState(false);
+  const [videoSaved, setVideoSaved] = useState(false);
+  const [videoDrawerOpen, setVideoDrawerOpen] = useState(false);
+
+  const videoSvc = VIDEO_SVC_OM;
 
   const batchSvc = BATCH_SVC_OM;
   const courseSvc = COURSE_SVC_OM;
@@ -1931,6 +1589,28 @@ const FeatureControlsSection = ({ userEmail, color, userRole }) => {
       })
       .catch(() => setCourseDto(buildDefaultCourseDTOOM(true)))
       .finally(() => setCourseLoading(false));
+  }, [userEmail]);
+
+  // ── Load VIDEO flags ─────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!userEmail) return;
+    setVideoLoading(true);
+    videoService
+      .getIndividualVideoFeatureFlags(userEmail)
+      .then((res) => {
+        const data = res.data;
+        if (data && typeof data === "object" && data.features) {
+          const defaults = buildDefaultVideoDTOOM(true);
+          setVideoDto({
+            enabled: data.enabled ?? true,
+            features: { ...defaults.features, ...data.features },
+          });
+        } else {
+          setVideoDto(buildDefaultVideoDTOOM(true));
+        }
+      })
+      .catch(() => setVideoDto(buildDefaultVideoDTOOM(true)))
+      .finally(() => setVideoLoading(false));
   }, [userEmail]);
 
   const pushToast = useCallback(
@@ -1993,6 +1673,28 @@ const FeatureControlsSection = ({ userEmail, color, userRole }) => {
       setCourseSaving(false);
     }
   };
+  // ── VIDEO handlers ───────────────────────────────────────────────────────────
+  const handleVideoToggleFeature = (featKey, val) => {
+    setVideoDto((prev) => {
+      const newFeatures = { ...prev.features, [featKey]: val };
+      const anyOn = Object.values(newFeatures).some(Boolean);
+      return { enabled: anyOn, features: newFeatures };
+    });
+  };
+  const handleVideoToggleService = (val) =>
+    setVideoDto(buildDefaultVideoDTOOM(val));
+  const handleVideoSave = async () => {
+    setVideoSaving(true);
+    try {
+      await videoService.updateIndividualVideoFeatureFlags(userEmail, videoDto);
+      setVideoSaved(true);
+      setTimeout(() => setVideoSaved(false), 2800);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setVideoSaving(false);
+    }
+  };
 
   const allowedRole = userRole === "business" ? "admin" : userRole || "trainer";
 
@@ -2023,7 +1725,11 @@ const FeatureControlsSection = ({ userEmail, color, userRole }) => {
   const courseRoleOn = courseRoleFeats.filter(
     (f) => courseDto.features[f.key] !== false,
   ).length;
-
+  const videoRoleFeats = videoSvc.features[allowedRole] || [];
+  const videoRoleOn = videoRoleFeats.filter(
+    (f) => videoDto.features[f.key] !== false,
+  ).length;
+  const showVideoCard = videoRoleFeats.length > 0;
   // Hide a service card entirely if this role has no features for it
   const showBatchCard = batchRoleFeats.length > 0;
   const showCourseCard = courseRoleFeats.length > 0;
@@ -2179,7 +1885,7 @@ const FeatureControlsSection = ({ userEmail, color, userRole }) => {
             </span>
           </div>
 
-          {batchLoading && courseLoading ? (
+          {batchLoading && courseLoading && videoLoading ? (
             <div
               style={{
                 padding: "18px 0",
@@ -2256,6 +1962,30 @@ const FeatureControlsSection = ({ userEmail, color, userRole }) => {
                   loading={courseLoading}
                 />
               )}
+              {showVideoCard && (
+                <ServiceCardOM
+                  svc={videoSvc}
+                  svcEnabled={videoDto.enabled ?? true}
+                  onKeys={videoRoleOn}
+                  totalKeys={videoRoleFeats.length}
+                  pct={
+                    videoRoleFeats.length > 0
+                      ? Math.round((videoRoleOn / videoRoleFeats.length) * 100)
+                      : 0
+                  }
+                  onToggleService={(val) => {
+                    handleVideoToggleService(val);
+                    pushToast({
+                      svcLabel: videoSvc.label,
+                      featLabel: "All features",
+                      enabled: val,
+                      color: videoSvc.color,
+                    });
+                  }}
+                  onDrawerOpen={() => setVideoDrawerOpen(true)}
+                  loading={videoLoading}
+                />
+              )}
             </div>
           )}
 
@@ -2283,6 +2013,19 @@ const FeatureControlsSection = ({ userEmail, color, userRole }) => {
               onSave={handleCourseSave}
               saving={courseSaving}
               saved={courseSaved}
+              userRole={userRole}
+            />
+          )}
+          {videoDrawerOpen && (
+            <VideoDrawerOM
+              dto={videoDto}
+              onToggleFeature={handleVideoToggleFeature}
+              onToggleService={handleVideoToggleService}
+              onClose={() => setVideoDrawerOpen(false)}
+              onToast={pushToast}
+              onSave={handleVideoSave}
+              saving={videoSaving}
+              saved={videoSaved}
               userRole={userRole}
             />
           )}
@@ -2850,6 +2593,414 @@ const CourseDrawerOM = ({
                     ).length
                   }{" "}
                   / {getAllCourseKeysOM().length} features active
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: 9,
+                background: "rgba(255,255,255,0.2)",
+                border: "none",
+                cursor: "pointer",
+                color: "#fff",
+                fontSize: 15,
+                fontWeight: 700,
+              }}
+            >
+              ✕
+            </button>
+          </div>
+          {/* Master switch */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginTop: 16,
+              background: "rgba(255,255,255,0.12)",
+              borderRadius: 11,
+              padding: "9px 13px",
+              border: "1px solid rgba(255,255,255,0.15)",
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#fff" }}>
+                Service master switch
+              </div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.65)" }}>
+                Disabling blocks all features for all roles
+              </div>
+            </div>
+            <MiniTgl
+              checked={svcEnabled}
+              onChange={(e) => {
+                onToggleService(e.target.checked);
+                onToast({
+                  svcLabel: svc.label,
+                  featLabel: "All features",
+                  enabled: e.target.checked,
+                  color: svc.color,
+                });
+              }}
+              color="#fff"
+              size="md"
+            />
+          </div>
+          {/* Save button */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              gap: 8,
+              marginTop: 12,
+            }}
+          >
+            <button
+              onClick={onSave}
+              disabled={saving}
+              style={{
+                fontSize: 12,
+                padding: "8px 20px",
+                border: "none",
+                borderRadius: 10,
+                background: saving
+                  ? "rgba(255,255,255,0.2)"
+                  : "rgba(255,255,255,0.92)",
+                cursor: saving ? "not-allowed" : "pointer",
+                color: saving ? "rgba(255,255,255,0.5)" : svc.color,
+                fontWeight: 700,
+                boxShadow: saving ? "none" : "0 2px 8px rgba(0,0,0,0.2)",
+                transition: "all 0.15s",
+              }}
+            >
+              {saving ? "Saving…" : saved ? "✓ Saved!" : "💾 Save changes"}
+            </button>
+          </div>
+          {/* Role tabs */}
+          {roles.length > 0 && (
+            <div style={{ display: "flex", gap: 5, marginTop: 12 }}>
+              {roles.map((role) => {
+                const pill = ROLE_PILL[role] || { label: role };
+                const isActive = activeRole === role;
+                return (
+                  <button
+                    key={role}
+                    onClick={() => setActiveRole(role)}
+                    style={{
+                      flex: 1,
+                      padding: "6px 8px",
+                      borderRadius: 8,
+                      border: "none",
+                      cursor: "pointer",
+                      background: isActive
+                        ? "rgba(255,255,255,0.92)"
+                        : "rgba(255,255,255,0.18)",
+                      color: isActive ? svc.color : "#fff",
+                      fontWeight: 700,
+                      fontSize: 11,
+                    }}
+                  >
+                    {pill.label}
+                    <span
+                      style={{
+                        display: "block",
+                        fontSize: 9.5,
+                        fontWeight: 400,
+                        opacity: 0.75,
+                        marginTop: 1,
+                      }}
+                    >
+                      {countEnabled(role)}/{totalForRole(role)} on
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        {/* Feature list */}
+        <div style={{ flex: 1, padding: "14px 18px", overflowY: "auto" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 10,
+            }}
+          >
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: "#94a3b8",
+              }}
+            >
+              {activeRole} · {countEnabled(activeRole)}/
+              {totalForRole(activeRole)} enabled
+            </span>
+            <div style={{ display: "flex", gap: 5 }}>
+              <button
+                onClick={() => handleRoleAll(false)}
+                style={{
+                  fontSize: 9.5,
+                  padding: "3px 9px",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 6,
+                  background: "transparent",
+                  cursor: "pointer",
+                  color: "#94a3b8",
+                  fontWeight: 600,
+                  fontFamily: "inherit",
+                }}
+              >
+                All off
+              </button>
+              <button
+                onClick={() => handleRoleAll(true)}
+                style={{
+                  fontSize: 9.5,
+                  padding: "3px 9px",
+                  border: `1px solid ${svc.color}`,
+                  borderRadius: 6,
+                  background: svc.colorLight,
+                  cursor: "pointer",
+                  color: svc.color,
+                  fontWeight: 600,
+                  fontFamily: "inherit",
+                }}
+              >
+                All on
+              </button>
+            </div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            {(svc.features[activeRole] || []).map((feat, idx) => {
+              const isOn = dto.features[feat.key] ?? true;
+              return (
+                <div
+                  key={feat.key}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "10px 12px",
+                    borderRadius: 10,
+                    background: isOn ? svc.colorLight + "80" : "#f8fafc",
+                    border: `1px solid ${isOn ? svc.color + "30" : "#f1f5f9"}`,
+                    cursor: "pointer",
+                  }}
+                  onClick={() => {
+                    onToggleFeature(feat.key, !isOn);
+                    onToast({
+                      svcLabel: svc.label,
+                      featLabel: feat.label,
+                      enabled: !isOn,
+                      color: svc.color,
+                    });
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 22,
+                      height: 22,
+                      borderRadius: 6,
+                      background: isOn ? svc.color : "#e5e7eb",
+                      color: isOn ? "#fff" : "#94a3b8",
+                      fontSize: 10,
+                      fontWeight: 800,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {idx + 1}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: isOn ? "#0f172a" : "#94a3b8",
+                      }}
+                    >
+                      {feat.label}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 9.5,
+                        color: "#94a3b8",
+                        fontFamily: "monospace",
+                        marginTop: 1,
+                        opacity: 0.7,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {feat.endpoint}
+                    </div>
+                  </div>
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <MiniTgl
+                      checked={isOn}
+                      onChange={(e) => {
+                        onToggleFeature(feat.key, e.target.checked);
+                        onToast({
+                          svcLabel: svc.label,
+                          featLabel: feat.label,
+                          enabled: e.target.checked,
+                          color: svc.color,
+                        });
+                      }}
+                      color={svc.color}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const VideoDrawerOM = ({
+  dto,
+  onToggleFeature,
+  onToggleService,
+  onClose,
+  onToast,
+  onSave,
+  saving,
+  saved,
+  userRole,
+}) => {
+  const svc = VIDEO_SVC_OM;
+  const allowedRole = userRole === "business" ? "admin" : userRole || "trainer";
+  const roles = Object.keys(svc.features).filter(
+    (r) => r === allowedRole && (svc.features[r] || []).length > 0,
+  );
+  const [activeRole, setActiveRole] = useState(roles[0] || "trainer");
+  const svcEnabled = dto.enabled ?? true;
+
+  const countEnabled = (role) =>
+    (svc.features[role] || []).filter((f) => dto.features[f.key] !== false)
+      .length;
+  const totalForRole = (role) => (svc.features[role] || []).length;
+
+  const handleRoleAll = (val) => {
+    (svc.features[activeRole] || []).forEach((f) => {
+      if ((dto.features[f.key] ?? true) !== val) {
+        onToggleFeature(f.key, val);
+        onToast({
+          svcLabel: svc.label,
+          featLabel: f.label,
+          enabled: val,
+          color: svc.color,
+        });
+      }
+    });
+  };
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 8000,
+        display: "flex",
+        justifyContent: "flex-end",
+      }}
+    >
+      <div
+        onClick={onClose}
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "rgba(0,0,0,0.55)",
+          backdropFilter: "blur(6px)",
+        }}
+      />
+      <div
+        style={{
+          position: "relative",
+          width: 500,
+          height: "100%",
+          background: "#fff",
+          display: "flex",
+          flexDirection: "column",
+          boxShadow: `-20px 0 60px rgba(0,0,0,0.3)`,
+          animation: "drawerSlide 0.3s cubic-bezier(0.22,1,0.36,1)",
+          overflowY: "auto",
+        }}
+      >
+        <div
+          style={{
+            background: svc.gradient,
+            padding: "24px 22px 20px",
+            flexShrink: 0,
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              top: -30,
+              right: -30,
+              width: 120,
+              height: 120,
+              borderRadius: "50%",
+              background: "rgba(255,255,255,0.08)",
+            }}
+          />
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              position: "relative",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 14,
+                  background: "rgba(255,255,255,0.2)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 22,
+                }}
+              >
+                {svc.icon}
+              </div>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: "#fff" }}>
+                  {svc.label}
+                </div>
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: "rgba(255,255,255,0.7)",
+                    marginTop: 2,
+                  }}
+                >
+                  {
+                    getAllVideoKeysOM().filter((k) => dto.features[k] !== false)
+                      .length
+                  }{" "}
+                  / {getAllVideoKeysOM().length} features active
                 </div>
               </div>
             </div>

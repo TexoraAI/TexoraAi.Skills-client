@@ -4,7 +4,7 @@ import {
   Plus, Trash2, ChevronDown, ChevronUp, Sparkles, User,
   BookOpen, Tag, List, ArrowLeft, Activity, Star,
 } from "lucide-react";
-import videoService from "../services/videoService";
+import videoService from "../../../services/videoService";
 import { useNavigate } from "react-router-dom";
 
 /* ─── theme token map — same as AdminDashboard ─── */

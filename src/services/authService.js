@@ -1,3 +1,4 @@
+// export default authService;
 import axios from "axios";
 
 const API_BASE_URL =
@@ -184,6 +185,44 @@ const authService = {
       newPassword,
       confirmPassword,
     });
+  },
+
+  // ================= ADMIN: LIST USERS (own org, or all if SUPER_ADMIN) =================
+  getOrgUsersForAdmin() {
+    return api.get("/auth/admin/org-users").then((res) => res.data);
+  },
+
+  // ================= ADMIN: UPDATE USER (name / email / role) =================
+  adminUpdateUser(userId, payload) {
+    return api
+      .patch(`/auth/admin/users/${userId}`, payload)
+      .then((res) => res.data);
+  },
+
+  // ================= ADMIN: RESEND SET-PASSWORD EMAIL =================
+  adminResendSetPasswordEmail(userId) {
+    return api
+      .post(`/auth/admin/users/${userId}/resend-set-password`)
+      .then((res) => res.data);
+  },
+
+  // ================= ADMIN: UPDATE USER BY EMAIL (for Tenant Admin / user-service IDs) ===
+  adminUpdateUserByEmail(email, payload) {
+    return api
+      .patch(
+        `/auth/admin/users/by-email?email=${encodeURIComponent(email)}`,
+        payload,
+      )
+      .then((res) => res.data);
+  },
+
+  // ================= ADMIN: RESEND SET-PASSWORD EMAIL BY EMAIL =================
+  adminResendSetPasswordEmailByEmail(email) {
+    return api
+      .post(
+        `/auth/admin/users/by-email/resend-set-password?email=${encodeURIComponent(email)}`,
+      )
+      .then((res) => res.data);
   },
   // ================= SUPERADMIN: GET ONBOARDING RESPONSES =================
   getOnboardingResponses() {

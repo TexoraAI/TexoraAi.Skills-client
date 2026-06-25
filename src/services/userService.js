@@ -337,7 +337,17 @@ const userService = {
     });
   },
 
- 
+  // // ADMIN PROFILE
+  // getAdminProfile() {
+  //   return axios.get(`${API_GATEWAY}/users/me/admin-profile`, {
+  //     headers: { Authorization: `Bearer ${localStorage.getItem("lms_token")}` },
+  //   });
+  // },
+  // updateAdminProfile(data) {
+  //   return axios.put(`${API_GATEWAY}/users/me/admin-profile`, data, {
+  //     headers: { Authorization: `Bearer ${localStorage.getItem("lms_token")}` },
+  //   });
+  // },
 
   getTrainerProfileByEmail(email) {
     return axios.get(`${API_GATEWAY}/users/trainer-profile/by-email/${email}`, {
@@ -353,7 +363,20 @@ const userService = {
       },
     );
   },
- 
+  // getAdminProfileByEmail(email) {
+  //   return axios.get(`${API_GATEWAY}/users/admin-profile/by-email/${email}`, {
+  //     headers: authHeader(),
+  //   });
+  // },
+  // updateAdminProfileByEmail(email, data) {
+  //   return axios.put(
+  //     `${API_GATEWAY}/users/admin-profile/by-email/${email}`,
+  //     data,
+  //     {
+  //       headers: authHeader(),
+  //     },
+  //   );
+  // },
 };
 
 export default userService;

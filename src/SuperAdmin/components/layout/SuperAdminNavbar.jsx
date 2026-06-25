@@ -114,6 +114,12 @@ const NAV = [
         icon: ic.featuredPrograms,
         permission: null,
       },
+      {
+        label: "Upload Watch Now",
+        path: "/superadmin/upload-watch-now",
+        icon: ic.featuredPrograms,
+        permission: null,
+      },
     ],
   },
   {

@@ -138,6 +138,10 @@ const TopGlobalCompanies = lazyLoad(() =>
 const MentorsManagement = lazyLoad(() =>
   import("./SuperAdmin/featured-programs/MentorsManagement")
 );
+
+const AdminWatchNowUpload = lazyLoad(() =>
+  import("./SuperAdmin/featured-programs/pages/AdminWatchNowUpload")
+);
 /* Settings */
 const GlobalSettings            = lazyLoad(()   => import("./SuperAdmin/settings/GlobalSettings"));
 const SecuritySettings          = lazyLoad(() => import("./SuperAdmin/settings/SecuritySettings"));
@@ -680,6 +684,11 @@ seedCMSData();
 <Route
   path="mentors"
   element={<MentorsManagement />}
+/>
+
+<Route
+  path="upload-watch-now"
+  element={<AdminWatchNowUpload />}
 />
               {/* ================= ANALYTICS ================= */}
               <Route path="analytics" element={<AnalyticsDashboard />} />

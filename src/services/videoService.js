@@ -343,6 +343,38 @@ const videoService = {
       headers: getAuthHeaders(),
     });
   },
+
+  // ═══════════════════════════════════════════════════════════════════
+  //  VIDEO FEATURE FLAGS (org + individual) — mirrors course pattern
+  // ═══════════════════════════════════════════════════════════════════
+  getOrgVideoFeatureFlags(organizationId) {
+    return axios.get(
+      `${API_GATEWAY}/video-feature-flags/org/${organizationId}`,
+      { headers: getAuthHeaders() },
+    );
+  },
+
+  updateOrgVideoFeatureFlags(organizationId, dto) {
+    return axios.put(
+      `${API_GATEWAY}/video-feature-flags/org/${organizationId}`,
+      dto,
+      { headers: getAuthHeaders() },
+    );
+  },
+
+  getIndividualVideoFeatureFlags(email) {
+    return axios.get(`${API_GATEWAY}/video-feature-flags/individual`, {
+      headers: getAuthHeaders(),
+      params: { email },
+    });
+  },
+
+  updateIndividualVideoFeatureFlags(email, dto) {
+    return axios.put(`${API_GATEWAY}/video-feature-flags/individual`, dto, {
+      headers: getAuthHeaders(),
+      params: { email },
+    });
+  },
 };
 
 export default videoService;

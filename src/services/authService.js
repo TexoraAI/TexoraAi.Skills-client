@@ -1,4 +1,3 @@
-// export default authService;
 import axios from "axios";
 
 const API_BASE_URL =
@@ -7,8 +6,24 @@ const API_BASE_URL =
 const api = axios.create({ baseURL: API_BASE_URL });
 
 // ✅ REQUEST INTERCEPTOR
+// api.interceptors.request.use(
+//   (config) => {
+//     const token = localStorage.getItem("lms_token");
+//     if (token) config.headers.Authorization = `Bearer ${token}`;
+//     return config;
+//   },
+//   (error) => Promise.reject(error),
+// );
+// ✅ REQUEST INTERCEPTOR
 api.interceptors.request.use(
   (config) => {
+    // BUG FIX (Bug 2, root cause A): config.noAuth lets a call opt OUT of the
+    // auto-attached Bearer token — used by register() so a stale lms_token
+    // can never leak into the public signup call.
+    if (config.noAuth) {
+      if (config.headers) delete config.headers.Authorization;
+      return config;
+    }
     const token = localStorage.getItem("lms_token");
     if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
@@ -158,8 +173,17 @@ const authService = {
       .then((res) => res.data);
   },
 
+  // register({ name, email, password, role }) {
+  //   return api.post("/auth/register", { name, email, password, role });
+  // },
   register({ name, email, password, role }) {
-    return api.post("/auth/register", { name, email, password, role });
+    // noAuth:true guarantees this public signup call never carries a token,
+    // no matter what's cached in localStorage.
+    return api.post(
+      "/auth/register",
+      { name, email, password, role },
+      { noAuth: true },
+    );
   },
 
   forgotPassword(email) {
@@ -249,6 +273,10 @@ const authService = {
 
   getCurrentRole() {
     return localStorage.getItem("role");
+  },
+
+  saveOnboarding({ role, onboardingAnswers }) {
+    return api.patch("/auth/me/onboarding", { role, onboardingAnswers });
   },
 };
 

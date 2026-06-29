@@ -7,6 +7,7 @@ import {
   Brain,
   Briefcase,
   Building2,
+  GitBranch, 
   CalendarDays,
   ChevronDown,
   ClipboardCheck,
@@ -182,15 +183,7 @@ const adminMenus = [
   { name: "Dashboard", path: "/admin", icon: LayoutDashboard },
   {
     name: "Organisation Manager", icon: Building2,
-    children: [
-      { name: "Department List", path: "/admin/departmentlist", icon: Layers },
-    ],
-  },
-  {
-    name: "User Management", icon: Users,
-    children: [
-      { name: "All Users", path: "/admin/users", icon: Users },
-    ],
+    path: "/admin/organisation-overview",
   },
   {
     name: "Course Management", icon: BookOpen,
@@ -210,7 +203,7 @@ const adminMenus = [
     ],
   },
   {
-    name: "Free Learning Hub", icon: GraduationCap,
+    name: "Upload Watch Now", icon: GraduationCap,
     children: [
       { name: "Upload Course", path: "/admin/course-upload", icon: Upload },
     ],

@@ -166,9 +166,7 @@ const AdminHubCMS = lazyLoad(() =>
 
 /* ================= AUTH PAGES ================= */
 const ApprovalPending = lazyLoad(() => import("./pages/Auth/ApprovalPending.jsx"));
-const ForgotPassword  = lazyLoad(() => import("./pages/Auth/ForgotPassword.jsx"));
 const Login           = lazyLoad(() => import("./pages/Auth/Login.jsx"));
-const Signup          = lazyLoad(() => import("./pages/Auth/Register.jsx"));
 const ResetPassword   = lazyLoad(() => import("./pages/Auth/ResetPassword.jsx"));
 const VerifyEmail     = lazyLoad(() => import("./pages/Auth/VerifyEmail.jsx"));
 
@@ -301,6 +299,7 @@ const Categories                = lazyLoad(() => import("./Admin/Categories"));
 const CertificatesAdmin         = lazyLoad(() => import("./Admin/CertificatesAdmin"));
 const DepartmentList            = lazyLoad(() => import("./Admin/DepartmentList"));
 const Featuredcourseuploadform  = lazyLoad(() => import("./Admin/Featuredcourseuploadform"));
+const OrganisationOverview      = lazyLoad(() => import("./Admin/OrganisationOverview"));
 const AdminVideos = lazyLoad(() => import("./Admin/AdminVideos"));
 
 const OrgReports                = lazyLoad(() => import("./Admin/OrgReports"));
@@ -446,8 +445,6 @@ seedCMSData();
             <Route path="/help-center" element={<HelpCenter />} />
             {/* ================= AUTH ================= */}
             <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/approval-pending" element={<ApprovalPending />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
@@ -552,6 +549,7 @@ seedCMSData();
             <Route path="/admin" element={<ProtectedRoute><RoleGuard allowedRoles={["ADMIN"]}><AdminPanel /></RoleGuard></ProtectedRoute>}>
               <Route index element={<AdminDashboard />} />
               <Route path="settings" element={<OrgSettings />} />
+              <Route path="organisation-overview" element={<OrganisationOverview />} />
               <Route path="branches" element={<Branches />} />
               <Route path="batches" element={<AdminBatches />} />
               <Route path="batches/:batchId/assign-trainer" element={<AssignTrainerPage />} />

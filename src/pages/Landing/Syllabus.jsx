@@ -1,6 +1,424 @@
 
+// import React, { useState, useEffect } from "react";
+// import { useNavigate, useLocation } from "react-router-dom";
+// import {
+//   ArrowLeft,
+//   ChevronDown,
+//   ChevronUp,
+//   PlayCircle,
+//   FileText,
+//   Target,
+//   Sun,
+//   Moon,
+//   Calendar,
+//   Clock,
+// } from "lucide-react";
+
+// export default function SyllabusPage() {
+//   const navigate = useNavigate();
+//   const location = useLocation();
+//   const courseData = location.state?.course;
+
+//   const [expandedWeek, setExpandedWeek] = useState(null);
+//   const [dark, setDark] = useState(() => {
+//     const stored = localStorage.getItem("theme");
+//     return stored === "dark";
+//   });
+
+//   useEffect(() => {
+//     if (dark) {
+//       document.documentElement.classList.add("dark");
+//       localStorage.setItem("theme", "dark");
+//     } else {
+//       document.documentElement.classList.remove("dark");
+//       localStorage.setItem("theme", "light");
+//     }
+//   }, [dark]);
+
+//   useEffect(() => {
+//     if (!courseData) {
+//       navigate("/courses");
+//     }
+//   }, [courseData, navigate]);
+
+//   if (!courseData) return null;
+
+//   const syllabus = [
+//     {
+//       week: "Week 1",
+//       dates: "Jan 6 — Jan 11",
+//       title: "Product Foundations & Capstone Kickoff",
+//       items: 15,
+//       sessions: [
+//         {
+//           type: "live",
+//           title: "[Capstone] Project Walkthrough and Kick-off",
+//           date: "FRI 1/9",
+//           time: "11:30 PM—12:30 AM (GMT+5:30)",
+//         },
+//         {
+//           type: "live",
+//           title: "Orientation Session [optional]",
+//           date: "FRI 1/9",
+//           time: "11:00 PM—11:30 PM (GMT+5:30)",
+//         },
+//       ],
+//       phase: {
+//         title: "Phase 1: Building Products 101",
+//         items: 15,
+//         description: "Master the fundamentals of product development and management",
+//       },
+//     },
+//     {
+//       week: "Week 2",
+//       dates: "Jan 12 — Jan 18",
+//       title: "Deep Dive into Product Development",
+//       items: 13,
+//       phase: {
+//         title: "Phase 1: Technical Deep Dive",
+//         items: 13,
+//         description: "Technical knowledge required for effective product management. Learn algorithms, best practices, and frameworks.",
+//       },
+//       sessions: [
+//         { type: "lesson", title: "Understanding Core Product Concepts", duration: "45 min" },
+//         { type: "lesson", title: "User-Centric Product Thinking", duration: "60 min" },
+//         { type: "live", title: "Guest Session: Industry Expert", date: "WED 1/14", time: "10:00 PM—11:30 PM (GMT+5:30)" },
+//       ],
+//     },
+//     {
+//       week: "Week 3",
+//       dates: "Jan 19 — Jan 25",
+//       title: "Strategy & XFN Collaboration",
+//       items: 12,
+//       phase: {
+//         title: "Phase 2: Strategic Product Management",
+//         items: 12,
+//         description: "Learn how to develop product strategy, work with cross-functional teams, and drive alignment.",
+//       },
+//       sessions: [
+//         { type: "lesson", title: "Product Strategy Frameworks", duration: "50 min" },
+//         { type: "lesson", title: "Working with Engineering Teams", duration: "40 min" },
+//         { type: "live", title: "XFN Collaboration Workshop", date: "THU 1/22", time: "9:00 PM—10:30 PM (GMT+5:30)" },
+//       ],
+//     },
+//     {
+//       week: "Week 4",
+//       dates: "Jan 26 — Feb 1",
+//       title: "PRDs, User Stories & Planning",
+//       items: 14,
+//       phase: {
+//         title: "Phase 2: Execution Excellence",
+//         items: 14,
+//         description: "Master the art of product documentation, user story writing, and sprint planning.",
+//       },
+//       sessions: [
+//         { type: "lesson", title: "Writing Effective PRDs", duration: "55 min" },
+//         { type: "lesson", title: "User Story Mapping", duration: "45 min" },
+//         { type: "project", title: "PRD Assignment", deadline: "SUN 2/1" },
+//       ],
+//     },
+//     {
+//       week: "Week 5",
+//       dates: "Feb 2 — Feb 8",
+//       title: "Data & Metrics",
+//       items: 16,
+//       phase: {
+//         title: "Phase 3: Data-Driven Decisions",
+//         items: 16,
+//         description: "Learn to define metrics, analyze data, and make data-informed decisions.",
+//       },
+//       sessions: [
+//         { type: "lesson", title: "Defining Success Metrics", duration: "50 min" },
+//         { type: "lesson", title: "A/B Testing & Experimentation", duration: "60 min" },
+//         { type: "live", title: "Analytics Deep Dive", date: "TUE 2/4", time: "10:00 PM—11:30 PM (GMT+5:30)" },
+//       ],
+//     },
+//     {
+//       week: "Week 6",
+//       dates: "Feb 9 — Feb 15",
+//       title: "Go-to-Market & Launch",
+//       items: 11,
+//       phase: {
+//         title: "Phase 3: Product Launch",
+//         items: 11,
+//         description: "Master go-to-market strategy, launch planning, and post-launch optimization.",
+//       },
+//       sessions: [
+//         { type: "lesson", title: "GTM Strategy Development", duration: "45 min" },
+//         { type: "lesson", title: "Launch Planning & Execution", duration: "50 min" },
+//         { type: "project", title: "Launch Plan Presentation", deadline: "SAT 2/14" },
+//       ],
+//     },
+//     {
+//       week: "Week 7-8",
+//       dates: "Feb 16 — Feb 22",
+//       title: "Capstone & Final Projects",
+//       items: 5,
+//       sessions: [
+//         { type: "live", title: "Final Capstone Presentations", date: "WED 2/18", time: "9:00 PM—11:00 PM (GMT+5:30)" },
+//         { type: "live", title: "Graduation & Networking", date: "THU 2/19", time: "10:00 PM—11:00 PM (GMT+5:30)" },
+//       ],
+//     },
+//   ];
+
+//   const toggleWeek = (index) => {
+//     setExpandedWeek(expandedWeek === index ? null : index);
+//   };
+
+//   return (
+//     <div className="min-h-screen bg-[#F6EDE6] dark:bg-black">
+
+//       {/* Header */}
+//       <div className="bg-white/90 dark:bg-black/90 backdrop-blur-md border-b border-[#F97316]/20 dark:border-gray-800 sticky top-0 z-40 shadow-sm">
+//         <div className="max-w-7xl mx-auto px-6 py-4">
+//           <div className="flex items-center justify-between mb-4">
+//             <button
+//               onClick={() => navigate(-1)}
+//               className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] transition font-medium"
+//             >
+//               <ArrowLeft size={20} />
+//               <span>Back</span>
+//             </button>
+
+//             <button
+//               onClick={() => {
+//                 const next = !dark;
+//                 setDark(next);
+//                 localStorage.setItem("theme", next ? "dark" : "light");
+//               }}
+//               className="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-[#F6EDE6] dark:hover:bg-gray-900 transition shadow-sm"
+//             >
+//               {dark ? (
+//                 <Sun className="w-5 h-5 text-[#F97316]" />
+//               ) : (
+//                 <Moon className="w-5 h-5 text-[#1E293B]" />
+//               )}
+//             </button>
+//           </div>
+
+//           <div>
+//             <h1 className="text-3xl md:text-4xl font-bold text-[#1E293B] dark:text-white mb-2">
+//               {courseData.title}{" "}
+//               <span className="text-[#F97316]">— Course Syllabus</span>
+//             </h1>
+//             <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-300">
+//               <div className="flex items-center gap-1.5">
+//                 <Calendar size={15} className="text-[#F97316]" />
+//                 <span>{courseData.duration}</span>
+//               </div>
+//               <div className="flex items-center gap-1.5">
+//                 <Clock size={15} className="text-[#F97316]" />
+//                 <span>
+//                   {courseData.liveSessions} live sessions •{" "}
+//                   {courseData.totalLessons} lessons
+//                 </span>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Syllabus Content */}
+//       <div className="max-w-5xl mx-auto px-6 py-10">
+
+//         {/* Intro card */}
+//         <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 shadow-md mb-8">
+//           <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+//             This comprehensive syllabus covers all aspects of{" "}
+//             <span className="font-semibold text-[#1E293B] dark:text-white">{courseData.title.toLowerCase()}</span>.
+//             Each week includes live sessions, self-paced lessons, and hands-on
+//             projects to ensure you master the material.
+//           </p>
+//         </div>
+
+//         {/* Week accordion */}
+//         <div className="space-y-3">
+//           {syllabus.map((week, index) => (
+//             <div
+//               key={index}
+//               className="border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-shadow"
+//             >
+//               {/* Week header */}
+//               <button
+//                 onClick={() => toggleWeek(index)}
+//                 className="w-full px-6 py-5 flex items-center justify-between bg-white dark:bg-gray-900 hover:bg-[#F6EDE6]/60 dark:hover:bg-gray-800 transition"
+//               >
+//                 <div className="flex items-center gap-4">
+//                   {/* Week number badge */}
+//                   <div className="w-14 h-14 bg-[#1E293B] dark:bg-[#F97316] rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-md flex-shrink-0">
+//                     {index + 1}
+//                   </div>
+//                   <div className="text-left">
+//                     <p className="font-bold text-base text-[#1E293B] dark:text-white">
+//                       {week.week}
+//                     </p>
+//                     <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+//                       {week.dates}
+//                     </p>
+//                     <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+//                       {week.title}
+//                     </p>
+//                   </div>
+//                 </div>
+//                 <div className="flex items-center gap-3">
+//                   <span className="text-xs font-semibold text-[#F97316] bg-[#F97316]/10 border border-[#F97316]/20 px-3 py-1 rounded-full">
+//                     {week.items} items
+//                   </span>
+//                   {expandedWeek === index ? (
+//                     <ChevronUp className="text-gray-400" size={20} />
+//                   ) : (
+//                     <ChevronDown className="text-gray-400" size={20} />
+//                   )}
+//                 </div>
+//               </button>
+
+//               {/* Expanded content */}
+//               {expandedWeek === index && (
+//                 <div className="px-6 pb-6 pt-2 space-y-4 border-t border-gray-100 dark:border-gray-800 bg-[#F6EDE6]/30 dark:bg-gray-900">
+
+//                   {/* Phase banner */}
+//                   {week.phase && (
+//                     <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-[#F97316]/20 dark:border-[#F97316]/20 shadow-sm">
+//                       <div className="flex items-start justify-between gap-4">
+//                         <div>
+//                           <h4 className="font-bold text-[#1E293B] dark:text-white mb-1">
+//                             {week.phase.title}
+//                           </h4>
+//                           <p className="text-sm text-gray-600 dark:text-gray-300">
+//                             {week.phase.description}
+//                           </p>
+//                         </div>
+//                         <span className="text-xs font-semibold text-[#F97316] bg-[#F97316]/10 border border-[#F97316]/20 px-3 py-1 rounded-full whitespace-nowrap flex-shrink-0">
+//                           {week.phase.items} items
+//                         </span>
+//                       </div>
+//                     </div>
+//                   )}
+
+//                   {/* Sessions */}
+//                   {week.sessions && week.sessions.map((session, idx) => (
+//                     <div
+//                       key={idx}
+//                       className="flex items-start gap-4 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
+//                     >
+//                       {/* Session type icon */}
+//                       {session.type === "live" ? (
+//                         <div className="w-10 h-10 bg-red-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+//                           <PlayCircle size={18} className="text-white" />
+//                         </div>
+//                       ) : session.type === "project" ? (
+//                         <div className="w-10 h-10 bg-[#F97316] rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+//                           <Target size={18} className="text-white" />
+//                         </div>
+//                       ) : (
+//                         <div className="w-10 h-10 bg-[#1E293B] dark:bg-[#334155] rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+//                           <FileText size={18} className="text-white" />
+//                         </div>
+//                       )}
+
+//                       <div className="flex-1">
+//                         <p className="font-semibold text-[#1E293B] dark:text-white text-sm mb-1">
+//                           {session.title}
+//                         </p>
+//                         {session.date && (
+//                           <p className="text-xs text-gray-500 dark:text-gray-400">
+//                             {session.date} • {session.time}
+//                           </p>
+//                         )}
+//                         {session.duration && (
+//                           <p className="text-xs text-gray-500 dark:text-gray-400">
+//                             Duration: {session.duration}
+//                           </p>
+//                         )}
+//                         {session.deadline && (
+//                           <p className="text-xs text-red-500 dark:text-red-400 font-semibold mt-1">
+//                             Due: {session.deadline}
+//                           </p>
+//                         )}
+//                       </div>
+
+//                       {/* Type pill */}
+//                       <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 ${
+//                         session.type === "live"
+//                           ? "bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800"
+//                           : session.type === "project"
+//                           ? "bg-[#F97316]/10 text-[#F97316] border border-[#F97316]/20"
+//                           : "bg-[#1E293B]/10 dark:bg-white/10 text-[#1E293B] dark:text-white border border-[#1E293B]/20 dark:border-white/20"
+//                       }`}>
+//                         {session.type === "live" ? "Live" : session.type === "project" ? "Project" : "Lesson"}
+//                       </span>
+//                     </div>
+//                   ))}
+//                 </div>
+//               )}
+//             </div>
+//           ))}
+//         </div>
+
+//         {/* CTA */}
+//         <div className="mt-10 bg-[#1E293B] dark:bg-gray-900 rounded-2xl p-8 border border-[#F97316]/20 relative overflow-hidden shadow-lg">
+//           <div className="absolute top-0 left-0 right-0 h-1 bg-[#F97316]" />
+//           <div className="absolute -top-16 -right-16 w-48 h-48 bg-[#F97316]/10 rounded-full blur-3xl pointer-events-none" />
+//           <div className="relative z-10">
+//             <h3 className="font-bold text-2xl text-white mb-2">
+//               Ready to Start Learning?
+//             </h3>
+//             <p className="text-gray-400 dark:text-gray-300 mb-6">
+//               Join{" "}
+//               <span className="text-[#F97316] font-semibold">{courseData.students}</span>{" "}
+//               students who are already mastering{" "}
+//               {courseData.title.toLowerCase()}
+//             </p>
+//             <button
+//               onClick={() => navigate(-1)}
+//               className="bg-[#F97316] hover:bg-[#ea6c0a] text-white px-8 py-3 rounded-xl font-semibold transition-all hover:shadow-lg hover:-translate-y-0.5 shadow-md"
+//             >
+//               Enroll Now • {courseData.price}
+//             </button>
+//           </div>
+//         </div>
+
+//       </div>
+//     </div>
+//   );
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import {
   ArrowLeft,
   ChevronDown,
@@ -13,12 +431,20 @@ import {
   Calendar,
   Clock,
 } from "lucide-react";
+import { courseService } from "../../services/courseService";
 
 export default function SyllabusPage() {
+  // const navigate = useNavigate();
+  // const location = useLocation();
+  // const courseData = location.state?.course;
+
+  // const [expandedWeek, setExpandedWeek] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const courseData = location.state?.course;
+  const { id } = useParams();
 
+  const [courseData, setCourseData] = useState(location.state?.course || null);
+  const [loadingCourse, setLoadingCourse] = useState(!location.state?.course);
   const [expandedWeek, setExpandedWeek] = useState(null);
   const [dark, setDark] = useState(() => {
     const stored = localStorage.getItem("theme");
@@ -36,130 +462,48 @@ export default function SyllabusPage() {
   }, [dark]);
 
   useEffect(() => {
-    if (!courseData) {
-      navigate("/courses");
+    if (!id) {
+      navigate("/");
+      return;
     }
-  }, [courseData, navigate]);
+    if (courseData?.syllabusWeeks) return;
+    async function load() {
+      try {
+        const { data } = await courseService.getFeaturedProgramById(id);
+        setCourseData({
+          id: data.id,
+          title: data.title,
+          duration: `${data.durationWeeks} weeks`,
+          students: data.studentsEnrolled,
+          price: `₹${Number(data.price).toLocaleString("en-IN")}`,
+          totalLessons: data.lessons,
+          syllabusWeeks: data.syllabusWeeks || [],
+        });
+      } catch (err) {
+        console.error("Failed to load syllabus", err);
+        navigate("/");
+      } finally {
+        setLoadingCourse(false);
+      }
+    }
+    load();
+  }, [id]);
 
+  if (loadingCourse)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F6EDE6] dark:bg-black">
+        <p className="text-gray-500 dark:text-gray-400">Loading...</p>
+      </div>
+    );
   if (!courseData) return null;
 
-  const syllabus = [
-    {
-      week: "Week 1",
-      dates: "Jan 6 — Jan 11",
-      title: "Product Foundations & Capstone Kickoff",
-      items: 15,
-      sessions: [
-        {
-          type: "live",
-          title: "[Capstone] Project Walkthrough and Kick-off",
-          date: "FRI 1/9",
-          time: "11:30 PM—12:30 AM (GMT+5:30)",
-        },
-        {
-          type: "live",
-          title: "Orientation Session [optional]",
-          date: "FRI 1/9",
-          time: "11:00 PM—11:30 PM (GMT+5:30)",
-        },
-      ],
-      phase: {
-        title: "Phase 1: Building Products 101",
-        items: 15,
-        description: "Master the fundamentals of product development and management",
-      },
-    },
-    {
-      week: "Week 2",
-      dates: "Jan 12 — Jan 18",
-      title: "Deep Dive into Product Development",
-      items: 13,
-      phase: {
-        title: "Phase 1: Technical Deep Dive",
-        items: 13,
-        description: "Technical knowledge required for effective product management. Learn algorithms, best practices, and frameworks.",
-      },
-      sessions: [
-        { type: "lesson", title: "Understanding Core Product Concepts", duration: "45 min" },
-        { type: "lesson", title: "User-Centric Product Thinking", duration: "60 min" },
-        { type: "live", title: "Guest Session: Industry Expert", date: "WED 1/14", time: "10:00 PM—11:30 PM (GMT+5:30)" },
-      ],
-    },
-    {
-      week: "Week 3",
-      dates: "Jan 19 — Jan 25",
-      title: "Strategy & XFN Collaboration",
-      items: 12,
-      phase: {
-        title: "Phase 2: Strategic Product Management",
-        items: 12,
-        description: "Learn how to develop product strategy, work with cross-functional teams, and drive alignment.",
-      },
-      sessions: [
-        { type: "lesson", title: "Product Strategy Frameworks", duration: "50 min" },
-        { type: "lesson", title: "Working with Engineering Teams", duration: "40 min" },
-        { type: "live", title: "XFN Collaboration Workshop", date: "THU 1/22", time: "9:00 PM—10:30 PM (GMT+5:30)" },
-      ],
-    },
-    {
-      week: "Week 4",
-      dates: "Jan 26 — Feb 1",
-      title: "PRDs, User Stories & Planning",
-      items: 14,
-      phase: {
-        title: "Phase 2: Execution Excellence",
-        items: 14,
-        description: "Master the art of product documentation, user story writing, and sprint planning.",
-      },
-      sessions: [
-        { type: "lesson", title: "Writing Effective PRDs", duration: "55 min" },
-        { type: "lesson", title: "User Story Mapping", duration: "45 min" },
-        { type: "project", title: "PRD Assignment", deadline: "SUN 2/1" },
-      ],
-    },
-    {
-      week: "Week 5",
-      dates: "Feb 2 — Feb 8",
-      title: "Data & Metrics",
-      items: 16,
-      phase: {
-        title: "Phase 3: Data-Driven Decisions",
-        items: 16,
-        description: "Learn to define metrics, analyze data, and make data-informed decisions.",
-      },
-      sessions: [
-        { type: "lesson", title: "Defining Success Metrics", duration: "50 min" },
-        { type: "lesson", title: "A/B Testing & Experimentation", duration: "60 min" },
-        { type: "live", title: "Analytics Deep Dive", date: "TUE 2/4", time: "10:00 PM—11:30 PM (GMT+5:30)" },
-      ],
-    },
-    {
-      week: "Week 6",
-      dates: "Feb 9 — Feb 15",
-      title: "Go-to-Market & Launch",
-      items: 11,
-      phase: {
-        title: "Phase 3: Product Launch",
-        items: 11,
-        description: "Master go-to-market strategy, launch planning, and post-launch optimization.",
-      },
-      sessions: [
-        { type: "lesson", title: "GTM Strategy Development", duration: "45 min" },
-        { type: "lesson", title: "Launch Planning & Execution", duration: "50 min" },
-        { type: "project", title: "Launch Plan Presentation", deadline: "SAT 2/14" },
-      ],
-    },
-    {
-      week: "Week 7-8",
-      dates: "Feb 16 — Feb 22",
-      title: "Capstone & Final Projects",
-      items: 5,
-      sessions: [
-        { type: "live", title: "Final Capstone Presentations", date: "WED 2/18", time: "9:00 PM—11:00 PM (GMT+5:30)" },
-        { type: "live", title: "Graduation & Networking", date: "THU 2/19", time: "10:00 PM—11:00 PM (GMT+5:30)" },
-      ],
-    },
-  ];
+  const syllabus = (courseData.syllabusWeeks || []).map((w, idx) => ({
+    week: `Week ${w.weekNumber ?? idx + 1}`,
+    dates: w.dateRange || "",
+    title: w.title,
+    items: (w.items || []).length,
+    flatItems: w.items || [],
+  }));
 
   const toggleWeek = (index) => {
     setExpandedWeek(expandedWeek === index ? null : index);
@@ -167,7 +511,6 @@ export default function SyllabusPage() {
 
   return (
     <div className="min-h-screen bg-[#F6EDE6] dark:bg-black">
-
       {/* Header */}
       <div className="bg-white/90 dark:bg-black/90 backdrop-blur-md border-b border-[#F97316]/20 dark:border-gray-800 sticky top-0 z-40 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4">
@@ -209,8 +552,9 @@ export default function SyllabusPage() {
               <div className="flex items-center gap-1.5">
                 <Clock size={15} className="text-[#F97316]" />
                 <span>
-                  {courseData.liveSessions} live sessions •{" "}
-                  {courseData.totalLessons} lessons
+                  {courseData.totalLessons
+                    ? `${courseData.totalLessons} lessons`
+                    : `${syllabus.length} weeks`}
                 </span>
               </div>
             </div>
@@ -220,13 +564,14 @@ export default function SyllabusPage() {
 
       {/* Syllabus Content */}
       <div className="max-w-5xl mx-auto px-6 py-10">
-
         {/* Intro card */}
         <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 shadow-md mb-8">
           <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
             This comprehensive syllabus covers all aspects of{" "}
-            <span className="font-semibold text-[#1E293B] dark:text-white">{courseData.title.toLowerCase()}</span>.
-            Each week includes live sessions, self-paced lessons, and hands-on
+            <span className="font-semibold text-[#1E293B] dark:text-white">
+              {courseData.title.toLowerCase()}
+            </span>
+            . Each week includes live sessions, self-paced lessons, and hands-on
             projects to ensure you master the material.
           </p>
         </div>
@@ -272,83 +617,25 @@ export default function SyllabusPage() {
                 </div>
               </button>
 
-              {/* Expanded content */}
               {expandedWeek === index && (
-                <div className="px-6 pb-6 pt-2 space-y-4 border-t border-gray-100 dark:border-gray-800 bg-[#F6EDE6]/30 dark:bg-gray-900">
-
-                  {/* Phase banner */}
-                  {week.phase && (
-                    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-[#F97316]/20 dark:border-[#F97316]/20 shadow-sm">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <h4 className="font-bold text-[#1E293B] dark:text-white mb-1">
-                            {week.phase.title}
-                          </h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">
-                            {week.phase.description}
-                          </p>
-                        </div>
-                        <span className="text-xs font-semibold text-[#F97316] bg-[#F97316]/10 border border-[#F97316]/20 px-3 py-1 rounded-full whitespace-nowrap flex-shrink-0">
-                          {week.phase.items} items
-                        </span>
-                      </div>
-                    </div>
+                <div className="px-6 pb-6 pt-2 border-t border-gray-100 dark:border-gray-800 bg-[#F6EDE6]/30 dark:bg-gray-900">
+                  {week.flatItems && week.flatItems.length > 0 ? (
+                    <ul className="space-y-2 pt-3">
+                      {week.flatItems.map((item, i) => (
+                        <li
+                          key={i}
+                          className="flex items-start gap-3 text-sm text-gray-700 dark:text-gray-300"
+                        >
+                          <span className="mt-1.5 w-2 h-2 rounded-full bg-[#F97316] flex-shrink-0" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-gray-400 dark:text-gray-500 pt-3">
+                      No content listed for this week.
+                    </p>
                   )}
-
-                  {/* Sessions */}
-                  {week.sessions && week.sessions.map((session, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-start gap-4 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
-                    >
-                      {/* Session type icon */}
-                      {session.type === "live" ? (
-                        <div className="w-10 h-10 bg-red-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                          <PlayCircle size={18} className="text-white" />
-                        </div>
-                      ) : session.type === "project" ? (
-                        <div className="w-10 h-10 bg-[#F97316] rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                          <Target size={18} className="text-white" />
-                        </div>
-                      ) : (
-                        <div className="w-10 h-10 bg-[#1E293B] dark:bg-[#334155] rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                          <FileText size={18} className="text-white" />
-                        </div>
-                      )}
-
-                      <div className="flex-1">
-                        <p className="font-semibold text-[#1E293B] dark:text-white text-sm mb-1">
-                          {session.title}
-                        </p>
-                        {session.date && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {session.date} • {session.time}
-                          </p>
-                        )}
-                        {session.duration && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Duration: {session.duration}
-                          </p>
-                        )}
-                        {session.deadline && (
-                          <p className="text-xs text-red-500 dark:text-red-400 font-semibold mt-1">
-                            Due: {session.deadline}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Type pill */}
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 ${
-                        session.type === "live"
-                          ? "bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800"
-                          : session.type === "project"
-                          ? "bg-[#F97316]/10 text-[#F97316] border border-[#F97316]/20"
-                          : "bg-[#1E293B]/10 dark:bg-white/10 text-[#1E293B] dark:text-white border border-[#1E293B]/20 dark:border-white/20"
-                      }`}>
-                        {session.type === "live" ? "Live" : session.type === "project" ? "Project" : "Lesson"}
-                      </span>
-                    </div>
-                  ))}
                 </div>
               )}
             </div>
@@ -365,7 +652,9 @@ export default function SyllabusPage() {
             </h3>
             <p className="text-gray-400 dark:text-gray-300 mb-6">
               Join{" "}
-              <span className="text-[#F97316] font-semibold">{courseData.students}</span>{" "}
+              <span className="text-[#F97316] font-semibold">
+                {courseData.students}
+              </span>{" "}
               students who are already mastering{" "}
               {courseData.title.toLowerCase()}
             </p>
@@ -377,7 +666,6 @@ export default function SyllabusPage() {
             </button>
           </div>
         </div>
-
       </div>
     </div>
   );

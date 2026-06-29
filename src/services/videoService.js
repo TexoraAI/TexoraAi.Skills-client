@@ -1,4 +1,4 @@
-// export default videoService;
+// videoService.js
 import axios from "axios";
 
 const API_GATEWAY =
@@ -7,13 +7,14 @@ const API_GATEWAY =
 const getAuthHeaders = () => {
   const token = localStorage.getItem("lms_token");
   if (!token) return {};
-  return {
-    Authorization: `Bearer ${token}`,
-  };
+  return { Authorization: `Bearer ${token}` };
 };
 
 const videoService = {
-  // ✅ FIXED uploadVideo
+  // ─────────────────────────────────────────────────────────────────
+  //  EXISTING VIDEO LIBRARY (unchanged)
+  // ─────────────────────────────────────────────────────────────────
+
   uploadVideo(
     file,
     title,
@@ -34,12 +35,8 @@ const videoService = {
     formData.append("file", file);
     formData.append("title", title);
     formData.append("description", description || "");
-
-    // ✅ Only append batchId if it's a real value
-    if (batchId !== null && batchId !== undefined) {
+    if (batchId !== null && batchId !== undefined)
       formData.append("batchId", batchId);
-    }
-
     formData.append("tags", tags.join(","));
     formData.append("category", category);
     formData.append("language", language);
@@ -48,13 +45,11 @@ const videoService = {
     formData.append("ageRestrict", ageRestrict);
     formData.append("course", course);
     formData.append("status", status);
-
     return axios.post(`${API_GATEWAY}/video/upload`, formData, {
       headers: { ...getAuthHeaders(), "Content-Type": "multipart/form-data" },
     });
   },
 
-  // ✅ FIXED uploadVideoUrl
   uploadVideoUrl(
     videoUrl,
     title,
@@ -75,12 +70,8 @@ const videoService = {
     formData.append("videoUrl", videoUrl);
     formData.append("title", title);
     formData.append("description", description || "");
-
-    // ✅ Only append batchId if it's a real value
-    if (batchId !== null && batchId !== undefined) {
+    if (batchId !== null && batchId !== undefined)
       formData.append("batchId", batchId);
-    }
-
     formData.append("tags", tags.join(","));
     formData.append("category", category);
     formData.append("language", language);
@@ -89,20 +80,14 @@ const videoService = {
     formData.append("ageRestrict", ageRestrict);
     formData.append("course", course);
     formData.append("status", status);
-
     return axios.post(`${API_GATEWAY}/video/upload-url`, formData, {
       headers: { ...getAuthHeaders(), "Content-Type": "multipart/form-data" },
     });
   },
 
-  // ═══════════════════════════════════════════════════════════════
-  //  ✅ NEW — EDIT VIDEO (file upload)
-  //  PUT /api/video/{id}/edit
-  //  Pass newFile=null to keep the existing stored file.
-  // ═══════════════════════════════════════════════════════════════
   editVideo(
     videoId,
-    newFile, // File object or null
+    newFile,
     title,
     description,
     batchId,
@@ -118,12 +103,11 @@ const videoService = {
     } = {},
   ) {
     const formData = new FormData();
-    if (newFile) formData.append("file", newFile); // only send if replacing
+    if (newFile) formData.append("file", newFile);
     formData.append("title", title);
     formData.append("description", description || "");
-    if (batchId !== null && batchId !== undefined) {
+    if (batchId !== null && batchId !== undefined)
       formData.append("batchId", batchId);
-    }
     formData.append("tags", Array.isArray(tags) ? tags.join(",") : tags);
     formData.append("category", category);
     formData.append("language", language);
@@ -132,20 +116,14 @@ const videoService = {
     formData.append("ageRestrict", ageRestrict);
     formData.append("course", course);
     formData.append("status", status);
-
     return axios.put(`${API_GATEWAY}/video/${videoId}/edit`, formData, {
       headers: { ...getAuthHeaders(), "Content-Type": "multipart/form-data" },
     });
   },
 
-  // ═══════════════════════════════════════════════════════════════
-  //  ✅ NEW — EDIT VIDEO BY URL
-  //  PUT /api/video/{id}/edit-url
-  //  Pass newVideoUrl=null to keep the existing URL.
-  // ═══════════════════════════════════════════════════════════════
   editVideoUrl(
     videoId,
-    newVideoUrl, // string or null
+    newVideoUrl,
     title,
     description,
     batchId,
@@ -161,14 +139,12 @@ const videoService = {
     } = {},
   ) {
     const formData = new FormData();
-    if (newVideoUrl && newVideoUrl.trim()) {
+    if (newVideoUrl && newVideoUrl.trim())
       formData.append("videoUrl", newVideoUrl.trim());
-    }
     formData.append("title", title);
     formData.append("description", description || "");
-    if (batchId !== null && batchId !== undefined) {
+    if (batchId !== null && batchId !== undefined)
       formData.append("batchId", batchId);
-    }
     formData.append("tags", Array.isArray(tags) ? tags.join(",") : tags);
     formData.append("category", category);
     formData.append("language", language);
@@ -177,7 +153,6 @@ const videoService = {
     formData.append("ageRestrict", ageRestrict);
     formData.append("course", course);
     formData.append("status", status);
-
     return axios.put(`${API_GATEWAY}/video/${videoId}/edit-url`, formData, {
       headers: { ...getAuthHeaders(), "Content-Type": "multipart/form-data" },
     });
@@ -186,80 +161,61 @@ const videoService = {
   assignBatch(videoId, batchId) {
     const params = new URLSearchParams();
     params.append("batchId", batchId);
-
     return axios.patch(
       `${API_GATEWAY}/video/${videoId}/assign-batch?${params.toString()}`,
       null,
       { headers: getAuthHeaders() },
     );
   },
+
   publishVideo(videoId) {
     return axios.patch(`${API_GATEWAY}/video/${videoId}/publish`, null, {
       headers: getAuthHeaders(),
     });
   },
-  // 🎓 STUDENT VIDEOS
+
   getStudentVideos() {
     return axios.get(`${API_GATEWAY}/video/student`, {
-      headers: {
-        ...getAuthHeaders(),
-      },
+      headers: getAuthHeaders(),
     });
   },
 
-  // ✅ UPDATED — Admin / Trainer list, now supports an optional video-type
-  // filter: "UPLOADED_FILE" | "YOUTUBE" | "VIMEO" | "DIRECT_URL" | "ALL".
-  // Pass nothing (or "ALL") to get every video, same as before — fully
-  // backward compatible with existing callers.
   getAllVideos(type) {
     const params = type && type !== "ALL" ? { type } : {};
     return axios.get(`${API_GATEWAY}/video`, {
-      headers: {
-        ...getAuthHeaders(),
-      },
+      headers: getAuthHeaders(),
       params,
     });
   },
 
-  // 🔥 GET TRAINER ASSIGNED BATCHES
   getTrainerBatches() {
     return axios.get(`${API_GATEWAY}/batch/trainer`, {
-      headers: {
-        ...getAuthHeaders(),
-      },
-    });
-  },
-  //only trainer uploaded videos are visible okay
-  getTrainerVideos() {
-    return axios.get(`${API_GATEWAY}/video/trainer`, {
-      headers: {
-        ...getAuthHeaders(),
-      },
+      headers: getAuthHeaders(),
     });
   },
 
-  // Play video
+  getTrainerVideos() {
+    return axios.get(`${API_GATEWAY}/video/trainer`, {
+      headers: getAuthHeaders(),
+    });
+  },
+
   getVideoBlob(fileName) {
     return axios.get(`${API_GATEWAY}/video/play/${fileName}`, {
-      headers: {
-        ...getAuthHeaders(),
-      },
+      headers: getAuthHeaders(),
       responseType: "blob",
     });
   },
 
-  // Delete
   deleteVideo(id) {
     return axios.delete(`${API_GATEWAY}/video/${id}`, {
-      headers: {
-        ...getAuthHeaders(),
-      },
+      headers: getAuthHeaders(),
     });
   },
 
-  // ===============================
-  // 🔥 NEW COURSE MODULE VIDEOS
-  // ===============================
+  // ─────────────────────────────────────────────────────────────────
+  //  COURSE MODULE VIDEOS (unchanged)
+  // ─────────────────────────────────────────────────────────────────
 
   uploadCourseVideo(file, courseId, moduleId, batchId) {
     const formData = new FormData();
@@ -267,12 +223,8 @@ const videoService = {
     formData.append("courseId", courseId);
     formData.append("moduleId", moduleId);
     formData.append("batchId", batchId);
-
     return axios.post(`${API_GATEWAY}/course-videos/upload`, formData, {
-      headers: {
-        ...getAuthHeaders(),
-        "Content-Type": "multipart/form-data",
-      },
+      headers: { ...getAuthHeaders(), "Content-Type": "multipart/form-data" },
     });
   },
 
@@ -286,9 +238,6 @@ const videoService = {
     return `${API_GATEWAY}/course-videos/stream/${encodeURIComponent(fileName)}`;
   },
 
-  // ✅ EDIT COURSE VIDEO — file is optional (pass null to keep existing)
-  // ✅ EDIT COURSE VIDEO — file is optional (pass null to keep existing)
-  // FIX: was calling authHeader() which doesn't exist → now uses getAuthHeaders()
   updateCourseVideo(id, newFile, courseId, moduleId, batchId) {
     const formData = new FormData();
     if (newFile) formData.append("file", newFile);
@@ -298,59 +247,27 @@ const videoService = {
       formData.append("moduleId", moduleId);
     if (batchId !== undefined && batchId !== null)
       formData.append("batchId", batchId);
-
     return axios.put(`${API_GATEWAY}/course-videos/${id}`, formData, {
-      headers: getAuthHeaders(), // ✅ FIXED: was authHeader() → ReferenceError
+      headers: getAuthHeaders(),
     });
   },
 
-  // deleteCourseVideo(id) {
-  //   return axios.delete(`${API_GATEWAY}/course-videos/${id}`, {
-  //     headers: getAuthHeaders(),
-  //   });
-  // },
-  // ✅ DELETE COURSE VIDEO
   deleteCourseVideo(id) {
     return axios.delete(`${API_GATEWAY}/course-videos/${id}`, {
       headers: getAuthHeaders(),
     });
   },
-  // ═══════════════════════════════════════════════════════════════════
-  //  ADMIN COURSE UPLOAD
-  // ═══════════════════════════════════════════════════════════════════
-  uploadAdminCourse(formData, onProgress) {
-    return axios.post(`${API_GATEWAY}/upload-course/upload`, formData, {
-      // ✅ changed
-      headers: { ...getAuthHeaders(), "Content-Type": "multipart/form-data" },
-      onUploadProgress: onProgress
-        ? (e) => {
-            if (e.total) onProgress(Math.round((e.loaded * 100) / e.total));
-          }
-        : undefined,
-    });
-  },
 
-  getAllAdminCourses() {
-    return axios.get(`${API_GATEWAY}/upload-course/all`, {
-      // ✅ changed
-      headers: getAuthHeaders(),
-    });
-  },
+  // ─────────────────────────────────────────────────────────────────
+  //  VIDEO FEATURE FLAGS (unchanged)
+  // ─────────────────────────────────────────────────────────────────
 
-  deleteAdminCourse(courseId) {
-    return axios.delete(`${API_GATEWAY}/upload-course/by-course/${courseId}`, {
-      // ✅ changed
-      headers: getAuthHeaders(),
-    });
-  },
-
-  // ═══════════════════════════════════════════════════════════════════
-  //  VIDEO FEATURE FLAGS (org + individual) — mirrors course pattern
-  // ═══════════════════════════════════════════════════════════════════
   getOrgVideoFeatureFlags(organizationId) {
     return axios.get(
       `${API_GATEWAY}/video-feature-flags/org/${organizationId}`,
-      { headers: getAuthHeaders() },
+      {
+        headers: getAuthHeaders(),
+      },
     );
   },
 
@@ -358,7 +275,9 @@ const videoService = {
     return axios.put(
       `${API_GATEWAY}/video-feature-flags/org/${organizationId}`,
       dto,
-      { headers: getAuthHeaders() },
+      {
+        headers: getAuthHeaders(),
+      },
     );
   },
 
@@ -374,6 +293,90 @@ const videoService = {
       headers: getAuthHeaders(),
       params: { email },
     });
+  },
+
+  // ═════════════════════════════════════════════════════════════════
+  //  WATCH NOW  (replaces uploadAdminCourse / getAllAdminCourses /
+  //              deleteAdminCourse)
+  //
+  //  Base URL: /api/v1/watch-now
+  //  Auth:     SUPER_ADMIN only (writes); public (reads)
+  // ═════════════════════════════════════════════════════════════════
+
+  /**
+   * Create a new WatchNow entry (SUPER_ADMIN only).
+   * @param {FormData} formData  – must include "video" file + DTO fields
+   * @param {Function} onProgress – optional upload progress callback (0–100)
+   */
+  uploadWatchNow(formData, onProgress) {
+    return axios.post(`${API_GATEWAY}/v1/watch-now/upload`, formData, {
+      headers: { ...getAuthHeaders(), "Content-Type": "multipart/form-data" },
+      onUploadProgress: onProgress
+        ? (e) => {
+            if (e.total) onProgress(Math.round((e.loaded * 100) / e.total));
+          }
+        : undefined,
+    });
+  },
+
+  /**
+   * Update an existing WatchNow entry (SUPER_ADMIN only).
+   * @param {number|string} id
+   * @param {FormData} formData  – "video" and "thumbnail" are optional
+   * @param {Function} onProgress
+   */
+  updateWatchNow(id, formData, onProgress) {
+    return axios.put(`${API_GATEWAY}/v1/watch-now/${id}`, formData, {
+      headers: { ...getAuthHeaders(), "Content-Type": "multipart/form-data" },
+      onUploadProgress: onProgress
+        ? (e) => {
+            if (e.total) onProgress(Math.round((e.loaded * 100) / e.total));
+          }
+        : undefined,
+    });
+  },
+
+  /**
+   * Get all WatchNow entries (public – no auth required).
+   */
+  getAllWatchNow() {
+    return axios.get(`${API_GATEWAY}/v1/watch-now/all`);
+  },
+
+  /**
+   * Get a single WatchNow entry by id (public – no auth required).
+   */
+  getWatchNowById(id) {
+    return axios.get(`${API_GATEWAY}/v1/watch-now/${id}`);
+  },
+
+  /**
+   * Build the stream URL for a WatchNow video or thumbnail filename.
+   * Used directly in <video src={...}> or <img src={...}>.
+   */
+  getWatchNowStreamUrl(fileName) {
+    return `${API_GATEWAY}/v1/watch-now/stream/${encodeURIComponent(fileName)}`;
+  },
+
+  /**
+   * Delete a WatchNow entry by primary key (SUPER_ADMIN only).
+   */
+  deleteWatchNow(id) {
+    return axios.delete(`${API_GATEWAY}/v1/watch-now/${id}`, {
+      headers: getAuthHeaders(),
+    });
+  },
+
+  /**
+   * Delete all WatchNow entries for a courseId (SUPER_ADMIN only).
+   */
+  deleteWatchNowByCourse(courseId) {
+    return axios.delete(`${API_GATEWAY}/v1/watch-now/by-course/${courseId}`, {
+      headers: getAuthHeaders(),
+    });
+  },
+  getWatchNowStats() {
+    return axios.get(`${API_GATEWAY}/v1/watch-now/stats`);
   },
 };
 

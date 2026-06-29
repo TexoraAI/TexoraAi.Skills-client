@@ -1,8 +1,9 @@
+
 // import axios from "axios";
 // import {
 //   BookOpen, CheckCircle, Clock, Download,
 //   Edit2, Eye, GraduationCap, Plus, Search, Star,
-//   Trash2, Users, X, ChevronLeft, ChevronRight, Layers,
+//   Trash2, Users, X, Layers,
 // } from "lucide-react";
 // import { useEffect, useRef, useState, useCallback } from "react";
 // import { useNavigate } from "react-router-dom";
@@ -12,19 +13,24 @@
 
 // const STYLES = `
 // @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
-// :root{--bg:#f1f5f9;--card:#ffffff;--tx:#0f172a;--mu:#64748b;--bd:#e2e8f0;
+// :root{
+//   --bg:#f1f5f9;--card:#ffffff;--tx:#0f172a;--mu:#64748b;--bd:#e2e8f0;
 //   --c1:#22d3ee;--c2:#fb923c;--c3:#34d399;--c4:#a78bfa;--cr:#f87171;
-//   --sh:0 4px 24px rgba(0,0,0,0.06);--shl:0 8px 40px rgba(0,0,0,0.10);--r:20px;}
-// .tc-dk{--bg:#0a0a0a;--card:#111111;--tx:#ffffff;--mu:#94a3b8;--bd:rgba(255,255,255,0.06);
-//   --sh:0 4px 24px rgba(0,0,0,0.40);--shl:0 8px 40px rgba(0,0,0,0.60);}
+//   --sh:0 4px 24px rgba(0,0,0,0.06);--shl:0 8px 40px rgba(0,0,0,0.10);--r:20px;
+// }
+// .tc-dk{
+//   --bg:#0a0a0a;--card:#111111;--tx:#ffffff;--mu:#94a3b8;--bd:rgba(255,255,255,0.06);
+//   --sh:0 4px 24px rgba(0,0,0,0.40);--shl:0 8px 40px rgba(0,0,0,0.60);
+// }
 // .tc{font-family:'Poppins',sans-serif;min-height:100vh;background:var(--bg);color:var(--tx);display:flex;flex-direction:column;}
 // .tc-top{padding:20px 24px;}
-// .tc-toprow{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+// .tc-toprow{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;}
 // .tc-tl{display:flex;align-items:center;gap:12px;}
 // .tc-tl-ico{width:44px;height:44px;border-radius:13px;background:rgba(34,211,238,.10);border:1px solid rgba(34,211,238,.18);display:flex;align-items:center;justify-content:center;color:var(--c1);flex-shrink:0;}
 // .tc-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--mu);margin-bottom:3px;}
-// .tc-h1{font-size:20px;font-weight:800;color:var(--tx);margin:0;}
-// .tc-tr{display:flex;align-items:center;gap:8px;}
+// .tc-h1{font-family:'Poppins',sans-serif;font-weight:700;font-size:clamp(1.3rem,3vw,1.6rem);margin:0;line-height:1.1;letter-spacing:-0.02em;color:var(--tx);}
+// .tc-h1-grad{background:linear-gradient(135deg,#a78bfa,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+// .tc-tr{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 // .tc-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:12px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:opacity .2s,transform .15s;border:none;white-space:nowrap;}
 // .tc-btn:hover{opacity:.87;transform:translateY(-1px);}
 // .tc-btn-out{background:var(--card);border:1px solid var(--bd)!important;color:var(--mu);}
@@ -38,17 +44,19 @@
 // .tc-sv{font-size:26px;font-weight:800;margin-bottom:3px;}
 // .tc-sl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;opacity:.65;}
 // .tc-panels{display:flex;flex:1;margin:0 24px 24px;border-radius:var(--r);border:1px solid var(--bd);background:var(--card);box-shadow:var(--shl);overflow:hidden;}
-// .tc-p1{flex-shrink:0;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--bd);transition:width .3s;}
+// .tc-p1{flex-shrink:0;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--bd);transition:width .15s;}
 // .tc-p1-head{display:flex;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid var(--bd);background:var(--bg);}
 // .tc-p1-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--mu);}
 // .tc-p1-list{flex:1;overflow-y:auto;padding:8px;}
 // .tc-cat-btn{width:100%;text-align:left;padding:9px 12px;border-radius:11px;border:none;background:transparent;font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;color:var(--mu);cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all .15s;}
 // .tc-cat-btn:hover{background:rgba(34,211,238,.06);color:var(--c1);}
 // .tc-cat-btn.on{color:white;}
-// .tc-resize{width:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:col-resize;background:var(--bg);border-left:1px solid var(--bd);border-right:1px solid var(--bd);transition:background .2s;}
+// .tc-resize{width:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--bg);border-left:1px solid var(--bd);border-right:1px solid var(--bd);transition:background .2s;position:relative;}
 // .tc-resize:hover{background:rgba(34,211,238,.08);}
 // .tc-resize-pill{width:3px;height:40px;border-radius:4px;background:var(--bd);transition:background .2s;}
 // .tc-resize:hover .tc-resize-pill{background:var(--c1);}
+// .tc-resize-tooltip{position:absolute;bottom:calc(50% - 60px);left:50%;transform:translateX(-50%);background:rgba(15,23,42,.85);color:#fff;font-size:9px;font-weight:700;white-space:nowrap;padding:4px 8px;border-radius:6px;pointer-events:none;opacity:0;transition:opacity .2s;letter-spacing:.04em;}
+// .tc-resize:hover .tc-resize-tooltip{opacity:1;}
 // .tc-p2{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
 // .tc-p2-search{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--bd);background:var(--bg);}
 // .tc-sinput{position:relative;flex:1;}
@@ -110,140 +118,248 @@
 // .tc-loader{display:flex;align-items:center;justify-content:center;padding:60px;}
 // .tc-empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:10px;text-align:center;color:var(--mu);font-size:13px;}
 // .tc-empty-ico{width:52px;height:52px;border-radius:15px;background:var(--bg);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--mu);}
+
+// @media(max-width:900px){
+//   .tc-panels{flex-direction:column;margin:0 16px 16px;height:auto!important;min-height:unset!important;overflow:visible;}
+//   .tc-p1{width:100%!important;border-right:none;border-bottom:1px solid var(--bd);}
+//   .tc-p1-list{display:flex;flex-wrap:wrap;gap:6px;padding:10px;overflow-y:unset;}
+//   .tc-cat-btn{width:auto;padding:7px 14px;}
+//   .tc-resize{display:none;}
+//   .tc-p2{min-height:400px;}
+//   .tc-p3{width:100%!important;border-left:none;border-top:1px solid var(--bd);}
+//   .tc-stats{grid-template-columns:repeat(3,1fr);}
+//   .tc-top{padding:16px 20px;}
+// }
+// @media(max-width:600px){
+//   .tc-top{padding:14px 14px 0;}
+//   .tc-toprow{gap:10px;}
+//   .tc-h1{font-size:clamp(1.1rem,5vw,1.3rem);}
+//   .tc-stats{grid-template-columns:repeat(3,1fr);gap:8px;padding:0 14px 12px;}
+//   .tc-sv{font-size:20px;}
+//   .tc-sl{font-size:8px;}
+//   .tc-panels{margin:0 14px 14px;border-radius:16px;}
+//   .tc-grid{grid-template-columns:1fr;}
+//   .tc-p2-search{padding:10px 12px;}
+//   .tc-p2-grid{padding:12px;}
+//   .tc-p3-body{padding:14px;}
+//   .tc-submit-row{flex-direction:column;}
+//   .tc-can{text-align:center;}
+//   .tc-btn{padding:8px 12px;font-size:11px;}
+//   .tc-prev-meta{grid-template-columns:repeat(3,1fr);gap:6px;}
+// }
+// @media(max-width:380px){
+//   .tc-stats{grid-template-columns:1fr 1fr;}
+//   .tc-stat:last-child{grid-column:span 2;}
+//   .tc-tl-ico{width:36px;height:36px;}
+//   .tc-tr .tc-btn-out{display:none;}
+// }
 // `;
-// if(!document.getElementById("tc-st")){const t=document.createElement("style");t.id="tc-st";t.textContent=STYLES;document.head.appendChild(t);}
-// const isDark=()=>document.documentElement.classList.contains("dark")||document.body.classList.contains("dark")||window.matchMedia("(prefers-color-scheme: dark)").matches;
 
-// const CAT_COLORS={
-//   Product:{bg:"rgba(167,139,250,.10)",color:"var(--c4)"},
-//   Design:{bg:"rgba(251,146,60,.10)",color:"var(--c2)"},
-//   "Growth & Marketing":{bg:"rgba(34,211,238,.10)",color:"var(--c1)"},
-//   Development:{bg:"rgba(52,211,153,.10)",color:"var(--c3)"},
-//   Business:{bg:"rgba(248,113,113,.10)",color:"var(--cr)"},
-//   _d:{bg:"rgba(100,116,139,.10)",color:"var(--mu)"},
+// if (!document.getElementById("tc-st")) {
+//   const t = document.createElement("style");
+//   t.id = "tc-st";
+//   t.textContent = STYLES;
+//   document.head.appendChild(t);
+// }
+
+// const isDark = () =>
+//   document.documentElement.classList.contains("dark") ||
+//   document.body.classList.contains("dark") ||
+//   window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+// const CAT_COLORS = {
+//   Product: { bg: "rgba(167,139,250,.10)", color: "var(--c4)" },
+//   Design: { bg: "rgba(251,146,60,.10)", color: "var(--c2)" },
+//   "Growth & Marketing": { bg: "rgba(34,211,238,.10)", color: "var(--c1)" },
+//   Development: { bg: "rgba(52,211,153,.10)", color: "var(--c3)" },
+//   Business: { bg: "rgba(248,113,113,.10)", color: "var(--cr)" },
+//   _d: { bg: "rgba(100,116,139,.10)", color: "var(--mu)" },
 // };
-// const catStyle=c=>CAT_COLORS[c]||CAT_COLORS._d;
+// const catStyle = c => CAT_COLORS[c] || CAT_COLORS._d;
 
-// const STAT_GRADS=["linear-gradient(135deg,#064e3b,#059669)","linear-gradient(135deg,#1e3a8a,#2563eb)","linear-gradient(135deg,#78350f,#d97706)"];
+// const STAT_GRADS = [
+//   "linear-gradient(135deg,#064e3b,#059669)",
+//   "linear-gradient(135deg,#1e3a8a,#2563eb)",
+//   "linear-gradient(135deg,#78350f,#d97706)",
+// ];
 
 // const TrainerCourseManagement = () => {
 //   const navigate = useNavigate();
-//   const [searchQuery,setSearchQuery]=useState("");
-//   const [selectedCategory,setSelectedCategory]=useState("All");
-//   const [courses,setCourses]=useState([]);
-//   const [loading,setLoading]=useState(true);
-//   const [batches,setBatches]=useState([]);
-//   const [editingCourse,setEditingCourse]=useState(null);
-//   const [editForm,setEditForm]=useState({title:"",category:"",description:""});
-//   const [createForm,setCreateForm]=useState({title:"",category:"",description:"",batchId:""});
-//   const [showSuccess,setShowSuccess]=useState(false);
-//   const [successMessage,setSuccessMessage]=useState("");
-//   const [previewCourseId,setPreviewCourseId]=useState(null);
-//   const [leftCollapsed,setLeftCollapsed]=useState(false);
-//   const [rightOpen,setRightOpen]=useState(false);
-//   const [rightMode,setRightMode]=useState("create");
-//   const [rightWidth,setRightWidth]=useState(320);
-//   const [dark,setDark]=useState(isDark);
-//   const isDragging=useRef(false);
-//   const containerRef=useRef(null);
+//   const [searchQuery, setSearchQuery] = useState("");
+//   const [selectedCategory, setSelectedCategory] = useState("All");
+//   const [courses, setCourses] = useState([]);
+//   const [loading, setLoading] = useState(true);
+//   const [batches, setBatches] = useState([]);
+//   const [editingCourse, setEditingCourse] = useState(null);
+//   const [editForm, setEditForm] = useState({ title: "", category: "", description: "" });
+//   const [createForm, setCreateForm] = useState({ title: "", category: "", description: "", batchId: "" });
+//   const [showSuccess, setShowSuccess] = useState(false);
+//   const [successMessage, setSuccessMessage] = useState("");
+//   const [previewCourseId, setPreviewCourseId] = useState(null);
+//   const [leftCollapsed, setLeftCollapsed] = useState(false);
+//   const [leftWidth, setLeftWidth] = useState(196);
+//   const [rightOpen, setRightOpen] = useState(false);
+//   const [rightMode, setRightMode] = useState("create");
+//   const [rightWidth, setRightWidth] = useState(320);
+//   const [dark, setDark] = useState(isDark);
 
-//   useEffect(()=>{
-//     const o=new MutationObserver(()=>setDark(isDark()));
-//     o.observe(document.documentElement,{attributes:true,attributeFilter:["class"]});
-//     o.observe(document.body,{attributes:true,attributeFilter:["class"]});
-//     return()=>o.disconnect();
-//   },[]);
+//   const isDragging = useRef(false);
+//   const isLeftDragging = useRef(false);
+//   const containerRef = useRef(null);
 
-//   const onMouseDown=useCallback(()=>{isDragging.current=true;document.body.style.cursor="col-resize";document.body.style.userSelect="none";},[]);
-//   const onMouseMove=useCallback(e=>{
-//     if(!isDragging.current||!containerRef.current)return;
-//     const rect=containerRef.current.getBoundingClientRect();
-//     const fr=rect.right-e.clientX;
-//     if(fr>240&&fr<560)setRightWidth(fr);
-//   },[]);
-//   const onMouseUp=useCallback(()=>{isDragging.current=false;document.body.style.cursor="";document.body.style.userSelect="";},[]);
-//   useEffect(()=>{
-//     window.addEventListener("mousemove",onMouseMove);window.addEventListener("mouseup",onMouseUp);
-//     return()=>{window.removeEventListener("mousemove",onMouseMove);window.removeEventListener("mouseup",onMouseUp);};
-//   },[onMouseMove,onMouseUp]);
+//   /* dark-mode observer */
+//   useEffect(() => {
+//     const o = new MutationObserver(() => setDark(isDark()));
+//     o.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+//     o.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+//     return () => o.disconnect();
+//   }, []);
 
-//   const authHeader=()=>({Authorization:`Bearer ${localStorage.getItem("lms_token")}`});
+//   /* ── RIGHT panel resize ── */
+//   const onMouseDown = useCallback(() => {
+//     isDragging.current = true;
+//     document.body.style.cursor = "col-resize";
+//     document.body.style.userSelect = "none";
+//   }, []);
 
-//   useEffect(()=>{
+//   /* ── LEFT panel resize ── */
+//   const onLeftMouseDown = useCallback(() => {
+//     isLeftDragging.current = true;
+//     document.body.style.cursor = "col-resize";
+//     document.body.style.userSelect = "none";
+//   }, []);
+
+//   const onMouseMove = useCallback(e => {
+//     if (!containerRef.current) return;
+//     const rect = containerRef.current.getBoundingClientRect();
+
+//     // Right panel drag
+//     if (isDragging.current) {
+//       const fr = rect.right - e.clientX;
+//       if (fr > 240 && fr < 560) setRightWidth(fr);
+//     }
+
+//     // Left panel drag
+//     if (isLeftDragging.current) {
+//       const fl = e.clientX - rect.left;
+//       if (fl > 120 && fl < 320) setLeftWidth(fl);
+//     }
+//   }, []);
+
+//   const onMouseUp = useCallback(() => {
+//     isDragging.current = false;
+//     isLeftDragging.current = false;
+//     document.body.style.cursor = "";
+//     document.body.style.userSelect = "";
+//   }, []);
+
+//   useEffect(() => {
+//     window.addEventListener("mousemove", onMouseMove);
+//     window.addEventListener("mouseup", onMouseUp);
+//     return () => {
+//       window.removeEventListener("mousemove", onMouseMove);
+//       window.removeEventListener("mouseup", onMouseUp);
+//     };
+//   }, [onMouseMove, onMouseUp]);
+
+//   const authHeader = () => ({ Authorization: `Bearer ${localStorage.getItem("lms_token")}` });
+
+//   useEffect(() => {
 //     fetchCourses();
-//     (async()=>{try{const r=await getTrainerBatches();setBatches(r||[]);}catch(e){console.error(e);}})();
-//   },[]);
+//     (async () => {
+//       try { const r = await getTrainerBatches(); setBatches(r || []); }
+//       catch (e) { console.error(e); }
+//     })();
+//   }, []);
 
-//   const fetchCourses=async()=>{
-//     try{const r=await axios.get(`${API}/courses/my`,{headers:authHeader()});setCourses(r.data);}
-//     catch(e){console.error(e);}finally{setLoading(false);}
+//   const fetchCourses = async () => {
+//     try { const r = await axios.get(`${API}/courses/my`, { headers: authHeader() }); setCourses(r.data); }
+//     catch (e) { console.error(e); }
+//     finally { setLoading(false); }
 //   };
 
-//   const showNotif=msg=>{setSuccessMessage(msg);setShowSuccess(true);setTimeout(()=>setShowSuccess(false),3000);};
+//   const showNotif = msg => { setSuccessMessage(msg); setShowSuccess(true); setTimeout(() => setShowSuccess(false), 3000); };
 
-//   const createCourse=async e=>{
+//   const createCourse = async e => {
 //     e.preventDefault();
-//     if(!createForm.title||!createForm.category||!createForm.batchId){alert("Please fill in all required fields");return;}
-//     try{await axios.post(`${API}/courses`,createForm,{headers:authHeader()});setCreateForm({title:"",category:"",description:"",batchId:""});setRightOpen(false);fetchCourses();showNotif("Course created successfully!");}
-//     catch{alert("Failed to create course");}
+//     if (!createForm.title || !createForm.category || !createForm.batchId) { alert("Please fill in all required fields"); return; }
+//     try {
+//       await axios.post(`${API}/courses`, createForm, { headers: authHeader() });
+//       setCreateForm({ title: "", category: "", description: "", batchId: "" });
+//       setRightOpen(false); fetchCourses(); showNotif("Course created successfully!");
+//     } catch { alert("Failed to create course"); }
 //   };
 
-//   const handleDelete=async id=>{
-//     if(!window.confirm("Delete this course?"))return;
-//     try{await axios.delete(`${API}/courses/${id}`,{headers:authHeader()});setCourses(p=>p.filter(c=>c.id!==id));if(editingCourse?.id===id){setEditingCourse(null);setRightOpen(false);}if(previewCourseId===id)setPreviewCourseId(null);showNotif("Course deleted.");}
-//     catch{alert("Delete failed");}
+//   const handleDelete = async id => {
+//     if (!window.confirm("Delete this course?")) return;
+//     try {
+//       await axios.delete(`${API}/courses/${id}`, { headers: authHeader() });
+//       setCourses(p => p.filter(c => c.id !== id));
+//       if (editingCourse?.id === id) { setEditingCourse(null); setRightOpen(false); }
+//       if (previewCourseId === id) setPreviewCourseId(null);
+//       showNotif("Course deleted.");
+//     } catch { alert("Delete failed"); }
 //   };
 
-//   const openEdit=course=>{setEditingCourse(course);setEditForm({title:course.title,category:course.category,description:course.description||""});setRightMode("edit");setRightOpen(true);setPreviewCourseId(null);};
-
-//   const saveEdit=async()=>{
-//     try{await axios.put(`${API}/courses/${editingCourse.id}`,editForm,{headers:authHeader()});setEditingCourse(null);setRightOpen(false);fetchCourses();showNotif("Course updated!");}
-//     catch{alert("Update failed");}
+//   const openEdit = course => {
+//     setEditingCourse(course);
+//     setEditForm({ title: course.title, category: course.category, description: course.description || "" });
+//     setRightMode("edit"); setRightOpen(true); setPreviewCourseId(null);
 //   };
 
-//   const categories=["All","Product","Design","Growth & Marketing","Development","Business"];
-//   const filteredCourses=courses.filter(c=>{
-//     const ms=c.title.toLowerCase().includes(searchQuery.toLowerCase())||c.ownerEmail.toLowerCase().includes(searchQuery.toLowerCase());
-//     const mc=selectedCategory==="All"||c.category===selectedCategory;
-//     return ms&&mc;
+//   const saveEdit = async () => {
+//     try {
+//       await axios.put(`${API}/courses/${editingCourse.id}`, editForm, { headers: authHeader() });
+//       setEditingCourse(null); setRightOpen(false); fetchCourses(); showNotif("Course updated!");
+//     } catch { alert("Update failed"); }
+//   };
+
+//   const categories = ["All", "Product", "Design", "Growth & Marketing", "Development", "Business"];
+//   const filteredCourses = courses.filter(c => {
+//     const ms = c.title.toLowerCase().includes(searchQuery.toLowerCase()) || c.ownerEmail.toLowerCase().includes(searchQuery.toLowerCase());
+//     const mc = selectedCategory === "All" || c.category === selectedCategory;
+//     return ms && mc;
 //   });
 
-//   const totalCourses=courses.length;
-//   const totalStudents=courses.reduce((a,c)=>a+(c.enrolledCount||0),0);
-//   const avgRating=courses.length?(courses.reduce((a,c)=>a+(c.rating||4.8),0)/courses.length).toFixed(1):"—";
+//   const totalCourses = courses.length;
+//   const totalStudents = courses.reduce((a, c) => a + (c.enrolledCount || 0), 0);
+//   const avgRating = courses.length ? (courses.reduce((a, c) => a + (c.rating || 4.8), 0) / courses.length).toFixed(1) : "—";
 
-//   const statCards=[
-//     {icon:<BookOpen size={16}/>,value:totalCourses,label:"Total Courses",grad:STAT_GRADS[0]},
-//     {icon:<Users size={16}/>,value:totalStudents,label:"Enrollments",grad:STAT_GRADS[1]},
-//     {icon:<Star size={16}/>,value:avgRating,label:"Avg Rating",grad:STAT_GRADS[2]},
+//   const statCards = [
+//     { icon: <BookOpen size={16} />, value: totalCourses, label: "Total Courses", grad: STAT_GRADS[0] },
+//     { icon: <Users size={16} />, value: totalStudents, label: "Enrollments", grad: STAT_GRADS[1] },
+//     { icon: <Star size={16} />, value: avgRating, label: "Avg Rating", grad: STAT_GRADS[2] },
 //   ];
 
-//   const rightModeColor=rightMode==="create"?"var(--c3)":rightMode==="edit"?"var(--c1)":"var(--c4)";
+//   const rightModeColor = rightMode === "create" ? "var(--c3)" : rightMode === "edit" ? "var(--c1)" : "var(--c4)";
 
-//   return(
-//     <div className={`tc${dark?" tc-dk":""}`}>
+//   return (
+//     <div className={`tc${dark ? " tc-dk" : ""}`}>
 //       <div className="tc-top">
 //         <div className="tc-toprow">
 //           <div className="tc-tl">
-//             <div className="tc-tl-ico"><GraduationCap size={22}/></div>
+//             <div className="tc-tl-ico"><GraduationCap size={22} /></div>
 //             <div>
 //               <div className="tc-label">Learning Management</div>
-//               <h1 className="tc-h1">Course Management</h1>
+//               <h1 className="tc-h1">
+//                 Trainer <span className="tc-h1-grad">Dashboard</span>
+//               </h1>
 //             </div>
 //           </div>
 //           <div className="tc-tr">
-//             <button className="tc-btn tc-btn-out"><Download size={13}/> Export</button>
-//             <button className="tc-btn tc-btn-green" onClick={()=>{setRightMode("create");setRightOpen(true);setEditingCourse(null);setPreviewCourseId(null);}}>
-//               <Plus size={13}/> New Course
+//             <button className="tc-btn tc-btn-out"><Download size={13} /> Export</button>
+//             <button className="tc-btn tc-btn-green"
+//               onClick={() => { setRightMode("create"); setRightOpen(true); setEditingCourse(null); setPreviewCourseId(null); }}>
+//               <Plus size={13} /> New Course
 //             </button>
 //           </div>
 //         </div>
-//         {showSuccess&&<div className="tc-toast"><CheckCircle size={15}/>{successMessage}</div>}
+//         {showSuccess && <div className="tc-toast"><CheckCircle size={15} />{successMessage}</div>}
 //       </div>
 
 //       <div className="tc-stats">
-//         {statCards.map((s,i)=>(
-//           <div key={i} className="tc-stat" style={{background:s.grad}}>
+//         {statCards.map((s, i) => (
+//           <div key={i} className="tc-stat" style={{ background: s.grad }}>
 //             <div className="tc-sico">{s.icon}</div>
 //             <div className="tc-sv">{s.value}</div>
 //             <div className="tc-sl">{s.label}</div>
@@ -251,73 +367,88 @@
 //         ))}
 //       </div>
 
-//       <div ref={containerRef} className="tc-panels" style={{height:"calc(100vh - 280px)",minHeight:380}}>
+//       <div ref={containerRef} className="tc-panels" style={{ height: "calc(100vh - 280px)", minHeight: 380 }}>
 
-//         {/* Panel 1 - filters */}
-//         <div className="tc-p1" style={{width:leftCollapsed?0:196}}>
+//         {/* ── Panel 1 – categories ── */}
+//         <div className="tc-p1" style={{ width: leftCollapsed ? 0 : leftWidth }}>
 //           <div className="tc-p1-head">
-//             <Layers size={13} style={{color:"var(--c1)",flexShrink:0}}/>
+//             <Layers size={13} style={{ color: "var(--c1)", flexShrink: 0 }} />
 //             <span className="tc-p1-title">Categories</span>
 //           </div>
 //           <div className="tc-p1-list">
-//             {categories.map(cat=>(
-//               <button key={cat} className={`tc-cat-btn${selectedCategory===cat?" on":""}`}
-//                 style={selectedCategory===cat?{background:"linear-gradient(135deg,#1e3a8a,#2563eb)"}:{}}
-//                 onClick={()=>setSelectedCategory(cat)}>
+//             {categories.map(cat => (
+//               <button key={cat} className={`tc-cat-btn${selectedCategory === cat ? " on" : ""}`}
+//                 style={selectedCategory === cat ? { background: "linear-gradient(135deg,#1e3a8a,#2563eb)" } : {}}
+//                 onClick={() => setSelectedCategory(cat)}>
 //                 <span>{cat}</span>
-//                 {selectedCategory===cat&&<span style={{width:6,height:6,borderRadius:"50%",background:"rgba(255,255,255,.7)"}}/>}
+//                 {selectedCategory === cat && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,.7)" }} />}
 //               </button>
 //             ))}
 //           </div>
 //         </div>
 
-//         {/* Resize 1 */}
-//         <div className="tc-resize" style={{cursor:"pointer"}} onClick={()=>setLeftCollapsed(p=>!p)}>
-//           <div className="tc-resize-pill"/>
+//         {/* ── Resize Handle 1 – LEFT panel ── */}
+//         <div
+//           className="tc-resize"
+//           style={{ cursor: leftCollapsed ? "pointer" : "col-resize" }}
+//           onMouseDown={e => {
+//             if (leftCollapsed) return;
+//             e.preventDefault();
+//             onLeftMouseDown();
+//           }}
+//           onClick={() => {
+//             if (leftCollapsed) setLeftCollapsed(false);
+//           }}
+//           title={leftCollapsed ? "Click to expand" : "Drag to resize · Click to collapse"}
+//         >
+//           <div className="tc-resize-pill" />
+//           <span className="tc-resize-tooltip">
+//             {leftCollapsed ? "↔ Expand" : "↔ Drag to resize"}
+//           </span>
 //         </div>
 
-//         {/* Panel 2 - course list */}
+//         {/* ── Panel 2 – course list ── */}
 //         <div className="tc-p2">
 //           <div className="tc-p2-search">
 //             <div className="tc-sinput">
-//               <Search size={13}/>
-//               <input placeholder="Search courses..." value={searchQuery} onChange={e=>setSearchQuery(e.target.value)}/>
+//               <Search size={13} />
+//               <input placeholder="Search courses..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
 //             </div>
 //             <span className="tc-found">{filteredCourses.length} found</span>
 //           </div>
 //           <div className="tc-p2-grid">
-//             {loading?(
-//               <div className="tc-loader"><div className="tc-spin"/></div>
-//             ):filteredCourses.length===0?(
+//             {loading ? (
+//               <div className="tc-loader"><div className="tc-spin" /></div>
+//             ) : filteredCourses.length === 0 ? (
 //               <div className="tc-empty-state">
-//                 <div className="tc-empty-ico"><BookOpen size={24}/></div>
-//                 <span>{searchQuery||selectedCategory!=="All"?"No courses match your filters":"No courses yet — create your first!"}</span>
+//                 <div className="tc-empty-ico"><BookOpen size={24} /></div>
+//                 <span>{searchQuery || selectedCategory !== "All" ? "No courses match your filters" : "No courses yet — create your first!"}</span>
 //               </div>
-//             ):(
+//             ) : (
 //               <div className="tc-grid">
-//                 {filteredCourses.map(course=>{
-//                   const cs=catStyle(course.category);
-//                   const isActive=editingCourse?.id===course.id||previewCourseId===course.id;
-//                   return(
-//                     <div key={course.id} className={`tc-cc${isActive?" on":""}`}>
+//                 {filteredCourses.map(course => {
+//                   const cs = catStyle(course.category);
+//                   const isActive = editingCourse?.id === course.id || previewCourseId === course.id;
+//                   return (
+//                     <div key={course.id} className={`tc-cc${isActive ? " on" : ""}`}>
 //                       <div className="tc-cc-head">
-//                         <span className="tc-pub-tag"><CheckCircle size={10}/> Published</span>
-//                         <span className="tc-cat-tag" style={{background:cs.bg,color:cs.color}}>{course.category}</span>
+//                         <span className="tc-pub-tag"><CheckCircle size={10} /> Published</span>
+//                         <span className="tc-cat-tag" style={{ background: cs.bg, color: cs.color }}>{course.category}</span>
 //                       </div>
 //                       <p className="tc-ct">{course.title}</p>
-//                       <p className="tc-ce"><GraduationCap size={11}/>{course.ownerEmail}</p>
+//                       <p className="tc-ce"><GraduationCap size={11} />{course.ownerEmail}</p>
 //                       <div className="tc-meta">
-//                         <span className="tc-mi"><Clock size={11}/>8w</span>
-//                         <span className="tc-mi"><Users size={11}/>{course.enrolledCount||0}</span>
-//                         <span className="tc-mi"><Star size={11} style={{color:"var(--c2)",fill:"var(--c2)"}}/>{course.rating||4.8}</span>
+//                         <span className="tc-mi"><Clock size={11} />8w</span>
+//                         <span className="tc-mi"><Users size={11} />{course.enrolledCount || 0}</span>
+//                         <span className="tc-mi"><Star size={11} style={{ color: "var(--c2)", fill: "var(--c2)" }} />{course.rating || 4.8}</span>
 //                       </div>
-//                       {course.description&&<p className="tc-desc">{course.description}</p>}
+//                       {course.description && <p className="tc-desc">{course.description}</p>}
 //                       <div className="tc-3btn">
-//                         <button className="tc-ab" onClick={()=>openEdit(course)}><Edit2 size={11}/> Edit</button>
-//                         <button className="tc-ab" onClick={()=>navigate(`/trainer/course/${course.id}/modules`)}><BookOpen size={11}/> Modules</button>
-//                         <button className="tc-ab" onClick={()=>{setPreviewCourseId(course.id);setRightMode("preview");setRightOpen(true);setEditingCourse(null);}}><Eye size={11}/> Preview</button>
+//                         <button className="tc-ab" onClick={() => openEdit(course)}><Edit2 size={11} /> Edit</button>
+//                         <button className="tc-ab" onClick={() => navigate(`/trainer/course/${course.id}/modules`)}><BookOpen size={11} /> Modules</button>
+//                         <button className="tc-ab" onClick={() => { setPreviewCourseId(course.id); setRightMode("preview"); setRightOpen(true); setEditingCourse(null); }}><Eye size={11} /> Preview</button>
 //                       </div>
-//                       <button className="tc-del" onClick={()=>handleDelete(course.id)}><Trash2 size={11}/> Delete Course</button>
+//                       <button className="tc-del" onClick={() => handleDelete(course.id)}><Trash2 size={11} /> Delete Course</button>
 //                     </div>
 //                   );
 //                 })}
@@ -326,91 +457,123 @@
 //           </div>
 //         </div>
 
-//         {/* Resize 2 */}
-//         {rightOpen?(
-//           <div className="tc-resize" onMouseDown={onMouseDown}><div className="tc-resize-pill"/></div>
-//         ):(
-//           <div className="tc-resize" style={{cursor:"pointer"}} onClick={()=>{setRightMode("create");setRightOpen(true);setEditingCourse(null);setPreviewCourseId(null);}}>
-//             <div className="tc-resize-pill"/>
+//         {/* ── Resize Handle 2 – RIGHT panel ── */}
+//         {rightOpen ? (
+//           <div
+//             className="tc-resize"
+//             style={{ cursor: "col-resize" }}
+//             onMouseDown={e => { e.preventDefault(); onMouseDown(); }}
+//             title="Drag to resize"
+//           >
+//             <div className="tc-resize-pill" />
+//             <span className="tc-resize-tooltip">↔ Drag to resize</span>
+//           </div>
+//         ) : (
+//           <div
+//             className="tc-resize"
+//             style={{ cursor: "pointer" }}
+//             title="Click to open panel"
+//             onClick={() => { setRightMode("create"); setRightOpen(true); setEditingCourse(null); setPreviewCourseId(null); }}
+//           >
+//             <div className="tc-resize-pill" />
+//             <span className="tc-resize-tooltip">Click to open</span>
 //           </div>
 //         )}
 
-//         {/* Panel 3 */}
-//         {rightOpen&&(
-//           <div className="tc-p3" style={{width:rightWidth}}>
+//         {/* ── Panel 3 – right drawer ── */}
+//         {rightOpen && (
+//           <div className="tc-p3" style={{ width: rightWidth }}>
 //             <div className="tc-p3-head">
 //               <div className="tc-p3-title-row">
-//                 <div className="tc-p3-ico" style={{background:`rgba(${rightMode==="create"?"52,211,153":rightMode==="edit"?"34,211,238":"167,139,250"},.15)`,color:rightModeColor}}>
-//                   {rightMode==="create"?<Plus size={14}/>:rightMode==="edit"?<Edit2 size={14}/>:<Eye size={14}/>}
+//                 <div className="tc-p3-ico"
+//                   style={{ background: `rgba(${rightMode === "create" ? "52,211,153" : rightMode === "edit" ? "34,211,238" : "167,139,250"},.15)`, color: rightModeColor }}>
+//                   {rightMode === "create" ? <Plus size={14} /> : rightMode === "edit" ? <Edit2 size={14} /> : <Eye size={14} />}
 //                 </div>
-//                 <span className="tc-p3-title">{rightMode==="create"?"New Course":rightMode==="edit"?"Edit Course":"Course Preview"}</span>
+//                 <span className="tc-p3-title">
+//                   {rightMode === "create" ? "New Course" : rightMode === "edit" ? "Edit Course" : "Course Preview"}
+//                 </span>
 //               </div>
-//               <button className="tc-xbtn" onClick={()=>{setRightOpen(false);setEditingCourse(null);setPreviewCourseId(null);}}><X size={13}/></button>
+//               <button className="tc-xbtn" onClick={() => { setRightOpen(false); setEditingCourse(null); setPreviewCourseId(null); }}>
+//                 <X size={13} />
+//               </button>
 //             </div>
 
 //             <div className="tc-p3-body">
-//               {rightMode==="preview"&&previewCourseId&&(()=>{
-//                 const c=courses.find(x=>x.id===previewCourseId);
-//                 if(!c)return null;
-//                 const cs=catStyle(c.category);
-//                 return(
+//               {rightMode === "preview" && previewCourseId && (() => {
+//                 const c = courses.find(x => x.id === previewCourseId);
+//                 if (!c) return null;
+//                 return (
 //                   <>
-//                     <div className="tc-prev-hero" style={{background:"linear-gradient(135deg,#312e81,#6366f1)"}}>
-//                       <span className="tc-prev-type" style={{background:"rgba(255,255,255,.15)",color:"white"}}>{c.category}</span>
+//                     <div className="tc-prev-hero" style={{ background: "linear-gradient(135deg,#312e81,#6366f1)" }}>
+//                       <span className="tc-prev-type" style={{ background: "rgba(255,255,255,.15)", color: "white" }}>{c.category}</span>
 //                       <h2 className="tc-prev-h2">{c.title}</h2>
-//                       <p className="tc-prev-sub"><GraduationCap size={12}/> {c.ownerEmail}</p>
+//                       <p className="tc-prev-sub"><GraduationCap size={12} /> {c.ownerEmail}</p>
 //                     </div>
 //                     <div className="tc-prev-meta">
-//                       {[{icon:<Clock size={13}/>,val:"8 weeks",lbl:"Duration"},{icon:<Users size={13}/>,val:c.enrolledCount||0,lbl:"Enrolled"},{icon:<Star size={13} style={{color:"var(--c2)",fill:"var(--c2)"}}/>,val:c.rating||4.8,lbl:"Rating"}].map((m,i)=>(
+//                       {[
+//                         { icon: <Clock size={13} />, val: "8 weeks", lbl: "Duration" },
+//                         { icon: <Users size={13} />, val: c.enrolledCount || 0, lbl: "Enrolled" },
+//                         { icon: <Star size={13} style={{ color: "var(--c2)", fill: "var(--c2)" }} />, val: c.rating || 4.8, lbl: "Rating" },
+//                       ].map((m, i) => (
 //                         <div key={i} className="tc-prev-mc">
-//                           <div style={{display:"flex",justifyContent:"center",color:"var(--mu)",marginBottom:6}}>{m.icon}</div>
+//                           <div style={{ display: "flex", justifyContent: "center", color: "var(--mu)", marginBottom: 6 }}>{m.icon}</div>
 //                           <div className="tc-prev-mv">{m.val}</div>
 //                           <div className="tc-prev-ml">{m.lbl}</div>
 //                         </div>
 //                       ))}
 //                     </div>
-//                     {c.description&&<div className="tc-prev-about"><p className="tc-prev-at">About</p><p className="tc-prev-ad">{c.description}</p></div>}
-//                     <button className="tc-btn" style={{width:"100%",justifyContent:"center",marginBottom:8,background:"var(--c1)",color:"#0a0a0a"}} onClick={()=>openEdit(c)}><Edit2 size={14}/> Edit This Course</button>
-//                     <button className="tc-btn" style={{width:"100%",justifyContent:"center",background:"var(--c4)",color:"#0a0a0a"}} onClick={()=>navigate(`/trainer/course/${c.id}/modules`)}><BookOpen size={14}/> Manage Modules</button>
+//                     {c.description && (
+//                       <div className="tc-prev-about">
+//                         <p className="tc-prev-at">About</p>
+//                         <p className="tc-prev-ad">{c.description}</p>
+//                       </div>
+//                     )}
+//                     <button className="tc-btn" style={{ width: "100%", justifyContent: "center", marginBottom: 8, background: "var(--c1)", color: "#0a0a0a" }} onClick={() => openEdit(c)}>
+//                       <Edit2 size={14} /> Edit This Course
+//                     </button>
+//                     <button className="tc-btn" style={{ width: "100%", justifyContent: "center", background: "var(--c4)", color: "#0a0a0a" }} onClick={() => navigate(`/trainer/course/${c.id}/modules`)}>
+//                       <BookOpen size={14} /> Manage Modules
+//                     </button>
 //                   </>
 //                 );
 //               })()}
 
-//               {(rightMode==="create"||rightMode==="edit")&&(
+//               {(rightMode === "create" || rightMode === "edit") && (
 //                 <>
-//                   {rightMode==="create"&&(
+//                   {rightMode === "create" && (
 //                     <div className="tc-field">
 //                       <label>Batch <span>*</span></label>
-//                       <select className="tc-inp" value={createForm.batchId} onChange={e=>setCreateForm({...createForm,batchId:e.target.value})}>
+//                       <select className="tc-inp" value={createForm.batchId} onChange={e => setCreateForm({ ...createForm, batchId: e.target.value })}>
 //                         <option value="">Select Batch…</option>
-//                         {batches.map(b=><option key={b.id} value={b.id}>Batch {b.id}</option>)}
+//                         {batches.map(b => <option key={b.id} value={b.id}>Batch {b.id}</option>)}
 //                       </select>
 //                     </div>
 //                   )}
 //                   <div className="tc-field">
 //                     <label>Course Title <span>*</span></label>
 //                     <input className="tc-inp" placeholder="e.g., Advanced React Development"
-//                       value={rightMode==="create"?createForm.title:editForm.title}
-//                       onChange={e=>rightMode==="create"?setCreateForm({...createForm,title:e.target.value}):setEditForm({...editForm,title:e.target.value})}/>
+//                       value={rightMode === "create" ? createForm.title : editForm.title}
+//                       onChange={e => rightMode === "create" ? setCreateForm({ ...createForm, title: e.target.value }) : setEditForm({ ...editForm, title: e.target.value })} />
 //                   </div>
 //                   <div className="tc-field">
 //                     <label>Category <span>*</span></label>
 //                     <input className="tc-inp" placeholder="e.g., Development"
-//                       value={rightMode==="create"?createForm.category:editForm.category}
-//                       onChange={e=>rightMode==="create"?setCreateForm({...createForm,category:e.target.value}):setEditForm({...editForm,category:e.target.value})}/>
+//                       value={rightMode === "create" ? createForm.category : editForm.category}
+//                       onChange={e => rightMode === "create" ? setCreateForm({ ...createForm, category: e.target.value }) : setEditForm({ ...editForm, category: e.target.value })} />
 //                   </div>
 //                   <div className="tc-field">
 //                     <label>Description</label>
-//                     <textarea className="tc-inp" rows={5} style={{resize:"none"}} placeholder="Describe what students will learn…"
-//                       value={rightMode==="create"?createForm.description:editForm.description}
-//                       onChange={e=>rightMode==="create"?setCreateForm({...createForm,description:e.target.value}):setEditForm({...editForm,description:e.target.value})}/>
+//                     <textarea className="tc-inp" rows={5} style={{ resize: "none" }} placeholder="Describe what students will learn…"
+//                       value={rightMode === "create" ? createForm.description : editForm.description}
+//                       onChange={e => rightMode === "create" ? setCreateForm({ ...createForm, description: e.target.value }) : setEditForm({ ...editForm, description: e.target.value })} />
 //                   </div>
 //                   <div className="tc-submit-row">
-//                     <button className="tc-sub" style={{background:rightMode==="create"?"var(--c3)":"var(--c1)",color:"#0a0a0a"}}
-//                       onClick={rightMode==="create"?createCourse:saveEdit}>
-//                       <CheckCircle size={15}/>{rightMode==="create"?"Create Course":"Save Changes"}
+//                     <button className="tc-sub"
+//                       style={{ background: rightMode === "create" ? "var(--c3)" : "var(--c1)", color: "#0a0a0a" }}
+//                       onClick={rightMode === "create" ? createCourse : saveEdit}>
+//                       <CheckCircle size={15} />{rightMode === "create" ? "Create Course" : "Save Changes"}
 //                     </button>
-//                     <button className="tc-can" onClick={()=>{setRightOpen(false);setEditingCourse(null);}}>Cancel</button>
+//                     <button className="tc-can" onClick={() => { setRightOpen(false); setEditingCourse(null); }}>Cancel</button>
 //                   </div>
 //                 </>
 //               )}
@@ -421,7 +584,29 @@
 //     </div>
 //   );
 // };
+
 // export default TrainerCourseManagement;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -449,9 +634,22 @@
 
 import axios from "axios";
 import {
-  BookOpen, CheckCircle, Clock, Download,
-  Edit2, Eye, GraduationCap, Plus, Search, Star,
-  Trash2, Users, X, Layers,
+  BookOpen,
+  CheckCircle,
+  Clock,
+  Download,
+  Edit2,
+  Eye,
+  GraduationCap,
+  Plus,
+  Search,
+  Star,
+  Trash2,
+  Users,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Layers,
 } from "lucide-react";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
@@ -461,24 +659,19 @@ const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api";
 
 const STYLES = `
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
-:root{
-  --bg:#f1f5f9;--card:#ffffff;--tx:#0f172a;--mu:#64748b;--bd:#e2e8f0;
+:root{--bg:#f1f5f9;--card:#ffffff;--tx:#0f172a;--mu:#64748b;--bd:#e2e8f0;
   --c1:#22d3ee;--c2:#fb923c;--c3:#34d399;--c4:#a78bfa;--cr:#f87171;
-  --sh:0 4px 24px rgba(0,0,0,0.06);--shl:0 8px 40px rgba(0,0,0,0.10);--r:20px;
-}
-.tc-dk{
-  --bg:#0a0a0a;--card:#111111;--tx:#ffffff;--mu:#94a3b8;--bd:rgba(255,255,255,0.06);
-  --sh:0 4px 24px rgba(0,0,0,0.40);--shl:0 8px 40px rgba(0,0,0,0.60);
-}
+  --sh:0 4px 24px rgba(0,0,0,0.06);--shl:0 8px 40px rgba(0,0,0,0.10);--r:20px;}
+.tc-dk{--bg:#0a0a0a;--card:#111111;--tx:#ffffff;--mu:#94a3b8;--bd:rgba(255,255,255,0.06);
+  --sh:0 4px 24px rgba(0,0,0,0.40);--shl:0 8px 40px rgba(0,0,0,0.60);}
 .tc{font-family:'Poppins',sans-serif;min-height:100vh;background:var(--bg);color:var(--tx);display:flex;flex-direction:column;}
 .tc-top{padding:20px 24px;}
-.tc-toprow{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;}
+.tc-toprow{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
 .tc-tl{display:flex;align-items:center;gap:12px;}
 .tc-tl-ico{width:44px;height:44px;border-radius:13px;background:rgba(34,211,238,.10);border:1px solid rgba(34,211,238,.18);display:flex;align-items:center;justify-content:center;color:var(--c1);flex-shrink:0;}
 .tc-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--mu);margin-bottom:3px;}
-.tc-h1{font-family:'Poppins',sans-serif;font-weight:700;font-size:clamp(1.3rem,3vw,1.6rem);margin:0;line-height:1.1;letter-spacing:-0.02em;color:var(--tx);}
-.tc-h1-grad{background:linear-gradient(135deg,#a78bfa,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.tc-tr{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.tc-h1{font-size:20px;font-weight:800;color:var(--tx);margin:0;}
+.tc-tr{display:flex;align-items:center;gap:8px;}
 .tc-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:12px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:opacity .2s,transform .15s;border:none;white-space:nowrap;}
 .tc-btn:hover{opacity:.87;transform:translateY(-1px);}
 .tc-btn-out{background:var(--card);border:1px solid var(--bd)!important;color:var(--mu);}
@@ -492,19 +685,17 @@ const STYLES = `
 .tc-sv{font-size:26px;font-weight:800;margin-bottom:3px;}
 .tc-sl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;opacity:.65;}
 .tc-panels{display:flex;flex:1;margin:0 24px 24px;border-radius:var(--r);border:1px solid var(--bd);background:var(--card);box-shadow:var(--shl);overflow:hidden;}
-.tc-p1{flex-shrink:0;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--bd);transition:width .15s;}
+.tc-p1{flex-shrink:0;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--bd);transition:width .3s;}
 .tc-p1-head{display:flex;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid var(--bd);background:var(--bg);}
 .tc-p1-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--mu);}
 .tc-p1-list{flex:1;overflow-y:auto;padding:8px;}
 .tc-cat-btn{width:100%;text-align:left;padding:9px 12px;border-radius:11px;border:none;background:transparent;font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;color:var(--mu);cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all .15s;}
 .tc-cat-btn:hover{background:rgba(34,211,238,.06);color:var(--c1);}
 .tc-cat-btn.on{color:white;}
-.tc-resize{width:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--bg);border-left:1px solid var(--bd);border-right:1px solid var(--bd);transition:background .2s;position:relative;}
+.tc-resize{width:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:col-resize;background:var(--bg);border-left:1px solid var(--bd);border-right:1px solid var(--bd);transition:background .2s;}
 .tc-resize:hover{background:rgba(34,211,238,.08);}
 .tc-resize-pill{width:3px;height:40px;border-radius:4px;background:var(--bd);transition:background .2s;}
 .tc-resize:hover .tc-resize-pill{background:var(--c1);}
-.tc-resize-tooltip{position:absolute;bottom:calc(50% - 60px);left:50%;transform:translateX(-50%);background:rgba(15,23,42,.85);color:#fff;font-size:9px;font-weight:700;white-space:nowrap;padding:4px 8px;border-radius:6px;pointer-events:none;opacity:0;transition:opacity .2s;letter-spacing:.04em;}
-.tc-resize:hover .tc-resize-tooltip{opacity:1;}
 .tc-p2{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
 .tc-p2-search{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--bd);background:var(--bg);}
 .tc-sinput{position:relative;flex:1;}
@@ -566,50 +757,13 @@ const STYLES = `
 .tc-loader{display:flex;align-items:center;justify-content:center;padding:60px;}
 .tc-empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:10px;text-align:center;color:var(--mu);font-size:13px;}
 .tc-empty-ico{width:52px;height:52px;border-radius:15px;background:var(--bg);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--mu);}
-
-@media(max-width:900px){
-  .tc-panels{flex-direction:column;margin:0 16px 16px;height:auto!important;min-height:unset!important;overflow:visible;}
-  .tc-p1{width:100%!important;border-right:none;border-bottom:1px solid var(--bd);}
-  .tc-p1-list{display:flex;flex-wrap:wrap;gap:6px;padding:10px;overflow-y:unset;}
-  .tc-cat-btn{width:auto;padding:7px 14px;}
-  .tc-resize{display:none;}
-  .tc-p2{min-height:400px;}
-  .tc-p3{width:100%!important;border-left:none;border-top:1px solid var(--bd);}
-  .tc-stats{grid-template-columns:repeat(3,1fr);}
-  .tc-top{padding:16px 20px;}
-}
-@media(max-width:600px){
-  .tc-top{padding:14px 14px 0;}
-  .tc-toprow{gap:10px;}
-  .tc-h1{font-size:clamp(1.1rem,5vw,1.3rem);}
-  .tc-stats{grid-template-columns:repeat(3,1fr);gap:8px;padding:0 14px 12px;}
-  .tc-sv{font-size:20px;}
-  .tc-sl{font-size:8px;}
-  .tc-panels{margin:0 14px 14px;border-radius:16px;}
-  .tc-grid{grid-template-columns:1fr;}
-  .tc-p2-search{padding:10px 12px;}
-  .tc-p2-grid{padding:12px;}
-  .tc-p3-body{padding:14px;}
-  .tc-submit-row{flex-direction:column;}
-  .tc-can{text-align:center;}
-  .tc-btn{padding:8px 12px;font-size:11px;}
-  .tc-prev-meta{grid-template-columns:repeat(3,1fr);gap:6px;}
-}
-@media(max-width:380px){
-  .tc-stats{grid-template-columns:1fr 1fr;}
-  .tc-stat:last-child{grid-column:span 2;}
-  .tc-tl-ico{width:36px;height:36px;}
-  .tc-tr .tc-btn-out{display:none;}
-}
 `;
-
 if (!document.getElementById("tc-st")) {
   const t = document.createElement("style");
   t.id = "tc-st";
   t.textContent = STYLES;
   document.head.appendChild(t);
 }
-
 const isDark = () =>
   document.documentElement.classList.contains("dark") ||
   document.body.classList.contains("dark") ||
@@ -623,7 +777,7 @@ const CAT_COLORS = {
   Business: { bg: "rgba(248,113,113,.10)", color: "var(--cr)" },
   _d: { bg: "rgba(100,116,139,.10)", color: "var(--mu)" },
 };
-const catStyle = c => CAT_COLORS[c] || CAT_COLORS._d;
+const catStyle = (c) => CAT_COLORS[c] || CAT_COLORS._d;
 
 const STAT_GRADS = [
   "linear-gradient(135deg,#064e3b,#059669)",
@@ -638,69 +792,56 @@ const TrainerCourseManagement = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [batches, setBatches] = useState([]);
+  const [selectedBatch, setSelectedBatch] = useState("All");
   const [editingCourse, setEditingCourse] = useState(null);
-  const [editForm, setEditForm] = useState({ title: "", category: "", description: "" });
-  const [createForm, setCreateForm] = useState({ title: "", category: "", description: "", batchId: "" });
+  const [editForm, setEditForm] = useState({
+    title: "",
+    category: "",
+    description: "",
+  });
+  const [createForm, setCreateForm] = useState({
+    title: "",
+    category: "",
+    description: "",
+    batchId: "",
+  });
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [previewCourseId, setPreviewCourseId] = useState(null);
   const [leftCollapsed, setLeftCollapsed] = useState(false);
-  const [leftWidth, setLeftWidth] = useState(196);
   const [rightOpen, setRightOpen] = useState(false);
   const [rightMode, setRightMode] = useState("create");
   const [rightWidth, setRightWidth] = useState(320);
   const [dark, setDark] = useState(isDark);
-
   const isDragging = useRef(false);
-  const isLeftDragging = useRef(false);
   const containerRef = useRef(null);
 
-  /* dark-mode observer */
   useEffect(() => {
     const o = new MutationObserver(() => setDark(isDark()));
-    o.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    o.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
     o.observe(document.body, { attributes: true, attributeFilter: ["class"] });
     return () => o.disconnect();
   }, []);
 
-  /* ── RIGHT panel resize ── */
   const onMouseDown = useCallback(() => {
     isDragging.current = true;
     document.body.style.cursor = "col-resize";
     document.body.style.userSelect = "none";
   }, []);
-
-  /* ── LEFT panel resize ── */
-  const onLeftMouseDown = useCallback(() => {
-    isLeftDragging.current = true;
-    document.body.style.cursor = "col-resize";
-    document.body.style.userSelect = "none";
-  }, []);
-
-  const onMouseMove = useCallback(e => {
-    if (!containerRef.current) return;
+  const onMouseMove = useCallback((e) => {
+    if (!isDragging.current || !containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
-
-    // Right panel drag
-    if (isDragging.current) {
-      const fr = rect.right - e.clientX;
-      if (fr > 240 && fr < 560) setRightWidth(fr);
-    }
-
-    // Left panel drag
-    if (isLeftDragging.current) {
-      const fl = e.clientX - rect.left;
-      if (fl > 120 && fl < 320) setLeftWidth(fl);
-    }
+    const fr = rect.right - e.clientX;
+    if (fr > 240 && fr < 560) setRightWidth(fr);
   }, []);
-
   const onMouseUp = useCallback(() => {
     isDragging.current = false;
-    isLeftDragging.current = false;
     document.body.style.cursor = "";
     document.body.style.userSelect = "";
   }, []);
-
   useEffect(() => {
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
@@ -710,99 +851,196 @@ const TrainerCourseManagement = () => {
     };
   }, [onMouseMove, onMouseUp]);
 
-  const authHeader = () => ({ Authorization: `Bearer ${localStorage.getItem("lms_token")}` });
+  const authHeader = () => ({
+    Authorization: `Bearer ${localStorage.getItem("lms_token")}`,
+  });
 
   useEffect(() => {
     fetchCourses();
     (async () => {
-      try { const r = await getTrainerBatches(); setBatches(r || []); }
-      catch (e) { console.error(e); }
+      try {
+        const r = await getTrainerBatches();
+        setBatches(r || []);
+      } catch (e) {
+        console.error(e);
+      }
     })();
   }, []);
 
   const fetchCourses = async () => {
-    try { const r = await axios.get(`${API}/courses/my`, { headers: authHeader() }); setCourses(r.data); }
-    catch (e) { console.error(e); }
-    finally { setLoading(false); }
+    try {
+      // const r = await axios.get(`${API}/courses/my`, { headers: authHeader() });
+      const r = await axios.get(`${API}/courses/trainer/all`, {
+        headers: authHeader(),
+      });
+      setCourses(r.data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const showNotif = msg => { setSuccessMessage(msg); setShowSuccess(true); setTimeout(() => setShowSuccess(false), 3000); };
+  const showNotif = (msg) => {
+    setSuccessMessage(msg);
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 3000);
+  };
 
-  const createCourse = async e => {
+  const createCourse = async (e) => {
     e.preventDefault();
-    if (!createForm.title || !createForm.category || !createForm.batchId) { alert("Please fill in all required fields"); return; }
+    if (!createForm.title || !createForm.category || !createForm.batchId) {
+      alert("Please fill in all required fields");
+      return;
+    }
     try {
       await axios.post(`${API}/courses`, createForm, { headers: authHeader() });
       setCreateForm({ title: "", category: "", description: "", batchId: "" });
-      setRightOpen(false); fetchCourses(); showNotif("Course created successfully!");
-    } catch { alert("Failed to create course"); }
+      setRightOpen(false);
+      fetchCourses();
+      showNotif("Course created successfully!");
+    } catch {
+      alert("Failed to create course");
+    }
   };
 
-  const handleDelete = async id => {
+  const handleDelete = async (id) => {
     if (!window.confirm("Delete this course?")) return;
     try {
       await axios.delete(`${API}/courses/${id}`, { headers: authHeader() });
-      setCourses(p => p.filter(c => c.id !== id));
-      if (editingCourse?.id === id) { setEditingCourse(null); setRightOpen(false); }
+      setCourses((p) => p.filter((c) => c.id !== id));
+      if (editingCourse?.id === id) {
+        setEditingCourse(null);
+        setRightOpen(false);
+      }
       if (previewCourseId === id) setPreviewCourseId(null);
       showNotif("Course deleted.");
-    } catch { alert("Delete failed"); }
+    } catch {
+      alert("Delete failed");
+    }
   };
 
-  const openEdit = course => {
+  const openEdit = (course) => {
     setEditingCourse(course);
-    setEditForm({ title: course.title, category: course.category, description: course.description || "" });
-    setRightMode("edit"); setRightOpen(true); setPreviewCourseId(null);
+    setEditForm({
+      title: course.title,
+      category: course.category,
+      description: course.description || "",
+    });
+    setRightMode("edit");
+    setRightOpen(true);
+    setPreviewCourseId(null);
   };
 
   const saveEdit = async () => {
     try {
-      await axios.put(`${API}/courses/${editingCourse.id}`, editForm, { headers: authHeader() });
-      setEditingCourse(null); setRightOpen(false); fetchCourses(); showNotif("Course updated!");
-    } catch { alert("Update failed"); }
+      await axios.put(`${API}/courses/${editingCourse.id}`, editForm, {
+        headers: authHeader(),
+      });
+      setEditingCourse(null);
+      setRightOpen(false);
+      fetchCourses();
+      showNotif("Course updated!");
+    } catch {
+      alert("Update failed");
+    }
   };
 
-  const categories = ["All", "Product", "Design", "Growth & Marketing", "Development", "Business"];
-  const filteredCourses = courses.filter(c => {
-    const ms = c.title.toLowerCase().includes(searchQuery.toLowerCase()) || c.ownerEmail.toLowerCase().includes(searchQuery.toLowerCase());
+  const categories = [
+    "All",
+    "Product",
+    "Design",
+    "Growth & Marketing",
+    "Development",
+    "Business",
+  ];
+  // const filteredCourses = courses.filter((c) => {
+  //   const ms =
+  //     c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  //     c.ownerEmail.toLowerCase().includes(searchQuery.toLowerCase());
+  //   const mc = selectedCategory === "All" || c.category === selectedCategory;
+  //   return ms && mc;
+  // });
+  const filteredCourses = courses.filter((c) => {
+    const ms =
+      c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.ownerEmail.toLowerCase().includes(searchQuery.toLowerCase());
     const mc = selectedCategory === "All" || c.category === selectedCategory;
-    return ms && mc;
+    const mb = selectedBatch === "All" || c.batchId === selectedBatch;
+    return ms && mc && mb;
   });
-
   const totalCourses = courses.length;
   const totalStudents = courses.reduce((a, c) => a + (c.enrolledCount || 0), 0);
-  const avgRating = courses.length ? (courses.reduce((a, c) => a + (c.rating || 4.8), 0) / courses.length).toFixed(1) : "—";
+  const avgRating = courses.length
+    ? (
+        courses.reduce((a, c) => a + (c.rating || 4.8), 0) / courses.length
+      ).toFixed(1)
+    : "—";
 
   const statCards = [
-    { icon: <BookOpen size={16} />, value: totalCourses, label: "Total Courses", grad: STAT_GRADS[0] },
-    { icon: <Users size={16} />, value: totalStudents, label: "Enrollments", grad: STAT_GRADS[1] },
-    { icon: <Star size={16} />, value: avgRating, label: "Avg Rating", grad: STAT_GRADS[2] },
+    {
+      icon: <BookOpen size={16} />,
+      value: totalCourses,
+      label: "Total Courses",
+      grad: STAT_GRADS[0],
+    },
+    {
+      icon: <Users size={16} />,
+      value: totalStudents,
+      label: "Enrollments",
+      grad: STAT_GRADS[1],
+    },
+    {
+      icon: <Star size={16} />,
+      value: avgRating,
+      label: "Avg Rating",
+      grad: STAT_GRADS[2],
+    },
   ];
 
-  const rightModeColor = rightMode === "create" ? "var(--c3)" : rightMode === "edit" ? "var(--c1)" : "var(--c4)";
+  const rightModeColor =
+    rightMode === "create"
+      ? "var(--c3)"
+      : rightMode === "edit"
+        ? "var(--c1)"
+        : "var(--c4)";
 
   return (
     <div className={`tc${dark ? " tc-dk" : ""}`}>
       <div className="tc-top">
         <div className="tc-toprow">
           <div className="tc-tl">
-            <div className="tc-tl-ico"><GraduationCap size={22} /></div>
+            <div className="tc-tl-ico">
+              <GraduationCap size={22} />
+            </div>
             <div>
               <div className="tc-label">Learning Management</div>
-              <h1 className="tc-h1">
-                Trainer <span className="tc-h1-grad">Dashboard</span>
-              </h1>
+              <h1 className="tc-h1">Course Management</h1>
             </div>
           </div>
           <div className="tc-tr">
-            <button className="tc-btn tc-btn-out"><Download size={13} /> Export</button>
-            <button className="tc-btn tc-btn-green"
-              onClick={() => { setRightMode("create"); setRightOpen(true); setEditingCourse(null); setPreviewCourseId(null); }}>
+            <button className="tc-btn tc-btn-out">
+              <Download size={13} /> Export
+            </button>
+            <button
+              className="tc-btn tc-btn-green"
+              onClick={() => {
+                setRightMode("create");
+                setRightOpen(true);
+                setEditingCourse(null);
+                setPreviewCourseId(null);
+              }}
+            >
               <Plus size={13} /> New Course
             </button>
           </div>
         </div>
-        {showSuccess && <div className="tc-toast"><CheckCircle size={15} />{successMessage}</div>}
+        {showSuccess && (
+          <div className="tc-toast">
+            <CheckCircle size={15} />
+            {successMessage}
+          </div>
+        )}
       </div>
 
       <div className="tc-stats">
@@ -814,89 +1052,234 @@ const TrainerCourseManagement = () => {
           </div>
         ))}
       </div>
-
-      <div ref={containerRef} className="tc-panels" style={{ height: "calc(100vh - 280px)", minHeight: 380 }}>
-
-        {/* ── Panel 1 – categories ── */}
-        <div className="tc-p1" style={{ width: leftCollapsed ? 0 : leftWidth }}>
+      {/* Batch filter bar */}
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          padding: "0 24px 16px",
+          overflowX: "auto",
+          flexWrap: "wrap",
+        }}
+      >
+        <button
+          className="tc-btn"
+          style={{
+            background:
+              selectedBatch === "All"
+                ? "linear-gradient(135deg,#1e3a8a,#2563eb)"
+                : "var(--card)",
+            color: selectedBatch === "All" ? "white" : "var(--mu)",
+            border: selectedBatch === "All" ? "none" : "1px solid var(--bd)",
+          }}
+          onClick={() => setSelectedBatch("All")}
+        >
+          All Batches
+        </button>
+        {batches.map((b) => (
+          <button
+            key={b.id}
+            className="tc-btn"
+            style={{
+              background:
+                selectedBatch === b.id
+                  ? "linear-gradient(135deg,#1e3a8a,#2563eb)"
+                  : "var(--card)",
+              color: selectedBatch === b.id ? "white" : "var(--mu)",
+              border: selectedBatch === b.id ? "none" : "1px solid var(--bd)",
+            }}
+            onClick={() => setSelectedBatch(b.id)}
+          >
+            Batch {b.id}
+            {b.name ? ` — ${b.name}` : ""}
+          </button>
+        ))}
+      </div>
+      <div
+        ref={containerRef}
+        className="tc-panels"
+        style={{ height: "calc(100vh - 280px)", minHeight: 380 }}
+      >
+        {/* Panel 1 - filters */}
+        <div className="tc-p1" style={{ width: leftCollapsed ? 0 : 196 }}>
           <div className="tc-p1-head">
             <Layers size={13} style={{ color: "var(--c1)", flexShrink: 0 }} />
             <span className="tc-p1-title">Categories</span>
           </div>
           <div className="tc-p1-list">
-            {categories.map(cat => (
-              <button key={cat} className={`tc-cat-btn${selectedCategory === cat ? " on" : ""}`}
-                style={selectedCategory === cat ? { background: "linear-gradient(135deg,#1e3a8a,#2563eb)" } : {}}
-                onClick={() => setSelectedCategory(cat)}>
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                className={`tc-cat-btn${selectedCategory === cat ? " on" : ""}`}
+                style={
+                  selectedCategory === cat
+                    ? { background: "linear-gradient(135deg,#1e3a8a,#2563eb)" }
+                    : {}
+                }
+                onClick={() => setSelectedCategory(cat)}
+              >
                 <span>{cat}</span>
-                {selectedCategory === cat && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,.7)" }} />}
+                {selectedCategory === cat && (
+                  <span
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: "50%",
+                      background: "rgba(255,255,255,.7)",
+                    }}
+                  />
+                )}
               </button>
             ))}
           </div>
         </div>
 
-        {/* ── Resize Handle 1 – LEFT panel ── */}
+        {/* Resize 1 */}
         <div
           className="tc-resize"
-          style={{ cursor: leftCollapsed ? "pointer" : "col-resize" }}
-          onMouseDown={e => {
-            if (leftCollapsed) return;
-            e.preventDefault();
-            onLeftMouseDown();
-          }}
-          onClick={() => {
-            if (leftCollapsed) setLeftCollapsed(false);
-          }}
-          title={leftCollapsed ? "Click to expand" : "Drag to resize · Click to collapse"}
+          style={{ cursor: "pointer" }}
+          onClick={() => setLeftCollapsed((p) => !p)}
         >
           <div className="tc-resize-pill" />
-          <span className="tc-resize-tooltip">
-            {leftCollapsed ? "↔ Expand" : "↔ Drag to resize"}
-          </span>
         </div>
 
-        {/* ── Panel 2 – course list ── */}
+        {/* Panel 2 - course list */}
         <div className="tc-p2">
           <div className="tc-p2-search">
             <div className="tc-sinput">
               <Search size={13} />
-              <input placeholder="Search courses..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+              <input
+                placeholder="Search courses..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
             <span className="tc-found">{filteredCourses.length} found</span>
           </div>
           <div className="tc-p2-grid">
             {loading ? (
-              <div className="tc-loader"><div className="tc-spin" /></div>
+              <div className="tc-loader">
+                <div className="tc-spin" />
+              </div>
             ) : filteredCourses.length === 0 ? (
               <div className="tc-empty-state">
-                <div className="tc-empty-ico"><BookOpen size={24} /></div>
-                <span>{searchQuery || selectedCategory !== "All" ? "No courses match your filters" : "No courses yet — create your first!"}</span>
+                <div className="tc-empty-ico">
+                  <BookOpen size={24} />
+                </div>
+                <span>
+                  {searchQuery || selectedCategory !== "All"
+                    ? "No courses match your filters"
+                    : "No courses yet — create your first!"}
+                </span>
               </div>
             ) : (
               <div className="tc-grid">
-                {filteredCourses.map(course => {
+                {filteredCourses.map((course) => {
                   const cs = catStyle(course.category);
-                  const isActive = editingCourse?.id === course.id || previewCourseId === course.id;
+                  const isActive =
+                    editingCourse?.id === course.id ||
+                    previewCourseId === course.id;
                   return (
-                    <div key={course.id} className={`tc-cc${isActive ? " on" : ""}`}>
+                    <div
+                      key={course.id}
+                      className={`tc-cc${isActive ? " on" : ""}`}
+                    >
+                      {/* <div className="tc-cc-head">
+                        <span className="tc-pub-tag">
+                          <CheckCircle size={10} /> Published
+                        </span>
+                        <span
+                          className="tc-cat-tag"
+                          style={{ background: cs.bg, color: cs.color }}
+                        >
+                          {course.category}
+                        </span>
+                      </div> */}
                       <div className="tc-cc-head">
-                        <span className="tc-pub-tag"><CheckCircle size={10} /> Published</span>
-                        <span className="tc-cat-tag" style={{ background: cs.bg, color: cs.color }}>{course.category}</span>
+                        <span className="tc-pub-tag">
+                          <CheckCircle size={10} /> Published
+                        </span>
+                        <span
+                          className="tc-cat-tag"
+                          style={{ background: cs.bg, color: cs.color }}
+                        >
+                          {course.category}
+                        </span>
+                      </div>
+                      {/* Batch badge */}
+                      <div style={{ marginBottom: 8 }}>
+                        <span
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 700,
+                            padding: "3px 8px",
+                            borderRadius: 6,
+                            background: "rgba(34,211,238,.10)",
+                            color: "var(--c1)",
+                            border: "1px solid rgba(34,211,238,.15)",
+                          }}
+                        >
+                          Batch {course.batchId}
+                        </span>
                       </div>
                       <p className="tc-ct">{course.title}</p>
-                      <p className="tc-ce"><GraduationCap size={11} />{course.ownerEmail}</p>
+                      <p className="tc-ce">
+                        <GraduationCap size={11} />
+                        {course.ownerEmail}
+                      </p>
                       <div className="tc-meta">
-                        <span className="tc-mi"><Clock size={11} />8w</span>
-                        <span className="tc-mi"><Users size={11} />{course.enrolledCount || 0}</span>
-                        <span className="tc-mi"><Star size={11} style={{ color: "var(--c2)", fill: "var(--c2)" }} />{course.rating || 4.8}</span>
+                        <span className="tc-mi">
+                          <Clock size={11} />
+                          8w
+                        </span>
+                        <span className="tc-mi">
+                          <Users size={11} />
+                          {course.enrolledCount || 0}
+                        </span>
+                        <span className="tc-mi">
+                          <Star
+                            size={11}
+                            style={{ color: "var(--c2)", fill: "var(--c2)" }}
+                          />
+                          {course.rating || 4.8}
+                        </span>
                       </div>
-                      {course.description && <p className="tc-desc">{course.description}</p>}
+                      {course.description && (
+                        <p className="tc-desc">{course.description}</p>
+                      )}
                       <div className="tc-3btn">
-                        <button className="tc-ab" onClick={() => openEdit(course)}><Edit2 size={11} /> Edit</button>
-                        <button className="tc-ab" onClick={() => navigate(`/trainer/course/${course.id}/modules`)}><BookOpen size={11} /> Modules</button>
-                        <button className="tc-ab" onClick={() => { setPreviewCourseId(course.id); setRightMode("preview"); setRightOpen(true); setEditingCourse(null); }}><Eye size={11} /> Preview</button>
+                        <button
+                          className="tc-ab"
+                          onClick={() => openEdit(course)}
+                        >
+                          <Edit2 size={11} /> Edit
+                        </button>
+                        <button
+                          className="tc-ab"
+                          onClick={() =>
+                            navigate(`/trainer/course/${course.id}/modules`)
+                          }
+                        >
+                          <BookOpen size={11} /> Modules
+                        </button>
+                        <button
+                          className="tc-ab"
+                          onClick={() => {
+                            setPreviewCourseId(course.id);
+                            setRightMode("preview");
+                            setRightOpen(true);
+                            setEditingCourse(null);
+                          }}
+                        >
+                          <Eye size={11} /> Preview
+                        </button>
                       </div>
-                      <button className="tc-del" onClick={() => handleDelete(course.id)}><Trash2 size={11} /> Delete Course</button>
+                      <button
+                        className="tc-del"
+                        onClick={() => handleDelete(course.id)}
+                      >
+                        <Trash2 size={11} /> Delete Course
+                      </button>
                     </div>
                   );
                 })}
@@ -905,123 +1288,296 @@ const TrainerCourseManagement = () => {
           </div>
         </div>
 
-        {/* ── Resize Handle 2 – RIGHT panel ── */}
+        {/* Resize 2 */}
         {rightOpen ? (
-          <div
-            className="tc-resize"
-            style={{ cursor: "col-resize" }}
-            onMouseDown={e => { e.preventDefault(); onMouseDown(); }}
-            title="Drag to resize"
-          >
+          <div className="tc-resize" onMouseDown={onMouseDown}>
             <div className="tc-resize-pill" />
-            <span className="tc-resize-tooltip">↔ Drag to resize</span>
           </div>
         ) : (
           <div
             className="tc-resize"
             style={{ cursor: "pointer" }}
-            title="Click to open panel"
-            onClick={() => { setRightMode("create"); setRightOpen(true); setEditingCourse(null); setPreviewCourseId(null); }}
+            onClick={() => {
+              setRightMode("create");
+              setRightOpen(true);
+              setEditingCourse(null);
+              setPreviewCourseId(null);
+            }}
           >
             <div className="tc-resize-pill" />
-            <span className="tc-resize-tooltip">Click to open</span>
           </div>
         )}
 
-        {/* ── Panel 3 – right drawer ── */}
+        {/* Panel 3 */}
         {rightOpen && (
           <div className="tc-p3" style={{ width: rightWidth }}>
             <div className="tc-p3-head">
               <div className="tc-p3-title-row">
-                <div className="tc-p3-ico"
-                  style={{ background: `rgba(${rightMode === "create" ? "52,211,153" : rightMode === "edit" ? "34,211,238" : "167,139,250"},.15)`, color: rightModeColor }}>
-                  {rightMode === "create" ? <Plus size={14} /> : rightMode === "edit" ? <Edit2 size={14} /> : <Eye size={14} />}
+                <div
+                  className="tc-p3-ico"
+                  style={{
+                    background: `rgba(${rightMode === "create" ? "52,211,153" : rightMode === "edit" ? "34,211,238" : "167,139,250"},.15)`,
+                    color: rightModeColor,
+                  }}
+                >
+                  {rightMode === "create" ? (
+                    <Plus size={14} />
+                  ) : rightMode === "edit" ? (
+                    <Edit2 size={14} />
+                  ) : (
+                    <Eye size={14} />
+                  )}
                 </div>
                 <span className="tc-p3-title">
-                  {rightMode === "create" ? "New Course" : rightMode === "edit" ? "Edit Course" : "Course Preview"}
+                  {rightMode === "create"
+                    ? "New Course"
+                    : rightMode === "edit"
+                      ? "Edit Course"
+                      : "Course Preview"}
                 </span>
               </div>
-              <button className="tc-xbtn" onClick={() => { setRightOpen(false); setEditingCourse(null); setPreviewCourseId(null); }}>
+              <button
+                className="tc-xbtn"
+                onClick={() => {
+                  setRightOpen(false);
+                  setEditingCourse(null);
+                  setPreviewCourseId(null);
+                }}
+              >
                 <X size={13} />
               </button>
             </div>
 
             <div className="tc-p3-body">
-              {rightMode === "preview" && previewCourseId && (() => {
-                const c = courses.find(x => x.id === previewCourseId);
-                if (!c) return null;
-                return (
-                  <>
-                    <div className="tc-prev-hero" style={{ background: "linear-gradient(135deg,#312e81,#6366f1)" }}>
-                      <span className="tc-prev-type" style={{ background: "rgba(255,255,255,.15)", color: "white" }}>{c.category}</span>
-                      <h2 className="tc-prev-h2">{c.title}</h2>
-                      <p className="tc-prev-sub"><GraduationCap size={12} /> {c.ownerEmail}</p>
-                    </div>
-                    <div className="tc-prev-meta">
-                      {[
-                        { icon: <Clock size={13} />, val: "8 weeks", lbl: "Duration" },
-                        { icon: <Users size={13} />, val: c.enrolledCount || 0, lbl: "Enrolled" },
-                        { icon: <Star size={13} style={{ color: "var(--c2)", fill: "var(--c2)" }} />, val: c.rating || 4.8, lbl: "Rating" },
-                      ].map((m, i) => (
-                        <div key={i} className="tc-prev-mc">
-                          <div style={{ display: "flex", justifyContent: "center", color: "var(--mu)", marginBottom: 6 }}>{m.icon}</div>
-                          <div className="tc-prev-mv">{m.val}</div>
-                          <div className="tc-prev-ml">{m.lbl}</div>
-                        </div>
-                      ))}
-                    </div>
-                    {c.description && (
-                      <div className="tc-prev-about">
-                        <p className="tc-prev-at">About</p>
-                        <p className="tc-prev-ad">{c.description}</p>
+              {rightMode === "preview" &&
+                previewCourseId &&
+                (() => {
+                  const c = courses.find((x) => x.id === previewCourseId);
+                  if (!c) return null;
+                  const cs = catStyle(c.category);
+                  return (
+                    <>
+                      <div
+                        className="tc-prev-hero"
+                        style={{
+                          background: "linear-gradient(135deg,#312e81,#6366f1)",
+                        }}
+                      >
+                        <span
+                          className="tc-prev-type"
+                          style={{
+                            background: "rgba(255,255,255,.15)",
+                            color: "white",
+                          }}
+                        >
+                          {c.category}
+                        </span>
+                        <h2 className="tc-prev-h2">{c.title}</h2>
+                        <p className="tc-prev-sub">
+                          <GraduationCap size={12} /> {c.ownerEmail}
+                        </p>
                       </div>
-                    )}
-                    <button className="tc-btn" style={{ width: "100%", justifyContent: "center", marginBottom: 8, background: "var(--c1)", color: "#0a0a0a" }} onClick={() => openEdit(c)}>
-                      <Edit2 size={14} /> Edit This Course
-                    </button>
-                    <button className="tc-btn" style={{ width: "100%", justifyContent: "center", background: "var(--c4)", color: "#0a0a0a" }} onClick={() => navigate(`/trainer/course/${c.id}/modules`)}>
-                      <BookOpen size={14} /> Manage Modules
-                    </button>
-                  </>
-                );
-              })()}
+                      <div className="tc-prev-meta">
+                        {[
+                          {
+                            icon: <Clock size={13} />,
+                            val: "8 weeks",
+                            lbl: "Duration",
+                          },
+                          {
+                            icon: <Users size={13} />,
+                            val: c.enrolledCount || 0,
+                            lbl: "Enrolled",
+                          },
+                          {
+                            icon: (
+                              <Star
+                                size={13}
+                                style={{
+                                  color: "var(--c2)",
+                                  fill: "var(--c2)",
+                                }}
+                              />
+                            ),
+                            val: c.rating || 4.8,
+                            lbl: "Rating",
+                          },
+                        ].map((m, i) => (
+                          <div key={i} className="tc-prev-mc">
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                color: "var(--mu)",
+                                marginBottom: 6,
+                              }}
+                            >
+                              {m.icon}
+                            </div>
+                            <div className="tc-prev-mv">{m.val}</div>
+                            <div className="tc-prev-ml">{m.lbl}</div>
+                          </div>
+                        ))}
+                      </div>
+                      {c.description && (
+                        <div className="tc-prev-about">
+                          <p className="tc-prev-at">About</p>
+                          <p className="tc-prev-ad">{c.description}</p>
+                        </div>
+                      )}
+                      <button
+                        className="tc-btn"
+                        style={{
+                          width: "100%",
+                          justifyContent: "center",
+                          marginBottom: 8,
+                          background: "var(--c1)",
+                          color: "#0a0a0a",
+                        }}
+                        onClick={() => openEdit(c)}
+                      >
+                        <Edit2 size={14} /> Edit This Course
+                      </button>
+                      <button
+                        className="tc-btn"
+                        style={{
+                          width: "100%",
+                          justifyContent: "center",
+                          background: "var(--c4)",
+                          color: "#0a0a0a",
+                        }}
+                        onClick={() =>
+                          navigate(`/trainer/course/${c.id}/modules`)
+                        }
+                      >
+                        <BookOpen size={14} /> Manage Modules
+                      </button>
+                    </>
+                  );
+                })()}
 
               {(rightMode === "create" || rightMode === "edit") && (
                 <>
                   {rightMode === "create" && (
                     <div className="tc-field">
-                      <label>Batch <span>*</span></label>
-                      <select className="tc-inp" value={createForm.batchId} onChange={e => setCreateForm({ ...createForm, batchId: e.target.value })}>
+                      <label>
+                        Batch <span>*</span>
+                      </label>
+                      <select
+                        className="tc-inp"
+                        value={createForm.batchId}
+                        onChange={(e) =>
+                          setCreateForm({
+                            ...createForm,
+                            batchId: e.target.value,
+                          })
+                        }
+                      >
                         <option value="">Select Batch…</option>
-                        {batches.map(b => <option key={b.id} value={b.id}>Batch {b.id}</option>)}
+                        {batches.map((b) => (
+                          <option key={b.id} value={b.id}>
+                            Batch {b.id}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   )}
                   <div className="tc-field">
-                    <label>Course Title <span>*</span></label>
-                    <input className="tc-inp" placeholder="e.g., Advanced React Development"
-                      value={rightMode === "create" ? createForm.title : editForm.title}
-                      onChange={e => rightMode === "create" ? setCreateForm({ ...createForm, title: e.target.value }) : setEditForm({ ...editForm, title: e.target.value })} />
+                    <label>
+                      Course Title <span>*</span>
+                    </label>
+                    <input
+                      className="tc-inp"
+                      placeholder="e.g., Advanced React Development"
+                      value={
+                        rightMode === "create"
+                          ? createForm.title
+                          : editForm.title
+                      }
+                      onChange={(e) =>
+                        rightMode === "create"
+                          ? setCreateForm({
+                              ...createForm,
+                              title: e.target.value,
+                            })
+                          : setEditForm({ ...editForm, title: e.target.value })
+                      }
+                    />
                   </div>
                   <div className="tc-field">
-                    <label>Category <span>*</span></label>
-                    <input className="tc-inp" placeholder="e.g., Development"
-                      value={rightMode === "create" ? createForm.category : editForm.category}
-                      onChange={e => rightMode === "create" ? setCreateForm({ ...createForm, category: e.target.value }) : setEditForm({ ...editForm, category: e.target.value })} />
+                    <label>
+                      Category <span>*</span>
+                    </label>
+                    <input
+                      className="tc-inp"
+                      placeholder="e.g., Development"
+                      value={
+                        rightMode === "create"
+                          ? createForm.category
+                          : editForm.category
+                      }
+                      onChange={(e) =>
+                        rightMode === "create"
+                          ? setCreateForm({
+                              ...createForm,
+                              category: e.target.value,
+                            })
+                          : setEditForm({
+                              ...editForm,
+                              category: e.target.value,
+                            })
+                      }
+                    />
                   </div>
                   <div className="tc-field">
                     <label>Description</label>
-                    <textarea className="tc-inp" rows={5} style={{ resize: "none" }} placeholder="Describe what students will learn…"
-                      value={rightMode === "create" ? createForm.description : editForm.description}
-                      onChange={e => rightMode === "create" ? setCreateForm({ ...createForm, description: e.target.value }) : setEditForm({ ...editForm, description: e.target.value })} />
+                    <textarea
+                      className="tc-inp"
+                      rows={5}
+                      style={{ resize: "none" }}
+                      placeholder="Describe what students will learn…"
+                      value={
+                        rightMode === "create"
+                          ? createForm.description
+                          : editForm.description
+                      }
+                      onChange={(e) =>
+                        rightMode === "create"
+                          ? setCreateForm({
+                              ...createForm,
+                              description: e.target.value,
+                            })
+                          : setEditForm({
+                              ...editForm,
+                              description: e.target.value,
+                            })
+                      }
+                    />
                   </div>
                   <div className="tc-submit-row">
-                    <button className="tc-sub"
-                      style={{ background: rightMode === "create" ? "var(--c3)" : "var(--c1)", color: "#0a0a0a" }}
-                      onClick={rightMode === "create" ? createCourse : saveEdit}>
-                      <CheckCircle size={15} />{rightMode === "create" ? "Create Course" : "Save Changes"}
+                    <button
+                      className="tc-sub"
+                      style={{
+                        background:
+                          rightMode === "create" ? "var(--c3)" : "var(--c1)",
+                        color: "#0a0a0a",
+                      }}
+                      onClick={rightMode === "create" ? createCourse : saveEdit}
+                    >
+                      <CheckCircle size={15} />
+                      {rightMode === "create"
+                        ? "Create Course"
+                        : "Save Changes"}
                     </button>
-                    <button className="tc-can" onClick={() => { setRightOpen(false); setEditingCourse(null); }}>Cancel</button>
+                    <button
+                      className="tc-can"
+                      onClick={() => {
+                        setRightOpen(false);
+                        setEditingCourse(null);
+                      }}
+                    >
+                      Cancel
+                    </button>
                   </div>
                 </>
               )}
@@ -1032,5 +1588,4 @@ const TrainerCourseManagement = () => {
     </div>
   );
 };
-
 export default TrainerCourseManagement;

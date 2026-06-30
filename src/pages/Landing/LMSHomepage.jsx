@@ -4378,7 +4378,7 @@ function FooterNewsletter() {
 // ─────────────────────────────────────────────────────────────────────────────
 export default function LMSHomepage({ theme, toggleTheme }) {
   const [activeTab, setActiveTab] = useState("product");
-  const [featuredPrograms, setFeaturedPrograms] = useState([]);
+  const [featuredPrograms, setFeaturedPrograms] = useState({});
   const [programsLoading, setProgramsLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -4425,25 +4425,16 @@ export default function LMSHomepage({ theme, toggleTheme }) {
     async function loadPrograms() {
       try {
         const { data } = await courseService.getAllFeaturedPrograms();
-        const grouped = { product: [], design: [], growth: [] };
+        const grouped = {};
 
         data.forEach((p) => {
-          const cat = (p.category || "").toLowerCase();
-          const mapped = cat.includes("product")
-            ? "product"
-            : cat.includes("design")
-              ? "design"
-              : cat.includes("growth") || cat.includes("marketing")
-                ? "growth"
-                : cat.includes("engineer") ||
-                    cat.includes("tech") ||
-                    cat.includes("full") ||
-                    cat.includes("java") ||
-                    cat.includes("data")
-                  ? "product"
-                  : "product";
+          const cat = (p.category || "Other").trim();
 
-          grouped[mapped].push({
+if (!grouped[cat]) {
+  grouped[cat] = [];
+}
+
+grouped[cat].push({
             id: p.id,
             title: p.title,
             instructor: p.instructorRole || p.instructorName,
@@ -4477,9 +4468,15 @@ export default function LMSHomepage({ theme, toggleTheme }) {
         const hasPrograms = Object.values(grouped).some(
           (arr) => arr.length > 0,
         );
-        if (hasPrograms) {
-          setFeaturedPrograms(grouped);
-        }
+       if (hasPrograms) {
+  setFeaturedPrograms(grouped);
+
+  const firstCategory = Object.keys(grouped)[0];
+
+  if (firstCategory) {
+    setActiveTab(firstCategory);
+  }
+}
         // else featuredPrograms stays empty → fallback to hardcoded courses
       } catch (err) {
         console.error("Failed to load featured programs", err);
@@ -5750,7 +5747,14 @@ export default function LMSHomepage({ theme, toggleTheme }) {
             className="w-full"
           >
             <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-12 p-1.5 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
-              {["product", "design", "growth"].map((tab) => (
+              {Object.keys(
+  programsLoading
+    ? courses
+    : featuredPrograms &&
+      Object.values(featuredPrograms).some((a) => a.length > 0)
+      ? featuredPrograms
+      : courses
+).map((tab) => (
                 <TabsTrigger
                   key={tab}
                   value={tab}

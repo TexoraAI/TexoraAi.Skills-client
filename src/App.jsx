@@ -385,8 +385,10 @@ seedCMSData();
             <Route path="/" element={<LMSHomepage theme={theme} toggleTheme={() => setTheme((prev) => (prev === "dark" ? "light" : "dark"))} />} />
             <Route path="/watch-demo/:videoId" element={<Watchnow />} />
             <Route path="/course/:id" element={<CoursePreview />} />
-            <Route path="/course-details" element={<CourseDetail />} />
-            <Route path="/syllabus" element={<SyllabusPage />} />
+            {/* <Route path="/course-details" element={<CourseDetail />} />
+            <Route path="/syllabus" element={<SyllabusPage />} /> */}
+            <Route path="/course-details/:id" element={<CourseDetail />} />
+            <Route path="/syllabus/:id" element={<SyllabusPage />} />
             <Route path="/school-class" element={<Schoolclass />} />
             {/* NEW */}
             <Route path="/platforms" element={<Platforms />} />

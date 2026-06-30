@@ -2517,14 +2517,30 @@ grouped[cat].push({
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-12 p-1.5 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
-              {Object.keys(
-  programsLoading
-    ? courses
-    : featuredPrograms &&
-      Object.values(featuredPrograms).some((a) => a.length > 0)
-      ? featuredPrograms
-      : courses
+           <TabsList
+  className="grid w-full max-w-md mx-auto mb-12 p-1.5 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm"
+  style={{
+    gridTemplateColumns: `repeat(${
+      Object.keys(
+        programsLoading
+          ? courses
+          : featuredPrograms &&
+              Object.values(featuredPrograms).some(
+                (a) => a.length > 0,
+              )
+            ? featuredPrograms
+            : courses,
+      ).length
+    }, minmax(0, 1fr))`,
+  }}
+>
+  {Object.keys(
+programsLoading
+  ? courses
+  : featuredPrograms &&
+    Object.values(featuredPrograms).some((a) => a.length > 0)
+    ? featuredPrograms
+    : courses
 ).map((tab) => (
                 <TabsTrigger
                   key={tab}

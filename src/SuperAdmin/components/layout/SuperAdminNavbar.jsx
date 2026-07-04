@@ -120,32 +120,15 @@ const NAV = [
         icon: ic.featuredPrograms,
         permission: null,
       },
+      {
+      label: "Banner Studio",
+      path: "/superadmin/cms/banner-studio",
+      icon: ic.featuredPrograms,
+      permission: null,
+    },
     ],
   },
-  {
-    type: "dropdown",
-    label: "CMS Management",
-    children: [
-      {
-        label: "Student Hub",
-        path: "/superadmin/cms/student-hub",
-        icon: ic.featuredPrograms,
-        permission: null,
-      },
-      {
-        label: "Trainer Hub",
-        path: "/superadmin/cms/trainer-hub",
-        icon: ic.featuredPrograms,
-        permission: null,
-      },
-      {
-        label: "Admin Hub",
-        path: "/superadmin/cms/admin-hub",
-        icon: ic.featuredPrograms,
-        permission: null,
-      },
-    ],
-  },
+  
   {
     type: "item",
     label: "Security",

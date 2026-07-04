@@ -202,12 +202,7 @@ const adminMenus = [
       },
     ],
   },
-  {
-    name: "Upload Watch Now", icon: GraduationCap,
-    children: [
-      { name: "Upload Course", path: "/admin/course-upload", icon: Upload },
-    ],
-  },
+  
   {
     name: "Live & Recorded Control", icon: Video,
     children: [

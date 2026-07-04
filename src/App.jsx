@@ -152,18 +152,10 @@ const SuperAdminProfile         = lazyLoad(() => import("./SuperAdmin/profile/Su
 
 /* ================= CMS MANAGEMENT ================= */
 
-const StudentHubCMS = lazyLoad(() =>
-  import("./SuperAdmin/cms-management/pages/StudentHubCMS")
-);
 
-const TrainerHubCMS = lazyLoad(() =>
-  import("./SuperAdmin/cms-management/pages/TrainerHubCMS")
+const BannerStudioPage = lazyLoad(() =>
+  import("./SuperAdmin/cms-management/banner-studio/pages/BannerStudioPage")
 );
-
-const AdminHubCMS = lazyLoad(() =>
-  import("./SuperAdmin/cms-management/pages/AdminHubCMS")
-);
-
 /* ================= AUTH PAGES ================= */
 const ApprovalPending = lazyLoad(() => import("./pages/Auth/ApprovalPending.jsx"));
 const Login           = lazyLoad(() => import("./pages/Auth/Login.jsx"));
@@ -288,7 +280,7 @@ const AdminBatches              = lazyLoad(() => import("./Admin/AdminBatches"))
 const AdminDashboard            = lazyLoad(() => import("./Admin/AdminDashboard"));
 const AdminLiveSessions         = lazyLoad(() => import("./Admin/AdminLiveSessions"));
 const AdminRecordedVideos       = lazyLoad(() => import("./Admin/AdminRecordedVideos"));
-const Admincourseuploadform     = lazyLoad(() => import("./Admin/Admincourseuploadform"));
+
 const AllCourses                = lazyLoad(() => import("./Admin/AllCourses"));
 const AllUsers                  = lazyLoad(() => import("./Admin/AllUsers"));
 const AssignTrainerPage         = lazyLoad(() => import("./Admin/AssignTrainerPage"));
@@ -298,7 +290,7 @@ const Branches                  = lazyLoad(() => import("./Admin/Branches"));
 const Categories                = lazyLoad(() => import("./Admin/Categories"));
 const CertificatesAdmin         = lazyLoad(() => import("./Admin/CertificatesAdmin"));
 const DepartmentList            = lazyLoad(() => import("./Admin/DepartmentList"));
-const Featuredcourseuploadform  = lazyLoad(() => import("./Admin/Featuredcourseuploadform"));
+
 const OrganisationOverview      = lazyLoad(() => import("./Admin/OrganisationOverview"));
 const AdminVideos = lazyLoad(() => import("./Admin/AdminVideos"));
 
@@ -575,8 +567,7 @@ seedCMSData();
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="edit-profile" element={<EditProfile />} />
-              <Route path="featured-course-upload" element={<Featuredcourseuploadform />} />
-              <Route path="course-upload" element={<Admincourseuploadform />} />
+             
               <Route path="feedback-review" element={<AdminFeedback />} />
               <Route path="skill-analytics" element={<AdminSkillDashboard />} />
             </Route>
@@ -643,10 +634,7 @@ seedCMSData();
 
 <Route path="permissions" element={<PermissionManagerPage />} />
 <Route path="pending-approvals" element={<PendingApprovalsPage />} />
-<Route
-                path="batch-control"
-                element={<SuperAdminBatchControl />}
-              />
+<Route path="batch-control" element={<SuperAdminBatchControl />}/>
  <Route path="courses" element={<SuperAdminCourseManagement />} />
  
 {/* Organizations — static 'new' MUST be before dynamic :orgId */}
@@ -705,21 +693,11 @@ seedCMSData();
 
               {/* ================= CMS MANAGEMENT ================= */}
 
-<Route
-  path="cms/student-hub"
-  element={<StudentHubCMS />}
-/>
 
 <Route
-  path="cms/trainer-hub"
-  element={<TrainerHubCMS />}
+  path="cms/banner-studio"
+  element={<BannerStudioPage />}
 />
-
-<Route
-  path="cms/admin-hub"
-  element={<AdminHubCMS />}
-/>
-
               {/* ================= COMMON ================= */}
               <Route path="search" element={<SearchPage />} />
               <Route path="notifications" element={<NotificationsPage />} />

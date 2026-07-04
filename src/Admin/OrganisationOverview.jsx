@@ -1,17 +1,16 @@
 import {
-  Activity,
   AlertCircle,
   ArrowRight,
   Building2,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
   Eye,
   EyeOff,
   GitBranch,
   Layers,
   Loader2,
   Mail,
-  MapPin,
   Pencil,
   Plus,
   RefreshCw,
@@ -20,9 +19,9 @@ import {
   Trash2,
   Users,
   X,
-  BarChart3,
-  TrendingUp,
   GripVertical,
+  Check,
+  Lock,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -41,7 +40,6 @@ import {
   updateDepartment,
   createBatch,
 } from "../services/batchService";
-import authService from "../services/authService";
 import userService from "../services/userService";
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -51,10 +49,8 @@ const T = {
   dark: {
     pageBg: "#0a0a0f",
     cardBg: "#13131a",
-    cardBgHov: "#1a1a24",
     heroBg: "#13131a",
     border: "rgba(255,255,255,0.08)",
-    borderHov: "rgba(255,255,255,0.18)",
     borderHero: "rgba(255,255,255,0.08)",
     text: "#f1f5f9",
     textSub: "rgba(255,255,255,0.55)",
@@ -81,32 +77,28 @@ const T = {
     bannerBg: "rgba(59,130,246,0.09)",
     bannerBorder: "rgba(59,130,246,0.22)",
     gridLine: "rgba(255,255,255,0.4)",
-    handleBg: "rgba(255,255,255,0.10)",
-    handleBgHov: "#3b82f6",
     panelBg: "#0f0f16",
   },
   light: {
-    pageBg: "#f0f4f8",
+    pageBg: "#F8FAFC",
     cardBg: "#ffffff",
-    cardBgHov: "#fafbff",
     heroBg: "#ffffff",
-    border: "#e2e8f0",
-    borderHov: "#c7d2e0",
-    borderHero: "#e2e8f0",
+    border: "#E2E8F0",
+    borderHero: "#E2E8F0",
     text: "#0f172a",
     textSub: "#64748b",
     textMuted: "#94a3b8",
     pillBg: "#f1f5f9",
-    pillBorder: "#e2e8f0",
+    pillBorder: "#E2E8F0",
     actBg: "#f8fafc",
-    actBorder: "#e2e8f0",
+    actBorder: "#E2E8F0",
     shadow: "0 1px 3px rgba(15,23,42,0.06), 0 6px 20px rgba(15,23,42,0.06)",
     shadowHov: "0 10px 32px rgba(15,23,42,0.12)",
-    emptyBorder: "#e2e8f0",
+    emptyBorder: "#E2E8F0",
     emptyBg: "#f8fafc",
     emptyIcon: "#cbd5e1",
     inputBg: "#ffffff",
-    inputBorder: "#e2e8f0",
+    inputBorder: "#E2E8F0",
     inputText: "#0f172a",
     skeletonBg: "#edf2f7",
     theadBg: "#f8fafc",
@@ -118,8 +110,6 @@ const T = {
     bannerBg: "#eff6ff",
     bannerBorder: "#bfdbfe",
     gridLine: "rgba(15,23,42,0.08)",
-    handleBg: "#e2e8f0",
-    handleBgHov: "#3b82f6",
     panelBg: "#fbfcfe",
   },
 };
@@ -169,6 +159,7 @@ const ROLE_CFG = {
 
 const ROLE_TO_AUTH_ROLE = { ROLE_STUDENT: "STUDENT", ROLE_TRAINER: "TRAINER" };
 
+// One entry per management column, in the exact order/colors of the reference design.
 const CATS = [
   { id:"departments", label:"Departments", singular:"Department", icon:Building2,
     color:"#3b82f6", grad:["#3b82f6","#2563eb"], soft:"#eff6ff", softDark:"rgba(59,130,246,0.18)" },
@@ -246,6 +237,19 @@ const GLOBAL_CSS = `
 .oo-btn-primary:active { transform:translateY(0); }
 .oo-btn-primary:disabled { opacity:0.65; cursor:not-allowed; transform:none; }
 
+.oo-btn-solid {
+  display:inline-flex; align-items:center; justify-content:center; gap:4px;
+  height:24px; padding:0 9px; border-radius:7px; border:none;
+  color:#fff; font-size:10px; font-weight:700; cursor:pointer;
+  font-family:'Poppins',sans-serif; white-space:nowrap; line-height:1;
+  transition:transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+.oo-btn-solid:hover { transform:translateY(-1px); filter:brightness(1.06); }
+.oo-btn-solid:disabled {
+  opacity:0.5; cursor:not-allowed; transform:none; filter:none;
+  background:#94a3b8 !important; box-shadow:none !important;
+}
+
 .oo-btn-ghost {
   display:inline-flex; align-items:center; gap:6px;
   height:38px; padding:0 13px; border-radius:10px;
@@ -256,16 +260,6 @@ const GLOBAL_CSS = `
 }
 .oo-btn-ghost:hover { border-color:#cbd5e1; background:#fff; }
 
-.oo-btn-danger {
-  display:inline-flex; align-items:center; gap:6px;
-  padding:10px 24px; border-radius:12px; border:none;
-  background:linear-gradient(135deg,#f43f5e,#be123c);
-  color:#fff; font-size:13px; font-weight:700; cursor:pointer;
-  font-family:'Poppins',sans-serif;
-  transition:transform 0.15s ease;
-}
-.oo-btn-danger:hover { transform:translateY(-1px); }
-
 .oo-icon-btn {
   width:30px; height:30px; border-radius:9px;
   display:inline-flex; align-items:center; justify-content:center;
@@ -275,33 +269,16 @@ const GLOBAL_CSS = `
 .oo-icon-btn:hover   { transform:translateY(-1px); filter:brightness(1.06); }
 .oo-icon-btn:disabled{ cursor:not-allowed; opacity:0.55; transform:none; }
 
+.oo-page-btn {
+  width:24px; height:24px; border-radius:7px;
+  display:inline-flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:background 0.12s ease;
+  flex-shrink:0; background:transparent; border:none;
+}
+.oo-page-btn:disabled { opacity:0.35; cursor:not-allowed; }
+
 /* ── Table rows ── */
 .oo-tr { transition:background 0.12s ease; }
-
-/* ── Overview rows ── */
-.oo-ov-row {
-  display:flex; align-items:center; justify-content:space-between; gap:8px;
-  padding:7px 7px; border-radius:9px; transition:background 0.12s ease; cursor:default;
-}
-
-/* ── View-all button ── */
-.oo-view-all {
-  display:flex; align-items:center; justify-content:center; gap:5px;
-  width:100%; padding:10px 0; font-size:11.5px; font-weight:700;
-  background:none; border:none; border-top:1px solid; cursor:pointer;
-  font-family:'Poppins',sans-serif; transition:background 0.12s ease;
-  text-decoration:none;
-}
-
-/* ── Tab button ── */
-.oo-tab {
-  display:inline-flex; align-items:center; gap:6px;
-  padding:10px 14px; border:none; background:transparent;
-  font-size:12px; cursor:pointer; font-family:'Poppins',sans-serif;
-  white-space:nowrap; flex-shrink:0;
-  border-bottom:2.5px solid transparent;
-  transition:color 0.14s ease, border-color 0.14s ease;
-}
 
 /* ── Menu item ── */
 .oo-menu-item {
@@ -311,50 +288,50 @@ const GLOBAL_CSS = `
   cursor:pointer; font-family:'Poppins',sans-serif; text-align:left;
   transition:background 0.12s ease;
 }
-
-/* ── Stat card hover lift ── */
-.oo-stat-card {
-  transition:transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
-  cursor:pointer; user-select:none;
+.oo-menu-item:disabled {
+  opacity:0.45; cursor:not-allowed;
 }
-.oo-stat-card:hover { transform:translateY(-3px); }
 
 /* ── Grid layouts ── */
-.oo-stat-grid {
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:12px;
-}
-@media(max-width:1024px){
-  .oo-stat-grid { grid-template-columns:repeat(2,1fr); gap:10px; }
-}
-@media(max-width:768px){
-  .oo-stat-grid { grid-template-columns:repeat(2,1fr); gap:9px; }
-}
-@media(max-width:540px){
-  .oo-stat-grid { grid-template-columns:1fr 1fr; gap:8px; }
-}
-@media(max-width:360px){
-  .oo-stat-grid { grid-template-columns:1fr; }
-}
-
 .oo-quad-grid {
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
   gap:12px;
+  align-items:stretch;
 }
 @media(max-width:1100px){ .oo-quad-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; } }
-@media(max-width:768px) { .oo-quad-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; } }
+@media(max-width:820px) { .oo-quad-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; } }
 @media(max-width:600px) { .oo-quad-grid { grid-template-columns:1fr; gap:9px; } }
+@media(max-width:430px) { .oo-quad-grid { grid-template-columns:1fr; } }
 
-.oo-bottom-grid {
-  display:grid;
-  grid-template-columns:1fr;
-  gap:12px;
-  margin-top:14px;
+/* The side panel eats fixed pixel width regardless of viewport size, so when it's
+   open the left grid needs fewer columns to avoid squeezed/overlapping card headers. */
+@media(min-width:901px) {
+  .oo-split-shell:has(.oo-split-right) .oo-quad-grid {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
 }
 
-/* ── SPLIT-VIEW SHELL (replaces the old overlay SlidePanel) ── */
+.oo-col-stack {
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  height:100%;
+}
+
+/* ── Setup progress steps row ── */
+.oo-setup-steps {
+  display:flex;
+  align-items:stretch;
+  gap:0;
+}
+@media(max-width:900px){
+  .oo-setup-row { flex-direction:column; }
+  .oo-setup-steps { flex-direction:column; gap:8px; }
+  .oo-setup-arrow { display:none; }
+}
+
+/* ── SPLIT-VIEW SHELL (side panel used for editing existing rows) ── */
 .oo-split-shell {
   display:flex;
   align-items:stretch;
@@ -431,29 +408,26 @@ const GLOBAL_CSS = `
 /* ── Reduced motion ── */
 @media(prefers-reduced-motion:reduce){
   .oo-fade,.oo-pop,.oo-spin-cls,.oo-shimmer-el,.oo-panel-content-anim,.oo-collapse-anim{animation:none!important;}
-  .oo-btn-primary,.oo-btn-ghost,.oo-icon-btn,.oo-stat-card,.oo-split-right{transition:none!important;}
+  .oo-btn-primary,.oo-btn-ghost,.oo-icon-btn,.oo-split-right{transition:none!important;}
 }
 `;
 
 function InjectStyles() {
   useEffect(() => {
     const id = "oo-global-styles";
-    if (document.getElementById(id)) return;
-    const el = document.createElement("style");
-    el.id = id;
+    let el = document.getElementById(id);
+    if (!el) {
+      el = document.createElement("style");
+      el.id = id;
+      document.head.appendChild(el);
+    }
     el.textContent = GLOBAL_CSS;
-    document.head.appendChild(el);
-    return () => { /* leave styles for remounts */ };
   }, []);
   return null;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   SPLIT-VIEW SHELL
-   The right form panel is a genuine flex sibling of the left content — part
-   of normal page layout. No overlay, no blur, no dimming, no fixed/absolute
-   positioning over the page. The divider between them is fully drag-resizable
-   (drag left/right on the handle, or double-click it to reset the width).
+   SPLIT-VIEW SHELL — used for BOTH the Add form and the Edit side panel
 ═══════════════════════════════════════════════════════════════════════════ */
 const PANEL_DEFAULT_WIDTH = 420;
 const PANEL_MIN_WIDTH = 360;
@@ -472,7 +446,6 @@ function SplitShell({ t, isDark, panelOpen, children, panelContent }) {
   const handlePointerMove = useCallback((e) => {
     if (!dragState.current) return;
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    // Panel is anchored to the right edge, so dragging LEFT increases width
     const delta = dragState.current.startX - clientX;
     setWidth(clampWidth(dragState.current.startWidth + delta));
     e.preventDefault?.();
@@ -512,9 +485,7 @@ function SplitShell({ t, isDark, panelOpen, children, panelContent }) {
 
   return (
     <div className="oo-split-shell" style={cssVars}>
-      <div className="oo-split-left">
-        {children}
-      </div>
+      <div className="oo-split-left">{children}</div>
 
       {panelOpen && (
         <>
@@ -527,18 +498,12 @@ function SplitShell({ t, isDark, panelOpen, children, panelContent }) {
             role="separator"
             aria-orientation="vertical"
           >
-            <div className="oo-split-grip">
-              <GripVertical size={12} />
-            </div>
+            <div className="oo-split-grip"><GripVertical size={12} /></div>
           </div>
 
           <div
             className={`oo-split-right ${isResizing ? "oo-resizing" : ""}`}
-            style={{
-              width,
-              background: t.panelBg,
-              borderLeft: `1px solid ${t.border}`,
-            }}
+            style={{ width, background: t.panelBg, borderLeft: `1px solid ${t.border}` }}
           >
             {panelContent}
           </div>
@@ -548,11 +513,9 @@ function SplitShell({ t, isDark, panelOpen, children, panelContent }) {
   );
 }
 
-/* Panel header + scrollable body used inside the right pane */
 function SidePanelFrame({ t, title, subtitle, onClose, children }) {
   return (
     <div className="oo-panel-content-anim" style={{ display:"flex", flexDirection:"column", height:"100%" }}>
-      {/* Premium header */}
       <div style={{
         padding:"18px 20px", borderBottom:`1px solid ${t.border}`,
         display:"flex", alignItems:"flex-start", justifyContent:"space-between",
@@ -562,19 +525,11 @@ function SidePanelFrame({ t, title, subtitle, onClose, children }) {
           <p style={{ fontSize:15, fontWeight:600, color:t.text, margin:0, fontFamily:"'Poppins',sans-serif" }}>{title}</p>
           {subtitle && <p style={{ fontSize:12, color:t.textMuted, margin:"4px 0 0" }}>{subtitle}</p>}
         </div>
-        <button
-          onClick={onClose}
-          className="oo-icon-btn"
-          style={{ border:`1px solid ${t.border}`, background:t.actBg, color:t.textSub, marginLeft:12 }}
-          aria-label="Close"
-        >
+        <button onClick={onClose} className="oo-icon-btn" style={{ border:`1px solid ${t.border}`, background:t.actBg, color:t.textSub, marginLeft:12 }} aria-label="Close">
           <X size={15} />
         </button>
       </div>
-      {/* Scrollable body */}
-      <div style={{ flex:1, padding:"20px 22px", overflowY:"auto" }}>
-        {children}
-      </div>
+      <div style={{ flex:1, padding:"20px 22px", overflowY:"auto" }}>{children}</div>
     </div>
   );
 }
@@ -582,127 +537,63 @@ function SidePanelFrame({ t, title, subtitle, onClose, children }) {
 /* ═══════════════════════════════════════════════════════════════════════════
    SHARED PRIMITIVES
 ═══════════════════════════════════════════════════════════════════════════ */
-function Skeleton({ t, rows = 5 }) {
+function Skeleton({ t, rows = 4 }) {
   return (
     <div style={{ padding:"4px 0" }}>
       {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="oo-shimmer-el" style={{ height:42, borderRadius:10, background:t.skeletonBg, marginBottom:8 }} />
+        <div key={i} className="oo-shimmer-el" style={{ height:32, borderRadius:9, background:t.skeletonBg, marginBottom:7 }} />
       ))}
     </div>
   );
 }
 
-function EmptyState({ t, icon: Icon, title, desc, onAdd, addLabel, compact }) {
+function EmptyState({ t, icon: Icon, title, desc, onAdd, addLabel, addDisabled, addDisabledReason }) {
   return (
     <div style={{
       display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
-      padding: compact ? "24px 12px" : "44px 18px",
-      textAlign:"center", border:`1.5px dashed ${t.emptyBorder}`,
-      borderRadius:14, background:t.emptyBg, gap:9,
+      padding:"22px 12px", textAlign:"center", border:`1.5px dashed ${t.emptyBorder}`,
+      borderRadius:14, background:t.emptyBg, gap:9, height:"100%", boxSizing:"border-box",
     }}>
       <div style={{
-        width: compact ? 40 : 52, height: compact ? 40 : 52, borderRadius:"50%",
+        width:38, height:38, borderRadius:"50%",
         background:t.emptyBg, border:`1px solid ${t.emptyBorder}`,
         display:"flex", alignItems:"center", justifyContent:"center",
       }}>
-        <Icon size={compact ? 17 : 23} color={t.emptyIcon} />
+        <Icon size={16} color={t.emptyIcon} />
       </div>
-      <p style={{ fontWeight:700, fontSize: compact ? 12.5 : 14, color:t.text, margin:0 }}>{title}</p>
-      {desc && <p style={{ fontSize:11.5, color:t.textMuted, margin:0, lineHeight:1.5 }}>{desc}</p>}
+      <p style={{ fontWeight:700, fontSize:12.5, color:t.text, margin:0 }}>{title}</p>
+      {desc && <p style={{ fontSize:11, color:t.textMuted, margin:0, lineHeight:1.5 }}>{desc}</p>}
       {onAdd && (
-        <button onClick={onAdd} className="oo-btn-primary" style={{ marginTop:4, fontSize:11.5, padding:"8px 16px" }}>
-          <Plus size={12} /> {addLabel}
+        <button
+          onClick={onAdd}
+          disabled={addDisabled}
+          title={addDisabled ? addDisabledReason : undefined}
+          className="oo-btn-primary"
+          style={{ marginTop:4, fontSize:11, padding:"7px 14px" }}
+        >
+          {addDisabled ? <Lock size={12} /> : <Plus size={12} />} {addLabel}
         </button>
+      )}
+      {addDisabled && addDisabledReason && (
+        <p style={{ fontSize:10, color:t.textMuted, margin:0, fontStyle:"italic" }}>{addDisabledReason}</p>
       )}
     </div>
   );
 }
 
-/* Stat card — icon on left, big number, label, chevron. Colorful gradient
-   tiles (matches the reference dashboard's stat-card treatment). Compact
-   padding so 4 cards sit comfortably even on small screens. */
-function StatCard({ t, isDark, cat, count, active, onClick }) {
-  const Icon = cat.icon;
-  return (
-    <div
-      onClick={onClick}
-      role="button" tabIndex={0}
-      onKeyDown={(e) => (e.key==="Enter"||e.key===" ") && onClick?.()}
-      className="oo-stat-card oo-focusable"
-      style={{
-        borderRadius:16, padding:"16px 14px 14px",
-        background:`linear-gradient(135deg, ${cat.grad[0]}, ${cat.grad[1]})`,
-        border: active ? `2px solid rgba(255,255,255,0.55)` : `1px solid ${cat.grad[1]}`,
-        boxShadow: active ? `0 0 0 3px ${cat.color}33, 0 8px 20px -8px ${cat.color}66` : `0 6px 16px -8px ${cat.color}55`,
-        position:"relative", overflow:"hidden",
-      }}
-    >
-      <div style={{ position:"absolute", top:-18, right:-18, width:70, height:70, borderRadius:"50%", background:"rgba(255,255,255,0.14)", pointerEvents:"none" }} />
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10, position:"relative" }}>
-        <div style={{
-          width:38, height:38, borderRadius:12,
-          background:"rgba(255,255,255,0.22)",
-          border:"1px solid rgba(255,255,255,0.3)",
-          display:"flex", alignItems:"center", justifyContent:"center",
-        }}>
-          <Icon size={18} color="#fff" />
-        </div>
-        <div style={{
-          width:24, height:24, borderRadius:7, background:"rgba(255,255,255,0.18)",
-          display:"flex", alignItems:"center", justifyContent:"center",
-        }}>
-          <ChevronRight size={12} color="#fff" />
-        </div>
-      </div>
-      <p style={{ fontSize:"clamp(1.3rem,2.4vw,1.7rem)", fontWeight:800, color:"#fff", margin:"0 0 2px", lineHeight:1, fontFamily:"'Poppins',sans-serif", position:"relative" }}>
-        {count ?? <Loader2 size={16} className="oo-spin-cls" color="rgba(255,255,255,0.7)" />}
-      </p>
-      <p style={{ fontSize:12.5, fontWeight:700, color:"rgba(255,255,255,0.92)", margin:"2px 0 1px", fontFamily:"'Poppins',sans-serif", position:"relative" }}>
-        {cat.label}
-      </p>
-      <p style={{ fontSize:10.5, color:"rgba(255,255,255,0.7)", margin:0, position:"relative" }}>Total {cat.label.toLowerCase()}</p>
-    </div>
-  );
-}
-
-/* Toolbar — compact search box (was oversized before). "Full List" link
-   removed per request; only the Add button + optional filter children
-   remain, and the Add button is pushed to the far right via margin-left:auto. */
-function TableToolbar({ t, search, onSearch, placeholder, onAdd, addLabel, children }) {
-  return (
-    <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14, flexWrap:"wrap" }}>
-      <div style={{ position:"relative", flex:"0 1 200px", minWidth:130, maxWidth:220 }}>
-        <Search size={11} style={{ position:"absolute", left:9, top:"50%", transform:"translateY(-50%)", color:t.textMuted }} />
-        <input
-          value={search} onChange={(e) => onSearch(e.target.value)}
-          placeholder={placeholder} className="oo-focusable"
-          style={{
-            width:"100%", height:30, borderRadius:8, border:`1px solid ${t.inputBorder}`,
-            background:t.inputBg, color:t.inputText, fontSize:11, fontFamily:"'Poppins',sans-serif",
-            paddingLeft:26, paddingRight:10, outline:"none", boxSizing:"border-box",
-          }}
-        />
-      </div>
-      {children}
-      <button onClick={onAdd} className="oo-btn-primary" style={{ flexShrink:0, padding:"8px 14px", fontSize:11.5, marginLeft:"auto" }}>
-        <Plus size={13} /> {addLabel}
-      </button>
-    </div>
-  );
-}
-
-function DataTable({ t, columns, rows, loading, emptyState }) {
+/* Compact table used inside each management column */
+function MiniDataTable({ t, columns, rows, loading, emptyState }) {
   if (loading) return <Skeleton t={t} />;
   if (!rows.length) return emptyState;
   return (
-    <div style={{ overflowX:"auto", borderRadius:12, border:`1px solid ${t.border}` }}>
-      <table style={{ width:"100%", borderCollapse:"collapse", minWidth:520 }}>
+    <div style={{ overflowX:"auto", borderRadius:10, border:`1px solid ${t.border}` }}>
+      <table style={{ width:"100%", borderCollapse:"collapse" }}>
         <thead>
           <tr style={{ background:t.theadBg }}>
             {columns.map((col) => (
               <th key={col.key} style={{
-                padding:"9px 12px", textAlign:col.align||"left",
-                fontSize:9, fontWeight:700, letterSpacing:"0.1em",
+                padding:"7px 9px", textAlign:col.align||"left",
+                fontSize:8.5, fontWeight:700, letterSpacing:"0.08em",
                 textTransform:"uppercase", color:t.textMuted,
                 borderBottom:`1px solid ${t.border}`, whiteSpace:"nowrap",
                 fontFamily:"'Poppins',sans-serif",
@@ -714,15 +605,13 @@ function DataTable({ t, columns, rows, loading, emptyState }) {
         </thead>
         <tbody>
           {rows.map((row, ri) => (
-            <tr key={ri} className="oo-tr" style={{
-              borderBottom: ri === rows.length - 1 ? "none" : `1px solid ${t.border}`,
-            }}
+            <tr key={ri} className="oo-tr" style={{ borderBottom: ri === rows.length - 1 ? "none" : `1px solid ${t.border}` }}
               onMouseEnter={(e) => e.currentTarget.style.background = t.rowHov}
               onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
             >
               {columns.map((col) => (
                 <td key={col.key} style={{
-                  padding:"9px 12px", fontSize:12, color:t.text,
+                  padding:"7px 9px", fontSize:11.5, color:t.text,
                   verticalAlign:"middle", textAlign:col.align||"left",
                   fontFamily:"'Poppins',sans-serif", ...(col.style||{}),
                 }}>
@@ -733,6 +622,31 @@ function DataTable({ t, columns, rows, loading, emptyState }) {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+/* "Showing N of M" footer + prev/next */
+function MiniPagination({ t, page, totalPages, onPrev, onNext }) {
+  return (
+    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:9 }}>
+      <span style={{ fontSize:10.5, color:t.textMuted, fontFamily:"'Poppins',sans-serif" }}>
+        Showing {page} of {Math.max(totalPages,1)}
+      </span>
+      <div style={{ display:"flex", alignItems:"center", gap:4 }}>
+        <button onClick={onPrev} disabled={page<=1} className="oo-page-btn" style={{ border:`1px solid ${t.border}`, color:t.textSub }}>
+          <ChevronLeft size={12} />
+        </button>
+        <span style={{
+          width:22, height:22, borderRadius:6, display:"flex", alignItems:"center", justifyContent:"center",
+          fontSize:10.5, fontWeight:700, color:t.text, background:t.pillBg,
+        }}>
+          {page}
+        </span>
+        <button onClick={onNext} disabled={page>=totalPages} className="oo-page-btn" style={{ border:`1px solid ${t.border}`, color:t.textSub }}>
+          <ChevronRight size={12} />
+        </button>
+      </div>
     </div>
   );
 }
@@ -786,24 +700,27 @@ function OOSelect({ t, children, ...props }) {
   );
 }
 
-function SaveBtn({ saving, label, onClick, t }) {
+function SaveBtn({ saving, label, onClick, gradient }) {
   return (
     <button
       onClick={onClick} disabled={saving}
       className="oo-btn-primary"
-      style={{ width:"100%", justifyContent:"center", padding:"12px 0", fontSize:13, marginTop:20 }}
+      style={{
+        width:"100%", justifyContent:"center", padding:"12px 0", fontSize:13, marginTop:20,
+        background: gradient || undefined,
+      }}
     >
       {saving ? <><Loader2 size={15} className="oo-spin-cls" /> Saving…</> : <><ChevronRight size={15} /> {label}</>}
     </button>
   );
 }
 
-function ErrorBanner({ t, message }) {
+function ErrorBanner({ message }) {
   if (!message) return null;
   return (
     <div style={{
       display:"flex", alignItems:"center", gap:9, padding:"10px 14px",
-      borderRadius:11, background:t.errorBg, border:`1px solid ${t.errorBorder}`,
+      borderRadius:11, background:"rgba(244,63,94,0.06)", border:"1px solid rgba(244,63,94,0.2)",
       marginBottom:6, marginTop:4,
     }}>
       <AlertCircle size={14} color="#f43f5e" style={{ flexShrink:0 }} />
@@ -812,8 +729,6 @@ function ErrorBanner({ t, message }) {
   );
 }
 
-/* Plan-limit notice — kept inline (non-blocking banner) instead of a modal,
-   consistent with "no popup / no overlay" requirement. */
 function LimitErrorBanner({ t, message, onDismiss }) {
   if (!message) return null;
   return (
@@ -839,11 +754,9 @@ function LimitErrorBanner({ t, message, onDismiss }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   PANEL FORMS — pure form bodies, rendered inside SidePanelFrame from the
-   split-view's right pane. Each receives everything via props so the
-   data-fetching tabs below can lift state to the page level.
+   PANEL / INLINE FORMS — logic unchanged from the previous implementation
 ═══════════════════════════════════════════════════════════════════════════ */
-function DepartmentForm({ t, mode, initial, onCancel, onSubmitted }) {
+function DepartmentForm({ t, mode, initial, onSubmitted }) {
   const [form, setForm] = useState(initial || { name:"", head:"" });
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
@@ -904,13 +817,14 @@ function DepartmentForm({ t, mode, initial, onCancel, onSubmitted }) {
       <FormField t={t} label="Department Head *">
         <OOInput t={t} value={form.head} onChange={(e) => setForm((f) => ({ ...f, head:e.target.value }))} placeholder="e.g. Dr. Rahul Sharma" />
       </FormField>
-      <ErrorBanner t={t} message={formError} />
-      <SaveBtn t={t} saving={saving} label={mode==="create" ? "Add Department" : "Save Changes"} onClick={handleSave} />
+      <ErrorBanner message={formError} />
+      <SaveBtn saving={saving} label={mode==="create" ? "Add Department" : "Save Changes"} onClick={handleSave}
+        gradient="linear-gradient(135deg,#3b82f6,#2563eb)" />
     </>
   );
 }
 
-function BranchForm({ t, mode, initial, departments, onCancel, onSubmitted }) {
+function BranchForm({ t, mode, initial, departments, onSubmitted }) {
   const [form, setForm] = useState(initial || { name:"", city:"", departmentId:"" });
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
@@ -951,8 +865,9 @@ function BranchForm({ t, mode, initial, departments, onCancel, onSubmitted }) {
           {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
         </OOSelect>
       </FormField>
-      <ErrorBanner t={t} message={saveError} />
-      <SaveBtn t={t} saving={saving} label={mode==="edit" ? "Save Changes" : "Add Branch"} onClick={handleSave} />
+      <ErrorBanner message={saveError} />
+      <SaveBtn saving={saving} label={mode==="edit" ? "Save Changes" : "Add Branch"} onClick={handleSave}
+        gradient="linear-gradient(135deg,#10b981,#059669)" />
     </>
   );
 }
@@ -991,8 +906,9 @@ function BatchForm({ t, branches, onSubmitted }) {
           {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
         </OOSelect>
       </FormField>
-      <ErrorBanner t={t} message={formError} />
-      <SaveBtn t={t} saving={saving} label="Add Batch" onClick={handleSave} />
+      <ErrorBanner message={formError} />
+      <SaveBtn saving={saving} label="Add Batch" onClick={handleSave}
+        gradient="linear-gradient(135deg,#f59e0b,#d97706)" />
     </>
   );
 }
@@ -1029,6 +945,7 @@ function UserForm({ t, mode, initial, loggedInUser, onSubmitted }) {
     try {
       setSaving(true);
       if (mode === "edit") {
+        const authService = (await import("../services/authService")).default;
         await authService.adminUpdateUserByEmail(initial.email, { name:formData.displayName, email:formData.email, role:ROLE_TO_AUTH_ROLE[formData.roles] });
         const res = await userService.updateUser(initial.id, { displayName:formData.displayName });
         onSubmitted(res.data, "edit");
@@ -1061,7 +978,7 @@ function UserForm({ t, mode, initial, loggedInUser, onSubmitted }) {
       {mode !== "edit" && (
         <FormField t={t} label="Password *">
           <div style={{ position:"relative" }}>
-            <OOInput t={t} type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => setFormData((f) => ({ ...f, password:e.target.value }))} placeholder="Min. 8 characters" style={{ paddingRight:44 }} />
+            <OOInput t={t} type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => setFormData((f) => ({ ...f, password:e.target.value }))} placeholder="Enter password" style={{ paddingRight:44 }} />
             <button onClick={() => setShowPassword((p) => !p)} type="button" style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:t.textMuted, display:"flex" }}>
               {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
             </button>
@@ -1084,697 +1001,457 @@ function UserForm({ t, mode, initial, loggedInUser, onSubmitted }) {
           <option value="ROLE_TRAINER">Trainer</option>
         </OOSelect>
       </FormField>
-      <ErrorBanner t={t} message={formError} />
-      <SaveBtn t={t} saving={saving} label={mode==="edit" ? "Save Changes" : "Add User"} onClick={handleSave} />
+      <ErrorBanner message={formError} />
+      <SaveBtn saving={saving} label={mode==="edit" ? "Save Changes" : "Add User"} onClick={handleSave}
+        gradient="linear-gradient(135deg,#8b5cf6,#7c3aed)" />
     </>
   );
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   DEPARTMENTS TAB
+   MANAGEMENT COLUMN — header + filter + search + table + pagination
 ═══════════════════════════════════════════════════════════════════════════ */
-function DepartmentsTab({ t, isDark, navigate, onOpenPanel, onCountChange }) {
-  const [departments, setDepartments]   = useState([]);
-  const [loading, setLoading]           = useState(true);
-  const [deleting, setDeleting]         = useState(null);
-  const [search, setSearch]             = useState("");
-
-  useEffect(() => { fetchDepartments(); }, []);
-
-  const fetchDepartments = async () => {
-    try {
-      setLoading(true);
-      const res = await getDepartments();
-      const list = res.data || [];
-      setDepartments(list);
-      onCountChange?.(list.length);
-    }
-    catch (err) { console.error("getDepartments:", err); }
-    finally { setLoading(false); }
-  };
-
-  const handleAdd = () => onOpenPanel({
-    type: "department", mode: "create", initial: { name:"", head:"" },
-    onSubmitted: (data) => { setDepartments((p) => { const n=[...p, data]; onCountChange?.(n.length); return n; }); onOpenPanel(null); },
-  });
-
-  const handleEdit = (dept) => onOpenPanel({
-    type: "department", mode: "edit", initial: { id:dept.id, name:dept.name, head:dept.head||"" },
-    onSubmitted: (data) => { setDepartments((p) => p.map((d) => d.id === dept.id ? data : d)); onOpenPanel(null); },
-  });
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this department? All branches and batches will also be deleted.")) return;
-    try { setDeleting(id); await deleteDepartment(id); setDepartments((p) => { const n = p.filter((d) => d.id !== id); onCountChange?.(n.length); return n; }); }
-    catch { alert("Delete failed."); }
-    finally { setDeleting(null); }
-  };
-
-  const filtered = departments.filter((d) => d.name?.toLowerCase().includes(search.toLowerCase()));
-
-  const columns = [
-    { key:"#", label:"#", style:{ width:40 }, render:(_,i) => <span style={{ fontSize:11, color:t.textMuted, fontWeight:600 }}>{i+1}</span> },
-    { key:"name", label:"Department", render:(row) => {
-      const [c1,c2] = gradColor(row.name);
-      return (
-        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-          <div style={{ width:30, height:30, borderRadius:9, background:`linear-gradient(135deg,${c1},${c2})`, display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:700, fontSize:12, flexShrink:0 }}>
-            {row.name?.[0]?.toUpperCase()}
-          </div>
-          <span style={{ fontWeight:600, color:t.text, fontSize:12.5 }}>{row.name}</span>
-        </div>
-      );
-    }},
-    { key:"head", label:"Department Head", render:(row) => <span style={{ color:t.textSub, fontSize:12 }}>{row.head||"—"}</span> },
-    { key:"actions", label:"Actions", align:"right", render:(row) => (
-      <div style={{ display:"flex", alignItems:"center", gap:6, justifyContent:"flex-end" }}>
-        <button onClick={() => handleEdit(row)} className="oo-icon-btn" style={{ border:`1px solid ${t.border}`, background:t.actBg, color:t.textSub }} title="Edit"><Pencil size={13} /></button>
-        <button onClick={() => handleDelete(row.id)} disabled={deleting===row.id} className="oo-icon-btn" style={{ border:"1px solid rgba(244,63,94,0.24)", background:"rgba(244,63,94,0.08)", color:"#f43f5e" }} title="Delete">
-          {deleting===row.id ? <Loader2 size={13} className="oo-spin-cls" /> : <Trash2 size={13} />}
-        </button>
-      </div>
-    )},
-  ];
-
-  return (
-    <>
-      <TableToolbar t={t} search={search} onSearch={setSearch} placeholder="Search departments…" onAdd={handleAdd} addLabel="Add Department" />
-      <DataTable t={t} columns={columns} rows={filtered} loading={loading}
-        emptyState={<EmptyState t={t} icon={Building2} title="No departments yet" desc="Create your first department to get started" onAdd={handleAdd} addLabel="Add Department" />}
-      />
-    </>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   BRANCHES TAB
-═══════════════════════════════════════════════════════════════════════════ */
-function BranchesTab({ t, isDark, navigate, onOpenPanel, onCountChange }) {
-  const [branches, setBranches]       = useState([]);
-  const [departments, setDepartments] = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [search, setSearch]           = useState("");
-  const [filterDept, setFilterDept]   = useState("");
-
-  useEffect(() => { loadBranches(); loadDepts(); }, []);
-
-  const loadBranches = async () => {
-    try {
-      const res = await getBranches(); const data = res?.data;
-      let list = [];
-      if (Array.isArray(data)) list = data;
-      else if (Array.isArray(data?.data)) list = data.data;
-      setBranches(list);
-      onCountChange?.(list.length);
-    } catch (e) { console.error("Failed to load branches", e); }
-    finally { setLoading(false); }
-  };
-
-  const loadDepts = async () => {
-    try { const res = await getDepartments(); setDepartments(Array.isArray(res?.data) ? res.data : []); }
-    catch (e) { console.error("load depts:", e); }
-  };
-
-  const handleAdd = () => onOpenPanel({
-    type: "branch", mode: "create", initial: { name:"", city:"", departmentId:"" }, departments,
-    onSubmitted: () => { loadBranches(); onOpenPanel(null); },
-  });
-
-  const handleEdit = (b) => onOpenPanel({
-    type: "branch", mode: "edit", initial: { id:b.id, name:b.name, city:b.city, departmentId:b.departmentId||"" }, departments,
-    onSubmitted: () => { loadBranches(); onOpenPanel(null); },
-  });
-
-  const handleDelete = async (b) => {
-    if (!confirm(`Delete branch "${b.name}"? All batches will also be removed.`)) return;
-    try { await deleteBranch(b.id); loadBranches(); } catch { alert("Failed to delete branch"); }
-  };
-
-  const deptName = (id) => departments.find((d) => d.id===id || d.id===Number(id))?.name || "—";
-  const filtered = branches.filter((b) => {
-    const ms = b?.name?.toLowerCase().includes(search.toLowerCase()) || b?.city?.toLowerCase().includes(search.toLowerCase());
-    const md = !filterDept || String(b.departmentId) === String(filterDept);
-    return ms && md;
-  });
-
-  const columns = [
-    { key:"#", label:"#", style:{ width:40 }, render:(_,i) => <span style={{ fontSize:11, color:t.textMuted, fontWeight:600 }}>{i+1}</span> },
-    { key:"name", label:"Branch Name", render:(row) => {
-      const [c1,c2] = gradColor(row.name);
-      return (
-        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-          <div style={{ width:30, height:30, borderRadius:9, background:`linear-gradient(135deg,${c1},${c2})`, display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:700, flexShrink:0 }}>
-            <GitBranch size={13} />
-          </div>
-          <span style={{ fontWeight:600, color:t.text, fontSize:12.5 }}>{row.name}</span>
-        </div>
-      );
-    }},
-    { key:"city", label:"City", render:(row) => (
-      <div style={{ display:"flex", alignItems:"center", gap:6, color:t.textSub, fontSize:12 }}>
-        <MapPin size={12} />{row.city||"—"}
-      </div>
-    )},
-    { key:"dept", label:"Department", render:(row) => <span style={{ color:t.textSub, fontSize:12 }}>{deptName(row.departmentId)}</span> },
-    { key:"actions", label:"Actions", align:"right", render:(row) => (
-      <div style={{ display:"flex", alignItems:"center", gap:6, justifyContent:"flex-end" }}>
-        <button onClick={() => handleEdit(row)} className="oo-icon-btn" style={{ border:`1px solid ${t.border}`, background:t.actBg, color:t.textSub }}><Pencil size={13} /></button>
-        <button onClick={() => handleDelete(row)} className="oo-icon-btn" style={{ border:"1px solid rgba(244,63,94,0.24)", background:"rgba(244,63,94,0.08)", color:"#f43f5e" }}><Trash2 size={13} /></button>
-      </div>
-    )},
-  ];
-
-  return (
-    <>
-      <TableToolbar t={t} search={search} onSearch={setSearch} placeholder="Search branches…" onAdd={handleAdd} addLabel="Add Branch">
-        <OOSelect t={t} value={filterDept} onChange={(e) => setFilterDept(e.target.value)} style={{ minWidth:130, height:30, fontSize:11 }}>
-          <option value="">All Departments</option>
-          {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-        </OOSelect>
-      </TableToolbar>
-      <DataTable t={t} columns={columns} rows={filtered} loading={loading}
-        emptyState={<EmptyState t={t} icon={GitBranch} title="No branches yet" desc="Add your first branch location" onAdd={handleAdd} addLabel="Add Branch" />}
-      />
-    </>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   BATCHES TAB
-═══════════════════════════════════════════════════════════════════════════ */
-function BatchesTab({ t, isDark, navigate, onOpenPanel }) {
-  const [batches, setBatches]         = useState([]);
-  const [branches, setBranches]       = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [search, setSearch]           = useState("");
-
-  const loadBatches = async () => {
-    try {
-      const res = await getAllBatches();
-      const list = res?.data?.data || res?.data?.batches || res?.data || [];
-      setBatches(Array.isArray(list) ? list : []);
-    } catch (err) { console.error("Failed to load batches", err); setBatches([]); }
-    finally { setLoading(false); }
-  };
-
-  const loadBranches = async () => {
-    try {
-      const res = await getBranches(); const data = res?.data;
-      if (Array.isArray(data)) setBranches(data);
-      else if (Array.isArray(data?.data)) setBranches(data.data);
-      else setBranches([]);
-    } catch (e) { console.error("Failed to load branches", e); }
-  };
-
-  useEffect(() => {
-    loadBatches();
-    loadBranches();
-    const onFocus = () => loadBatches();
-    window.addEventListener("focus", onFocus);
-    document.addEventListener("visibilitychange", onFocus);
-    return () => { window.removeEventListener("focus", onFocus); document.removeEventListener("visibilitychange", onFocus); };
-  }, []);
-
-  const handleAdd = () => onOpenPanel({
-    type: "batch", branches,
-    onSubmitted: () => { loadBatches(); onOpenPanel(null); },
-  });
-
-  const handleDelete = async (b) => {
-    if (!confirm(`Delete batch "${b.batchName}"?`)) return;
-    try { await deleteBatch(b.id); loadBatches(); } catch { alert("Failed to delete batch"); }
-  };
-
-  const filtered = batches.filter((b) => b?.batchName?.toLowerCase().includes(search.toLowerCase()));
-
-  const statusColor = (status) => {
-    if (!status) return { bg:"rgba(148,163,184,0.12)", c:"#94a3b8", border:"rgba(148,163,184,0.28)" };
-    const s = status.toLowerCase();
-    if (s==="active")   return { bg:"rgba(16,185,129,0.1)", c:"#10b981", border:"rgba(16,185,129,0.28)" };
-    if (s==="inactive") return { bg:"rgba(244,63,94,0.09)", c:"#f43f5e", border:"rgba(244,63,94,0.24)" };
-    return { bg:"rgba(245,158,11,0.1)", c:"#f59e0b", border:"rgba(245,158,11,0.24)" };
-  };
-
-  const columns = [
-    { key:"#", label:"#", style:{ width:40 }, render:(_,i) => <span style={{ fontSize:11, color:t.textMuted, fontWeight:600 }}>{i+1}</span> },
-    { key:"batchName", label:"Batch Name", render:(row) => {
-      const [c1,c2] = gradColor(row.batchName);
-      return (
-        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-          <div style={{ width:30, height:30, borderRadius:9, background:`linear-gradient(135deg,${c1},${c2})`, display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:700, flexShrink:0 }}>
-            <Layers size={13} />
-          </div>
-          <span style={{ fontWeight:600, color:t.text, fontSize:12.5 }}>{row.batchName}</span>
-        </div>
-      );
-    }},
-    { key:"dept", label:"Department", render:(row) => <span style={{ fontSize:12, color:t.textSub }}>{row.departmentName||row.department?.name||"—"}</span> },
-    { key:"branch", label:"Branch",   render:(row) => <span style={{ fontSize:12, color:t.textSub }}>{row.branchName||row.branch?.name||"—"}</span> },
-    { key:"students", label:"Students", align:"center", render:(row) => (
-      <div style={{ display:"flex", alignItems:"center", gap:5, justifyContent:"center" }}>
-        <Users size={12} color={t.textMuted} />
-        <span style={{ fontSize:12, fontWeight:700, color:t.text }}>{row.studentCount??row.students??"—"}</span>
-      </div>
-    )},
-    { key:"status", label:"Status", align:"center", render:(row) => {
-      const { bg, c, border } = statusColor(row.status);
-      return <span style={{ padding:"3px 11px", borderRadius:999, fontSize:10, fontWeight:700, letterSpacing:"0.06em", background:bg, color:c, border:`1px solid ${border}` }}>{row.status||"Unknown"}</span>;
-    }},
-    { key:"actions", label:"Actions", align:"right", render:(row) => (
-      <div style={{ display:"flex", gap:6, justifyContent:"flex-end" }}>
-        <button onClick={() => handleDelete(row)} className="oo-icon-btn" style={{ border:"1px solid rgba(244,63,94,0.24)", background:"rgba(244,63,94,0.08)", color:"#f43f5e" }}><Trash2 size={13} /></button>
-      </div>
-    )},
-  ];
-
-  return (
-    <>
-      <TableToolbar t={t} search={search} onSearch={setSearch} placeholder="Search batches…" onAdd={handleAdd} addLabel="Add Batch" />
-      <DataTable t={t} columns={columns} rows={filtered} loading={loading}
-        emptyState={<EmptyState t={t} icon={Layers} title="No batches yet" desc="Create your first batch to assign trainers and students" onAdd={handleAdd} addLabel="Add Batch" />}
-      />
-    </>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   BATCH MANAGEMENT — merges Departments → Branches → Batches into a single
-   guided, step-numbered tab. Each of the three steps is now a FOLDING
-   (collapsible) panel — click a step's header to expand/collapse it, and
-   "Add"/"Edit" always opens the shared, drag-resizable form panel on the
-   right (via onOpenPanel), so the form genuinely opens for all three.
-═══════════════════════════════════════════════════════════════════════════ */
-function StepRail({ t, cat, stepNumber, isLast }) {
-  return (
-    <div style={{ display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, width:36 }}>
-      <div style={{
-        width:34, height:34, borderRadius:"50%", flexShrink:0,
-        background:`linear-gradient(135deg,${cat.grad[0]},${cat.grad[1]})`,
-        color:"#fff", display:"flex", alignItems:"center", justifyContent:"center",
-        fontWeight:800, fontSize:13, fontFamily:"'Poppins',sans-serif",
-        boxShadow:`0 4px 14px ${cat.color}55`,
-      }}>
-        {stepNumber}
-      </div>
-      {!isLast && <div style={{ width:2, flex:1, minHeight:28, background:t.border, marginTop:6 }} />}
-    </div>
-  );
-}
-
-function StepSection({ t, isDark, cat, stepNumber, isLast, title, description, warning, open, onToggle, children }) {
+function ManagementColumn({ t, isDark, cat, items, count, loading, departments, branches, onAdd, addDisabled, addDisabledReason }) {
   const Icon = cat.icon;
-  return (
-    <div style={{ display:"flex", gap:13 }}>
-      <StepRail t={t} cat={cat} stepNumber={stepNumber} isLast={isLast} />
-      <div style={{ flex:1, minWidth:0, paddingBottom: isLast ? 2 : 26 }}>
-        <button
-          onClick={onToggle}
-          style={{
-            display:"flex", alignItems:"center", gap:7, marginBottom:3,
-            background:"none", border:"none", cursor:"pointer", padding:0, width:"100%", textAlign:"left",
-          }}
-        >
-          <Icon size={14} color={cat.color} />
-          <span style={{ fontSize:13.5, fontWeight:700, color:t.text, fontFamily:"'Poppins',sans-serif", flex:1 }}>
-            Step {stepNumber} · {title}
-          </span>
-          <ChevronDown size={15} color={t.textMuted} style={{ transform: open ? "rotate(180deg)" : "none", transition:"transform 0.16s ease" }} />
-        </button>
-        <p style={{ fontSize:11.5, color:t.textMuted, margin:"0 0 12px", lineHeight:1.5 }}>{description}</p>
-        {open && (
-          <div className="oo-collapse-anim">
-            {warning && (
-              <div style={{
-                display:"flex", alignItems:"center", gap:7, padding:"8px 12px", borderRadius:10,
-                background:t.bannerBg, border:`1px solid ${t.bannerBorder}`, marginBottom:12,
-              }}>
-                <AlertCircle size={13} color="#3b82f6" style={{ flexShrink:0 }} />
-                <span style={{ fontSize:11.5, color:t.textSub }}>{warning}</span>
-              </div>
-            )}
-            {children}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+  const PAGE_SIZE = 5;
 
-function BatchManagementTab({ t, isDark, navigate, onOpenPanel }) {
-  const [deptCount, setDeptCount] = useState(null);
-  const [branchCount, setBranchCount] = useState(null);
-  // All three folding panels start open so their forms/tables are visible
-  // immediately; each can be collapsed independently via its header.
-  const [openSteps, setOpenSteps] = useState({ departments:true, branches:true, batches:true });
-  const toggleStep = (key) => setOpenSteps((p) => ({ ...p, [key]: !p[key] }));
+  const [search, setSearch] = useState("");
+  const [filterVal, setFilterVal] = useState("");
+  const [page, setPage] = useState(1);
 
-  return (
-    <div>
-      {/* Instructions banner */}
-      <div style={{
-        display:"flex", gap:10, padding:"12px 14px", borderRadius:12,
-        background:t.bannerBg, border:`1px solid ${t.bannerBorder}`, marginBottom:24,
-      }}>
-        <Sparkles size={15} color="#3b82f6" style={{ flexShrink:0, marginTop:1 }} />
-        <p style={{ fontSize:12, color:t.textSub, margin:0, lineHeight:1.65 }}>
-          Set up your organisation top-down: <strong style={{ color:t.text }}>Department → Branch → Batch</strong>.
-          A branch always belongs to a department, and a batch always belongs to a branch — so create them in
-          that order and everything downstream will have somewhere to attach to.
-        </p>
-      </div>
+  useEffect(() => { setPage(1); }, [search, filterVal, items.length]);
 
-      <StepSection
-        t={t} isDark={isDark} cat={catById("departments")} stepNumber={1} isLast={false}
-        title="Departments" description="The top-level academic or business units in your organisation — start here."
-        open={openSteps.departments} onToggle={() => toggleStep("departments")}
-      >
-        <DepartmentsTab t={t} isDark={isDark} navigate={navigate} onOpenPanel={onOpenPanel} onCountChange={setDeptCount} />
-      </StepSection>
-
-      <StepSection
-        t={t} isDark={isDark} cat={catById("branches")} stepNumber={2} isLast={false}
-        title="Branches" description="Physical or regional locations, each linked to one department."
-        warning={deptCount === 0 ? "No departments yet — add a department in Step 1 before creating a branch." : null}
-        open={openSteps.branches} onToggle={() => toggleStep("branches")}
-      >
-        <BranchesTab t={t} isDark={isDark} navigate={navigate} onOpenPanel={onOpenPanel} onCountChange={setBranchCount} />
-      </StepSection>
-
-      <StepSection
-        t={t} isDark={isDark} cat={catById("batches")} stepNumber={3} isLast={true}
-        title="Batches" description="Groups of students under a branch, ready to be assigned trainers and content."
-        warning={branchCount === 0 ? "No branches yet — add a branch in Step 2 before creating a batch." : null}
-        open={openSteps.batches} onToggle={() => toggleStep("batches")}
-      >
-        <BatchesTab t={t} isDark={isDark} navigate={navigate} onOpenPanel={onOpenPanel} />
-      </StepSection>
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   USERS TAB
-═══════════════════════════════════════════════════════════════════════════ */
-function UsersTab({ t, isDark, navigate, onOpenPanel }) {
-  const [users, setUsers]             = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [search, setSearch]           = useState("");
-  const [roleFilter, setRoleFilter]   = useState("");
-
-  const loggedInUser = JSON.parse(localStorage.getItem("lms_user") || "null");
-
-  useEffect(() => { fetchUsers(); }, []);
-
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      const role = localStorage.getItem("role");
-      if (role === "TENANT_ADMIN") {
-        const currentUser = JSON.parse(localStorage.getItem("lms_user") || "null");
-        const orgId = currentUser?.organizationId || null;
-        if (orgId) {
-          const data = await userService.getUsersByOrg(orgId);
-          const filtered = Array.isArray(data) ? data.filter((u) => u.roles==="ROLE_STUDENT"||u.roles==="ROLE_TRAINER") : [];
-          setUsers(filtered);
-        } else setUsers([]);
+  const filtered = useMemo(() => {
+    const s = search.toLowerCase();
+    return items.filter((it) => {
+      let matchesSearch = true;
+      let matchesFilter = true;
+      if (cat.id === "departments") {
+        matchesSearch = !s || it.name?.toLowerCase().includes(s);
+      } else if (cat.id === "branches") {
+        matchesSearch = !s || it.name?.toLowerCase().includes(s) || it.city?.toLowerCase().includes(s);
+        matchesFilter = !filterVal || String(it.departmentId) === String(filterVal);
+      } else if (cat.id === "batches") {
+        matchesSearch = !s || it.batchName?.toLowerCase().includes(s);
+        matchesFilter = !filterVal || String(it.branchId) === String(filterVal);
       } else {
-        const res = await userService.getUsers(0, 50);
-        setUsers(res.data.content);
+        matchesSearch = !s || it.displayName?.toLowerCase().includes(s) || it.email?.toLowerCase().includes(s);
+        matchesFilter = !filterVal || it.roles === filterVal;
       }
-    } catch { setUsers([]); }
-    finally { setLoading(false); }
-  };
+      return matchesSearch && matchesFilter;
+    });
+  }, [items, search, filterVal, cat.id]);
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this user?")) return;
-    try { await userService.deleteUser(id); setUsers((p) => p.filter((u) => u.id !== id)); }
-    catch { alert("Failed to delete user"); }
-  };
+  const totalPages = Math.max(Math.ceil(filtered.length / PAGE_SIZE), 1);
+  const pageRows = filtered.slice((page-1)*PAGE_SIZE, page*PAGE_SIZE);
 
-  const handleAdd = () => onOpenPanel({
-    type: "user", mode: "create", initial: { displayName:"", email:"", password:"", roles:"ROLE_STUDENT" }, loggedInUser,
-    onSubmitted: () => { fetchUsers(); onOpenPanel(null); },
-  });
-
-  const handleEdit = (user) => onOpenPanel({
-    type: "user", mode: "edit",
-    initial: { id:user.id, email:user.email, displayName:user.displayName||"", password:"", roles:user.roles||"ROLE_STUDENT" },
-    loggedInUser,
-    onSubmitted: (data) => { setUsers((p) => p.map((u) => u.id===user.id ? data : u)); onOpenPanel(null); },
-  });
-
-  const filtered = users.filter((u) => {
-    const ms = u?.displayName?.toLowerCase().includes(search.toLowerCase()) || u?.email?.toLowerCase().includes(search.toLowerCase());
-    const mr = !roleFilter || u.roles===roleFilter;
-    return ms && mr;
-  });
-
-  const columns = [
-    { key:"#", label:"#", style:{ width:40 }, render:(_,i) => <span style={{ fontSize:11, color:t.textMuted, fontWeight:600 }}>{i+1}</span> },
-    { key:"displayName", label:"User", render:(row) => {
-      const [c1,c2] = gradColor(row.displayName||row.email);
-      const initials = (row.displayName||row.email||"U").split(" ").map((w)=>w[0]).join("").slice(0,2).toUpperCase();
-      return (
-        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-          <div style={{ width:32, height:32, borderRadius:10, background:`linear-gradient(135deg,${c1},${c2})`, display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:700, fontSize:12, flexShrink:0 }}>
-            {initials}
-          </div>
-          <div>
-            <p style={{ fontSize:12.5, fontWeight:600, color:t.text, margin:0 }}>{row.displayName||"—"}</p>
-            <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:2 }}>
-              <Mail size={10} color={t.textMuted} />
-              <span style={{ fontSize:10.5, color:t.textMuted }}>{row.email}</span>
+  const columns = useMemo(() => {
+    if (cat.id === "departments") {
+      return [
+        { key:"#", label:"#", style:{ width:26 }, render:(_,i) => <span style={{ fontSize:10.5, color:t.textMuted, fontWeight:600 }}>{(page-1)*PAGE_SIZE+i+1}</span> },
+        { key:"name", label:"Department Name", render:(row) => {
+          const [c1,c2] = gradColor(row.name);
+          return (
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <div style={{ width:22, height:22, borderRadius:7, background:`linear-gradient(135deg,${c1},${c2})`, display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:700, fontSize:10, flexShrink:0 }}>
+                {row.name?.[0]?.toUpperCase()}
+              </div>
+              <span style={{ fontWeight:600, color:t.text, fontSize:11.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{row.name}</span>
             </div>
+          );
+        }},
+        { key:"actions", label:"Actions", align:"right", render:(row) => (
+          <div style={{ display:"flex", gap:4, justifyContent:"flex-end" }}>
+            <button onClick={row.__onEdit} className="oo-icon-btn" style={{ width:22, height:22, border:`1px solid ${t.border}`, background:t.actBg, color:t.textSub }}><Pencil size={10} /></button>
+            <button onClick={row.__onDelete} className="oo-icon-btn" style={{ width:22, height:22, border:"1px solid rgba(244,63,94,0.24)", background:"rgba(244,63,94,0.08)", color:"#f43f5e" }}><Trash2 size={10} /></button>
           </div>
+        )},
+      ];
+    }
+    if (cat.id === "branches") {
+      return [
+        { key:"#", label:"#", style:{ width:26 }, render:(_,i) => <span style={{ fontSize:10.5, color:t.textMuted, fontWeight:600 }}>{(page-1)*PAGE_SIZE+i+1}</span> },
+        { key:"name", label:"Branch Name", render:(row) => {
+          const [c1,c2] = gradColor(row.name);
+          return (
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <div style={{ width:22, height:22, borderRadius:7, background:`linear-gradient(135deg,${c1},${c2})`, display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", flexShrink:0 }}>
+                <GitBranch size={10} />
+              </div>
+              <span style={{ fontWeight:600, color:t.text, fontSize:11.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{row.name}</span>
+            </div>
+          );
+        }},
+        { key:"city", label:"City", render:(row) => <span style={{ fontSize:11, color:t.textSub }}>{row.city||"—"}</span> },
+        { key:"actions", label:"Actions", align:"right", render:(row) => (
+          <div style={{ display:"flex", gap:4, justifyContent:"flex-end" }}>
+            <button onClick={row.__onEdit} className="oo-icon-btn" style={{ width:22, height:22, border:`1px solid ${t.border}`, background:t.actBg, color:t.textSub }}><Pencil size={10} /></button>
+            <button onClick={row.__onDelete} className="oo-icon-btn" style={{ width:22, height:22, border:"1px solid rgba(244,63,94,0.24)", background:"rgba(244,63,94,0.08)", color:"#f43f5e" }}><Trash2 size={10} /></button>
+          </div>
+        )},
+      ];
+    }
+    if (cat.id === "batches") {
+      return [
+        { key:"#", label:"#", style:{ width:26 }, render:(_,i) => <span style={{ fontSize:10.5, color:t.textMuted, fontWeight:600 }}>{(page-1)*PAGE_SIZE+i+1}</span> },
+        { key:"batchName", label:"Batch Name", render:(row) => {
+          const [c1,c2] = gradColor(row.batchName);
+          return (
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <div style={{ width:22, height:22, borderRadius:7, background:`linear-gradient(135deg,${c1},${c2})`, display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", flexShrink:0 }}>
+                <Layers size={10} />
+              </div>
+              <span style={{ fontWeight:600, color:t.text, fontSize:11.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{row.batchName}</span>
+            </div>
+          );
+        }},
+        { key:"actions", label:"Actions", align:"right", render:(row) => (
+          <div style={{ display:"flex", gap:4, justifyContent:"flex-end" }}>
+            <button onClick={row.__onEdit} className="oo-icon-btn" style={{ width:22, height:22, border:`1px solid ${t.border}`, background:t.actBg, color:t.textSub }}><Pencil size={10} /></button>
+            <button onClick={row.__onDelete} className="oo-icon-btn" style={{ width:22, height:22, border:"1px solid rgba(244,63,94,0.24)", background:"rgba(244,63,94,0.08)", color:"#f43f5e" }}><Trash2 size={10} /></button>
+          </div>
+        )},
+      ];
+    }
+    return [
+      { key:"#", label:"#", style:{ width:26 }, render:(_,i) => <span style={{ fontSize:10.5, color:t.textMuted, fontWeight:600 }}>{(page-1)*PAGE_SIZE+i+1}</span> },
+      { key:"displayName", label:"User Name", render:(row) => {
+        const [c1,c2] = gradColor(row.displayName||row.email);
+        const initials = (row.displayName||row.email||"U").split(" ").map((w)=>w[0]).join("").slice(0,2).toUpperCase();
+        return (
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <div style={{ width:22, height:22, borderRadius:7, background:`linear-gradient(135deg,${c1},${c2})`, display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:700, fontSize:9, flexShrink:0 }}>
+              {initials}
+            </div>
+            <span style={{ fontWeight:600, color:t.text, fontSize:11.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{row.displayName||row.email}</span>
+          </div>
+        );
+      }},
+      { key:"roles", label:"Role", render:(row) => {
+        const cfg = ROLE_CFG[row.roles] || { label:row.roles||"—", color:"#94a3b8", bg:"rgba(148,163,184,0.12)" };
+        return <span style={{ padding:"2px 8px", borderRadius:999, fontSize:9.5, fontWeight:700, background:cfg.bg, color:cfg.color }}>{cfg.label}</span>;
+      }},
+      { key:"actions", label:"Actions", align:"right", render:(row) => (
+        <div style={{ display:"flex", gap:4, justifyContent:"flex-end" }}>
+          <button onClick={row.__onEdit} className="oo-icon-btn" style={{ width:22, height:22, border:`1px solid ${t.border}`, background:t.actBg, color:t.textSub }}><Pencil size={10} /></button>
+          <button onClick={row.__onDelete} className="oo-icon-btn" style={{ width:22, height:22, border:"1px solid rgba(244,63,94,0.24)", background:"rgba(244,63,94,0.08)", color:"#f43f5e" }}><Trash2 size={10} /></button>
         </div>
-      );
-    }},
-    { key:"roles", label:"Role", render:(row) => {
-      const cfg = ROLE_CFG[row.roles] || { label:row.roles||"Unknown", color:"#94a3b8", bg:"rgba(148,163,184,0.12)" };
-      return <span style={{ padding:"3px 11px", borderRadius:999, fontSize:10, fontWeight:700, background:cfg.bg, color:cfg.color, border:`1px solid ${cfg.color}30` }}>{cfg.label}</span>;
-    }},
-    { key:"actions", label:"Actions", align:"right", render:(row) => (
-      <div style={{ display:"flex", gap:6, justifyContent:"flex-end" }}>
-        <button onClick={() => handleEdit(row)} className="oo-icon-btn" style={{ border:`1px solid ${t.border}`, background:t.actBg, color:t.textSub }}><Pencil size={13} /></button>
-        <button onClick={() => handleDelete(row.id)} className="oo-icon-btn" style={{ border:"1px solid rgba(244,63,94,0.24)", background:"rgba(244,63,94,0.08)", color:"#f43f5e" }}><Trash2 size={13} /></button>
-      </div>
-    )},
-  ];
+      )},
+    ];
+  }, [cat.id, t, page]);
+
+  const searchPlaceholder =
+    cat.id === "departments" ? "Search departments…" :
+    cat.id === "branches"    ? "Search branches…" :
+    cat.id === "batches"     ? "Search batches…" : "Search users…";
 
   return (
-    <>
-      {/* NOTE: "All Roles" filter no longer includes Admin — only Trainer/Student */}
-      <TableToolbar t={t} search={search} onSearch={setSearch} placeholder="Search users…" onAdd={handleAdd} addLabel="Add User">
-        <OOSelect t={t} value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} style={{ minWidth:110, height:30, fontSize:11 }}>
+    <div style={{
+      background: t.cardBg, border:`1px solid ${t.border}`,
+      borderRadius:16, boxShadow:t.shadow,
+      display:"flex", flexDirection:"column", minWidth:0, overflow:"hidden",
+      padding:"13px 14px 14px", flex:"1 1 auto",
+    }}>
+      {/* Column header */}
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:11, gap:6, flexWrap:"wrap", rowGap:6 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:7, minWidth:0, flex:"1 1 auto", overflow:"hidden" }}>
+          <div style={{ width:26, height:26, borderRadius:8, background:`linear-gradient(135deg,${cat.grad[0]},${cat.grad[1]})`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            <Icon size={12} color="#fff" />
+          </div>
+          <span style={{ fontSize:12.5, fontWeight:700, color:t.text, fontFamily:"'Poppins',sans-serif", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", minWidth:0 }}>
+            {cat.label} {count !== null ? `(${count})` : ""}
+          </span>
+        </div>
+        <button
+          onClick={onAdd}
+          disabled={addDisabled}
+          title={addDisabled ? addDisabledReason : undefined}
+          className="oo-btn-solid"
+          style={{ background: addDisabled ? undefined : `linear-gradient(135deg,${cat.grad[0]},${cat.grad[1]})`, boxShadow: addDisabled ? "none" : `0 3px 10px ${cat.color}40`, flexShrink:0 }}
+        >
+          {addDisabled ? <Lock size={10} /> : <Plus size={10} />} Add {cat.singular}
+        </button>
+      </div>
+
+      {addDisabled && addDisabledReason && (
+        <div style={{
+          display:"flex", alignItems:"center", gap:7, padding:"7px 10px", borderRadius:9,
+          background:t.emptyBg, border:`1px dashed ${t.emptyBorder}`, marginBottom:9,
+        }}>
+          <Lock size={11} color={t.textMuted} style={{ flexShrink:0 }} />
+          <span style={{ fontSize:10.5, color:t.textMuted, fontFamily:"'Poppins',sans-serif" }}>{addDisabledReason}</span>
+        </div>
+      )}
+
+      {cat.id === "branches" && (
+        <OOSelect t={t} value={filterVal} onChange={(e) => setFilterVal(e.target.value)} style={{ height:30, fontSize:11, marginBottom:8 }}>
+          <option value="">All Departments</option>
+          {(departments||[]).map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+        </OOSelect>
+      )}
+      {cat.id === "batches" && (
+        <OOSelect t={t} value={filterVal} onChange={(e) => setFilterVal(e.target.value)} style={{ height:30, fontSize:11, marginBottom:8 }}>
+          <option value="">All Branches</option>
+          {(branches||[]).map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+        </OOSelect>
+      )}
+      {cat.id === "users" && (
+        <OOSelect t={t} value={filterVal} onChange={(e) => setFilterVal(e.target.value)} style={{ height:30, fontSize:11, marginBottom:8 }}>
           <option value="">All Roles</option>
           <option value="ROLE_TRAINER">Trainer</option>
           <option value="ROLE_STUDENT">Student</option>
         </OOSelect>
-      </TableToolbar>
-      <DataTable t={t} columns={columns} rows={filtered} loading={loading}
-        emptyState={<EmptyState t={t} icon={Users} title="No users found" desc="Add your first user to get started" onAdd={handleAdd} addLabel="Add User" />}
-      />
-    </>
-  );
-}
+      )}
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   OVERVIEW COLUMN (reference-style)
-═══════════════════════════════════════════════════════════════════════════ */
-function OverviewRow({ t, isDark, cat, item }) {
-  if (cat.id === "departments") {
-    return (
-      <div className="oo-ov-row" onMouseEnter={(e)=>e.currentTarget.style.background=t.rowHov} onMouseLeave={(e)=>e.currentTarget.style.background="transparent"}>
-        <div style={{ display:"flex", alignItems:"center", gap:9, minWidth:0 }}>
-          <div style={{ width:28, height:28, borderRadius:8, background:softBg(cat,isDark), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-            <Building2 size={13} color={cat.color} />
-          </div>
-          <span style={{ fontSize:12.5, fontWeight:600, color:t.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.name}</span>
-        </div>
+      <div style={{ position:"relative", marginBottom:10 }}>
+        <Search size={11} style={{ position:"absolute", left:9, top:"50%", transform:"translateY(-50%)", color:t.textMuted }} />
+        <input
+          value={search} onChange={(e) => setSearch(e.target.value)}
+          placeholder={searchPlaceholder} className="oo-focusable"
+          style={{
+            width:"100%", height:30, borderRadius:8, border:`1px solid ${t.inputBorder}`,
+            background:t.inputBg, color:t.inputText, fontSize:11, fontFamily:"'Poppins',sans-serif",
+            paddingLeft:26, paddingRight:10, outline:"none", boxSizing:"border-box",
+          }}
+        />
       </div>
-    );
-  }
-  if (cat.id === "branches") {
-    return (
-      <div className="oo-ov-row" onMouseEnter={(e)=>e.currentTarget.style.background=t.rowHov} onMouseLeave={(e)=>e.currentTarget.style.background="transparent"}>
-        <div style={{ display:"flex", alignItems:"center", gap:9, minWidth:0 }}>
-          <div style={{ width:28, height:28, borderRadius:8, background:softBg(cat,isDark), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-            <MapPin size={13} color={cat.color} />
-          </div>
-          <span style={{ fontSize:12.5, fontWeight:600, color:t.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.name}</span>
-        </div>
-        <span style={{ fontSize:10.5, color:t.textMuted, flexShrink:0, marginLeft:6 }}>{item._deptName||"—"}</span>
+
+      <div style={{ minHeight:130, flex:"1 1 auto" }}>
+        <MiniDataTable
+          t={t} columns={columns} rows={pageRows} loading={loading}
+          emptyState={
+            <EmptyState
+              t={t} icon={Icon} title={`No ${cat.label.toLowerCase()} found`}
+              desc={`Add your first ${cat.singular.toLowerCase()} to get started`}
+              onAdd={onAdd} addLabel={`Add ${cat.singular}`}
+              addDisabled={addDisabled} addDisabledReason={addDisabledReason}
+            />
+          }
+        />
       </div>
-    );
-  }
-  if (cat.id === "batches") {
-    return (
-      <div className="oo-ov-row" onMouseEnter={(e)=>e.currentTarget.style.background=t.rowHov} onMouseLeave={(e)=>e.currentTarget.style.background="transparent"}>
-        <div style={{ display:"flex", alignItems:"center", gap:9, minWidth:0 }}>
-          <div style={{ width:28, height:28, borderRadius:8, background:softBg(cat,isDark), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-            <Layers size={13} color={cat.color} />
-          </div>
-          <span style={{ fontSize:12.5, fontWeight:600, color:t.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.batchName}</span>
-        </div>
-        <span style={{
-          fontSize:10.5, fontWeight:700, flexShrink:0, marginLeft:6,
-          background:softBg(cat,isDark), color:cat.color,
-          padding:"2px 7px", borderRadius:999,
-        }}>{item.studentCount??item.students??0}</span>
-      </div>
-    );
-  }
-  // users
-  const cfg = ROLE_CFG[item.roles] || { label:item.roles||"—", color:"#94a3b8", bg:"rgba(148,163,184,0.12)" };
-  const initials = (item.displayName||item.email||"U").split(" ").map((w)=>w[0]).join("").slice(0,2).toUpperCase();
-  const [c1,c2] = gradColor(item.displayName||item.email||"");
-  return (
-    <div className="oo-ov-row" onMouseEnter={(e)=>e.currentTarget.style.background=t.rowHov} onMouseLeave={(e)=>e.currentTarget.style.background="transparent"}>
-      <div style={{ display:"flex", alignItems:"center", gap:9, minWidth:0 }}>
-        <div style={{ width:28, height:28, borderRadius:8, background:`linear-gradient(135deg,${c1},${c2})`, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:10.5, fontWeight:700, flexShrink:0 }}>
-          {initials}
-        </div>
-        <span style={{ fontSize:12.5, fontWeight:600, color:t.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.displayName||item.email}</span>
-      </div>
-      <span style={{ fontSize:10, fontWeight:700, padding:"2px 9px", borderRadius:999, background:cfg.bg, color:cfg.color, flexShrink:0 }}>{cfg.label}</span>
+
+      <MiniPagination
+        t={t} page={Math.min(page,totalPages)} totalPages={totalPages}
+        onPrev={() => setPage((p) => Math.max(1, p-1))}
+        onNext={() => setPage((p) => Math.min(totalPages, p+1))}
+      />
     </div>
   );
 }
 
-function OverviewColumn({ t, isDark, cat, items, count, loading, search, onAdd, onViewAll, onDrill }) {
-  const Icon = cat.icon;
-  const filtered = useMemo(() => {
-    if (!search) return items;
-    const s = search.toLowerCase();
-    return items.filter((it) => {
-      const label = it.name || it.batchName || it.displayName || it.email || "";
-      return label.toLowerCase().includes(s);
-    });
-  }, [items, search]);
+/* ═══════════════════════════════════════════════════════════════════════════
+   INFORMATION CARDS — "What is a Department / Branch / Batch?" etc.
+═══════════════════════════════════════════════════════════════════════════ */
+const HELP_CONTENT = {
+  departments: {
+    title:"What is a Department?",
+    desc:"Departments are the highest level in your organisation.",
+    examples:"Engineering · Management · Science",
+    next:"Create Branch",
+  },
+  branches: {
+    title:"What is a Branch?",
+    desc:"A branch belongs to a department.",
+    examples:"Engineering → AIML · Engineering → CSE · Engineering → IT",
+    next:"Create Batch",
+  },
+  batches: {
+    title:"What is a Batch?",
+    desc:"A batch is a group of students in the same course and year.",
+    examples:"B.Tech 2026 · BCA Sem 1",
+    next:"Add Users",
+  },
+  users: {
+    title:"What are Users?",
+    desc:"Users can be Students or Trainers added to a specific batch.",
+    examples:null,
+    next:null,
+  },
+};
 
+function HelpCard({ t, isDark, cat }) {
+  const info = HELP_CONTENT[cat.id];
+  if (!info) return null;
   return (
     <div style={{
-      background: t.cardBg,
-      border:`1px solid ${t.border}`,
-      borderRadius:16, boxShadow:t.shadow,
-      display:"flex", flexDirection:"column", minWidth:0, overflow:"hidden",
+      background:softBg(cat, isDark), border:`1px solid ${cat.color}30`,
+      borderRadius:14, padding:"12px 13px", marginTop:10,
+      display:"flex", flexDirection:"column", justifyContent:"space-between",
+      minHeight:118, boxSizing:"border-box", flex:"0 0 auto",
     }}>
-      {/* Column header */}
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"13px 14px 10px", borderBottom:`1px solid ${t.border}` }}>
-        <button onClick={onDrill} style={{ display:"flex", alignItems:"center", gap:8, background:"none", border:"none", cursor:"pointer", padding:0 }}>
-          <div style={{ width:28, height:28, borderRadius:9, background:`linear-gradient(135deg,${cat.grad[0]},${cat.grad[1]})`, display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <Icon size={13} color="#fff" />
-          </div>
-          <span style={{ fontSize:12.5, fontWeight:700, color:t.text, fontFamily:"'Poppins',sans-serif" }}>
-            {cat.label}
-            {count !== null && (
-              <span style={{ marginLeft:5, fontSize:11, fontWeight:700, color:t.textMuted }}>({count})</span>
-            )}
-          </span>
-        </button>
-        <button
-          onClick={onAdd}
-          className="oo-icon-btn"
-          style={{ background:`linear-gradient(135deg,${cat.grad[0]},${cat.grad[1]})`, border:"none", color:"#fff", width:26, height:26, borderRadius:8, boxShadow:`0 4px 12px ${cat.color}40` }}
-          title={`Add ${cat.singular}`}
-        >
-          <Plus size={13} />
-        </button>
-      </div>
-
-      {/* Rows */}
-      <div style={{ flex:1, padding:"7px 7px 3px", display:"flex", flexDirection:"column", gap:2, minHeight:140 }}>
-        {loading ? (
-          <div style={{ padding:"6px" }}>
-            {Array.from({ length:5 }).map((_,i) => (
-              <div key={i} className="oo-shimmer-el" style={{ height:30, borderRadius:8, background:t.skeletonBg, marginBottom:5 }} />
-            ))}
-          </div>
-        ) : filtered.length === 0 ? (
-          <EmptyState t={t} icon={Icon} title={`No ${cat.label.toLowerCase()} yet`} compact onAdd={onAdd} addLabel={`Add ${cat.singular}`} />
-        ) : (
-          filtered.slice(0, 7).map((item, i) => (
-            <OverviewRow key={item.id ?? i} t={t} isDark={isDark} cat={cat} item={item} />
-          ))
+      <div>
+        <p style={{ margin:"0 0 4px", fontSize:11.5, fontWeight:800, color:cat.color, fontFamily:"'Poppins',sans-serif" }}>
+          {info.title}
+        </p>
+        <p style={{ margin: info.examples ? "0 0 6px" : "0 0 8px", fontSize:11, color:t.textSub, lineHeight:1.5 }}>
+          {info.desc}
+        </p>
+        {info.examples && (
+          <p style={{ margin:"0 0 8px", fontSize:10.5, color:t.textMuted, lineHeight:1.6 }}>
+            {info.examples}
+          </p>
         )}
       </div>
-
-      {/* View all */}
-      <button
-        onClick={onViewAll}
-        className="oo-view-all"
-        style={{ color:cat.color, borderTopColor:t.border, fontSize:11.5, fontFamily:"'Poppins',sans-serif" }}
-        onMouseEnter={(e)=>e.currentTarget.style.background=t.rowHov}
-        onMouseLeave={(e)=>e.currentTarget.style.background="transparent"}
-      >
-        View all {cat.label.toLowerCase()} <ArrowRight size={12} />
-      </button>
+      {info.next ? (
+        <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:10.5, fontWeight:700, color:cat.color, fontFamily:"'Poppins',sans-serif" }}>
+          Next Step: {info.next} <ArrowRight size={11} />
+        </span>
+      ) : (
+        <span style={{ fontSize:10.5, fontWeight:700, color:cat.color, fontFamily:"'Poppins',sans-serif" }}>
+          You're almost done! 🎉
+        </span>
+      )}
     </div>
   );
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   RECENT BATCHES TABLE (overview bottom-left)
+   ORGANISATION SETUP PROGRESS + NEXT ACTION BAR
 ═══════════════════════════════════════════════════════════════════════════ */
-function RecentBatchesCard({ t, batches, loading, navigate }) {
-  const statusColor = (status) => {
-    const s = (status||"").toLowerCase();
-    if (s==="active")   return { bg:"rgba(16,185,129,0.1)",  c:"#10b981", border:"rgba(16,185,129,0.28)" };
-    if (s==="inactive") return { bg:"rgba(244,63,94,0.09)",  c:"#f43f5e", border:"rgba(244,63,94,0.24)" };
-    return                     { bg:"rgba(148,163,184,0.1)", c:"#94a3b8", border:"rgba(148,163,184,0.28)" };
-  };
+const SETUP_STEPS = [
+  { id:1, key:"departments", title:"Create Department", desc:"Add your departments" },
+  { id:2, key:"branches",    title:"Create Branch",     desc:"Add branches under departments" },
+  { id:3, key:"batches",     title:"Create Batch",      desc:"Add batches under branches" },
+  { id:4, key:"users",       title:"Add Users",         desc:"Add students or trainers in batches" },
+];
+
+function HowItWorksCard({ t }) {
+  const items = [
+    { n:1, label:"Create Department", color:"#3b82f6" },
+    { n:2, label:"Create Branch",     color:"#10b981" },
+    { n:3, label:"Create Batch",      color:"#f59e0b" },
+    { n:4, label:"Add Users",         color:"#8b5cf6" },
+  ];
+  return (
+    <div style={{ background:t.bannerBg, border:`1px solid ${t.bannerBorder}`, borderRadius:14, padding:"14px 16px", flex:"0 0 220px", minWidth:200 }}>
+      <p style={{ margin:"0 0 10px", fontSize:12.5, fontWeight:800, color:t.text, fontFamily:"'Poppins',sans-serif" }}>
+        How it works?
+      </p>
+      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+        {items.map((it) => (
+          <div key={it.n} style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <div style={{
+              width:18, height:18, borderRadius:"50%", background:it.color, color:"#fff",
+              fontSize:9.5, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0,
+              fontFamily:"'Poppins',sans-serif",
+            }}>
+              {it.n}
+            </div>
+            <span style={{ fontSize:11.5, color:t.textSub, fontWeight:600, fontFamily:"'Poppins',sans-serif" }}>{it.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SetupProgress({ t, isDark, counts, onJump }) {
+  const allLoaded = Object.values(counts).every((v) => v !== null);
+  const stepDone = (key) => (counts[key] ?? 0) > 0;
+  const doneCount = SETUP_STEPS.filter((s) => stepDone(s.key)).length;
+  const pct = allLoaded ? Math.round((doneCount / SETUP_STEPS.length) * 100) : 0;
+  const nextStep = SETUP_STEPS.find((s) => !stepDone(s.key));
+
+  const nextActionText = !allLoaded
+    ? "Loading your organisation setup…"
+    : !nextStep
+    ? "All set! Your organisation is fully configured."
+    : nextStep.key === "departments"
+    ? 'Click "Add Department" to create your first department.'
+    : nextStep.key === "branches"
+    ? 'Select a department and click "Add Branch" to continue.'
+    : nextStep.key === "batches"
+    ? 'Select a branch and click "Add Batch" to continue.'
+    : 'Click "Add User" to add students or trainers.';
 
   return (
-    <div style={{ background:t.cardBg, border:`1px solid ${t.border}`, borderRadius:16, boxShadow:t.shadow, overflow:"hidden" }}>
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 16px 12px", borderBottom:`1px solid ${t.border}` }}>
-        <div style={{ display:"flex", alignItems:"center", gap:9 }}>
-          <div style={{ width:30, height:30, borderRadius:9, background:"linear-gradient(135deg,#f59e0b,#d97706)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <BarChart3 size={14} color="#fff" />
+    <div className="oo-fade" style={{ background: t.cardBg, border:`1px solid ${t.border}`, borderRadius:18, boxShadow:t.shadow, padding:"16px clamp(14px,3vw,22px) 18px", marginBottom:14 }}>
+      <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", flexWrap:"wrap", gap:10, marginBottom:16 }}>
+        <div>
+          <p style={{ fontSize:14.5, fontWeight:700, color:t.text, margin:"0 0 3px", fontFamily:"'Poppins',sans-serif" }}>
+            Organisation Setup Progress
+          </p>
+          <p style={{ fontSize:11.5, color:t.textSub, margin:0 }}>
+            Follow these steps to complete your organisation setup.
+          </p>
+        </div>
+        <div style={{ textAlign:"right" }}>
+          <p style={{ fontSize:9.5, fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase", color:t.textMuted, margin:"0 0 5px" }}>
+            Overall Progress
+          </p>
+          <div style={{ display:"flex", alignItems:"center", gap:8, justifyContent:"flex-end" }}>
+            <div style={{ width:110, maxWidth:"40vw", height:7, borderRadius:99, background:t.pillBg, overflow:"hidden" }}>
+              <div style={{ width:`${pct}%`, height:"100%", borderRadius:99, background:"linear-gradient(90deg,#3b82f6,#10b981)", transition:"width 0.4s ease" }} />
+            </div>
+            <span style={{ fontSize:13, fontWeight:800, color:t.text, fontFamily:"'Poppins',sans-serif" }}>{pct}%</span>
           </div>
-          <span style={{ fontSize:12.5, fontWeight:700, color:t.text, fontFamily:"'Poppins',sans-serif" }}>Recent Batches</span>
         </div>
-        <button onClick={() => navigate?.("/admin/batches")} style={{ display:"flex", alignItems:"center", gap:5, fontSize:11.5, color:"#f59e0b", fontWeight:700, background:"none", border:"none", cursor:"pointer", fontFamily:"'Poppins',sans-serif" }}>
-          View all <ArrowRight size={12} />
-        </button>
       </div>
-      {loading ? (
-        <div style={{ padding:14 }}><Skeleton t={t} rows={4} /></div>
-      ) : batches.length === 0 ? (
-        <div style={{ padding:28, textAlign:"center" }}>
-          <p style={{ color:t.textMuted, fontSize:12.5 }}>No batches yet</p>
+
+      <div className="oo-setup-row" style={{ display:"flex", gap:16, alignItems:"stretch" }}>
+        <div className="oo-setup-steps" style={{ flex:"1 1 420px", minWidth:0 }}>
+          {SETUP_STEPS.map((s, i) => {
+            const done = stepDone(s.key);
+            const isNext = nextStep?.id === s.id;
+            const cat = catById(s.key);
+            const locked = !done && !isNext;
+            return (
+              <div key={s.id} style={{ display:"flex", alignItems:"center", flex:1, minWidth:0 }}>
+                <button
+                  onClick={() => onJump?.(s.key)}
+                  disabled={locked}
+                  title={locked ? "Complete the previous step first." : undefined}
+                  className="oo-focusable"
+                  style={{
+                    display:"flex", alignItems:"center", gap:10, flex:1, minWidth:0,
+                    padding:"10px 12px", borderRadius:13, textAlign:"left",
+                    cursor: locked ? "not-allowed" : "pointer",
+                    opacity: locked ? 0.6 : 1,
+                    border: isNext ? `1.5px solid ${cat.color}` : `1px solid ${t.border}`,
+                    background: isNext ? softBg(cat, isDark) : "transparent",
+                    fontFamily:"'Poppins',sans-serif",
+                  }}
+                >
+                  <div style={{
+                    width:30, height:30, borderRadius:"50%", flexShrink:0,
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                    background: done ? "linear-gradient(135deg,#10b981,#059669)" : (isNext ? cat.color : t.pillBg),
+                    color: done || isNext ? "#fff" : t.textMuted,
+                    fontWeight:800, fontSize:12.5,
+                  }}>
+                    {done ? <Check size={15} /> : s.id}
+                  </div>
+                  <div style={{ minWidth:0 }}>
+                    <p style={{ margin:0, fontSize:12, fontWeight:700, color:t.text, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{s.title}</p>
+                    <p style={{ margin:0, fontSize:10, color:t.textMuted, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{s.desc}</p>
+                  </div>
+                </button>
+                {i < SETUP_STEPS.length - 1 && (
+                  <ArrowRight size={14} color={t.textMuted} className="oo-setup-arrow" style={{ margin:"0 6px", flexShrink:0 }} />
+                )}
+              </div>
+            );
+          })}
         </div>
-      ) : (
-        <div style={{ overflowX:"auto" }}>
-          <table style={{ width:"100%", borderCollapse:"collapse", minWidth:460 }}>
-            <thead>
-              <tr style={{ background:t.theadBg }}>
-                {["Batch Name","Department","Branch","Students","Status"].map((h) => (
-                  <th key={h} style={{ padding:"9px 12px", textAlign:"left", fontSize:9, fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase", color:t.textMuted, borderBottom:`1px solid ${t.border}`, fontFamily:"'Poppins',sans-serif", whiteSpace:"nowrap" }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {batches.slice(0,5).map((b, i) => {
-                const { bg, c, border } = statusColor(b.status);
-                return (
-                  <tr key={i} style={{ borderBottom: i===Math.min(batches.length,5)-1 ? "none" : `1px solid ${t.border}` }}
-                    onMouseEnter={(e)=>e.currentTarget.style.background=t.rowHov}
-                    onMouseLeave={(e)=>e.currentTarget.style.background="transparent"}
-                  >
-                    <td style={{ padding:"9px 12px", fontWeight:600, color:t.text, fontSize:12, fontFamily:"'Poppins',sans-serif" }}>{b.batchName}</td>
-                    <td style={{ padding:"9px 12px", color:t.textSub, fontSize:11.5, fontFamily:"'Poppins',sans-serif" }}>{b.departmentName||b.department?.name||"—"}</td>
-                    <td style={{ padding:"9px 12px", color:t.textSub, fontSize:11.5, fontFamily:"'Poppins',sans-serif" }}>{b.branchName||b.branch?.name||"—"}</td>
-                    <td style={{ padding:"9px 12px", color:t.text, fontSize:12, fontWeight:700, fontFamily:"'Poppins',sans-serif" }}>{b.studentCount??b.students??"—"}</td>
-                    <td style={{ padding:"9px 12px" }}>
-                      <span style={{ padding:"3px 9px", borderRadius:999, fontSize:10, fontWeight:700, background:bg, color:c, border:`1px solid ${border}` }}>{b.status||"Unknown"}</span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <HowItWorksCard t={t} />
+      </div>
+
+      <div style={{
+        display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap", marginTop:14,
+        padding:"11px 14px", borderRadius:12, background:t.bannerBg, border:`1px solid ${t.bannerBorder}`,
+      }}>
+        <div style={{ display:"flex", alignItems:"center", gap:10, minWidth:0 }}>
+          <Sparkles size={14} color="#3b82f6" style={{ flexShrink:0 }} />
+          <span style={{ fontSize:12, color:t.text, fontFamily:"'Poppins',sans-serif" }}>
+            <strong>Next Action:</strong> {nextActionText}
+          </span>
         </div>
-      )}
+        {nextStep && (
+          <button onClick={() => onJump?.(nextStep.key)} className="oo-btn-primary" style={{ fontSize:11.5, padding:"8px 14px", flexShrink:0 }}>
+            Continue Setup <ArrowRight size={13} />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -1782,7 +1459,7 @@ function RecentBatchesCard({ t, batches, loading, navigate }) {
 /* ═══════════════════════════════════════════════════════════════════════════
    ADD-NEW DROPDOWN MENU
 ═══════════════════════════════════════════════════════════════════════════ */
-function AddNewMenu({ t, onPick }) {
+function AddNewMenu({ t, onPick, disabledMap }) {
   const [open, setOpen] = useState(false);
   const [coords, setCoords] = useState({ top:0, left:0, width:200 });
   const btnRef = useRef(null);
@@ -1793,8 +1470,6 @@ function AddNewMenu({ t, onPick }) {
     if (!btn) return;
     const rect = btn.getBoundingClientRect();
     const menuWidth = 200;
-    // Anchor to the bottom-right of the button, in fixed/viewport coordinates
-    // (portaled to document.body, so no parent overflow can clip it).
     let left = rect.right - menuWidth;
     left = Math.max(8, Math.min(left, window.innerWidth - menuWidth - 8));
     let top = rect.bottom + 8;
@@ -1839,17 +1514,21 @@ function AddNewMenu({ t, onPick }) {
         >
           {CATS.map((cat) => {
             const Icon = cat.icon;
+            const isDisabled = !!disabledMap?.[cat.id]?.disabled;
+            const reason = disabledMap?.[cat.id]?.reason;
             return (
               <button
                 key={cat.id}
-                onClick={() => { setOpen(false); onPick(cat.id); }}
+                onClick={() => { if (isDisabled) return; setOpen(false); onPick(cat.id); }}
+                disabled={isDisabled}
+                title={isDisabled ? reason : undefined}
                 className="oo-menu-item"
                 style={{ color:t.text }}
-                onMouseEnter={(e)=>e.currentTarget.style.background=t.dropdownItemHov}
+                onMouseEnter={(e)=>{ if (!isDisabled) e.currentTarget.style.background=t.dropdownItemHov; }}
                 onMouseLeave={(e)=>e.currentTarget.style.background="transparent"}
               >
-                <div style={{ width:24, height:24, borderRadius:7, background:`linear-gradient(135deg,${cat.grad[0]},${cat.grad[1]})`, display:"flex", alignItems:"center", justifyContent:"center" }}>
-                  <Icon size={12} color="#fff" />
+                <div style={{ width:24, height:24, borderRadius:7, background: isDisabled ? t.pillBg : `linear-gradient(135deg,${cat.grad[0]},${cat.grad[1]})`, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                  {isDisabled ? <Lock size={12} color={t.textMuted} /> : <Icon size={12} color="#fff" />}
                 </div>
                 Add {cat.singular}
               </button>
@@ -1870,22 +1549,13 @@ const OrganisationOverview = () => {
   const isDark    = useDarkMode();
   const t         = isDark ? T.dark : T.light;
 
-  // "overview" | "batchManagement" | "users"
-  const [activeView, setActiveView]       = useState("overview");
-  const [counts, setCounts]               = useState({ departments:null, branches:null, batches:null, users:null });
-  const [preview, setPreview]             = useState({ departments:[], branches:[], batches:[], users:[] });
+  const [counts, setCounts]                 = useState({ departments:null, branches:null, batches:null, users:null });
+  const [preview, setPreview]               = useState({ departments:[], branches:[], batches:[], users:[] });
   const [previewLoading, setPreviewLoading] = useState(true);
-  const [lastUpdated, setLastUpdated]     = useState("");
-  const [overviewSearch, setOverviewSearch] = useState("");
 
-  // Single source of truth for the right-hand split-view panel.
-  // null = panel closed. Otherwise: { type, mode, initial, onSubmitted, ...extra }
+  // A single active panel drives BOTH "Add" and "Edit" flows.
+  // Only one form can ever be open at a time, and every form starts closed.
   const [activePanel, setActivePanel] = useState(null);
-
-  // Departments / Branches / Batches all now live inside the single
-  // "Batch Management" tab (as three folding panels); this maps a CATS
-  // entry to that merged view.
-  const viewForCat = (catId) => (catId === "users" ? "users" : "batchManagement");
 
   const loadOverview = useCallback(async () => {
     setPreviewLoading(true);
@@ -1897,9 +1567,6 @@ const OrganisationOverview = () => {
       const branchList = Array.isArray(branchListRaw) ? branchListRaw : Array.isArray(branchListRaw?.data) ? branchListRaw.data : [];
       const batchListRaw = btRes.status==="fulfilled" ? (btRes.value?.data?.data||btRes.value?.data?.batches||btRes.value?.data||[]) : [];
       const batchList = Array.isArray(batchListRaw) ? batchListRaw : [];
-
-      const deptNameById = (id) => deptList.find((d) => d.id===id||d.id===Number(id))?.name||"—";
-      const branchListWithDept = branchList.map((b) => ({ ...b, _deptName:deptNameById(b.departmentId) }));
 
       let userList = [], userCount = 0;
       try {
@@ -1913,65 +1580,112 @@ const OrganisationOverview = () => {
             userCount = userList.length;
           }
         } else {
-          const res = await userService.getUsers(0, 6);
+          const res = await userService.getUsers(0, 50);
           userList = res?.data?.content||[];
           userCount = res?.data?.totalElements ?? userList.length;
         }
       } catch {}
 
-      setCounts({ departments:deptList.length, branches:branchListWithDept.length, batches:batchList.length, users:userCount });
-      setPreview({ departments:deptList, branches:branchListWithDept, batches:batchList, users:userList });
-      setLastUpdated(new Date().toLocaleString("en-IN", { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }));
+      setCounts({ departments:deptList.length, branches:branchList.length, batches:batchList.length, users:userCount });
+      setPreview({ departments:deptList, branches:branchList, batches:batchList, users:userList });
     } catch (e) { console.error("Overview load error:", e); }
     finally { setPreviewLoading(false); }
   }, []);
 
   useEffect(() => { loadOverview(); }, [loadOverview]);
 
-  // Header copy for each top-level view (overview / batchManagement / users)
-  const headerTitle =
-    activeView === "overview" ? "Organisation Management" :
-    activeView === "batchManagement" ? "Batch Management" :
-    "Users";
-  const headerSub =
-    activeView === "overview" ? "Manage departments · branches · batches · users — all in one place" :
-    activeView === "batchManagement" ? "Set up departments, branches and batches — in that order" :
-    "Manage students and trainers across your organisation";
-  const activeAccentColor =
-    activeView === "batchManagement" ? "#f59e0b" :
-    activeView === "users" ? "#8b5cf6" : null;
+  const closePanel = () => setActivePanel(null);
 
-  // Quick-add from the top "Add New" menu or an overview column's "+" button.
-  const handleQuickAdd = (catId) => {
+  // ── Step dependency rules ──────────────────────────────────────────────
+  // Add Branch needs >=1 department, Add Batch needs >=1 branch, Add User needs >=1 batch.
+  const dependencyState = useMemo(() => ({
+    departments: { disabled:false, reason:"" },
+    branches: {
+      disabled: !(counts.departments ?? 0),
+      reason: "Create a Department first.",
+    },
+    batches: {
+      disabled: !(counts.branches ?? 0),
+      reason: "Create a Branch first.",
+    },
+    users: {
+      disabled: !(counts.batches ?? 0),
+      reason: "Create a Batch first.",
+    },
+  }), [counts]);
+
+  const isAddDisabled = (catId) => previewLoading ? false : dependencyState[catId]?.disabled;
+  const addDisabledReason = (catId) => dependencyState[catId]?.reason;
+
+  // ── Open the "Add" panel for a category (respecting dependencies) ─────
+  const openAddPanel = useCallback((catId) => {
+    if (isAddDisabled(catId)) return;
+    const base = { mode:"create", onSubmitted: () => { loadOverview(); closePanel(); } };
     if (catId === "departments") {
-      setActivePanel({
-        type:"department", mode:"create", initial:{ name:"", head:"" },
-        onSubmitted: () => { loadOverview(); setActivePanel(null); },
-      });
+      setActivePanel({ ...base, type:"department", initial:{ name:"", head:"" } });
     } else if (catId === "branches") {
-      setActivePanel({
-        type:"branch", mode:"create", initial:{ name:"", city:"", departmentId:"" }, departments:preview.departments,
-        onSubmitted: () => { loadOverview(); setActivePanel(null); },
-      });
+      setActivePanel({ ...base, type:"branch", initial:{ name:"", city:"", departmentId:"" }, departments:preview.departments });
     } else if (catId === "batches") {
-      setActivePanel({
-        type:"batch", branches:preview.branches,
-        onSubmitted: () => { loadOverview(); setActivePanel(null); },
-      });
-    } else {
-      setActivePanel({
-        type:"user", mode:"create", initial:{ displayName:"", email:"", password:"", roles:"ROLE_STUDENT" },
-        onSubmitted: () => { loadOverview(); setActivePanel(null); },
-      });
+      setActivePanel({ ...base, type:"batch", branches:preview.branches });
+    } else if (catId === "users") {
+      setActivePanel({ ...base, type:"user", initial:{ displayName:"", email:"", password:"", roles:"ROLE_STUDENT" } });
     }
+  }, [dependencyState, preview, loadOverview]);
+
+  // "Continue Setup" / step-click jumps straight to the relevant Add panel.
+  const handleJumpToStep = (catId) => openAddPanel(catId);
+  const handleQuickAdd = (catId) => openAddPanel(catId);
+
+  const handleOpenEditPanel = useCallback((panelConfig) => setActivePanel(panelConfig), []);
+
+  const overviewActions = {
+    departments: {
+      onEdit: (row) => handleOpenEditPanel({
+        type: "department", mode: "edit", initial: { id:row.id, name:row.name, head:row.head||"" },
+        onSubmitted: () => { loadOverview(); closePanel(); },
+      }),
+      onDelete: async (row) => {
+        if (!window.confirm("Delete this department? All branches and batches will also be deleted.")) return;
+        try { await deleteDepartment(row.id); loadOverview(); } catch { alert("Delete failed."); }
+      },
+    },
+    branches: {
+      onEdit: (row) => handleOpenEditPanel({
+        type: "branch", mode: "edit", initial: { id:row.id, name:row.name, city:row.city, departmentId:row.departmentId||"" },
+        departments: preview.departments,
+        onSubmitted: () => { loadOverview(); closePanel(); },
+      }),
+      onDelete: async (row) => {
+        if (!window.confirm(`Delete branch "${row.name}"? All batches will also be removed.`)) return;
+        try { await deleteBranch(row.id); loadOverview(); } catch { alert("Failed to delete branch"); }
+      },
+    },
+    batches: {
+      onEdit: () => {}, // no dedicated batch-edit endpoint
+      onDelete: async (row) => {
+        if (!window.confirm(`Delete batch "${row.batchName}"?`)) return;
+        try { await deleteBatch(row.id); loadOverview(); } catch { alert("Failed to delete batch"); }
+      },
+    },
+    users: {
+      onEdit: (row) => handleOpenEditPanel({
+        type: "user", mode: "edit",
+        initial: { id:row.id, email:row.email, displayName:row.displayName||"", password:"", roles:row.roles||"ROLE_STUDENT" },
+        loggedInUser: JSON.parse(localStorage.getItem("lms_user") || "null"),
+        onSubmitted: () => { loadOverview(); closePanel(); },
+      }),
+      onDelete: async (row) => {
+        if (!window.confirm("Delete this user?")) return;
+        try { await userService.deleteUser(row.id); loadOverview(); } catch { alert("Failed to delete user"); }
+      },
+    },
   };
 
-  // Wraps whatever the active tab passes in. `null` closes the panel.
-  const handleOpenPanel = useCallback((panelConfig) => {
-    setActivePanel(panelConfig);
-  }, []);
-
-  const closePanel = () => setActivePanel(null);
+  const decorateItems = (catId, items) => items.map((it) => ({
+    ...it,
+    __onEdit: () => overviewActions[catId].onEdit(it),
+    __onDelete: () => overviewActions[catId].onDelete(it),
+  }));
 
   const panelMeta = activePanel ? catById(
     activePanel.type === "department" ? "departments" :
@@ -1979,39 +1693,20 @@ const OrganisationOverview = () => {
     activePanel.type === "batch"      ? "batches"      : "users"
   ) : null;
 
-  const panelTitle = activePanel
-    ? (activePanel.mode === "edit" ? `Edit ${panelMeta.singular}` : `Add ${panelMeta.singular}`)
-    : "";
+  const panelTitle = activePanel ? `${activePanel.mode === "edit" ? "Edit" : "Add"} ${panelMeta.singular}` : "";
   const panelSubtitle = activePanel
-    ? (activePanel.mode === "edit"
-        ? `Update ${panelMeta.singular.toLowerCase()} details`
-        : `Create a new ${panelMeta.singular.toLowerCase()} for your organisation`)
+    ? (activePanel.mode === "edit" ? `Update ${panelMeta.singular.toLowerCase()} details` : `Fill in the details to add a new ${panelMeta.singular.toLowerCase()}`)
     : "";
 
   const panelBody = !activePanel ? null : (
     activePanel.type === "department" ? (
-      <DepartmentForm
-        t={t} mode={activePanel.mode} initial={activePanel.initial}
-        onCancel={closePanel} onSubmitted={activePanel.onSubmitted}
-      />
+      <DepartmentForm t={t} mode={activePanel.mode} initial={activePanel.initial} onSubmitted={activePanel.onSubmitted} />
     ) : activePanel.type === "branch" ? (
-      <BranchForm
-        t={t} mode={activePanel.mode} initial={activePanel.initial}
-        departments={activePanel.departments || preview.departments}
-        onCancel={closePanel} onSubmitted={activePanel.onSubmitted}
-      />
+      <BranchForm t={t} mode={activePanel.mode} initial={activePanel.initial} departments={activePanel.departments || preview.departments} onSubmitted={activePanel.onSubmitted} />
     ) : activePanel.type === "batch" ? (
-      <BatchForm
-        t={t}
-        branches={activePanel.branches || preview.branches}
-        onSubmitted={activePanel.onSubmitted}
-      />
+      <BatchForm t={t} branches={activePanel.branches || preview.branches} onSubmitted={activePanel.onSubmitted} />
     ) : activePanel.type === "user" ? (
-      <UserForm
-        t={t} mode={activePanel.mode} initial={activePanel.initial}
-        loggedInUser={activePanel.loggedInUser}
-        onSubmitted={activePanel.onSubmitted}
-      />
+      <UserForm t={t} mode={activePanel.mode} initial={activePanel.initial} loggedInUser={activePanel.loggedInUser} onSubmitted={activePanel.onSubmitted} />
     ) : null
   );
 
@@ -2020,9 +1715,7 @@ const OrganisationOverview = () => {
       <InjectStyles />
 
       <SplitShell
-        t={t}
-        isDark={isDark}
-        panelOpen={!!activePanel}
+        t={t} isDark={isDark} panelOpen={!!activePanel}
         panelContent={
           <SidePanelFrame t={t} title={panelTitle} subtitle={panelSubtitle} onClose={closePanel}>
             {panelBody}
@@ -2032,205 +1725,69 @@ const OrganisationOverview = () => {
         <div style={{ minHeight:"100vh", background:t.pageBg, color:t.text, fontFamily:"'Poppins',sans-serif" }}>
           <div style={{ maxWidth:1440, margin:"0 auto", padding:"16px clamp(10px,3vw,24px) 44px" }}>
 
-            {/* ══ HERO HEADER (plain white/card background, matches reference) ══ */}
-            <div className="oo-fade" style={{
-              borderRadius:18, padding:"16px clamp(14px,3vw,26px)",
-              background:t.heroBg, border:`1px solid ${t.borderHero}`,
-              position:"relative", overflow:"hidden", marginBottom:14, boxShadow:t.shadow,
-            }}>
-              {/* subtle grid */}
-              <div style={{ position:"absolute", inset:0, pointerEvents:"none", opacity: isDark ? 0.035 : 0.018, backgroundImage:`linear-gradient(${t.gridLine} 1px,transparent 1px),linear-gradient(90deg,${t.gridLine} 1px,transparent 1px)`, backgroundSize:"40px 40px" }} />
-              <div style={{ position:"absolute", top:"-40%", left:"50%", width:320, height:190, background:"radial-gradient(ellipse,rgba(99,102,241,0.09),transparent 72%)", pointerEvents:"none" }} />
+            {/* ══ HEADER ══ */}
+            <div className="oo-fade" style={{ marginBottom:14 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:6, flexWrap:"wrap" }}>
+                <span style={{ fontSize:11.5, fontWeight:600, color:t.textMuted, fontFamily:"'Poppins',sans-serif" }}>Admin Portal</span>
+                <ChevronRight size={12} color={t.textMuted} />
+                <span style={{ fontSize:11.5, fontWeight:700, color:t.text, fontFamily:"'Poppins',sans-serif" }}>Organisation Management</span>
+              </div>
 
-              <div style={{ position:"relative", display:"flex", alignItems:"flex-start", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
+              <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
                 <div style={{ minWidth:0 }}>
-                  {/* Breadcrumb */}
-                  <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:8, flexWrap:"wrap" }}>
-                    <Sparkles size={10} color={t.textMuted} />
-                    <span style={{ fontSize:9, fontWeight:700, letterSpacing:"0.18em", textTransform:"uppercase", color:t.textMuted }}>Admin Portal</span>
-                    <ChevronRight size={10} color={t.textMuted} />
-                    <button
-                      onClick={() => setActiveView("overview")}
-                      style={{ fontSize:9, fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase", color: activeAccentColor ? t.textMuted : t.text, background:"none", border:"none", cursor:"pointer", padding:0, fontFamily:"'Poppins',sans-serif" }}
-                    >
-                      Organisation Manager
-                    </button>
-                    {activeAccentColor && (
-                      <>
-                        <ChevronRight size={10} color={t.textMuted} />
-                        <span style={{ fontSize:9, fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase", color:activeAccentColor }}>
-                          {activeView === "batchManagement" ? "Batch Management" : "Users"}
-                        </span>
-                      </>
-                    )}
-                  </div>
-                  <h1 style={{ fontSize:"clamp(1.2rem,2.6vw,1.7rem)", fontWeight:700, color:t.text, margin:"0 0 4px", lineHeight:1.15, letterSpacing:"-0.01em", fontFamily:"'Poppins',sans-serif" }}>
-                    {headerTitle}
+                  <h1 style={{ fontSize:"clamp(1.3rem,2.6vw,1.7rem)", fontWeight:700, color:t.text, margin:"0 0 4px", lineHeight:1.15, letterSpacing:"-0.01em", fontFamily:"'Poppins',sans-serif" }}>
+                    Organisation Management
                   </h1>
-                  <p style={{ fontSize:11.5, color:t.textSub, margin:0, fontWeight:500 }}>{headerSub}</p>
+                  <p style={{ fontSize:12, color:t.textSub, margin:0, fontWeight:500 }}>
+                    Manage departments, branches, batches and users – all in one place
+                  </p>
                 </div>
 
                 <div style={{ display:"flex", alignItems:"center", gap:9, flexShrink:0 }}>
-                  {activeView === "overview" && (
-                    <button
-                      onClick={loadOverview}
-                      className="oo-icon-btn"
-                      style={{ border:`1px solid ${t.actBorder}`, background:t.actBg, color:t.textSub, width:36, height:36 }}
-                      title="Refresh data"
-                    >
-                      <RefreshCw size={14} className={previewLoading ? "oo-spin-cls" : ""} />
-                    </button>
-                  )}
-                  <AddNewMenu t={t} onPick={handleQuickAdd} />
-                </div>
-              </div>
-            </div>
-
-            {/* ══ STAT CARDS ══ */}
-            <div className="oo-fade oo-stat-grid" style={{ marginBottom:14, animationDelay:"0.05s" }}>
-              {CATS.map((cat) => (
-                <StatCard
-                  key={cat.id} t={t} isDark={isDark} cat={cat}
-                  count={counts[cat.id]}
-                  active={activeView===viewForCat(cat.id)}
-                  onClick={() => setActiveView(viewForCat(cat.id))}
-                />
-              ))}
-            </div>
-
-            {/* ══ TAB NAV ══ */}
-            <div className="oo-fade" style={{
-              display:"flex", alignItems:"center",
-              borderBottom:`1.5px solid ${t.border}`,
-              marginBottom:16, gap:0, overflowX:"auto",
-              animationDelay:"0.08s",
-              scrollbarWidth:"none",
-            }}>
-              <button
-                onClick={() => setActiveView("overview")}
-                className="oo-tab"
-                style={{
-                  color: activeView==="overview" ? "#3b82f6" : t.textSub,
-                  fontWeight: activeView==="overview" ? 700 : 500,
-                  borderBottomColor: activeView==="overview" ? "#3b82f6" : "transparent",
-                }}
-              >
-                <Activity size={13} /> Overview
-              </button>
-
-              {/* Batch Management — replaces the old separate Departments / Branches / Batches tabs */}
-              <button
-                onClick={() => setActiveView("batchManagement")}
-                className="oo-tab"
-                style={{
-                  color: activeView==="batchManagement" ? "#f59e0b" : t.textSub,
-                  fontWeight: activeView==="batchManagement" ? 700 : 500,
-                  borderBottomColor: activeView==="batchManagement" ? "#f59e0b" : "transparent",
-                }}
-              >
-                <Layers size={13} /> Batch Management
-                {(counts.departments!==null && counts.branches!==null && counts.batches!==null) && (
-                  <span style={{
-                    fontSize:10, fontWeight:700, padding:"2px 7px", borderRadius:999,
-                    background: activeView==="batchManagement" ? "rgba(245,158,11,0.14)" : t.pillBg,
-                    color: activeView==="batchManagement" ? "#f59e0b" : t.textMuted,
-                    border:`1px solid ${activeView==="batchManagement" ? "#f59e0b30" : t.pillBorder}`,
-                    minWidth:20, textAlign:"center",
-                  }}>
-                    {counts.departments + counts.branches + counts.batches}
-                  </span>
-                )}
-              </button>
-
-              <button
-                onClick={() => setActiveView("users")}
-                className="oo-tab"
-                style={{
-                  color: activeView==="users" ? "#8b5cf6" : t.textSub,
-                  fontWeight: activeView==="users" ? 700 : 500,
-                  borderBottomColor: activeView==="users" ? "#8b5cf6" : "transparent",
-                }}
-              >
-                <Users size={13} /> Users
-                {counts.users !== null && (
-                  <span style={{
-                    fontSize:10, fontWeight:700, padding:"2px 7px", borderRadius:999,
-                    background: activeView==="users" ? "rgba(139,92,246,0.14)" : t.pillBg,
-                    color: activeView==="users" ? "#8b5cf6" : t.textMuted,
-                    border:`1px solid ${activeView==="users" ? "#8b5cf630" : t.pillBorder}`,
-                    minWidth:20, textAlign:"center",
-                  }}>
-                    {counts.users}
-                  </span>
-                )}
-              </button>
-            </div>
-
-            {/* ══ OVERVIEW ══ */}
-            {activeView === "overview" && (
-              <>
-                {/* Search — now compact instead of a wide bar */}
-                <div className="oo-fade" style={{ position:"relative", maxWidth:220, marginBottom:14, animationDelay:"0.1s" }}>
-                  <Search size={11} style={{ position:"absolute", left:9, top:"50%", transform:"translateY(-50%)", color:t.textMuted }} />
-                  <input
-                    value={overviewSearch} onChange={(e) => setOverviewSearch(e.target.value)}
-                    placeholder="Search…"
-                    className="oo-focusable"
-                    style={{
-                      width:"100%", height:30, borderRadius:8, border:`1px solid ${t.inputBorder}`,
-                      background:t.inputBg, color:t.inputText, fontSize:11,
-                      fontFamily:"'Poppins',sans-serif", paddingLeft:26, paddingRight:10,
-                      outline:"none", boxSizing:"border-box",
+                  <button
+                    onClick={loadOverview}
+                    className="oo-icon-btn"
+                    style={{ border:`1px solid ${t.actBorder}`, background:t.actBg, color:t.textSub, width:36, height:36 }}
+                    title="Refresh data"
+                  >
+                    <RefreshCw size={14} className={previewLoading ? "oo-spin-cls" : ""} />
+                  </button>
+                  <AddNewMenu
+                    t={t}
+                    onPick={handleQuickAdd}
+                    disabledMap={{
+                      departments: { disabled:isAddDisabled("departments"), reason:addDisabledReason("departments") },
+                      branches:    { disabled:isAddDisabled("branches"),    reason:addDisabledReason("branches") },
+                      batches:     { disabled:isAddDisabled("batches"),     reason:addDisabledReason("batches") },
+                      users:       { disabled:isAddDisabled("users"),       reason:addDisabledReason("users") },
                     }}
                   />
                 </div>
-
-                {/* 4-column grid */}
-                <div className="oo-fade oo-quad-grid" style={{ animationDelay:"0.12s" }}>
-                  {CATS.map((cat) => (
-                    <OverviewColumn
-                      key={cat.id} t={t} isDark={isDark} cat={cat}
-                      items={preview[cat.id]} count={counts[cat.id]}
-                      loading={previewLoading} search={overviewSearch}
-                      onAdd={() => handleQuickAdd(cat.id)}
-                      onViewAll={() => navigate(
-                        cat.id==="departments" ? "/admin/departmentlist" :
-                        cat.id==="branches"    ? "/admin/branches"       :
-                        cat.id==="batches"     ? "/admin/batches"        : "/admin/users"
-                      )}
-                      onDrill={() => setActiveView(viewForCat(cat.id))}
-                    />
-                  ))}
-                </div>
-
-                {/* Bottom row: Recent Batches (full width — promo card removed) */}
-                <div className="oo-fade oo-bottom-grid" style={{ animationDelay:"0.15s" }}>
-                  <RecentBatchesCard t={t} batches={preview.batches} loading={previewLoading} navigate={navigate} />
-                </div>
-              </>
-            )}
-
-            {/* ══ BATCH MANAGEMENT (Departments → Branches → Batches, foldable) ══ */}
-            {activeView === "batchManagement" && (
-              <div className="oo-fade" style={{
-                background:t.cardBg, borderRadius:18,
-                border:`1px solid ${t.border}`, boxShadow:t.shadow,
-                padding:"18px 18px 24px",
-              }}>
-                <BatchManagementTab t={t} isDark={isDark} navigate={navigate} onOpenPanel={handleOpenPanel} />
               </div>
-            )}
+            </div>
 
-            {/* ══ USERS ══ */}
-            {activeView === "users" && (
-              <div className="oo-fade" style={{
-                background:t.cardBg, borderRadius:18,
-                border:`1px solid ${t.border}`, boxShadow:t.shadow,
-                padding:"16px 16px 22px",
-              }}>
-                <UsersTab t={t} isDark={isDark} navigate={navigate} onOpenPanel={handleOpenPanel} />
-              </div>
-            )}
+            {/* ══ ORGANISATION SETUP PROGRESS + NEXT ACTION ══ */}
+            <SetupProgress t={t} isDark={isDark} counts={counts} onJump={handleJumpToStep} />
+
+            {/* ══ 4 MANAGEMENT COLUMNS (identical height, no inline forms) ══ */}
+            <div className="oo-fade oo-quad-grid" style={{ animationDelay:"0.08s" }}>
+              {CATS.map((cat) => (
+                <div key={cat.id} id={`oo-col-${cat.id}`} className="oo-col-stack">
+                  <ManagementColumn
+                    t={t} isDark={isDark} cat={cat}
+                    items={decorateItems(cat.id, preview[cat.id])} count={counts[cat.id]}
+                    loading={previewLoading}
+                    departments={preview.departments}
+                    branches={preview.branches}
+                    onAdd={() => handleQuickAdd(cat.id)}
+                    addDisabled={isAddDisabled(cat.id)}
+                    addDisabledReason={addDisabledReason(cat.id)}
+                  />
+                  <HelpCard t={t} isDark={isDark} cat={cat} />
+                </div>
+              ))}
+            </div>
+
           </div>
         </div>
       </SplitShell>

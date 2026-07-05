@@ -3322,6 +3322,7 @@ import heroVideo from "../../assets/hero-1.mp4";
 import heroStudent2 from "../../assets/hero-student-2.png";
 import heroStudent3 from "../../assets/hero-student-3.png";
 import heroStudent from "../../assets/hero-student.png";
+import ctaStudent from "../../assets/cta-student.png";
 import auth from "../../auth";
 import MegaMenu from "../../components/MegaMenu";
 import authService from "../../services/authService";
@@ -6037,7 +6038,7 @@ programsLoading
         </div>
       </section>
 
-      {/* ── Career Support ── */}
+     {/* ── Career Support ── */}
       <section
         id="successstories"
         className="py-24 px-6 scroll-mt-20 bg-[#F6EDE6] dark:bg-black"
@@ -6071,15 +6072,40 @@ programsLoading
               </div>
             ))}
           </div>
-          <div className="bg-[#1E293B] dark:bg-gray-900 rounded-3xl p-14 text-center relative overflow-hidden border border-[#F97316]/20 shadow-xl">
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-[#F97316]" />
-            <div className="relative max-w-3xl mx-auto">
-              <h3 className="text-3xl md:text-5xl font-bold mb-6 text-white">
-                Ready to Transform Your Career?
-              </h3>
-              <p className="text-lg text-gray-300 mb-10">
-                Join 50,000+ professionals who've already taken the leap
-              </p>
+
+          {/* ── Wide banner CTA ── */}
+          <div className="bg-[#F6EDE6] dark:bg-gray-900 rounded-3xl relative overflow-hidden border border-[#F97316]/20 shadow-xl">
+            <div className="flex flex-col lg:flex-row items-stretch">
+              {/* ── Left: full-bleed image, fixed height, cropped to fill ── */}
+              <div className="w-full lg:w-[280px] xl:w-[320px] h-56 sm:h-64 lg:h-auto flex-shrink-0 overflow-hidden">
+                <img
+                  src={ctaStudent}
+                  alt="Student ready to transform their career"
+                  className="w-full h-full object-cover object-top"
+                />
+              </div>
+
+              {/* ── Middle: Content ── */}
+              <div className="flex-1 flex flex-col justify-center px-6 sm:px-10 py-10 lg:py-8">
+               
+                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 text-[#1E293B] dark:text-white leading-tight">
+                  Ready to Transform Your Career?
+                </h3>
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 max-w-xl">
+                  Join 5000+ professionals who've already taken the leap
+                  with our project-based programs and expert mentorship.
+                </p>
+              </div>
+
+              {/* ── Right: CTA button ── */}
+              <div className="flex items-center justify-center lg:justify-end px-6 sm:px-10 pb-10 lg:pb-0 lg:pr-10">
+                <button
+                  onClick={() => scrollToSection("courses")}
+                  className="flex items-center gap-2 bg-[#1E293B] hover:bg-[#334155] text-white font-bold px-6 py-3.5 rounded-xl text-sm sm:text-base shadow-md hover:shadow-lg transition-all hover:scale-105 whitespace-nowrap"
+                >
+                  Explore Courses <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
         </div>

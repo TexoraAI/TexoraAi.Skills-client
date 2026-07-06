@@ -303,6 +303,7 @@ const UsageAnalytics            = lazyLoad(() => import("./Admin/UsageAnalytics"
 const AdminFeedback             = lazyLoad(() => import("./Admin/Adminfeedback.jsx"));
 const AdminSkillDashboard       = lazyLoad(() => import("./Admin/AdminSkillDashboard.jsx"));
 
+const AdminFiles = lazyLoad(() => import("./Admin/AdminFiles"));
 /* ================= BUSINESS ================= */
 const BusinessDashboard = lazyLoad(() => import("./Business/BusinessDashboard"));
 const NewEnrollments    = lazyLoad(() => import("./Business/Enrollments/NewEnrollments.jsx"));
@@ -560,7 +561,7 @@ seedCMSData();
               <Route path="reports" element={<OrgReports />} />
               <Route path="departmentlist" element={<DepartmentList />} />
               <Route path="usage" element={<UsageAnalytics />} />
-              
+              <Route path="files" element={<AdminFiles />} />
               <Route path="live-sessions" element={<AdminLiveSessions />} />
               <Route path="recorded-videos" element={<AdminRecordedVideos />} />
               <Route path="search" element={<SearchPage />} />

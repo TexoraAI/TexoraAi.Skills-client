@@ -47,7 +47,7 @@ import React from "react";
 import { Phone } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import auth from "../auth";
-
+import userService from "../services/userService";
 // ✅ Shared AvatarContext se import
 import { useAvatarContext } from "../context/AvatarContext";
 
@@ -200,9 +200,21 @@ const adminMenus = [
         path: "/admin/videos",
         icon: Video,
       },
+
+    ],
+
+  },
+  {
+    name: "File Management",
+    icon: FileText,
+    children: [
+      {
+        name: "Admin Files",
+        path: "/admin/files",
+        icon: FileText,
+      },
     ],
   },
-  
   {
     name: "Live & Recorded Control", icon: Video,
     children: [
@@ -327,8 +339,36 @@ const Sidebar = () => {
     : isBusiness   ? "/business"
     : "/student";
 
-  const userName = localStorage.getItem("userName") || "User";
-  const initials  = userName.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+  // const userName = localStorage.getItem("userName") || "User";
+  // const initials  = userName.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+   const [userName, setUserName] = React.useState(
+    localStorage.getItem("userName") || "User",
+  );
+
+  React.useEffect(() => {
+    userService
+      .getMyProfile()
+      .then((res) => {
+        const name = res.data?.displayName || res.data?.name || "User";
+        setUserName(name);
+        localStorage.setItem("userName", name); // cache for instant load next time
+      })
+      .catch(() => {
+        // keep whatever was cached in localStorage if the call fails
+      });
+  }, []);
+
+  const initials =
+    userName
+      .trim()
+      .split(" ")
+      .filter(Boolean)
+      .map((w) => w[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "U";
+
+
 
   const handleLogout = () => {
     auth.logout();

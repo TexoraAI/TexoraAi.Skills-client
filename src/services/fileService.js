@@ -9,22 +9,7 @@ const authHeader = () => ({
 
 const fileService = {
   // ================= TRAINER UPLOAD =================
-  // uploadFile(file, batchId, title, description, courseId, category) {
-  //   const formData = new FormData();
-  //   formData.append("file", file);
-  //   formData.append("batchId", batchId);
-  //   formData.append("title", title || "");
-  //   formData.append("description", description || "");
-  //   if (courseId) formData.append("courseId", courseId);
-  //   if (category) formData.append("category", category);
 
-  //   return axios.post(`${API_GATEWAY}/file/upload`, formData, {
-  //     headers: {
-  //       ...authHeader(),
-  //       // ✅ No Content-Type — axios sets multipart/form-data + boundary automatically
-  //     },
-  //   });
-  // },
   // ✅ UPDATED — batchId optional, status added
   uploadFile(
     file,
@@ -178,6 +163,50 @@ const fileService = {
 
   deleteCourseFile(id) {
     return axios.delete(`${API_GATEWAY}/course-files/${id}`, {
+      headers: authHeader(),
+    });
+  },
+
+  // ADD to the fileService object
+
+  // ================= ADMIN — ALL FILES =================
+  getAllFilesAdmin() {
+    return axios.get(`${API_GATEWAY}/file/admin/all`, {
+      headers: authHeader(),
+    });
+  },
+
+  // ==========================================
+  // 🔥 FILE FEATURE FLAGS
+  // ==========================================
+
+  // ================= ORG-SCOPED =================
+  getFileFeatureFlags(organizationId) {
+    return axios.get(
+      `${API_GATEWAY}/file-feature-flags/org/${organizationId}`,
+      { headers: authHeader() },
+    );
+  },
+
+  updateFileFeatureFlags(organizationId, dto) {
+    return axios.put(
+      `${API_GATEWAY}/file-feature-flags/org/${organizationId}`,
+      dto,
+      { headers: authHeader() },
+    );
+  },
+
+  // ================= INDIVIDUAL (org-less users) =================
+  getIndividualFileFeatureFlags(email) {
+    return axios.get(`${API_GATEWAY}/file-feature-flags/individual`, {
+      params: { email },
+      headers: authHeader(),
+    });
+  },
+
+  updateIndividualFileFeatureFlags(email, dto) {
+    return axios.put(`${API_GATEWAY}/file-feature-flags/individual`, dto, {
+      params: { email },
       headers: authHeader(),
     });
   },

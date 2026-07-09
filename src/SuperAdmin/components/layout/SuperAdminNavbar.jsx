@@ -68,7 +68,13 @@ const NAV = [
         icon: ic.organizations,
         permission: null,
       },
-      
+      {
+        label: "Feedback Review",
+        path: "/superadmin/feedback-review",
+        icon: ic.approvals, // reuses the checkmark-circle path already defined in `ic`
+        permission: PERMISSIONS.VIEW_ANALYTICS, // swap for whatever permission gates feedback in your setup
+      },
+
       {
         label: "Permissions",
         path: "/superadmin/permissions",

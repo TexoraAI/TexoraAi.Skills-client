@@ -1,6 +1,17 @@
 import { useState, useRef } from "react";
 import SyllabusZipUpload from "./SyllabusZipUpload";
+import ToggleSwitch from "./ToggleSwitch";
 import { courseService } from "../../../services/courseService";
+
+const DISPLAY_FLAGS = [
+  { key: "showOnHomepage", label: "Show on Homepage", icon: "🏠" },
+  { key: "isFeatured", label: "Featured Course", icon: "⭐" },
+  { key: "isTrending", label: "Trending", icon: "📈" },
+  { key: "isBestseller", label: "Bestseller", icon: "🏆" },
+  { key: "isPopular", label: "Popular", icon: "🔥" },
+  { key: "isRecommended", label: "Recommended", icon: "👍" },
+  { key: "isComingSoon", label: "Coming Soon", icon: "🚀" },
+];
 const SESSION_TYPES = ["Video", "Live", "Assignment", "Quiz", "Reading"];
 
 const ManualSyllabusBuilder = ({ weeks, onChange }) => {
@@ -560,7 +571,9 @@ const SyllabusPreview = ({ generatedData }) => {
 };
 
 // ─── MAIN SyllabusManager ─────────────────────────────────────────────────────
-export default function SyllabusManager({ syllabusData, onChange }) {
+export default function SyllabusManager({ syllabusData, onChange, displaySettings, onDisplaySettingsChange }) {
+  const flags = displaySettings || {};
+  const setFlag = (key, val) => onDisplaySettingsChange && onDisplaySettingsChange({ ...flags, [key]: val });
   const data = syllabusData || {
     mode: "manual",
     weeks: [],
@@ -829,6 +842,23 @@ export default function SyllabusManager({ syllabusData, onChange }) {
             </li>
           </ul>
         )}
+      </div>
+
+      {/* Display Settings */}
+      <div className="pt-3 border-t border-gray-100">
+        <h3 className="text-sm font-bold text-gray-800 mb-1">Display Settings</h3>
+        <p className="text-xs text-gray-500 mb-3">Control where and how this program is surfaced across the site</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {DISPLAY_FLAGS.map(({ key, label, icon }) => (
+            <ToggleSwitch
+              key={key}
+              icon={icon}
+              label={label}
+              checked={!!flags[key]}
+              onChange={(val) => setFlag(key, val)}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

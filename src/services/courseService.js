@@ -192,6 +192,15 @@ export const courseService = {
     });
   },
 
+  // PUT /api/course/v1/featurecourse/superadmin/{id}/publish  (SUPER_ADMIN)
+  publishFeaturedProgram(id) {
+    return axios.put(
+      `${API}/course/v1/featurecourse/superadmin/${id}/publish`,
+      null,
+      { headers: authHeader() },
+    );
+  },
+
   // POST /api/course/v1/featurecourse/superadmin/ai-generate  (SUPER_ADMIN)
   generateFeaturedProgramWithAI(data) {
     // data = { topic, category, level }
@@ -518,5 +527,123 @@ export const courseService = {
       { orderedIds },
       { headers: authHeader() },
     );
+  },
+
+  // ===================== WISHLIST ENDPOINTS =====================
+  // Base path: /api/course/v1/wishlist  (requires login — Bearer token)
+
+  toggleWishlist(programId) {
+    return axios.post(`${API}/course/v1/wishlist/toggle/${programId}`, null, {
+      headers: authHeader(),
+    });
+  },
+
+  getMyWishlist() {
+    return axios.get(`${API}/course/v1/wishlist/my`, {
+      headers: authHeader(),
+    });
+  },
+
+  // ===================== BANNER STUDIO ENDPOINTS =====================
+  // Base path: /api/banners  (SUPER_ADMIN — CMS Management > Banner Studio)
+
+  // GET /api/banners?status=all&search=
+  getAllBanners(status = "all", search = "") {
+    return axios.get(`${API}/banners`, {
+      params: { status, search },
+      headers: authHeader(),
+    });
+  },
+
+  // GET /api/banners/{id}
+  getBannerById(id) {
+    return axios.get(`${API}/banners/${id}`, {
+      headers: authHeader(),
+    });
+  },
+
+  // POST /api/banners
+  createBanner(data) {
+    return axios.post(`${API}/banners`, data, {
+      headers: authHeader(),
+    });
+  },
+
+  // PUT /api/banners/{id}
+  updateBanner(id, data) {
+    return axios.put(`${API}/banners/${id}`, data, {
+      headers: authHeader(),
+    });
+  },
+
+  // DELETE /api/banners/{id}
+  deleteBanner(id) {
+    return axios.delete(`${API}/banners/${id}`, {
+      headers: authHeader(),
+    });
+  },
+
+  // POST /api/banners/{id}/duplicate
+  duplicateBanner(id) {
+    return axios.post(`${API}/banners/${id}/duplicate`, null, {
+      headers: authHeader(),
+    });
+  },
+
+  // PATCH /api/banners/{id}/publish
+  publishBannerNow(id) {
+    return axios.patch(`${API}/banners/${id}/publish`, null, {
+      headers: authHeader(),
+    });
+  },
+
+  // PATCH /api/banners/{id}/schedule
+  scheduleBanner(id, startDate, startTime) {
+    return axios.patch(
+      `${API}/banners/${id}/schedule`,
+      { startDate, startTime },
+      { headers: authHeader() },
+    );
+  },
+
+  // PATCH /api/banners/{id}/status
+  updateBannerStatus(id, status) {
+    return axios.patch(
+      `${API}/banners/${id}/status`,
+      { status },
+      { headers: authHeader() },
+    );
+  },
+
+  // PATCH /api/banners/{id}/view  (analytics — impression tracking, public)
+  registerBannerView(id) {
+    return axios.patch(`${API}/banners/${id}/view`);
+  },
+
+  // PATCH /api/banners/{id}/click  (analytics — click tracking, public)
+  registerBannerClick(id) {
+    return axios.patch(`${API}/banners/${id}/click`);
+  },
+
+  // POST /api/banners/ai-generate  (SUPER_ADMIN — AIStudioSection "Generate with AI")
+  generateBannerWithAI(data) {
+    // data = { prompt, audience, theme, bannerType, style }
+    return axios.post(`${API}/banners/ai-generate`, data, {
+      headers: authHeader(),
+    });
+  },
+
+  // POST /api/banners/ai-generate/save  ("Add to Banners" button)
+  saveAiGeneratedBanner(aiResult) {
+    return axios.post(`${API}/banners/ai-generate/save`, aiResult, {
+      headers: authHeader(),
+    });
+  },
+
+  // GET /api/banners?status=active  (public — used by LMSHomepage promo strip)
+  getActiveBanners() {
+    return axios.get(`${API}/banners`, {
+      params: { status: "active" },
+    });
   },
 };

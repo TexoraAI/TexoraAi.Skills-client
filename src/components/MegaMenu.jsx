@@ -151,10 +151,9 @@
 
 // /* ─────────────────────────────────────────────────────────────────
 //    MOBILE FULL-SCREEN NAVIGATION
-//    Only rendered when windowWidth < 1024  (matches LMSHomepage lg breakpoint)
 // ───────────────────────────────────────────── */
 // function MobileFullScreenNav({ onItemClick, onClose }) {
-//   const [view, setView] = useState("main"); // "main" | "category"
+//   const [view, setView] = useState("main");
 //   const [selectedCategory, setSelectedCategory] = useState(null);
 
 //   const handleCategoryClick = (cat) => {
@@ -360,13 +359,11 @@
 //         {/* Items */}
 //         <div style={{ flex: 1, padding: "8px 0 32px" }}>
 //           {cat.id === "courses" ? (
-//             /* Courses: grouped by Product / Design / Growth */
 //             COURSE_GROUPS.map(({ key, label, Icon: GIcon }) => {
 //               const groupItems = cat.items.filter((i) => i.tab === key);
 //               if (!groupItems.length) return null;
 //               return (
 //                 <div key={key}>
-//                   {/* Group label */}
 //                   <div style={{
 //                     display: "flex",
 //                     alignItems: "center",
@@ -430,7 +427,6 @@
 //               );
 //             })
 //           ) : cat.isGulf ? (
-//             /* Gulf: flag + country name */
 //             cat.items.map((item) => (
 //               <button
 //                 key={item.name}
@@ -475,7 +471,6 @@
 //               </button>
 //             ))
 //           ) : (
-//             /* All other categories (including ilm-ora-feature) */
 //             cat.items.map((item) => {
 //               const ItemIcon = item.Icon;
 //               return (
@@ -761,7 +756,6 @@
 //           display: inline-flex;
 //           align-items: center;
 //           font-family: 'Plus Jakarta Sans', sans-serif;
-//           /* Mobile resets are in the @media block below */
 //         }
 
 //         .mm-trigger {
@@ -785,35 +779,32 @@
 //           background: rgba(249,115,22,0.06) !important;
 //           color: #f97316 !important;
 //         }
+
+//         /* ── Desktop dark mode ── */
 //         html.dark .mm-trigger {
-//         color: #e5e7eb !important;
+//           color: #e5e7eb !important;
+//         }
+//         html.dark .mm-trigger:hover {
+//           color: #f97316 !important;
+//           background: rgba(249,115,22,0.08) !important;
 //         }
 
-//         html.dark .mm-trigger:hover {
-//         color: #f97316 !important;
-//         background: rgba(249,115,22,0.08) !important;
-//         }
-//         /* ── MOBILE ONLY: make All Courses row identical to ILM ORA Feature / More ── */
+//         /* ── MOBILE ONLY (< 1024px) ── */
 //         @media (max-width: 1023px) {
 //           .mm-root {
-//             /* Completely reset — no flex/inline-flex, no position offset, no size constraint */
 //             all: unset !important;
 //             display: block !important;
 //             width: 100% !important;
 //             box-sizing: border-box !important;
 //           }
 //           .mm-trigger {
-//             /* Reset button defaults first */
 //             all: unset !important;
-//             /* Then apply exactly matching styles as ILM ORA Feature / More rows */
 //             display: flex !important;
 //             width: 100% !important;
 //             box-sizing: border-box !important;
 //             flex-direction: row !important;
 //             align-items: center !important;
 //             justify-content: space-between !important;
-//             /* Padding: 0 horizontal (parent nav's px-6 = 24px handles it),
-//                vertical matches accordion sibling rows */
 //             padding: 14px 0px 14px 0px !important;
 //             margin: 0 !important;
 //             border: none !important;
@@ -821,11 +812,11 @@
 //             border-radius: 0 !important;
 //             background: transparent !important;
 //             cursor: pointer !important;
-//             /* Font — match exactly to ILM ORA Feature / More / ILM ORA Meet */
 //             font-family: inherit !important;
 //             font-size: 15px !important;
 //             font-weight: 600 !important;
 //             line-height: 1.5 !important;
+//             /* ── KEY FIX: always dark text on mobile regardless of dark mode ── */
 //             color: #1a1a2e !important;
 //             letter-spacing: 0 !important;
 //             white-space: nowrap !important;
@@ -834,24 +825,47 @@
 //             appearance: none !important;
 //           }
 //           .mm-trigger:hover,
-// .mm-trigger:focus {
-//   background: transparent !important;
-//   color: #1a1a2e !important;
-//   outline: none !important;
-// }
+//           .mm-trigger:focus {
+//             background: transparent !important;
+//             color: #1a1a2e !important;
+//             outline: none !important;
+//           }
 //           .mm-trigger .mm-chevron {
 //             color: #6b7280 !important;
 //             flex-shrink: 0 !important;
 //             opacity: 1 !important;
 //           }
-//         html.dark .mm-trigger {
-//   color: #ffffff !important;
-// }
 
-// html.dark .mm-trigger:hover,
-// html.dark .mm-trigger:focus {
-//   color: #ffffff !important;
-// }
+//           /* ── DARK MODE inside mobile: keep trigger text dark (white overlay always) ── */
+//           html.dark .mm-trigger {
+//             color: #1a1a2e !important;
+//             border-bottom-color: rgba(0,0,0,0.08) !important;
+//           }
+//           html.dark .mm-trigger:hover,
+//           html.dark .mm-trigger:focus {
+//             color: #1a1a2e !important;
+//             background: transparent !important;
+//           }
+//           html.dark .mm-trigger .mm-chevron {
+//             color: #6b7280 !important;
+//           }
+//         }
+
+//         /* Trigger label — explicit dark text always on mobile */
+//         .mm-trigger-label {
+//           color: #1a1a2e;
+//         }
+//         html.dark .mm-trigger-label {
+//           color: #ffffff;
+//         }
+//         @media (max-width: 1023px) {
+//           .mm-trigger-label {
+//             color: #1a1a2e !important;
+//           }
+//           /* ── KEY FIX: on mobile, label is ALWAYS dark — the overlay is white ── */
+//           html.dark .mm-trigger-label {
+//             color: #1a1a2e !important;
+//           }
 //         }
 
 //         .mm-chevron {
@@ -1227,16 +1241,17 @@
 //             fontSize: "15px",
 //             fontWeight: 600,
 //             lineHeight: 1.5,
-//             color: "inherit",
 //             letterSpacing: 0,
 //             cursor: "pointer",
 //             textAlign: "left",
 //             WebkitAppearance: "none",
+//             /* Inline style also forces dark text on mobile */
+//             color: "#1a1a2e",
 //           } : {}}
 //         >
 //           <span className="mm-trigger-label">
-//           All Courses
-//          </span>
+//             All Courses
+//           </span>
 //           <ChevronDown
 //             size={18}
 //             className={`mm-chevron ${isOpen ? "mm-chevron--open" : ""}`}
@@ -1254,11 +1269,6 @@
 //     </>
 //   );
 // }
-
-
-
-
-
 
 
 
@@ -2068,24 +2078,24 @@ export default function MegaMenu({ onItemClick }) {
           font-family: 'Plus Jakarta Sans', inherit !important;
           font-size: 14.5px !important;
           font-weight: 600 !important;
-          color: inherit !important;
+          color: #ffffff !important;
           cursor: pointer !important;
-          transition: all 0.18s ease !important;
+          transition: all 0.3s ease !important;
           white-space: nowrap !important;
           letter-spacing: -0.01em !important;
         }
         .mm-trigger:hover {
-          background: rgba(249,115,22,0.06) !important;
+          background: rgba(249,115,22,0.1) !important;
           color: #f97316 !important;
         }
 
-        /* ── Desktop dark mode ── */
+        /* ── Desktop dark mode (kept in sync — navbar is always dark now) ── */
         html.dark .mm-trigger {
-          color: #e5e7eb !important;
+          color: #ffffff !important;
         }
         html.dark .mm-trigger:hover {
           color: #f97316 !important;
-          background: rgba(249,115,22,0.08) !important;
+          background: rgba(249,115,22,0.1) !important;
         }
 
         /* ── MOBILE ONLY (< 1024px) ── */
@@ -2150,9 +2160,9 @@ export default function MegaMenu({ onItemClick }) {
           }
         }
 
-        /* Trigger label — explicit dark text always on mobile */
+        /* Trigger label — white by default on desktop since navbar is always dark */
         .mm-trigger-label {
-          color: #1a1a2e;
+          color: #ffffff;
         }
         html.dark .mm-trigger-label {
           color: #ffffff;
@@ -2180,13 +2190,13 @@ export default function MegaMenu({ onItemClick }) {
           top: calc(100% + 12px);
           left: 0;
           z-index: 9999;
-          background: #ffffff;
-          border: 1px solid rgba(226,232,240,0.8);
+          background: #1F1D1F;
+          border: 1px solid rgba(255,255,255,0.08);
           border-radius: 20px;
           box-shadow:
-            0 4px 6px -1px rgba(0,0,0,0.04),
-            0 24px 48px -8px rgba(0,0,0,0.14),
-            0 0 0 1px rgba(255,255,255,0.6) inset;
+            0 4px 6px -1px rgba(0,0,0,0.2),
+            0 24px 48px -8px rgba(0,0,0,0.5),
+            0 0 0 1px rgba(255,255,255,0.03) inset;
           overflow: hidden;
           animation: mmIn 0.2s cubic-bezier(.16,1,.3,1);
           min-width: 860px;
@@ -2202,8 +2212,8 @@ export default function MegaMenu({ onItemClick }) {
         .mm-left {
           width: 248px;
           flex-shrink: 0;
-          background: #fafafa;
-          border-right: 1px solid #f0f0f0;
+          background: #191818;
+          border-right: 1px solid rgba(255,255,255,0.08);
           overflow-y: auto;
           padding: 16px 0 12px;
           scrollbar-width: none;
@@ -2215,7 +2225,7 @@ export default function MegaMenu({ onItemClick }) {
           font-weight: 700;
           letter-spacing: 0.1em;
           text-transform: uppercase;
-          color: #a0aec0;
+          color: #9CA3AF;
           padding: 0 16px 10px;
         }
 
@@ -2232,9 +2242,9 @@ export default function MegaMenu({ onItemClick }) {
           text-align: left;
           transition: background 0.15s;
         }
-        .mm-left-item:hover { background: #f5f5f5; }
+        .mm-left-item:hover { background: rgba(255,255,255,0.04); }
         .mm-left-item--active {
-          background: #fff;
+          background: #232323;
           box-shadow: inset 3px 0 0 #f97316;
         }
         .mm-left-item-inner { display: flex; align-items: center; gap: 11px; min-width: 0; flex: 1; }
@@ -2246,10 +2256,10 @@ export default function MegaMenu({ onItemClick }) {
           width: 36px;
           height: 36px;
           border-radius: 10px;
-          background: #fff5ee;
+          background: rgba(249,115,22,0.12);
           color: #f97316;
           flex-shrink: 0;
-          border: 1px solid rgba(249,115,22,0.12);
+          border: 1px solid rgba(249,115,22,0.18);
           transition: all 0.15s;
         }
         .mm-left-item--active .mm-left-icon {
@@ -2263,7 +2273,7 @@ export default function MegaMenu({ onItemClick }) {
         .mm-left-label {
           font-size: 13px;
           font-weight: 700;
-          color: #1a1a2e;
+          color: #ffffff;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -2272,7 +2282,7 @@ export default function MegaMenu({ onItemClick }) {
         .mm-left-item--active .mm-left-label { color: #f97316; }
         .mm-left-desc {
           font-size: 10.5px;
-          color: #9ca3af;
+          color: #9CA3AF;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -2291,17 +2301,17 @@ export default function MegaMenu({ onItemClick }) {
           overflow-y: auto;
           padding: 20px 20px 0;
           scrollbar-width: thin;
-          scrollbar-color: #e2e8f0 transparent;
+          scrollbar-color: rgba(255,255,255,0.15) transparent;
           display: flex;
           flex-direction: column;
         }
         .mm-right::-webkit-scrollbar { width: 4px; }
-        .mm-right::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
+        .mm-right::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
 
         .mm-right-header {
           margin-bottom: 14px;
           padding-bottom: 14px;
-          border-bottom: 1px solid #f3f4f6;
+          border-bottom: 1px solid rgba(255,255,255,0.08);
         }
         .mm-right-header-top {
           display: flex;
@@ -2315,22 +2325,22 @@ export default function MegaMenu({ onItemClick }) {
           gap: 5px;
           padding: 3px 10px 3px 8px;
           border-radius: 100px;
-          background: #fff5ee;
-          border: 1px solid rgba(249,115,22,0.2);
+          background: rgba(249,115,22,0.12);
+          border: 1px solid rgba(249,115,22,0.25);
           color: #f97316;
           font-size: 11px;
           font-weight: 700;
         }
-        .mm-right-note { font-size: 10.5px; color: #9ca3af; font-style: italic; }
+        .mm-right-note { font-size: 10.5px; color: #9CA3AF; font-style: italic; }
         .mm-right-heading {
           font-size: 20px;
           font-weight: 800;
-          color: #0f172a;
+          color: #ffffff;
           letter-spacing: -0.03em;
           margin: 0 0 3px;
           line-height: 1.2;
         }
-        .mm-right-sub { font-size: 12px; color: #6b7280; margin: 0; }
+        .mm-right-sub { font-size: 12px; color: #9CA3AF; margin: 0; }
 
         .mm-course-tabs { display: flex; flex-direction: column; gap: 14px; flex: 1; }
         .mm-course-group-label {
@@ -2342,8 +2352,8 @@ export default function MegaMenu({ onItemClick }) {
           text-transform: uppercase;
           letter-spacing: 0.08em;
           color: #f97316;
-          background: #fff5ee;
-          border: 1px solid rgba(249,115,22,0.15);
+          background: rgba(249,115,22,0.12);
+          border: 1px solid rgba(249,115,22,0.2);
           padding: 3px 10px;
           border-radius: 100px;
           margin-bottom: 7px;
@@ -2363,8 +2373,8 @@ export default function MegaMenu({ onItemClick }) {
           gap: 10px;
           padding: 10px 12px;
           border-radius: 12px;
-          border: 1px solid #f3f4f6;
-          background: #fafafa;
+          border: 1px solid rgba(255,255,255,0.08);
+          background: #232323;
           cursor: pointer;
           text-align: left;
           transition: all 0.18s ease;
@@ -2375,14 +2385,14 @@ export default function MegaMenu({ onItemClick }) {
           content: '';
           position: absolute;
           inset: 0;
-          background: linear-gradient(135deg, rgba(249,115,22,0.04) 0%, transparent 60%);
+          background: linear-gradient(135deg, rgba(249,115,22,0.08) 0%, transparent 60%);
           opacity: 0;
           transition: opacity 0.18s;
         }
         .mm-item-card:hover {
-          background: #fff;
-          border-color: rgba(249,115,22,0.25);
-          box-shadow: 0 4px 16px rgba(249,115,22,0.1);
+          background: #2A2A2A;
+          border-color: rgba(249,115,22,0.35);
+          box-shadow: 0 4px 16px rgba(249,115,22,0.15);
           transform: translateY(-1px);
         }
         .mm-item-card:hover::before { opacity: 1; }
@@ -2396,12 +2406,12 @@ export default function MegaMenu({ onItemClick }) {
         .mm-item-card--disabled:hover {
           transform: none;
           box-shadow: none;
-          border-color: #f3f4f6;
-          background: #fafafa;
+          border-color: rgba(255,255,255,0.08);
+          background: #232323;
         }
         .mm-item-card--disabled:hover::before { opacity: 0; }
-        .mm-item-card--disabled:hover .mm-item-name { color: #1a1a2e; }
-        .mm-item-card--disabled:hover .mm-item-icon-wrap { background: #fff5ee; color: #f97316; box-shadow: none; }
+        .mm-item-card--disabled:hover .mm-item-name { color: #ffffff; }
+        .mm-item-card--disabled:hover .mm-item-icon-wrap { background: rgba(249,115,22,0.12); color: #f97316; box-shadow: none; }
 
         .mm-item-icon-wrap {
           display: flex;
@@ -2410,17 +2420,17 @@ export default function MegaMenu({ onItemClick }) {
           width: 36px;
           height: 36px;
           border-radius: 10px;
-          background: #fff5ee;
+          background: rgba(249,115,22,0.12);
           color: #f97316;
           flex-shrink: 0;
-          border: 1px solid rgba(249,115,22,0.1);
+          border: 1px solid rgba(249,115,22,0.15);
           transition: all 0.18s ease;
         }
         .mm-item-body { flex: 1; display: flex; flex-direction: column; min-width: 0; }
         .mm-item-name {
           font-size: 12.5px;
           font-weight: 700;
-          color: #1a1a2e;
+          color: #ffffff;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -2429,14 +2439,14 @@ export default function MegaMenu({ onItemClick }) {
         }
         .mm-item-desc {
           font-size: 10.5px;
-          color: #9ca3af;
+          color: #9CA3AF;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
           margin-top: 1px;
         }
         .mm-item-arrow {
-          color: #d1d5db;
+          color: #6B7280;
           opacity: 0;
           flex-shrink: 0;
           transition: all 0.18s ease;
@@ -2447,10 +2457,10 @@ export default function MegaMenu({ onItemClick }) {
           align-items: center;
           justify-content: space-between;
           padding: 12px 0 14px;
-          border-top: 1px solid #f3f4f6;
+          border-top: 1px solid rgba(255,255,255,0.08);
           margin-top: 14px;
         }
-        .mm-footer-text { font-size: 12px; color: #6b7280; }
+        .mm-footer-text { font-size: 12px; color: #9CA3AF; }
         .mm-footer-cta {
           display: inline-flex;
           align-items: center;
@@ -2458,7 +2468,7 @@ export default function MegaMenu({ onItemClick }) {
           padding: 7px 16px;
           border-radius: 100px;
           border: none;
-          background: #f97316;
+          background: linear-gradient(135deg, #F97316, #EA580C);
           color: #fff;
           font-size: 12px;
           font-weight: 700;
@@ -2468,9 +2478,8 @@ export default function MegaMenu({ onItemClick }) {
           font-family: 'Plus Jakarta Sans', sans-serif;
         }
         .mm-footer-cta:hover {
-          background: #ea6c0a;
           transform: translateY(-1px);
-          box-shadow: 0 4px 14px rgba(249,115,22,0.35);
+          box-shadow: 0 8px 20px rgba(249,115,22,0.35);
         }
 
         .mm-gulf-card { align-items: center; }
@@ -2483,8 +2492,8 @@ export default function MegaMenu({ onItemClick }) {
           justify-content: center;
           border-radius: 6px;
           overflow: hidden;
-          background: #f0f0f0;
-          border: 1px solid #e8e8e8;
+          background: #2A2A2A;
+          border: 1px solid rgba(255,255,255,0.08);
         }
         .mm-gulf-flag img {
           width: 44px;

@@ -97,6 +97,10 @@ const OrganizationDetailsPage = lazyLoad(() =>
 const SuperAdminCourseManagement = lazyLoad(
   () => import("./SuperAdmin/admin-control/SuperAdminCourseManagement"),
 );
+
+const SuperAdminFeedback = lazyLoad(
+  () => import("./SuperAdmin/admin-control/SuperAdminFeedback"),
+);
 // Near other SuperAdmin lazy imports
 const SuperAdminBatchControl = lazyLoad(
   () => import("./SuperAdmin/admin-control/SuperAdminBatchControl"),
@@ -173,7 +177,7 @@ const CoursePreview        = lazyLoad(() => import("./pages/CoursePreview"));
 const CourseDetail         = lazyLoad(() => import("./pages/Landing/CourseDetailsPage"));
 const LMSHomepage          = lazyLoad(() => import("./pages/Landing/LMSHomepage"));
 const SyllabusPage         = lazyLoad(() => import("./pages/Landing/Syllabus.jsx"));
-const Watchnow             = lazyLoad(() => import("./pages/Landing/Watchnow"));
+const WatchNow             = lazyLoad(() => import("./pages/Landing/WatchNow"));
 const Schoolclass          = lazyLoad(() => import("./pages/Landing/Schoolclass"));
 const Platforms            = lazyLoad(() => import("./pages/Landing/platforms"));
 const IlmoraMeet           = lazyLoad(() => import("./pages/Landing/ilmorameet"));
@@ -376,10 +380,9 @@ seedCMSData();
 
           {/* ================= LANDING ================= */}
             <Route path="/" element={<LMSHomepage theme={theme} toggleTheme={() => setTheme((prev) => (prev === "dark" ? "light" : "dark"))} />} />
-            <Route path="/watch-demo/:videoId" element={<Watchnow />} />
+            <Route path="/watch-demo/:videoId" element={<WatchNow />} />
             <Route path="/course/:id" element={<CoursePreview />} />
-            {/* <Route path="/course-details" element={<CourseDetail />} />
-            <Route path="/syllabus" element={<SyllabusPage />} /> */}
+            
             <Route path="/course-details/:id" element={<CourseDetail />} />
             <Route path="/syllabus/:id" element={<SyllabusPage />} />
             <Route path="/school-class" element={<Schoolclass />} />
@@ -637,7 +640,7 @@ seedCMSData();
 <Route path="pending-approvals" element={<PendingApprovalsPage />} />
 <Route path="batch-control" element={<SuperAdminBatchControl />}/>
  <Route path="courses" element={<SuperAdminCourseManagement />} />
- 
+ <Route path="feedback-review" element={<SuperAdminFeedback />} />
 {/* Organizations — static 'new' MUST be before dynamic :orgId */}
 <Route path="organizations" element={<OrganizationPage />} />
 <Route path="organizations/new" element={<NewOrganizationPage />} />

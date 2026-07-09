@@ -1,10 +1,55 @@
 import { useState } from "react";
+import TagInput from "./TagInput";
+import ImageUploadField from "./ImageUploadField";
+
+const SKILL_EXAMPLES = ["React", "Node.js", "MongoDB", "Git", "Docker", "TypeScript", "SQL", "AWS"];
+
+const DIFFICULTY_OPTIONS = ["Beginner", "Intermediate", "Advanced"];
+
+const emptyProject = { title: "", description: "", image: null, difficulty: "Beginner" };
 
 const EXAMPLES = [
   "Product Strategy", "Product Analytics", "Market Research",
   "Product Roadmapping", "User Research", "Agile Methodologies",
   "Stakeholder Management", "Go-to-Market Strategy",
 ];
+
+const ProjectCard = ({ project, onUpdate, onDelete }) => {
+  const set = (field, val) => onUpdate({ ...project, [field]: val });
+  return (
+    <div className="border border-gray-200 rounded-xl p-3 bg-white space-y-2.5">
+      <div className="flex gap-3">
+        <div className="w-20 flex-shrink-0">
+          <ImageUploadField value={project.image} onChange={(val) => set("image", val)} aspect="aspect-square" />
+        </div>
+        <div className="flex-1 space-y-2">
+          <input
+            type="text"
+            value={project.title}
+            onChange={(e) => set("title", e.target.value)}
+            placeholder="Project title"
+            className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+          />
+          <select
+            value={project.difficulty}
+            onChange={(e) => set("difficulty", e.target.value)}
+            className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+          >
+            {DIFFICULTY_OPTIONS.map((d) => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </div>
+      </div>
+      <textarea
+        value={project.description}
+        onChange={(e) => set("description", e.target.value)}
+        placeholder="Brief project description..."
+        rows={2}
+        className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-500 resize-none bg-white"
+      />
+      <button onClick={onDelete} className="text-xs text-red-500 hover:text-red-600 font-medium">🗑 Remove Project</button>
+    </div>
+  );
+};
 
 export default function LearningOutcomes({ data, onChange }) {
   const [editingId, setEditingId] = useState(null);
@@ -16,6 +61,15 @@ export default function LearningOutcomes({ data, onChange }) {
 
   const items = data.learningOutcomes || [];
   const setItems = (updated) => onChange({ ...data, learningOutcomes: updated });
+
+  const skills = data.skills || [];
+  const setSkills = (updated) => onChange({ ...data, skills: updated });
+
+  const projects = data.projects || [];
+  const setProjects = (updated) => onChange({ ...data, projects: updated });
+  const addProject = () => setProjects([...projects, { id: Date.now(), ...emptyProject }]);
+  const updateProject = (id, project) => setProjects(projects.map((p) => (p.id === id ? project : p)));
+  const deleteProject = (id) => setProjects(projects.filter((p) => p.id !== id));
 
   const handleAdd = () => {
     if (!newText.trim()) return;
@@ -135,6 +189,53 @@ export default function LearningOutcomes({ data, onChange }) {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Skills */}
+      <div className="pt-3 border-t border-gray-100">
+        <h3 className="text-sm font-bold text-gray-800 mb-1">Skills</h3>
+        <p className="text-xs text-gray-500 mb-2">Technologies and skills students will practice</p>
+        <TagInput
+          value={skills}
+          onChange={setSkills}
+          placeholder="e.g. React"
+          suggestions={SKILL_EXAMPLES}
+          colorClass="bg-violet-50 text-violet-700 border-violet-200"
+        />
+      </div>
+
+      {/* Projects */}
+      <div className="pt-3 border-t border-gray-100">
+        <div className="flex items-center justify-between mb-2">
+          <div>
+            <h3 className="text-sm font-bold text-gray-800">Projects</h3>
+            <p className="text-xs text-gray-500">Hands-on projects included in this program</p>
+          </div>
+          <button
+            onClick={addProject}
+            className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+          >
+            + Add Project
+          </button>
+        </div>
+
+        {projects.length === 0 ? (
+          <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center">
+            <div className="text-2xl mb-1.5">🛠</div>
+            <p className="text-xs text-gray-400">No projects yet. Add hands-on projects for this program.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {projects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                onUpdate={(p) => updateProject(project.id, p)}
+                onDelete={() => deleteProject(project.id)}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -168,3 +168,61 @@ export const deleteSource = (sourceId) =>
 
 export const notebookChat = ({ notebookId, message }) =>
   API.post(`/notebooks/${notebookId}/chat`, { message });
+// ── Feedback — Super Admin (batches with NO organization) ─────────────────
+
+/** GET /api/feedback/super-admin/batches — batchIds that belong to no org */
+export const getSuperAdminOrglessBatchIds = () =>
+  API.get("/feedback/super-admin/batches");
+
+/** GET /api/feedback/super-admin/feedback — all feedback across those batches */
+export const getSuperAdminFeedback = () =>
+  API.get("/feedback/super-admin/feedback");
+
+/** GET /api/feedback/super-admin/summaries */
+export const getSuperAdminSummaries = () =>
+  API.get("/feedback/super-admin/summaries");
+
+/** GET /api/feedback/super-admin/batch/{batchId} */
+export const getSuperAdminBatchFeedback = (batchId) =>
+  API.get(`/feedback/super-admin/batch/${batchId}`);
+
+/** GET /api/feedback/super-admin/batch/{batchId}/summaries */
+export const getSuperAdminBatchSummaries = (batchId) =>
+  API.get(`/feedback/super-admin/batch/${batchId}/summaries`);
+
+/** PATCH /api/feedback/super-admin/{feedbackId}/status  Body: { status } */
+export const updateSuperAdminFeedbackStatus = (feedbackId, status) =>
+  API.patch(`/feedback/super-admin/${feedbackId}/status`, { status });
+
+/** POST /api/feedback/super-admin/alert-config */
+export const createOrUpdateSuperAdminAlertConfig = (dto) =>
+  API.post("/feedback/super-admin/alert-config", dto);
+
+/** GET /api/feedback/super-admin/alert-config/{batchId} */
+export const getSuperAdminAlertConfig = (batchId) =>
+  API.get(`/feedback/super-admin/alert-config/${batchId}`);
+
+/** DELETE /api/feedback/super-admin/alert-config/{batchId} */
+export const deleteSuperAdminAlertConfig = (batchId) =>
+  API.delete(`/feedback/super-admin/alert-config/${batchId}`);
+
+// ── Chat Feature Flags ──────────────────────────────────────────
+
+/** GET /api/chat-feature-flags/org/{organizationId} */
+export const getOrgChatFeatureFlags = (organizationId) =>
+  API.get(`/chat-feature-flags/org/${organizationId}`);
+
+/** PUT /api/chat-feature-flags/org/{organizationId} */
+export const updateOrgChatFeatureFlags = (organizationId, dto) =>
+  API.put(`/chat-feature-flags/org/${organizationId}`, dto);
+
+/** GET /api/chat-feature-flags/individual?email=... */
+export const getIndividualChatFeatureFlags = (email) =>
+  API.get(`/chat-feature-flags/individual?email=${encodeURIComponent(email)}`);
+
+/** PUT /api/chat-feature-flags/individual?email=... */
+export const updateIndividualChatFeatureFlags = (email, dto) =>
+  API.put(
+    `/chat-feature-flags/individual?email=${encodeURIComponent(email)}`,
+    dto,
+  );

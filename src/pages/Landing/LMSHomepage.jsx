@@ -12,20 +12,25 @@
 // import { jwtDecode } from "jwt-decode";
 // import SignupModal from "./SignupModal";
 // import ForgotPasswordModal from "./ForgotPasswordModal";
+// import SplitText from "../../components/SplitText";
 // import {
 //   ArrowRight,
 //   Award,
 //   BarChart3,
 //   BookOpen,
 //   ChevronDown,
+//   ChevronLeft,
+//   ChevronRight,
 //   ClipboardList,
 //   Clock,
 //   FileText,
 //   GraduationCap,
+//   Heart,
 //   Lightbulb,
 //   LogOut,
 //   Menu,
 //   Moon,
+//   PlayCircle,
 //   Sparkles,
 //   Star,
 //   Sun,
@@ -43,16 +48,79 @@
 // import heroStudent2 from "../../assets/hero-student-2.png";
 // import heroStudent3 from "../../assets/hero-student-3.png";
 // import heroStudent from "../../assets/hero-student.png";
+// import ctaStudent from "../../assets/cta-student.png";
 // import auth from "../../auth";
 // import MegaMenu from "../../components/MegaMenu";
 // import authService from "../../services/authService";
 // import { courseService } from "../../services/courseService";
 // import { subscribeNewsletter } from "../../services/notificationService";
 // import TexoraFloatingWidget from "./components/TexoraFloatingWidget";
-
+// import HorizontalCarousel from "./components/HorizontalCarousel";
+// import CategoryTabScroller from "./components/CategoryTabScroller";
+// import WatchNowSection from "./components/WatchNow";
 // const GOOGLE_CLIENT_ID =
 //   "572421778240-akk3kkb4f60ukuv9pcfrpg2ielm09thk.apps.googleusercontent.com";
 // const NEWSLETTER_KEY = "ilmora_newsletter_subscribers";
+
+// /* ── Fallback data for the "Top Global Companies" section ──
+//    Used only while the backend call is loading or if it returns nothing. */
+// const FALLBACK_TECH_PARTNERS = [
+//   { src: "/aws.png", name: "AWS", desc: "Amazon Web Services" },
+//   { src: "/Google.jpg", name: "Google Cloud", desc: "Google Cloud Platform" },
+//   { src: "/Amazone.jpg", name: "Amazon AWS", desc: "Amazon Web Services" },
+//   {
+//     src: "/Micrososft.jpg",
+//     name: "Microsoft Azure",
+//     desc: "Microsoft Cloud Platform",
+//   },
+// ];
+
+// const FALLBACK_BIZ_PARTNERS = [
+//   { src: "/Picture1.jpg", name: "Texora AI", desc: "AI & Digital Solutions" },
+//   {
+//     src: "/UFS-Logo.jpg",
+//     name: "UFS Network",
+//     desc: "Unified Consultancy Services",
+//   },
+// ];
+
+// const ECOSYSTEM_COLORS = ["blue", "orange", "purple", "green", "rose"];
+
+// const FALLBACK_ECOSYSTEM = [
+//   {
+//     name: "TORA CX",
+//     color: "blue",
+//     desc: "Customer experience platform",
+//     Icon: null,
+//     svgPath: (
+//       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+//     ),
+//   },
+//   {
+//     name: "UNIFIED CRM",
+//     color: "orange",
+//     desc: "AI-driven CRM for sales",
+//     Icon: Users,
+//   },
+//   {
+//     name: "ILM ORA",
+//     color: "purple",
+//     desc: "LMS with AI learning paths",
+//     Icon: GraduationCap,
+//   },
+//   {
+//     name: "INNOVORA AI",
+//     color: "green",
+//     desc: "AI-powered innovation suite",
+//     Icon: Lightbulb,
+//   },
+//   {
+//     name: "TASK ORBIT",
+//     color: "rose",
+//     desc: "AI-powered task management",
+//     Icon: ClipboardList,
+//   },
+// ];
 
 // function getSubscribers() {
 //   try {
@@ -755,20 +823,20 @@
 
 //   return (
 //     <div className="flex flex-col gap-1">
-//       <h4 className="text-sm md:text-base font-bold tracking-wide text-[#1E293B] leading-snug">
+//       <h4 className="text-sm md:text-base font-bold tracking-wide text-white leading-snug">
 //         Be the first to know
 //       </h4>
 //       <div
 //         style={{
 //           display: "flex",
-//           background: status === "error" ? "rgba(248,113,113,0.06)" : "#f8fafc",
+//           background: status === "error" ? "rgba(248,113,113,0.08)" : "#232323",
 //           borderRadius: "8px",
 //           border:
 //             status === "error"
 //               ? "1.5px solid #f87171"
 //               : status === "success"
 //                 ? "1.5px solid #22c55e"
-//                 : "1.5px solid #e2e8f0",
+//                 : "1.5px solid rgba(255,255,255,0.08)",
 //           overflow: "hidden",
 //           transition: "border-color 0.2s",
 //         }}
@@ -780,14 +848,15 @@
 //           onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
 //           placeholder="marketing@texora.ai"
 //           disabled={status === "loading" || status === "success"}
+//           className="placeholder:text-[#9CA3AF]"
 //           style={{
 //             flex: 1,
 //             background: "transparent",
 //             border: "none",
 //             outline: "none",
-//             color: "#1E293B",
+//             color: "#FFFFFF",
 //             fontSize: "13px",
-//             padding: "9px 12px",
+//             padding: "8px 12px",
 //             minWidth: 0,
 //           }}
 //         />
@@ -795,24 +864,24 @@
 //           onClick={handleSubmit}
 //           disabled={status === "loading" || status === "success"}
 //           style={{
-//             background: status === "success" ? "#22c55e" : "#1E293B",
+//             background: status === "success" ? "#22c55e" : "#F97316",
 //             border: "none",
 //             cursor: "pointer",
 //             padding: "0 14px",
 //             display: "flex",
 //             alignItems: "center",
 //             justifyContent: "center",
-//             minWidth: "42px",
+//             minWidth: "40px",
 //             transition: "background 0.2s",
 //             flexShrink: 0,
 //           }}
 //           onMouseEnter={(e) => {
 //             if (status !== "success")
-//               e.currentTarget.style.background = "#F97316";
+//               e.currentTarget.style.background = "#EA580C";
 //           }}
 //           onMouseLeave={(e) => {
 //             if (status !== "success")
-//               e.currentTarget.style.background = "#1E293B";
+//               e.currentTarget.style.background = "#F97316";
 //           }}
 //         >
 //           {status === "loading" ? (
@@ -877,7 +946,14 @@
 //       )}
 
 //       <div>
-//         <span className="inline-flex items-center gap-2 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full">
+//         <span
+//           className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full"
+//           style={{
+//             color: "#22C55E",
+//             background: "rgba(22,163,74,0.15)",
+//             border: "1px solid rgba(22,163,74,0.30)",
+//           }}
+//         >
 //           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
 //           Status: Live
 //         </span>
@@ -1146,11 +1222,174 @@
 //   );
 // }
 
+// // MentorTestimonialCarousel — horizontally scrollable testimonial cards with
+// // arrow navigation + dot pagination. Purely presentational; consumes the
+// // same `testimonials` array/state already loaded from the backend — no
+// // data-fetching or business logic here.
+// // ─────────────────────────────────────────────────────────────────────────────
+
+// // Small avatar helper: shows the backend image in a circular frame,
+// // falls back to initials if there's no image or the image fails to load.
+// function MentorAvatar({ name, image }) {
+//   const [imgError, setImgError] = useState(false);
+//   const initials = (name || "").charAt(0).toUpperCase();
+
+//   return (
+//     <div className="w-9 h-9 rounded-full flex-shrink-0 overflow-hidden bg-[#1E293B] dark:bg-[#F97316] flex items-center justify-center text-white font-bold text-sm">
+//       {image && !imgError ? (
+//         <img
+//           src={image}
+//           alt={name}
+//           className="w-full h-full object-cover"
+//           onError={() => setImgError(true)}
+//         />
+//       ) : (
+//         <span>{initials}</span>
+//       )}
+//     </div>
+//   );
+// }
+
+// function MentorTestimonialCarousel({ testimonials }) {
+//   const scrollerRef = useRef(null);
+//   const [activeIndex, setActiveIndex] = useState(0);
+
+//   const scrollToIndex = (index) => {
+//     const el = scrollerRef.current;
+//     if (!el) return;
+//     const card = el.children[index];
+//     if (card) {
+//       el.scrollTo({
+//         left: card.offsetLeft - el.offsetLeft,
+//         behavior: "smooth",
+//       });
+//     }
+//     setActiveIndex(index);
+//   };
+
+//   const handlePrev = () => scrollToIndex(Math.max(activeIndex - 1, 0));
+//   const handleNext = () =>
+//     scrollToIndex(Math.min(activeIndex + 1, testimonials.length - 1));
+
+//   const handleScroll = () => {
+//     const el = scrollerRef.current;
+//     if (!el) return;
+//     let closest = 0;
+//     let closestDist = Infinity;
+//     Array.from(el.children).forEach((child, i) => {
+//       const dist = Math.abs(child.offsetLeft - el.scrollLeft - el.offsetLeft);
+//       if (dist < closestDist) {
+//         closestDist = dist;
+//         closest = i;
+//       }
+//     });
+//     setActiveIndex(closest);
+//   };
+
+//   if (!testimonials || testimonials.length === 0) return null;
+
+//   return (
+//     <div className="relative">
+//       <style>{`
+//         .mentor-scroll::-webkit-scrollbar { display: none; }
+//         .mentor-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+//       `}</style>
+
+//       {/* Prev / Next arrows — desktop & tablet */}
+//       <button
+//         onClick={handlePrev}
+//         aria-label="Previous testimonial"
+//         disabled={activeIndex === 0}
+//         className="hidden sm:flex absolute -left-4 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-md items-center justify-center hover:bg-[#F6EDE6] dark:hover:bg-gray-800 transition disabled:opacity-30 disabled:cursor-not-allowed"
+//       >
+//         <ChevronLeft className="w-4 h-4 text-[#1E293B] dark:text-white" />
+//       </button>
+//       <button
+//         onClick={handleNext}
+//         aria-label="Next testimonial"
+//         disabled={activeIndex === testimonials.length - 1}
+//         className="hidden sm:flex absolute -right-4 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-md items-center justify-center hover:bg-[#F6EDE6] dark:hover:bg-gray-800 transition disabled:opacity-30 disabled:cursor-not-allowed"
+//       >
+//         <ChevronRight className="w-4 h-4 text-[#1E293B] dark:text-white" />
+//       </button>
+
+//       {/* Card scroller — tightened padding/gaps for a more compact feel */}
+//       <div
+//         ref={scrollerRef}
+//         onScroll={handleScroll}
+//         style={{ scrollSnapType: "x mandatory" }}
+//         className="mentor-scroll flex gap-4 overflow-x-auto pb-2 px-1"
+//       >
+//         {testimonials.map((t, i) => (
+//           <div
+//             key={i}
+//             style={{ scrollSnapAlign: "start" }}
+//             className="min-w-full sm:min-w-[calc(50%-8px)] flex-shrink-0 bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all"
+//           >
+//             <div className="flex items-center gap-1 mb-2.5">
+//               {[...Array(5)].map((_, j) => (
+//                 <Star
+//                   key={j}
+//                   className="w-3.5 h-3.5 fill-amber-400 text-amber-400"
+//                 />
+//               ))}
+//             </div>
+//             <p className="text-gray-600 dark:text-gray-300 mb-3.5 italic leading-snug text-sm">
+//               "{t.text}"
+//             </p>
+//             <div className="flex items-center gap-2.5">
+//               <MentorAvatar name={t.name} image={t.image} />
+//               <div>
+//                 <p className="font-semibold text-[#1E293B] dark:text-white text-sm leading-tight">
+//                   {t.name}
+//                 </p>
+//                 <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">
+//                   {t.role}
+//                 </p>
+//               </div>
+//             </div>
+//           </div>
+//         ))}
+//       </div>
+
+//       {/* Dot pagination */}
+//       <div className="flex items-center justify-center gap-2 mt-4">
+//         {testimonials.map((_, i) => (
+//           <button
+//             key={i}
+//             onClick={() => scrollToIndex(i)}
+//             aria-label={`Go to testimonial ${i + 1}`}
+//             style={{
+//               width: activeIndex === i ? "22px" : "8px",
+//               height: "8px",
+//               borderRadius: "9999px",
+//               background: activeIndex === i ? "#F97316" : "#CBD5E1",
+//               border: "none",
+//               cursor: "pointer",
+//               padding: 0,
+//               transition: "width 0.3s ease, background 0.3s ease",
+//             }}
+//           />
+//         ))}
+//       </div>
+//     </div>
+//   );
+// }
+
 // // ─────────────────────────────────────────────────────────────────────────────
 // export default function LMSHomepage({ theme, toggleTheme }) {
 //   const [activeTab, setActiveTab] = useState("product");
 //   const [featuredPrograms, setFeaturedPrograms] = useState({});
 //   const [programsLoading, setProgramsLoading] = useState(true);
+//   const [wishlist, setWishlist] = useState(new Set());
+
+//   // ── Mentors (testimonials) — now backend-connected ──
+//   const [testimonials, setTestimonials] = useState([]);
+
+//   // ── Top Global Companies — now backend-connected ──
+//   const [companyData, setCompanyData] = useState(null);
+//   const [companiesLoading, setCompaniesLoading] = useState(true);
+
 //   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 //   const [scrolled, setScrolled] = useState(false);
 //   const [user, setUser] = useState(null);
@@ -1256,6 +1495,41 @@
 //       }
 //     }
 //     loadPrograms();
+//   }, []);
+
+//   /* ── Load real mentor feedback (testimonials) from the backend ── */
+//   useEffect(() => {
+//     async function loadMentorFeedback() {
+//       try {
+//         const { data } = await courseService.getActiveMentorFeedbacks();
+//         const mapped = data.map((m) => ({
+//           name: m.candidateName,
+//           role: `${m.designation} @ ${m.company}`,
+//           text: m.feedbackMessage,
+//           // Accept whichever image field the backend actually sends
+//           image: m.profileImage || m.image || m.imageUrl || m.photo || null,
+//         }));
+//         setTestimonials(mapped);
+//       } catch (err) {
+//         console.error("Failed to load mentor feedback", err);
+//       }
+//     }
+//     loadMentorFeedback();
+//   }, []);
+
+//   /* ── Load real companies (tech / business partners + product ecosystem) ── */
+//   useEffect(() => {
+//     async function loadCompanies() {
+//       try {
+//         const { data } = await courseService.getActiveCompanies();
+//         setCompanyData(data);
+//       } catch (err) {
+//         console.error("Failed to load companies", err);
+//       } finally {
+//         setCompaniesLoading(false);
+//       }
+//     }
+//     loadCompanies();
 //   }, []);
 
 //   useEffect(() => {
@@ -1697,24 +1971,6 @@
 //     ],
 //   };
 
-//   const testimonials = [
-//     {
-//       name: "Priya Sharma",
-//       role: "Product Manager @ Flipkart",
-//       text: "LMS helped me transition from engineering to PM. The mentorship was invaluable!",
-//     },
-//     {
-//       name: "Rahul Verma",
-//       role: "UX Designer @ Zomato",
-//       text: "Best investment in my career. Landed my dream job within 3 months of completing the course.",
-//     },
-//     {
-//       name: "Ananya Singh",
-//       role: "Growth Lead @ CRED",
-//       text: "The practical insights and real-world case studies made all the difference.",
-//     },
-//   ];
-
 //   const features = [
 //     {
 //       icon: Target,
@@ -1779,6 +2035,46 @@
 //         "bg-[#1E293B]/10 text-[#1E293B] dark:bg-white/10 dark:text-white border border-[#1E293B]/20 dark:border-white/20",
 //     })[level] || "bg-gray-100 text-gray-700";
 
+//   /* ── Presentational-only helpers for the redesigned course cards ──
+//      These do not touch any API/data-fetching logic — they simply
+//      derive display values (initials, strike-through price, discount
+//      badge) from the existing course fields. */
+//   const getInitials = (name = "") =>
+//     name
+//       .replace(/^Ex-/i, "")
+//       .split(" ")
+//       .filter(Boolean)
+//       .slice(0, 2)
+//       .map((w) => w[0])
+//       .join("")
+//       .toUpperCase() || "IN";
+
+//   const getPricing = (price) => {
+//     const current = parseInt(String(price).replace(/[^\d]/g, ""), 10) || 0;
+//     const original = Math.round((current * 1.35) / 1000) * 1000;
+//     const discount =
+//       original > current
+//         ? Math.round(((original - current) / original) * 100)
+//         : 0;
+//     return {
+//       current: `₹${current.toLocaleString("en-IN")}`,
+//       original: `₹${original.toLocaleString("en-IN")}`,
+//       discount,
+//     };
+//   };
+
+//   const toggleWishlist = (id) => {
+//     setWishlist((prev) => {
+//       const next = new Set(prev);
+//       if (next.has(id)) {
+//         next.delete(id);
+//       } else {
+//         next.add(id);
+//       }
+//       return next;
+//     });
+//   };
+
 //   const navLinks = [
 //     { text: "Mentors", href: "#mentors" },
 //     { text: "Success Stories", href: "#successstories" },
@@ -1786,25 +2082,28 @@
 
 //   const navButtons = [];
 
-//   const techPartners = [
-//     { src: "/aws.png", name: "AWS", desc: "Amazon Web Services" },
-//     { src: "/Google.jpg", name: "Google Cloud", desc: "Google Cloud Platform" },
-//     { src: "/Amazone.jpg", name: "Amazon AWS", desc: "Amazon Web Services" },
-//     {
-//       src: "/Micrososft.jpg",
-//       name: "Microsoft Azure",
-//       desc: "Microsoft Cloud Platform",
-//     },
-//   ];
+//   /* ── Top Global Companies — derived from backend `companyData`,
+//      falling back to static data while loading / on empty response. ── */
+//   const mapCompany = (c) => ({
+//     src: c.uploadedLogo || c.logoUrl,
+//     name: c.name,
+//     desc: c.description,
+//   });
 
-//   const bizPartners = [
-//     { src: "/Picture1.jpg", name: "Texora AI", desc: "AI & Digital Solutions" },
-//     {
-//       src: "/UFS-Logo.jpg",
-//       name: "UFS Network",
-//       desc: "Unified Consultancy Services",
-//     },
-//   ];
+//   const techPartners = companyData?.["Technology Partner"]?.length
+//     ? companyData["Technology Partner"].map(mapCompany)
+//     : FALLBACK_TECH_PARTNERS;
+
+//   const bizPartners = companyData?.["Business Partner"]?.length
+//     ? companyData["Business Partner"].map(mapCompany)
+//     : FALLBACK_BIZ_PARTNERS;
+
+//   const ecosystemProducts = companyData?.["Texora Product"]?.length
+//     ? companyData["Texora Product"].map((c, i) => ({
+//         ...mapCompany(c),
+//         color: ECOSYSTEM_COLORS[i % ECOSYSTEM_COLORS.length],
+//       }))
+//     : null;
 
 //   return (
 //     <div className="min-h-screen bg-[#F6EDE6] dark:bg-black text-[#1E293B] dark:text-white">
@@ -1823,11 +2122,11 @@
 
 //       {/* ── Nav ── */}
 //       <nav
-//         className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+//         className={`fixed top-0 w-full z-50 transition-all duration-300 bg-[#1F1D1F]/95 border-b border-[#F97316]/20 ${
 //           scrolled
-//             ? "bg-white/95 dark:bg-black/95 backdrop-blur-xl shadow-md"
-//             : "bg-white/80 dark:bg-black/80 backdrop-blur-md"
-//         } border-b border-[#F97316]/20 dark:border-gray-800`}
+//             ? "backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.18)]"
+//             : "backdrop-blur-md"
+//         }`}
 //       >
 //         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
 //           <div className="flex items-center justify-between h-[68px]">
@@ -1850,21 +2149,21 @@
 //               <MegaMenu />
 //               {/* ILM ORA Feature Dropdown */}
 //               <div className="relative group">
-//                 <button className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-3 xl:px-4 py-2 rounded-lg hover:bg-[#F97316]/5 text-[13px] xl:text-[15px] whitespace-nowrap bg-transparent border-none cursor-pointer flex items-center gap-1">
+//                 <button className="text-white hover:text-[#F97316] font-medium transition-colors duration-300 px-3 xl:px-4 py-2 rounded-lg hover:bg-[#F97316]/10 text-[13px] xl:text-[15px] whitespace-nowrap bg-transparent border-none cursor-pointer flex items-center gap-1">
 //                   ILM ORA Feature
 //                   <ChevronDown className="w-4 h-4" />
 //                 </button>
 
-//                 <div className="absolute top-full left-0 mt-2 w-80 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+//                 <div className="absolute top-full left-0 mt-2 w-80 bg-[#232323] border border-white/[0.08] rounded-xl shadow-xl p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
 //                   <button
 //                     onClick={() => navigate("/student-hub")}
-//                     className="w-full text-left p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-gray-800"
+//                     className="w-full text-left p-3 rounded-lg hover:bg-[#F97316]/[0.12]"
 //                   >
 //                     <div className="flex items-start gap-3">
 //                       <GraduationCap className="w-5 h-5 text-green-600 mt-1" />
 //                       <div>
-//                         <div className="font-semibold text-sm">Student Hub</div>
-//                         <div className="text-xs text-gray-500">
+//                         <div className="font-semibold text-sm text-white">Student Hub</div>
+//                         <div className="text-xs text-gray-400">
 //                           AI-Powered Learning & Career Growth
 //                         </div>
 //                       </div>
@@ -1873,13 +2172,13 @@
 
 //                   <button
 //                     onClick={() => navigate("/trainer-hub")}
-//                     className="w-full text-left p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-gray-800"
+//                     className="w-full text-left p-3 rounded-lg hover:bg-[#F97316]/[0.12]"
 //                   >
 //                     <div className="flex items-start gap-3">
 //                       <Users className="w-5 h-5 text-blue-600 mt-1" />
 //                       <div>
-//                         <div className="font-semibold text-sm">Trainer Hub</div>
-//                         <div className="text-xs text-gray-500">
+//                         <div className="font-semibold text-sm text-white">Trainer Hub</div>
+//                         <div className="text-xs text-gray-400">
 //                           Training Management & Mentorship
 //                         </div>
 //                       </div>
@@ -1888,13 +2187,13 @@
 
 //                   <button
 //                     onClick={() => navigate("/manager-hub")}
-//                     className="w-full text-left p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-gray-800"
+//                     className="w-full text-left p-3 rounded-lg hover:bg-[#F97316]/[0.12]"
 //                   >
 //                     <div className="flex items-start gap-3">
 //                       <BarChart3 className="w-5 h-5 text-purple-600 mt-1" />
 //                       <div>
-//                         <div className="font-semibold text-sm">Manager Hub</div>
-//                         <div className="text-xs text-gray-500">
+//                         <div className="font-semibold text-sm text-white">Manager Hub</div>
+//                         <div className="text-xs text-gray-400">
 //                           Analytics, Performance & Team Development
 //                         </div>
 //                       </div>
@@ -1902,20 +2201,20 @@
 //                   </button>
 
 //                   {/* Divider */}
-//                   <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+//                   <div className="border-t border-white/[0.08] my-2"></div>
 
 //                   {/* ILM ORA Meet */}
 //                   <button
 //                     onClick={() => navigate("/ilm-ora-meet")}
-//                     className="w-full text-left p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-gray-800"
+//                     className="w-full text-left p-3 rounded-lg hover:bg-[#F97316]/[0.12]"
 //                   >
 //                     <div className="flex items-start gap-3">
 //                       <Users className="w-5 h-5 text-orange-500 mt-1" />
 //                       <div>
-//                         <div className="font-semibold text-sm">
+//                         <div className="font-semibold text-sm text-white">
 //                           ILM ORA Meet
 //                         </div>
-//                         <div className="text-xs text-gray-500">
+//                         <div className="text-xs text-gray-400">
 //                           Virtual Meetings & Collaboration
 //                         </div>
 //                       </div>
@@ -1925,15 +2224,15 @@
 //                   {/* AI Resume Builder */}
 //                   <button
 //                     onClick={() => navigate("/resume-builder")}
-//                     className="w-full text-left p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-gray-800"
+//                     className="w-full text-left p-3 rounded-lg hover:bg-[#F97316]/[0.12]"
 //                   >
 //                     <div className="flex items-start gap-3">
 //                       <FileText className="w-5 h-5 text-green-600 mt-1" />
 //                       <div>
-//                         <div className="font-semibold text-sm">
+//                         <div className="font-semibold text-sm text-white">
 //                           AI Resume Builder
 //                         </div>
-//                         <div className="text-xs text-gray-500">
+//                         <div className="text-xs text-gray-400">
 //                           Create ATS-Friendly Professional Resumes
 //                         </div>
 //                       </div>
@@ -1944,12 +2243,12 @@
 
 //               {/* More Dropdown */}
 //               <div className="relative group">
-//                 <button className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-3 xl:px-4 py-2 rounded-lg hover:bg-[#F97316]/5 text-[13px] xl:text-[15px] whitespace-nowrap bg-transparent border-none cursor-pointer flex items-center gap-1">
+//                 <button className="text-white hover:text-[#F97316] font-medium transition-colors duration-300 px-3 xl:px-4 py-2 rounded-lg hover:bg-[#F97316]/10 text-[13px] xl:text-[15px] whitespace-nowrap bg-transparent border-none cursor-pointer flex items-center gap-1">
 //                   More
 //                   <ChevronDown className="w-4 h-4" />
 //                 </button>
 
-//                 <div className="absolute top-full left-0 mt-2 w-52 bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+//                 <div className="absolute top-full left-0 mt-2 w-52 bg-[#232323] rounded-xl shadow-xl border border-white/[0.08] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
 //                   {navLinks.map((link) => (
 //                     <button
 //                       key={link.text}
@@ -1958,7 +2257,7 @@
 //                           .querySelector(link.href)
 //                           ?.scrollIntoView({ behavior: "smooth" });
 //                       }}
-//                       className="w-full text-left px-4 py-3 hover:bg-orange-50 dark:hover:bg-gray-800 text-sm"
+//                       className="w-full text-left px-4 py-3 hover:bg-[#F97316]/[0.12] text-sm text-white transition-colors duration-300"
 //                     >
 //                       {link.text}
 //                     </button>
@@ -1971,12 +2270,12 @@
 //             <div className="flex items-center gap-2 xl:gap-3 flex-shrink-0">
 //               <button
 //                 onClick={toggleTheme}
-//                 className="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-[#F6EDE6] dark:hover:bg-gray-900 transition shadow-sm bg-white dark:bg-black flex-shrink-0"
+//                 className="w-10 h-10 flex items-center justify-center rounded-xl border border-white/[0.08] hover:border-[#F97316] transition-colors duration-300 shadow-sm bg-[#2A2A2A] flex-shrink-0"
 //               >
 //                 {theme === "dark" ? (
 //                   <Sun className="w-[18px] h-[18px] text-[#F97316]" />
 //                 ) : (
-//                   <Moon className="w-[18px] h-[18px] text-[#1E293B]" />
+//                   <Moon className="w-[18px] h-[18px] text-gray-300" />
 //                 )}
 //               </button>
 
@@ -1986,7 +2285,7 @@
 //                     <DropdownMenuTrigger asChild>
 //                       <Button
 //                         variant="outline"
-//                         className="gap-2 rounded-xl border-gray-200 dark:border-gray-700 h-10 px-3"
+//                         className="gap-2 rounded-xl border-white/[0.08] bg-[#2A2A2A] hover:border-[#F97316] text-white h-10 px-3"
 //                       >
 //                         <Avatar className="w-7 h-7">
 //                           <AvatarImage src={user.picture} alt={user.name} />
@@ -2001,13 +2300,13 @@
 //                     </DropdownMenuTrigger>
 //                     <DropdownMenuContent
 //                       align="end"
-//                       className="w-72 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"
+//                       className="w-72 bg-[#232323] border-white/[0.08]"
 //                     >
-//                       <div className="px-3 py-3 bg-[#F6EDE6] dark:bg-gray-800 rounded-t-md">
-//                         <p className="font-semibold text-sm text-[#1E293B] dark:text-white truncate">
+//                       <div className="px-3 py-3 bg-[#2A2A2A] rounded-t-md">
+//                         <p className="font-semibold text-sm text-white truncate">
 //                           {user.name || "User"}
 //                         </p>
-//                         <p className="text-xs text-gray-500 truncate">
+//                         <p className="text-xs text-gray-400 truncate">
 //                           {user.email}
 //                         </p>
 //                       </div>
@@ -2035,8 +2334,8 @@
 //                             <item.icon className="w-4 h-4 text-[#F97316]" />
 //                           </div>
 //                           <div>
-//                             <p className="text-sm font-medium">{item.label}</p>
-//                             <p className="text-xs text-gray-500">{item.desc}</p>
+//                             <p className="text-sm font-medium text-white">{item.label}</p>
+//                             <p className="text-xs text-gray-400">{item.desc}</p>
 //                           </div>
 //                         </DropdownMenuItem>
 //                       ))}
@@ -2054,7 +2353,7 @@
 //               ) : (
 //                 <Button
 //                   onClick={() => setShowLoginModal(true)}
-//                   className="hidden lg:flex bg-[#1E293B] hover:bg-[#334155] text-white font-bold px-4 xl:px-5 py-2.5 rounded-xl items-center gap-2 shadow-md hover:shadow-lg transition-all text-[13px] xl:text-[15px] h-10 whitespace-nowrap"
+//                   className="hidden lg:flex bg-gradient-to-br from-[#F97316] to-[#EA580C] hover:from-[#F97316] hover:to-[#EA580C] text-white font-bold px-4 xl:px-5 py-2.5 rounded-xl items-center gap-2 shadow-md hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(249,115,22,0.35)] transition-all duration-300 text-[13px] xl:text-[15px] h-10 whitespace-nowrap"
 //                 >
 //                   <Sparkles className="w-4 h-4" /> Get Started
 //                 </Button>
@@ -2062,11 +2361,11 @@
 
 //               {/* Hamburger — only shown below lg (below 1024px) */}
 //               <button
-//                 className="lg:hidden flex items-center justify-center w-10 h-10 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black hover:bg-[#F6EDE6] dark:hover:bg-gray-900 transition shadow-sm"
+//                 className="lg:hidden flex items-center justify-center w-10 h-10 rounded-xl border border-white/[0.08] hover:border-[#F97316] bg-[#2A2A2A] transition-colors duration-300 shadow-sm"
 //                 aria-label="Open menu"
 //                 onClick={() => setMobileMenuOpen(true)}
 //               >
-//                 <Menu className="w-5 h-5 text-[#1E293B] dark:text-white" />
+//                 <Menu className="w-5 h-5 text-white" />
 //               </button>
 //             </div>
 //           </div>
@@ -2081,24 +2380,34 @@
 //         <div className="max-w-7xl mx-auto relative z-10 grid lg:grid-cols-2 gap-16 items-center">
 //           <div className="text-center lg:text-left">
 //             <div className="mb-8 inline-flex">
-//               <div className="inline-flex items-center gap-2 bg-white dark:bg-gray-900 border border-[#F97316]/30 text-[#F97316] px-5 py-2.5 rounded-full text-sm font-semibold shadow-md">
-//                 <Sparkles className="w-4 h-4" />
-//                 Advanced Learning Platform for Modern Professionals
-//               </div>
+//               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#FFF7ED] border border-[#FED7AA] text-[#F97316] text-sm font-semibold mb-6">
+//   <Sparkles className="w-4 h-4" />
+//   Learn Smarter. Grow Faster. Lead the Future.
+// </div>
 //             </div>
-//             <h1 className="text-4xl md:text-4xl lg:text-6xl font-bold mb-6 leading-tight text-[#1E293B] dark:text-white">
-//               Become the <span className="text-[#F97316]">Top 1%</span>
-//             </h1>
-//             <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-12 max-w-xl leading-relaxed">
-//               Learn Product, Design, Growth & Marketing from industry experts.
-//             </p>
+//          <h1 className="mb-6 leading-[1.1]">
+//   <SplitText
+//     text="Empower Your"
+//     className="block text-4xl md:text-5xl lg:text-7xl font-bold text-[#1E293B] dark:text-white"
+//     splitType="chars"
+//     delay={60}
+//     duration={0.6}
+//   />
+//   <SplitText
+//     text="Learning Journey"
+//     className="block text-4xl md:text-5xl lg:text-7xl font-bold text-[#F97316]"
+//     splitType="chars"
+//     delay={60}
+//     duration={0.6}
+//   />
+// </h1>
+//             <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-12 max-w-2xl leading-relaxed">
+//   Master in-demand skills through AI-powered learning, live sessions,
+//   certifications, and expert-led programs designed for students,
+//   professionals, trainers, and organizations.
+// </p>
 //             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center lg:items-start">
-//               <button
-//                 onClick={() => navigate("/watch-demo/1")}
-//                 className="flex items-center gap-2 bg-[#1E293B] hover:bg-[#334155] text-white font-bold px-8 py-4 rounded-xl text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
-//               >
-//                 Watch Now <ArrowRight className="w-5 h-5" />
-//               </button>
+              
 //             </div>
 //           </div>
 
@@ -2195,6 +2504,8 @@
 //           ))}
 //         </div>
 //       </section>
+//       {/* ── WatchNow ── */}
+//       <WatchNowSection />
 
 //       {/* ── Features ── */}
 //       <section className="py-24 px-6 bg-[#F6EDE6] dark:bg-black">
@@ -2232,7 +2543,7 @@
 //         </div>
 //       </section>
 
-//       {/* ── Companies ── */}
+//       {/* ── Companies (Top Global Companies — backend-connected) ── */}
 //       <section className="py-20 px-4 sm:px-6 bg-white dark:bg-gray-900/30">
 //         <div className="max-w-7xl mx-auto">
 //           <div className="text-center mb-10 sm:mb-14">
@@ -2383,41 +2694,7 @@
 //             `}</style>
 
 //             <div className="eco-grid">
-//               {[
-//                 {
-//                   label: "TORA CX",
-//                   color: "blue",
-//                   desc: "Customer experience platform",
-//                   Icon: null,
-//                   svgPath: (
-//                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-//                   ),
-//                 },
-//                 {
-//                   label: "UNIFIED CRM",
-//                   color: "orange",
-//                   desc: "AI-driven CRM for sales",
-//                   Icon: Users,
-//                 },
-//                 {
-//                   label: "ILM ORA",
-//                   color: "purple",
-//                   desc: "LMS with AI learning paths",
-//                   Icon: GraduationCap,
-//                 },
-//                 {
-//                   label: "INNOVORA AI",
-//                   color: "green",
-//                   desc: "AI-powered innovation suite",
-//                   Icon: Lightbulb,
-//                 },
-//                 {
-//                   label: "TASK ORBIT",
-//                   color: "rose",
-//                   desc: "AI-powered task management",
-//                   Icon: ClipboardList,
-//                 },
-//               ].map((item) => {
+//               {(ecosystemProducts || FALLBACK_ECOSYSTEM).map((item) => {
 //                 const colorMap = {
 //                   blue: {
 //                     bg: "bg-blue-100 dark:bg-blue-900/30",
@@ -2448,15 +2725,24 @@
 //                 const c = colorMap[item.color];
 //                 return (
 //                   <div
-//                     key={item.label}
+//                     key={item.name}
 //                     className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 sm:p-5 flex flex-col gap-2.5 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group"
 //                   >
 //                     <div
-//                       className={`w-12 h-12 rounded-xl ${c.bg} flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform`}
+//                       className={`w-12 h-12 rounded-xl ${c.bg} flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform overflow-hidden`}
 //                     >
-//                       {item.Icon ? (
+//                       {item.src ? (
+//                         <img
+//                           src={item.src}
+//                           alt={item.name}
+//                           className="w-8 h-8 object-contain"
+//                           onError={(e) => {
+//                             e.currentTarget.style.display = "none";
+//                           }}
+//                         />
+//                       ) : item.Icon ? (
 //                         <item.Icon className={`w-6 h-6 ${c.text}`} />
-//                       ) : (
+//                       ) : item.svgPath ? (
 //                         <svg
 //                           xmlns="http://www.w3.org/2000/svg"
 //                           className={`w-6 h-6 ${c.text}`}
@@ -2469,12 +2755,16 @@
 //                         >
 //                           {item.svgPath}
 //                         </svg>
+//                       ) : (
+//                         <span className={`text-sm font-black ${c.text}`}>
+//                           {item.name?.charAt(0) || "?"}
+//                         </span>
 //                       )}
 //                     </div>
 //                     <p
 //                       className={`text-[13px] font-black tracking-wide ${c.label}`}
 //                     >
-//                       {item.label}
+//                       {item.name}
 //                     </p>
 //                     <div
 //                       className={`w-7 h-[3px] rounded-full bg-current ${c.text}`}
@@ -2501,56 +2791,59 @@
 //       {/* ── Courses ── */}
 //       <section
 //         id="courses"
-//         className="py-24 px-6 scroll-mt-20 bg-[#F6EDE6] dark:bg-black"
+//         className="py-12 sm:py-16 scroll-mt-20 bg-[#F8FAFC] dark:bg-black"
 //       >
-//         <div className="max-w-7xl mx-auto">
-//           <div className="text-center mb-14">
-//             <h2 className="text-4xl md:text-5xl font-bold mb-4 text-[#1E293B] dark:text-white">
+//         <div className="max-w-[1440px] mx-auto px-6">
+//           {/* ── Premium Section Header ── */}
+//           <div className="text-center mb-6 sm:mb-8">
+//             <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-widest text-[#F97316] bg-[#F97316]/10 border border-[#F97316]/20 px-4 py-1.5 rounded-full mb-3">
+//               <Sparkles className="w-3.5 h-3.5" />
+//               Handpicked for you
+//             </span>
+//             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-3 tracking-tight text-[#1E293B] dark:text-white">
 //               Featured <span className="text-[#F97316]">Programs</span>
 //             </h2>
-//             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-//               Choose your path and start building skills that matter
+//             <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
+//               Choose your path and start building skills that matter — taught
+//               by mentors who've shipped at the world's best companies.
 //             </p>
 //           </div>
+
 //           <Tabs
 //             value={activeTab}
 //             onValueChange={setActiveTab}
 //             className="w-full"
 //           >
-//            <TabsList
-//   className="grid w-full max-w-md mx-auto mb-12 p-1.5 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm"
-//   style={{
-//     gridTemplateColumns: `repeat(${
-//       Object.keys(
-//         programsLoading
-//           ? courses
-//           : featuredPrograms &&
-//               Object.values(featuredPrograms).some(
-//                 (a) => a.length > 0,
-//               )
-//             ? featuredPrograms
-//             : courses,
-//       ).length
-//     }, minmax(0, 1fr))`,
-//   }}
-// >
-//   {Object.keys(
-// programsLoading
-//   ? courses
-//   : featuredPrograms &&
-//     Object.values(featuredPrograms).some((a) => a.length > 0)
-//     ? featuredPrograms
-//     : courses
-// ).map((tab) => (
-//                 <TabsTrigger
-//                   key={tab}
-//                   value={tab}
-//                   className="rounded-xl capitalize font-semibold data-[state=active]:bg-[#1E293B] data-[state=active]:text-white dark:data-[state=active]:bg-[#F97316] transition-all"
-//                 >
-//                   {tab}
-//                 </TabsTrigger>
-//               ))}
-//             </TabsList>
+//             {/* ── Category Tabs: compact carousel, scales to 10/20/50+ categories
+//                  without ever wrapping to multiple rows. Arrows + drag + wheel
+//                  + native swipe, active tab always auto-scrolled into view. ── */}
+//             <div className="mb-6 sm:mb-8 mx-auto w-fit max-w-full sm:max-w-3xl px-1 sm:px-0">
+//               <div className="h-[42px] flex items-center px-1 sm:px-1.5 bg-white dark:bg-gray-900 rounded-full border border-gray-200 dark:border-gray-800 shadow-md shadow-slate-200/50 dark:shadow-none overflow-hidden">
+//                 <CategoryTabScroller activeKey={activeTab}>
+//                   <TabsList className="flex w-max items-center justify-center gap-1.5 bg-transparent mx-auto h-full">
+//                     {Object.keys(
+//                       programsLoading
+//                         ? courses
+//                         : featuredPrograms &&
+//                             Object.values(featuredPrograms).some(
+//                               (a) => a.length > 0,
+//                             )
+//                           ? featuredPrograms
+//                           : courses,
+//                     ).map((tab) => (
+//                       <TabsTrigger
+//                         key={tab}
+//                         value={tab}
+//                         className="rounded-full capitalize font-semibold text-xs sm:text-sm whitespace-nowrap px-3.5 sm:px-5 h-[34px] flex-shrink-0 flex items-center text-[#1E293B] dark:text-gray-300 transition-all duration-300 ease-out data-[state=active]:bg-[#F97316] data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-orange-500/30"
+//                       >
+//                         {tab}
+//                       </TabsTrigger>
+//                     ))}
+//                   </TabsList>
+//                 </CategoryTabScroller>
+//               </div>
+//             </div>
+
 //             {/* Real featured programs from the backend (with hardcoded
 //                `courses` as the fallback while loading or if the API
 //                returns nothing). */}
@@ -2558,137 +2851,245 @@
 //               programsLoading
 //                 ? courses
 //                 : featuredPrograms &&
+
 //                     Object.values(featuredPrograms).some((a) => a.length > 0)
 //                   ? featuredPrograms
 //                   : courses,
 //             ).map(([category, categoryCourses]) => (
 //               <TabsContent key={category} value={category}>
-//                 <div className="flex flex-wrap justify-center gap-8">
-//                   {categoryCourses.map((course) => (
-//                     <div
-//                       key={course.id}
-//                       onClick={() =>
-//                         navigate(`/course-details/${course.id}`, {
-//                           state: { course },
-//                         })
-//                       }
-//                       className="group bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.334rem)]"
-//                     >
-//                       <div className="h-1 bg-[#F97316]" />
-//                       <div className="p-6">
-//                         <div className="flex items-start justify-between mb-4">
-//                           <span
-//                             className={`text-xs font-semibold px-3 py-1 rounded-full ${getLevelColor(course.level)}`}
+//                 <HorizontalCarousel
+//                   items={categoryCourses}
+//                   ariaLabel={`${category} courses`}
+//                   getKey={(course) => course.id}
+//                   cardMinHeight={300}
+//                   renderItem={(course, idx) => {
+//                     const pricing = getPricing(course.price);
+//                     const isBestseller = course.rating >= 4.8;
+//                     const lessons =
+//                       course.totalLessons || course.modules?.length || 0;
+//                     const isWishlisted = wishlist.has(course.id);
+
+//                     return (
+//                       <div
+//                         onClick={() =>
+//                           navigate(`/course-details/${course.id}`, {
+//                             state: { course },
+//                           })
+//                         }
+//                         className="group relative flex flex-col min-w-0 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-md hover:shadow-xl hover:shadow-slate-300/40 dark:hover:shadow-black/40 hover:-translate-y-1 transition-all duration-300 ease-out overflow-hidden cursor-pointer w-full h-full"
+//                       >
+//                         {/* ── Thumbnail / Banner ── */}
+//                         <div className="relative h-16 sm:h-20 overflow-hidden bg-gradient-to-br from-[#1E293B] via-[#334155] to-[#F97316] flex-shrink-0">
+//                           <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(circle_at_20%_20%,white,transparent_35%),radial-gradient(circle_at_80%_60%,white,transparent_30%)]" />
+//                           <div className="absolute inset-0 flex items-center justify-center transition-transform duration-500 ease-out group-hover:scale-110">
+//                             <GraduationCap
+//                               className="w-8 h-8 sm:w-10 sm:h-10 text-white/25"
+//                               strokeWidth={1.25}
+//                             />
+//                           </div>
+
+//                           {/* Top badges */}
+//                           <div className="absolute top-2 left-2 right-2 flex items-start justify-between gap-2">
+//                             <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-wide bg-white/95 text-[#F97316] px-2 py-0.5 rounded-full shadow-sm">
+//                               <Sparkles className="w-2.5 h-2.5" />
+//                               {isBestseller ? "Bestseller" : "Featured"}
+//                             </span>
+
+//                             <button
+//                               type="button"
+//                               aria-label={
+//                                 isWishlisted
+//                                   ? "Remove from wishlist"
+//                                   : "Add to wishlist"
+//                               }
+//                               onClick={(e) => {
+//                                 e.stopPropagation();
+//                                 toggleWishlist(course.id);
+//                               }}
+//                               className="flex items-center justify-center w-7 h-7 rounded-full bg-white/95 shadow-sm hover:scale-110 active:scale-95 transition-transform duration-200"
+//                             >
+//                               <Heart
+//                                 className={`w-3.5 h-3.5 transition-colors ${
+//                                   isWishlisted
+//                                     ? "fill-[#F97316] text-[#F97316]"
+//                                     : "text-[#1E293B]"
+//                                 }`}
+//                               />
+//                             </button>
+//                           </div>
+
+//                           {/* Difficulty badge */}
+//                           <div className="absolute bottom-2 left-2 right-2 max-w-[70%]">
+//                             <span
+//                               className={`inline-block max-w-full truncate align-bottom text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm ${getLevelColor(course.level)} bg-white/95 dark:bg-white/95`}
+//                             >
+//                               {course.level}
+//                             </span>
+//                           </div>
+
+//                         </div>
+
+//                         {/* ── Body ── */}
+//                         <div className="flex flex-col flex-1 min-w-0 p-2.5 sm:p-3 pt-2.5">
+//                           <span className="text-[10px] font-bold uppercase tracking-widest text-[#F97316] mb-1 truncate">
+//                             {category}
+//                           </span>
+
+//                           <h3 className="text-sm sm:text-base font-bold text-[#1E293B] dark:text-white mb-1 leading-snug line-clamp-2 min-h-[2.5em] group-hover:text-[#F97316] transition-colors">
+//                             {course.title}
+//                           </h3>
+
+//                           {/* Instructor */}
+//                           <div className="flex items-center gap-1.5 mb-1.5 min-w-0">
+//                             <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-br from-[#F97316] to-[#ea580c] text-white text-[9px] font-bold shrink-0">
+//                               {getInitials(
+//                                 course.instructorFull || course.instructor,
+//                               )}
+//                             </div>
+//                             <div className="min-w-0 flex-1">
+//                               <p className="text-xs font-semibold text-[#1E293B] dark:text-white truncate">
+//                                 {course.instructorFull || course.instructor}
+//                               </p>
+//                               <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
+//                                 {course.instructorTitle || course.instructor}
+//                               </p>
+//                             </div>
+//                           </div>
+
+//                           <p className="text-xs text-gray-600 dark:text-gray-300 mb-1 leading-relaxed line-clamp-2 min-h-[2.2em]">
+//                             {course.description}
+//                           </p>
+
+//                           {/* Skill chips */}
+//                           <div className="flex flex-wrap gap-1 mb-1.5 overflow-hidden max-h-[24px]">
+//                             <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-[#F97316]/10 text-[#F97316] border border-[#F97316]/15 whitespace-nowrap flex-shrink-0 truncate max-w-[120px]">
+//                               {category}
+//                             </span>
+//                             <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-[#1E293B]/5 text-[#1E293B] dark:bg-white/10 dark:text-gray-200 border border-[#1E293B]/10 dark:border-white/10 whitespace-nowrap flex-shrink-0">
+//                               {course.level}
+//                             </span>
+//                             {course.liveSessions !== undefined &&
+//                               course.liveSessions !== "—" && (
+//                                 <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800 whitespace-nowrap flex-shrink-0">
+//                                   {course.liveSessions} Live
+//                                 </span>
+//                               )}
+//                           </div>
+
+//                           {/* Stats */}
+//                           <div className="grid grid-cols-4 gap-1 text-center mb-1.5 pb-1.5 border-b border-gray-100 dark:border-gray-800">
+//                             <div className="flex flex-col items-center gap-0.5 min-w-0">
+//                               <Star className="w-3 h-3 text-[#F97316] flex-shrink-0" />
+//                               <span className="text-[10px] font-semibold text-gray-600 dark:text-gray-300 truncate w-full">
+//                                 {course.rating ?? "—"}
+//                               </span>
+//                             </div>
+//                             <div className="flex flex-col items-center gap-0.5 min-w-0">
+//                               <Users className="w-3 h-3 text-[#F97316] flex-shrink-0" />
+//                               <span className="text-[10px] font-semibold text-gray-600 dark:text-gray-300 truncate w-full">
+//                                 {course.students ?? "—"}
+//                               </span>
+//                             </div>
+//                             <div className="flex flex-col items-center gap-0.5 min-w-0">
+//                               <Clock className="w-3 h-3 text-[#F97316] flex-shrink-0" />
+//                               <span className="text-[10px] font-semibold text-gray-600 dark:text-gray-300 truncate w-full">
+//                                 {course.duration ?? "—"}
+//                               </span>
+//                             </div>
+//                             <div className="flex flex-col items-center gap-0.5 min-w-0">
+//                               <PlayCircle className="w-3 h-3 text-[#F97316] flex-shrink-0" />
+//                               <span className="text-[10px] font-semibold text-gray-600 dark:text-gray-300 truncate w-full">
+//                                 {lessons ?? "—"}
+//                               </span>
+//                             </div>
+//                           </div>
+
+//                           {/* Pricing */}
+//                           <div className="flex items-end justify-between mb-1.5 gap-2">
+//                             <div className="flex items-baseline gap-1.5 min-w-0 flex-shrink">
+//                               <span className="text-base sm:text-lg font-bold text-[#1E293B] dark:text-white truncate">
+//                                 {pricing.current ?? "—"}
+//                               </span>
+//                               {pricing.discount > 0 && (
+//                                 <span className="text-xs text-gray-400 line-through truncate">
+//                                   {pricing.original}
+//                                 </span>
+//                               )}
+//                             </div>
+//                             {pricing.discount > 0 && (
+//                               <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 dark:text-emerald-400 px-1.5 py-0.5 rounded-full border border-emerald-100 dark:border-emerald-800 whitespace-nowrap flex-shrink-0">
+//                                 {pricing.discount}% OFF
+//                               </span>
+//                             )}
+//                           </div>
+
+//                           {/* CTA */}
+//                           <button
+//                             type="button"
+//                             onClick={(e) => {
+//                               e.stopPropagation();
+//                               navigate(`/course-details/${course.id}`, {
+//                                 state: { course },
+//                               });
+//                             }}
+//                             className="mt-auto w-full flex-shrink-0 bg-gradient-to-r from-[#F97316] to-[#ea580c] hover:brightness-105 text-white py-2 rounded-lg font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all duration-300 group-hover:scale-[1.02] shadow-sm shadow-orange-500/20"
 //                           >
-//                             {course.level}
-//                           </span>
-//                           <span className="flex items-center gap-1 text-xs font-semibold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-full border border-amber-200 dark:border-amber-800">
-//                             <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-//                             {course.rating}
-//                           </span>
+//                             View Details
+//                             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+//                           </button>
 //                         </div>
-//                         <h3 className="text-xl font-bold text-[#1E293B] dark:text-white mb-1 group-hover:text-[#F97316] transition-colors">
-//                           {course.title}
-//                         </h3>
-//                         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-//                           {course.instructor}
-//                         </p>
-//                         <p className="text-gray-600 dark:text-gray-300 mb-6 line-clamp-2 leading-relaxed text-sm">
-//                           {course.description}
-//                         </p>
-//                         <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-6 pb-4 border-b border-gray-100 dark:border-gray-800">
-//                           <div className="flex items-center gap-1">
-//                             <Clock className="w-4 h-4 text-[#F97316]" />
-//                             {course.duration}
-//                           </div>
-//                           <div className="flex items-center gap-1">
-//                             <Users className="w-4 h-4 text-[#F97316]" />
-//                             {course.students}
-//                           </div>
-//                           <div className="flex items-center gap-1">
-//                             <BookOpen className="w-4 h-4 text-[#F97316]" />
-//                             {course.modules.length}
-//                           </div>
-//                         </div>
-//                         <button className="w-full bg-[#1E293B] hover:bg-[#334155] text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all group-hover:scale-[1.02] shadow-sm">
-//                           View Details{" "}
-//                           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-//                         </button>
 //                       </div>
-//                     </div>
-//                   ))}
-//                 </div>
+//                     );
+//                   }}
+//                 />
 //               </TabsContent>
 //             ))}
 //           </Tabs>
 //         </div>
 //       </section>
-
-//       {/* ── Mentors ── */}
+     
+//       {/* ── Mentors (testimonials — backend-connected) ── */}
 //       <section
 //         id="mentors"
 //         className="py-24 px-6 scroll-mt-20 bg-white dark:bg-gray-900/30"
 //       >
+//         <style>{`
+//           @media (min-width: 1024px) {
+//             .mentors-section-heading {
+//               white-space: nowrap;
+//               font-size: clamp(1.9rem, 2.6vw, 3rem);
+//             }
+//           }
+//         `}</style>
 //         <div className="max-w-7xl mx-auto">
 //           <div className="grid lg:grid-cols-2 gap-16 items-center">
 //             <div>
-//               <h2 className="text-4xl md:text-5xl font-bold mb-6 text-[#1E293B] dark:text-white">
+//               <h2 className="mentors-section-heading text-4xl md:text-5xl font-bold mb-5 text-[#1E293B] dark:text-white">
 //                 Learn from{" "}
 //                 <span className="text-[#F97316]">Industry Experts</span>
 //               </h2>
-//               <p className="text-lg text-gray-600 dark:text-gray-300 mb-10 max-w-xl">
+//               <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-xl">
 //                 Sessions led by operators from top product companies so you
 //                 understand how work happens in the real world.
 //               </p>
-//               <div className="space-y-4">
+//               <div className="space-y-3">
 //                 {mentorBenefits.map((item, i) => (
 //                   <div
 //                     key={i}
-//                     className="bg-[#F6EDE6] dark:bg-gray-900 rounded-2xl p-5 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex items-start gap-4"
+//                     className="bg-[#F6EDE6] dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-3"
 //                   >
-//                     <div className="w-10 h-10 bg-[#1E293B] dark:bg-[#F97316] rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-//                       <item.icon className="w-5 h-5 text-white" />
+//                     <div className="w-9 h-9 bg-[#1E293B] dark:bg-[#F97316] rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+//                       <item.icon className="w-4.5 h-4.5 text-white" />
 //                     </div>
-//                     <p className="text-gray-700 dark:text-gray-300 font-medium pt-1">
+//                     <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">
 //                       {item.text}
 //                     </p>
 //                   </div>
 //                 ))}
 //               </div>
 //             </div>
-//             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-//               {testimonials.map((t, i) => (
-//                 <div
-//                   key={i}
-//                   className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all"
-//                 >
-//                   <div className="flex items-center gap-1 mb-4">
-//                     {[...Array(5)].map((_, j) => (
-//                       <Star
-//                         key={j}
-//                         className="w-4 h-4 fill-amber-400 text-amber-400"
-//                       />
-//                     ))}
-//                   </div>
-//                   <p className="text-gray-600 dark:text-gray-300 mb-5 italic leading-relaxed text-sm">
-//                     "{t.text}"
-//                   </p>
-//                   <div className="flex items-center gap-3">
-//                     <div className="w-10 h-10 bg-[#1E293B] dark:bg-[#F97316] rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
-//                       {t.name.charAt(0)}
-//                     </div>
-//                     <div>
-//                       <p className="font-semibold text-[#1E293B] dark:text-white text-sm">
-//                         {t.name}
-//                       </p>
-//                       <p className="text-xs text-gray-500 dark:text-gray-400">
-//                         {t.role}
-//                       </p>
-//                     </div>
-//                   </div>
-//                 </div>
-//               ))}
-//             </div>
+
+//             <MentorTestimonialCarousel testimonials={testimonials} />
 //           </div>
 //         </div>
 //       </section>
@@ -2727,50 +3128,75 @@
 //               </div>
 //             ))}
 //           </div>
-//           <div className="bg-[#1E293B] dark:bg-gray-900 rounded-3xl p-14 text-center relative overflow-hidden border border-[#F97316]/20 shadow-xl">
-//             <div className="absolute top-0 left-0 right-0 h-1.5 bg-[#F97316]" />
-//             <div className="relative max-w-3xl mx-auto">
-//               <h3 className="text-3xl md:text-5xl font-bold mb-6 text-white">
-//                 Ready to Transform Your Career?
-//               </h3>
-//               <p className="text-lg text-gray-300 mb-10">
-//                 Join 50,000+ professionals who've already taken the leap
-//               </p>
+
+//           {/* ── Wide banner CTA ── */}
+//           <div className="bg-[#F6EDE6] dark:bg-gray-900 rounded-3xl relative overflow-hidden border border-[#F97316]/20 shadow-xl">
+//             <div className="flex flex-col lg:flex-row items-stretch">
+//               {/* ── Left: full-bleed image, fixed height, cropped to fill ── */}
+//               <div className="w-full lg:w-[280px] xl:w-[320px] h-56 sm:h-64 lg:h-auto flex-shrink-0 overflow-hidden">
+//                 <img
+//                   src={ctaStudent}
+//                   alt="Student ready to transform their career"
+//                   className="w-full h-full object-cover object-top"
+//                 />
+//               </div>
+
+//               {/* ── Middle: Content ── */}
+//               <div className="flex-1 flex flex-col justify-center px-6 sm:px-10 py-10 lg:py-8">
+                
+//                 <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 text-[#1E293B] dark:text-white leading-tight">
+//                   Ready to Transform Your Career?
+//                 </h3>
+//                 <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 max-w-xl">
+//                   Join 5000+ professionals who've already taken the leap
+//                   with our project-based programs and expert mentorship.
+//                 </p>
+//               </div>
+
+//               {/* ── Right: CTA button ── */}
+//               <div className="flex items-center justify-center lg:justify-end px-6 sm:px-10 pb-10 lg:pb-0 lg:pr-10">
+//                 <button
+//                   onClick={() => scrollToSection("courses")}
+//                   className="flex items-center gap-2 bg-[#1E293B] hover:bg-[#334155] text-white font-bold px-6 py-3.5 rounded-xl text-sm sm:text-base shadow-md hover:shadow-lg transition-all hover:scale-105 whitespace-nowrap"
+//                 >
+//                   Explore Courses <ArrowRight className="w-4 h-4" />
+//                 </button>
+//               </div>
 //             </div>
 //           </div>
 //         </div>
 //       </section>
 
 //       {/* ── Footer ── */}
-//       <footer className="bg-white text-[#1E293B]">
-//         <div className="max-w-7xl mx-auto px-6 py-20">
-//           <div className="grid gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 items-start">
-//             <div className="flex flex-col gap-2.5 self-start text-left sm:col-span-2 lg:col-span-1">
+//       <footer className="bg-[#191818] text-[#D1D5DB] border-t border-[#F97316]/[0.15]">
+//         <div className="max-w-7xl mx-auto px-6 py-10">
+//           <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 items-start">
+//             <div className="flex flex-col gap-2 self-start text-left sm:col-span-2 lg:col-span-1">
 //               <h3 className="text-3xl font-extrabold leading-none">
 //                 <span className="text-green-600">ILM</span>{" "}
 //                 <span className="text-[#F97316]">ORA</span>
 //               </h3>
-//               <p className="text-sm text-gray-600 leading-relaxed">
+//               <p className="text-sm text-[#D1D5DB] leading-relaxed">
 //                 Modern learning platform for ambitious professionals who want to
 //                 break into product, design and growth roles.
 //               </p>
-//               <p className="text-sm text-gray-500">
+//               <p className="text-sm text-[#D1D5DB]">
 //                 📧{" "}
 //                 <a
 //                   href="mailto:marketing@texora.ai"
-//                   className="hover:text-[#F97316] transition-colors"
+//                   className="hover:text-[#F97316] transition-colors duration-300"
 //                 >
 //                   marketing@texora.ai
 //                 </a>
 //               </p>
 
-//               <div className="flex items-center gap-3 pt-1 flex-wrap">
+//               <div className="flex items-center gap-2 pt-1 flex-wrap">
 //                 {/* Instagram */}
 //                 <a
 //                   href="https://www.instagram.com/texora_ai"
 //                   target="_blank"
 //                   rel="noreferrer"
-//                   className="h-9 w-9 rounded-full flex items-center justify-center text-white hover:scale-110 hover:shadow-md transition-all"
+//                   className="h-8 w-8 rounded-full flex items-center justify-center text-white hover:scale-110 hover:shadow-md transition-all duration-300"
 //                   style={{
 //                     background:
 //                       "radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%)",
@@ -2790,7 +3216,7 @@
 //                   href="https://www.youtube.com/@Texoraai"
 //                   target="_blank"
 //                   rel="noreferrer"
-//                   className="h-9 w-9 rounded-full flex items-center justify-center text-white bg-[#FF0000] hover:scale-110 hover:shadow-md transition-all"
+//                   className="h-8 w-8 rounded-full flex items-center justify-center text-white bg-[#FF0000] hover:scale-110 hover:shadow-md transition-all duration-300"
 //                 >
 //                   <svg
 //                     className="h-4 w-4"
@@ -2806,7 +3232,7 @@
 //                   href="https://www.linkedin.com/company/ilmora-texoraai/"
 //                   target="_blank"
 //                   rel="noreferrer"
-//                   className="h-9 w-9 rounded-full flex items-center justify-center text-white bg-[#0A66C2] hover:scale-110 hover:shadow-md transition-all"
+//                   className="h-8 w-8 rounded-full flex items-center justify-center text-white bg-[#0A66C2] hover:scale-110 hover:shadow-md transition-all duration-300"
 //                 >
 //                   <svg
 //                     className="h-4 w-4"
@@ -2822,7 +3248,7 @@
 //                   href="https://api.whatsapp.com/send?phone=919210970334"
 //                   target="_blank"
 //                   rel="noreferrer"
-//                   className="h-9 w-9 rounded-full flex items-center justify-center text-white bg-[#25D366] hover:scale-110 hover:shadow-md transition-all"
+//                   className="h-8 w-8 rounded-full flex items-center justify-center text-white bg-[#25D366] hover:scale-110 hover:shadow-md transition-all duration-300"
 //                 >
 //                   <svg
 //                     className="h-4 w-4"
@@ -2838,7 +3264,7 @@
 //                   href="https://x.com/texoraai"
 //                   target="_blank"
 //                   rel="noreferrer"
-//                   className="h-9 w-9 rounded-full flex items-center justify-center text-white bg-black hover:scale-110 hover:shadow-md transition-all"
+//                   className="h-8 w-8 rounded-full flex items-center justify-center text-white bg-black hover:scale-110 hover:shadow-md transition-all duration-300"
 //                 >
 //                   <svg
 //                     className="h-4 w-4"
@@ -2851,11 +3277,11 @@
 //               </div>
 //             </div>
 
-//             <div className="flex flex-col gap-4">
-//               <h4 className="text-sm font-bold tracking-widest text-[#1E293B] uppercase">
+//             <div className="flex flex-col gap-3">
+//               <h4 className="text-sm font-bold tracking-widest text-white uppercase">
 //                 Programs
 //               </h4>
-//               <ul className="flex flex-col gap-2.5 text-sm text-gray-600">
+//               <ul className="flex flex-col gap-2 text-sm text-[#D1D5DB]">
 //                 {[
 //                   {
 //                     label: "Product Management",
@@ -2873,7 +3299,7 @@
 //                   <li
 //                     key={item.label}
 //                     onClick={item.action}
-//                     className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group"
+//                     className="hover:text-[#F97316] cursor-pointer transition-colors duration-300 flex items-center gap-1.5 group"
 //                   >
 //                     <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
 //                     {item.label}
@@ -2882,11 +3308,11 @@
 //               </ul>
 //             </div>
 
-//             <div className="flex flex-col gap-4">
-//               <h4 className="text-sm font-bold tracking-widest text-[#1E293B] uppercase">
+//             <div className="flex flex-col gap-3">
+//               <h4 className="text-sm font-bold tracking-widest text-white uppercase">
 //                 Resources
 //               </h4>
-//               <ul className="flex flex-col gap-2.5 text-sm text-gray-600">
+//               <ul className="flex flex-col gap-2 text-sm text-[#D1D5DB]">
 //                 {[
 //                   {
 //                     label: "Success Stories",
@@ -2906,7 +3332,7 @@
 //                   <li
 //                     key={item.label}
 //                     onClick={item.action}
-//                     className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group"
+//                     className="hover:text-[#F97316] cursor-pointer transition-colors duration-300 flex items-center gap-1.5 group"
 //                   >
 //                     <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
 //                     {item.label}
@@ -2915,11 +3341,11 @@
 //               </ul>
 //             </div>
 
-//             <div className="flex flex-col gap-4 self-start">
-//               <h4 className="text-sm font-bold tracking-widest text-[#1E293B] uppercase">
+//             <div className="flex flex-col gap-3 self-start">
+//               <h4 className="text-sm font-bold tracking-widest text-white uppercase">
 //                 Company
 //               </h4>
-//               <ul className="flex flex-col gap-2.5 text-sm text-gray-600">
+//               <ul className="flex flex-col gap-2 text-sm text-[#D1D5DB]">
 //                 {[
 //                   { label: "About Us", action: () => navigate("/about") },
 //                   { label: "Careers", action: () => navigate("/careers") },
@@ -2937,7 +3363,7 @@
 //                   <li
 //                     key={item.label}
 //                     onClick={item.action}
-//                     className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group"
+//                     className="hover:text-[#F97316] cursor-pointer transition-colors duration-300 flex items-center gap-1.5 group"
 //                   >
 //                     <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
 //                     {item.label}
@@ -2949,14 +3375,14 @@
 //             <FooterNewsletter />
 //           </div>
 
-//           <div className="border-t border-gray-200 mt-16 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
+//           <div className="border-t border-white/[0.05] mt-8 pt-4 -mx-6 px-6 pb-4 bg-[#141414] flex flex-col md:flex-row items-center justify-between gap-3 text-sm text-[#9CA3AF]">
 //             <span>
 //               © {new Date().getFullYear()} ILM ORA All rights reserved.
 //             </span>
 //             <div className="flex items-center gap-2">
-//               <span>Built with</span>
-//               <span className="text-red-500 text-base">❤️</span>
-//               <span>passion for modern learners</span>
+//               <span>ILM ORA  </span>
+//               <span className="text-red-500 text-base">❤️Powered by</span>
+//               <span>Texora AI</span>
 //             </div>
 //           </div>
 //         </div>
@@ -3277,6 +3703,10 @@
 
 
 
+
+
+
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -3291,20 +3721,25 @@ import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import SignupModal from "./SignupModal";
 import ForgotPasswordModal from "./ForgotPasswordModal";
+import SplitText from "../../components/SplitText";
 import {
   ArrowRight,
   Award,
   BarChart3,
   BookOpen,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   ClipboardList,
   Clock,
   FileText,
   GraduationCap,
+  Heart,
   Lightbulb,
   LogOut,
   Menu,
   Moon,
+  PlayCircle,
   Sparkles,
   Star,
   Sun,
@@ -3329,7 +3764,9 @@ import authService from "../../services/authService";
 import { courseService } from "../../services/courseService";
 import { subscribeNewsletter } from "../../services/notificationService";
 import TexoraFloatingWidget from "./components/TexoraFloatingWidget";
-
+import HorizontalCarousel from "./components/HorizontalCarousel";
+import CategoryTabScroller from "./components/CategoryTabScroller";
+import WatchNowSection from "./components/WatchNow";
 const GOOGLE_CLIENT_ID =
   "572421778240-akk3kkb4f60ukuv9pcfrpg2ielm09thk.apps.googleusercontent.com";
 const NEWSLETTER_KEY = "ilmora_newsletter_subscribers";
@@ -4095,20 +4532,20 @@ function FooterNewsletter() {
 
   return (
     <div className="flex flex-col gap-1">
-      <h4 className="text-sm md:text-base font-bold tracking-wide text-[#1E293B] leading-snug">
+      <h4 className="text-sm md:text-base font-bold tracking-wide text-white leading-snug">
         Be the first to know
       </h4>
       <div
         style={{
           display: "flex",
-          background: status === "error" ? "rgba(248,113,113,0.06)" : "#f8fafc",
+          background: status === "error" ? "rgba(248,113,113,0.08)" : "#232323",
           borderRadius: "8px",
           border:
             status === "error"
               ? "1.5px solid #f87171"
               : status === "success"
                 ? "1.5px solid #22c55e"
-                : "1.5px solid #e2e8f0",
+                : "1.5px solid rgba(255,255,255,0.08)",
           overflow: "hidden",
           transition: "border-color 0.2s",
         }}
@@ -4120,14 +4557,15 @@ function FooterNewsletter() {
           onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
           placeholder="marketing@texora.ai"
           disabled={status === "loading" || status === "success"}
+          className="placeholder:text-[#9CA3AF]"
           style={{
             flex: 1,
             background: "transparent",
             border: "none",
             outline: "none",
-            color: "#1E293B",
+            color: "#FFFFFF",
             fontSize: "13px",
-            padding: "9px 12px",
+            padding: "8px 12px",
             minWidth: 0,
           }}
         />
@@ -4135,24 +4573,24 @@ function FooterNewsletter() {
           onClick={handleSubmit}
           disabled={status === "loading" || status === "success"}
           style={{
-            background: status === "success" ? "#22c55e" : "#1E293B",
+            background: status === "success" ? "#22c55e" : "#F97316",
             border: "none",
             cursor: "pointer",
             padding: "0 14px",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            minWidth: "42px",
+            minWidth: "40px",
             transition: "background 0.2s",
             flexShrink: 0,
           }}
           onMouseEnter={(e) => {
             if (status !== "success")
-              e.currentTarget.style.background = "#F97316";
+              e.currentTarget.style.background = "#EA580C";
           }}
           onMouseLeave={(e) => {
             if (status !== "success")
-              e.currentTarget.style.background = "#1E293B";
+              e.currentTarget.style.background = "#F97316";
           }}
         >
           {status === "loading" ? (
@@ -4217,7 +4655,14 @@ function FooterNewsletter() {
       )}
 
       <div>
-        <span className="inline-flex items-center gap-2 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full">
+        <span
+          className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full"
+          style={{
+            color: "#22C55E",
+            background: "rgba(22,163,74,0.15)",
+            border: "1px solid rgba(22,163,74,0.30)",
+          }}
+        >
           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
           Status: Live
         </span>
@@ -4486,11 +4931,166 @@ function FooterNewsletter() {
   );
 }
 
+// MentorTestimonialCarousel — horizontally scrollable testimonial cards with
+// arrow navigation + dot pagination. Purely presentational; consumes the
+// same `testimonials` array/state already loaded from the backend — no
+// data-fetching or business logic here.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Small avatar helper: shows the backend image in a circular frame,
+// falls back to initials if there's no image or the image fails to load.
+function MentorAvatar({ name, image }) {
+  const [imgError, setImgError] = useState(false);
+  const initials = (name || "").charAt(0).toUpperCase();
+
+  return (
+    <div className="w-9 h-9 rounded-full flex-shrink-0 overflow-hidden bg-[#1E293B] dark:bg-[#F97316] flex items-center justify-center text-white font-bold text-sm">
+      {image && !imgError ? (
+        <img
+          src={image}
+          alt={name}
+          className="w-full h-full object-cover"
+          onError={() => setImgError(true)}
+        />
+      ) : (
+        <span>{initials}</span>
+      )}
+    </div>
+  );
+}
+
+function MentorTestimonialCarousel({ testimonials }) {
+  const scrollerRef = useRef(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const scrollToIndex = (index) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const card = el.children[index];
+    if (card) {
+      el.scrollTo({
+        left: card.offsetLeft - el.offsetLeft,
+        behavior: "smooth",
+      });
+    }
+    setActiveIndex(index);
+  };
+
+  const handlePrev = () => scrollToIndex(Math.max(activeIndex - 1, 0));
+  const handleNext = () =>
+    scrollToIndex(Math.min(activeIndex + 1, testimonials.length - 1));
+
+  const handleScroll = () => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    let closest = 0;
+    let closestDist = Infinity;
+    Array.from(el.children).forEach((child, i) => {
+      const dist = Math.abs(child.offsetLeft - el.scrollLeft - el.offsetLeft);
+      if (dist < closestDist) {
+        closestDist = dist;
+        closest = i;
+      }
+    });
+    setActiveIndex(closest);
+  };
+
+  if (!testimonials || testimonials.length === 0) return null;
+
+  return (
+    <div className="relative">
+      <style>{`
+        .mentor-scroll::-webkit-scrollbar { display: none; }
+        .mentor-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
+
+      {/* Prev / Next arrows — desktop & tablet */}
+      <button
+        onClick={handlePrev}
+        aria-label="Previous testimonial"
+        disabled={activeIndex === 0}
+        className="hidden sm:flex absolute -left-4 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-md items-center justify-center hover:bg-[#F6EDE6] dark:hover:bg-gray-800 transition disabled:opacity-30 disabled:cursor-not-allowed"
+      >
+        <ChevronLeft className="w-4 h-4 text-[#1E293B] dark:text-white" />
+      </button>
+      <button
+        onClick={handleNext}
+        aria-label="Next testimonial"
+        disabled={activeIndex === testimonials.length - 1}
+        className="hidden sm:flex absolute -right-4 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-md items-center justify-center hover:bg-[#F6EDE6] dark:hover:bg-gray-800 transition disabled:opacity-30 disabled:cursor-not-allowed"
+      >
+        <ChevronRight className="w-4 h-4 text-[#1E293B] dark:text-white" />
+      </button>
+
+      {/* Card scroller — tightened padding/gaps for a more compact feel */}
+      <div
+        ref={scrollerRef}
+        onScroll={handleScroll}
+        style={{ scrollSnapType: "x mandatory" }}
+        className="mentor-scroll flex gap-4 overflow-x-auto pb-2 px-1"
+      >
+        {testimonials.map((t, i) => (
+          <div
+            key={i}
+            style={{ scrollSnapAlign: "start" }}
+            className="min-w-full sm:min-w-[calc(50%-8px)] flex-shrink-0 bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all"
+          >
+            <div className="flex items-center gap-1 mb-2.5">
+              {[...Array(5)].map((_, j) => (
+                <Star
+                  key={j}
+                  className="w-3.5 h-3.5 fill-amber-400 text-amber-400"
+                />
+              ))}
+            </div>
+            <p className="text-gray-600 dark:text-gray-300 mb-3.5 italic leading-snug text-sm">
+              "{t.text}"
+            </p>
+            <div className="flex items-center gap-2.5">
+              <MentorAvatar name={t.name} image={t.image} />
+              <div>
+                <p className="font-semibold text-[#1E293B] dark:text-white text-sm leading-tight">
+                  {t.name}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">
+                  {t.role}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Dot pagination */}
+      <div className="flex items-center justify-center gap-2 mt-4">
+        {testimonials.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => scrollToIndex(i)}
+            aria-label={`Go to testimonial ${i + 1}`}
+            style={{
+              width: activeIndex === i ? "22px" : "8px",
+              height: "8px",
+              borderRadius: "9999px",
+              background: activeIndex === i ? "#F97316" : "#CBD5E1",
+              border: "none",
+              cursor: "pointer",
+              padding: 0,
+              transition: "width 0.3s ease, background 0.3s ease",
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 export default function LMSHomepage({ theme, toggleTheme }) {
   const [activeTab, setActiveTab] = useState("product");
   const [featuredPrograms, setFeaturedPrograms] = useState({});
   const [programsLoading, setProgramsLoading] = useState(true);
+  const [wishlist, setWishlist] = useState(new Set());
 
   // ── Mentors (testimonials) — now backend-connected ──
   const [testimonials, setTestimonials] = useState([]);
@@ -4498,6 +5098,9 @@ export default function LMSHomepage({ theme, toggleTheme }) {
   // ── Top Global Companies — now backend-connected ──
   const [companyData, setCompanyData] = useState(null);
   const [companiesLoading, setCompaniesLoading] = useState(true);
+
+  // ── Banner Studio — backend-connected promotional banner ──
+  const [activeBanners, setActiveBanners] = useState([]);
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -4539,63 +5142,72 @@ export default function LMSHomepage({ theme, toggleTheme }) {
 
   /* ── Load real featured programs from the backend (courseService) ──
      Falls back to the static `courses` object below if the API call
-     fails or returns no programs in any category. */
+     fails or returns no programs in any category. Includes the fuller
+     backend field mapping: thumbnails, banners, instructor photos,
+     LinkedIn, video URL, and only shows Published programs. */
   useEffect(() => {
     async function loadPrograms() {
       try {
         const { data } = await courseService.getAllFeaturedPrograms();
         const grouped = {};
 
-        data.forEach((p) => {
-          const cat = (p.category || "Other").trim();
+        data
+          .filter((p) => p.publishStatus === "Published") // defensive client-side guard
+          .forEach((p) => {
+            const cat = (p.category || "Other").trim();
 
-if (!grouped[cat]) {
-  grouped[cat] = [];
-}
+            if (!grouped[cat]) {
+              grouped[cat] = [];
+            }
 
-grouped[cat].push({
-            id: p.id,
-            title: p.title,
-            instructor: p.instructorRole || p.instructorName,
-            instructorFull: p.instructorName,
-            instructorTitle: p.instructorRole || "",
-            duration: `${p.durationWeeks} weeks`,
-            students: p.studentsEnrolled,
-            rating: p.rating,
-            level: p.level,
-            description: p.shortDescription,
-            modules: (p.syllabusWeeks || []).map((w) => w.title),
-            price: `₹${Number(p.price).toLocaleString("en-IN")}`,
-            highlights: (p.highlights || [])
-              .map((h) => (typeof h === "string" ? h : h?.text || ""))
-              .filter((h) => h && h !== "[object Object]"),
-            learningOutcomes: (p.learningOutcomes || [])
-              .map((t, i) => ({
-                id: i,
-                text: typeof t === "string" ? t : t?.text || "",
-              }))
-              .filter((t) => t.text && t.text !== "[object Object]"),
-            totalLessons: p.lessons,
-            projects: p.projects,
-            syllabusWeeks: p.syllabusWeeks || [],
-            enrollmentUrl: p.enrollmentUrl || "",
-            liveSessions: p.liveSessions ?? "—",
+            grouped[cat].push({
+              id: p.id,
+              title: p.title,
+              instructor: p.instructorRole || p.instructorName,
+              instructorFull: p.instructorName,
+              instructorTitle: p.instructorRole || "",
+              duration: `${p.durationWeeks} weeks`,
+              students: p.studentsEnrolled,
+              rating: p.rating,
+              level: p.level,
+              description: p.shortDescription,
+              modules: (p.syllabusWeeks || []).map((w) => w.title),
+              price: `₹${Number(p.price).toLocaleString("en-IN")}`,
+              thumbnailUrl: p.thumbnailUrl || "",
+              bannerUrl: p.bannerUrl || "",
+              instructorPhotoUrl: p.instructorPhotoUrl || "",
+              instructorLinkedIn: p.instructorLinkedIn || "",
+              videoUrl: p.videoUrl || "",
+              highlights: (p.highlights || [])
+                .map((h) => (typeof h === "string" ? h : h?.text || ""))
+                .filter((h) => h && h !== "[object Object]"),
+              learningOutcomes: (p.learningOutcomes || [])
+                .map((t, i) => ({
+                  id: i,
+                  text: typeof t === "string" ? t : t?.text || "",
+                }))
+                .filter((t) => t.text && t.text !== "[object Object]"),
+              totalLessons: p.lessons,
+              projects: p.projects,
+              syllabusWeeks: p.syllabusWeeks || [],
+              enrollmentUrl: p.enrollmentUrl || "",
+              liveSessions: p.liveSessions ?? "—",
+            });
           });
-        });
 
         // Only use API data if we actually got programs
         const hasPrograms = Object.values(grouped).some(
           (arr) => arr.length > 0,
         );
-       if (hasPrograms) {
-  setFeaturedPrograms(grouped);
+        if (hasPrograms) {
+          setFeaturedPrograms(grouped);
 
-  const firstCategory = Object.keys(grouped)[0];
+          const firstCategory = Object.keys(grouped)[0];
 
-  if (firstCategory) {
-    setActiveTab(firstCategory);
-  }
-}
+          if (firstCategory) {
+            setActiveTab(firstCategory);
+          }
+        }
         // else featuredPrograms stays empty → fallback to hardcoded courses
       } catch (err) {
         console.error("Failed to load featured programs", err);
@@ -4615,6 +5227,8 @@ grouped[cat].push({
           name: m.candidateName,
           role: `${m.designation} @ ${m.company}`,
           text: m.feedbackMessage,
+          // Accept whichever image field the backend actually sends
+          image: m.profileImage || m.image || m.imageUrl || m.photo || null,
         }));
         setTestimonials(mapped);
       } catch (err) {
@@ -4638,6 +5252,25 @@ grouped[cat].push({
     }
     loadCompanies();
   }, []);
+
+  /* ── Load the active promotional banner (Banner Studio) ── */
+  useEffect(() => {
+    async function loadActiveBanners() {
+      try {
+        const { data } = await courseService.getActiveBanners();
+        setActiveBanners(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Failed to load banners", err);
+      }
+    }
+    loadActiveBanners();
+  }, []);
+
+  useEffect(() => {
+    if (activeBanners.length > 0) {
+      courseService.registerBannerView(activeBanners[0].id).catch(() => {});
+    }
+  }, [activeBanners]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -5142,6 +5775,72 @@ grouped[cat].push({
         "bg-[#1E293B]/10 text-[#1E293B] dark:bg-white/10 dark:text-white border border-[#1E293B]/20 dark:border-white/20",
     })[level] || "bg-gray-100 text-gray-700";
 
+  /* ── Presentational-only helpers for the redesigned course cards ──
+     These do not touch any API/data-fetching logic — they simply
+     derive display values (initials, strike-through price, discount
+     badge) from the existing course fields. */
+  const getInitials = (name = "") =>
+    name
+      .replace(/^Ex-/i, "")
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0])
+      .join("")
+      .toUpperCase() || "IN";
+
+  const getPricing = (price) => {
+    const current = parseInt(String(price).replace(/[^\d]/g, ""), 10) || 0;
+    const original = Math.round((current * 1.35) / 1000) * 1000;
+    const discount =
+      original > current
+        ? Math.round(((original - current) / original) * 100)
+        : 0;
+    return {
+      current: `₹${current.toLocaleString("en-IN")}`,
+      original: `₹${original.toLocaleString("en-IN")}`,
+      discount,
+    };
+  };
+
+  const toggleWishlist = async (id) => {
+    // Not logged in → don't call the API, just prompt login
+    if (!user) {
+      setShowLoginModal(true);
+      return;
+    }
+
+    // Optimistic UI update
+    setWishlist((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+
+    try {
+      const { data } = await courseService.toggleWishlist(id);
+      // Reconcile with server truth
+      setWishlist((prev) => {
+        const next = new Set(prev);
+        if (data.wishlisted) next.add(id);
+        else next.delete(id);
+        return next;
+      });
+    } catch (err) {
+      // Roll back the optimistic update on failure
+      setWishlist((prev) => {
+        const next = new Set(prev);
+        next.has(id) ? next.delete(id) : next.add(id);
+        return next;
+      });
+      if (err?.response?.status === 401) {
+        setShowLoginModal(true);
+      } else {
+        console.error("Wishlist toggle failed", err);
+      }
+    }
+  };
+
   const navLinks = [
     { text: "Mentors", href: "#mentors" },
     { text: "Success Stories", href: "#successstories" },
@@ -5189,11 +5888,11 @@ grouped[cat].push({
 
       {/* ── Nav ── */}
       <nav
-        className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+        className={`fixed top-0 w-full z-50 transition-all duration-300 bg-[#1F1D1F]/95 border-b border-[#F97316]/20 ${
           scrolled
-            ? "bg-white/95 dark:bg-black/95 backdrop-blur-xl shadow-md"
-            : "bg-white/80 dark:bg-black/80 backdrop-blur-md"
-        } border-b border-[#F97316]/20 dark:border-gray-800`}
+            ? "backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.18)]"
+            : "backdrop-blur-md"
+        }`}
       >
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-[68px]">
@@ -5216,21 +5915,21 @@ grouped[cat].push({
               <MegaMenu />
               {/* ILM ORA Feature Dropdown */}
               <div className="relative group">
-                <button className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-3 xl:px-4 py-2 rounded-lg hover:bg-[#F97316]/5 text-[13px] xl:text-[15px] whitespace-nowrap bg-transparent border-none cursor-pointer flex items-center gap-1">
+                <button className="text-white hover:text-[#F97316] font-medium transition-colors duration-300 px-3 xl:px-4 py-2 rounded-lg hover:bg-[#F97316]/10 text-[13px] xl:text-[15px] whitespace-nowrap bg-transparent border-none cursor-pointer flex items-center gap-1">
                   ILM ORA Feature
                   <ChevronDown className="w-4 h-4" />
                 </button>
 
-                <div className="absolute top-full left-0 mt-2 w-80 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                <div className="absolute top-full left-0 mt-2 w-80 bg-[#232323] border border-white/[0.08] rounded-xl shadow-xl p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                   <button
                     onClick={() => navigate("/student-hub")}
-                    className="w-full text-left p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-gray-800"
+                    className="w-full text-left p-3 rounded-lg hover:bg-[#F97316]/[0.12]"
                   >
                     <div className="flex items-start gap-3">
                       <GraduationCap className="w-5 h-5 text-green-600 mt-1" />
                       <div>
-                        <div className="font-semibold text-sm">Student Hub</div>
-                        <div className="text-xs text-gray-500">
+                        <div className="font-semibold text-sm text-white">Student Hub</div>
+                        <div className="text-xs text-gray-400">
                           AI-Powered Learning & Career Growth
                         </div>
                       </div>
@@ -5239,13 +5938,13 @@ grouped[cat].push({
 
                   <button
                     onClick={() => navigate("/trainer-hub")}
-                    className="w-full text-left p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-gray-800"
+                    className="w-full text-left p-3 rounded-lg hover:bg-[#F97316]/[0.12]"
                   >
                     <div className="flex items-start gap-3">
                       <Users className="w-5 h-5 text-blue-600 mt-1" />
                       <div>
-                        <div className="font-semibold text-sm">Trainer Hub</div>
-                        <div className="text-xs text-gray-500">
+                        <div className="font-semibold text-sm text-white">Trainer Hub</div>
+                        <div className="text-xs text-gray-400">
                           Training Management & Mentorship
                         </div>
                       </div>
@@ -5254,13 +5953,13 @@ grouped[cat].push({
 
                   <button
                     onClick={() => navigate("/manager-hub")}
-                    className="w-full text-left p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-gray-800"
+                    className="w-full text-left p-3 rounded-lg hover:bg-[#F97316]/[0.12]"
                   >
                     <div className="flex items-start gap-3">
                       <BarChart3 className="w-5 h-5 text-purple-600 mt-1" />
                       <div>
-                        <div className="font-semibold text-sm">Manager Hub</div>
-                        <div className="text-xs text-gray-500">
+                        <div className="font-semibold text-sm text-white">Manager Hub</div>
+                        <div className="text-xs text-gray-400">
                           Analytics, Performance & Team Development
                         </div>
                       </div>
@@ -5268,20 +5967,20 @@ grouped[cat].push({
                   </button>
 
                   {/* Divider */}
-                  <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+                  <div className="border-t border-white/[0.08] my-2"></div>
 
                   {/* ILM ORA Meet */}
                   <button
                     onClick={() => navigate("/ilm-ora-meet")}
-                    className="w-full text-left p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-gray-800"
+                    className="w-full text-left p-3 rounded-lg hover:bg-[#F97316]/[0.12]"
                   >
                     <div className="flex items-start gap-3">
                       <Users className="w-5 h-5 text-orange-500 mt-1" />
                       <div>
-                        <div className="font-semibold text-sm">
+                        <div className="font-semibold text-sm text-white">
                           ILM ORA Meet
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-gray-400">
                           Virtual Meetings & Collaboration
                         </div>
                       </div>
@@ -5291,15 +5990,15 @@ grouped[cat].push({
                   {/* AI Resume Builder */}
                   <button
                     onClick={() => navigate("/resume-builder")}
-                    className="w-full text-left p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-gray-800"
+                    className="w-full text-left p-3 rounded-lg hover:bg-[#F97316]/[0.12]"
                   >
                     <div className="flex items-start gap-3">
                       <FileText className="w-5 h-5 text-green-600 mt-1" />
                       <div>
-                        <div className="font-semibold text-sm">
+                        <div className="font-semibold text-sm text-white">
                           AI Resume Builder
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-gray-400">
                           Create ATS-Friendly Professional Resumes
                         </div>
                       </div>
@@ -5310,12 +6009,12 @@ grouped[cat].push({
 
               {/* More Dropdown */}
               <div className="relative group">
-                <button className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-3 xl:px-4 py-2 rounded-lg hover:bg-[#F97316]/5 text-[13px] xl:text-[15px] whitespace-nowrap bg-transparent border-none cursor-pointer flex items-center gap-1">
+                <button className="text-white hover:text-[#F97316] font-medium transition-colors duration-300 px-3 xl:px-4 py-2 rounded-lg hover:bg-[#F97316]/10 text-[13px] xl:text-[15px] whitespace-nowrap bg-transparent border-none cursor-pointer flex items-center gap-1">
                   More
                   <ChevronDown className="w-4 h-4" />
                 </button>
 
-                <div className="absolute top-full left-0 mt-2 w-52 bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                <div className="absolute top-full left-0 mt-2 w-52 bg-[#232323] rounded-xl shadow-xl border border-white/[0.08] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                   {navLinks.map((link) => (
                     <button
                       key={link.text}
@@ -5324,7 +6023,7 @@ grouped[cat].push({
                           .querySelector(link.href)
                           ?.scrollIntoView({ behavior: "smooth" });
                       }}
-                      className="w-full text-left px-4 py-3 hover:bg-orange-50 dark:hover:bg-gray-800 text-sm"
+                      className="w-full text-left px-4 py-3 hover:bg-[#F97316]/[0.12] text-sm text-white transition-colors duration-300"
                     >
                       {link.text}
                     </button>
@@ -5337,12 +6036,12 @@ grouped[cat].push({
             <div className="flex items-center gap-2 xl:gap-3 flex-shrink-0">
               <button
                 onClick={toggleTheme}
-                className="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-[#F6EDE6] dark:hover:bg-gray-900 transition shadow-sm bg-white dark:bg-black flex-shrink-0"
+                className="w-10 h-10 flex items-center justify-center rounded-xl border border-white/[0.08] hover:border-[#F97316] transition-colors duration-300 shadow-sm bg-[#2A2A2A] flex-shrink-0"
               >
                 {theme === "dark" ? (
                   <Sun className="w-[18px] h-[18px] text-[#F97316]" />
                 ) : (
-                  <Moon className="w-[18px] h-[18px] text-[#1E293B]" />
+                  <Moon className="w-[18px] h-[18px] text-gray-300" />
                 )}
               </button>
 
@@ -5352,7 +6051,7 @@ grouped[cat].push({
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="outline"
-                        className="gap-2 rounded-xl border-gray-200 dark:border-gray-700 h-10 px-3"
+                        className="gap-2 rounded-xl border-white/[0.08] bg-[#2A2A2A] hover:border-[#F97316] text-white h-10 px-3"
                       >
                         <Avatar className="w-7 h-7">
                           <AvatarImage src={user.picture} alt={user.name} />
@@ -5367,13 +6066,13 @@ grouped[cat].push({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                       align="end"
-                      className="w-72 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"
+                      className="w-72 bg-[#232323] border-white/[0.08]"
                     >
-                      <div className="px-3 py-3 bg-[#F6EDE6] dark:bg-gray-800 rounded-t-md">
-                        <p className="font-semibold text-sm text-[#1E293B] dark:text-white truncate">
+                      <div className="px-3 py-3 bg-[#2A2A2A] rounded-t-md">
+                        <p className="font-semibold text-sm text-white truncate">
                           {user.name || "User"}
                         </p>
-                        <p className="text-xs text-gray-500 truncate">
+                        <p className="text-xs text-gray-400 truncate">
                           {user.email}
                         </p>
                       </div>
@@ -5401,8 +6100,8 @@ grouped[cat].push({
                             <item.icon className="w-4 h-4 text-[#F97316]" />
                           </div>
                           <div>
-                            <p className="text-sm font-medium">{item.label}</p>
-                            <p className="text-xs text-gray-500">{item.desc}</p>
+                            <p className="text-sm font-medium text-white">{item.label}</p>
+                            <p className="text-xs text-gray-400">{item.desc}</p>
                           </div>
                         </DropdownMenuItem>
                       ))}
@@ -5420,7 +6119,7 @@ grouped[cat].push({
               ) : (
                 <Button
                   onClick={() => setShowLoginModal(true)}
-                  className="hidden lg:flex bg-[#1E293B] hover:bg-[#334155] text-white font-bold px-4 xl:px-5 py-2.5 rounded-xl items-center gap-2 shadow-md hover:shadow-lg transition-all text-[13px] xl:text-[15px] h-10 whitespace-nowrap"
+                  className="hidden lg:flex bg-gradient-to-br from-[#F97316] to-[#EA580C] hover:from-[#F97316] hover:to-[#EA580C] text-white font-bold px-4 xl:px-5 py-2.5 rounded-xl items-center gap-2 shadow-md hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(249,115,22,0.35)] transition-all duration-300 text-[13px] xl:text-[15px] h-10 whitespace-nowrap"
                 >
                   <Sparkles className="w-4 h-4" /> Get Started
                 </Button>
@@ -5428,16 +6127,93 @@ grouped[cat].push({
 
               {/* Hamburger — only shown below lg (below 1024px) */}
               <button
-                className="lg:hidden flex items-center justify-center w-10 h-10 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black hover:bg-[#F6EDE6] dark:hover:bg-gray-900 transition shadow-sm"
+                className="lg:hidden flex items-center justify-center w-10 h-10 rounded-xl border border-white/[0.08] hover:border-[#F97316] bg-[#2A2A2A] transition-colors duration-300 shadow-sm"
                 aria-label="Open menu"
                 onClick={() => setMobileMenuOpen(true)}
               >
-                <Menu className="w-5 h-5 text-[#1E293B] dark:text-white" />
+                <Menu className="w-5 h-5 text-white" />
               </button>
             </div>
           </div>
         </div>
       </nav>
+
+      {/* ── Banner Studio (backend-connected promotional banner) ── */}
+      {activeBanners.length > 0 &&
+        (() => {
+          const banner = activeBanners[0];
+          const hasImage =
+            banner.desktopImageUrl ||
+            banner.tabletImageUrl ||
+            banner.mobileImageUrl;
+
+          const handleBannerClick = () => {
+            courseService.registerBannerClick(banner.id).catch(() => {});
+            if (banner.ctaLink) window.open(banner.ctaLink, "_blank");
+          };
+
+          return (
+            <section className="w-full px-4 sm:px-6 pt-[84px]">
+              <div
+                className="max-w-7xl mx-auto rounded-b-xl overflow-hidden"
+                style={{ cursor: banner.ctaLink ? "pointer" : "default" }}
+                onClick={handleBannerClick}
+              >
+                {hasImage ? (
+                  // ── Uploaded / AI / builder artwork — the image IS the banner ──
+                  <picture>
+                    {banner.mobileImageUrl && (
+                      <source
+                        media="(max-width: 640px)"
+                        srcSet={banner.mobileImageUrl}
+                      />
+                    )}
+                    {banner.tabletImageUrl && (
+                      <source
+                        media="(max-width: 1024px)"
+                        srcSet={banner.tabletImageUrl}
+                      />
+                    )}
+                    <img
+                      src={
+                        banner.desktopImageUrl ||
+                        banner.tabletImageUrl ||
+                        banner.mobileImageUrl
+                      }
+                      alt={banner.name || "Promotional banner"}
+                      className="w-full h-auto max-h-[220px] sm:max-h-[260px] object-cover block"
+                    />
+                  </picture>
+                ) : (
+                  // ── No image uploaded — fall back to the text-only gradient strip ──
+                  <div
+                    className="flex items-center justify-between gap-4 py-4 px-4 sm:px-6 text-white"
+                    style={{ background: banner.gradient || "#1E293B" }}
+                  >
+                    <div>
+                      {banner.eyebrow && (
+                        <p className="text-xs uppercase tracking-widest opacity-80">
+                          {banner.eyebrow}
+                        </p>
+                      )}
+                      <p className="text-lg font-bold">
+                        {banner.emoji} {banner.title || banner.name}
+                      </p>
+                      {banner.subtitle && (
+                        <p className="text-sm opacity-90">{banner.subtitle}</p>
+                      )}
+                    </div>
+                    {banner.ctaText && (
+                      <span className="flex-shrink-0 bg-white/15 hover:bg-white/25 transition px-4 py-2 rounded-lg text-sm font-semibold">
+                        {banner.ctaText}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </section>
+          );
+        })()}
 
       {/* ── Hero ── */}
       <section className="pt-32 pb-24 px-6 bg-[#F6EDE6] dark:bg-black relative overflow-hidden">
@@ -5447,24 +6223,34 @@ grouped[cat].push({
         <div className="max-w-7xl mx-auto relative z-10 grid lg:grid-cols-2 gap-16 items-center">
           <div className="text-center lg:text-left">
             <div className="mb-8 inline-flex">
-              <div className="inline-flex items-center gap-2 bg-white dark:bg-gray-900 border border-[#F97316]/30 text-[#F97316] px-5 py-2.5 rounded-full text-sm font-semibold shadow-md">
-                <Sparkles className="w-4 h-4" />
-                Advanced Learning Platform for Modern Professionals
-              </div>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#FFF7ED] border border-[#FED7AA] text-[#F97316] text-sm font-semibold mb-6">
+  <Sparkles className="w-4 h-4" />
+  Learn Smarter. Grow Faster. Lead the Future.
+</div>
             </div>
-            <h1 className="text-4xl md:text-4xl lg:text-6xl font-bold mb-6 leading-tight text-[#1E293B] dark:text-white">
-              Become the <span className="text-[#F97316]">Top 1%</span>
-            </h1>
-            <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-12 max-w-xl leading-relaxed">
-              Learn Product, Design, Growth & Marketing from industry experts.
-            </p>
+         <h1 className="mb-6 leading-[1.1]">
+  <SplitText
+    text="Empower Your"
+    className="block text-4xl md:text-5xl lg:text-7xl font-bold text-[#1E293B] dark:text-white"
+    splitType="chars"
+    delay={60}
+    duration={0.6}
+  />
+  <SplitText
+    text="Learning Journey"
+    className="block text-4xl md:text-5xl lg:text-7xl font-bold text-[#F97316]"
+    splitType="chars"
+    delay={60}
+    duration={0.6}
+  />
+</h1>
+            <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-12 max-w-2xl leading-relaxed">
+  Master in-demand skills through AI-powered learning, live sessions,
+  certifications, and expert-led programs designed for students,
+  professionals, trainers, and organizations.
+</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center lg:items-start">
-              <button
-                onClick={() => navigate("/watch-demo/1")}
-                className="flex items-center gap-2 bg-[#1E293B] hover:bg-[#334155] text-white font-bold px-8 py-4 rounded-xl text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
-              >
-                Watch Now <ArrowRight className="w-5 h-5" />
-              </button>
+              
             </div>
           </div>
 
@@ -5561,6 +6347,8 @@ grouped[cat].push({
           ))}
         </div>
       </section>
+      {/* ── WatchNow ── */}
+      <WatchNowSection />
 
       {/* ── Features ── */}
       <section className="py-24 px-6 bg-[#F6EDE6] dark:bg-black">
@@ -5846,56 +6634,59 @@ grouped[cat].push({
       {/* ── Courses ── */}
       <section
         id="courses"
-        className="py-24 px-6 scroll-mt-20 bg-[#F6EDE6] dark:bg-black"
+        className="py-12 sm:py-16 scroll-mt-20 bg-[#F8FAFC] dark:bg-black"
       >
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-[#1E293B] dark:text-white">
+        <div className="max-w-[1440px] mx-auto px-6">
+          {/* ── Premium Section Header ── */}
+          <div className="text-center mb-6 sm:mb-8">
+            <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-widest text-[#F97316] bg-[#F97316]/10 border border-[#F97316]/20 px-4 py-1.5 rounded-full mb-3">
+              <Sparkles className="w-3.5 h-3.5" />
+              Handpicked for you
+            </span>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-3 tracking-tight text-[#1E293B] dark:text-white">
               Featured <span className="text-[#F97316]">Programs</span>
             </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Choose your path and start building skills that matter
+            <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
+              Choose your path and start building skills that matter — taught
+              by mentors who've shipped at the world's best companies.
             </p>
           </div>
+
           <Tabs
             value={activeTab}
             onValueChange={setActiveTab}
             className="w-full"
           >
-           <TabsList
-  className="grid w-full max-w-md mx-auto mb-12 p-1.5 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm"
-  style={{
-    gridTemplateColumns: `repeat(${
-      Object.keys(
-        programsLoading
-          ? courses
-          : featuredPrograms &&
-              Object.values(featuredPrograms).some(
-                (a) => a.length > 0,
-              )
-            ? featuredPrograms
-            : courses,
-      ).length
-    }, minmax(0, 1fr))`,
-  }}
->
-  {Object.keys(
-programsLoading
-  ? courses
-  : featuredPrograms &&
-    Object.values(featuredPrograms).some((a) => a.length > 0)
-    ? featuredPrograms
-    : courses
-).map((tab) => (
-                <TabsTrigger
-                  key={tab}
-                  value={tab}
-                  className="rounded-xl capitalize font-semibold data-[state=active]:bg-[#1E293B] data-[state=active]:text-white dark:data-[state=active]:bg-[#F97316] transition-all"
-                >
-                  {tab}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+            {/* ── Category Tabs: compact carousel, scales to 10/20/50+ categories
+                 without ever wrapping to multiple rows. Arrows + drag + wheel
+                 + native swipe, active tab always auto-scrolled into view. ── */}
+            <div className="mb-6 sm:mb-8 mx-auto w-fit max-w-full sm:max-w-3xl px-1 sm:px-0">
+              <div className="h-[42px] flex items-center px-1 sm:px-1.5 bg-white dark:bg-gray-900 rounded-full border border-gray-200 dark:border-gray-800 shadow-md shadow-slate-200/50 dark:shadow-none overflow-hidden">
+                <CategoryTabScroller activeKey={activeTab}>
+                  <TabsList className="flex w-max items-center justify-center gap-1.5 bg-transparent mx-auto h-full">
+                    {Object.keys(
+                      programsLoading
+                        ? courses
+                        : featuredPrograms &&
+                            Object.values(featuredPrograms).some(
+                              (a) => a.length > 0,
+                            )
+                          ? featuredPrograms
+                          : courses,
+                    ).map((tab) => (
+                      <TabsTrigger
+                        key={tab}
+                        value={tab}
+                        className="rounded-full capitalize font-semibold text-xs sm:text-sm whitespace-nowrap px-3.5 sm:px-5 h-[34px] flex-shrink-0 flex items-center text-[#1E293B] dark:text-gray-300 transition-all duration-300 ease-out data-[state=active]:bg-[#F97316] data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-orange-500/30"
+                      >
+                        {tab}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </CategoryTabScroller>
+              </div>
+            </div>
+
             {/* Real featured programs from the backend (with hardcoded
                `courses` as the fallback while loading or if the API
                returns nothing). */}
@@ -5903,142 +6694,267 @@ programsLoading
               programsLoading
                 ? courses
                 : featuredPrograms &&
+
                     Object.values(featuredPrograms).some((a) => a.length > 0)
                   ? featuredPrograms
                   : courses,
             ).map(([category, categoryCourses]) => (
               <TabsContent key={category} value={category}>
-                <div className="flex flex-wrap justify-center gap-8">
-                  {categoryCourses.map((course) => (
-                    <div
-                      key={course.id}
-                      onClick={() =>
-                        navigate(`/course-details/${course.id}`, {
-                          state: { course },
-                        })
-                      }
-                      className="group bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.334rem)]"
-                    >
-                      <div className="h-1 bg-[#F97316]" />
-                      <div className="p-6">
-                        <div className="flex items-start justify-between mb-4">
-                          <span
-                            className={`text-xs font-semibold px-3 py-1 rounded-full ${getLevelColor(course.level)}`}
+                <HorizontalCarousel
+                  items={categoryCourses}
+                  ariaLabel={`${category} courses`}
+                  getKey={(course) => course.id}
+                  cardMinHeight={300}
+                  renderItem={(course, idx) => {
+                    const pricing = getPricing(course.price);
+                    const isBestseller = course.rating >= 4.8;
+                    const lessons =
+                      course.totalLessons || course.modules?.length || 0;
+                    const isWishlisted = wishlist.has(course.id);
+
+                    return (
+                      <div
+                        onClick={() =>
+                          navigate(`/course-details/${course.id}`, {
+                            state: { course },
+                          })
+                        }
+                        className="group relative flex flex-col min-w-0 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-md hover:shadow-xl hover:shadow-slate-300/40 dark:hover:shadow-black/40 hover:-translate-y-1 transition-all duration-300 ease-out overflow-hidden cursor-pointer w-full h-full"
+                      >
+                        {/* ── Thumbnail / Banner ── */}
+                        <div className="relative h-16 sm:h-20 overflow-hidden bg-gradient-to-br from-[#1E293B] via-[#334155] to-[#F97316] flex-shrink-0">
+                          {course.thumbnailUrl || course.bannerUrl ? (
+                            <img
+                              src={course.thumbnailUrl || course.bannerUrl}
+                              alt={course.title}
+                              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                            />
+                          ) : (
+                            <>
+                              <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(circle_at_20%_20%,white,transparent_35%),radial-gradient(circle_at_80%_60%,white,transparent_30%)]" />
+                              <div className="absolute inset-0 flex items-center justify-center transition-transform duration-500 ease-out group-hover:scale-110">
+                                <GraduationCap
+                                  className="w-8 h-8 sm:w-10 sm:h-10 text-white/25"
+                                  strokeWidth={1.25}
+                                />
+                              </div>
+                            </>
+                          )}
+
+                          {/* Top badges */}
+                          <div className="absolute top-2 left-2 right-2 flex items-start justify-between gap-2">
+                            <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-wide bg-white/95 text-[#F97316] px-2 py-0.5 rounded-full shadow-sm">
+                              <Sparkles className="w-2.5 h-2.5" />
+                              {isBestseller ? "Bestseller" : "Featured"}
+                            </span>
+
+                            <button
+                              type="button"
+                              aria-label={
+                                isWishlisted
+                                  ? "Remove from wishlist"
+                                  : "Add to wishlist"
+                              }
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleWishlist(course.id);
+                              }}
+                              className="flex items-center justify-center w-7 h-7 rounded-full bg-white/95 shadow-sm hover:scale-110 active:scale-95 transition-transform duration-200"
+                            >
+                              <Heart
+                                className={`w-3.5 h-3.5 transition-colors ${
+                                  isWishlisted
+                                    ? "fill-[#F97316] text-[#F97316]"
+                                    : "text-[#1E293B]"
+                                }`}
+                              />
+                            </button>
+                          </div>
+
+                          {/* Difficulty badge */}
+                          <div className="absolute bottom-2 left-2 right-2 max-w-[70%]">
+                            <span
+                              className={`inline-block max-w-full truncate align-bottom text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm ${getLevelColor(course.level)} bg-white/95 dark:bg-white/95`}
+                            >
+                              {course.level}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* ── Body ── */}
+                        <div className="flex flex-col flex-1 min-w-0 p-2.5 sm:p-3 pt-2.5">
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-[#F97316] mb-1 truncate">
+                            {category}
+                          </span>
+
+                          <h3 className="text-sm sm:text-base font-bold text-[#1E293B] dark:text-white mb-1 leading-snug line-clamp-2 min-h-[2.5em] group-hover:text-[#F97316] transition-colors">
+                            {course.title}
+                          </h3>
+
+                          {/* Instructor */}
+                          <div className="flex items-center gap-1.5 mb-1.5 min-w-0">
+                            {course.instructorPhotoUrl ? (
+                              <img
+                                src={course.instructorPhotoUrl}
+                                alt={course.instructorFull || course.instructor}
+                                className="w-6 h-6 rounded-full object-cover shrink-0"
+                              />
+                            ) : (
+                              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-br from-[#F97316] to-[#ea580c] text-white text-[9px] font-bold shrink-0">
+                                {getInitials(
+                                  course.instructorFull || course.instructor,
+                                )}
+                              </div>
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs font-semibold text-[#1E293B] dark:text-white truncate">
+                                {course.instructorFull || course.instructor}
+                              </p>
+                              <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
+                                {course.instructorTitle || course.instructor}
+                              </p>
+                            </div>
+                          </div>
+
+                          <p className="text-xs text-gray-600 dark:text-gray-300 mb-1 leading-relaxed line-clamp-2 min-h-[2.2em]">
+                            {course.description}
+                          </p>
+
+                          {/* Skill chips */}
+                          <div className="flex flex-wrap gap-1 mb-1.5 overflow-hidden max-h-[24px]">
+                            <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-[#F97316]/10 text-[#F97316] border border-[#F97316]/15 whitespace-nowrap flex-shrink-0 truncate max-w-[120px]">
+                              {category}
+                            </span>
+                            <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-[#1E293B]/5 text-[#1E293B] dark:bg-white/10 dark:text-gray-200 border border-[#1E293B]/10 dark:border-white/10 whitespace-nowrap flex-shrink-0">
+                              {course.level}
+                            </span>
+                            {course.liveSessions !== undefined &&
+                              course.liveSessions !== "—" && (
+                                <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800 whitespace-nowrap flex-shrink-0">
+                                  {course.liveSessions} Live
+                                </span>
+                              )}
+                          </div>
+
+                          {/* Stats */}
+                          <div className="grid grid-cols-4 gap-1 text-center mb-1.5 pb-1.5 border-b border-gray-100 dark:border-gray-800">
+                            <div className="flex flex-col items-center gap-0.5 min-w-0">
+                              <Star className="w-3 h-3 text-[#F97316] flex-shrink-0" />
+                              <span className="text-[10px] font-semibold text-gray-600 dark:text-gray-300 truncate w-full">
+                                {course.rating ?? "—"}
+                              </span>
+                            </div>
+                            <div className="flex flex-col items-center gap-0.5 min-w-0">
+                              <Users className="w-3 h-3 text-[#F97316] flex-shrink-0" />
+                              <span className="text-[10px] font-semibold text-gray-600 dark:text-gray-300 truncate w-full">
+                                {course.students ?? "—"}
+                              </span>
+                            </div>
+                            <div className="flex flex-col items-center gap-0.5 min-w-0">
+                              <Clock className="w-3 h-3 text-[#F97316] flex-shrink-0" />
+                              <span className="text-[10px] font-semibold text-gray-600 dark:text-gray-300 truncate w-full">
+                                {course.duration ?? "—"}
+                              </span>
+                            </div>
+                            <div className="flex flex-col items-center gap-0.5 min-w-0">
+                              <PlayCircle className="w-3 h-3 text-[#F97316] flex-shrink-0" />
+                              <span className="text-[10px] font-semibold text-gray-600 dark:text-gray-300 truncate w-full">
+                                {lessons ?? "—"}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Pricing */}
+                          <div className="flex items-end justify-between mb-1.5 gap-2">
+                            <div className="flex items-baseline gap-1.5 min-w-0 flex-shrink">
+                              <span className="text-base sm:text-lg font-bold text-[#1E293B] dark:text-white truncate">
+                                {pricing.current ?? "—"}
+                              </span>
+                              {pricing.discount > 0 && (
+                                <span className="text-xs text-gray-400 line-through truncate">
+                                  {pricing.original}
+                                </span>
+                              )}
+                            </div>
+                            {pricing.discount > 0 && (
+                              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 dark:text-emerald-400 px-1.5 py-0.5 rounded-full border border-emerald-100 dark:border-emerald-800 whitespace-nowrap flex-shrink-0">
+                                {pricing.discount}% OFF
+                              </span>
+                            )}
+                          </div>
+
+                          {/* CTA */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/course-details/${course.id}`, {
+                                state: { course },
+                              });
+                            }}
+                            className="mt-auto w-full flex-shrink-0 bg-gradient-to-r from-[#F97316] to-[#ea580c] hover:brightness-105 text-white py-2 rounded-lg font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all duration-300 group-hover:scale-[1.02] shadow-sm shadow-orange-500/20"
                           >
-                            {course.level}
-                          </span>
-                          <span className="flex items-center gap-1 text-xs font-semibold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-full border border-amber-200 dark:border-amber-800">
-                            <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                            {course.rating}
-                          </span>
+                            View Details
+                            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                          </button>
                         </div>
-                        <h3 className="text-xl font-bold text-[#1E293B] dark:text-white mb-1 group-hover:text-[#F97316] transition-colors">
-                          {course.title}
-                        </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                          {course.instructor}
-                        </p>
-                        <p className="text-gray-600 dark:text-gray-300 mb-6 line-clamp-2 leading-relaxed text-sm">
-                          {course.description}
-                        </p>
-                        <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-6 pb-4 border-b border-gray-100 dark:border-gray-800">
-                          <div className="flex items-center gap-1">
-                            <Clock className="w-4 h-4 text-[#F97316]" />
-                            {course.duration}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Users className="w-4 h-4 text-[#F97316]" />
-                            {course.students}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <BookOpen className="w-4 h-4 text-[#F97316]" />
-                            {course.modules.length}
-                          </div>
-                        </div>
-                        <button className="w-full bg-[#1E293B] hover:bg-[#334155] text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all group-hover:scale-[1.02] shadow-sm">
-                          View Details{" "}
-                          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                        </button>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    );
+                  }}
+                />
               </TabsContent>
             ))}
           </Tabs>
         </div>
       </section>
-
+     
       {/* ── Mentors (testimonials — backend-connected) ── */}
       <section
         id="mentors"
         className="py-24 px-6 scroll-mt-20 bg-white dark:bg-gray-900/30"
       >
+        <style>{`
+          @media (min-width: 1024px) {
+            .mentors-section-heading {
+              white-space: nowrap;
+              font-size: clamp(1.9rem, 2.6vw, 3rem);
+            }
+          }
+        `}</style>
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-[#1E293B] dark:text-white">
+              <h2 className="mentors-section-heading text-4xl md:text-5xl font-bold mb-5 text-[#1E293B] dark:text-white">
                 Learn from{" "}
                 <span className="text-[#F97316]">Industry Experts</span>
               </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-300 mb-10 max-w-xl">
+              <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-xl">
                 Sessions led by operators from top product companies so you
                 understand how work happens in the real world.
               </p>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {mentorBenefits.map((item, i) => (
                   <div
                     key={i}
-                    className="bg-[#F6EDE6] dark:bg-gray-900 rounded-2xl p-5 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex items-start gap-4"
+                    className="bg-[#F6EDE6] dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-3"
                   >
-                    <div className="w-10 h-10 bg-[#1E293B] dark:bg-[#F97316] rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                      <item.icon className="w-5 h-5 text-white" />
+                    <div className="w-9 h-9 bg-[#1E293B] dark:bg-[#F97316] rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                      <item.icon className="w-4.5 h-4.5 text-white" />
                     </div>
-                    <p className="text-gray-700 dark:text-gray-300 font-medium pt-1">
+                    <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">
                       {item.text}
                     </p>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {testimonials.map((t, i) => (
-                <div
-                  key={i}
-                  className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all"
-                >
-                  <div className="flex items-center gap-1 mb-4">
-                    {[...Array(5)].map((_, j) => (
-                      <Star
-                        key={j}
-                        className="w-4 h-4 fill-amber-400 text-amber-400"
-                      />
-                    ))}
-                  </div>
-                  <p className="text-gray-600 dark:text-gray-300 mb-5 italic leading-relaxed text-sm">
-                    "{t.text}"
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#1E293B] dark:bg-[#F97316] rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
-                      {t.name.charAt(0)}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-[#1E293B] dark:text-white text-sm">
-                        {t.name}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {t.role}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+
+            <MentorTestimonialCarousel testimonials={testimonials} />
           </div>
         </div>
       </section>
 
-     {/* ── Career Support ── */}
+      {/* ── Career Support ── */}
       <section
         id="successstories"
         className="py-24 px-6 scroll-mt-20 bg-[#F6EDE6] dark:bg-black"
@@ -6087,7 +7003,7 @@ programsLoading
 
               {/* ── Middle: Content ── */}
               <div className="flex-1 flex flex-col justify-center px-6 sm:px-10 py-10 lg:py-8">
-               
+                
                 <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 text-[#1E293B] dark:text-white leading-tight">
                   Ready to Transform Your Career?
                 </h3>
@@ -6112,35 +7028,35 @@ programsLoading
       </section>
 
       {/* ── Footer ── */}
-      <footer className="bg-white text-[#1E293B]">
-        <div className="max-w-7xl mx-auto px-6 py-20">
-          <div className="grid gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 items-start">
-            <div className="flex flex-col gap-2.5 self-start text-left sm:col-span-2 lg:col-span-1">
+      <footer className="bg-[#191818] text-[#D1D5DB] border-t border-[#F97316]/[0.15]">
+        <div className="max-w-7xl mx-auto px-6 py-10">
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 items-start">
+            <div className="flex flex-col gap-2 self-start text-left sm:col-span-2 lg:col-span-1">
               <h3 className="text-3xl font-extrabold leading-none">
                 <span className="text-green-600">ILM</span>{" "}
                 <span className="text-[#F97316]">ORA</span>
               </h3>
-              <p className="text-sm text-gray-600 leading-relaxed">
+              <p className="text-sm text-[#D1D5DB] leading-relaxed">
                 Modern learning platform for ambitious professionals who want to
                 break into product, design and growth roles.
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-[#D1D5DB]">
                 📧{" "}
                 <a
                   href="mailto:marketing@texora.ai"
-                  className="hover:text-[#F97316] transition-colors"
+                  className="hover:text-[#F97316] transition-colors duration-300"
                 >
                   marketing@texora.ai
                 </a>
               </p>
 
-              <div className="flex items-center gap-3 pt-1 flex-wrap">
+              <div className="flex items-center gap-2 pt-1 flex-wrap">
                 {/* Instagram */}
                 <a
                   href="https://www.instagram.com/texora_ai"
                   target="_blank"
                   rel="noreferrer"
-                  className="h-9 w-9 rounded-full flex items-center justify-center text-white hover:scale-110 hover:shadow-md transition-all"
+                  className="h-8 w-8 rounded-full flex items-center justify-center text-white hover:scale-110 hover:shadow-md transition-all duration-300"
                   style={{
                     background:
                       "radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%)",
@@ -6160,7 +7076,7 @@ programsLoading
                   href="https://www.youtube.com/@Texoraai"
                   target="_blank"
                   rel="noreferrer"
-                  className="h-9 w-9 rounded-full flex items-center justify-center text-white bg-[#FF0000] hover:scale-110 hover:shadow-md transition-all"
+                  className="h-8 w-8 rounded-full flex items-center justify-center text-white bg-[#FF0000] hover:scale-110 hover:shadow-md transition-all duration-300"
                 >
                   <svg
                     className="h-4 w-4"
@@ -6176,7 +7092,7 @@ programsLoading
                   href="https://www.linkedin.com/company/ilmora-texoraai/"
                   target="_blank"
                   rel="noreferrer"
-                  className="h-9 w-9 rounded-full flex items-center justify-center text-white bg-[#0A66C2] hover:scale-110 hover:shadow-md transition-all"
+                  className="h-8 w-8 rounded-full flex items-center justify-center text-white bg-[#0A66C2] hover:scale-110 hover:shadow-md transition-all duration-300"
                 >
                   <svg
                     className="h-4 w-4"
@@ -6192,7 +7108,7 @@ programsLoading
                   href="https://api.whatsapp.com/send?phone=919210970334"
                   target="_blank"
                   rel="noreferrer"
-                  className="h-9 w-9 rounded-full flex items-center justify-center text-white bg-[#25D366] hover:scale-110 hover:shadow-md transition-all"
+                  className="h-8 w-8 rounded-full flex items-center justify-center text-white bg-[#25D366] hover:scale-110 hover:shadow-md transition-all duration-300"
                 >
                   <svg
                     className="h-4 w-4"
@@ -6208,7 +7124,7 @@ programsLoading
                   href="https://x.com/texoraai"
                   target="_blank"
                   rel="noreferrer"
-                  className="h-9 w-9 rounded-full flex items-center justify-center text-white bg-black hover:scale-110 hover:shadow-md transition-all"
+                  className="h-8 w-8 rounded-full flex items-center justify-center text-white bg-black hover:scale-110 hover:shadow-md transition-all duration-300"
                 >
                   <svg
                     className="h-4 w-4"
@@ -6221,11 +7137,11 @@ programsLoading
               </div>
             </div>
 
-            <div className="flex flex-col gap-4">
-              <h4 className="text-sm font-bold tracking-widest text-[#1E293B] uppercase">
+            <div className="flex flex-col gap-3">
+              <h4 className="text-sm font-bold tracking-widest text-white uppercase">
                 Programs
               </h4>
-              <ul className="flex flex-col gap-2.5 text-sm text-gray-600">
+              <ul className="flex flex-col gap-2 text-sm text-[#D1D5DB]">
                 {[
                   {
                     label: "Product Management",
@@ -6243,7 +7159,7 @@ programsLoading
                   <li
                     key={item.label}
                     onClick={item.action}
-                    className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group"
+                    className="hover:text-[#F97316] cursor-pointer transition-colors duration-300 flex items-center gap-1.5 group"
                   >
                     <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
                     {item.label}
@@ -6252,11 +7168,11 @@ programsLoading
               </ul>
             </div>
 
-            <div className="flex flex-col gap-4">
-              <h4 className="text-sm font-bold tracking-widest text-[#1E293B] uppercase">
+            <div className="flex flex-col gap-3">
+              <h4 className="text-sm font-bold tracking-widest text-white uppercase">
                 Resources
               </h4>
-              <ul className="flex flex-col gap-2.5 text-sm text-gray-600">
+              <ul className="flex flex-col gap-2 text-sm text-[#D1D5DB]">
                 {[
                   {
                     label: "Success Stories",
@@ -6276,7 +7192,7 @@ programsLoading
                   <li
                     key={item.label}
                     onClick={item.action}
-                    className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group"
+                    className="hover:text-[#F97316] cursor-pointer transition-colors duration-300 flex items-center gap-1.5 group"
                   >
                     <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
                     {item.label}
@@ -6285,11 +7201,11 @@ programsLoading
               </ul>
             </div>
 
-            <div className="flex flex-col gap-4 self-start">
-              <h4 className="text-sm font-bold tracking-widest text-[#1E293B] uppercase">
+            <div className="flex flex-col gap-3 self-start">
+              <h4 className="text-sm font-bold tracking-widest text-white uppercase">
                 Company
               </h4>
-              <ul className="flex flex-col gap-2.5 text-sm text-gray-600">
+              <ul className="flex flex-col gap-2 text-sm text-[#D1D5DB]">
                 {[
                   { label: "About Us", action: () => navigate("/about") },
                   { label: "Careers", action: () => navigate("/careers") },
@@ -6307,7 +7223,7 @@ programsLoading
                   <li
                     key={item.label}
                     onClick={item.action}
-                    className="hover:text-[#F97316] cursor-pointer transition-colors flex items-center gap-1.5 group"
+                    className="hover:text-[#F97316] cursor-pointer transition-colors duration-300 flex items-center gap-1.5 group"
                   >
                     <span className="w-1 h-1 rounded-full bg-[#F97316] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
                     {item.label}
@@ -6319,14 +7235,14 @@ programsLoading
             <FooterNewsletter />
           </div>
 
-          <div className="border-t border-gray-200 mt-16 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
+          <div className="border-t border-white/[0.05] mt-8 pt-4 -mx-6 px-6 pb-4 bg-[#141414] flex flex-col md:flex-row items-center justify-between gap-3 text-sm text-[#9CA3AF]">
             <span>
               © {new Date().getFullYear()} ILM ORA All rights reserved.
             </span>
             <div className="flex items-center gap-2">
-              <span>Built with</span>
-              <span className="text-red-500 text-base">❤️</span>
-              <span>passion for modern learners</span>
+              <span>ILM ORA  </span>
+              <span className="text-red-500 text-base">❤️Powered by</span>
+              <span>Texora AI</span>
             </div>
           </div>
         </div>

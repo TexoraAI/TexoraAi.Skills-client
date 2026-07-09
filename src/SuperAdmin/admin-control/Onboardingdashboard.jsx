@@ -59,6 +59,10 @@ import {
   getIndividualFeatureFlags,
   updateIndividualFeatureFlags,
 } from "../../services/batchService";
+import {
+  getIndividualChatFeatureFlags,
+  updateIndividualChatFeatureFlags,
+} from "../../services/chatService";
 import { courseService } from "../../services/courseService";
 import videoService from "../../services/videoService";
 import fileService from "../../services/fileService";
@@ -334,14 +338,29 @@ export const SERVICES_CONFIG = [
           endpoint: "GET /chat/trainer/students?batchId=",
         },
         {
-          key: "send_message",
+          key: "send_message_trainer",
           label: "Send message",
           endpoint: "POST /chat/send",
         },
         {
-          key: "get_conversation",
+          key: "get_conversation_trainer",
           label: "View conversation",
           endpoint: "GET /chat/conversation",
+        },
+        {
+          key: "get_trainer_feedback",
+          label: "View my feedback",
+          endpoint: "GET /feedback/trainer/my",
+        },
+        {
+          key: "get_trainer_feedback_by_batch",
+          label: "View feedback by batch",
+          endpoint: "GET /feedback/trainer/my/batch/:batchId",
+        },
+        {
+          key: "get_trainer_feedback_summary",
+          label: "View feedback summary",
+          endpoint: "GET /feedback/trainer/my/batch/:batchId/summary",
         },
       ],
       student: [
@@ -356,17 +375,143 @@ export const SERVICES_CONFIG = [
           endpoint: "GET /chat/student/context",
         },
         {
-          key: "send_message",
+          key: "send_message_student",
           label: "Send message",
           endpoint: "POST /chat/send",
         },
         {
-          key: "get_conversation",
+          key: "get_conversation_student",
           label: "View conversation",
           endpoint: "GET /chat/conversation",
         },
+        {
+          key: "submit_feedback",
+          label: "Submit feedback",
+          endpoint: "POST /feedback/submit",
+        },
+        {
+          key: "check_feedback_status",
+          label: "Check feedback status",
+          endpoint: "GET /feedback/check/:batchId",
+        },
+        {
+          key: "get_my_feedback",
+          label: "View my feedback",
+          endpoint: "GET /feedback/student/my",
+        },
+        {
+          key: "get_my_feedback_by_batch",
+          label: "View feedback by batch",
+          endpoint: "GET /feedback/student/my/batch/:batchId",
+        },
+        {
+          key: "get_my_notebooks",
+          label: "View my notebooks",
+          endpoint: "GET /notebooks/my",
+        },
+        {
+          key: "get_notebook",
+          label: "View notebook",
+          endpoint: "GET /notebooks/:id",
+        },
+        {
+          key: "create_notebook",
+          label: "Create notebook",
+          endpoint: "POST /notebooks",
+        },
+        {
+          key: "update_notebook",
+          label: "Update notebook",
+          endpoint: "PUT /notebooks/:id",
+        },
+        {
+          key: "delete_notebook",
+          label: "Delete notebook",
+          endpoint: "DELETE /notebooks/:id",
+        },
+        {
+          key: "add_section",
+          label: "Add notebook section",
+          endpoint: "POST /notebooks/sections",
+        },
+        {
+          key: "update_section",
+          label: "Update notebook section",
+          endpoint: "PUT /notebooks/sections/:id",
+        },
+        {
+          key: "delete_section",
+          label: "Delete notebook section",
+          endpoint: "DELETE /notebooks/sections/:id",
+        },
+        {
+          key: "add_page",
+          label: "Add notebook page",
+          endpoint: "POST /notebooks/pages",
+        },
+        {
+          key: "save_page",
+          label: "Save notebook page",
+          endpoint: "PUT /notebooks/pages/:id",
+        },
+        {
+          key: "delete_page",
+          label: "Delete notebook page",
+          endpoint: "DELETE /notebooks/pages/:id",
+        },
+        {
+          key: "add_url_source",
+          label: "Add URL source",
+          endpoint: "POST /notebooks/:notebookId/sources/url",
+        },
+        {
+          key: "add_file_source",
+          label: "Add file source",
+          endpoint: "POST /notebooks/:notebookId/sources/file",
+        },
+        {
+          key: "delete_source",
+          label: "Delete source",
+          endpoint: "DELETE /notebooks/sources/:sourceId",
+        },
+        {
+          key: "notebook_ai_chat",
+          label: "Notebook AI chat",
+          endpoint: "POST /notebooks/:notebookId/chat",
+        },
       ],
-      admin: [],
+      admin: [
+        {
+          key: "get_batch_feedback",
+          label: "View batch feedback",
+          endpoint: "GET /feedback/admin/batch/:batchId",
+        },
+        {
+          key: "get_batch_summaries",
+          label: "View feedback summaries",
+          endpoint: "GET /feedback/admin/batch/:batchId/summaries",
+        },
+        {
+          key: "update_feedback_status",
+          label: "Update feedback status",
+          endpoint: "PATCH /feedback/admin/:feedbackId/status",
+        },
+        {
+          key: "create_update_alert_config",
+          label: "Create/update alert config",
+          endpoint: "POST /feedback/alert-config",
+        },
+        {
+          key: "get_alert_config",
+          label: "View alert config",
+          endpoint: "GET /feedback/alert-config/:batchId",
+        },
+        {
+          key: "delete_alert_config",
+          label: "Delete alert config",
+          endpoint: "DELETE /feedback/alert-config/:batchId",
+        },
+      ],
     },
   },
   {
@@ -951,7 +1096,19 @@ function buildDefaultFileDTOOM(enabled = true) {
   });
   return { enabled, features };
 }
-
+const CHAT_SVC_OM = SERVICES_CONFIG.find((s) => s.key === "chat");
+function getAllChatKeysOM() {
+  return Object.values(CHAT_SVC_OM.features)
+    .flat()
+    .map((f) => f.key);
+}
+function buildDefaultChatDTOOM(enabled = true) {
+  const features = {};
+  getAllChatKeysOM().forEach((k) => {
+    features[k] = enabled;
+  });
+  return { enabled, features };
+}
 // const COURSE_SVC = SERVICES_CONFIG.find((s) => s.key === "course");
 
 // function getAllCourseFeatureKeys() {
@@ -1570,6 +1727,15 @@ const FeatureControlsSection = ({ userEmail, color, userRole }) => {
 
   const fileSvc = FILE_SVC_OM;
 
+  // ── CHAT state ───────────────────────────────────────────────────────────────
+  const [chatDto, setChatDto] = useState(() => buildDefaultChatDTOOM(true));
+  const [chatLoading, setChatLoading] = useState(true);
+  const [chatSaving, setChatSaving] = useState(false);
+  const [chatSaved, setChatSaved] = useState(false);
+  const [chatDrawerOpen, setChatDrawerOpen] = useState(false);
+
+  const chatSvc = CHAT_SVC_OM;
+
   const batchSvc = BATCH_SVC_OM;
   const courseSvc = COURSE_SVC_OM;
 
@@ -1656,6 +1822,27 @@ const FeatureControlsSection = ({ userEmail, color, userRole }) => {
       })
       .catch(() => setFileDto(buildDefaultFileDTOOM(true)))
       .finally(() => setFileLoading(false));
+  }, [userEmail]);
+
+  // ── Load CHAT flags ──────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!userEmail) return;
+    setChatLoading(true);
+    getIndividualChatFeatureFlags(userEmail)
+      .then((res) => {
+        const data = res.data;
+        if (data && typeof data === "object" && data.features) {
+          const defaults = buildDefaultChatDTOOM(true);
+          setChatDto({
+            enabled: data.enabled ?? true,
+            features: { ...defaults.features, ...data.features },
+          });
+        } else {
+          setChatDto(buildDefaultChatDTOOM(true));
+        }
+      })
+      .catch(() => setChatDto(buildDefaultChatDTOOM(true)))
+      .finally(() => setChatLoading(false));
   }, [userEmail]);
   const pushToast = useCallback(
     ({ svcLabel, featLabel, enabled, color: c }) => {
@@ -1761,7 +1948,28 @@ const FeatureControlsSection = ({ userEmail, color, userRole }) => {
       setFileSaving(false);
     }
   };
-
+  // ── CHAT handlers ────────────────────────────────────────────────────────────
+  const handleChatToggleFeature = (featKey, val) => {
+    setChatDto((prev) => {
+      const newFeatures = { ...prev.features, [featKey]: val };
+      const anyOn = Object.values(newFeatures).some(Boolean);
+      return { enabled: anyOn, features: newFeatures };
+    });
+  };
+  const handleChatToggleService = (val) =>
+    setChatDto(buildDefaultChatDTOOM(val));
+  const handleChatSave = async () => {
+    setChatSaving(true);
+    try {
+      await updateIndividualChatFeatureFlags(userEmail, chatDto);
+      setChatSaved(true);
+      setTimeout(() => setChatSaved(false), 2800);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setChatSaving(false);
+    }
+  };
   const allowedRole = userRole === "business" ? "admin" : userRole || "trainer";
 
   const batchTotalKeys = getAllBatchKeysOM().length;
@@ -1802,6 +2010,12 @@ const FeatureControlsSection = ({ userEmail, color, userRole }) => {
     (f) => fileDto.features[f.key] !== false,
   ).length;
   const showFileCard = fileRoleFeats.length > 0;
+
+  const chatRoleFeats = chatSvc.features[allowedRole] || [];
+  const chatRoleOn = chatRoleFeats.filter(
+    (f) => chatDto.features[f.key] !== false,
+  ).length;
+  const showChatCard = chatRoleFeats.length > 0;
   // Hide a service card entirely if this role has no features for it
   const showBatchCard = batchRoleFeats.length > 0;
   const showCourseCard = courseRoleFeats.length > 0;
@@ -1957,7 +2171,11 @@ const FeatureControlsSection = ({ userEmail, color, userRole }) => {
             </span>
           </div>
 
-          {batchLoading && courseLoading && videoLoading && fileLoading ? (
+          {batchLoading &&
+          courseLoading &&
+          videoLoading &&
+          fileLoading &&
+          chatLoading ? (
             <div
               style={{
                 padding: "18px 0",
@@ -2083,6 +2301,30 @@ const FeatureControlsSection = ({ userEmail, color, userRole }) => {
                   loading={fileLoading}
                 />
               )}
+              {showChatCard && (
+                <ServiceCardOM
+                  svc={chatSvc}
+                  svcEnabled={chatDto.enabled ?? true}
+                  onKeys={chatRoleOn}
+                  totalKeys={chatRoleFeats.length}
+                  pct={
+                    chatRoleFeats.length > 0
+                      ? Math.round((chatRoleOn / chatRoleFeats.length) * 100)
+                      : 0
+                  }
+                  onToggleService={(val) => {
+                    handleChatToggleService(val);
+                    pushToast({
+                      svcLabel: chatSvc.label,
+                      featLabel: "All features",
+                      enabled: val,
+                      color: chatSvc.color,
+                    });
+                  }}
+                  onDrawerOpen={() => setChatDrawerOpen(true)}
+                  loading={chatLoading}
+                />
+              )}
             </div>
           )}
 
@@ -2136,6 +2378,19 @@ const FeatureControlsSection = ({ userEmail, color, userRole }) => {
               onSave={handleFileSave}
               saving={fileSaving}
               saved={fileSaved}
+              userRole={userRole}
+            />
+          )}
+          {chatDrawerOpen && (
+            <ChatDrawerOM
+              dto={chatDto}
+              onToggleFeature={handleChatToggleFeature}
+              onToggleService={handleChatToggleService}
+              onClose={() => setChatDrawerOpen(false)}
+              onToast={pushToast}
+              onSave={handleChatSave}
+              saving={chatSaving}
+              saved={chatSaved}
               userRole={userRole}
             />
           )}
@@ -3519,6 +3774,414 @@ const FileDrawerOM = ({
                       .length
                   }{" "}
                   / {getAllFileKeysOM().length} features active
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: 9,
+                background: "rgba(255,255,255,0.2)",
+                border: "none",
+                cursor: "pointer",
+                color: "#fff",
+                fontSize: 15,
+                fontWeight: 700,
+              }}
+            >
+              ✕
+            </button>
+          </div>
+          {/* Master switch */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginTop: 16,
+              background: "rgba(255,255,255,0.12)",
+              borderRadius: 11,
+              padding: "9px 13px",
+              border: "1px solid rgba(255,255,255,0.15)",
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#fff" }}>
+                Service master switch
+              </div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.65)" }}>
+                Disabling blocks all features for all roles
+              </div>
+            </div>
+            <MiniTgl
+              checked={svcEnabled}
+              onChange={(e) => {
+                onToggleService(e.target.checked);
+                onToast({
+                  svcLabel: svc.label,
+                  featLabel: "All features",
+                  enabled: e.target.checked,
+                  color: svc.color,
+                });
+              }}
+              color="#fff"
+              size="md"
+            />
+          </div>
+          {/* Save button */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              gap: 8,
+              marginTop: 12,
+            }}
+          >
+            <button
+              onClick={onSave}
+              disabled={saving}
+              style={{
+                fontSize: 12,
+                padding: "8px 20px",
+                border: "none",
+                borderRadius: 10,
+                background: saving
+                  ? "rgba(255,255,255,0.2)"
+                  : "rgba(255,255,255,0.92)",
+                cursor: saving ? "not-allowed" : "pointer",
+                color: saving ? "rgba(255,255,255,0.5)" : svc.color,
+                fontWeight: 700,
+                boxShadow: saving ? "none" : "0 2px 8px rgba(0,0,0,0.2)",
+                transition: "all 0.15s",
+              }}
+            >
+              {saving ? "Saving…" : saved ? "✓ Saved!" : "💾 Save changes"}
+            </button>
+          </div>
+          {/* Role tabs */}
+          {roles.length > 0 && (
+            <div style={{ display: "flex", gap: 5, marginTop: 12 }}>
+              {roles.map((role) => {
+                const pill = ROLE_PILL[role] || { label: role };
+                const isActive = activeRole === role;
+                return (
+                  <button
+                    key={role}
+                    onClick={() => setActiveRole(role)}
+                    style={{
+                      flex: 1,
+                      padding: "6px 8px",
+                      borderRadius: 8,
+                      border: "none",
+                      cursor: "pointer",
+                      background: isActive
+                        ? "rgba(255,255,255,0.92)"
+                        : "rgba(255,255,255,0.18)",
+                      color: isActive ? svc.color : "#fff",
+                      fontWeight: 700,
+                      fontSize: 11,
+                    }}
+                  >
+                    {pill.label}
+                    <span
+                      style={{
+                        display: "block",
+                        fontSize: 9.5,
+                        fontWeight: 400,
+                        opacity: 0.75,
+                        marginTop: 1,
+                      }}
+                    >
+                      {countEnabled(role)}/{totalForRole(role)} on
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        {/* Feature list */}
+        <div style={{ flex: 1, padding: "14px 18px", overflowY: "auto" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 10,
+            }}
+          >
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: "#94a3b8",
+              }}
+            >
+              {activeRole} · {countEnabled(activeRole)}/
+              {totalForRole(activeRole)} enabled
+            </span>
+            <div style={{ display: "flex", gap: 5 }}>
+              <button
+                onClick={() => handleRoleAll(false)}
+                style={{
+                  fontSize: 9.5,
+                  padding: "3px 9px",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 6,
+                  background: "transparent",
+                  cursor: "pointer",
+                  color: "#94a3b8",
+                  fontWeight: 600,
+                  fontFamily: "inherit",
+                }}
+              >
+                All off
+              </button>
+              <button
+                onClick={() => handleRoleAll(true)}
+                style={{
+                  fontSize: 9.5,
+                  padding: "3px 9px",
+                  border: `1px solid ${svc.color}`,
+                  borderRadius: 6,
+                  background: svc.colorLight,
+                  cursor: "pointer",
+                  color: svc.color,
+                  fontWeight: 600,
+                  fontFamily: "inherit",
+                }}
+              >
+                All on
+              </button>
+            </div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            {(svc.features[activeRole] || []).map((feat, idx) => {
+              const isOn = dto.features[feat.key] ?? true;
+              return (
+                <div
+                  key={feat.key}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "10px 12px",
+                    borderRadius: 10,
+                    background: isOn ? svc.colorLight + "80" : "#f8fafc",
+                    border: `1px solid ${isOn ? svc.color + "30" : "#f1f5f9"}`,
+                    cursor: "pointer",
+                  }}
+                  onClick={() => {
+                    onToggleFeature(feat.key, !isOn);
+                    onToast({
+                      svcLabel: svc.label,
+                      featLabel: feat.label,
+                      enabled: !isOn,
+                      color: svc.color,
+                    });
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 22,
+                      height: 22,
+                      borderRadius: 6,
+                      background: isOn ? svc.color : "#e5e7eb",
+                      color: isOn ? "#fff" : "#94a3b8",
+                      fontSize: 10,
+                      fontWeight: 800,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {idx + 1}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: isOn ? "#0f172a" : "#94a3b8",
+                      }}
+                    >
+                      {feat.label}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 9.5,
+                        color: "#94a3b8",
+                        fontFamily: "monospace",
+                        marginTop: 1,
+                        opacity: 0.7,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {feat.endpoint}
+                    </div>
+                  </div>
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <MiniTgl
+                      checked={isOn}
+                      onChange={(e) => {
+                        onToggleFeature(feat.key, e.target.checked);
+                        onToast({
+                          svcLabel: svc.label,
+                          featLabel: feat.label,
+                          enabled: e.target.checked,
+                          color: svc.color,
+                        });
+                      }}
+                      color={svc.color}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ChatDrawerOM = ({
+  dto,
+  onToggleFeature,
+  onToggleService,
+  onClose,
+  onToast,
+  onSave,
+  saving,
+  saved,
+  userRole,
+}) => {
+  const svc = CHAT_SVC_OM;
+  const allowedRole = userRole === "business" ? "admin" : userRole || "trainer";
+  const roles = Object.keys(svc.features).filter(
+    (r) => r === allowedRole && (svc.features[r] || []).length > 0,
+  );
+  const [activeRole, setActiveRole] = useState(roles[0] || "trainer");
+  const svcEnabled = dto.enabled ?? true;
+
+  const countEnabled = (role) =>
+    (svc.features[role] || []).filter((f) => dto.features[f.key] !== false)
+      .length;
+  const totalForRole = (role) => (svc.features[role] || []).length;
+
+  const handleRoleAll = (val) => {
+    (svc.features[activeRole] || []).forEach((f) => {
+      if ((dto.features[f.key] ?? true) !== val) {
+        onToggleFeature(f.key, val);
+        onToast({
+          svcLabel: svc.label,
+          featLabel: f.label,
+          enabled: val,
+          color: svc.color,
+        });
+      }
+    });
+  };
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 8000,
+        display: "flex",
+        justifyContent: "flex-end",
+      }}
+    >
+      <div
+        onClick={onClose}
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "rgba(0,0,0,0.55)",
+          backdropFilter: "blur(6px)",
+        }}
+      />
+      <div
+        style={{
+          position: "relative",
+          width: 500,
+          height: "100%",
+          background: "#fff",
+          display: "flex",
+          flexDirection: "column",
+          boxShadow: `-20px 0 60px rgba(0,0,0,0.3)`,
+          animation: "drawerSlide 0.3s cubic-bezier(0.22,1,0.36,1)",
+          overflowY: "auto",
+        }}
+      >
+        <div
+          style={{
+            background: svc.gradient,
+            padding: "24px 22px 20px",
+            flexShrink: 0,
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              top: -30,
+              right: -30,
+              width: 120,
+              height: 120,
+              borderRadius: "50%",
+              background: "rgba(255,255,255,0.08)",
+            }}
+          />
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              position: "relative",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 14,
+                  background: "rgba(255,255,255,0.2)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 22,
+                }}
+              >
+                {svc.icon}
+              </div>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: "#fff" }}>
+                  {svc.label}
+                </div>
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: "rgba(255,255,255,0.7)",
+                    marginTop: 2,
+                  }}
+                >
+                  {
+                    getAllChatKeysOM().filter((k) => dto.features[k] !== false)
+                      .length
+                  }{" "}
+                  / {getAllChatKeysOM().length} features active
                 </div>
               </div>
             </div>

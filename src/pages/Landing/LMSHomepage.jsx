@@ -3739,6 +3739,7 @@ import {
   LogOut,
   Menu,
   Moon,
+  Quote,
   PlayCircle,
   Sparkles,
   Star,
@@ -4939,21 +4940,38 @@ function FooterNewsletter() {
 
 // Small avatar helper: shows the backend image in a circular frame,
 // falls back to initials if there's no image or the image fails to load.
-function MentorAvatar({ name, image }) {
+function MentorAvatar({ name, image, size = "w-9 h-9", showBadge = false }) {
   const [imgError, setImgError] = useState(false);
   const initials = (name || "").charAt(0).toUpperCase();
 
   return (
-    <div className="w-9 h-9 rounded-full flex-shrink-0 overflow-hidden bg-[#1E293B] dark:bg-[#F97316] flex items-center justify-center text-white font-bold text-sm">
-      {image && !imgError ? (
-        <img
-          src={image}
-          alt={name}
-          className="w-full h-full object-cover"
-          onError={() => setImgError(true)}
-        />
-      ) : (
-        <span>{initials}</span>
+    <div className={`relative ${size} flex-shrink-0`}>
+      <div
+        className={`${size} rounded-full overflow-hidden bg-[#1E293B] dark:bg-[#F97316] flex items-center justify-center text-white font-bold`}
+      >
+        {image && !imgError ? (
+          <img
+            src={image}
+            alt={name}
+            className="w-full h-full object-cover"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <span>{initials}</span>
+        )}
+      </div>
+      {showBadge && (
+        <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#22C55E] border-2 border-white dark:border-gray-900 flex items-center justify-center">
+          <svg viewBox="0 0 24 24" fill="none" className="w-2.5 h-2.5 sm:w-3 sm:h-3">
+            <path
+              d="M5 13l4 4L19 7"
+              stroke="white"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
       )}
     </div>
   );
@@ -4998,87 +5016,144 @@ function MentorTestimonialCarousel({ testimonials }) {
   if (!testimonials || testimonials.length === 0) return null;
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
+    <div className="w-full">
       <style>{`
         .mentor-scroll::-webkit-scrollbar { display: none; }
         .mentor-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes mentorFadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
 
-      {/* Single card, arrows sit inside the padded gutters so nothing can overflow */}
-      <div className="relative px-7 sm:px-9">
+      <div className="relative flex items-center gap-3 sm:gap-4 lg:gap-6">
+        {/* Prev arrow — outside the card, desktop/tablet */}
         <button
           onClick={handlePrev}
           aria-label="Previous testimonial"
           disabled={activeIndex === 0}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 flex flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-md items-center justify-center hover:bg-[#F6EDE6] dark:hover:bg-gray-800 transition disabled:opacity-30 disabled:cursor-not-allowed"
+          className="hidden sm:flex flex-shrink-0 w-11 h-11 lg:w-12 lg:h-12 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-[0_10px_35px_rgba(0,0,0,0.08)] items-center justify-center hover:bg-[#F97316] hover:border-[#F97316] group transition-all duration-300 disabled:opacity-30 disabled:pointer-events-none"
         >
-          <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#1E293B] dark:text-white" />
+          <ChevronLeft className="w-5 h-5 text-[#1E293B] dark:text-white group-hover:text-white transition-colors" />
         </button>
 
+        {/* Scroller */}
         <div
           ref={scrollerRef}
           onScroll={handleScroll}
           style={{ scrollSnapType: "x mandatory" }}
-          className="mentor-scroll flex overflow-x-auto"
+          className="mentor-scroll flex overflow-x-auto flex-1 min-w-0"
         >
           {testimonials.map((t, i) => (
             <div
               key={i}
               style={{ scrollSnapAlign: "start" }}
-              className="min-w-full flex-shrink-0 bg-white dark:bg-gray-900 rounded-xl p-4 sm:p-5 md:p-6 border border-gray-200 dark:border-gray-800 shadow-md"
+              className="w-full min-w-0 flex-shrink-0"
             >
-              <div className="flex items-center gap-1 mb-2 sm:mb-3">
-                {[...Array(5)].map((_, j) => (
-                  <Star
-                    key={j}
-                    className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-amber-400 text-amber-400"
-                  />
-                ))}
-              </div>
-              <p className="text-gray-600 dark:text-gray-300 mb-3 sm:mb-4 italic leading-snug text-sm">
-                "{t.text}"
-              </p>
-              <div className="flex items-center gap-2.5">
-                <MentorAvatar name={t.name} image={t.image} />
-                <div>
-                  <p className="font-semibold text-[#1E293B] dark:text-white text-sm leading-tight">
-                    {t.name}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">
-                    {t.role}
-                  </p>
+              <div
+                className="relative bg-white dark:bg-gray-900 rounded-[18px] sm:rounded-[22px] lg:rounded-[24px] border border-[#ECECEC] dark:border-gray-800 shadow-[0_10px_35px_rgba(0,0,0,0.08)] p-5 sm:p-6 lg:p-10 overflow-hidden"
+                style={{ animation: "mentorFadeIn 0.4s ease both" }}
+              >
+                {/* Large faded quote mark, top-right */}
+                <Quote
+                  className="pointer-events-none absolute top-3 right-4 sm:top-4 sm:right-6 lg:top-6 lg:right-8 w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 text-[#F97316]/10 dark:text-[#F97316]/15"
+                  fill="currentColor"
+                  strokeWidth={0}
+                />
+
+                <div className="flex flex-col lg:flex-row lg:items-stretch gap-5 lg:gap-8">
+                  {/* Left: rating + quote */}
+                  <div className="flex-1 min-w-0 relative z-[1]">
+                    <div className="flex items-center gap-1 mb-3 sm:mb-4">
+                      {[...Array(5)].map((_, j) => (
+                        <Star
+                          key={j}
+                          className="w-4 h-4 sm:w-[18px] sm:h-[18px] fill-amber-400 text-amber-400"
+                        />
+                      ))}
+                    </div>
+                    <p
+                      className="text-gray-600 dark:text-gray-300 italic text-sm sm:text-base lg:text-lg leading-7 lg:leading-8"
+                      style={{
+                        whiteSpace: "pre-wrap",
+                        overflowWrap: "break-word",
+                        wordBreak: "break-word",
+                      }}
+                    >
+                      "{t.text}"
+                    </p>
+                  </div>
+
+                  {/* Vertical divider — desktop only */}
+                  <div className="hidden lg:block w-px bg-[#ECECEC] dark:bg-gray-800 flex-shrink-0" />
+
+                  {/* Right: author block */}
+                  <div className="flex items-center gap-3 lg:flex-col lg:items-start lg:justify-center lg:w-[220px] lg:flex-shrink-0 pt-4 lg:pt-0 border-t lg:border-t-0 border-[#ECECEC] dark:border-gray-800">
+                    <MentorAvatar
+                      name={t.name}
+                      image={t.image}
+                      size="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16"
+                      showBadge
+                    />
+                    <div className="min-w-0">
+                      <p className="font-bold text-[#1E293B] dark:text-white text-sm sm:text-base leading-snug truncate">
+                        {t.name}
+                      </p>
+                      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-snug mt-0.5">
+                        {t.role}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           ))}
         </div>
 
+        {/* Next arrow — outside the card, desktop/tablet */}
         <button
           onClick={handleNext}
           aria-label="Next testimonial"
           disabled={activeIndex === testimonials.length - 1}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 flex flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-md items-center justify-center hover:bg-[#F6EDE6] dark:hover:bg-gray-800 transition disabled:opacity-30 disabled:cursor-not-allowed"
+          className="hidden sm:flex flex-shrink-0 w-11 h-11 lg:w-12 lg:h-12 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-[0_10px_35px_rgba(0,0,0,0.08)] items-center justify-center hover:bg-[#F97316] hover:border-[#F97316] group transition-all duration-300 disabled:opacity-30 disabled:pointer-events-none"
         >
-          <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#1E293B] dark:text-white" />
+          <ChevronRight className="w-5 h-5 text-[#1E293B] dark:text-white group-hover:text-white transition-colors" />
+        </button>
+      </div>
+
+      {/* Arrows on mobile — sit below the card instead of overlapping it */}
+      <div className="flex sm:hidden items-center justify-center gap-4 mt-4">
+        <button
+          onClick={handlePrev}
+          aria-label="Previous testimonial"
+          disabled={activeIndex === 0}
+          className="w-10 h-10 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-md flex items-center justify-center disabled:opacity-30"
+        >
+          <ChevronLeft className="w-4 h-4 text-[#1E293B] dark:text-white" />
+        </button>
+        <button
+          onClick={handleNext}
+          aria-label="Next testimonial"
+          disabled={activeIndex === testimonials.length - 1}
+          className="w-10 h-10 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-md flex items-center justify-center disabled:opacity-30"
+        >
+          <ChevronRight className="w-4 h-4 text-[#1E293B] dark:text-white" />
         </button>
       </div>
 
       {/* Dot pagination */}
-      <div className="flex items-center justify-center gap-1.5 sm:gap-2 mt-3 sm:mt-4">
+      <div className="flex items-center justify-center gap-2 mt-5 sm:mt-6">
         {testimonials.map((_, i) => (
           <button
             key={i}
             onClick={() => scrollToIndex(i)}
             aria-label={`Go to testimonial ${i + 1}`}
             style={{
-              width: activeIndex === i ? "20px" : "7px",
-              height: "7px",
+              width: activeIndex === i ? "24px" : "8px",
+              height: "8px",
               borderRadius: "9999px",
               background: activeIndex === i ? "#F97316" : "#CBD5E1",
               border: "none",
               cursor: "pointer",
               padding: 0,
-              transition: "width 0.3s ease, background 0.3s ease",
+              transition: "width 300ms ease, background 300ms ease",
             }}
           />
         ))}
@@ -5086,7 +5161,6 @@ function MentorTestimonialCarousel({ testimonials }) {
     </div>
   );
 }
-
 // ─────────────────────────────────────────────────────────────────────────────
 export default function LMSHomepage({ theme, toggleTheme }) {
   const [activeTab, setActiveTab] = useState("product");
@@ -5225,13 +5299,16 @@ export default function LMSHomepage({ theme, toggleTheme }) {
     async function loadMentorFeedback() {
       try {
         const { data } = await courseService.getActiveMentorFeedbacks();
-        const mapped = data.map((m) => ({
-          name: m.candidateName,
-          role: `${m.designation} @ ${m.company}`,
-          text: m.feedbackMessage,
-          // Accept whichever image field the backend actually sends
-          image: m.profileImage || m.image || m.imageUrl || m.photo || null,
-        }));
+        const mapped = data.map((m) => {
+  console.log("Feedback:", m.feedbackMessage);
+
+  return {
+    name: m.candidateName,
+    role: `${m.designation} @ ${m.company}`,
+    text: m.feedbackMessage,
+    image: m.profileImage || m.image || m.imageUrl || m.photo || null,
+  };
+});
         setTestimonials(mapped);
       } catch (err) {
         console.error("Failed to load mentor feedback", err);
@@ -6911,41 +6988,40 @@ export default function LMSHomepage({ theme, toggleTheme }) {
       </section>
      
       {/* ── Mentors (testimonials — backend-connected) ── */}
-      <section
-        id="mentors"
-        className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 scroll-mt-20 bg-white dark:bg-gray-900/30 overflow-x-hidden"
-      >
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center lg:text-left mb-6 sm:mb-8 lg:mb-9">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-3 text-[#1E293B] dark:text-white leading-tight">
-              Learn from{" "}
-              <span className="text-[#F97316]">Industry Experts</span>
-            </h2>
-            <p className="text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto lg:mx-0">
-              Sessions led by operators from top product companies so you
-              understand how work happens in the real world.
-            </p>
-          </div>
+<section
+  id="mentors"
+  className="py-14 sm:py-16 lg:py-20 px-4 sm:px-6 scroll-mt-20 bg-[#FAF6F2] dark:bg-gray-900/30 overflow-x-hidden"
+>
+  <div className="max-w-[1200px] mx-auto">
+    <div className="text-center max-w-[700px] mx-auto mb-8 sm:mb-10 lg:mb-12">
+      <h2 className="text-[28px] sm:text-[34px] md:text-[40px] lg:text-5xl font-bold mb-3 sm:mb-4 text-[#1E293B] dark:text-white leading-tight">
+        Learn from <span className="text-[#F97316]">Industry Experts</span>
+      </h2>
+      <p className="text-sm sm:text-[15px] md:text-base lg:text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
+        Sessions led by operators from top product companies so you
+        understand how work happens in the real world.
+      </p>
+    </div>
 
-          <div className="flex flex-col lg:flex-row lg:items-stretch gap-2.5 sm:gap-3 mb-6 sm:mb-8">
-            {mentorBenefits.map((item, i) => (
-              <div
-                key={i}
-                className="flex-1 bg-[#F6EDE6] dark:bg-gray-900 rounded-lg sm:rounded-xl p-3 sm:p-3.5 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-2.5 sm:gap-3"
-              >
-                <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[#1E293B] dark:bg-[#F97316] rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <item.icon className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-white" />
-                </div>
-                <p className="text-gray-700 dark:text-gray-300 font-medium text-xs sm:text-sm leading-snug">
-                  {item.text}
-                </p>
-              </div>
-            ))}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8 sm:mb-10 lg:mb-14">
+      {mentorBenefits.map((item, i) => (
+        <div
+          key={i}
+          className="h-full flex items-center gap-3 bg-[#FAF6F2] dark:bg-gray-900 rounded-2xl p-6 border border-[#ECECEC] dark:border-gray-800 shadow-[0_10px_35px_rgba(0,0,0,0.08)] hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+        >
+          <div className="w-10 h-10 bg-[#1E293B] dark:bg-[#F97316] rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+            <item.icon className="w-5 h-5 text-white" />
           </div>
-
-          <MentorTestimonialCarousel testimonials={testimonials} />
+          <p className="text-gray-700 dark:text-gray-300 font-semibold text-sm leading-snug">
+            {item.text}
+          </p>
         </div>
-      </section>
+      ))}
+    </div>
+
+    <MentorTestimonialCarousel testimonials={testimonials} />
+  </div>
+</section>
 
       {/* ── Career Support ── */}
       <section

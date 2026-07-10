@@ -4998,79 +4998,81 @@ function MentorTestimonialCarousel({ testimonials }) {
   if (!testimonials || testimonials.length === 0) return null;
 
   return (
-    <div className="relative">
+    <div className="w-full max-w-2xl mx-auto">
       <style>{`
         .mentor-scroll::-webkit-scrollbar { display: none; }
         .mentor-scroll { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
 
-      {/* Prev / Next arrows — desktop & tablet */}
-      <button
-        onClick={handlePrev}
-        aria-label="Previous testimonial"
-        disabled={activeIndex === 0}
-        className="hidden sm:flex absolute -left-4 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-md items-center justify-center hover:bg-[#F6EDE6] dark:hover:bg-gray-800 transition disabled:opacity-30 disabled:cursor-not-allowed"
-      >
-        <ChevronLeft className="w-4 h-4 text-[#1E293B] dark:text-white" />
-      </button>
-      <button
-        onClick={handleNext}
-        aria-label="Next testimonial"
-        disabled={activeIndex === testimonials.length - 1}
-        className="hidden sm:flex absolute -right-4 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-md items-center justify-center hover:bg-[#F6EDE6] dark:hover:bg-gray-800 transition disabled:opacity-30 disabled:cursor-not-allowed"
-      >
-        <ChevronRight className="w-4 h-4 text-[#1E293B] dark:text-white" />
-      </button>
+      {/* Single card, arrows sit inside the padded gutters so nothing can overflow */}
+      <div className="relative px-7 sm:px-9">
+        <button
+          onClick={handlePrev}
+          aria-label="Previous testimonial"
+          disabled={activeIndex === 0}
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 flex flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-md items-center justify-center hover:bg-[#F6EDE6] dark:hover:bg-gray-800 transition disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#1E293B] dark:text-white" />
+        </button>
 
-      {/* Card scroller — tightened padding/gaps for a more compact feel */}
-      <div
-        ref={scrollerRef}
-        onScroll={handleScroll}
-        style={{ scrollSnapType: "x mandatory" }}
-        className="mentor-scroll flex gap-4 overflow-x-auto pb-2 px-1"
-      >
-        {testimonials.map((t, i) => (
-          <div
-            key={i}
-            style={{ scrollSnapAlign: "start" }}
-            className="min-w-full sm:min-w-[calc(50%-8px)] flex-shrink-0 bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all"
-          >
-            <div className="flex items-center gap-1 mb-2.5">
-              {[...Array(5)].map((_, j) => (
-                <Star
-                  key={j}
-                  className="w-3.5 h-3.5 fill-amber-400 text-amber-400"
-                />
-              ))}
-            </div>
-            <p className="text-gray-600 dark:text-gray-300 mb-3.5 italic leading-snug text-sm">
-              "{t.text}"
-            </p>
-            <div className="flex items-center gap-2.5">
-              <MentorAvatar name={t.name} image={t.image} />
-              <div>
-                <p className="font-semibold text-[#1E293B] dark:text-white text-sm leading-tight">
-                  {t.name}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">
-                  {t.role}
-                </p>
+        <div
+          ref={scrollerRef}
+          onScroll={handleScroll}
+          style={{ scrollSnapType: "x mandatory" }}
+          className="mentor-scroll flex overflow-x-auto"
+        >
+          {testimonials.map((t, i) => (
+            <div
+              key={i}
+              style={{ scrollSnapAlign: "start" }}
+              className="min-w-full flex-shrink-0 bg-white dark:bg-gray-900 rounded-xl p-4 sm:p-5 md:p-6 border border-gray-200 dark:border-gray-800 shadow-md"
+            >
+              <div className="flex items-center gap-1 mb-2 sm:mb-3">
+                {[...Array(5)].map((_, j) => (
+                  <Star
+                    key={j}
+                    className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-amber-400 text-amber-400"
+                  />
+                ))}
+              </div>
+              <p className="text-gray-600 dark:text-gray-300 mb-3 sm:mb-4 italic leading-snug text-sm">
+                "{t.text}"
+              </p>
+              <div className="flex items-center gap-2.5">
+                <MentorAvatar name={t.name} image={t.image} />
+                <div>
+                  <p className="font-semibold text-[#1E293B] dark:text-white text-sm leading-tight">
+                    {t.name}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">
+                    {t.role}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
+
+        <button
+          onClick={handleNext}
+          aria-label="Next testimonial"
+          disabled={activeIndex === testimonials.length - 1}
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 flex flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-md items-center justify-center hover:bg-[#F6EDE6] dark:hover:bg-gray-800 transition disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#1E293B] dark:text-white" />
+        </button>
       </div>
 
       {/* Dot pagination */}
-      <div className="flex items-center justify-center gap-2 mt-4">
+      <div className="flex items-center justify-center gap-1.5 sm:gap-2 mt-3 sm:mt-4">
         {testimonials.map((_, i) => (
           <button
             key={i}
             onClick={() => scrollToIndex(i)}
             aria-label={`Go to testimonial ${i + 1}`}
             style={{
-              width: activeIndex === i ? "22px" : "8px",
-              height: "8px",
+              width: activeIndex === i ? "20px" : "7px",
+              height: "7px",
               borderRadius: "9999px",
               background: activeIndex === i ? "#F97316" : "#CBD5E1",
               border: "none",
@@ -6911,46 +6913,37 @@ export default function LMSHomepage({ theme, toggleTheme }) {
       {/* ── Mentors (testimonials — backend-connected) ── */}
       <section
         id="mentors"
-        className="py-24 px-6 scroll-mt-20 bg-white dark:bg-gray-900/30"
+        className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 scroll-mt-20 bg-white dark:bg-gray-900/30 overflow-x-hidden"
       >
-        <style>{`
-          @media (min-width: 1024px) {
-            .mentors-section-heading {
-              white-space: nowrap;
-              font-size: clamp(1.9rem, 2.6vw, 3rem);
-            }
-          }
-        `}</style>
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <h2 className="mentors-section-heading text-4xl md:text-5xl font-bold mb-5 text-[#1E293B] dark:text-white">
-                Learn from{" "}
-                <span className="text-[#F97316]">Industry Experts</span>
-              </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-xl">
-                Sessions led by operators from top product companies so you
-                understand how work happens in the real world.
-              </p>
-              <div className="space-y-3">
-                {mentorBenefits.map((item, i) => (
-                  <div
-                    key={i}
-                    className="bg-[#F6EDE6] dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-3"
-                  >
-                    <div className="w-9 h-9 bg-[#1E293B] dark:bg-[#F97316] rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
-                      <item.icon className="w-4.5 h-4.5 text-white" />
-                    </div>
-                    <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">
-                      {item.text}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <MentorTestimonialCarousel testimonials={testimonials} />
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center lg:text-left mb-6 sm:mb-8 lg:mb-9">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-3 text-[#1E293B] dark:text-white leading-tight">
+              Learn from{" "}
+              <span className="text-[#F97316]">Industry Experts</span>
+            </h2>
+            <p className="text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto lg:mx-0">
+              Sessions led by operators from top product companies so you
+              understand how work happens in the real world.
+            </p>
           </div>
+
+          <div className="flex flex-col lg:flex-row lg:items-stretch gap-2.5 sm:gap-3 mb-6 sm:mb-8">
+            {mentorBenefits.map((item, i) => (
+              <div
+                key={i}
+                className="flex-1 bg-[#F6EDE6] dark:bg-gray-900 rounded-lg sm:rounded-xl p-3 sm:p-3.5 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-2.5 sm:gap-3"
+              >
+                <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[#1E293B] dark:bg-[#F97316] rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <item.icon className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-white" />
+                </div>
+                <p className="text-gray-700 dark:text-gray-300 font-medium text-xs sm:text-sm leading-snug">
+                  {item.text}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <MentorTestimonialCarousel testimonials={testimonials} />
         </div>
       </section>
 

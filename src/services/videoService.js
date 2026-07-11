@@ -295,18 +295,124 @@ const videoService = {
     });
   },
 
+  //   // ═════════════════════════════════════════════════════════════════
+  //   //  WATCH NOW  (replaces uploadAdminCourse / getAllAdminCourses /
+  //   //              deleteAdminCourse)
+  //   //
+  //   //  Base URL: /api/v1/watch-now
+  //   //  Auth:     SUPER_ADMIN only (writes); public (reads)
+  //   // ═════════════════════════════════════════════════════════════════
+
+  //   /**
+  //    * Create a new WatchNow entry (SUPER_ADMIN only).
+  //    * @param {FormData} formData  – must include "video" file + DTO fields
+  //    * @param {Function} onProgress – optional upload progress callback (0–100)
+  //    */
+  //   uploadWatchNow(formData, onProgress) {
+  //     return axios.post(`${API_GATEWAY}/v1/watch-now/upload`, formData, {
+  //       headers: { ...getAuthHeaders(), "Content-Type": "multipart/form-data" },
+  //       onUploadProgress: onProgress
+  //         ? (e) => {
+  //             if (e.total) onProgress(Math.round((e.loaded * 100) / e.total));
+  //           }
+  //         : undefined,
+  //     });
+  //   },
+
+  //   /**
+  //    * Update an existing WatchNow entry (SUPER_ADMIN only).
+  //    * @param {number|string} id
+  //    * @param {FormData} formData  – "video" and "thumbnail" are optional
+  //    * @param {Function} onProgress
+  //    */
+  //   updateWatchNow(id, formData, onProgress) {
+  //     return axios.put(`${API_GATEWAY}/v1/watch-now/${id}`, formData, {
+  //       headers: { ...getAuthHeaders(), "Content-Type": "multipart/form-data" },
+  //       onUploadProgress: onProgress
+  //         ? (e) => {
+  //             if (e.total) onProgress(Math.round((e.loaded * 100) / e.total));
+  //           }
+  //         : undefined,
+  //     });
+  //   },
+
+  //   /**
+  //    * Get all WatchNow entries (public – no auth required).
+  //    */
+  //   getAllWatchNow() {
+  //     return axios.get(`${API_GATEWAY}/v1/watch-now/all`);
+  //   },
+
+  //   /**
+  //    * Get a single WatchNow entry by id (public – no auth required).
+  //    */
+  //   getWatchNowById(id) {
+  //     return axios.get(`${API_GATEWAY}/v1/watch-now/${id}`);
+  //   },
+
+  //   /**
+  //    * Build the stream URL for a WatchNow video or thumbnail filename.
+  //    * Used directly in <video src={...}> or <img src={...}>.
+  //    */
+  //   getWatchNowStreamUrl(fileName) {
+  //     return `${API_GATEWAY}/v1/watch-now/stream/${encodeURIComponent(fileName)}`;
+  //   },
+
+  //   /**
+  //    * Delete a WatchNow entry by primary key (SUPER_ADMIN only).
+  //    */
+  //   deleteWatchNow(id) {
+  //     return axios.delete(`${API_GATEWAY}/v1/watch-now/${id}`, {
+  //       headers: getAuthHeaders(),
+  //     });
+  //   },
+
+  //   /**
+  //    * Delete all WatchNow entries for a courseId (SUPER_ADMIN only).
+  //    */
+  //   deleteWatchNowByCourse(courseId) {
+  //     return axios.delete(`${API_GATEWAY}/v1/watch-now/by-course/${courseId}`, {
+  //       headers: getAuthHeaders(),
+  //     });
+  //   },
+  //   getWatchNowStats() {
+  //     return axios.get(`${API_GATEWAY}/v1/watch-now/stats`);
+  //   },
+  // };
   // ═════════════════════════════════════════════════════════════════
-  //  WATCH NOW  (replaces uploadAdminCourse / getAllAdminCourses /
-  //              deleteAdminCourse)
+  //  WATCH NOW
   //
   //  Base URL: /api/v1/watch-now
   //  Auth:     SUPER_ADMIN only (writes); public (reads)
   // ═════════════════════════════════════════════════════════════════
 
   /**
+   * Get all WatchNow entries, any status (SUPER_ADMIN – admin list view).
+   */
+  getWatchNowAll() {
+    return axios.get(`${API_GATEWAY}/v1/watch-now/all`, {
+      headers: getAuthHeaders(),
+    });
+  },
+  /**
+   * Get story counts for the admin stats bar (SUPER_ADMIN).
+   */
+  getWatchNowStats() {
+    return axios.get(`${API_GATEWAY}/v1/watch-now/stats`, {
+      headers: getAuthHeaders(),
+    });
+  },
+  /**
+   * Get published WatchNow entries only, ordered by sortOrder (public).
+   */
+  getWatchNowPublished() {
+    return axios.get(`${API_GATEWAY}/v1/watch-now/published`);
+  },
+
+  /**
    * Create a new WatchNow entry (SUPER_ADMIN only).
-   * @param {FormData} formData  – must include "video" file + DTO fields
-   * @param {Function} onProgress – optional upload progress callback (0–100)
+   * @param {FormData} formData – "video" optional, "thumbnail" required, + DTO fields
+   * @param {Function} onProgress
    */
   uploadWatchNow(formData, onProgress) {
     return axios.post(`${API_GATEWAY}/v1/watch-now/upload`, formData, {
@@ -322,7 +428,7 @@ const videoService = {
   /**
    * Update an existing WatchNow entry (SUPER_ADMIN only).
    * @param {number|string} id
-   * @param {FormData} formData  – "video" and "thumbnail" are optional
+   * @param {FormData} formData – "video" and "thumbnail" are optional
    * @param {Function} onProgress
    */
   updateWatchNow(id, formData, onProgress) {
@@ -337,29 +443,7 @@ const videoService = {
   },
 
   /**
-   * Get all WatchNow entries (public – no auth required).
-   */
-  getAllWatchNow() {
-    return axios.get(`${API_GATEWAY}/v1/watch-now/all`);
-  },
-
-  /**
-   * Get a single WatchNow entry by id (public – no auth required).
-   */
-  getWatchNowById(id) {
-    return axios.get(`${API_GATEWAY}/v1/watch-now/${id}`);
-  },
-
-  /**
-   * Build the stream URL for a WatchNow video or thumbnail filename.
-   * Used directly in <video src={...}> or <img src={...}>.
-   */
-  getWatchNowStreamUrl(fileName) {
-    return `${API_GATEWAY}/v1/watch-now/stream/${encodeURIComponent(fileName)}`;
-  },
-
-  /**
-   * Delete a WatchNow entry by primary key (SUPER_ADMIN only).
+   * Delete a WatchNow entry (SUPER_ADMIN only).
    */
   deleteWatchNow(id) {
     return axios.delete(`${API_GATEWAY}/v1/watch-now/${id}`, {
@@ -368,15 +452,39 @@ const videoService = {
   },
 
   /**
-   * Delete all WatchNow entries for a courseId (SUPER_ADMIN only).
+   * Bulk-update sortOrder to match array position (SUPER_ADMIN only).
+   * @param {Array<number|string>} orderedIds
    */
-  deleteWatchNowByCourse(courseId) {
-    return axios.delete(`${API_GATEWAY}/v1/watch-now/by-course/${courseId}`, {
+  reorderWatchNow(orderedIds) {
+    return axios.put(`${API_GATEWAY}/v1/watch-now/reorder`, orderedIds, {
       headers: getAuthHeaders(),
     });
   },
-  getWatchNowStats() {
-    return axios.get(`${API_GATEWAY}/v1/watch-now/stats`);
+
+  /**
+   * Transition an entry to "published" (SUPER_ADMIN only).
+   */
+  publishWatchNow(id) {
+    return axios.patch(`${API_GATEWAY}/v1/watch-now/${id}/publish`, null, {
+      headers: getAuthHeaders(),
+    });
+  },
+
+  /**
+   * Transition an entry to "draft" (SUPER_ADMIN only).
+   */
+  saveWatchNowDraft(id) {
+    return axios.patch(`${API_GATEWAY}/v1/watch-now/${id}/draft`, null, {
+      headers: getAuthHeaders(),
+    });
+  },
+
+  /**
+   * Build the stream URL for a WatchNow video or thumbnail filename.
+   * Used directly in <video src={...}> or <img src={...}>.
+   */
+  getWatchNowStreamUrl(fileName) {
+    return `${API_GATEWAY}/v1/watch-now/stream/${encodeURIComponent(fileName)}`;
   },
 };
 

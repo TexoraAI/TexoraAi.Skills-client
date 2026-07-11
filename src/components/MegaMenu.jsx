@@ -769,24 +769,24 @@
 //           font-family: 'Plus Jakarta Sans', inherit !important;
 //           font-size: 14.5px !important;
 //           font-weight: 600 !important;
-//           color: inherit !important;
+//           color: #ffffff !important;
 //           cursor: pointer !important;
-//           transition: all 0.18s ease !important;
+//           transition: all 0.3s ease !important;
 //           white-space: nowrap !important;
 //           letter-spacing: -0.01em !important;
 //         }
 //         .mm-trigger:hover {
-//           background: rgba(249,115,22,0.06) !important;
+//           background: rgba(249,115,22,0.1) !important;
 //           color: #f97316 !important;
 //         }
 
-//         /* ── Desktop dark mode ── */
+//         /* ── Desktop dark mode (kept in sync — navbar is always dark now) ── */
 //         html.dark .mm-trigger {
-//           color: #e5e7eb !important;
+//           color: #ffffff !important;
 //         }
 //         html.dark .mm-trigger:hover {
 //           color: #f97316 !important;
-//           background: rgba(249,115,22,0.08) !important;
+//           background: rgba(249,115,22,0.1) !important;
 //         }
 
 //         /* ── MOBILE ONLY (< 1024px) ── */
@@ -851,9 +851,9 @@
 //           }
 //         }
 
-//         /* Trigger label — explicit dark text always on mobile */
+//         /* Trigger label — white by default on desktop since navbar is always dark */
 //         .mm-trigger-label {
-//           color: #1a1a2e;
+//           color: #ffffff;
 //         }
 //         html.dark .mm-trigger-label {
 //           color: #ffffff;
@@ -881,13 +881,13 @@
 //           top: calc(100% + 12px);
 //           left: 0;
 //           z-index: 9999;
-//           background: #ffffff;
-//           border: 1px solid rgba(226,232,240,0.8);
+//           background: #1F1D1F;
+//           border: 1px solid rgba(255,255,255,0.08);
 //           border-radius: 20px;
 //           box-shadow:
-//             0 4px 6px -1px rgba(0,0,0,0.04),
-//             0 24px 48px -8px rgba(0,0,0,0.14),
-//             0 0 0 1px rgba(255,255,255,0.6) inset;
+//             0 4px 6px -1px rgba(0,0,0,0.2),
+//             0 24px 48px -8px rgba(0,0,0,0.5),
+//             0 0 0 1px rgba(255,255,255,0.03) inset;
 //           overflow: hidden;
 //           animation: mmIn 0.2s cubic-bezier(.16,1,.3,1);
 //           min-width: 860px;
@@ -903,8 +903,8 @@
 //         .mm-left {
 //           width: 248px;
 //           flex-shrink: 0;
-//           background: #fafafa;
-//           border-right: 1px solid #f0f0f0;
+//           background: #191818;
+//           border-right: 1px solid rgba(255,255,255,0.08);
 //           overflow-y: auto;
 //           padding: 16px 0 12px;
 //           scrollbar-width: none;
@@ -916,7 +916,7 @@
 //           font-weight: 700;
 //           letter-spacing: 0.1em;
 //           text-transform: uppercase;
-//           color: #a0aec0;
+//           color: #9CA3AF;
 //           padding: 0 16px 10px;
 //         }
 
@@ -933,9 +933,9 @@
 //           text-align: left;
 //           transition: background 0.15s;
 //         }
-//         .mm-left-item:hover { background: #f5f5f5; }
+//         .mm-left-item:hover { background: rgba(255,255,255,0.04); }
 //         .mm-left-item--active {
-//           background: #fff;
+//           background: #232323;
 //           box-shadow: inset 3px 0 0 #f97316;
 //         }
 //         .mm-left-item-inner { display: flex; align-items: center; gap: 11px; min-width: 0; flex: 1; }
@@ -947,10 +947,10 @@
 //           width: 36px;
 //           height: 36px;
 //           border-radius: 10px;
-//           background: #fff5ee;
+//           background: rgba(249,115,22,0.12);
 //           color: #f97316;
 //           flex-shrink: 0;
-//           border: 1px solid rgba(249,115,22,0.12);
+//           border: 1px solid rgba(249,115,22,0.18);
 //           transition: all 0.15s;
 //         }
 //         .mm-left-item--active .mm-left-icon {
@@ -964,7 +964,7 @@
 //         .mm-left-label {
 //           font-size: 13px;
 //           font-weight: 700;
-//           color: #1a1a2e;
+//           color: #ffffff;
 //           white-space: nowrap;
 //           overflow: hidden;
 //           text-overflow: ellipsis;
@@ -973,7 +973,7 @@
 //         .mm-left-item--active .mm-left-label { color: #f97316; }
 //         .mm-left-desc {
 //           font-size: 10.5px;
-//           color: #9ca3af;
+//           color: #9CA3AF;
 //           white-space: nowrap;
 //           overflow: hidden;
 //           text-overflow: ellipsis;
@@ -992,17 +992,17 @@
 //           overflow-y: auto;
 //           padding: 20px 20px 0;
 //           scrollbar-width: thin;
-//           scrollbar-color: #e2e8f0 transparent;
+//           scrollbar-color: rgba(255,255,255,0.15) transparent;
 //           display: flex;
 //           flex-direction: column;
 //         }
 //         .mm-right::-webkit-scrollbar { width: 4px; }
-//         .mm-right::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
+//         .mm-right::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
 
 //         .mm-right-header {
 //           margin-bottom: 14px;
 //           padding-bottom: 14px;
-//           border-bottom: 1px solid #f3f4f6;
+//           border-bottom: 1px solid rgba(255,255,255,0.08);
 //         }
 //         .mm-right-header-top {
 //           display: flex;
@@ -1016,22 +1016,22 @@
 //           gap: 5px;
 //           padding: 3px 10px 3px 8px;
 //           border-radius: 100px;
-//           background: #fff5ee;
-//           border: 1px solid rgba(249,115,22,0.2);
+//           background: rgba(249,115,22,0.12);
+//           border: 1px solid rgba(249,115,22,0.25);
 //           color: #f97316;
 //           font-size: 11px;
 //           font-weight: 700;
 //         }
-//         .mm-right-note { font-size: 10.5px; color: #9ca3af; font-style: italic; }
+//         .mm-right-note { font-size: 10.5px; color: #9CA3AF; font-style: italic; }
 //         .mm-right-heading {
 //           font-size: 20px;
 //           font-weight: 800;
-//           color: #0f172a;
+//           color: #ffffff;
 //           letter-spacing: -0.03em;
 //           margin: 0 0 3px;
 //           line-height: 1.2;
 //         }
-//         .mm-right-sub { font-size: 12px; color: #6b7280; margin: 0; }
+//         .mm-right-sub { font-size: 12px; color: #9CA3AF; margin: 0; }
 
 //         .mm-course-tabs { display: flex; flex-direction: column; gap: 14px; flex: 1; }
 //         .mm-course-group-label {
@@ -1043,8 +1043,8 @@
 //           text-transform: uppercase;
 //           letter-spacing: 0.08em;
 //           color: #f97316;
-//           background: #fff5ee;
-//           border: 1px solid rgba(249,115,22,0.15);
+//           background: rgba(249,115,22,0.12);
+//           border: 1px solid rgba(249,115,22,0.2);
 //           padding: 3px 10px;
 //           border-radius: 100px;
 //           margin-bottom: 7px;
@@ -1064,8 +1064,8 @@
 //           gap: 10px;
 //           padding: 10px 12px;
 //           border-radius: 12px;
-//           border: 1px solid #f3f4f6;
-//           background: #fafafa;
+//           border: 1px solid rgba(255,255,255,0.08);
+//           background: #232323;
 //           cursor: pointer;
 //           text-align: left;
 //           transition: all 0.18s ease;
@@ -1076,14 +1076,14 @@
 //           content: '';
 //           position: absolute;
 //           inset: 0;
-//           background: linear-gradient(135deg, rgba(249,115,22,0.04) 0%, transparent 60%);
+//           background: linear-gradient(135deg, rgba(249,115,22,0.08) 0%, transparent 60%);
 //           opacity: 0;
 //           transition: opacity 0.18s;
 //         }
 //         .mm-item-card:hover {
-//           background: #fff;
-//           border-color: rgba(249,115,22,0.25);
-//           box-shadow: 0 4px 16px rgba(249,115,22,0.1);
+//           background: #2A2A2A;
+//           border-color: rgba(249,115,22,0.35);
+//           box-shadow: 0 4px 16px rgba(249,115,22,0.15);
 //           transform: translateY(-1px);
 //         }
 //         .mm-item-card:hover::before { opacity: 1; }
@@ -1097,12 +1097,12 @@
 //         .mm-item-card--disabled:hover {
 //           transform: none;
 //           box-shadow: none;
-//           border-color: #f3f4f6;
-//           background: #fafafa;
+//           border-color: rgba(255,255,255,0.08);
+//           background: #232323;
 //         }
 //         .mm-item-card--disabled:hover::before { opacity: 0; }
-//         .mm-item-card--disabled:hover .mm-item-name { color: #1a1a2e; }
-//         .mm-item-card--disabled:hover .mm-item-icon-wrap { background: #fff5ee; color: #f97316; box-shadow: none; }
+//         .mm-item-card--disabled:hover .mm-item-name { color: #ffffff; }
+//         .mm-item-card--disabled:hover .mm-item-icon-wrap { background: rgba(249,115,22,0.12); color: #f97316; box-shadow: none; }
 
 //         .mm-item-icon-wrap {
 //           display: flex;
@@ -1111,17 +1111,17 @@
 //           width: 36px;
 //           height: 36px;
 //           border-radius: 10px;
-//           background: #fff5ee;
+//           background: rgba(249,115,22,0.12);
 //           color: #f97316;
 //           flex-shrink: 0;
-//           border: 1px solid rgba(249,115,22,0.1);
+//           border: 1px solid rgba(249,115,22,0.15);
 //           transition: all 0.18s ease;
 //         }
 //         .mm-item-body { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 //         .mm-item-name {
 //           font-size: 12.5px;
 //           font-weight: 700;
-//           color: #1a1a2e;
+//           color: #ffffff;
 //           white-space: nowrap;
 //           overflow: hidden;
 //           text-overflow: ellipsis;
@@ -1130,14 +1130,14 @@
 //         }
 //         .mm-item-desc {
 //           font-size: 10.5px;
-//           color: #9ca3af;
+//           color: #9CA3AF;
 //           white-space: nowrap;
 //           overflow: hidden;
 //           text-overflow: ellipsis;
 //           margin-top: 1px;
 //         }
 //         .mm-item-arrow {
-//           color: #d1d5db;
+//           color: #6B7280;
 //           opacity: 0;
 //           flex-shrink: 0;
 //           transition: all 0.18s ease;
@@ -1148,10 +1148,10 @@
 //           align-items: center;
 //           justify-content: space-between;
 //           padding: 12px 0 14px;
-//           border-top: 1px solid #f3f4f6;
+//           border-top: 1px solid rgba(255,255,255,0.08);
 //           margin-top: 14px;
 //         }
-//         .mm-footer-text { font-size: 12px; color: #6b7280; }
+//         .mm-footer-text { font-size: 12px; color: #9CA3AF; }
 //         .mm-footer-cta {
 //           display: inline-flex;
 //           align-items: center;
@@ -1159,7 +1159,7 @@
 //           padding: 7px 16px;
 //           border-radius: 100px;
 //           border: none;
-//           background: #f97316;
+//           background: linear-gradient(135deg, #F97316, #EA580C);
 //           color: #fff;
 //           font-size: 12px;
 //           font-weight: 700;
@@ -1169,9 +1169,8 @@
 //           font-family: 'Plus Jakarta Sans', sans-serif;
 //         }
 //         .mm-footer-cta:hover {
-//           background: #ea6c0a;
 //           transform: translateY(-1px);
-//           box-shadow: 0 4px 14px rgba(249,115,22,0.35);
+//           box-shadow: 0 8px 20px rgba(249,115,22,0.35);
 //         }
 
 //         .mm-gulf-card { align-items: center; }
@@ -1184,8 +1183,8 @@
 //           justify-content: center;
 //           border-radius: 6px;
 //           overflow: hidden;
-//           background: #f0f0f0;
-//           border: 1px solid #e8e8e8;
+//           background: #2A2A2A;
+//           border: 1px solid rgba(255,255,255,0.08);
 //         }
 //         .mm-gulf-flag img {
 //           width: 44px;
@@ -1307,7 +1306,29 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import {
   ChevronDown, ChevronRight, X, Target, Palette, TrendingUp,
   BarChart2, BarChart3, Bot, Zap, FlaskConical, BookOpen, Brush, Award,
@@ -1317,7 +1338,7 @@ import {
   Search, LineChart, ArrowLeft, Users,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
+ 
 export const CATEGORIES = [
   {
     id: "courses",
@@ -1451,36 +1472,55 @@ export const CATEGORIES = [
     ],
   },
 ];
-
+ 
 const COURSE_GROUPS = [
   { key: "product", label: "Product",  Icon: Target     },
   { key: "design",  label: "Design",   Icon: Palette    },
   { key: "growth",  label: "Growth",   Icon: TrendingUp },
 ];
-
+ 
 /* ─────────────────────────────────────────────────────────────────
    MOBILE FULL-SCREEN NAVIGATION
+   NOTE: this is rendered via a React Portal into document.body (see
+   bottom of MegaMenu component) so that it is NOT a DOM descendant of
+   whatever wrapper embeds <MegaMenu />. Some parent wrappers (e.g. the
+   hamburger menu's ".mobile-megamenu-wrapper") force
+   `* { background-color: transparent !important; color: #fff !important; }`
+   on every descendant — without the portal, that rule was stripping
+   this overlay's white background too, causing it to render on top of
+   (and visually overlap/garble with) whatever menu was already open.
 ───────────────────────────────────────────── */
 function MobileFullScreenNav({ onItemClick, onClose }) {
   const [view, setView] = useState("main");
   const [selectedCategory, setSelectedCategory] = useState(null);
-
+ 
   const handleCategoryClick = (cat) => {
     setSelectedCategory(cat);
     setView("category");
   };
-
+ 
   const handleBack = () => {
     setView("main");
     setSelectedCategory(null);
   };
-
+ 
   const handleItemClick = (item) => {
     if (item.route && item.route !== "#") {
       onItemClick(item);
     }
     onClose();
   };
+ 
+  /* ── Dark theme palette — matches the hamburger menu (#1F1D1F → #191818) ── */
+  const bgGradient = "linear-gradient(180deg, #1F1D1F 0%, #191818 100%)";
+  const headerBg = "#1F1D1F";
+  const borderColor = "rgba(255,255,255,0.08)";
+  const textPrimary = "#ffffff";
+  const textMuted = "#9CA3AF";
+  const iconBg = "rgba(249,115,22,0.12)";
+  const iconBorder = "rgba(249,115,22,0.18)";
+  const orange = "#F97316";
+  const chipBg = "#2A2A2A";
 
   /* ── SCREEN 1: Main menu ── */
   if (view === "main") {
@@ -1490,8 +1530,8 @@ function MobileFullScreenNav({ onItemClick, onClose }) {
         inset: 0,
         width: "100vw",
         height: "100vh",
-        background: "#ffffff",
-        zIndex: 99999,
+        background: bgGradient,
+        zIndex: 999999,
         overflowY: "auto",
         fontFamily: "'Plus Jakarta Sans', sans-serif",
         display: "flex",
@@ -1503,21 +1543,21 @@ function MobileFullScreenNav({ onItemClick, onClose }) {
           alignItems: "center",
           justifyContent: "space-between",
           padding: "18px 20px",
-          borderBottom: "1px solid #f3f4f6",
-          background: "#fff",
+          borderBottom: `1px solid ${borderColor}`,
+          background: headerBg,
           position: "sticky",
           top: 0,
           zIndex: 10,
           flexShrink: 0,
         }}>
-          <span style={{ fontSize: 20, fontWeight: 800, color: "#1a1a2e", letterSpacing: "-0.02em" }}>
+          <span style={{ fontSize: 20, fontWeight: 800, color: textPrimary, letterSpacing: "-0.02em" }}>
             Explore
           </span>
           <button
             onClick={onClose}
             style={{
               border: "none",
-              background: "#f5f5f5",
+              background: chipBg,
               borderRadius: 10,
               width: 36,
               height: 36,
@@ -1525,14 +1565,14 @@ function MobileFullScreenNav({ onItemClick, onClose }) {
               alignItems: "center",
               justifyContent: "center",
               cursor: "pointer",
-              color: "#6b7280",
+              color: textPrimary,
             }}
             aria-label="Close menu"
           >
             <X size={18} />
           </button>
         </div>
-
+ 
         {/* Nav items */}
         <div style={{ flex: 1, padding: "8px 0 32px" }}>
           {CATEGORIES.map((cat) => {
@@ -1548,7 +1588,7 @@ function MobileFullScreenNav({ onItemClick, onClose }) {
                   justifyContent: "space-between",
                   padding: "16px 20px",
                   border: "none",
-                  borderBottom: "1px solid #f9fafb",
+                  borderBottom: `1px solid ${borderColor}`,
                   background: "transparent",
                   cursor: "pointer",
                   textAlign: "left",
@@ -1562,23 +1602,23 @@ function MobileFullScreenNav({ onItemClick, onClose }) {
                     width: 42,
                     height: 42,
                     borderRadius: 12,
-                    background: "#fff5ee",
-                    color: "#f97316",
-                    border: "1px solid rgba(249,115,22,0.15)",
+                    background: iconBg,
+                    color: orange,
+                    border: `1px solid ${iconBorder}`,
                     flexShrink: 0,
                   }}>
                     <CatIcon size={18} />
                   </span>
                   <div style={{ display: "flex", flexDirection: "column" }}>
-                    <span style={{ fontSize: 15, fontWeight: 700, color: "#1a1a2e", letterSpacing: "-0.01em" }}>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: textPrimary, letterSpacing: "-0.01em" }}>
                       {cat.label}
                     </span>
-                    <span style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>
+                    <span style={{ fontSize: 12, color: textMuted, marginTop: 2 }}>
                       {cat.description}
                     </span>
                   </div>
                 </div>
-                <ChevronRight size={18} style={{ color: "#d1d5db", flexShrink: 0 }} />
+                <ChevronRight size={18} style={{ color: textMuted, flexShrink: 0 }} />
               </button>
             );
           })}
@@ -1586,19 +1626,19 @@ function MobileFullScreenNav({ onItemClick, onClose }) {
       </div>
     );
   }
-
+ 
   /* ── SCREEN 2: Category items ── */
   if (view === "category" && selectedCategory) {
     const cat = selectedCategory;
-
+ 
     return (
       <div style={{
         position: "fixed",
         inset: 0,
         width: "100vw",
         height: "100vh",
-        background: "#ffffff",
-        zIndex: 99999,
+        background: bgGradient,
+        zIndex: 999999,
         overflowY: "auto",
         fontFamily: "'Plus Jakarta Sans', sans-serif",
         display: "flex",
@@ -1610,8 +1650,8 @@ function MobileFullScreenNav({ onItemClick, onClose }) {
           alignItems: "center",
           gap: 12,
           padding: "16px 20px",
-          borderBottom: "1px solid #f3f4f6",
-          background: "#fff",
+          borderBottom: `1px solid ${borderColor}`,
+          background: headerBg,
           position: "sticky",
           top: 0,
           zIndex: 10,
@@ -1621,7 +1661,7 @@ function MobileFullScreenNav({ onItemClick, onClose }) {
             onClick={handleBack}
             style={{
               border: "none",
-              background: "#f5f5f5",
+              background: chipBg,
               borderRadius: 10,
               width: 36,
               height: 36,
@@ -1629,7 +1669,7 @@ function MobileFullScreenNav({ onItemClick, onClose }) {
               alignItems: "center",
               justifyContent: "center",
               cursor: "pointer",
-              color: "#6b7280",
+              color: textPrimary,
               flexShrink: 0,
             }}
             aria-label="Go back"
@@ -1637,10 +1677,10 @@ function MobileFullScreenNav({ onItemClick, onClose }) {
             <ArrowLeft size={18} />
           </button>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 18, fontWeight: 800, color: "#1a1a2e", letterSpacing: "-0.02em" }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: textPrimary, letterSpacing: "-0.02em" }}>
               {cat.label}
             </div>
-            <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 1 }}>
+            <div style={{ fontSize: 12, color: textMuted, marginTop: 1 }}>
               {cat.description}
             </div>
           </div>
@@ -1648,7 +1688,7 @@ function MobileFullScreenNav({ onItemClick, onClose }) {
             onClick={onClose}
             style={{
               border: "none",
-              background: "#f5f5f5",
+              background: chipBg,
               borderRadius: 10,
               width: 36,
               height: 36,
@@ -1656,7 +1696,7 @@ function MobileFullScreenNav({ onItemClick, onClose }) {
               alignItems: "center",
               justifyContent: "center",
               cursor: "pointer",
-              color: "#6b7280",
+              color: textPrimary,
               flexShrink: 0,
             }}
             aria-label="Close menu"
@@ -1664,7 +1704,7 @@ function MobileFullScreenNav({ onItemClick, onClose }) {
             <X size={18} />
           </button>
         </div>
-
+ 
         {/* Items */}
         <div style={{ flex: 1, padding: "8px 0 32px" }}>
           {cat.id === "courses" ? (
@@ -1682,7 +1722,7 @@ function MobileFullScreenNav({ onItemClick, onClose }) {
                     fontWeight: 800,
                     textTransform: "uppercase",
                     letterSpacing: "0.09em",
-                    color: "#f97316",
+                    color: orange,
                   }}>
                     <GIcon size={12} />
                     {label}
@@ -1700,7 +1740,7 @@ function MobileFullScreenNav({ onItemClick, onClose }) {
                           gap: 14,
                           padding: "14px 20px",
                           border: "none",
-                          borderBottom: "1px solid #f9fafb",
+                          borderBottom: `1px solid ${borderColor}`,
                           background: "transparent",
                           cursor: "pointer",
                           textAlign: "left",
@@ -1713,22 +1753,22 @@ function MobileFullScreenNav({ onItemClick, onClose }) {
                           width: 40,
                           height: 40,
                           borderRadius: 11,
-                          background: "#fff5ee",
-                          color: "#f97316",
-                          border: "1px solid rgba(249,115,22,0.12)",
+                          background: iconBg,
+                          color: orange,
+                          border: `1px solid ${iconBorder}`,
                           flexShrink: 0,
                         }}>
                           <ItemIcon size={17} />
                         </span>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a2e", letterSpacing: "-0.01em" }}>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: textPrimary, letterSpacing: "-0.01em" }}>
                             {item.name}
                           </div>
-                          <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>
+                          <div style={{ fontSize: 12, color: textMuted, marginTop: 2 }}>
                             {item.desc}
                           </div>
                         </div>
-                        <ChevronRight size={16} style={{ color: "#d1d5db", flexShrink: 0 }} />
+                        <ChevronRight size={16} style={{ color: textMuted, flexShrink: 0 }} />
                       </button>
                     );
                   })}
@@ -1747,7 +1787,7 @@ function MobileFullScreenNav({ onItemClick, onClose }) {
                   gap: 14,
                   padding: "14px 20px",
                   border: "none",
-                  borderBottom: "1px solid #f9fafb",
+                  borderBottom: `1px solid ${borderColor}`,
                   background: "transparent",
                   cursor: "pointer",
                   textAlign: "left",
@@ -1758,12 +1798,12 @@ function MobileFullScreenNav({ onItemClick, onClose }) {
                   height: 30,
                   borderRadius: 6,
                   overflow: "hidden",
-                  border: "1px solid #e8e8e8",
+                  border: `1px solid ${borderColor}`,
                   flexShrink: 0,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  background: "#f0f0f0",
+                  background: chipBg,
                 }}>
                   <img
                     src={`https://flagcdn.com/w40/${item.flagCode}.png`}
@@ -1773,10 +1813,10 @@ function MobileFullScreenNav({ onItemClick, onClose }) {
                     style={{ objectFit: "cover", display: "block" }}
                   />
                 </span>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a2e", flex: 1 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: textPrimary, flex: 1 }}>
                   {item.name}
                 </div>
-                <ChevronRight size={16} style={{ color: "#d1d5db", flexShrink: 0 }} />
+                <ChevronRight size={16} style={{ color: textMuted, flexShrink: 0 }} />
               </button>
             ))
           ) : (
@@ -1793,7 +1833,7 @@ function MobileFullScreenNav({ onItemClick, onClose }) {
                     gap: 14,
                     padding: "14px 20px",
                     border: "none",
-                    borderBottom: "1px solid #f9fafb",
+                    borderBottom: `1px solid ${borderColor}`,
                     background: "transparent",
                     cursor: item.comingSoon ? "default" : "pointer",
                     textAlign: "left",
@@ -1807,27 +1847,27 @@ function MobileFullScreenNav({ onItemClick, onClose }) {
                     width: 40,
                     height: 40,
                     borderRadius: 11,
-                    background: "#fff5ee",
-                    color: "#f97316",
-                    border: "1px solid rgba(249,115,22,0.12)",
+                    background: iconBg,
+                    color: orange,
+                    border: `1px solid ${iconBorder}`,
                     flexShrink: 0,
                   }}>
                     <ItemIcon size={17} />
                   </span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a2e", letterSpacing: "-0.01em", display: "flex", alignItems: "center", gap: 6 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: textPrimary, letterSpacing: "-0.01em", display: "flex", alignItems: "center", gap: 6 }}>
                       {item.name}
                       {item.comingSoon && (
-                        <span style={{ fontSize: 10, fontWeight: 600, color: "#f97316", background: "#fff5ee", border: "1px solid rgba(249,115,22,0.2)", borderRadius: 100, padding: "1px 7px" }}>
+                        <span style={{ fontSize: 10, fontWeight: 600, color: orange, background: iconBg, border: "1px solid rgba(249,115,22,0.2)", borderRadius: 100, padding: "1px 7px" }}>
                           Coming Soon
                         </span>
                       )}
                     </div>
-                    <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>
+                    <div style={{ fontSize: 12, color: textMuted, marginTop: 2 }}>
                       {item.desc}
                     </div>
                   </div>
-                  {!item.comingSoon && <ChevronRight size={16} style={{ color: "#d1d5db", flexShrink: 0 }} />}
+                  {!item.comingSoon && <ChevronRight size={16} style={{ color: textMuted, flexShrink: 0 }} />}
                 </button>
               );
             })
@@ -1836,10 +1876,10 @@ function MobileFullScreenNav({ onItemClick, onClose }) {
       </div>
     );
   }
-
+ 
   return null;
 }
-
+ 
 /* ─────────────────────────────────────────────
    MAIN MEGA MENU COMPONENT
 ───────────────────────────────────────────── */
@@ -1852,21 +1892,21 @@ export default function MegaMenu({ onItemClick }) {
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== "undefined" ? window.innerWidth : 1024
   );
-
+ 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
+ 
   const isMobile = windowWidth < 1024;
-
+ 
   useEffect(() => {
     const onEsc = (e) => { if (e.key === "Escape") setIsOpen(false); };
     if (isOpen) document.addEventListener("keydown", onEsc);
     return () => document.removeEventListener("keydown", onEsc);
   }, [isOpen]);
-
+ 
   useEffect(() => {
     if (!isMobile) {
       const onOutside = (e) => {
@@ -1876,18 +1916,18 @@ export default function MegaMenu({ onItemClick }) {
       return () => document.removeEventListener("mousedown", onOutside);
     }
   }, [isOpen, isMobile]);
-
+ 
   const handleMouseEnter = () => {
     if (!isMobile) { clearTimeout(timeoutRef.current); setIsOpen(true); }
   };
   const handleMouseLeave = () => {
     if (!isMobile) { timeoutRef.current = setTimeout(() => setIsOpen(false), 180); }
   };
-
+ 
   const handleItemClick = (item) => {
     if (onItemClick) onItemClick(item);
     setIsOpen(false);
-
+ 
     if (item.tab) {
       window.dispatchEvent(new CustomEvent("mm-course-tab", { detail: { tab: item.tab } }));
       if (window.location.pathname === "/") {
@@ -1907,9 +1947,9 @@ export default function MegaMenu({ onItemClick }) {
       navigate(item.route);
     }
   };
-
+ 
   const activeCat = CATEGORIES.find((c) => c.id === activeCategory);
-
+ 
   /* ─── DESKTOP TWO-PANEL (>= 1024px only) ─── */
   const renderDesktopMenu = () => (
     <div className="mm-desktop">
@@ -1938,7 +1978,7 @@ export default function MegaMenu({ onItemClick }) {
           );
         })}
       </div>
-
+ 
       {/* Right panel */}
       <div className="mm-right">
         <div className="mm-right-header">
@@ -1958,7 +1998,7 @@ export default function MegaMenu({ onItemClick }) {
             </>
           )}
         </div>
-
+ 
         {activeCat?.id === "courses" ? (
           <div className="mm-course-tabs">
             {COURSE_GROUPS.map(({ key, label, Icon: GIcon }) => {
@@ -2046,7 +2086,7 @@ export default function MegaMenu({ onItemClick }) {
             })}
           </div>
         )}
-
+ 
         <div className="mm-right-footer">
           <span className="mm-footer-text">Not sure where to start?</span>
           <button className="mm-footer-cta">Explore All Programs →</button>
@@ -2054,19 +2094,19 @@ export default function MegaMenu({ onItemClick }) {
       </div>
     </div>
   );
-
+ 
   return (
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
+ 
         .mm-root {
           position: relative;
           display: inline-flex;
           align-items: center;
           font-family: 'Plus Jakarta Sans', sans-serif;
         }
-
+ 
         .mm-trigger {
           display: inline-flex !important;
           align-items: center !important;
@@ -2088,7 +2128,7 @@ export default function MegaMenu({ onItemClick }) {
           background: rgba(249,115,22,0.1) !important;
           color: #f97316 !important;
         }
-
+ 
         /* ── Desktop dark mode (kept in sync — navbar is always dark now) ── */
         html.dark .mm-trigger {
           color: #ffffff !important;
@@ -2097,7 +2137,7 @@ export default function MegaMenu({ onItemClick }) {
           color: #f97316 !important;
           background: rgba(249,115,22,0.1) !important;
         }
-
+ 
         /* ── MOBILE ONLY (< 1024px) ── */
         @media (max-width: 1023px) {
           .mm-root {
@@ -2117,7 +2157,7 @@ export default function MegaMenu({ onItemClick }) {
             padding: 14px 0px 14px 0px !important;
             margin: 0 !important;
             border: none !important;
-            border-bottom: 1px solid #f3f4f6 !important;
+            border-bottom: 1px solid rgba(255,255,255,0.08) !important;
             border-radius: 0 !important;
             background: transparent !important;
             cursor: pointer !important;
@@ -2125,8 +2165,8 @@ export default function MegaMenu({ onItemClick }) {
             font-size: 15px !important;
             font-weight: 600 !important;
             line-height: 1.5 !important;
-            /* ── KEY FIX: always dark text on mobile regardless of dark mode ── */
-            color: #1a1a2e !important;
+            /* ── mobile trigger sits inside our dark full-screen menu, so text is white ── */
+            color: #ffffff !important;
             letter-spacing: 0 !important;
             white-space: nowrap !important;
             text-align: left !important;
@@ -2136,30 +2176,30 @@ export default function MegaMenu({ onItemClick }) {
           .mm-trigger:hover,
           .mm-trigger:focus {
             background: transparent !important;
-            color: #1a1a2e !important;
+            color: #ffffff !important;
             outline: none !important;
           }
           .mm-trigger .mm-chevron {
-            color: #6b7280 !important;
+            color: #9CA3AF !important;
             flex-shrink: 0 !important;
             opacity: 1 !important;
           }
-
-          /* ── DARK MODE inside mobile: keep trigger text dark (white overlay always) ── */
+ 
+          /* ── DARK MODE inside mobile: trigger text stays white (dark overlay always) ── */
           html.dark .mm-trigger {
-            color: #1a1a2e !important;
-            border-bottom-color: rgba(0,0,0,0.08) !important;
+            color: #ffffff !important;
+            border-bottom-color: rgba(255,255,255,0.08) !important;
           }
           html.dark .mm-trigger:hover,
           html.dark .mm-trigger:focus {
-            color: #1a1a2e !important;
+            color: #ffffff !important;
             background: transparent !important;
           }
           html.dark .mm-trigger .mm-chevron {
-            color: #6b7280 !important;
+            color: #9CA3AF !important;
           }
         }
-
+ 
         /* Trigger label — white by default on desktop since navbar is always dark */
         .mm-trigger-label {
           color: #ffffff;
@@ -2169,21 +2209,21 @@ export default function MegaMenu({ onItemClick }) {
         }
         @media (max-width: 1023px) {
           .mm-trigger-label {
-            color: #1a1a2e !important;
+            color: #ffffff !important;
           }
-          /* ── KEY FIX: on mobile, label is ALWAYS dark — the overlay is white ── */
+          /* ── mobile trigger sits inside our dark full-screen menu, so label is white ── */
           html.dark .mm-trigger-label {
-            color: #1a1a2e !important;
+            color: #ffffff !important;
           }
         }
-
+ 
         .mm-chevron {
           transition: transform 0.25s cubic-bezier(.4,0,.2,1);
           flex-shrink: 0;
           color: currentColor;
         }
         .mm-chevron--open { transform: rotate(180deg); }
-
+ 
         /* Desktop dropdown shell — only shown >= 1024px */
         .mm-dropdown {
           position: absolute;
@@ -2205,10 +2245,10 @@ export default function MegaMenu({ onItemClick }) {
           from { opacity: 0; transform: translateY(-10px) scale(0.97); }
           to   { opacity: 1; transform: translateY(0) scale(1); }
         }
-
+ 
         /* ── Desktop layout ── */
         .mm-desktop { display: flex; height: 490px; }
-
+ 
         .mm-left {
           width: 248px;
           flex-shrink: 0;
@@ -2219,7 +2259,7 @@ export default function MegaMenu({ onItemClick }) {
           scrollbar-width: none;
         }
         .mm-left::-webkit-scrollbar { display: none; }
-
+ 
         .mm-left-header {
           font-size: 10px;
           font-weight: 700;
@@ -2228,7 +2268,7 @@ export default function MegaMenu({ onItemClick }) {
           color: #9CA3AF;
           padding: 0 16px 10px;
         }
-
+ 
         .mm-left-item {
           width: 100%;
           display: flex;
@@ -2248,7 +2288,7 @@ export default function MegaMenu({ onItemClick }) {
           box-shadow: inset 3px 0 0 #f97316;
         }
         .mm-left-item-inner { display: flex; align-items: center; gap: 11px; min-width: 0; flex: 1; }
-
+ 
         .mm-left-icon {
           display: flex;
           align-items: center;
@@ -2268,7 +2308,7 @@ export default function MegaMenu({ onItemClick }) {
           border-color: #f97316;
           box-shadow: 0 4px 12px rgba(249,115,22,0.35);
         }
-
+ 
         .mm-left-text { display: flex; flex-direction: column; min-width: 0; }
         .mm-left-label {
           font-size: 13px;
@@ -2295,7 +2335,7 @@ export default function MegaMenu({ onItemClick }) {
           background: #f97316;
           flex-shrink: 0;
         }
-
+ 
         .mm-right {
           flex: 1;
           overflow-y: auto;
@@ -2307,7 +2347,7 @@ export default function MegaMenu({ onItemClick }) {
         }
         .mm-right::-webkit-scrollbar { width: 4px; }
         .mm-right::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
-
+ 
         .mm-right-header {
           margin-bottom: 14px;
           padding-bottom: 14px;
@@ -2341,7 +2381,7 @@ export default function MegaMenu({ onItemClick }) {
           line-height: 1.2;
         }
         .mm-right-sub { font-size: 12px; color: #9CA3AF; margin: 0; }
-
+ 
         .mm-course-tabs { display: flex; flex-direction: column; gap: 14px; flex: 1; }
         .mm-course-group-label {
           display: inline-flex;
@@ -2359,14 +2399,14 @@ export default function MegaMenu({ onItemClick }) {
           margin-bottom: 7px;
           width: fit-content;
         }
-
+ 
         .mm-right-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 6px;
         }
         .mm-right-grid--flat { margin-top: 2px; }
-
+ 
         .mm-item-card {
           display: flex;
           align-items: center;
@@ -2412,7 +2452,7 @@ export default function MegaMenu({ onItemClick }) {
         .mm-item-card--disabled:hover::before { opacity: 0; }
         .mm-item-card--disabled:hover .mm-item-name { color: #ffffff; }
         .mm-item-card--disabled:hover .mm-item-icon-wrap { background: rgba(249,115,22,0.12); color: #f97316; box-shadow: none; }
-
+ 
         .mm-item-icon-wrap {
           display: flex;
           align-items: center;
@@ -2451,7 +2491,7 @@ export default function MegaMenu({ onItemClick }) {
           flex-shrink: 0;
           transition: all 0.18s ease;
         }
-
+ 
         .mm-right-footer {
           display: flex;
           align-items: center;
@@ -2481,7 +2521,7 @@ export default function MegaMenu({ onItemClick }) {
           transform: translateY(-1px);
           box-shadow: 0 8px 20px rgba(249,115,22,0.35);
         }
-
+ 
         .mm-gulf-card { align-items: center; }
         .mm-gulf-flag {
           flex-shrink: 0;
@@ -2503,15 +2543,24 @@ export default function MegaMenu({ onItemClick }) {
           border-radius: 4px;
         }
       `}</style>
-
-      {/* ── Mobile full-screen nav (< 1024px) ── */}
-      {isMobile && isOpen && (
-        <MobileFullScreenNav
-          onItemClick={handleItemClick}
-          onClose={() => setIsOpen(false)}
-        />
-      )}
-
+ 
+      {/* ── Mobile full-screen nav (< 1024px) ──
+          Rendered via a Portal straight into document.body so it is
+          NOT a DOM descendant of whatever wrapper embeds <MegaMenu />.
+          This stops parent wrappers (e.g. the hamburger menu's
+          ".mobile-megamenu-wrapper * { background-color: transparent }")
+          from stripping this overlay's own background/colors and
+          causing the two full-screen menus to render on top of each
+          other (garbled/overlapping text). */}
+      {isMobile && isOpen && typeof document !== "undefined" &&
+        createPortal(
+          <MobileFullScreenNav
+            onItemClick={handleItemClick}
+            onClose={() => setIsOpen(false)}
+          />,
+          document.body
+        )}
+ 
       {/* ── Trigger + dropdown wrapper ── */}
       <div
         ref={menuRef}
@@ -2542,7 +2591,7 @@ export default function MegaMenu({ onItemClick }) {
             padding: "14px 0",
             margin: 0,
             border: "none",
-            borderBottom: "1px solid #f3f4f6",
+            borderBottom: "1px solid rgba(255,255,255,0.08)",
             borderRadius: 0,
             background: "transparent",
             fontFamily: "inherit",
@@ -2553,8 +2602,8 @@ export default function MegaMenu({ onItemClick }) {
             cursor: "pointer",
             textAlign: "left",
             WebkitAppearance: "none",
-            /* Inline style also forces dark text on mobile */
-            color: "#1a1a2e",
+            /* Trigger sits inside our dark full-screen mobile menu, so text is white */
+            color: "#ffffff",
           } : {}}
         >
           <span className="mm-trigger-label">
@@ -2563,10 +2612,10 @@ export default function MegaMenu({ onItemClick }) {
           <ChevronDown
             size={18}
             className={`mm-chevron ${isOpen ? "mm-chevron--open" : ""}`}
-            style={isMobile ? { color: "#6b7280", flexShrink: 0 } : {}}
+            style={isMobile ? { color: "#9CA3AF", flexShrink: 0 } : {}}
           />
         </button>
-
+ 
         {/* Desktop dropdown — only when >= 1024px */}
         {!isMobile && isOpen && (
           <div className="mm-dropdown">

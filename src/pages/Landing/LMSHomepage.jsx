@@ -30,6 +30,7 @@
 //   LogOut,
 //   Menu,
 //   Moon,
+//   Quote,
 //   PlayCircle,
 //   Sparkles,
 //   Star,
@@ -1230,21 +1231,38 @@
 
 // // Small avatar helper: shows the backend image in a circular frame,
 // // falls back to initials if there's no image or the image fails to load.
-// function MentorAvatar({ name, image }) {
+// function MentorAvatar({ name, image, size = "w-9 h-9", showBadge = false }) {
 //   const [imgError, setImgError] = useState(false);
 //   const initials = (name || "").charAt(0).toUpperCase();
 
 //   return (
-//     <div className="w-9 h-9 rounded-full flex-shrink-0 overflow-hidden bg-[#1E293B] dark:bg-[#F97316] flex items-center justify-center text-white font-bold text-sm">
-//       {image && !imgError ? (
-//         <img
-//           src={image}
-//           alt={name}
-//           className="w-full h-full object-cover"
-//           onError={() => setImgError(true)}
-//         />
-//       ) : (
-//         <span>{initials}</span>
+//     <div className={`relative ${size} flex-shrink-0`}>
+//       <div
+//         className={`${size} rounded-full overflow-hidden bg-[#1E293B] dark:bg-[#F97316] flex items-center justify-center text-white font-bold`}
+//       >
+//         {image && !imgError ? (
+//           <img
+//             src={image}
+//             alt={name}
+//             className="w-full h-full object-cover"
+//             onError={() => setImgError(true)}
+//           />
+//         ) : (
+//           <span>{initials}</span>
+//         )}
+//       </div>
+//       {showBadge && (
+//         <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#22C55E] border-2 border-white dark:border-gray-900 flex items-center justify-center">
+//           <svg viewBox="0 0 24 24" fill="none" className="w-2.5 h-2.5 sm:w-3 sm:h-3">
+//             <path
+//               d="M5 13l4 4L19 7"
+//               stroke="white"
+//               strokeWidth="3"
+//               strokeLinecap="round"
+//               strokeLinejoin="round"
+//             />
+//           </svg>
+//         </span>
 //       )}
 //     </div>
 //   );
@@ -1289,85 +1307,144 @@
 //   if (!testimonials || testimonials.length === 0) return null;
 
 //   return (
-//     <div className="relative">
+//     <div className="w-full">
 //       <style>{`
 //         .mentor-scroll::-webkit-scrollbar { display: none; }
 //         .mentor-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+//         @keyframes mentorFadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 //       `}</style>
 
-//       {/* Prev / Next arrows — desktop & tablet */}
-//       <button
-//         onClick={handlePrev}
-//         aria-label="Previous testimonial"
-//         disabled={activeIndex === 0}
-//         className="hidden sm:flex absolute -left-4 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-md items-center justify-center hover:bg-[#F6EDE6] dark:hover:bg-gray-800 transition disabled:opacity-30 disabled:cursor-not-allowed"
-//       >
-//         <ChevronLeft className="w-4 h-4 text-[#1E293B] dark:text-white" />
-//       </button>
-//       <button
-//         onClick={handleNext}
-//         aria-label="Next testimonial"
-//         disabled={activeIndex === testimonials.length - 1}
-//         className="hidden sm:flex absolute -right-4 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-md items-center justify-center hover:bg-[#F6EDE6] dark:hover:bg-gray-800 transition disabled:opacity-30 disabled:cursor-not-allowed"
-//       >
-//         <ChevronRight className="w-4 h-4 text-[#1E293B] dark:text-white" />
-//       </button>
+//       <div className="relative flex items-center gap-3 sm:gap-4 lg:gap-6">
+//         {/* Prev arrow — outside the card, desktop/tablet */}
+//         <button
+//           onClick={handlePrev}
+//           aria-label="Previous testimonial"
+//           disabled={activeIndex === 0}
+//           className="hidden sm:flex flex-shrink-0 w-11 h-11 lg:w-12 lg:h-12 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-[0_10px_35px_rgba(0,0,0,0.08)] items-center justify-center hover:bg-[#F97316] hover:border-[#F97316] group transition-all duration-300 disabled:opacity-30 disabled:pointer-events-none"
+//         >
+//           <ChevronLeft className="w-5 h-5 text-[#1E293B] dark:text-white group-hover:text-white transition-colors" />
+//         </button>
 
-//       {/* Card scroller — tightened padding/gaps for a more compact feel */}
-//       <div
-//         ref={scrollerRef}
-//         onScroll={handleScroll}
-//         style={{ scrollSnapType: "x mandatory" }}
-//         className="mentor-scroll flex gap-4 overflow-x-auto pb-2 px-1"
-//       >
-//         {testimonials.map((t, i) => (
-//           <div
-//             key={i}
-//             style={{ scrollSnapAlign: "start" }}
-//             className="min-w-full sm:min-w-[calc(50%-8px)] flex-shrink-0 bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all"
-//           >
-//             <div className="flex items-center gap-1 mb-2.5">
-//               {[...Array(5)].map((_, j) => (
-//                 <Star
-//                   key={j}
-//                   className="w-3.5 h-3.5 fill-amber-400 text-amber-400"
+//         {/* Scroller */}
+//         <div
+//           ref={scrollerRef}
+//           onScroll={handleScroll}
+//           style={{ scrollSnapType: "x mandatory" }}
+//           className="mentor-scroll flex overflow-x-auto flex-1 min-w-0"
+//         >
+//           {testimonials.map((t, i) => (
+//             <div
+//               key={i}
+//               style={{ scrollSnapAlign: "start" }}
+//               className="w-full min-w-0 flex-shrink-0"
+//             >
+//               <div
+//                 className="relative bg-white dark:bg-gray-900 rounded-[18px] sm:rounded-[22px] lg:rounded-[24px] border border-[#ECECEC] dark:border-gray-800 shadow-[0_10px_35px_rgba(0,0,0,0.08)] p-5 sm:p-6 lg:p-10 overflow-hidden"
+//                 style={{ animation: "mentorFadeIn 0.4s ease both" }}
+//               >
+//                 {/* Large faded quote mark, top-right */}
+//                 <Quote
+//                   className="pointer-events-none absolute top-3 right-4 sm:top-4 sm:right-6 lg:top-6 lg:right-8 w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 text-[#F97316]/10 dark:text-[#F97316]/15"
+//                   fill="currentColor"
+//                   strokeWidth={0}
 //                 />
-//               ))}
-//             </div>
-//             <p className="text-gray-600 dark:text-gray-300 mb-3.5 italic leading-snug text-sm">
-//               "{t.text}"
-//             </p>
-//             <div className="flex items-center gap-2.5">
-//               <MentorAvatar name={t.name} image={t.image} />
-//               <div>
-//                 <p className="font-semibold text-[#1E293B] dark:text-white text-sm leading-tight">
-//                   {t.name}
-//                 </p>
-//                 <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">
-//                   {t.role}
-//                 </p>
+
+//                 <div className="flex flex-col lg:flex-row lg:items-stretch gap-5 lg:gap-8">
+//                   {/* Left: rating + quote */}
+//                   <div className="flex-1 min-w-0 relative z-[1]">
+//                     <div className="flex items-center gap-1 mb-3 sm:mb-4">
+//                       {[...Array(5)].map((_, j) => (
+//                         <Star
+//                           key={j}
+//                           className="w-4 h-4 sm:w-[18px] sm:h-[18px] fill-amber-400 text-amber-400"
+//                         />
+//                       ))}
+//                     </div>
+//                     <p
+//                       className="text-gray-600 dark:text-gray-300 italic text-sm sm:text-base lg:text-lg leading-7 lg:leading-8"
+//                       style={{
+//                         whiteSpace: "pre-wrap",
+//                         overflowWrap: "break-word",
+//                         wordBreak: "break-word",
+//                       }}
+//                     >
+//                       "{t.text}"
+//                     </p>
+//                   </div>
+
+//                   {/* Vertical divider — desktop only */}
+//                   <div className="hidden lg:block w-px bg-[#ECECEC] dark:bg-gray-800 flex-shrink-0" />
+
+//                   {/* Right: author block */}
+//                   <div className="flex items-center gap-3 lg:flex-col lg:items-start lg:justify-center lg:w-[220px] lg:flex-shrink-0 pt-4 lg:pt-0 border-t lg:border-t-0 border-[#ECECEC] dark:border-gray-800">
+//                     <MentorAvatar
+//                       name={t.name}
+//                       image={t.image}
+//                       size="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16"
+//                       showBadge
+//                     />
+//                     <div className="min-w-0">
+//                       <p className="font-bold text-[#1E293B] dark:text-white text-sm sm:text-base leading-snug truncate">
+//                         {t.name}
+//                       </p>
+//                       <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-snug mt-0.5">
+//                         {t.role}
+//                       </p>
+//                     </div>
+//                   </div>
+//                 </div>
 //               </div>
 //             </div>
-//           </div>
-//         ))}
+//           ))}
+//         </div>
+
+//         {/* Next arrow — outside the card, desktop/tablet */}
+//         <button
+//           onClick={handleNext}
+//           aria-label="Next testimonial"
+//           disabled={activeIndex === testimonials.length - 1}
+//           className="hidden sm:flex flex-shrink-0 w-11 h-11 lg:w-12 lg:h-12 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-[0_10px_35px_rgba(0,0,0,0.08)] items-center justify-center hover:bg-[#F97316] hover:border-[#F97316] group transition-all duration-300 disabled:opacity-30 disabled:pointer-events-none"
+//         >
+//           <ChevronRight className="w-5 h-5 text-[#1E293B] dark:text-white group-hover:text-white transition-colors" />
+//         </button>
+//       </div>
+
+//       {/* Arrows on mobile — sit below the card instead of overlapping it */}
+//       <div className="flex sm:hidden items-center justify-center gap-4 mt-4">
+//         <button
+//           onClick={handlePrev}
+//           aria-label="Previous testimonial"
+//           disabled={activeIndex === 0}
+//           className="w-10 h-10 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-md flex items-center justify-center disabled:opacity-30"
+//         >
+//           <ChevronLeft className="w-4 h-4 text-[#1E293B] dark:text-white" />
+//         </button>
+//         <button
+//           onClick={handleNext}
+//           aria-label="Next testimonial"
+//           disabled={activeIndex === testimonials.length - 1}
+//           className="w-10 h-10 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-md flex items-center justify-center disabled:opacity-30"
+//         >
+//           <ChevronRight className="w-4 h-4 text-[#1E293B] dark:text-white" />
+//         </button>
 //       </div>
 
 //       {/* Dot pagination */}
-//       <div className="flex items-center justify-center gap-2 mt-4">
+//       <div className="flex items-center justify-center gap-2 mt-5 sm:mt-6">
 //         {testimonials.map((_, i) => (
 //           <button
 //             key={i}
 //             onClick={() => scrollToIndex(i)}
 //             aria-label={`Go to testimonial ${i + 1}`}
 //             style={{
-//               width: activeIndex === i ? "22px" : "8px",
+//               width: activeIndex === i ? "24px" : "8px",
 //               height: "8px",
 //               borderRadius: "9999px",
 //               background: activeIndex === i ? "#F97316" : "#CBD5E1",
 //               border: "none",
 //               cursor: "pointer",
 //               padding: 0,
-//               transition: "width 0.3s ease, background 0.3s ease",
+//               transition: "width 300ms ease, background 300ms ease",
 //             }}
 //           />
 //         ))}
@@ -1376,6 +1453,103 @@
 //   );
 // }
 
+// function TopCompaniesCarousel({ logos }) {
+//   const [duration, setDuration] = useState(30);
+//   const [brokenSrcs, setBrokenSrcs] = useState(new Set());
+
+//   // Responsive speed: desktop 30-35s, tablet 25-30s, mobile 20-25s
+//   useEffect(() => {
+//     const calcDuration = () => {
+//       const w = window.innerWidth;
+//       if (w >= 1024) setDuration(32);
+//       else if (w >= 768) setDuration(27);
+//       else setDuration(22);
+//     };
+//     calcDuration();
+//     window.addEventListener("resize", calcDuration);
+//     return () => window.removeEventListener("resize", calcDuration);
+//   }, []);
+
+//   if (!logos || logos.length === 0) return null;
+
+//   // Always duplicate — required for a seamless CSS loop at translate(-50%)
+//   const infiniteLogos = [...logos, ...logos];
+
+//   return (
+//     <div className="relative max-w-[1400px] mx-auto">
+//       <style>{`
+//         @keyframes ilmora-marquee {
+//           0%   { transform: translate3d(0,0,0); }
+//           100% { transform: translate3d(-50%,0,0); }
+//         }
+//         .ilmora-marquee-track {
+//           display: flex;
+//           width: max-content;
+//           align-items: center;
+//           animation: ilmora-marquee var(--marquee-duration, 30s) linear infinite;
+//           will-change: transform;
+//           transform: translate3d(0,0,0);
+//         }
+//         /* Pause on hover — desktop only, matches spec */
+//         @media (hover: hover) and (pointer: fine) {
+//           .ilmora-marquee-viewport:hover .ilmora-marquee-track {
+//             animation-play-state: paused;
+//           }
+//         }
+//       `}</style>
+
+//       <div
+//         className="ilmora-marquee-viewport bg-white dark:bg-[#111827] rounded-[18px] sm:rounded-[20px] lg:rounded-[22px] border border-gray-100 dark:border-white/[0.08] h-[120px] sm:h-[130px] lg:h-[140px] flex items-center overflow-hidden shadow-[0_15px_40px_rgba(15,23,42,0.08)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.45)]"
+//         style={{
+//           paddingLeft: 40,
+//           paddingRight: 40,
+//           "--marquee-duration": `${duration}s`,
+//         }}
+//       >
+//         <div className="ilmora-marquee-track h-full">
+//           {infiniteLogos
+//             .filter((logo) => logo?.name || logo?.src)
+//             .map((logo, i) => {
+//               const isBroken = logo.src && brokenSrcs.has(logo.src);
+//               const showImage = Boolean(logo.src) && !isBroken;
+//               const initials = (logo.name || "?")
+//                 .trim()
+//                 .split(/\s+/)
+//                 .slice(0, 2)
+//                 .map((w) => w[0])
+//                 .join("")
+//                 .toUpperCase();
+
+//               return (
+//                 <div
+//                   key={`${logo.name}-${i}`}
+//                   className="flex items-center justify-center h-full flex-shrink-0 px-4 sm:px-6 transition-transform duration-300 hover:scale-105"
+//                   style={{ width: 160 }}
+//                   title={logo.desc || logo.name}
+//                 >
+//                   {showImage ? (
+//                     <img
+//                       src={logo.src}
+//                       alt={logo.name}
+//                       loading="lazy"
+//                       className="max-h-[45px] sm:max-h-[48px] max-w-full object-contain"
+//                       onError={() =>
+//                         setBrokenSrcs((prev) => new Set(prev).add(logo.src))
+//                       }
+//                     />
+//                   ) : (
+//                     <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#1E293B] dark:bg-[#F97316] flex items-center justify-center text-white font-bold text-sm sm:text-base flex-shrink-0">
+//                       {initials}
+//                     </div>
+//                   )}
+//                 </div>
+//               );
+//             })}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
 // // ─────────────────────────────────────────────────────────────────────────────
 // export default function LMSHomepage({ theme, toggleTheme }) {
 //   const [activeTab, setActiveTab] = useState("product");
@@ -1389,6 +1563,9 @@
 //   // ── Top Global Companies — now backend-connected ──
 //   const [companyData, setCompanyData] = useState(null);
 //   const [companiesLoading, setCompaniesLoading] = useState(true);
+
+//   // ── Banner Studio — backend-connected promotional banner ──
+//   const [activeBanners, setActiveBanners] = useState([]);
 
 //   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 //   const [scrolled, setScrolled] = useState(false);
@@ -1430,63 +1607,72 @@
 
 //   /* ── Load real featured programs from the backend (courseService) ──
 //      Falls back to the static `courses` object below if the API call
-//      fails or returns no programs in any category. */
+//      fails or returns no programs in any category. Includes the fuller
+//      backend field mapping: thumbnails, banners, instructor photos,
+//      LinkedIn, video URL, and only shows Published programs. */
 //   useEffect(() => {
 //     async function loadPrograms() {
 //       try {
 //         const { data } = await courseService.getAllFeaturedPrograms();
 //         const grouped = {};
 
-//         data.forEach((p) => {
-//           const cat = (p.category || "Other").trim();
+//         data
+//           .filter((p) => p.publishStatus === "Published") // defensive client-side guard
+//           .forEach((p) => {
+//             const cat = (p.category || "Other").trim();
 
-// if (!grouped[cat]) {
-//   grouped[cat] = [];
-// }
+//             if (!grouped[cat]) {
+//               grouped[cat] = [];
+//             }
 
-// grouped[cat].push({
-//             id: p.id,
-//             title: p.title,
-//             instructor: p.instructorRole || p.instructorName,
-//             instructorFull: p.instructorName,
-//             instructorTitle: p.instructorRole || "",
-//             duration: `${p.durationWeeks} weeks`,
-//             students: p.studentsEnrolled,
-//             rating: p.rating,
-//             level: p.level,
-//             description: p.shortDescription,
-//             modules: (p.syllabusWeeks || []).map((w) => w.title),
-//             price: `₹${Number(p.price).toLocaleString("en-IN")}`,
-//             highlights: (p.highlights || [])
-//               .map((h) => (typeof h === "string" ? h : h?.text || ""))
-//               .filter((h) => h && h !== "[object Object]"),
-//             learningOutcomes: (p.learningOutcomes || [])
-//               .map((t, i) => ({
-//                 id: i,
-//                 text: typeof t === "string" ? t : t?.text || "",
-//               }))
-//               .filter((t) => t.text && t.text !== "[object Object]"),
-//             totalLessons: p.lessons,
-//             projects: p.projects,
-//             syllabusWeeks: p.syllabusWeeks || [],
-//             enrollmentUrl: p.enrollmentUrl || "",
-//             liveSessions: p.liveSessions ?? "—",
+//             grouped[cat].push({
+//               id: p.id,
+//               title: p.title,
+//               instructor: p.instructorRole || p.instructorName,
+//               instructorFull: p.instructorName,
+//               instructorTitle: p.instructorRole || "",
+//               duration: `${p.durationWeeks} weeks`,
+//               students: p.studentsEnrolled,
+//               rating: p.rating,
+//               level: p.level,
+//               description: p.shortDescription,
+//               modules: (p.syllabusWeeks || []).map((w) => w.title),
+//               price: `₹${Number(p.price).toLocaleString("en-IN")}`,
+//               thumbnailUrl: p.thumbnailUrl || "",
+//               bannerUrl: p.bannerUrl || "",
+//               instructorPhotoUrl: p.instructorPhotoUrl || "",
+//               instructorLinkedIn: p.instructorLinkedIn || "",
+//               videoUrl: p.videoUrl || "",
+//               highlights: (p.highlights || [])
+//                 .map((h) => (typeof h === "string" ? h : h?.text || ""))
+//                 .filter((h) => h && h !== "[object Object]"),
+//               learningOutcomes: (p.learningOutcomes || [])
+//                 .map((t, i) => ({
+//                   id: i,
+//                   text: typeof t === "string" ? t : t?.text || "",
+//                 }))
+//                 .filter((t) => t.text && t.text !== "[object Object]"),
+//               totalLessons: p.lessons,
+//               projects: p.projects,
+//               syllabusWeeks: p.syllabusWeeks || [],
+//               enrollmentUrl: p.enrollmentUrl || "",
+//               liveSessions: p.liveSessions ?? "—",
+//             });
 //           });
-//         });
 
 //         // Only use API data if we actually got programs
 //         const hasPrograms = Object.values(grouped).some(
 //           (arr) => arr.length > 0,
 //         );
-//        if (hasPrograms) {
-//   setFeaturedPrograms(grouped);
+//         if (hasPrograms) {
+//           setFeaturedPrograms(grouped);
 
-//   const firstCategory = Object.keys(grouped)[0];
+//           const firstCategory = Object.keys(grouped)[0];
 
-//   if (firstCategory) {
-//     setActiveTab(firstCategory);
-//   }
-// }
+//           if (firstCategory) {
+//             setActiveTab(firstCategory);
+//           }
+//         }
 //         // else featuredPrograms stays empty → fallback to hardcoded courses
 //       } catch (err) {
 //         console.error("Failed to load featured programs", err);
@@ -1502,13 +1688,16 @@
 //     async function loadMentorFeedback() {
 //       try {
 //         const { data } = await courseService.getActiveMentorFeedbacks();
-//         const mapped = data.map((m) => ({
-//           name: m.candidateName,
-//           role: `${m.designation} @ ${m.company}`,
-//           text: m.feedbackMessage,
-//           // Accept whichever image field the backend actually sends
-//           image: m.profileImage || m.image || m.imageUrl || m.photo || null,
-//         }));
+//         const mapped = data.map((m) => {
+//   console.log("Feedback:", m.feedbackMessage);
+
+//   return {
+//     name: m.candidateName,
+//     role: `${m.designation} @ ${m.company}`,
+//     text: m.feedbackMessage,
+//     image: m.profileImage || m.image || m.imageUrl || m.photo || null,
+//   };
+// });
 //         setTestimonials(mapped);
 //       } catch (err) {
 //         console.error("Failed to load mentor feedback", err);
@@ -1531,6 +1720,25 @@
 //     }
 //     loadCompanies();
 //   }, []);
+
+//   /* ── Load the active promotional banner (Banner Studio) ── */
+//   useEffect(() => {
+//     async function loadActiveBanners() {
+//       try {
+//         const { data } = await courseService.getActiveBanners();
+//         setActiveBanners(Array.isArray(data) ? data : []);
+//       } catch (err) {
+//         console.error("Failed to load banners", err);
+//       }
+//     }
+//     loadActiveBanners();
+//   }, []);
+
+//   useEffect(() => {
+//     if (activeBanners.length > 0) {
+//       courseService.registerBannerView(activeBanners[0].id).catch(() => {});
+//     }
+//   }, [activeBanners]);
 
 //   useEffect(() => {
 //     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -2063,16 +2271,42 @@
 //     };
 //   };
 
-//   const toggleWishlist = (id) => {
+//   const toggleWishlist = async (id) => {
+//     // Not logged in → don't call the API, just prompt login
+//     if (!user) {
+//       setShowLoginModal(true);
+//       return;
+//     }
+
+//     // Optimistic UI update
 //     setWishlist((prev) => {
 //       const next = new Set(prev);
-//       if (next.has(id)) {
-//         next.delete(id);
-//       } else {
-//         next.add(id);
-//       }
+//       next.has(id) ? next.delete(id) : next.add(id);
 //       return next;
 //     });
+
+//     try {
+//       const { data } = await courseService.toggleWishlist(id);
+//       // Reconcile with server truth
+//       setWishlist((prev) => {
+//         const next = new Set(prev);
+//         if (data.wishlisted) next.add(id);
+//         else next.delete(id);
+//         return next;
+//       });
+//     } catch (err) {
+//       // Roll back the optimistic update on failure
+//       setWishlist((prev) => {
+//         const next = new Set(prev);
+//         next.has(id) ? next.delete(id) : next.add(id);
+//         return next;
+//       });
+//       if (err?.response?.status === 401) {
+//         setShowLoginModal(true);
+//       } else {
+//         console.error("Wishlist toggle failed", err);
+//       }
+//     }
 //   };
 
 //   const navLinks = [
@@ -2082,28 +2316,138 @@
 
 //   const navButtons = [];
 
-//   /* ── Top Global Companies — derived from backend `companyData`,
-//      falling back to static data while loading / on empty response. ── */
-//   const mapCompany = (c) => ({
-//     src: c.uploadedLogo || c.logoUrl,
-//     name: c.name,
-//     desc: c.description,
+//   // Adjust this to match whatever base URL the rest of courseService already
+// // uses for uploaded files (check courseService.js for an existing constant
+// // before hardcoding this — do not guess blindly in production).
+// const API_BASE_URL =
+//   courseService.API_BASE_URL ||
+//   import.meta.env.VITE_API_BASE_URL ||
+//   "";
+
+// const isNonEmptyString = (v) => typeof v === "string" && v.trim().length > 0;
+
+// const resolveImageUrl = (raw) => {
+//   if (!isNonEmptyString(raw)) return "";
+//   const trimmed = raw.trim();
+//   if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith("data:")) {
+//     return trimmed; // already absolute
+//   }
+//   const base = API_BASE_URL.replace(/\/$/, "");
+//   return `${base}${trimmed.startsWith("/") ? "" : "/"}${trimmed}`; // relative → prepend base
+// };
+
+// const mapCompany = (c) => {
+//   const rawSrc =
+//   c.uploadedLogo ||
+//   c.logoUrl ||
+//   c.logo ||
+//   c.image ||
+//   c.imageUrl ||
+//   c.logoPath ||
+//   c.fileUrl ||
+//   c.thumbnail ||
+//   c.icon ||
+//   c.imageURL ||
+//   c.companyLogo ||
+//   c.logoImage ||
+//   c.picture ||
+//   c.photo ||
+//   c.mediaUrl ||
+//   c.assetUrl ||
+//   "";
+
+//   const name = c.name || c.companyName || c.title || "";
+//   const finalSrc = resolveImageUrl(rawSrc);
+
+//   console.log("DEBUG company logo mapping →", {
+//     name,
+//     logo: c.logo,
+//     logoUrl: c.logoUrl,
+//     finalImageSource: finalSrc,
 //   });
 
-//   const techPartners = companyData?.["Technology Partner"]?.length
-//     ? companyData["Technology Partner"].map(mapCompany)
-//     : FALLBACK_TECH_PARTNERS;
+//   return {
+//     src: finalSrc,
+//     name,
+//     desc: c.description || c.desc || c.about || "",
+//   };
+// };
 
-//   const bizPartners = companyData?.["Business Partner"]?.length
-//     ? companyData["Business Partner"].map(mapCompany)
-//     : FALLBACK_BIZ_PARTNERS;
+//   const findCategory = (data, ...aliases) => {
+//     if (!data || typeof data !== "object") return [];
+//     const keys = Object.keys(data);
+//     const normalize = (s) => s.toLowerCase().replace(/[\s_-]/g, "");
 
-//   const ecosystemProducts = companyData?.["Texora Product"]?.length
-//     ? companyData["Texora Product"].map((c, i) => ({
+//     // Pass 1: exact match
+//     for (const alias of aliases) {
+//       const target = normalize(alias);
+//       const foundKey = keys.find((k) => normalize(k) === target);
+//       if (foundKey && Array.isArray(data[foundKey])) return data[foundKey];
+//     }
+
+//     // Pass 2: fuzzy — key contains the alias, or alias contains the key
+//     for (const alias of aliases) {
+//       const target = normalize(alias);
+//       const foundKey = keys.find((k) => {
+//         const nk = normalize(k);
+//         return Array.isArray(data[k]) && (nk.includes(target) || target.includes(nk));
+//       });
+//       if (foundKey) return data[foundKey];
+//     }
+
+//     return [];
+//   };
+
+//   const techPartnersRaw = findCategory(
+//     companyData,
+//     "Technology Partner",
+//     "Technology Partners",
+//     "Tech Partner",
+//     "Tech Partners",
+//     "technology",
+//     "techPartner",
+//     "techPartners",
+//   );
+//   const bizPartnersRaw = findCategory(
+//     companyData,
+//     "Business Partner",
+//     "Business Partners",
+//     "business",
+//     "businessPartner",
+//     "businessPartners",
+//     "Partner Business",
+//   );
+//  const ecosystemRaw = findCategory(
+//     companyData,
+//     "Texora Product Ecosystem",
+//     "Texora Products Ecosystem",
+//     "Product Ecosystem",
+//     "Texora Product",
+//     "Texora Products",
+//     "Ecosystem",
+//     "products",
+//     "texoraProducts",
+//   );
+
+//   const techPartners = techPartnersRaw.map(mapCompany).filter((c) => c.src || c.name);
+// const bizPartners = bizPartnersRaw.map(mapCompany).filter((c) => c.src || c.name);
+
+//   const ECOSYSTEM_COLOR_CLASSES = {
+//     blue: "bg-blue-50 text-blue-600 border-blue-100",
+//     orange: "bg-orange-50 text-[#F97316] border-orange-100",
+//     purple: "bg-purple-50 text-purple-600 border-purple-100",
+//     green: "bg-green-50 text-green-600 border-green-100",
+//     rose: "bg-rose-50 text-rose-600 border-rose-100",
+//   };
+
+//   const ecosystemProducts = ecosystemRaw.length
+//     ? ecosystemRaw.map((c, i) => ({
 //         ...mapCompany(c),
 //         color: ECOSYSTEM_COLORS[i % ECOSYSTEM_COLORS.length],
 //       }))
 //     : null;
+
+
 
 //   return (
 //     <div className="min-h-screen bg-[#F6EDE6] dark:bg-black text-[#1E293B] dark:text-white">
@@ -2372,6 +2716,83 @@
 //         </div>
 //       </nav>
 
+//       {/* ── Banner Studio (backend-connected promotional banner) ── */}
+//       {activeBanners.length > 0 &&
+//         (() => {
+//           const banner = activeBanners[0];
+//           const hasImage =
+//             banner.desktopImageUrl ||
+//             banner.tabletImageUrl ||
+//             banner.mobileImageUrl;
+
+//           const handleBannerClick = () => {
+//             courseService.registerBannerClick(banner.id).catch(() => {});
+//             if (banner.ctaLink) window.open(banner.ctaLink, "_blank");
+//           };
+
+//           return (
+//             <section className="w-full px-4 sm:px-6 pt-[84px]">
+//               <div
+//                 className="max-w-7xl mx-auto rounded-b-xl overflow-hidden"
+//                 style={{ cursor: banner.ctaLink ? "pointer" : "default" }}
+//                 onClick={handleBannerClick}
+//               >
+//                 {hasImage ? (
+//                   // ── Uploaded / AI / builder artwork — the image IS the banner ──
+//                   <picture>
+//                     {banner.mobileImageUrl && (
+//                       <source
+//                         media="(max-width: 640px)"
+//                         srcSet={banner.mobileImageUrl}
+//                       />
+//                     )}
+//                     {banner.tabletImageUrl && (
+//                       <source
+//                         media="(max-width: 1024px)"
+//                         srcSet={banner.tabletImageUrl}
+//                       />
+//                     )}
+//                     <img
+//                       src={
+//                         banner.desktopImageUrl ||
+//                         banner.tabletImageUrl ||
+//                         banner.mobileImageUrl
+//                       }
+//                       alt={banner.name || "Promotional banner"}
+//                       className="w-full h-auto max-h-[220px] sm:max-h-[260px] object-cover block"
+//                     />
+//                   </picture>
+//                 ) : (
+//                   // ── No image uploaded — fall back to the text-only gradient strip ──
+//                   <div
+//                     className="flex items-center justify-between gap-4 py-4 px-4 sm:px-6 text-white"
+//                     style={{ background: banner.gradient || "#1E293B" }}
+//                   >
+//                     <div>
+//                       {banner.eyebrow && (
+//                         <p className="text-xs uppercase tracking-widest opacity-80">
+//                           {banner.eyebrow}
+//                         </p>
+//                       )}
+//                       <p className="text-lg font-bold">
+//                         {banner.emoji} {banner.title || banner.name}
+//                       </p>
+//                       {banner.subtitle && (
+//                         <p className="text-sm opacity-90">{banner.subtitle}</p>
+//                       )}
+//                     </div>
+//                     {banner.ctaText && (
+//                       <span className="flex-shrink-0 bg-white/15 hover:bg-white/25 transition px-4 py-2 rounded-lg text-sm font-semibold">
+//                         {banner.ctaText}
+//                       </span>
+//                     )}
+//                   </div>
+//                 )}
+//               </div>
+//             </section>
+//           );
+//         })()}
+
 //       {/* ── Hero ── */}
 //       <section className="pt-32 pb-24 px-6 bg-[#F6EDE6] dark:bg-black relative overflow-hidden">
 //         <div className="absolute -top-32 left-[10%] w-[600px] h-[600px] bg-[#F97316]/8 dark:bg-[#F97316]/5 rounded-full blur-[120px] pointer-events-none" />
@@ -2543,251 +2964,32 @@
 //         </div>
 //       </section>
 
-//       {/* ── Companies (Top Global Companies — backend-connected) ── */}
-//       <section className="py-20 px-4 sm:px-6 bg-white dark:bg-gray-900/30">
-//         <div className="max-w-7xl mx-auto">
-//           <div className="text-center mb-10 sm:mb-14">
-//             <p className="text-[11px] sm:text-xs uppercase tracking-[0.22em] text-gray-400 font-bold mb-3">
-//               Trusted By Professionals At
-//             </p>
-//             <h2 className="text-4xl md:text-5xl font-bold text-[#1E293B] dark:text-white">
-//               Top Global <span className="text-[#F97316]">Companies</span>
-//             </h2>
-//             <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mt-3 max-w-[600px] mx-auto leading-relaxed">
-//               We collaborate with leading technology providers and business
-//               organizations to deliver innovative digital solutions.
-//             </p>
-//           </div>
+//   <section className="py-24 px-4 sm:px-6 relative overflow-hidden bg-white dark:bg-[#0F172A]">
+//   <div className="max-w-7xl mx-auto">
 
-//           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
-//             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 sm:p-8">
-//               <div className="flex flex-col items-center mb-2">
-//                 <div className="flex items-center gap-2.5 mb-5">
-//                   <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 flex items-center justify-center flex-shrink-0">
-//                     <svg
-//                       viewBox="0 0 24 24"
-//                       className="w-5 h-5 text-blue-500 dark:text-blue-400"
-//                       fill="none"
-//                       stroke="currentColor"
-//                       strokeWidth="1.8"
-//                       strokeLinecap="round"
-//                       strokeLinejoin="round"
-//                     >
-//                       <rect x="2" y="3" width="20" height="14" rx="2" />
-//                       <path d="M8 21h8M12 17v4" />
-//                     </svg>
-//                   </div>
-//                   <span className="text-[13px] font-black tracking-[0.13em] uppercase text-blue-600 dark:text-blue-400">
-//                     Technology Partners
-//                   </span>
-//                 </div>
-//               </div>
-//               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-//                 {techPartners.map((p) => (
-//                   <div
-//                     key={p.name}
-//                     className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 sm:p-5 flex flex-col items-center gap-3 shadow-sm hover:shadow-lg hover:-translate-y-2 transition-all duration-300"
-//                   >
-//                     <div className="w-full h-11 flex items-center justify-center">
-//                       <img
-//                         src={p.src}
-//                         alt={p.name}
-//                         className="max-w-full max-h-10 object-contain"
-//                         onError={(e) => {
-//                           e.currentTarget.style.display = "none";
-//                           const sib = e.currentTarget.nextSibling;
-//                           if (sib) sib.style.display = "flex";
-//                         }}
-//                       />
-//                       <div className="hidden w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 items-center justify-center text-[10px] font-bold text-gray-400 text-center leading-tight px-1">
-//                         {p.name}
-//                       </div>
-//                     </div>
-//                     <div className="text-center">
-//                       <p className="text-[12px] sm:text-[13px] font-bold text-[#0F172A] dark:text-white leading-tight">
-//                         {p.name}
-//                       </p>
-//                       <p className="text-[10px] sm:text-[11px] text-gray-400 dark:text-gray-500 mt-0.5 leading-snug">
-//                         {p.desc}
-//                       </p>
-//                     </div>
-//                   </div>
-//                 ))}
-//               </div>
-//             </div>
+//     <div className="text-center mb-16" style={{ marginBottom: 64 }}>
+//       <p className="text-xs uppercase tracking-[0.25em] text-gray-400 dark:text-gray-400 font-bold">
+//   TRUSTED BY LEADING ORGANIZATIONS
+// </p>
 
-//             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 sm:p-8">
-//               <div className="flex flex-col items-center mb-2">
-//                 <div className="flex items-center gap-2.5 mb-5">
-//                   <div className="w-10 h-10 rounded-full bg-green-50 dark:bg-green-900/30 border border-green-100 dark:border-green-800 flex items-center justify-center flex-shrink-0">
-//                     <svg
-//                       viewBox="0 0 24 24"
-//                       className="w-5 h-5 text-green-600 dark:text-green-400"
-//                       fill="none"
-//                       stroke="currentColor"
-//                       strokeWidth="1.8"
-//                       strokeLinecap="round"
-//                       strokeLinejoin="round"
-//                     >
-//                       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-//                       <circle cx="9" cy="7" r="4" />
-//                       <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-//                       <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-//                     </svg>
-//                   </div>
-//                   <span className="text-[13px] font-black tracking-[0.13em] uppercase text-green-600 dark:text-green-400">
-//                     Business Partners
-//                   </span>
-//                 </div>
-//               </div>
-//               <div className="grid grid-cols-2 gap-4">
-//                 {bizPartners.map((p) => (
-//                   <div
-//                     key={p.name}
-//                     className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-2xl p-5 sm:p-7 flex flex-col items-center gap-4 shadow-sm hover:shadow-lg hover:-translate-y-2 transition-all duration-300"
-//                   >
-//                     <div className="w-full h-14 sm:h-16 flex items-center justify-center">
-//                       <img
-//                         src={p.src}
-//                         alt={p.name}
-//                         className="max-w-full max-h-12 object-contain"
-//                         onError={(e) => {
-//                           e.currentTarget.style.display = "none";
-//                           const sib = e.currentTarget.nextSibling;
-//                           if (sib) sib.style.display = "flex";
-//                         }}
-//                       />
-//                       <div className="hidden w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-800 items-center justify-center text-[10px] font-bold text-gray-400 text-center leading-tight px-1">
-//                         {p.name}
-//                       </div>
-//                     </div>
-//                     <div className="text-center">
-//                       <p className="text-[13px] sm:text-[14px] font-bold text-[#0F172A] dark:text-white leading-tight">
-//                         {p.name}
-//                       </p>
-//                       <p className="text-[11px] sm:text-[12px] text-gray-400 dark:text-gray-500 mt-1 leading-snug">
-//                         {p.desc}
-//                       </p>
-//                     </div>
-//                   </div>
-//                 ))}
-//               </div>
-//             </div>
-//           </div>
+//       <h2 className="text-4xl md:text-6xl font-bold text-[#1E293B] dark:text-white mt-4">
+//         Top Global <span className="text-[#F97316]">Companies</span>
+//       </h2>
 
-//           <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 sm:p-8">
-//             <div className="flex items-center gap-3 sm:gap-5 mb-7 sm:mb-9">
-//               <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-//               <div className="flex-shrink-0 text-center">
-//                 <p className="text-[12px] sm:text-[13px] font-black tracking-[0.15em] uppercase text-[#0F172A] dark:text-white whitespace-nowrap">
-//                   Texora Product Ecosystem
-//                 </p>
-//                 <div className="w-8 h-[3px] bg-[#F97316] rounded-full mx-auto mt-1.5" />
-//               </div>
-//               <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-//             </div>
+//     <p className="mt-4 max-w-[700px] mx-auto text-gray-500 dark:text-gray-300">
+//   We collaborate with leading technology providers and business organizations to deliver innovative digital solutions.
+// </p>
+//     </div>
 
-//             <style>{`
-//               .eco-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
-//               @media (max-width: 1279px) { .eco-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-//               @media (max-width: 639px)  { .eco-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); } }
-//             `}</style>
-
-//             <div className="eco-grid">
-//               {(ecosystemProducts || FALLBACK_ECOSYSTEM).map((item) => {
-//                 const colorMap = {
-//                   blue: {
-//                     bg: "bg-blue-100 dark:bg-blue-900/30",
-//                     text: "text-blue-600 dark:text-blue-400",
-//                     label: "text-blue-700 dark:text-blue-300",
-//                   },
-//                   orange: {
-//                     bg: "bg-orange-100 dark:bg-orange-900/30",
-//                     text: "text-[#F97316]",
-//                     label: "text-[#F97316]",
-//                   },
-//                   purple: {
-//                     bg: "bg-purple-100 dark:bg-purple-900/30",
-//                     text: "text-purple-600 dark:text-purple-400",
-//                     label: "text-purple-700 dark:text-purple-300",
-//                   },
-//                   green: {
-//                     bg: "bg-green-100 dark:bg-green-900/30",
-//                     text: "text-green-600 dark:text-green-400",
-//                     label: "text-green-700 dark:text-green-300",
-//                   },
-//                   rose: {
-//                     bg: "bg-rose-100 dark:bg-rose-900/30",
-//                     text: "text-rose-600 dark:text-rose-400",
-//                     label: "text-rose-700 dark:text-rose-300",
-//                   },
-//                 };
-//                 const c = colorMap[item.color];
-//                 return (
-//                   <div
-//                     key={item.name}
-//                     className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 sm:p-5 flex flex-col gap-2.5 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group"
-//                   >
-//                     <div
-//                       className={`w-12 h-12 rounded-xl ${c.bg} flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform overflow-hidden`}
-//                     >
-//                       {item.src ? (
-//                         <img
-//                           src={item.src}
-//                           alt={item.name}
-//                           className="w-8 h-8 object-contain"
-//                           onError={(e) => {
-//                             e.currentTarget.style.display = "none";
-//                           }}
-//                         />
-//                       ) : item.Icon ? (
-//                         <item.Icon className={`w-6 h-6 ${c.text}`} />
-//                       ) : item.svgPath ? (
-//                         <svg
-//                           xmlns="http://www.w3.org/2000/svg"
-//                           className={`w-6 h-6 ${c.text}`}
-//                           viewBox="0 0 24 24"
-//                           fill="none"
-//                           stroke="currentColor"
-//                           strokeWidth="1.8"
-//                           strokeLinecap="round"
-//                           strokeLinejoin="round"
-//                         >
-//                           {item.svgPath}
-//                         </svg>
-//                       ) : (
-//                         <span className={`text-sm font-black ${c.text}`}>
-//                           {item.name?.charAt(0) || "?"}
-//                         </span>
-//                       )}
-//                     </div>
-//                     <p
-//                       className={`text-[13px] font-black tracking-wide ${c.label}`}
-//                     >
-//                       {item.name}
-//                     </p>
-//                     <div
-//                       className={`w-7 h-[3px] rounded-full bg-current ${c.text}`}
-//                     />
-//                     <p className="text-[11px] sm:text-[12px] text-gray-500 dark:text-gray-400 leading-relaxed flex-1">
-//                       {item.desc}
-//                     </p>
-//                     <a
-//                       href="/"
-//                       onClick={(e) => e.preventDefault()}
-//                       className={`text-[11px] sm:text-[12px] font-semibold flex items-center gap-1 mt-1 transition-opacity hover:opacity-70 ${c.text}`}
-//                     >
-//                       Explore{" "}
-//                       <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-//                     </a>
-//                   </div>
-//                 );
-//               })}
-//             </div>
-//           </div>
-//         </div>
-//       </section>
-
+//     <TopCompaniesCarousel
+//       logos={[
+//         ...techPartners,
+//         ...bizPartners,
+//         ...(ecosystemProducts || []),
+//       ]}
+//     />
+//   </div>
+// </section>
 //       {/* ── Courses ── */}
 //       <section
 //         id="courses"
@@ -2880,13 +3082,23 @@
 //                       >
 //                         {/* ── Thumbnail / Banner ── */}
 //                         <div className="relative h-16 sm:h-20 overflow-hidden bg-gradient-to-br from-[#1E293B] via-[#334155] to-[#F97316] flex-shrink-0">
-//                           <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(circle_at_20%_20%,white,transparent_35%),radial-gradient(circle_at_80%_60%,white,transparent_30%)]" />
-//                           <div className="absolute inset-0 flex items-center justify-center transition-transform duration-500 ease-out group-hover:scale-110">
-//                             <GraduationCap
-//                               className="w-8 h-8 sm:w-10 sm:h-10 text-white/25"
-//                               strokeWidth={1.25}
+//                           {course.thumbnailUrl || course.bannerUrl ? (
+//                             <img
+//                               src={course.thumbnailUrl || course.bannerUrl}
+//                               alt={course.title}
+//                               className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
 //                             />
-//                           </div>
+//                           ) : (
+//                             <>
+//                               <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(circle_at_20%_20%,white,transparent_35%),radial-gradient(circle_at_80%_60%,white,transparent_30%)]" />
+//                               <div className="absolute inset-0 flex items-center justify-center transition-transform duration-500 ease-out group-hover:scale-110">
+//                                 <GraduationCap
+//                                   className="w-8 h-8 sm:w-10 sm:h-10 text-white/25"
+//                                   strokeWidth={1.25}
+//                                 />
+//                               </div>
+//                             </>
+//                           )}
 
 //                           {/* Top badges */}
 //                           <div className="absolute top-2 left-2 right-2 flex items-start justify-between gap-2">
@@ -2926,7 +3138,6 @@
 //                               {course.level}
 //                             </span>
 //                           </div>
-
 //                         </div>
 
 //                         {/* ── Body ── */}
@@ -2941,11 +3152,19 @@
 
 //                           {/* Instructor */}
 //                           <div className="flex items-center gap-1.5 mb-1.5 min-w-0">
-//                             <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-br from-[#F97316] to-[#ea580c] text-white text-[9px] font-bold shrink-0">
-//                               {getInitials(
-//                                 course.instructorFull || course.instructor,
-//                               )}
-//                             </div>
+//                             {course.instructorPhotoUrl ? (
+//                               <img
+//                                 src={course.instructorPhotoUrl}
+//                                 alt={course.instructorFull || course.instructor}
+//                                 className="w-6 h-6 rounded-full object-cover shrink-0"
+//                               />
+//                             ) : (
+//                               <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-br from-[#F97316] to-[#ea580c] text-white text-[9px] font-bold shrink-0">
+//                                 {getInitials(
+//                                   course.instructorFull || course.instructor,
+//                                 )}
+//                               </div>
+//                             )}
 //                             <div className="min-w-0 flex-1">
 //                               <p className="text-xs font-semibold text-[#1E293B] dark:text-white truncate">
 //                                 {course.instructorFull || course.instructor}
@@ -3049,50 +3268,40 @@
 //       </section>
      
 //       {/* ── Mentors (testimonials — backend-connected) ── */}
-//       <section
-//         id="mentors"
-//         className="py-24 px-6 scroll-mt-20 bg-white dark:bg-gray-900/30"
-//       >
-//         <style>{`
-//           @media (min-width: 1024px) {
-//             .mentors-section-heading {
-//               white-space: nowrap;
-//               font-size: clamp(1.9rem, 2.6vw, 3rem);
-//             }
-//           }
-//         `}</style>
-//         <div className="max-w-7xl mx-auto">
-//           <div className="grid lg:grid-cols-2 gap-16 items-center">
-//             <div>
-//               <h2 className="mentors-section-heading text-4xl md:text-5xl font-bold mb-5 text-[#1E293B] dark:text-white">
-//                 Learn from{" "}
-//                 <span className="text-[#F97316]">Industry Experts</span>
-//               </h2>
-//               <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-xl">
-//                 Sessions led by operators from top product companies so you
-//                 understand how work happens in the real world.
-//               </p>
-//               <div className="space-y-3">
-//                 {mentorBenefits.map((item, i) => (
-//                   <div
-//                     key={i}
-//                     className="bg-[#F6EDE6] dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-3"
-//                   >
-//                     <div className="w-9 h-9 bg-[#1E293B] dark:bg-[#F97316] rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
-//                       <item.icon className="w-4.5 h-4.5 text-white" />
-//                     </div>
-//                     <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">
-//                       {item.text}
-//                     </p>
-//                   </div>
-//                 ))}
-//               </div>
-//             </div>
+// <section
+//   id="mentors"
+//   className="py-14 sm:py-16 lg:py-20 px-4 sm:px-6 scroll-mt-20 bg-[#FAF6F2] dark:bg-gray-900/30 overflow-x-hidden"
+// >
+//   <div className="max-w-[1200px] mx-auto">
+//     <div className="text-center max-w-[700px] mx-auto mb-8 sm:mb-10 lg:mb-12">
+//       <h2 className="text-[28px] sm:text-[34px] md:text-[40px] lg:text-5xl font-bold mb-3 sm:mb-4 text-[#1E293B] dark:text-white leading-tight">
+//         Learn from <span className="text-[#F97316]">Industry Experts</span>
+//       </h2>
+//       <p className="text-sm sm:text-[15px] md:text-base lg:text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
+//         Sessions led by operators from top product companies so you
+//         understand how work happens in the real world.
+//       </p>
+//     </div>
 
-//             <MentorTestimonialCarousel testimonials={testimonials} />
+//     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8 sm:mb-10 lg:mb-14">
+//       {mentorBenefits.map((item, i) => (
+//         <div
+//           key={i}
+//           className="h-full flex items-center gap-3 bg-[#FAF6F2] dark:bg-gray-900 rounded-2xl p-6 border border-[#ECECEC] dark:border-gray-800 shadow-[0_10px_35px_rgba(0,0,0,0.08)] hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+//         >
+//           <div className="w-10 h-10 bg-[#1E293B] dark:bg-[#F97316] rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+//             <item.icon className="w-5 h-5 text-white" />
 //           </div>
+//           <p className="text-gray-700 dark:text-gray-300 font-semibold text-sm leading-snug">
+//             {item.text}
+//           </p>
 //         </div>
-//       </section>
+//       ))}
+//     </div>
+
+//     <MentorTestimonialCarousel testimonials={testimonials} />
+//   </div>
+// </section>
 
 //       {/* ── Career Support ── */}
 //       <section
@@ -3707,6 +3916,38 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -3866,7 +4107,7 @@ function MobileFullScreenMenu({
   }, []);
 
   const AccordionSection = ({ label, isOpen, onToggle, children }) => (
-    <div style={{ borderBottom: "1px solid #f3f4f6" }}>
+    <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
       <button
         onClick={onToggle}
         style={{
@@ -3881,7 +4122,7 @@ function MobileFullScreenMenu({
           textAlign: "left",
           fontSize: 15,
           fontWeight: 600,
-          color: "#1e293b",
+          color: "#ffffff",
         }}
       >
         {label}
@@ -3891,7 +4132,7 @@ function MobileFullScreenMenu({
             transition: "transform 0.2s ease",
             display: "flex",
             alignItems: "center",
-            color: "#6b7280",
+            color: "#9CA3AF",
           }}
         >
           <ChevronDown size={16} />
@@ -3900,8 +4141,8 @@ function MobileFullScreenMenu({
       {isOpen && (
         <div
           style={{
-            background: "#f9fafb",
-            borderTop: "1px solid #f3f4f6",
+            background: "#232323", // ⬅ matches navbar dropdown color
+            borderTop: "1px solid rgba(255,255,255,0.08)",
             padding: "8px 0",
           }}
         >
@@ -3918,7 +4159,8 @@ function MobileFullScreenMenu({
         inset: 0,
         width: "100vw",
         height: "100vh",
-        background: "#ffffff",
+        // ⬅ same dark family as navbar (#1F1D1F) + footer (#191818)
+        background: "linear-gradient(180deg, #1F1D1F 0%, #191818 100%)",
         zIndex: 99999,
         overflowY: "auto",
         fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -3933,8 +4175,8 @@ function MobileFullScreenMenu({
           alignItems: "center",
           justifyContent: "space-between",
           padding: "16px 20px",
-          borderBottom: "1px solid #f3f4f6",
-          background: "#fff",
+          borderBottom: "1px solid rgba(255,255,255,0.08)",
+          background: "#1F1D1F", // ⬅ same as navbar bg
           position: "sticky",
           top: 0,
           zIndex: 10,
@@ -3954,9 +4196,15 @@ function MobileFullScreenMenu({
         </span>
         <button
           onClick={onClose}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "#3a3a3a";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "#2A2A2A";
+          }}
           style={{
             border: "none",
-            background: "#f5f5f5",
+            background: "#2A2A2A",
             borderRadius: 10,
             width: 36,
             height: 36,
@@ -3964,7 +4212,8 @@ function MobileFullScreenMenu({
             alignItems: "center",
             justifyContent: "center",
             cursor: "pointer",
-            color: "#6b7280",
+            color: "#ffffff",
+            transition: "background 0.2s ease",
           }}
           aria-label="Close menu"
         >
@@ -3981,14 +4230,47 @@ function MobileFullScreenMenu({
           padding: "12px 0 32px",
         }}
       >
-        {/* MegaMenu — All Courses */}
+        {/* MegaMenu — All Courses.
+            Wrapped + force-styled so it always shows white text on dark bg,
+            no matter what internal classes MegaMenu ships with. */}
         <div style={{ padding: "0 16px 8px" }}>
-          <MegaMenu onItemClick={onClose} />
+          <style>{`
+            .mobile-megamenu-wrapper {
+              background: #232323;
+              border: 1px solid rgba(255,255,255,0.08);
+              border-radius: 14px;
+              overflow: hidden;
+            }
+            .mobile-megamenu-wrapper,
+            .mobile-megamenu-wrapper * {
+              color: #ffffff !important;
+              background-color: transparent !important;
+            }
+            .mobile-megamenu-wrapper button:hover,
+            .mobile-megamenu-wrapper [role="button"]:hover {
+              background-color: rgba(249,115,22,0.12) !important;
+            }
+            .mobile-megamenu-wrapper svg {
+              color: #F97316 !important;
+              stroke: #F97316 !important;
+            }
+            .mobile-megamenu-wrapper hr,
+            .mobile-megamenu-wrapper [class*="border"] {
+              border-color: rgba(255,255,255,0.08) !important;
+            }
+          `}</style>
+          <div className="mobile-megamenu-wrapper">
+            <MegaMenu onItemClick={onClose} />
+          </div>
         </div>
 
         {/* Divider */}
         <div
-          style={{ height: 1, background: "#f3f4f6", margin: "4px 20px 4px" }}
+          style={{
+            height: 1,
+            background: "rgba(255,255,255,0.08)",
+            margin: "4px 20px 4px",
+          }}
         />
         {/* Nav buttons */}
         {navButtons.map((btn) => (
@@ -4004,13 +4286,13 @@ function MobileFullScreenMenu({
               alignItems: "center",
               padding: "15px 20px",
               border: "none",
-              borderBottom: "1px solid #f9fafb",
+              borderBottom: "1px solid rgba(255,255,255,0.08)",
               background: "transparent",
               cursor: "pointer",
               textAlign: "left",
               fontSize: 15,
               fontWeight: 600,
-              color: "#1e293b",
+              color: "#ffffff",
             }}
           >
             {btn.text}
@@ -4060,13 +4342,13 @@ function MobileFullScreenMenu({
                 style={{
                   fontSize: 14,
                   fontWeight: 600,
-                  color: "#1e293b",
+                  color: "#ffffff",
                   margin: 0,
                 }}
               >
                 Student Hub
               </p>
-              <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>
+              <p style={{ fontSize: 12, color: "#9CA3AF", margin: "2px 0 0" }}>
                 AI-Powered Learning &amp; Career Growth
               </p>
             </div>
@@ -4109,13 +4391,13 @@ function MobileFullScreenMenu({
                 style={{
                   fontSize: 14,
                   fontWeight: 600,
-                  color: "#1e293b",
+                  color: "#ffffff",
                   margin: 0,
                 }}
               >
                 Trainer Hub
               </p>
-              <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>
+              <p style={{ fontSize: 12, color: "#9CA3AF", margin: "2px 0 0" }}>
                 Training Management &amp; Mentorship
               </p>
             </div>
@@ -4157,20 +4439,25 @@ function MobileFullScreenMenu({
                 style={{
                   fontSize: 14,
                   fontWeight: 600,
-                  color: "#1e293b",
+                  color: "#ffffff",
                   margin: 0,
                 }}
               >
                 Manager Hub
               </p>
-              <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>
+              <p style={{ fontSize: 12, color: "#9CA3AF", margin: "2px 0 0" }}>
                 Analytics, Performance &amp; Team Development
               </p>
             </div>
           </button>
 
           {/* Divider */}
-          <div style={{ borderTop: "1px solid #e5e7eb", margin: "8px 24px" }} />
+          <div
+            style={{
+              borderTop: "1px solid rgba(255,255,255,0.08)",
+              margin: "8px 24px",
+            }}
+          />
 
           {/* ILM ORA Meet */}
           <button
@@ -4209,13 +4496,13 @@ function MobileFullScreenMenu({
                 style={{
                   fontSize: 14,
                   fontWeight: 600,
-                  color: "#1e293b",
+                  color: "#ffffff",
                   margin: 0,
                 }}
               >
                 ILM ORA Meet
               </p>
-              <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>
+              <p style={{ fontSize: 12, color: "#9CA3AF", margin: "2px 0 0" }}>
                 Virtual Meetings &amp; Collaboration
               </p>
             </div>
@@ -4258,13 +4545,13 @@ function MobileFullScreenMenu({
                 style={{
                   fontSize: 14,
                   fontWeight: 600,
-                  color: "#1e293b",
+                  color: "#ffffff",
                   margin: 0,
                 }}
               >
                 AI Resume Builder
               </p>
-              <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>
+              <p style={{ fontSize: 12, color: "#9CA3AF", margin: "2px 0 0" }}>
                 Create ATS-Friendly Professional Resumes
               </p>
             </div>
@@ -4298,8 +4585,8 @@ function MobileFullScreenMenu({
                 cursor: "pointer",
                 textAlign: "left",
                 fontSize: 14,
-                fontWeight: 500,
-                color: "#374151",
+                fontWeight: 600,
+                color: "#ffffff",
               }}
             >
               {link.text}
@@ -4309,7 +4596,11 @@ function MobileFullScreenMenu({
 
         {/* Divider */}
         <div
-          style={{ height: 1, background: "#f3f4f6", margin: "12px 20px" }}
+          style={{
+            height: 1,
+            background: "rgba(255,255,255,0.08)",
+            margin: "12px 20px",
+          }}
         />
 
         {/* Auth section */}
@@ -4322,7 +4613,8 @@ function MobileFullScreenMenu({
                   alignItems: "center",
                   gap: 12,
                   padding: "12px 16px",
-                  background: "#fdf4ec",
+                  background: "#232323", // ⬅ matches dropdown/footer family
+                  border: "1px solid rgba(255,255,255,0.08)",
                   borderRadius: 14,
                   marginBottom: 4,
                 }}
@@ -4331,7 +4623,7 @@ function MobileFullScreenMenu({
                   style={{
                     width: 38,
                     height: 38,
-                    background: "#1e293b",
+                    background: "#F97316",
                     borderRadius: "50%",
                     display: "flex",
                     alignItems: "center",
@@ -4349,7 +4641,7 @@ function MobileFullScreenMenu({
                     style={{
                       fontWeight: 600,
                       fontSize: 14,
-                      color: "#1e293b",
+                      color: "#ffffff",
                       margin: 0,
                       overflow: "hidden",
                       textOverflow: "ellipsis",
@@ -4361,7 +4653,7 @@ function MobileFullScreenMenu({
                   <p
                     style={{
                       fontSize: 12,
-                      color: "#6b7280",
+                      color: "#9CA3AF",
                       margin: 0,
                       overflow: "hidden",
                       textOverflow: "ellipsis",
@@ -4381,8 +4673,8 @@ function MobileFullScreenMenu({
                   width: "100%",
                   padding: "13px",
                   borderRadius: 14,
-                  border: "none",
-                  background: "#1e293b",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  background: "#2A2A2A",
                   color: "#fff",
                   fontWeight: 600,
                   fontSize: 15,
@@ -4426,7 +4718,8 @@ function MobileFullScreenMenu({
                 padding: "14px",
                 borderRadius: 14,
                 border: "none",
-                background: "#1e293b",
+                // ⬅ same orange gradient CTA as navbar's desktop "Get Started"
+                background: "linear-gradient(135deg,#F97316,#EA580C)",
                 color: "#fff",
                 fontWeight: 700,
                 fontSize: 15,
@@ -4435,6 +4728,7 @@ function MobileFullScreenMenu({
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 8,
+                boxShadow: "0 8px 20px rgba(249,115,22,0.3)",
               }}
             >
               <Sparkles size={16} /> Get Started
@@ -4445,7 +4739,6 @@ function MobileFullScreenMenu({
     </div>
   );
 }
-
 // ─────────────────────────────────────────────────────────────────────────────
 // FooterNewsletter
 // Subscribe form uses the real backend API (subscribeNewsletter). A hidden
@@ -4962,7 +5255,11 @@ function MentorAvatar({ name, image, size = "w-9 h-9", showBadge = false }) {
       </div>
       {showBadge && (
         <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#22C55E] border-2 border-white dark:border-gray-900 flex items-center justify-center">
-          <svg viewBox="0 0 24 24" fill="none" className="w-2.5 h-2.5 sm:w-3 sm:h-3">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            className="w-2.5 h-2.5 sm:w-3 sm:h-3"
+          >
             <path
               d="M5 13l4 4L19 7"
               stroke="white"
@@ -5161,6 +5458,104 @@ function MentorTestimonialCarousel({ testimonials }) {
     </div>
   );
 }
+
+function TopCompaniesCarousel({ logos }) {
+  const [duration, setDuration] = useState(30);
+  const [brokenSrcs, setBrokenSrcs] = useState(new Set());
+
+  // Responsive speed: desktop 30-35s, tablet 25-30s, mobile 20-25s
+  useEffect(() => {
+    const calcDuration = () => {
+      const w = window.innerWidth;
+      if (w >= 1024) setDuration(32);
+      else if (w >= 768) setDuration(27);
+      else setDuration(22);
+    };
+    calcDuration();
+    window.addEventListener("resize", calcDuration);
+    return () => window.removeEventListener("resize", calcDuration);
+  }, []);
+
+  if (!logos || logos.length === 0) return null;
+
+  // Always duplicate — required for a seamless CSS loop at translate(-50%)
+  const infiniteLogos = [...logos, ...logos];
+
+  return (
+    <div className="relative max-w-[1400px] mx-auto">
+      <style>{`
+        @keyframes ilmora-marquee {
+          0%   { transform: translate3d(0,0,0); }
+          100% { transform: translate3d(-50%,0,0); }
+        }
+        .ilmora-marquee-track {
+          display: flex;
+          width: max-content;
+          align-items: center;
+          animation: ilmora-marquee var(--marquee-duration, 30s) linear infinite;
+          will-change: transform;
+          transform: translate3d(0,0,0);
+        }
+        /* Pause on hover — desktop only, matches spec */
+        @media (hover: hover) and (pointer: fine) {
+          .ilmora-marquee-viewport:hover .ilmora-marquee-track {
+            animation-play-state: paused;
+          }
+        }
+      `}</style>
+
+      <div
+        className="ilmora-marquee-viewport bg-white dark:bg-[#111827] rounded-[18px] sm:rounded-[20px] lg:rounded-[22px] border border-gray-100 dark:border-white/[0.08] h-[120px] sm:h-[130px] lg:h-[140px] flex items-center overflow-hidden shadow-[0_15px_40px_rgba(15,23,42,0.08)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.45)]"
+        style={{
+          paddingLeft: 40,
+          paddingRight: 40,
+          "--marquee-duration": `${duration}s`,
+        }}
+      >
+        <div className="ilmora-marquee-track h-full">
+          {infiniteLogos
+            .filter((logo) => logo?.name || logo?.src)
+            .map((logo, i) => {
+              const isBroken = logo.src && brokenSrcs.has(logo.src);
+              const showImage = Boolean(logo.src) && !isBroken;
+              const initials = (logo.name || "?")
+                .trim()
+                .split(/\s+/)
+                .slice(0, 2)
+                .map((w) => w[0])
+                .join("")
+                .toUpperCase();
+
+              return (
+                <div
+                  key={`${logo.name}-${i}`}
+                  className="flex items-center justify-center h-full flex-shrink-0 px-4 sm:px-6 transition-transform duration-300 hover:scale-105"
+                  style={{ width: 160 }}
+                  title={logo.desc || logo.name}
+                >
+                  {showImage ? (
+                    <img
+                      src={logo.src}
+                      alt={logo.name}
+                      loading="lazy"
+                      className="max-h-[45px] sm:max-h-[48px] max-w-full object-contain"
+                      onError={() =>
+                        setBrokenSrcs((prev) => new Set(prev).add(logo.src))
+                      }
+                    />
+                  ) : (
+                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#1E293B] dark:bg-[#F97316] flex items-center justify-center text-white font-bold text-sm sm:text-base flex-shrink-0">
+                      {initials}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+        </div>
+      </div>
+    </div>
+  );
+}
 // ─────────────────────────────────────────────────────────────────────────────
 export default function LMSHomepage({ theme, toggleTheme }) {
   const [activeTab, setActiveTab] = useState("product");
@@ -5300,15 +5695,15 @@ export default function LMSHomepage({ theme, toggleTheme }) {
       try {
         const { data } = await courseService.getActiveMentorFeedbacks();
         const mapped = data.map((m) => {
-  console.log("Feedback:", m.feedbackMessage);
+          console.log("Feedback:", m.feedbackMessage);
 
-  return {
-    name: m.candidateName,
-    role: `${m.designation} @ ${m.company}`,
-    text: m.feedbackMessage,
-    image: m.profileImage || m.image || m.imageUrl || m.photo || null,
-  };
-});
+          return {
+            name: m.candidateName,
+            role: `${m.designation} @ ${m.company}`,
+            text: m.feedbackMessage,
+            image: m.profileImage || m.image || m.imageUrl || m.photo || null,
+          };
+        });
         setTestimonials(mapped);
       } catch (err) {
         console.error("Failed to load mentor feedback", err);
@@ -5927,24 +6322,136 @@ export default function LMSHomepage({ theme, toggleTheme }) {
 
   const navButtons = [];
 
-  /* ── Top Global Companies — derived from backend `companyData`,
-     falling back to static data while loading / on empty response. ── */
-  const mapCompany = (c) => ({
-    src: c.uploadedLogo || c.logoUrl,
-    name: c.name,
-    desc: c.description,
-  });
+  // Adjust this to match whatever base URL the rest of courseService already
+  // uses for uploaded files (check courseService.js for an existing constant
+  // before hardcoding this — do not guess blindly in production).
+  const API_BASE_URL =
+    courseService.API_BASE_URL || import.meta.env.VITE_API_BASE_URL || "";
 
-  const techPartners = companyData?.["Technology Partner"]?.length
-    ? companyData["Technology Partner"].map(mapCompany)
-    : FALLBACK_TECH_PARTNERS;
+  const isNonEmptyString = (v) => typeof v === "string" && v.trim().length > 0;
 
-  const bizPartners = companyData?.["Business Partner"]?.length
-    ? companyData["Business Partner"].map(mapCompany)
-    : FALLBACK_BIZ_PARTNERS;
+  const resolveImageUrl = (raw) => {
+    if (!isNonEmptyString(raw)) return "";
+    const trimmed = raw.trim();
+    if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith("data:")) {
+      return trimmed; // already absolute
+    }
+    const base = API_BASE_URL.replace(/\/$/, "");
+    return `${base}${trimmed.startsWith("/") ? "" : "/"}${trimmed}`; // relative → prepend base
+  };
 
-  const ecosystemProducts = companyData?.["Texora Product"]?.length
-    ? companyData["Texora Product"].map((c, i) => ({
+  const mapCompany = (c) => {
+    const rawSrc =
+      c.uploadedLogo ||
+      c.logoUrl ||
+      c.logo ||
+      c.image ||
+      c.imageUrl ||
+      c.logoPath ||
+      c.fileUrl ||
+      c.thumbnail ||
+      c.icon ||
+      c.imageURL ||
+      c.companyLogo ||
+      c.logoImage ||
+      c.picture ||
+      c.photo ||
+      c.mediaUrl ||
+      c.assetUrl ||
+      "";
+
+    const name = c.name || c.companyName || c.title || "";
+    const finalSrc = resolveImageUrl(rawSrc);
+
+    console.log("DEBUG company logo mapping →", {
+      name,
+      logo: c.logo,
+      logoUrl: c.logoUrl,
+      finalImageSource: finalSrc,
+    });
+
+    return {
+      src: finalSrc,
+      name,
+      desc: c.description || c.desc || c.about || "",
+    };
+  };
+
+  const findCategory = (data, ...aliases) => {
+    if (!data || typeof data !== "object") return [];
+    const keys = Object.keys(data);
+    const normalize = (s) => s.toLowerCase().replace(/[\s_-]/g, "");
+
+    // Pass 1: exact match
+    for (const alias of aliases) {
+      const target = normalize(alias);
+      const foundKey = keys.find((k) => normalize(k) === target);
+      if (foundKey && Array.isArray(data[foundKey])) return data[foundKey];
+    }
+
+    // Pass 2: fuzzy — key contains the alias, or alias contains the key
+    for (const alias of aliases) {
+      const target = normalize(alias);
+      const foundKey = keys.find((k) => {
+        const nk = normalize(k);
+        return (
+          Array.isArray(data[k]) && (nk.includes(target) || target.includes(nk))
+        );
+      });
+      if (foundKey) return data[foundKey];
+    }
+
+    return [];
+  };
+
+  const techPartnersRaw = findCategory(
+    companyData,
+    "Technology Partner",
+    "Technology Partners",
+    "Tech Partner",
+    "Tech Partners",
+    "technology",
+    "techPartner",
+    "techPartners",
+  );
+  const bizPartnersRaw = findCategory(
+    companyData,
+    "Business Partner",
+    "Business Partners",
+    "business",
+    "businessPartner",
+    "businessPartners",
+    "Partner Business",
+  );
+  const ecosystemRaw = findCategory(
+    companyData,
+    "Texora Product Ecosystem",
+    "Texora Products Ecosystem",
+    "Product Ecosystem",
+    "Texora Product",
+    "Texora Products",
+    "Ecosystem",
+    "products",
+    "texoraProducts",
+  );
+
+  const techPartners = techPartnersRaw
+    .map(mapCompany)
+    .filter((c) => c.src || c.name);
+  const bizPartners = bizPartnersRaw
+    .map(mapCompany)
+    .filter((c) => c.src || c.name);
+
+  const ECOSYSTEM_COLOR_CLASSES = {
+    blue: "bg-blue-50 text-blue-600 border-blue-100",
+    orange: "bg-orange-50 text-[#F97316] border-orange-100",
+    purple: "bg-purple-50 text-purple-600 border-purple-100",
+    green: "bg-green-50 text-green-600 border-green-100",
+    rose: "bg-rose-50 text-rose-600 border-rose-100",
+  };
+
+  const ecosystemProducts = ecosystemRaw.length
+    ? ecosystemRaw.map((c, i) => ({
         ...mapCompany(c),
         color: ECOSYSTEM_COLORS[i % ECOSYSTEM_COLORS.length],
       }))
@@ -6007,7 +6514,9 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                     <div className="flex items-start gap-3">
                       <GraduationCap className="w-5 h-5 text-green-600 mt-1" />
                       <div>
-                        <div className="font-semibold text-sm text-white">Student Hub</div>
+                        <div className="font-semibold text-sm text-white">
+                          Student Hub
+                        </div>
                         <div className="text-xs text-gray-400">
                           AI-Powered Learning & Career Growth
                         </div>
@@ -6022,7 +6531,9 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                     <div className="flex items-start gap-3">
                       <Users className="w-5 h-5 text-blue-600 mt-1" />
                       <div>
-                        <div className="font-semibold text-sm text-white">Trainer Hub</div>
+                        <div className="font-semibold text-sm text-white">
+                          Trainer Hub
+                        </div>
                         <div className="text-xs text-gray-400">
                           Training Management & Mentorship
                         </div>
@@ -6037,7 +6548,9 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                     <div className="flex items-start gap-3">
                       <BarChart3 className="w-5 h-5 text-purple-600 mt-1" />
                       <div>
-                        <div className="font-semibold text-sm text-white">Manager Hub</div>
+                        <div className="font-semibold text-sm text-white">
+                          Manager Hub
+                        </div>
                         <div className="text-xs text-gray-400">
                           Analytics, Performance & Team Development
                         </div>
@@ -6179,7 +6692,9 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                             <item.icon className="w-4 h-4 text-[#F97316]" />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-white">{item.label}</p>
+                            <p className="text-sm font-medium text-white">
+                              {item.label}
+                            </p>
                             <p className="text-xs text-gray-400">{item.desc}</p>
                           </div>
                         </DropdownMenuItem>
@@ -6303,34 +6818,32 @@ export default function LMSHomepage({ theme, toggleTheme }) {
           <div className="text-center lg:text-left">
             <div className="mb-8 inline-flex">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#FFF7ED] border border-[#FED7AA] text-[#F97316] text-sm font-semibold mb-6">
-  <Sparkles className="w-4 h-4" />
-  Learn Smarter. Grow Faster. Lead the Future.
-</div>
+                <Sparkles className="w-4 h-4" />
+                Learn Smarter. Grow Faster. Lead the Future.
+              </div>
             </div>
-         <h1 className="mb-6 leading-[1.1]">
-  <SplitText
-    text="Empower Your"
-    className="block text-4xl md:text-5xl lg:text-7xl font-bold text-[#1E293B] dark:text-white"
-    splitType="chars"
-    delay={60}
-    duration={0.6}
-  />
-  <SplitText
-    text="Learning Journey"
-    className="block text-4xl md:text-5xl lg:text-7xl font-bold text-[#F97316]"
-    splitType="chars"
-    delay={60}
-    duration={0.6}
-  />
-</h1>
+            <h1 className="mb-6 leading-[1.1]">
+              <SplitText
+                text="Empower Your"
+                className="block text-4xl md:text-5xl lg:text-7xl font-bold text-[#1E293B] dark:text-white"
+                splitType="chars"
+                delay={60}
+                duration={0.6}
+              />
+              <SplitText
+                text="Learning Journey"
+                className="block text-4xl md:text-5xl lg:text-7xl font-bold text-[#F97316]"
+                splitType="chars"
+                delay={60}
+                duration={0.6}
+              />
+            </h1>
             <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-12 max-w-2xl leading-relaxed">
-  Master in-demand skills through AI-powered learning, live sessions,
-  certifications, and expert-led programs designed for students,
-  professionals, trainers, and organizations.
-</p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center lg:items-start">
-              
-            </div>
+              Master in-demand skills through AI-powered learning, live
+              sessions, certifications, and expert-led programs designed for
+              students, professionals, trainers, and organizations.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center lg:items-start"></div>
           </div>
 
           <div className="flex flex-col items-center gap-4">
@@ -6408,308 +6921,6 @@ export default function LMSHomepage({ theme, toggleTheme }) {
         </div>
       </section>
 
-      {/* ── Stats ── */}
-      <section className="py-16 px-6 bg-white dark:bg-gray-900/50">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6">
-          {stats.map((stat, i) => (
-            <div
-              key={i}
-              className="bg-[#F6EDE6] dark:bg-gray-900 rounded-2xl p-8 text-center border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all"
-            >
-              <div className="text-4xl md:text-5xl font-bold text-[#F97316] mb-2">
-                {stat.value}
-              </div>
-              <p className="text-gray-600 dark:text-gray-300 font-medium">
-                {stat.label}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-      {/* ── WatchNow ── */}
-      <WatchNowSection />
-
-      {/* ── Features ── */}
-      <section className="py-24 px-6 bg-[#F6EDE6] dark:bg-black">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-[#1E293B] dark:text-white">
-              Why Choose
-              <span className="ml-2">
-                <span className="text-green-600">ILM</span>{" "}
-                <span className="text-[#F97316]">ORA</span>
-              </span>
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Everything you need to accelerate your career growth
-            </p>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {features.map((feature, i) => (
-              <div
-                key={i}
-                className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all group"
-              >
-                <div className="w-14 h-14 bg-[#1E293B] dark:bg-[#F97316] rounded-2xl flex items-center justify-center mb-5 group-hover:scale-105 transition-transform shadow-sm">
-                  <feature.icon className="w-7 h-7 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-[#1E293B] dark:text-white mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Companies (Top Global Companies — backend-connected) ── */}
-      <section className="py-20 px-4 sm:px-6 bg-white dark:bg-gray-900/30">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-10 sm:mb-14">
-            <p className="text-[11px] sm:text-xs uppercase tracking-[0.22em] text-gray-400 font-bold mb-3">
-              Trusted By Professionals At
-            </p>
-            <h2 className="text-4xl md:text-5xl font-bold text-[#1E293B] dark:text-white">
-              Top Global <span className="text-[#F97316]">Companies</span>
-            </h2>
-            <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mt-3 max-w-[600px] mx-auto leading-relaxed">
-              We collaborate with leading technology providers and business
-              organizations to deliver innovative digital solutions.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 sm:p-8">
-              <div className="flex flex-col items-center mb-2">
-                <div className="flex items-center gap-2.5 mb-5">
-                  <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 flex items-center justify-center flex-shrink-0">
-                    <svg
-                      viewBox="0 0 24 24"
-                      className="w-5 h-5 text-blue-500 dark:text-blue-400"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <rect x="2" y="3" width="20" height="14" rx="2" />
-                      <path d="M8 21h8M12 17v4" />
-                    </svg>
-                  </div>
-                  <span className="text-[13px] font-black tracking-[0.13em] uppercase text-blue-600 dark:text-blue-400">
-                    Technology Partners
-                  </span>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {techPartners.map((p) => (
-                  <div
-                    key={p.name}
-                    className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 sm:p-5 flex flex-col items-center gap-3 shadow-sm hover:shadow-lg hover:-translate-y-2 transition-all duration-300"
-                  >
-                    <div className="w-full h-11 flex items-center justify-center">
-                      <img
-                        src={p.src}
-                        alt={p.name}
-                        className="max-w-full max-h-10 object-contain"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                          const sib = e.currentTarget.nextSibling;
-                          if (sib) sib.style.display = "flex";
-                        }}
-                      />
-                      <div className="hidden w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 items-center justify-center text-[10px] font-bold text-gray-400 text-center leading-tight px-1">
-                        {p.name}
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-[12px] sm:text-[13px] font-bold text-[#0F172A] dark:text-white leading-tight">
-                        {p.name}
-                      </p>
-                      <p className="text-[10px] sm:text-[11px] text-gray-400 dark:text-gray-500 mt-0.5 leading-snug">
-                        {p.desc}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 sm:p-8">
-              <div className="flex flex-col items-center mb-2">
-                <div className="flex items-center gap-2.5 mb-5">
-                  <div className="w-10 h-10 rounded-full bg-green-50 dark:bg-green-900/30 border border-green-100 dark:border-green-800 flex items-center justify-center flex-shrink-0">
-                    <svg
-                      viewBox="0 0 24 24"
-                      className="w-5 h-5 text-green-600 dark:text-green-400"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                      <circle cx="9" cy="7" r="4" />
-                      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                    </svg>
-                  </div>
-                  <span className="text-[13px] font-black tracking-[0.13em] uppercase text-green-600 dark:text-green-400">
-                    Business Partners
-                  </span>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                {bizPartners.map((p) => (
-                  <div
-                    key={p.name}
-                    className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-2xl p-5 sm:p-7 flex flex-col items-center gap-4 shadow-sm hover:shadow-lg hover:-translate-y-2 transition-all duration-300"
-                  >
-                    <div className="w-full h-14 sm:h-16 flex items-center justify-center">
-                      <img
-                        src={p.src}
-                        alt={p.name}
-                        className="max-w-full max-h-12 object-contain"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                          const sib = e.currentTarget.nextSibling;
-                          if (sib) sib.style.display = "flex";
-                        }}
-                      />
-                      <div className="hidden w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-800 items-center justify-center text-[10px] font-bold text-gray-400 text-center leading-tight px-1">
-                        {p.name}
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-[13px] sm:text-[14px] font-bold text-[#0F172A] dark:text-white leading-tight">
-                        {p.name}
-                      </p>
-                      <p className="text-[11px] sm:text-[12px] text-gray-400 dark:text-gray-500 mt-1 leading-snug">
-                        {p.desc}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 sm:p-8">
-            <div className="flex items-center gap-3 sm:gap-5 mb-7 sm:mb-9">
-              <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-              <div className="flex-shrink-0 text-center">
-                <p className="text-[12px] sm:text-[13px] font-black tracking-[0.15em] uppercase text-[#0F172A] dark:text-white whitespace-nowrap">
-                  Texora Product Ecosystem
-                </p>
-                <div className="w-8 h-[3px] bg-[#F97316] rounded-full mx-auto mt-1.5" />
-              </div>
-              <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-            </div>
-
-            <style>{`
-              .eco-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
-              @media (max-width: 1279px) { .eco-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-              @media (max-width: 639px)  { .eco-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); } }
-            `}</style>
-
-            <div className="eco-grid">
-              {(ecosystemProducts || FALLBACK_ECOSYSTEM).map((item) => {
-                const colorMap = {
-                  blue: {
-                    bg: "bg-blue-100 dark:bg-blue-900/30",
-                    text: "text-blue-600 dark:text-blue-400",
-                    label: "text-blue-700 dark:text-blue-300",
-                  },
-                  orange: {
-                    bg: "bg-orange-100 dark:bg-orange-900/30",
-                    text: "text-[#F97316]",
-                    label: "text-[#F97316]",
-                  },
-                  purple: {
-                    bg: "bg-purple-100 dark:bg-purple-900/30",
-                    text: "text-purple-600 dark:text-purple-400",
-                    label: "text-purple-700 dark:text-purple-300",
-                  },
-                  green: {
-                    bg: "bg-green-100 dark:bg-green-900/30",
-                    text: "text-green-600 dark:text-green-400",
-                    label: "text-green-700 dark:text-green-300",
-                  },
-                  rose: {
-                    bg: "bg-rose-100 dark:bg-rose-900/30",
-                    text: "text-rose-600 dark:text-rose-400",
-                    label: "text-rose-700 dark:text-rose-300",
-                  },
-                };
-                const c = colorMap[item.color];
-                return (
-                  <div
-                    key={item.name}
-                    className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 sm:p-5 flex flex-col gap-2.5 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group"
-                  >
-                    <div
-                      className={`w-12 h-12 rounded-xl ${c.bg} flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform overflow-hidden`}
-                    >
-                      {item.src ? (
-                        <img
-                          src={item.src}
-                          alt={item.name}
-                          className="w-8 h-8 object-contain"
-                          onError={(e) => {
-                            e.currentTarget.style.display = "none";
-                          }}
-                        />
-                      ) : item.Icon ? (
-                        <item.Icon className={`w-6 h-6 ${c.text}`} />
-                      ) : item.svgPath ? (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className={`w-6 h-6 ${c.text}`}
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.8"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          {item.svgPath}
-                        </svg>
-                      ) : (
-                        <span className={`text-sm font-black ${c.text}`}>
-                          {item.name?.charAt(0) || "?"}
-                        </span>
-                      )}
-                    </div>
-                    <p
-                      className={`text-[13px] font-black tracking-wide ${c.label}`}
-                    >
-                      {item.name}
-                    </p>
-                    <div
-                      className={`w-7 h-[3px] rounded-full bg-current ${c.text}`}
-                    />
-                    <p className="text-[11px] sm:text-[12px] text-gray-500 dark:text-gray-400 leading-relaxed flex-1">
-                      {item.desc}
-                    </p>
-                    <a
-                      href="/"
-                      onClick={(e) => e.preventDefault()}
-                      className={`text-[11px] sm:text-[12px] font-semibold flex items-center gap-1 mt-1 transition-opacity hover:opacity-70 ${c.text}`}
-                    >
-                      Explore{" "}
-                      <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                    </a>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ── Courses ── */}
       <section
         id="courses"
@@ -6726,8 +6937,8 @@ export default function LMSHomepage({ theme, toggleTheme }) {
               Featured <span className="text-[#F97316]">Programs</span>
             </h2>
             <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
-              Choose your path and start building skills that matter — taught
-              by mentors who've shipped at the world's best companies.
+              Choose your path and start building skills that matter — taught by
+              mentors who've shipped at the world's best companies.
             </p>
           </div>
 
@@ -6773,7 +6984,6 @@ export default function LMSHomepage({ theme, toggleTheme }) {
               programsLoading
                 ? courses
                 : featuredPrograms &&
-
                     Object.values(featuredPrograms).some((a) => a.length > 0)
                   ? featuredPrograms
                   : courses,
@@ -6986,42 +7196,64 @@ export default function LMSHomepage({ theme, toggleTheme }) {
           </Tabs>
         </div>
       </section>
-     
-      {/* ── Mentors (testimonials — backend-connected) ── */}
-<section
-  id="mentors"
-  className="py-14 sm:py-16 lg:py-20 px-4 sm:px-6 scroll-mt-20 bg-[#FAF6F2] dark:bg-gray-900/30 overflow-x-hidden"
->
-  <div className="max-w-[1200px] mx-auto">
-    <div className="text-center max-w-[700px] mx-auto mb-8 sm:mb-10 lg:mb-12">
-      <h2 className="text-[28px] sm:text-[34px] md:text-[40px] lg:text-5xl font-bold mb-3 sm:mb-4 text-[#1E293B] dark:text-white leading-tight">
-        Learn from <span className="text-[#F97316]">Industry Experts</span>
-      </h2>
-      <p className="text-sm sm:text-[15px] md:text-base lg:text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
-        Sessions led by operators from top product companies so you
-        understand how work happens in the real world.
-      </p>
-    </div>
 
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8 sm:mb-10 lg:mb-14">
-      {mentorBenefits.map((item, i) => (
-        <div
-          key={i}
-          className="h-full flex items-center gap-3 bg-[#FAF6F2] dark:bg-gray-900 rounded-2xl p-6 border border-[#ECECEC] dark:border-gray-800 shadow-[0_10px_35px_rgba(0,0,0,0.08)] hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
-        >
-          <div className="w-10 h-10 bg-[#1E293B] dark:bg-[#F97316] rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-            <item.icon className="w-5 h-5 text-white" />
-          </div>
-          <p className="text-gray-700 dark:text-gray-300 font-semibold text-sm leading-snug">
-            {item.text}
-          </p>
+      {/* ── Stats ── */}
+      <section className="py-16 px-6 bg-white dark:bg-gray-900/50">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6">
+          {stats.map((stat, i) => (
+            <div
+              key={i}
+              className="bg-[#F6EDE6] dark:bg-gray-900 rounded-2xl p-8 text-center border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all"
+            >
+              <div className="text-4xl md:text-5xl font-bold text-[#F97316] mb-2">
+                {stat.value}
+              </div>
+              <p className="text-gray-600 dark:text-gray-300 font-medium">
+                {stat.label}
+              </p>
+            </div>
+          ))}
         </div>
-      ))}
-    </div>
+      </section>
+      {/* ── WatchNow ── */}
+      <WatchNowSection />
 
-    <MentorTestimonialCarousel testimonials={testimonials} />
-  </div>
-</section>
+      {/* ── Mentors (testimonials — backend-connected) ── */}
+      <section
+        id="mentors"
+        className="py-14 sm:py-16 lg:py-20 px-4 sm:px-6 scroll-mt-20 bg-[#FAF6F2] dark:bg-gray-900/30 overflow-x-hidden"
+      >
+        <div className="max-w-[1200px] mx-auto">
+          <div className="text-center max-w-[700px] mx-auto mb-8 sm:mb-10 lg:mb-12">
+            <h2 className="text-[28px] sm:text-[34px] md:text-[40px] lg:text-5xl font-bold mb-3 sm:mb-4 text-[#1E293B] dark:text-white leading-tight">
+              Learn from{" "}
+              <span className="text-[#F97316]">Industry Experts</span>
+            </h2>
+            <p className="text-sm sm:text-[15px] md:text-base lg:text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
+              Sessions led by operators from top product companies so you
+              understand how work happens in the real world.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8 sm:mb-10 lg:mb-14">
+            {mentorBenefits.map((item, i) => (
+              <div
+                key={i}
+                className="h-full flex items-center gap-3 bg-[#FAF6F2] dark:bg-gray-900 rounded-2xl p-6 border border-[#ECECEC] dark:border-gray-800 shadow-[0_10px_35px_rgba(0,0,0,0.08)] hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+              >
+                <div className="w-10 h-10 bg-[#1E293B] dark:bg-[#F97316] rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <item.icon className="w-5 h-5 text-white" />
+                </div>
+                <p className="text-gray-700 dark:text-gray-300 font-semibold text-sm leading-snug">
+                  {item.text}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <MentorTestimonialCarousel testimonials={testimonials} />
+        </div>
+      </section>
 
       {/* ── Career Support ── */}
       <section
@@ -7072,13 +7304,12 @@ export default function LMSHomepage({ theme, toggleTheme }) {
 
               {/* ── Middle: Content ── */}
               <div className="flex-1 flex flex-col justify-center px-6 sm:px-10 py-10 lg:py-8">
-                
                 <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 text-[#1E293B] dark:text-white leading-tight">
                   Ready to Transform Your Career?
                 </h3>
                 <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 max-w-xl">
-                  Join 5000+ professionals who've already taken the leap
-                  with our project-based programs and expert mentorship.
+                  Join 5000+ professionals who've already taken the leap with
+                  our project-based programs and expert mentorship.
                 </p>
               </div>
 
@@ -7096,6 +7327,68 @@ export default function LMSHomepage({ theme, toggleTheme }) {
         </div>
       </section>
 
+      {/* ── Features ── */}
+      <section className="py-24 px-6 bg-[#F6EDE6] dark:bg-black">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-[#1E293B] dark:text-white">
+              Why Choose
+              <span className="ml-2">
+                <span className="text-green-600">ILM</span>{" "}
+                <span className="text-[#F97316]">ORA</span>
+              </span>
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              Everything you need to accelerate your career growth
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {features.map((feature, i) => (
+              <div
+                key={i}
+                className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all group"
+              >
+                <div className="w-14 h-14 bg-[#1E293B] dark:bg-[#F97316] rounded-2xl flex items-center justify-center mb-5 group-hover:scale-105 transition-transform shadow-sm">
+                  <feature.icon className="w-7 h-7 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-[#1E293B] dark:text-white mb-2">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                  {feature.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-24 px-4 sm:px-6 relative overflow-hidden bg-white dark:bg-[#0F172A]">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16" style={{ marginBottom: 64 }}>
+            <p className="text-xs uppercase tracking-[0.25em] text-gray-400 dark:text-gray-400 font-bold">
+              TRUSTED BY LEADING ORGANIZATIONS
+            </p>
+
+            <h2 className="text-4xl md:text-6xl font-bold text-[#1E293B] dark:text-white mt-4">
+              Top Global <span className="text-[#F97316]">Companies</span>
+            </h2>
+
+            <p className="mt-4 max-w-[700px] mx-auto text-gray-500 dark:text-gray-300">
+              We collaborate with leading technology providers and business
+              organizations to deliver innovative digital solutions.
+            </p>
+          </div>
+
+          <TopCompaniesCarousel
+            logos={[
+              ...techPartners,
+              ...bizPartners,
+              ...(ecosystemProducts || []),
+            ]}
+          />
+        </div>
+      </section>
       {/* ── Footer ── */}
       <footer className="bg-[#191818] text-[#D1D5DB] border-t border-[#F97316]/[0.15]">
         <div className="max-w-7xl mx-auto px-6 py-10">
@@ -7309,7 +7602,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
               © {new Date().getFullYear()} ILM ORA All rights reserved.
             </span>
             <div className="flex items-center gap-2">
-              <span>ILM ORA  </span>
+              <span>ILM ORA </span>
               <span className="text-red-500 text-base">❤️Powered by</span>
               <span>Texora AI</span>
             </div>
@@ -7317,8 +7610,8 @@ export default function LMSHomepage({ theme, toggleTheme }) {
         </div>
       </footer>
 
-     {/* ── Login Modal ── */}
-     {showLoginModal && (
+      {/* ── Login Modal ── */}
+      {showLoginModal && (
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
           <div
             className="fixed inset-0 z-[100] flex items-center justify-center p-4"
@@ -7538,7 +7831,16 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                   e.currentTarget.style.color = "#16a34a";
                 }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
                   <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
                   <path d="M2 12h20" />
@@ -7564,7 +7866,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
           onSwitchToLogin={() => {
             setShowSignupModal(false);
             setShowLoginModal(true);
-          }}          
+          }}
         />
       )}
       {showForgotModal && (

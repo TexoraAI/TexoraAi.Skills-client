@@ -1,261 +1,234 @@
-import { useMemo, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 
-import WatchNowHero from "./components/WatchNow/WatchNowHero";
-import LiveSessionHighlight from "./components/WatchNow/LiveSessionHighlight";
-import FeaturedVideos from "./components/WatchNow/FeaturedVideos";
-import ContinueLearning from "./components/WatchNow/ContinueLearning";
-import RecommendedVideos from "./components/WatchNow/RecommendedVideos";
-import TrendingCourses from "./components/WatchNow/TrendingCourses";
-import RecentlyAdded from "./components/WatchNow/RecentlyAdded";
-import PopularTrainers from "./components/WatchNow/PopularTrainers";
-import UpcomingWebinars from "./components/WatchNow/UpcomingWebinars";
-import Categories from "./components/WatchNow/Categories";
-import Filters from "./components/WatchNow/Filters";
-import VideoCard from "./components/WatchNow/VideoCard";
+import { useEffect, useState } from "react";
+import { Play, ChevronLeft, ChevronRight } from "lucide-react";
+import videoService from "../../../../services/videoService";
 
-import {
-  liveSession,
-  featuredVideos,
-  continueLearning,
-  trendingCourses,
-  recentlyAdded,
-  recommendedVideos,
-  popularTrainers,
-  upcomingWebinars,
-  watchNowCategories,
-  watchNowFeatures,
-} from "./components/WatchNow/data";
-
-// Category label -> filter key, built from data.js so it stays in sync.
-const CATEGORY_KEY_BY_LABEL = watchNowCategories.reduce((map, c) => {
-  map[c.label] = c.key;
-  return map;
-}, {});
-
-const DURATION_BUCKET = (durationLabel) => {
-  const minutes = parseInt(durationLabel, 10) || 0;
-  if (minutes < 15) return "short";
-  if (minutes <= 30) return "medium";
-  return "long";
-};
-
-/**
- * Combined "browse all" pool built from every video source, tagged with a
- * rough recency/popularity rank so the Filters sort control has something
- * real to work with. Swap this for a single `videoService.getAllWatchNow()`
- * call once the backend is wired up — the shape (id, title, category,
- * duration, thumbnail) already matches VideoCard's expectations.
- */
-function buildVideoPool() {
-  const sources = [
-    { list: recentlyAdded, recencyRank: 0, popularityRank: 2 },
-    { list: featuredVideos, recencyRank: 1, popularityRank: 0 },
-    { list: trendingCourses, recencyRank: 2, popularityRank: 1 },
-    { list: recommendedVideos, recencyRank: 3, popularityRank: 3 },
-  ];
-
-  const seen = new Set();
-  const pool = [];
-
-  sources.forEach(({ list, recencyRank, popularityRank }) => {
-    list.forEach((video, index) => {
-      if (seen.has(video.id)) return;
-      seen.add(video.id);
-      pool.push({ ...video, recencyRank, popularityRank, index });
-    });
-  });
-
-  return pool;
+function parseVideoUrl(rawUrl) {
+  if (!rawUrl) return null;
+  const url = rawUrl.trim();
+  const ytMatch = url.match(
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/|youtube\.com\/embed\/)([\w-]{11})/,
+  );
+  if (ytMatch)
+    return {
+      type: "iframe",
+      url: `https://www.youtube.com/embed/${ytMatch[1]}`,
+    };
+  const vimeoMatch = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if (vimeoMatch)
+    return {
+      type: "iframe",
+      url: `https://player.vimeo.com/video/${vimeoMatch[1]}`,
+    };
+  if (/\.(mp4|webm|ogg|mov|m4v)(\?.*)?$/i.test(url))
+    return { type: "video", url };
+  return { type: "iframe", url };
 }
 
-export default function WatchNow() {
-  const navigate = useNavigate();
+function getVideoSourceUrl(item) {
+  if (item.videoFileName)
+    return videoService.getWatchNowStreamUrl(item.videoFileName);
+  return item.externalVideoUrl || "";
+}
 
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("");
-  const [duration, setDuration] = useState("");
-  const [sort, setSort] = useState("latest");
-  const [reminder, setReminder] = useState(null);
+function WatchNowSmartPlayer({ item }) {
+  const rawUrl = getVideoSourceUrl(item);
+  if (!rawUrl) return null;
+
+  if (item.videoFileName) {
+    return (
+      <video
+        src={rawUrl}
+        controls
+        autoPlay
+        playsInline
+        className="w-full h-full rounded-2xl bg-black object-cover"
+      />
+    );
+  }
+
+  const parsed = parseVideoUrl(rawUrl);
+  if (!parsed) return null;
+
+  if (parsed.type === "video") {
+    return (
+      <video
+        src={parsed.url}
+        controls
+        autoPlay
+        playsInline
+        className="w-full h-full rounded-2xl bg-black object-cover"
+      />
+    );
+  }
+
+  const sep = parsed.url.includes("?") ? "&" : "?";
+  return (
+    <iframe
+      src={`${parsed.url}${sep}autoplay=1`}
+      title={item.personName || "WatchNow video"}
+      className="w-full h-full rounded-2xl bg-black"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowFullScreen
+    />
+  );
+}
+
+/* ============================================================
+   Single slide — matches Great Learning: text panel (left) +
+   large media panel (right), one story visible at a time.
+   ============================================================ */
+function StorySlide({ item, isPlaying, onPlay }) {
+  return (
+    <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center bg-gray-50 dark:bg-gray-900 rounded-3xl p-6 sm:p-10">
+      <div>
+        <h3 className="text-2xl sm:text-3xl font-bold text-[#1E293B] dark:text-white leading-snug mb-4">
+          "{item.quote}"
+        </h3>
+        <div className="pt-4 border-t border-gray-200 dark:border-gray-800 mt-4">
+          <p className="font-bold text-[#1E293B] dark:text-white text-base">
+            {item.personName}
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            {item.personRole}
+          </p>
+        </div>
+      </div>
+
+      <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-lg">
+        {isPlaying ? (
+          <WatchNowSmartPlayer item={item} />
+        ) : (
+          <button
+            type="button"
+            onClick={() => onPlay(item.id)}
+            className="group relative w-full h-full block"
+            aria-label={`Play video from ${item.personName}`}
+          >
+            <img
+              src={videoService.getWatchNowStreamUrl(item.thumbnail)}
+              alt={item.personName}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+              <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/95 shadow-lg group-hover:scale-105 transition-transform">
+                <Play className="w-4 h-4 text-[#7c3aed]" fill="#7c3aed" />
+                <span className="text-sm font-bold text-[#1E293B]">
+                  Watch story
+                </span>
+              </span>
+            </div>
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function WatchNowSection({ id = "watch-now" }) {
+  const [stories, setStories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [playing, setPlaying] = useState({});
 
   useEffect(() => {
-    if (!reminder) return;
-    const timeout = setTimeout(() => setReminder(null), 4000);
-    return () => clearTimeout(timeout);
-  }, [reminder]);
+    let active = true;
+    videoService
+      .getWatchNowPublished()
+      .then(({ data }) => {
+        if (active) setStories(Array.isArray(data) ? data : []);
+      })
+      .catch((err) => console.error("Failed to load WatchNow stories", err))
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
+  }, []);
 
-  const videoPool = useMemo(() => buildVideoPool(), []);
-
-  const filteredVideos = useMemo(() => {
-    const query = search.trim().toLowerCase();
-
-    let results = videoPool.filter((video) => {
-      const matchesSearch =
-        !query ||
-        video.title.toLowerCase().includes(query) ||
-        video.category?.toLowerCase().includes(query);
-
-      const matchesCategory =
-        !category || CATEGORY_KEY_BY_LABEL[video.category] === category;
-
-      const matchesDuration =
-        !duration || DURATION_BUCKET(video.duration) === duration;
-
-      return matchesSearch && matchesCategory && matchesDuration;
-    });
-
-    results = [...results].sort((a, b) => {
-      if (sort === "popular") return a.popularityRank - b.popularityRank;
-      if (sort === "rating") return a.popularityRank - b.popularityRank;
-      return a.recencyRank - b.recencyRank || a.index - b.index;
-    });
-
-    return results;
-  }, [videoPool, search, category, duration, sort]);
-
-  const goToVideo = (video) => {
-    if (video?.id) {
-      navigate(`/watch-now/${video.id}`);
-    }
+  const handlePlay = (itemId) => {
+    setPlaying((prev) => ({ ...prev, [itemId]: true }));
   };
 
-  const goToLiveSession = () => goToVideo(liveSession);
-
-  const handleSelectTrainer = (trainer) => {
-    setSearch(trainer.name);
-    setCategory("");
-    setDuration("");
-    document.getElementById("browse-videos")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const goTo = (idx) => {
+    setPlaying({});
+    setActiveIndex((idx + stories.length) % stories.length);
   };
 
-  const handleSetReminder = (webinar) => {
-    setReminder(`Reminder set for "${webinar.title}" · ${webinar.date}`);
-  };
+  const current = stories[activeIndex];
 
   return (
-    <div className="min-h-screen bg-[#F6EDE6] dark:bg-gray-950">
-      {/* ── Hero: intro copy + live session spotlight ───────────────────── */}
-      <section className="py-14 sm:py-20 px-6 scroll-mt-20 bg-white dark:bg-gray-900/30">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-5 gap-10 lg:gap-12 items-center">
-            <div className="lg:col-span-2">
-              <WatchNowHero
-                features={watchNowFeatures}
-                onWatchNow={() =>
-                  document
-                    .getElementById("browse-videos")
-                    ?.scrollIntoView({ behavior: "smooth", block: "start" })
-                }
-              />
-            </div>
-            <div className="lg:col-span-3">
-              <LiveSessionHighlight session={liveSession} onPlay={goToLiveSession} />
-            </div>
+    <section
+      id={id}
+      className="py-16 sm:py-20 px-6 scroll-mt-20 bg-white dark:bg-gray-900/30"
+    >
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14">
+          <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-widest text-[#F97316] bg-[#F97316]/10 border border-[#F97316]/20 px-4 py-1.5 rounded-full mb-3">
+            Watch Now
+          </span>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#1E293B] dark:text-white">
+            Learn Through,{" "}
+            <span className="text-[#F97316]">Expert Sessions</span>
+          </h2>
+          <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mt-3 leading-relaxed">
+            Explore live sessions, career guidance, interview preparation,
+            hands-on projects, and expert-led learning designed to help you
+            build real-world skills and grow your career.
+          </p>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center py-16">
+            <div className="w-6 h-6 rounded-full border-2 border-gray-200 dark:border-gray-700 border-t-[#F97316] animate-spin" />
           </div>
-        </div>
-      </section>
-
-      {/* ── Continue Learning (only renders if there's in-progress content) ── */}
-      <section className="px-6">
-        <div className="max-w-7xl mx-auto">
-          <ContinueLearning items={continueLearning} onSelectVideo={goToVideo} />
-        </div>
-      </section>
-
-      {/* ── Browse & filter all videos ───────────────────────────────────── */}
-      <section id="browse-videos" className="py-10 sm:py-14 px-6 scroll-mt-20">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col gap-4 mb-6">
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#1E293B] dark:text-white">
-                Browse All Videos
-              </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Search, filter by category or duration, and find exactly what you want to learn next.
-              </p>
-            </div>
-
-            <Categories
-              categories={watchNowCategories}
-              activeKey={category}
-              onSelect={(key) => setCategory(key || "")}
+        ) : stories.length === 0 ? (
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400 py-12">
+            No stories published yet — check back soon.
+          </p>
+        ) : (
+          <div className="relative">
+            <StorySlide
+              item={current}
+              isPlaying={!!playing[current.id]}
+              onPlay={handlePlay}
             />
 
-            <Filters
-              search={search}
-              onSearchChange={setSearch}
-              category={category}
-              onCategoryChange={setCategory}
-              duration={duration}
-              onDurationChange={setDuration}
-              sort={sort}
-              onSortChange={setSort}
-              categories={watchNowCategories}
-            />
+            {stories.length > 1 && (
+              <>
+                <button
+                  onClick={() => goTo(activeIndex - 1)}
+                  aria-label="Previous story"
+                  className="hidden sm:flex absolute -left-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white dark:bg-gray-800 shadow-lg items-center justify-center hover:scale-105 transition-transform"
+                >
+                  <ChevronLeft className="w-5 h-5 text-[#1E293B] dark:text-white" />
+                </button>
+                <button
+                  onClick={() => goTo(activeIndex + 1)}
+                  aria-label="Next story"
+                  className="hidden sm:flex absolute -right-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white dark:bg-gray-800 shadow-lg items-center justify-center hover:scale-105 transition-transform"
+                >
+                  <ChevronRight className="w-5 h-5 text-[#1E293B] dark:text-white" />
+                </button>
+
+                <div className="flex justify-center gap-2 mt-6">
+                  {stories.map((s, idx) => (
+                    <button
+                      key={s.id}
+                      onClick={() => goTo(idx)}
+                      aria-label={`Go to story ${idx + 1}`}
+                      className={`h-2 rounded-full transition-all ${
+                        idx === activeIndex
+                          ? "w-6 bg-[#F97316]"
+                          : "w-2 bg-gray-300 dark:bg-gray-700"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
           </div>
-
-          {reminder && (
-            <div className="mb-6 text-sm font-medium text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl px-4 py-3">
-              {reminder}
-            </div>
-          )}
-
-          {filteredVideos.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 sm:gap-6">
-              {filteredVideos.map((video) => (
-                <VideoCard key={video.id} video={video} onClick={() => goToVideo(video)} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-16 text-gray-500 dark:text-gray-400">
-              <p className="font-semibold text-[#1E293B] dark:text-white mb-1">No videos match your filters</p>
-              <p className="text-sm">Try clearing the search or picking a different category.</p>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* ── Featured Learning Videos ─────────────────────────────────────── */}
-      <section className="px-6">
-        <div className="max-w-7xl mx-auto">
-          <FeaturedVideos videos={featuredVideos} onSelectVideo={goToVideo} />
-        </div>
-      </section>
-
-      {/* ── Trending Courses ─────────────────────────────────────────────── */}
-      <section className="px-6">
-        <div className="max-w-7xl mx-auto">
-          <TrendingCourses videos={trendingCourses} onSelectVideo={goToVideo} />
-        </div>
-      </section>
-
-      {/* ── Recently Added ───────────────────────────────────────────────── */}
-      <section className="px-6">
-        <div className="max-w-7xl mx-auto">
-          <RecentlyAdded videos={recentlyAdded} onSelectVideo={goToVideo} />
-        </div>
-      </section>
-
-      {/* ── Recommended For You ──────────────────────────────────────────── */}
-      <section className="px-6">
-        <div className="max-w-7xl mx-auto">
-          <RecommendedVideos videos={recommendedVideos} onSelectVideo={goToVideo} />
-        </div>
-      </section>
-
-      {/* ── Popular Trainers ─────────────────────────────────────────────── */}
-      <section className="px-6">
-        <div className="max-w-7xl mx-auto">
-          <PopularTrainers trainers={popularTrainers} onSelectTrainer={handleSelectTrainer} />
-        </div>
-      </section>
-
-      {/* ── Upcoming Webinars ────────────────────────────────────────────── */}
-      <section className="px-6 pb-16 sm:pb-24">
-        <div className="max-w-7xl mx-auto">
-          <UpcomingWebinars webinars={upcomingWebinars} onSetReminder={handleSetReminder} />
-        </div>
-      </section>
-    </div>
+        )}
+      </div>
+    </section>
   );
 }

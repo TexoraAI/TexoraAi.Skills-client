@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { Play, ChevronLeft, ChevronRight } from "lucide-react";
-import videoService from "../../../../services/videoService";
+import videoService from "../../services/videoService";
 
 function parseVideoUrl(rawUrl) {
   if (!rawUrl) return null;

@@ -1,3 +1,4 @@
+
 // import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 // import { Button } from "@/components/ui/button";
 // import {
@@ -157,7 +158,7 @@
 //   }, []);
 
 //   const AccordionSection = ({ label, isOpen, onToggle, children }) => (
-//     <div style={{ borderBottom: "1px solid #f3f4f6" }}>
+//     <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
 //       <button
 //         onClick={onToggle}
 //         style={{
@@ -172,7 +173,7 @@
 //           textAlign: "left",
 //           fontSize: 15,
 //           fontWeight: 600,
-//           color: "#1e293b",
+//           color: "#ffffff",
 //         }}
 //       >
 //         {label}
@@ -182,7 +183,7 @@
 //             transition: "transform 0.2s ease",
 //             display: "flex",
 //             alignItems: "center",
-//             color: "#6b7280",
+//             color: "#9CA3AF",
 //           }}
 //         >
 //           <ChevronDown size={16} />
@@ -191,8 +192,8 @@
 //       {isOpen && (
 //         <div
 //           style={{
-//             background: "#f9fafb",
-//             borderTop: "1px solid #f3f4f6",
+//             background: "#232323", // ⬅ matches navbar dropdown color
+//             borderTop: "1px solid rgba(255,255,255,0.08)",
 //             padding: "8px 0",
 //           }}
 //         >
@@ -209,7 +210,8 @@
 //         inset: 0,
 //         width: "100vw",
 //         height: "100vh",
-//         background: "#ffffff",
+//         // ⬅ same dark family as navbar (#1F1D1F) + footer (#191818)
+//         background: "linear-gradient(180deg, #1F1D1F 0%, #191818 100%)",
 //         zIndex: 99999,
 //         overflowY: "auto",
 //         fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -224,8 +226,8 @@
 //           alignItems: "center",
 //           justifyContent: "space-between",
 //           padding: "16px 20px",
-//           borderBottom: "1px solid #f3f4f6",
-//           background: "#fff",
+//           borderBottom: "1px solid rgba(255,255,255,0.08)",
+//           background: "#1F1D1F", // ⬅ same as navbar bg
 //           position: "sticky",
 //           top: 0,
 //           zIndex: 10,
@@ -245,9 +247,15 @@
 //         </span>
 //         <button
 //           onClick={onClose}
+//           onMouseEnter={(e) => {
+//             e.currentTarget.style.background = "#3a3a3a";
+//           }}
+//           onMouseLeave={(e) => {
+//             e.currentTarget.style.background = "#2A2A2A";
+//           }}
 //           style={{
 //             border: "none",
-//             background: "#f5f5f5",
+//             background: "#2A2A2A",
 //             borderRadius: 10,
 //             width: 36,
 //             height: 36,
@@ -255,7 +263,8 @@
 //             alignItems: "center",
 //             justifyContent: "center",
 //             cursor: "pointer",
-//             color: "#6b7280",
+//             color: "#ffffff",
+//             transition: "background 0.2s ease",
 //           }}
 //           aria-label="Close menu"
 //         >
@@ -272,14 +281,47 @@
 //           padding: "12px 0 32px",
 //         }}
 //       >
-//         {/* MegaMenu — All Courses */}
+//         {/* MegaMenu — All Courses.
+//             Wrapped + force-styled so it always shows white text on dark bg,
+//             no matter what internal classes MegaMenu ships with. */}
 //         <div style={{ padding: "0 16px 8px" }}>
-//           <MegaMenu onItemClick={onClose} />
+//           <style>{`
+//             .mobile-megamenu-wrapper {
+//               background: #232323;
+//               border: 1px solid rgba(255,255,255,0.08);
+//               border-radius: 14px;
+//               overflow: hidden;
+//             }
+//             .mobile-megamenu-wrapper,
+//             .mobile-megamenu-wrapper * {
+//               color: #ffffff !important;
+//               background-color: transparent !important;
+//             }
+//             .mobile-megamenu-wrapper button:hover,
+//             .mobile-megamenu-wrapper [role="button"]:hover {
+//               background-color: rgba(249,115,22,0.12) !important;
+//             }
+//             .mobile-megamenu-wrapper svg {
+//               color: #F97316 !important;
+//               stroke: #F97316 !important;
+//             }
+//             .mobile-megamenu-wrapper hr,
+//             .mobile-megamenu-wrapper [class*="border"] {
+//               border-color: rgba(255,255,255,0.08) !important;
+//             }
+//           `}</style>
+//           <div className="mobile-megamenu-wrapper">
+//             <MegaMenu onItemClick={onClose} />
+//           </div>
 //         </div>
 
 //         {/* Divider */}
 //         <div
-//           style={{ height: 1, background: "#f3f4f6", margin: "4px 20px 4px" }}
+//           style={{
+//             height: 1,
+//             background: "rgba(255,255,255,0.08)",
+//             margin: "4px 20px 4px",
+//           }}
 //         />
 //         {/* Nav buttons */}
 //         {navButtons.map((btn) => (
@@ -295,13 +337,13 @@
 //               alignItems: "center",
 //               padding: "15px 20px",
 //               border: "none",
-//               borderBottom: "1px solid #f9fafb",
+//               borderBottom: "1px solid rgba(255,255,255,0.08)",
 //               background: "transparent",
 //               cursor: "pointer",
 //               textAlign: "left",
 //               fontSize: 15,
 //               fontWeight: 600,
-//               color: "#1e293b",
+//               color: "#ffffff",
 //             }}
 //           >
 //             {btn.text}
@@ -351,13 +393,13 @@
 //                 style={{
 //                   fontSize: 14,
 //                   fontWeight: 600,
-//                   color: "#1e293b",
+//                   color: "#ffffff",
 //                   margin: 0,
 //                 }}
 //               >
 //                 Student Hub
 //               </p>
-//               <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>
+//               <p style={{ fontSize: 12, color: "#9CA3AF", margin: "2px 0 0" }}>
 //                 AI-Powered Learning &amp; Career Growth
 //               </p>
 //             </div>
@@ -400,13 +442,13 @@
 //                 style={{
 //                   fontSize: 14,
 //                   fontWeight: 600,
-//                   color: "#1e293b",
+//                   color: "#ffffff",
 //                   margin: 0,
 //                 }}
 //               >
 //                 Trainer Hub
 //               </p>
-//               <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>
+//               <p style={{ fontSize: 12, color: "#9CA3AF", margin: "2px 0 0" }}>
 //                 Training Management &amp; Mentorship
 //               </p>
 //             </div>
@@ -448,20 +490,25 @@
 //                 style={{
 //                   fontSize: 14,
 //                   fontWeight: 600,
-//                   color: "#1e293b",
+//                   color: "#ffffff",
 //                   margin: 0,
 //                 }}
 //               >
 //                 Manager Hub
 //               </p>
-//               <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>
+//               <p style={{ fontSize: 12, color: "#9CA3AF", margin: "2px 0 0" }}>
 //                 Analytics, Performance &amp; Team Development
 //               </p>
 //             </div>
 //           </button>
 
 //           {/* Divider */}
-//           <div style={{ borderTop: "1px solid #e5e7eb", margin: "8px 24px" }} />
+//           <div
+//             style={{
+//               borderTop: "1px solid rgba(255,255,255,0.08)",
+//               margin: "8px 24px",
+//             }}
+//           />
 
 //           {/* ILM ORA Meet */}
 //           <button
@@ -500,13 +547,13 @@
 //                 style={{
 //                   fontSize: 14,
 //                   fontWeight: 600,
-//                   color: "#1e293b",
+//                   color: "#ffffff",
 //                   margin: 0,
 //                 }}
 //               >
 //                 ILM ORA Meet
 //               </p>
-//               <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>
+//               <p style={{ fontSize: 12, color: "#9CA3AF", margin: "2px 0 0" }}>
 //                 Virtual Meetings &amp; Collaboration
 //               </p>
 //             </div>
@@ -549,13 +596,13 @@
 //                 style={{
 //                   fontSize: 14,
 //                   fontWeight: 600,
-//                   color: "#1e293b",
+//                   color: "#ffffff",
 //                   margin: 0,
 //                 }}
 //               >
 //                 AI Resume Builder
 //               </p>
-//               <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>
+//               <p style={{ fontSize: 12, color: "#9CA3AF", margin: "2px 0 0" }}>
 //                 Create ATS-Friendly Professional Resumes
 //               </p>
 //             </div>
@@ -589,8 +636,8 @@
 //                 cursor: "pointer",
 //                 textAlign: "left",
 //                 fontSize: 14,
-//                 fontWeight: 500,
-//                 color: "#374151",
+//                 fontWeight: 600,
+//                 color: "#ffffff",
 //               }}
 //             >
 //               {link.text}
@@ -600,7 +647,11 @@
 
 //         {/* Divider */}
 //         <div
-//           style={{ height: 1, background: "#f3f4f6", margin: "12px 20px" }}
+//           style={{
+//             height: 1,
+//             background: "rgba(255,255,255,0.08)",
+//             margin: "12px 20px",
+//           }}
 //         />
 
 //         {/* Auth section */}
@@ -613,7 +664,8 @@
 //                   alignItems: "center",
 //                   gap: 12,
 //                   padding: "12px 16px",
-//                   background: "#fdf4ec",
+//                   background: "#232323", // ⬅ matches dropdown/footer family
+//                   border: "1px solid rgba(255,255,255,0.08)",
 //                   borderRadius: 14,
 //                   marginBottom: 4,
 //                 }}
@@ -622,7 +674,7 @@
 //                   style={{
 //                     width: 38,
 //                     height: 38,
-//                     background: "#1e293b",
+//                     background: "#F97316",
 //                     borderRadius: "50%",
 //                     display: "flex",
 //                     alignItems: "center",
@@ -640,7 +692,7 @@
 //                     style={{
 //                       fontWeight: 600,
 //                       fontSize: 14,
-//                       color: "#1e293b",
+//                       color: "#ffffff",
 //                       margin: 0,
 //                       overflow: "hidden",
 //                       textOverflow: "ellipsis",
@@ -652,7 +704,7 @@
 //                   <p
 //                     style={{
 //                       fontSize: 12,
-//                       color: "#6b7280",
+//                       color: "#9CA3AF",
 //                       margin: 0,
 //                       overflow: "hidden",
 //                       textOverflow: "ellipsis",
@@ -672,8 +724,8 @@
 //                   width: "100%",
 //                   padding: "13px",
 //                   borderRadius: 14,
-//                   border: "none",
-//                   background: "#1e293b",
+//                   border: "1px solid rgba(255,255,255,0.08)",
+//                   background: "#2A2A2A",
 //                   color: "#fff",
 //                   fontWeight: 600,
 //                   fontSize: 15,
@@ -717,7 +769,8 @@
 //                 padding: "14px",
 //                 borderRadius: 14,
 //                 border: "none",
-//                 background: "#1e293b",
+//                 // ⬅ same orange gradient CTA as navbar's desktop "Get Started"
+//                 background: "linear-gradient(135deg,#F97316,#EA580C)",
 //                 color: "#fff",
 //                 fontWeight: 700,
 //                 fontSize: 15,
@@ -726,6 +779,7 @@
 //                 alignItems: "center",
 //                 justifyContent: "center",
 //                 gap: 8,
+//                 boxShadow: "0 8px 20px rgba(249,115,22,0.3)",
 //               }}
 //             >
 //               <Sparkles size={16} /> Get Started
@@ -736,7 +790,6 @@
 //     </div>
 //   );
 // }
-
 // // ─────────────────────────────────────────────────────────────────────────────
 // // FooterNewsletter
 // // Subscribe form uses the real backend API (subscribeNewsletter). A hidden
@@ -1253,7 +1306,11 @@
 //       </div>
 //       {showBadge && (
 //         <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#22C55E] border-2 border-white dark:border-gray-900 flex items-center justify-center">
-//           <svg viewBox="0 0 24 24" fill="none" className="w-2.5 h-2.5 sm:w-3 sm:h-3">
+//           <svg
+//             viewBox="0 0 24 24"
+//             fill="none"
+//             className="w-2.5 h-2.5 sm:w-3 sm:h-3"
+//           >
 //             <path
 //               d="M5 13l4 4L19 7"
 //               stroke="white"
@@ -1689,15 +1746,15 @@
 //       try {
 //         const { data } = await courseService.getActiveMentorFeedbacks();
 //         const mapped = data.map((m) => {
-//   console.log("Feedback:", m.feedbackMessage);
+//           console.log("Feedback:", m.feedbackMessage);
 
-//   return {
-//     name: m.candidateName,
-//     role: `${m.designation} @ ${m.company}`,
-//     text: m.feedbackMessage,
-//     image: m.profileImage || m.image || m.imageUrl || m.photo || null,
-//   };
-// });
+//           return {
+//             name: m.candidateName,
+//             role: `${m.designation} @ ${m.company}`,
+//             text: m.feedbackMessage,
+//             image: m.profileImage || m.image || m.imageUrl || m.photo || null,
+//           };
+//         });
 //         setTestimonials(mapped);
 //       } catch (err) {
 //         console.error("Failed to load mentor feedback", err);
@@ -2317,61 +2374,59 @@
 //   const navButtons = [];
 
 //   // Adjust this to match whatever base URL the rest of courseService already
-// // uses for uploaded files (check courseService.js for an existing constant
-// // before hardcoding this — do not guess blindly in production).
-// const API_BASE_URL =
-//   courseService.API_BASE_URL ||
-//   import.meta.env.VITE_API_BASE_URL ||
-//   "";
+//   // uses for uploaded files (check courseService.js for an existing constant
+//   // before hardcoding this — do not guess blindly in production).
+//   const API_BASE_URL =
+//     courseService.API_BASE_URL || import.meta.env.VITE_API_BASE_URL || "";
 
-// const isNonEmptyString = (v) => typeof v === "string" && v.trim().length > 0;
+//   const isNonEmptyString = (v) => typeof v === "string" && v.trim().length > 0;
 
-// const resolveImageUrl = (raw) => {
-//   if (!isNonEmptyString(raw)) return "";
-//   const trimmed = raw.trim();
-//   if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith("data:")) {
-//     return trimmed; // already absolute
-//   }
-//   const base = API_BASE_URL.replace(/\/$/, "");
-//   return `${base}${trimmed.startsWith("/") ? "" : "/"}${trimmed}`; // relative → prepend base
-// };
-
-// const mapCompany = (c) => {
-//   const rawSrc =
-//   c.uploadedLogo ||
-//   c.logoUrl ||
-//   c.logo ||
-//   c.image ||
-//   c.imageUrl ||
-//   c.logoPath ||
-//   c.fileUrl ||
-//   c.thumbnail ||
-//   c.icon ||
-//   c.imageURL ||
-//   c.companyLogo ||
-//   c.logoImage ||
-//   c.picture ||
-//   c.photo ||
-//   c.mediaUrl ||
-//   c.assetUrl ||
-//   "";
-
-//   const name = c.name || c.companyName || c.title || "";
-//   const finalSrc = resolveImageUrl(rawSrc);
-
-//   console.log("DEBUG company logo mapping →", {
-//     name,
-//     logo: c.logo,
-//     logoUrl: c.logoUrl,
-//     finalImageSource: finalSrc,
-//   });
-
-//   return {
-//     src: finalSrc,
-//     name,
-//     desc: c.description || c.desc || c.about || "",
+//   const resolveImageUrl = (raw) => {
+//     if (!isNonEmptyString(raw)) return "";
+//     const trimmed = raw.trim();
+//     if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith("data:")) {
+//       return trimmed; // already absolute
+//     }
+//     const base = API_BASE_URL.replace(/\/$/, "");
+//     return `${base}${trimmed.startsWith("/") ? "" : "/"}${trimmed}`; // relative → prepend base
 //   };
-// };
+
+//   const mapCompany = (c) => {
+//     const rawSrc =
+//       c.uploadedLogo ||
+//       c.logoUrl ||
+//       c.logo ||
+//       c.image ||
+//       c.imageUrl ||
+//       c.logoPath ||
+//       c.fileUrl ||
+//       c.thumbnail ||
+//       c.icon ||
+//       c.imageURL ||
+//       c.companyLogo ||
+//       c.logoImage ||
+//       c.picture ||
+//       c.photo ||
+//       c.mediaUrl ||
+//       c.assetUrl ||
+//       "";
+
+//     const name = c.name || c.companyName || c.title || "";
+//     const finalSrc = resolveImageUrl(rawSrc);
+
+//     console.log("DEBUG company logo mapping →", {
+//       name,
+//       logo: c.logo,
+//       logoUrl: c.logoUrl,
+//       finalImageSource: finalSrc,
+//     });
+
+//     return {
+//       src: finalSrc,
+//       name,
+//       desc: c.description || c.desc || c.about || "",
+//     };
+//   };
 
 //   const findCategory = (data, ...aliases) => {
 //     if (!data || typeof data !== "object") return [];
@@ -2390,7 +2445,9 @@
 //       const target = normalize(alias);
 //       const foundKey = keys.find((k) => {
 //         const nk = normalize(k);
-//         return Array.isArray(data[k]) && (nk.includes(target) || target.includes(nk));
+//         return (
+//           Array.isArray(data[k]) && (nk.includes(target) || target.includes(nk))
+//         );
 //       });
 //       if (foundKey) return data[foundKey];
 //     }
@@ -2417,7 +2474,7 @@
 //     "businessPartners",
 //     "Partner Business",
 //   );
-//  const ecosystemRaw = findCategory(
+//   const ecosystemRaw = findCategory(
 //     companyData,
 //     "Texora Product Ecosystem",
 //     "Texora Products Ecosystem",
@@ -2429,8 +2486,12 @@
 //     "texoraProducts",
 //   );
 
-//   const techPartners = techPartnersRaw.map(mapCompany).filter((c) => c.src || c.name);
-// const bizPartners = bizPartnersRaw.map(mapCompany).filter((c) => c.src || c.name);
+//   const techPartners = techPartnersRaw
+//     .map(mapCompany)
+//     .filter((c) => c.src || c.name);
+//   const bizPartners = bizPartnersRaw
+//     .map(mapCompany)
+//     .filter((c) => c.src || c.name);
 
 //   const ECOSYSTEM_COLOR_CLASSES = {
 //     blue: "bg-blue-50 text-blue-600 border-blue-100",
@@ -2446,8 +2507,6 @@
 //         color: ECOSYSTEM_COLORS[i % ECOSYSTEM_COLORS.length],
 //       }))
 //     : null;
-
-
 
 //   return (
 //     <div className="min-h-screen bg-[#F6EDE6] dark:bg-black text-[#1E293B] dark:text-white">
@@ -2506,7 +2565,9 @@
 //                     <div className="flex items-start gap-3">
 //                       <GraduationCap className="w-5 h-5 text-green-600 mt-1" />
 //                       <div>
-//                         <div className="font-semibold text-sm text-white">Student Hub</div>
+//                         <div className="font-semibold text-sm text-white">
+//                           Student Hub
+//                         </div>
 //                         <div className="text-xs text-gray-400">
 //                           AI-Powered Learning & Career Growth
 //                         </div>
@@ -2521,7 +2582,9 @@
 //                     <div className="flex items-start gap-3">
 //                       <Users className="w-5 h-5 text-blue-600 mt-1" />
 //                       <div>
-//                         <div className="font-semibold text-sm text-white">Trainer Hub</div>
+//                         <div className="font-semibold text-sm text-white">
+//                           Trainer Hub
+//                         </div>
 //                         <div className="text-xs text-gray-400">
 //                           Training Management & Mentorship
 //                         </div>
@@ -2536,7 +2599,9 @@
 //                     <div className="flex items-start gap-3">
 //                       <BarChart3 className="w-5 h-5 text-purple-600 mt-1" />
 //                       <div>
-//                         <div className="font-semibold text-sm text-white">Manager Hub</div>
+//                         <div className="font-semibold text-sm text-white">
+//                           Manager Hub
+//                         </div>
 //                         <div className="text-xs text-gray-400">
 //                           Analytics, Performance & Team Development
 //                         </div>
@@ -2678,7 +2743,9 @@
 //                             <item.icon className="w-4 h-4 text-[#F97316]" />
 //                           </div>
 //                           <div>
-//                             <p className="text-sm font-medium text-white">{item.label}</p>
+//                             <p className="text-sm font-medium text-white">
+//                               {item.label}
+//                             </p>
 //                             <p className="text-xs text-gray-400">{item.desc}</p>
 //                           </div>
 //                         </DropdownMenuItem>
@@ -2802,34 +2869,32 @@
 //           <div className="text-center lg:text-left">
 //             <div className="mb-8 inline-flex">
 //               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#FFF7ED] border border-[#FED7AA] text-[#F97316] text-sm font-semibold mb-6">
-//   <Sparkles className="w-4 h-4" />
-//   Learn Smarter. Grow Faster. Lead the Future.
-// </div>
+//                 <Sparkles className="w-4 h-4" />
+//                 Learn Smarter. Grow Faster. Lead the Future.
+//               </div>
 //             </div>
-//          <h1 className="mb-6 leading-[1.1]">
-//   <SplitText
-//     text="Empower Your"
-//     className="block text-4xl md:text-5xl lg:text-7xl font-bold text-[#1E293B] dark:text-white"
-//     splitType="chars"
-//     delay={60}
-//     duration={0.6}
-//   />
-//   <SplitText
-//     text="Learning Journey"
-//     className="block text-4xl md:text-5xl lg:text-7xl font-bold text-[#F97316]"
-//     splitType="chars"
-//     delay={60}
-//     duration={0.6}
-//   />
-// </h1>
+//             <h1 className="mb-6 leading-[1.1]">
+//               <SplitText
+//                 text="Empower Your"
+//                 className="block text-4xl md:text-5xl lg:text-7xl font-bold text-[#1E293B] dark:text-white"
+//                 splitType="chars"
+//                 delay={60}
+//                 duration={0.6}
+//               />
+//               <SplitText
+//                 text="Learning Journey"
+//                 className="block text-4xl md:text-5xl lg:text-7xl font-bold text-[#F97316]"
+//                 splitType="chars"
+//                 delay={60}
+//                 duration={0.6}
+//               />
+//             </h1>
 //             <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-12 max-w-2xl leading-relaxed">
-//   Master in-demand skills through AI-powered learning, live sessions,
-//   certifications, and expert-led programs designed for students,
-//   professionals, trainers, and organizations.
-// </p>
-//             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center lg:items-start">
-              
-//             </div>
+//               Master in-demand skills through AI-powered learning, live
+//               sessions, certifications, and expert-led programs designed for
+//               students, professionals, trainers, and organizations.
+//             </p>
+//             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center lg:items-start"></div>
 //           </div>
 
 //           <div className="flex flex-col items-center gap-4">
@@ -2907,89 +2972,6 @@
 //         </div>
 //       </section>
 
-//       {/* ── Stats ── */}
-//       <section className="py-16 px-6 bg-white dark:bg-gray-900/50">
-//         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6">
-//           {stats.map((stat, i) => (
-//             <div
-//               key={i}
-//               className="bg-[#F6EDE6] dark:bg-gray-900 rounded-2xl p-8 text-center border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all"
-//             >
-//               <div className="text-4xl md:text-5xl font-bold text-[#F97316] mb-2">
-//                 {stat.value}
-//               </div>
-//               <p className="text-gray-600 dark:text-gray-300 font-medium">
-//                 {stat.label}
-//               </p>
-//             </div>
-//           ))}
-//         </div>
-//       </section>
-//       {/* ── WatchNow ── */}
-//       <WatchNowSection />
-
-//       {/* ── Features ── */}
-//       <section className="py-24 px-6 bg-[#F6EDE6] dark:bg-black">
-//         <div className="max-w-7xl mx-auto">
-//           <div className="text-center mb-16">
-//             <h2 className="text-4xl md:text-5xl font-bold mb-4 text-[#1E293B] dark:text-white">
-//               Why Choose
-//               <span className="ml-2">
-//                 <span className="text-green-600">ILM</span>{" "}
-//                 <span className="text-[#F97316]">ORA</span>
-//               </span>
-//             </h2>
-//             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-//               Everything you need to accelerate your career growth
-//             </p>
-//           </div>
-//           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-//             {features.map((feature, i) => (
-//               <div
-//                 key={i}
-//                 className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all group"
-//               >
-//                 <div className="w-14 h-14 bg-[#1E293B] dark:bg-[#F97316] rounded-2xl flex items-center justify-center mb-5 group-hover:scale-105 transition-transform shadow-sm">
-//                   <feature.icon className="w-7 h-7 text-white" />
-//                 </div>
-//                 <h3 className="text-xl font-bold text-[#1E293B] dark:text-white mb-2">
-//                   {feature.title}
-//                 </h3>
-//                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-//                   {feature.description}
-//                 </p>
-//               </div>
-//             ))}
-//           </div>
-//         </div>
-//       </section>
-
-//   <section className="py-24 px-4 sm:px-6 relative overflow-hidden bg-white dark:bg-[#0F172A]">
-//   <div className="max-w-7xl mx-auto">
-
-//     <div className="text-center mb-16" style={{ marginBottom: 64 }}>
-//       <p className="text-xs uppercase tracking-[0.25em] text-gray-400 dark:text-gray-400 font-bold">
-//   TRUSTED BY LEADING ORGANIZATIONS
-// </p>
-
-//       <h2 className="text-4xl md:text-6xl font-bold text-[#1E293B] dark:text-white mt-4">
-//         Top Global <span className="text-[#F97316]">Companies</span>
-//       </h2>
-
-//     <p className="mt-4 max-w-[700px] mx-auto text-gray-500 dark:text-gray-300">
-//   We collaborate with leading technology providers and business organizations to deliver innovative digital solutions.
-// </p>
-//     </div>
-
-//     <TopCompaniesCarousel
-//       logos={[
-//         ...techPartners,
-//         ...bizPartners,
-//         ...(ecosystemProducts || []),
-//       ]}
-//     />
-//   </div>
-// </section>
 //       {/* ── Courses ── */}
 //       <section
 //         id="courses"
@@ -3006,8 +2988,8 @@
 //               Featured <span className="text-[#F97316]">Programs</span>
 //             </h2>
 //             <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
-//               Choose your path and start building skills that matter — taught
-//               by mentors who've shipped at the world's best companies.
+//               Choose your path and start building skills that matter — taught by
+//               mentors who've shipped at the world's best companies.
 //             </p>
 //           </div>
 
@@ -3053,7 +3035,6 @@
 //               programsLoading
 //                 ? courses
 //                 : featuredPrograms &&
-
 //                     Object.values(featuredPrograms).some((a) => a.length > 0)
 //                   ? featuredPrograms
 //                   : courses,
@@ -3266,42 +3247,64 @@
 //           </Tabs>
 //         </div>
 //       </section>
-     
-//       {/* ── Mentors (testimonials — backend-connected) ── */}
-// <section
-//   id="mentors"
-//   className="py-14 sm:py-16 lg:py-20 px-4 sm:px-6 scroll-mt-20 bg-[#FAF6F2] dark:bg-gray-900/30 overflow-x-hidden"
-// >
-//   <div className="max-w-[1200px] mx-auto">
-//     <div className="text-center max-w-[700px] mx-auto mb-8 sm:mb-10 lg:mb-12">
-//       <h2 className="text-[28px] sm:text-[34px] md:text-[40px] lg:text-5xl font-bold mb-3 sm:mb-4 text-[#1E293B] dark:text-white leading-tight">
-//         Learn from <span className="text-[#F97316]">Industry Experts</span>
-//       </h2>
-//       <p className="text-sm sm:text-[15px] md:text-base lg:text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
-//         Sessions led by operators from top product companies so you
-//         understand how work happens in the real world.
-//       </p>
-//     </div>
 
-//     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8 sm:mb-10 lg:mb-14">
-//       {mentorBenefits.map((item, i) => (
-//         <div
-//           key={i}
-//           className="h-full flex items-center gap-3 bg-[#FAF6F2] dark:bg-gray-900 rounded-2xl p-6 border border-[#ECECEC] dark:border-gray-800 shadow-[0_10px_35px_rgba(0,0,0,0.08)] hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
-//         >
-//           <div className="w-10 h-10 bg-[#1E293B] dark:bg-[#F97316] rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-//             <item.icon className="w-5 h-5 text-white" />
-//           </div>
-//           <p className="text-gray-700 dark:text-gray-300 font-semibold text-sm leading-snug">
-//             {item.text}
-//           </p>
+//       {/* ── Stats ── */}
+//       <section className="py-16 px-6 bg-white dark:bg-gray-900/50">
+//         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6">
+//           {stats.map((stat, i) => (
+//             <div
+//               key={i}
+//               className="bg-[#F6EDE6] dark:bg-gray-900 rounded-2xl p-8 text-center border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all"
+//             >
+//               <div className="text-4xl md:text-5xl font-bold text-[#F97316] mb-2">
+//                 {stat.value}
+//               </div>
+//               <p className="text-gray-600 dark:text-gray-300 font-medium">
+//                 {stat.label}
+//               </p>
+//             </div>
+//           ))}
 //         </div>
-//       ))}
-//     </div>
+//       </section>
+//       {/* ── WatchNow ── */}
+//       <WatchNowSection />
 
-//     <MentorTestimonialCarousel testimonials={testimonials} />
-//   </div>
-// </section>
+//       {/* ── Mentors (testimonials — backend-connected) ── */}
+//       <section
+//         id="mentors"
+//         className="py-14 sm:py-16 lg:py-20 px-4 sm:px-6 scroll-mt-20 bg-[#FAF6F2] dark:bg-gray-900/30 overflow-x-hidden"
+//       >
+//         <div className="max-w-[1200px] mx-auto">
+//           <div className="text-center max-w-[700px] mx-auto mb-8 sm:mb-10 lg:mb-12">
+//             <h2 className="text-[28px] sm:text-[34px] md:text-[40px] lg:text-5xl font-bold mb-3 sm:mb-4 text-[#1E293B] dark:text-white leading-tight">
+//               Learn from{" "}
+//               <span className="text-[#F97316]">Industry Experts</span>
+//             </h2>
+//             <p className="text-sm sm:text-[15px] md:text-base lg:text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
+//               Sessions led by operators from top product companies so you
+//               understand how work happens in the real world.
+//             </p>
+//           </div>
+
+//           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8 sm:mb-10 lg:mb-14">
+//             {mentorBenefits.map((item, i) => (
+//               <div
+//                 key={i}
+//                 className="h-full flex items-center gap-3 bg-[#FAF6F2] dark:bg-gray-900 rounded-2xl p-6 border border-[#ECECEC] dark:border-gray-800 shadow-[0_10px_35px_rgba(0,0,0,0.08)] hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+//               >
+//                 <div className="w-10 h-10 bg-[#1E293B] dark:bg-[#F97316] rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+//                   <item.icon className="w-5 h-5 text-white" />
+//                 </div>
+//                 <p className="text-gray-700 dark:text-gray-300 font-semibold text-sm leading-snug">
+//                   {item.text}
+//                 </p>
+//               </div>
+//             ))}
+//           </div>
+
+//           <MentorTestimonialCarousel testimonials={testimonials} />
+//         </div>
+//       </section>
 
 //       {/* ── Career Support ── */}
 //       <section
@@ -3352,13 +3355,12 @@
 
 //               {/* ── Middle: Content ── */}
 //               <div className="flex-1 flex flex-col justify-center px-6 sm:px-10 py-10 lg:py-8">
-                
 //                 <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 text-[#1E293B] dark:text-white leading-tight">
 //                   Ready to Transform Your Career?
 //                 </h3>
 //                 <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 max-w-xl">
-//                   Join 5000+ professionals who've already taken the leap
-//                   with our project-based programs and expert mentorship.
+//                   Join 5000+ professionals who've already taken the leap with
+//                   our project-based programs and expert mentorship.
 //                 </p>
 //               </div>
 
@@ -3376,6 +3378,68 @@
 //         </div>
 //       </section>
 
+//       {/* ── Features ── */}
+//       <section className="py-24 px-6 bg-[#F6EDE6] dark:bg-black">
+//         <div className="max-w-7xl mx-auto">
+//           <div className="text-center mb-16">
+//             <h2 className="text-4xl md:text-5xl font-bold mb-4 text-[#1E293B] dark:text-white">
+//               Why Choose
+//               <span className="ml-2">
+//                 <span className="text-green-600">ILM</span>{" "}
+//                 <span className="text-[#F97316]">ORA</span>
+//               </span>
+//             </h2>
+//             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+//               Everything you need to accelerate your career growth
+//             </p>
+//           </div>
+//           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+//             {features.map((feature, i) => (
+//               <div
+//                 key={i}
+//                 className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all group"
+//               >
+//                 <div className="w-14 h-14 bg-[#1E293B] dark:bg-[#F97316] rounded-2xl flex items-center justify-center mb-5 group-hover:scale-105 transition-transform shadow-sm">
+//                   <feature.icon className="w-7 h-7 text-white" />
+//                 </div>
+//                 <h3 className="text-xl font-bold text-[#1E293B] dark:text-white mb-2">
+//                   {feature.title}
+//                 </h3>
+//                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+//                   {feature.description}
+//                 </p>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+//       </section>
+
+//       <section className="py-24 px-4 sm:px-6 relative overflow-hidden bg-white dark:bg-[#0F172A]">
+//         <div className="max-w-7xl mx-auto">
+//           <div className="text-center mb-16" style={{ marginBottom: 64 }}>
+//             <p className="text-xs uppercase tracking-[0.25em] text-gray-400 dark:text-gray-400 font-bold">
+//               TRUSTED BY LEADING ORGANIZATIONS
+//             </p>
+
+//             <h2 className="text-4xl md:text-6xl font-bold text-[#1E293B] dark:text-white mt-4">
+//               Top Global <span className="text-[#F97316]">Companies</span>
+//             </h2>
+
+//             <p className="mt-4 max-w-[700px] mx-auto text-gray-500 dark:text-gray-300">
+//               We collaborate with leading technology providers and business
+//               organizations to deliver innovative digital solutions.
+//             </p>
+//           </div>
+
+//           <TopCompaniesCarousel
+//             logos={[
+//               ...techPartners,
+//               ...bizPartners,
+//               ...(ecosystemProducts || []),
+//             ]}
+//           />
+//         </div>
+//       </section>
 //       {/* ── Footer ── */}
 //       <footer className="bg-[#191818] text-[#D1D5DB] border-t border-[#F97316]/[0.15]">
 //         <div className="max-w-7xl mx-auto px-6 py-10">
@@ -3589,7 +3653,7 @@
 //               © {new Date().getFullYear()} ILM ORA All rights reserved.
 //             </span>
 //             <div className="flex items-center gap-2">
-//               <span>ILM ORA  </span>
+//               <span>ILM ORA </span>
 //               <span className="text-red-500 text-base">❤️Powered by</span>
 //               <span>Texora AI</span>
 //             </div>
@@ -3597,8 +3661,8 @@
 //         </div>
 //       </footer>
 
-//      {/* ── Login Modal ── */}
-//      {showLoginModal && (
+//       {/* ── Login Modal ── */}
+//       {showLoginModal && (
 //         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
 //           <div
 //             className="fixed inset-0 z-[100] flex items-center justify-center p-4"
@@ -3818,7 +3882,16 @@
 //                   e.currentTarget.style.color = "#16a34a";
 //                 }}
 //               >
-//                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+//                 <svg
+//                   width="16"
+//                   height="16"
+//                   viewBox="0 0 24 24"
+//                   fill="none"
+//                   stroke="currentColor"
+//                   strokeWidth="2"
+//                   strokeLinecap="round"
+//                   strokeLinejoin="round"
+//                 >
 //                   <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
 //                   <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
 //                   <path d="M2 12h20" />
@@ -3844,7 +3917,7 @@
 //           onSwitchToLogin={() => {
 //             setShowSignupModal(false);
 //             setShowLoginModal(true);
-//           }}          
+//           }}
 //         />
 //       )}
 //       {showForgotModal && (
@@ -3860,30 +3933,6 @@
 //     </div>
 //   );
 // }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -5277,6 +5326,11 @@ function MentorAvatar({ name, image, size = "w-9 h-9", showBadge = false }) {
 function MentorTestimonialCarousel({ testimonials }) {
   const scrollerRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  // UI-only: tracks which cards have "Read More" expanded. Does not touch
+  // backend data, carousel/scroll logic, or pagination logic below.
+  const [expandedCards, setExpandedCards] = useState({});
+  const toggleExpanded = (i) =>
+    setExpandedCards((prev) => ({ ...prev, [i]: !prev[i] }));
 
   const scrollToIndex = (index) => {
     const el = scrollerRef.current;
@@ -5326,7 +5380,7 @@ function MentorTestimonialCarousel({ testimonials }) {
           onClick={handlePrev}
           aria-label="Previous testimonial"
           disabled={activeIndex === 0}
-          className="hidden sm:flex flex-shrink-0 w-11 h-11 lg:w-12 lg:h-12 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-[0_10px_35px_rgba(0,0,0,0.08)] items-center justify-center hover:bg-[#F97316] hover:border-[#F97316] group transition-all duration-300 disabled:opacity-30 disabled:pointer-events-none"
+          className="hidden sm:flex flex-shrink-0 w-11 h-11 lg:w-12 lg:h-12 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-[0_8px_20px_rgba(0,0,0,0.08)] items-center justify-center hover:bg-[#F97316] hover:border-[#F97316] group transition-all duration-300 disabled:opacity-30 disabled:pointer-events-none"
         >
           <ChevronLeft className="w-5 h-5 text-[#1E293B] dark:text-white group-hover:text-white transition-colors" />
         </button>
@@ -5336,72 +5390,100 @@ function MentorTestimonialCarousel({ testimonials }) {
           ref={scrollerRef}
           onScroll={handleScroll}
           style={{ scrollSnapType: "x mandatory" }}
-          className="mentor-scroll flex overflow-x-auto flex-1 min-w-0"
+          className="mentor-scroll flex items-stretch overflow-x-auto flex-1 min-w-0 gap-6"
         >
-          {testimonials.map((t, i) => (
-            <div
-              key={i}
-              style={{ scrollSnapAlign: "start" }}
-              className="w-full min-w-0 flex-shrink-0"
-            >
+          {testimonials.map((t, i) => {
+            const isExpanded = !!expandedCards[i];
+            return (
               <div
-                className="relative bg-white dark:bg-gray-900 rounded-[18px] sm:rounded-[22px] lg:rounded-[24px] border border-[#ECECEC] dark:border-gray-800 shadow-[0_10px_35px_rgba(0,0,0,0.08)] p-5 sm:p-6 lg:p-10 overflow-hidden"
-                style={{ animation: "mentorFadeIn 0.4s ease both" }}
+                key={i}
+                style={{ scrollSnapAlign: "start" }}
+                className="w-full md:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] min-w-0 flex-shrink-0"
               >
-                {/* Large faded quote mark, top-right */}
-                <Quote
-                  className="pointer-events-none absolute top-3 right-4 sm:top-4 sm:right-6 lg:top-6 lg:right-8 w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 text-[#F97316]/10 dark:text-[#F97316]/15"
-                  fill="currentColor"
-                  strokeWidth={0}
-                />
+                <div
+                  className="relative h-full bg-white dark:bg-gray-900 rounded-[22px] border border-[#ECECEC] dark:border-gray-800 shadow-[0_8px_24px_rgba(17,24,39,0.06)] p-7 flex flex-col transition-all duration-300 ease-out hover:shadow-[0_18px_38px_rgba(17,24,39,0.12)] hover:-translate-y-1.5"
+                  style={{ animation: "mentorFadeIn 0.4s ease both" }}
+                >
+                  {/* Quote icon — top-left, solid orange */}
+                  <Quote
+                    className="w-9 h-9 text-[#F97316] mb-3 flex-shrink-0"
+                    fill="currentColor"
+                    strokeWidth={0}
+                  />
 
-                <div className="flex flex-col lg:flex-row lg:items-stretch gap-5 lg:gap-8">
-                  {/* Left: rating + quote */}
-                  <div className="flex-1 min-w-0 relative z-[1]">
-                    <div className="flex items-center gap-1 mb-3 sm:mb-4">
-                      {[...Array(5)].map((_, j) => (
-                        <Star
-                          key={j}
-                          className="w-4 h-4 sm:w-[18px] sm:h-[18px] fill-amber-400 text-amber-400"
-                        />
-                      ))}
-                    </div>
-                    <p
-                      className="text-gray-600 dark:text-gray-300 italic text-sm sm:text-base lg:text-lg leading-7 lg:leading-8"
-                      style={{
-                        whiteSpace: "pre-wrap",
-                        overflowWrap: "break-word",
-                        wordBreak: "break-word",
-                      }}
+                  {/* Testimonial text */}
+                  <p
+                    className="text-gray-600 dark:text-gray-300 text-[14px] sm:text-[15px] flex-1"
+                    style={{
+                      lineHeight: "170%",
+                      whiteSpace: "pre-wrap",
+                      overflowWrap: "break-word",
+                      wordBreak: "break-word",
+                      display: "-webkit-box",
+                      WebkitBoxOrient: "vertical",
+                      WebkitLineClamp: isExpanded ? "unset" : 6,
+                      overflow: isExpanded ? "visible" : "hidden",
+                    }}
+                  >
+                    {t.text}
+                  </p>
+
+                  {t.text && t.text.length > 160 && (
+                    <button
+                      type="button"
+                      onClick={() => toggleExpanded(i)}
+                      className="mt-2 text-[13px] font-bold text-[#F97316] hover:underline bg-transparent border-none p-0 cursor-pointer text-left w-fit"
                     >
-                      "{t.text}"
-                    </p>
+                      {isExpanded ? "Read Less" : "Read More"}
+                    </button>
+                  )}
+
+                  {/* LinkedIn + date row */}
+                  <div className="flex items-center gap-2 mt-4 pt-4 border-t border-[#F1F1F1] dark:border-gray-800 text-xs text-gray-400">
+                    <span className="inline-flex items-center gap-1 text-[#0A66C2] font-semibold">
+                      <svg
+                        viewBox="0 0 24 24"
+                        className="w-3.5 h-3.5"
+                        fill="currentColor"
+                      >
+                        <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.38-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.07 2.07 0 1 1 0-4.13 2.07 2.07 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45z" />
+                      </svg>
+                      LinkedIn
+                    </span>
+                    {t.date && (
+                      <>
+                        <span className="text-gray-300">•</span>
+                        <span>{t.date}</span>
+                      </>
+                    )}
                   </div>
 
-                  {/* Vertical divider — desktop only */}
-                  <div className="hidden lg:block w-px bg-[#ECECEC] dark:bg-gray-800 flex-shrink-0" />
-
-                  {/* Right: author block */}
-                  <div className="flex items-center gap-3 lg:flex-col lg:items-start lg:justify-center lg:w-[220px] lg:flex-shrink-0 pt-4 lg:pt-0 border-t lg:border-t-0 border-[#ECECEC] dark:border-gray-800">
+                  {/* Bottom profile row */}
+                  <div className="flex items-center gap-3 mt-4">
                     <MentorAvatar
                       name={t.name}
                       image={t.image}
-                      size="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16"
+                      size="w-12 h-12"
                       showBadge
                     />
                     <div className="min-w-0">
-                      <p className="font-bold text-[#1E293B] dark:text-white text-sm sm:text-base leading-snug truncate">
+                      <p className="font-bold text-[#1E293B] dark:text-white text-sm leading-snug truncate">
                         {t.name}
                       </p>
-                      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-snug mt-0.5">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 leading-snug truncate">
                         {t.role}
                       </p>
+                      {t.experience && (
+                        <p className="text-[11px] text-gray-400 dark:text-gray-500 leading-snug mt-0.5">
+                          {t.experience}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Next arrow — outside the card, desktop/tablet */}
@@ -5409,7 +5491,7 @@ function MentorTestimonialCarousel({ testimonials }) {
           onClick={handleNext}
           aria-label="Next testimonial"
           disabled={activeIndex === testimonials.length - 1}
-          className="hidden sm:flex flex-shrink-0 w-11 h-11 lg:w-12 lg:h-12 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-[0_10px_35px_rgba(0,0,0,0.08)] items-center justify-center hover:bg-[#F97316] hover:border-[#F97316] group transition-all duration-300 disabled:opacity-30 disabled:pointer-events-none"
+          className="hidden sm:flex flex-shrink-0 w-11 h-11 lg:w-12 lg:h-12 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-[0_8px_20px_rgba(0,0,0,0.08)] items-center justify-center hover:bg-[#F97316] hover:border-[#F97316] group transition-all duration-300 disabled:opacity-30 disabled:pointer-events-none"
         >
           <ChevronRight className="w-5 h-5 text-[#1E293B] dark:text-white group-hover:text-white transition-colors" />
         </button>
@@ -7221,18 +7303,22 @@ export default function LMSHomepage({ theme, toggleTheme }) {
       {/* ── Mentors (testimonials — backend-connected) ── */}
       <section
         id="mentors"
-        className="py-14 sm:py-16 lg:py-20 px-4 sm:px-6 scroll-mt-20 bg-[#FAF6F2] dark:bg-gray-900/30 overflow-x-hidden"
+        className="py-[60px] sm:py-[80px] lg:py-[90px] xl:py-[100px] px-4 sm:px-6 scroll-mt-20 bg-[#FAF6F2] dark:bg-gray-900/30 overflow-x-hidden"
       >
         <div className="max-w-[1200px] mx-auto">
-          <div className="text-center max-w-[700px] mx-auto mb-8 sm:mb-10 lg:mb-12">
-            <h2 className="text-[28px] sm:text-[34px] md:text-[40px] lg:text-5xl font-bold mb-3 sm:mb-4 text-[#1E293B] dark:text-white leading-tight">
-              Learn from{" "}
-              <span className="text-[#F97316]">Industry Experts</span>
+          <div className="text-center max-w-[900px] lg:max-w-none mx-auto mb-10 sm:mb-10 lg:mb-10">
+            <h2 className="text-[32px] sm:text-[40px] md:text-[44px] lg:text-[52px] xl:text-[56px] font-bold mb-3 sm:mb-4 text-[#111827] dark:text-white leading-[1.15] lg:whitespace-nowrap">
+              What Our{" "}
+              <span className="text-[#F97316]">Learners</span> Have To Say
             </h2>
-            <p className="text-sm sm:text-[15px] md:text-base lg:text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
-              Sessions led by operators from top product companies so you
-              understand how work happens in the real world.
-            </p>
+            <div className="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-300 text-sm sm:text-base font-medium">
+              <Star className="w-4 h-4 sm:w-[18px] sm:h-[18px] fill-[#F97316] text-[#F97316]" />
+              <span className="text-[#111827] dark:text-white font-bold">
+                4.9
+              </span>
+              <span className="text-gray-400">•</span>
+              <span>Thousands of Happy Learners</span>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8 sm:mb-10 lg:mb-14">
@@ -7467,7 +7553,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
 
                 {/* WhatsApp */}
                 <a
-                  href="https://api.whatsapp.com/send?phone=919210970334"
+                  href="https://api.whatsapp.com/send?phone=919205299338"
                   target="_blank"
                   rel="noreferrer"
                   className="h-8 w-8 rounded-full flex items-center justify-center text-white bg-[#25D366] hover:scale-110 hover:shadow-md transition-all duration-300"

@@ -1,36 +1,186 @@
-// import { useNavigate } from "react-router-dom";
-// import WatchNowHero from "./WatchNowHero";
-// import LiveSessionHighlight from "./LiveSessionHighlight";
-// import FeaturedVideos from "./FeaturedVideos";
-// import { liveSession, featuredVideos, watchNowFeatures } from "./data";
 
-// /**
-//  * WatchNow landing-page section.
-//  *
-//  * This is the compact "teaser" composition shown on the homepage:
-//  * Hero copy + live session spotlight + a row of featured videos + stats.
-//  *
-//  * It's intentionally scoped to just what the homepage needs — the rest of
-//  * the WatchNow module (all-videos grid, filters, categories, continue
-//  * learning, trending, recently added, recommended, popular trainers,
-//  * upcoming webinars, trainer profile, etc.) lives in the sibling files in
-//  * this folder and can be composed into a dedicated `/watch-now` route
-//  * without touching the homepage.
-//  */
-// export default function WatchNowSection({
-//   id = "watch-now",
-//   session = liveSession,
-//   videos = featuredVideos,
-//   features = watchNowFeatures,
-// }) {
-//   const navigate = useNavigate();
+// import { useEffect, useState } from "react";
+// import { Play, Quote } from "lucide-react";
+// import videoService from "../../../../services/videoService";
 
-//   const goToWatchNow = (video) => {
-//     if (video?.id) {
-//       navigate(`/watch-now/${video.id}`);
-//     } else {
-//       navigate("/watch-now");
-//     }
+// /* ============================================================
+//    parseVideoUrl — same pattern as VideoList.jsx: detects YouTube
+//    (watch/shorts/embed), Vimeo, or a direct video file URL, and
+//    returns either { type: "iframe", url } or { type: "video", url }.
+//    ============================================================ */
+// function parseVideoUrl(rawUrl) {
+//   if (!rawUrl) return null;
+//   const url = rawUrl.trim();
+
+//   const ytMatch = url.match(
+//     /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/|youtube\.com\/embed\/)([\w-]{11})/,
+//   );
+//   if (ytMatch) {
+//     return {
+//       type: "iframe",
+//       url: `https://www.youtube.com/embed/${ytMatch[1]}`,
+//     };
+//   }
+
+//   const vimeoMatch = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+//   if (vimeoMatch) {
+//     return {
+//       type: "iframe",
+//       url: `https://player.vimeo.com/video/${vimeoMatch[1]}`,
+//     };
+//   }
+
+//   if (/\.(mp4|webm|ogg|mov|m4v)(\?.*)?$/i.test(url)) {
+//     return { type: "video", url };
+//   }
+
+//   // Unknown format — best effort, treat as embeddable iframe
+//   return { type: "iframe", url };
+// }
+
+// /* ============================================================
+//    getVideoSourceUrl — resolves whichever URL field is present:
+//    an uploaded file (streamed from our backend) or an external
+//    YouTube/Vimeo/direct link. Exactly one is present per item.
+//    ============================================================ */
+// function getVideoSourceUrl(item) {
+//   if (item.videoFileName) {
+//     return videoService.getWatchNowStreamUrl(item.videoFileName);
+//   }
+//   return item.externalVideoUrl || "";
+// }
+
+// /* ============================================================
+//    WatchNowSmartPlayer — renders a <video> tag for an uploaded
+//    file or a direct link, or an <iframe> for YouTube/Vimeo embeds.
+//    ============================================================ */
+// function WatchNowSmartPlayer({ item }) {
+//   const rawUrl = getVideoSourceUrl(item);
+//   if (!rawUrl) return null;
+
+//   // Our own uploaded file is always a direct <video> source.
+//   if (item.videoFileName) {
+//     return (
+//       <video
+//         src={rawUrl}
+//         controls
+//         autoPlay
+//         playsInline
+//         className="w-full h-full rounded-2xl bg-black object-cover"
+//       />
+//     );
+//   }
+
+//   const parsed = parseVideoUrl(rawUrl);
+//   if (!parsed) return null;
+
+//   if (parsed.type === "video") {
+//     return (
+//       <video
+//         src={parsed.url}
+//         controls
+//         autoPlay
+//         playsInline
+//         className="w-full h-full rounded-2xl bg-black object-cover"
+//       />
+//     );
+//   }
+
+//   const sep = parsed.url.includes("?") ? "&" : "?";
+//   return (
+//     <iframe
+//       src={`${parsed.url}${sep}autoplay=1`}
+//       title={item.personName || "WatchNow video"}
+//       className="w-full h-full rounded-2xl bg-black"
+//       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+//       allowFullScreen
+//     />
+//   );
+// }
+
+// /* ============================================================
+//    Story card — thumbnail + Play overlay, swaps to the inline
+//    SmartPlayer in place on click. Never navigates away.
+//    ============================================================ */
+// function StoryCard({ item, isPlaying, onPlay }) {
+//   return (
+//     <div className="w-full h-full flex flex-col rounded-2xl border border-[#ECECEC] dark:border-gray-800 bg-white dark:bg-gray-900 shadow-[0_10px_35px_rgba(0,0,0,0.06)] overflow-hidden">
+//       <div className="relative w-full aspect-video bg-black">
+//         {isPlaying ? (
+//           <WatchNowSmartPlayer item={item} />
+//         ) : (
+//           <button
+//             type="button"
+//             onClick={() => onPlay(item.id)}
+//             className="group relative w-full h-full block"
+//             aria-label={`Play video from ${item.personName}`}
+//           >
+//             <img
+//               src={videoService.getWatchNowStreamUrl(item.thumbnail)}
+//               alt={item.personName}
+//               className="w-full h-full object-cover"
+//             />
+//             <div className="absolute inset-0 bg-black/25 group-hover:bg-black/35 transition-colors flex items-center justify-center">
+//               <span className="w-14 h-14 rounded-full bg-white/95 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+//                 <Play
+//                   className="w-6 h-6 text-[#7c3aed] ml-0.5"
+//                   fill="#7c3aed"
+//                 />
+//               </span>
+//             </div>
+//           </button>
+//         )}
+//       </div>
+
+//       <div className="p-5 flex flex-col gap-3 flex-1">
+//         <Quote
+//           className="w-5 h-5 text-[#F97316]/40 flex-shrink-0"
+//           fill="currentColor"
+//           strokeWidth={0}
+//         />
+//         <p className="text-sm text-gray-600 dark:text-gray-300 italic leading-6 line-clamp-4 flex-1">
+//           "{item.quote}"
+//         </p>
+//         <div className="pt-3 border-t border-[#ECECEC] dark:border-gray-800">
+//           <p className="font-bold text-[#1E293B] dark:text-white text-sm truncate">
+//             {item.personName}
+//           </p>
+//           <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
+//             {item.personRole}
+//           </p>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+// /* ============================================================
+//    WatchNowSection — consolidated public WatchNow component.
+//    Fetches published stories and renders them as a card grid.
+//    Used both on the homepage (<WatchNowSection />) and on the
+//    /watch-now route (via Watchnow.jsx importing this file).
+//    ============================================================ */
+// export default function WatchNowSection({ id = "watch-now" }) {
+//   const [stories, setStories] = useState([]);
+//   const [loading, setLoading] = useState(true);
+//   const [playing, setPlaying] = useState({});
+
+//   useEffect(() => {
+//     let active = true;
+//     videoService
+//       .getWatchNowPublished()
+//       .then(({ data }) => {
+//         if (active) setStories(Array.isArray(data) ? data : []);
+//       })
+//       .catch((err) => console.error("Failed to load WatchNow stories", err))
+//       .finally(() => active && setLoading(false));
+//     return () => {
+//       active = false;
+//     };
+//   }, []);
+
+//   const handlePlay = (itemId) => {
+//     setPlaying((prev) => ({ ...prev, [itemId]: true }));
 //   };
 
 //   return (
@@ -39,23 +189,103 @@
 //       className="py-16 sm:py-20 px-6 scroll-mt-20 bg-white dark:bg-gray-900/30"
 //     >
 //       <div className="max-w-7xl mx-auto">
-//         <div className="grid lg:grid-cols-5 gap-10 lg:gap-12 items-center">
-//           <div className="lg:col-span-2">
-//             <WatchNowHero features={features} onWatchNow={() => goToWatchNow()} />
-//           </div>
-//           <div className="lg:col-span-3">
-//             <LiveSessionHighlight session={session} onPlay={() => goToWatchNow(session)} />
-//           </div>
+//         <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14">
+//           <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-widest text-[#F97316] bg-[#F97316]/10 border border-[#F97316]/20 px-4 py-1.5 rounded-full mb-3">
+//             Watch Now
+//           </span>
+//           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#1E293B] dark:text-white">
+//             Learn Through,{" "}
+//             <span className="text-[#F97316]"> Expert Sessions</span>
+//           </h2>
+//           <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mt-3 leading-relaxed">
+//             Explore live sessions, career guidance, interview preparation,
+//             hands-on projects, and expert-led learning designed to help you
+//             build real-world skills and grow your career.
+//           </p>
 //         </div>
 
-//         <FeaturedVideos videos={videos} onSelectVideo={goToWatchNow} />
-
+//         {loading ? (
+//           <div className="flex justify-center py-16">
+//             <div className="w-6 h-6 rounded-full border-2 border-gray-200 dark:border-gray-700 border-t-[#F97316] animate-spin" />
+//           </div>
+//         ) : stories.length === 0 ? (
+//           <p className="text-center text-sm text-gray-500 dark:text-gray-400 py-12">
+//             No stories published yet — check back soon.
+//           </p>
+//         ) : (
+//           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+//             {stories.map((item) => (
+//               <StoryCard
+//                 key={item.id}
+//                 item={item}
+//                 isPlaying={!!playing[item.id]}
+//                 onPlay={handlePlay}
+//               />
+//             ))}
+//           </div>
+//         )}
 //       </div>
 //     </section>
 //   );
 // }
-import { useEffect, useState } from "react";
-import { Play, Quote } from "lucide-react";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { Play, Quote, ChevronLeft, ChevronRight } from "lucide-react";
 import videoService from "../../../../services/videoService";
 
 /* ============================================================
@@ -154,6 +384,40 @@ function WatchNowSmartPlayer({ item }) {
 }
 
 /* ============================================================
+   CAROUSEL CONFIG
+   ============================================================ */
+const GAP = 20; // px gap between cards, also used in width math
+
+/*
+  Breakpoint → visible-card-count map.
+  NOTE: CSS width alone can't perfectly separate "iPad Pro
+  landscape" (~1194–1366px) from "small laptop" (~1200px+) — both
+  live in the same physical pixel range. These thresholds are a
+  practical best-fit for the requested layout. If pixel-perfect
+  device detection is ever required, it needs UA/pointer-type
+  sniffing on top of this.
+*/
+function getVisibleCount(width) {
+  if (width >= 1536) return 4; // Large desktop
+  if (width >= 1200) return 4; // Desktop / laptop
+  if (width >= 900) return 3; // iPad Pro / large tablet landscape
+  if (width >= 641) return 2; // iPad Air / iPad Mini / Android tablet
+  return 1; // Phones
+}
+
+function useVisibleCount() {
+  const [width, setWidth] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 1280,
+  );
+  useEffect(() => {
+    const onResize = () => setWidth(window.innerWidth);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  return { visibleCount: getVisibleCount(width), isMobile: width < 641 };
+}
+
+/* ============================================================
    Story card — thumbnail + Play overlay, swaps to the inline
    SmartPlayer in place on click. Never navigates away.
    ============================================================ */
@@ -174,6 +438,7 @@ function StoryCard({ item, isPlaying, onPlay }) {
               src={videoService.getWatchNowStreamUrl(item.thumbnail)}
               alt={item.personName}
               className="w-full h-full object-cover"
+              draggable={false}
             />
             <div className="absolute inset-0 bg-black/25 group-hover:bg-black/35 transition-colors flex items-center justify-center">
               <span className="w-14 h-14 rounded-full bg-white/95 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
@@ -210,15 +475,306 @@ function StoryCard({ item, isPlaying, onPlay }) {
 }
 
 /* ============================================================
+   Netflix-style circular nav button
+   ============================================================ */
+function NavButton({ direction, onClick, className = "" }) {
+  const Icon = direction === "prev" ? ChevronLeft : ChevronRight;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={direction === "prev" ? "Previous" : "Next"}
+      className={`group w-11 h-11 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md flex items-center justify-center transition-all duration-200 hover:bg-[#F97316] hover:border-[#F97316] hover:scale-105 active:scale-95 ${className}`}
+    >
+      <Icon className="w-5 h-5 text-[#1E293B] dark:text-white transition-colors group-hover:text-white" />
+    </button>
+  );
+}
+
+/* ============================================================
+   Dot pagination — one dot per real story, active dot reflects
+   the currently-leading (first fully visible) card.
+   ============================================================ */
+function DotPagination({ count, activeIndex, onDotClick }) {
+  if (count <= 1) return null;
+  return (
+    <div className="flex justify-center items-center gap-2 mt-8">
+      {Array.from({ length: count }).map((_, idx) => (
+        <button
+          key={idx}
+          type="button"
+          onClick={() => onDotClick(idx)}
+          aria-label={`Go to slide ${idx + 1}`}
+          className={`h-2.5 rounded-full transition-all duration-300 ${
+            idx === activeIndex
+              ? "w-7 bg-[#F97316]"
+              : "w-2.5 bg-gray-300 dark:bg-gray-700 hover:bg-gray-400"
+          }`}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ============================================================
+   Carousel track — infinite loop, autoplay, drag/swipe, keyboard,
+   arrows on both sides + dot pagination underneath (Image 1).
+   ============================================================ */
+function WatchNowCarousel({ stories }) {
+  const { visibleCount, isMobile } = useVisibleCount();
+  const [playing, setPlaying] = useState({});
+
+  const containerRef = useRef(null);
+  const trackRef = useRef(null);
+  const autoplayRef = useRef(null);
+  const resumeTimeoutRef = useRef(null);
+
+  const [containerWidth, setContainerWidth] = useState(0);
+  const [index, setIndex] = useState(0);
+  const [transitionEnabled, setTransitionEnabled] = useState(true);
+  const [dragDelta, setDragDelta] = useState(0);
+  const [isHovering, setIsHovering] = useState(false);
+
+  const dragState = useRef({
+    dragging: false,
+    startX: 0,
+    startY: 0,
+    axis: null,
+  });
+
+  const isLooping = stories.length > visibleCount;
+  const clonesCount = isLooping ? visibleCount : 0;
+
+  const trackItems = useMemo(() => {
+    if (!isLooping) return stories.map((item) => ({ item, key: `${item.id}` }));
+    const head = stories
+      .slice(-clonesCount)
+      .map((item, i) => ({ item, key: `head-${i}-${item.id}` }));
+    const body = stories.map((item) => ({ item, key: `${item.id}` }));
+    const tail = stories
+      .slice(0, clonesCount)
+      .map((item, i) => ({ item, key: `tail-${i}-${item.id}` }));
+    return [...head, ...body, ...tail];
+  }, [stories, isLooping, clonesCount]);
+
+  // Reset position whenever breakpoint or data changes
+  useEffect(() => {
+    setTransitionEnabled(false);
+    setIndex(isLooping ? clonesCount : 0);
+    const raf = requestAnimationFrame(() => setTransitionEnabled(true));
+    return () => cancelAnimationFrame(raf);
+  }, [isLooping, clonesCount, visibleCount, stories.length]);
+
+  // Measure container width responsively
+  useLayoutEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const update = () => setContainerWidth(el.offsetWidth);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const cardWidth =
+    containerWidth > 0
+      ? (containerWidth - GAP * (visibleCount - 1)) / visibleCount
+      : 0;
+  const step = cardWidth + GAP;
+
+  const goNext = useCallback(() => setIndex((i) => i + 1), []);
+  const goPrev = useCallback(() => setIndex((i) => i - 1), []);
+  const goTo = useCallback(
+    (realIdx) => setIndex(clonesCount + realIdx),
+    [clonesCount],
+  );
+
+  // Autoplay
+  useEffect(() => {
+    if (!isLooping || isHovering || dragState.current.dragging) return;
+    autoplayRef.current = setInterval(goNext, 4000);
+    return () => clearInterval(autoplayRef.current);
+  }, [isLooping, isHovering, goNext, cardWidth]);
+
+  const pauseAutoplayBriefly = () => {
+    clearInterval(autoplayRef.current);
+    clearTimeout(resumeTimeoutRef.current);
+  };
+
+  // Seamless loop reset after transition completes
+  const handleTransitionEnd = () => {
+    if (!isLooping) return;
+    if (index >= clonesCount + stories.length) {
+      setTransitionEnabled(false);
+      setIndex(index - stories.length);
+    } else if (index < clonesCount) {
+      setTransitionEnabled(false);
+      setIndex(index + stories.length);
+    }
+  };
+
+  useEffect(() => {
+    if (!transitionEnabled) {
+      const raf = requestAnimationFrame(() => setTransitionEnabled(true));
+      return () => cancelAnimationFrame(raf);
+    }
+  }, [transitionEnabled]);
+
+  // Keyboard navigation
+  const handleKeyDown = (e) => {
+    if (!isLooping) return;
+    if (e.key === "ArrowLeft") goPrev();
+    else if (e.key === "ArrowRight") goNext();
+  };
+
+  // Drag / swipe (pointer events cover mouse + touch)
+  const onPointerDown = (e) => {
+    if (!isLooping) return;
+    dragState.current = {
+      dragging: true,
+      startX: e.clientX,
+      startY: e.clientY,
+      axis: null,
+    };
+    pauseAutoplayBriefly();
+  };
+
+  const onPointerMove = (e) => {
+    const ds = dragState.current;
+    if (!ds.dragging) return;
+    const dx = e.clientX - ds.startX;
+    const dy = e.clientY - ds.startY;
+
+    if (ds.axis === null) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      ds.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+      if (ds.axis === "y") {
+        ds.dragging = false; // let the page scroll vertically
+        return;
+      }
+    }
+    if (ds.axis === "x") {
+      e.preventDefault();
+      setTransitionEnabled(false);
+      setDragDelta(dx);
+    }
+  };
+
+  const endDrag = () => {
+    const ds = dragState.current;
+    if (!ds.dragging) return;
+    const threshold = cardWidth * 0.2;
+    if (dragDelta < -threshold) goNext();
+    else if (dragDelta > threshold) goPrev();
+    setDragDelta(0);
+    setTransitionEnabled(true);
+    dragState.current.dragging = false;
+    dragState.current.axis = null;
+    resumeTimeoutRef.current = setTimeout(() => {}, 300);
+  };
+
+  const handlePlay = (itemId) => {
+    setPlaying((prev) => ({ ...prev, [itemId]: true }));
+  };
+
+  const translateX = -(index * step) + dragDelta;
+
+  // Real (non-clone) index of the currently-leading card, for dots
+  const activeRealIndex = isLooping
+    ? (((index - clonesCount) % stories.length) + stories.length) %
+      stories.length
+    : 0;
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative"
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+      tabIndex={0}
+      role="region"
+      aria-label="Watch Now stories carousel"
+      onKeyDown={handleKeyDown}
+    >
+      <div
+        className="overflow-hidden"
+        style={{ touchAction: "pan-y" }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerLeave={endDrag}
+        onPointerCancel={endDrag}
+      >
+        <div
+          ref={trackRef}
+          className="flex select-none cursor-grab active:cursor-grabbing"
+          style={{
+            gap: `${GAP}px`,
+            transform: `translateX(${translateX}px)`,
+            transition: transitionEnabled
+              ? "transform 0.45s cubic-bezier(0.22, 1, 0.36, 1)"
+              : "none",
+          }}
+          onTransitionEnd={handleTransitionEnd}
+        >
+          {trackItems.map(({ item, key }) => (
+            <div
+              key={key}
+              style={{
+                width: cardWidth ? `${cardWidth}px` : `${100 / visibleCount}%`,
+                flexShrink: 0,
+              }}
+            >
+              <StoryCard
+                item={item}
+                isPlaying={!!playing[item.id]}
+                onPlay={handlePlay}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {isLooping && !isMobile && (
+        <>
+          <NavButton
+            direction="prev"
+            onClick={goPrev}
+            className="absolute -left-5 top-1/2 -translate-y-1/2 hidden sm:flex z-10"
+          />
+          <NavButton
+            direction="next"
+            onClick={goNext}
+            className="absolute -right-5 top-1/2 -translate-y-1/2 hidden sm:flex z-10"
+          />
+        </>
+      )}
+
+      {isLooping && isMobile && (
+        <div className="flex sm:hidden justify-center items-center gap-4 mt-6">
+          <NavButton direction="prev" onClick={goPrev} />
+          <NavButton direction="next" onClick={goNext} />
+        </div>
+      )}
+
+      <DotPagination
+        count={stories.length}
+        activeIndex={activeRealIndex}
+        onDotClick={goTo}
+      />
+    </div>
+  );
+}
+
+/* ============================================================
    WatchNowSection — consolidated public WatchNow component.
-   Fetches published stories and renders them as a card grid.
+   Fetches published stories and renders them as a carousel.
    Used both on the homepage (<WatchNowSection />) and on the
    /watch-now route (via Watchnow.jsx importing this file).
    ============================================================ */
 export default function WatchNowSection({ id = "watch-now" }) {
   const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [playing, setPlaying] = useState({});
 
   useEffect(() => {
     let active = true;
@@ -234,23 +790,19 @@ export default function WatchNowSection({ id = "watch-now" }) {
     };
   }, []);
 
-  const handlePlay = (itemId) => {
-    setPlaying((prev) => ({ ...prev, [itemId]: true }));
-  };
-
   return (
     <section
       id={id}
       className="py-16 sm:py-20 px-6 scroll-mt-20 bg-white dark:bg-gray-900/30"
     >
       <div className="max-w-7xl mx-auto">
-        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14">
+        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
           <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-widest text-[#F97316] bg-[#F97316]/10 border border-[#F97316]/20 px-4 py-1.5 rounded-full mb-3">
             Watch Now
           </span>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#1E293B] dark:text-white">
+          <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-[#1E293B] dark:text-white whitespace-nowrap">
             Learn Through,{" "}
-            <span className="text-[#F97316]"> Expert Sessions</span>
+            <span className="text-[#F97316]">Expert Sessions</span>
           </h2>
           <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mt-3 leading-relaxed">
             Explore live sessions, career guidance, interview preparation,
@@ -268,16 +820,7 @@ export default function WatchNowSection({ id = "watch-now" }) {
             No stories published yet — check back soon.
           </p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {stories.map((item) => (
-              <StoryCard
-                key={item.id}
-                item={item}
-                isPlaying={!!playing[item.id]}
-                onPlay={handlePlay}
-              />
-            ))}
-          </div>
+          <WatchNowCarousel stories={stories} />
         )}
       </div>
     </section>

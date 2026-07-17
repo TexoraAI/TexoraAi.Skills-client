@@ -1,37 +1,67 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { Lock } from "lucide-react";
-
-/* ── Design tokens (identical to PrivacyPolicy.jsx) ── */
-const T = {
-  cream:   "#fdf6ee",
-  cream2:  "#f5ede0",
-  cream3:  "#fbeee0",
-  navy:    "#1a2340",
-  navy2:   "#0f172a",
+import PublicLayout from "../Landing/components/PublicLayout";
+/* ── Design tokens ── */
+/* Brand/accent colors stay fixed across both themes (identical to PrivacyPolicy.jsx) */
+const BRAND = {
+  navy:    "#1a2340", // fixed dark-navy accent blocks (popular card, guarantee box, toast, navy CTA)
   orange:  "#f97316",
   orangeL: "#fff3e8",
   orangeB: "#fcd4a8",
   green:   "#16a34a",
   indigo:  "#6366f1",
-  text:    "#1e293b",
-  muted:   "#475569",
-  muted2:  "#64748b",
-  border:  "#e5d9c8",
-  borderM: "#d5c4aa",
-  card:    "#fffaf5",
   white:   "#ffffff",
 };
 
-const STYLES = `
+/* Surface/text colors DO change with the theme toggle */
+const THEMES = {
+  light: {
+    cream:   "#fdf6ee",
+    cream2:  "#f5ede0",
+    cream3:  "#fbeee0",
+    surface: "#ffffff",   // page/card background (was T.white)
+    heading: "#1a2340",   // headings & body text on the page surface (was T.navy used as text)
+    text:    "#1e293b",
+    muted:   "#475569",
+    muted2:  "#64748b",
+    border:  "#e5d9c8",
+    borderM: "#d5c4aa",
+  },
+  dark: {
+    cream:   "#0f1420",
+    cream2:  "#161c2b",
+    cream3:  "#0b0e16",
+    surface: "#161c2c",
+    heading: "#f5f7fb",
+    text:    "#e2e8f0",
+    muted:   "#a7b0c0",
+    muted2:  "#8b93a6",
+    border:  "#242c40",
+    borderM: "#2d3652",
+  },
+};
+
+/* Builds the scoped stylesheet for the given theme's tokens */
+function buildStyles(T) {
+  return `
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=Sora:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body { background: ${T.cream3}; -webkit-font-smoothing: antialiased; }
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: ${T.cream2}; }
-::-webkit-scrollbar-thumb { background: ${T.orange}80; border-radius: 4px; }
-a { text-decoration: none; transition: color 0.18s; }
+
+/*
+  Scoped to .pricing-page only — this file no longer renders its own
+  navbar/footer (those come from PublicLayout: AnnouncementBanner →
+  Navbar → {children} → Footer), so these rules must not leak out and
+  affect those shared components. Previously some of these were
+  unscoped/global (*, html, body) which could bleed into the shared
+  Navbar/Banner/Footer markup rendered alongside this page.
+*/
+.pricing-page, .pricing-page *, .pricing-page *::before, .pricing-page *::after {
+  box-sizing: border-box;
+}
+.pricing-page { background: ${T.cream3}; -webkit-font-smoothing: antialiased; }
+.pricing-page ::-webkit-scrollbar { width: 4px; }
+.pricing-page ::-webkit-scrollbar-track { background: ${T.cream2}; }
+.pricing-page ::-webkit-scrollbar-thumb { background: ${T.orange}80; border-radius: 4px; }
+.pricing-page a { text-decoration: none; transition: color 0.18s; }
 
 @keyframes fadeUp {
   from { opacity:0; transform:translateY(22px); }
@@ -50,46 +80,9 @@ a { text-decoration: none; transition: color 0.18s; }
   to   { transform:scale(1.7); opacity:0; }
 }
 
-/* ── Navbar — SAME as PrivacyPolicy ── */
-.pp-nav {
-  position: sticky; top: 0; z-index: 100;
-  background: ${T.white};
-  border-bottom: 1px solid ${T.border};
-  padding: 0 32px; height: 68px;
-  display: flex; align-items: center; justify-content: space-between;
-  box-shadow: 0 2px 16px rgba(26,35,64,0.05);
-}
-.pp-logo {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 26px; font-weight: 900;
-  letter-spacing: -0.5px; text-decoration: none;
-  cursor: pointer; transition: opacity 0.18s;
-}
-.pp-logo:hover { opacity: 0.82; }
-.pp-logo .ilm { color: ${T.green}; }
-.pp-logo .ora { color: ${T.orange}; margin-left: 6px; }
-.nav-links { display: flex; gap: 28px; list-style: none; }
-.nav-link {
-  font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 600;
-  color: ${T.muted}; text-decoration: none; transition: color 0.18s;
-}
-.nav-link:hover { color: ${T.navy}; }
-.nav-link.active { color: ${T.orange}; font-weight: 700; }
-.nav-cta {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 10px 22px;
-  background: linear-gradient(135deg, ${T.navy}, #263059);
-  color: #fff; font-weight: 800; font-size: 13.5px;
-  border-radius: 10px; border: none; cursor: pointer;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  box-shadow: 0 4px 16px rgba(26,35,64,0.2);
-  transition: transform 0.18s, box-shadow 0.18s;
-}
-.nav-cta:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(26,35,64,0.32); }
-
 /* ── Pricing card ── */
 .pricing-card {
-  background: ${T.white}; border: 1.5px solid ${T.border};
+  background: ${T.surface}; border: 1.5px solid ${T.border};
   border-radius: 20px; padding: 38px 32px;
   position: relative;
   transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
@@ -106,21 +99,12 @@ a { text-decoration: none; transition: color 0.18s; }
 
 /* ── FAQ ── */
 .faq-card {
-  background: ${T.white}; border: 1.5px solid ${T.border};
+  background: ${T.surface}; border: 1.5px solid ${T.border};
   border-radius: 16px; margin-bottom: 10px; overflow: hidden;
   cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s;
 }
 .faq-card:hover { border-color: rgba(249,115,22,0.35); box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
 .faq-card.open { border-color: rgba(249,115,22,0.45); box-shadow: 0 6px 28px rgba(249,115,22,0.08); }
-
-/* ── Bottom bar — SAME as PrivacyPolicy ── */
-.bottom-bar {
-  padding: 20px 32px;
-  border-top: 1px solid ${T.border};
-  background: ${T.cream3};
-  display: flex; justify-content: space-between;
-  align-items: center; flex-wrap: wrap; gap: 12px;
-}
 
 @media(max-width:960px){
   .cards-grid { grid-template-columns: 1fr !important; }
@@ -129,10 +113,10 @@ a { text-decoration: none; transition: color 0.18s; }
   .guarantee-box { margin: 0 16px 60px !important; padding: 48px 24px !important; }
 }
 @media(max-width:600px){
-  .bottom-bar { flex-direction: column; text-align: center; }
   .trust-strip { flex-direction: column; align-items: center; gap: 12px !important; }
 }
 `;
+}
 
 const studentPlans = [
   {
@@ -145,7 +129,7 @@ const studentPlans = [
     cta: "Get Started Free",
     ctaType: "outline",
     popular: false,
-    accentColor: T.green,
+    accentColor: BRAND.green,
     features: [
       { text: "Access to 3 free courses",       included: true  },
       { text: "Community forum access",          included: true  },
@@ -166,7 +150,7 @@ const studentPlans = [
     cta: "Start Learning →",
     ctaType: "primary",
     popular: true,
-    accentColor: T.orange,
+    accentColor: BRAND.orange,
     features: [
       { text: "Full course library (50+ courses)", included: true  },
       { text: "Live cohort-based learning",        included: true  },
@@ -187,7 +171,7 @@ const studentPlans = [
     cta: "Go Elite →",
     ctaType: "navy",
     popular: false,
-    accentColor: T.indigo,
+    accentColor: BRAND.indigo,
     features: [
       { text: "Everything in Pro Learner",    included: true },
       { text: "Unlimited mentor sessions",    included: true },
@@ -211,7 +195,7 @@ const trainerPlans = [
     cta: "Get Started Free",
     ctaType: "outline",
     popular: false,
-    accentColor: T.green,
+    accentColor: BRAND.green,
     features: [
       { text: "Create up to 2 batches",        included: true  },
       { text: "Basic attendance & reports",    included: true  },
@@ -232,7 +216,7 @@ const trainerPlans = [
     cta: "Go Elite →",
     ctaType: "primary",
     popular: true,
-    accentColor: T.orange,
+    accentColor: BRAND.orange,
     features: [
       { text: "Unlimited batches",              included: true },
       { text: "AI Companion for content & quiz", included: true },
@@ -253,7 +237,7 @@ const trainerPlans = [
     cta: "Go Pro+ →",
     ctaType: "navy",
     popular: false,
-    accentColor: T.indigo,
+    accentColor: BRAND.indigo,
     features: [
       { text: "Everything in Trainer Elite",      included: true },
       { text: "Dedicated trainer success manager", included: true },
@@ -277,7 +261,7 @@ const businessPlans = [
     cta: "Get Started Free",
     ctaType: "outline",
     popular: false,
-    accentColor: T.green,
+    accentColor: BRAND.green,
     features: [
       { text: "Up to 10 employee seats",     included: true  },
       { text: "Basic org dashboard",          included: true  },
@@ -298,7 +282,7 @@ const businessPlans = [
     cta: "Go Pro →",
     ctaType: "primary",
     popular: true,
-    accentColor: T.orange,
+    accentColor: BRAND.orange,
     features: [
       { text: "Up to 200 employee seats",        included: true },
       { text: "Advanced analytics & ROI tracking", included: true },
@@ -319,7 +303,7 @@ const businessPlans = [
     cta: "Contact Sales →",
     ctaType: "navy",
     popular: false,
-    accentColor: T.indigo,
+    accentColor: BRAND.indigo,
     features: [
       { text: "Unlimited employee seats",       included: true },
       { text: "Unlimited branches & departments", included: true },
@@ -343,7 +327,7 @@ const partnershipPlans = [
     cta: "Get Started Free",
     ctaType: "outline",
     popular: false,
-    accentColor: T.green,
+    accentColor: BRAND.green,
     features: [
       { text: "1 active partnership program",  included: true  },
       { text: "Basic lead tracking",            included: true  },
@@ -364,7 +348,7 @@ const partnershipPlans = [
     cta: "Grow With Us →",
     ctaType: "primary",
     popular: true,
-    accentColor: T.orange,
+    accentColor: BRAND.orange,
     features: [
       { text: "Up to 5 active programs",       included: true },
       { text: "Full revenue sharing dashboard", included: true },
@@ -385,7 +369,7 @@ const partnershipPlans = [
     cta: "Go Elite →",
     ctaType: "navy",
     popular: false,
-    accentColor: T.indigo,
+    accentColor: BRAND.indigo,
     features: [
       { text: "Unlimited active programs",         included: true },
       { text: "Unlimited co-branded courses",        included: true },
@@ -415,7 +399,7 @@ const faqs = [
 
 const fmt = (n) => (n === 0 ? "0" : n.toLocaleString("en-IN"));
 
-export default function Pricing() {
+export default function Pricing({ theme, toggleTheme, setShowLoginModal }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -423,6 +407,14 @@ export default function Pricing() {
   const [isAnnual, setIsAnnual] = useState(false);
   const [openFaq,  setOpenFaq]  = useState(null);
   const [toast, setToast] = useState({ msg: "", show: false });
+
+  /* Theme-aware tokens: fixed brand colors + the light/dark surface set
+     picked by the `theme` prop passed down from App.jsx. This is what
+     makes the whole page (not just the shared Navbar/Footer) respond
+     to the light/dark toggle. */
+  const isDarkTheme = theme === "dark";
+  const T = { ...BRAND, ...THEMES[isDarkTheme ? "dark" : "light"] };
+  const STYLES = buildStyles(T);
 
   /* Resolve which plan-set to show based on logged-in user's role */
   const storedRole = (localStorage.getItem("role") || "student").toLowerCase();
@@ -446,35 +438,52 @@ export default function Pricing() {
     // TODO: replace with a real API call, e.g. userService.selectPlan(plan.id)
     localStorage.setItem("selectedPlan", plan.id);
     showToast(`"${plan.name}" selected!`);
-    setTimeout(() => {
-      navigate(returnTo || "/");
-    }, 700);
+
+    // Visitors picking a plan aren't logged in yet — open the shared
+    // Login/Signup modal (App.jsx's AuthModals) instead of silently
+    // redirecting home. Guard in case a caller ever renders this page
+    // without the prop wired up.
+    if (typeof setShowLoginModal === "function") {
+      setShowLoginModal(true);
+    } else {
+      setTimeout(() => {
+        navigate(returnTo || "/");
+      }, 700);
+    }
   };
 
   /* Scroll to top on route change — same as PrivacyPolicy */
   useEffect(() => { window.scrollTo({ top: 0 }); }, [pathname]);
 
   return (
-    <>
-      <style>{STYLES}</style>
-      <div style={{ minHeight: "100vh", background: T.cream3, fontFamily: "'Sora','Plus Jakarta Sans',sans-serif", color: T.text }}>
+  <>
+    <style>{STYLES}</style>
 
-        {/* ══════════════════════════════════════
-            NAVBAR  — identical to PrivacyPolicy
-        ══════════════════════════════════════ */}
-        <nav className="pp-nav">
-          <a href="/" className="pp-logo">
-            <span className="ilm">ILM</span>
-            <span className="ora">ORA</span>
-          </a>
-
-          
-        </nav>
+    <PublicLayout
+      theme={theme}
+      toggleTheme={toggleTheme}
+      setShowLoginModal={setShowLoginModal}
+    >
+      <div
+        style={{
+          minHeight: "100vh",
+          background: T.cream3,
+          fontFamily: "'Sora','Plus Jakarta Sans',sans-serif",
+          color: T.text,
+        }}
+      >
+        
 
         {/* ══════════════════════════════════════
             HERO
         ══════════════════════════════════════ */}
-        <section style={{ textAlign: "center", padding: "80px 20px 56px", borderBottom: `1px solid ${T.border}` }}>
+       <section
+  style={{
+    textAlign: "center",
+    padding: "48px 20px 56px",
+    borderBottom: `1px solid ${T.border}`,
+  }}
+>
           <div style={{ maxWidth: 640, margin: "0 auto" }}>
 
             {/* Badge */}
@@ -509,7 +518,7 @@ export default function Pricing() {
             <h1 style={{
               fontFamily: "'Plus Jakarta Sans',sans-serif",
               fontSize: "clamp(36px,6vw,60px)", fontWeight: 900,
-              color: T.navy, lineHeight: 1.06, letterSpacing: "-2px",
+              color: T.heading, lineHeight: 1.06, letterSpacing: "-2px",
               marginBottom: 20, animation: "fadeUp 0.52s 0.12s ease both",
             }}>
               Invest in Your{" "}
@@ -540,7 +549,7 @@ export default function Pricing() {
             {/* Billing Toggle */}
             <div style={{
               display: "inline-flex", alignItems: "center", gap: 4,
-              background: T.white, border: `1.5px solid ${T.border}`,
+              background: T.surface, border: `1.5px solid ${T.border}`,
               borderRadius: 100, padding: "6px 8px", cursor: "pointer",
               boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
             }}>
@@ -613,11 +622,11 @@ export default function Pricing() {
 
                 {/* Price */}
                 <div style={{ display: "flex", alignItems: "flex-end", gap: 4, marginBottom: 4 }}>
-                  <span style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.7, color: plan.popular ? "#fff" : T.navy }}>₹</span>
+                  <span style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.7, color: plan.popular ? "#fff" : T.heading }}>₹</span>
                   <span style={{
                     fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 900,
                     fontSize: 52, lineHeight: 1, letterSpacing: "-2px",
-                    color: plan.popular ? "#fff" : T.navy,
+                    color: plan.popular ? "#fff" : T.heading,
                   }}>
                     {fmt(isAnnual ? plan.annualPrice : plan.monthlyPrice)}
                   </span>
@@ -655,9 +664,9 @@ export default function Pricing() {
                 {plan.ctaType === "outline" && (
                   <button
                     onClick={() => handleChoosePlan(plan)}
-                    style={{ width: "100%", padding: "14px", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: "pointer", background: "transparent", border: `1.5px solid ${T.border}`, color: T.navy, fontFamily: "'Plus Jakarta Sans',sans-serif", transition: "all .2s" }}
+                    style={{ width: "100%", padding: "14px", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: "pointer", background: "transparent", border: `1.5px solid ${T.border}`, color: T.heading, fontFamily: "'Plus Jakarta Sans',sans-serif", transition: "all .2s" }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = T.orange; e.currentTarget.style.color = T.orange; e.currentTarget.style.background = T.orangeL; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = T.border;  e.currentTarget.style.color = T.navy;   e.currentTarget.style.background = "transparent"; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = T.border;  e.currentTarget.style.color = T.heading;   e.currentTarget.style.background = "transparent"; }}
                   >{plan.cta}</button>
                 )}
                 {plan.ctaType === "primary" && (
@@ -751,14 +760,14 @@ export default function Pricing() {
           <div style={{ textAlign: "center", fontSize: 10, fontWeight: 800, color: T.orange, letterSpacing: "0.14em", textTransform: "uppercase", fontFamily: "'DM Mono',monospace", marginBottom: 12 }}>
             Got Questions?
           </div>
-          <h2 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 900, fontSize: "clamp(26px,4vw,36px)", textAlign: "center", color: T.navy, letterSpacing: "-1px", marginBottom: 40 }}>
+          <h2 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 900, fontSize: "clamp(26px,4vw,36px)", textAlign: "center", color: T.heading, letterSpacing: "-1px", marginBottom: 40 }}>
             Frequently Asked Questions
           </h2>
 
           {faqs.map((faq, i) => (
             <div key={i} className={`faq-card ${openFaq === i ? "open" : ""}`} onClick={() => setOpenFaq(openFaq === i ? null : i)}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 24px", gap: 16 }}>
-                <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, fontSize: 15, color: T.navy }}>
+                <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, fontSize: 15, color: T.heading }}>
                   {faq.q}
                 </span>
                 <div style={{
@@ -781,29 +790,6 @@ export default function Pricing() {
           ))}
         </section>
 
-        {/* ══════════════════════════════════════
-            BOTTOM BAR — identical to PrivacyPolicy
-        ══════════════════════════════════════ */}
-        <div className="bottom-bar">
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <a href="/" style={{ textDecoration: "none" }}>
-              <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 22, fontWeight: 900, letterSpacing: "-0.5px" }}>
-                <span style={{ color: T.green }}>ILM</span>
-                <span style={{ color: T.orange, marginLeft: 5 }}>ORA</span>
-              </span>
-            </a>
-            <span style={{ color: T.muted2, fontWeight: 600, fontSize: 13, fontFamily: "'Sora',sans-serif" }}>
-              © 2026 ILM ORA. All rights reserved.
-            </span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-            <Lock size={12} color={T.muted2} strokeWidth={2.2} />
-            <span style={{ fontSize: 13, color: T.muted2, fontWeight: 600, fontFamily: "'Sora',sans-serif" }}>
-              Secure &amp; Privacy-First Platform
-            </span>
-          </div>
-        </div>
-
         {/* Toast */}
         <div style={{
           position: "fixed", bottom: 28, left: "50%",
@@ -817,6 +803,7 @@ export default function Pricing() {
         </div>
 
       </div>
+      </PublicLayout>
     </>
   );
 }

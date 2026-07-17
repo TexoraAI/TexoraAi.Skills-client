@@ -3,8 +3,13 @@ import { useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowRight, MapPin, Clock, Briefcase, Zap, Globe2,
   Users, Heart, TrendingUp, Star, ChevronRight, Mail,
-  Code2, PenTool, Megaphone, BookOpen, BarChart3, Shield,
+  Code2, PenTool, Megaphone, BookOpen, BarChart3, Shield, Server,
+  Home, Wallet, Sprout, HeartPulse, Target, Umbrella, Rocket, Globe, LineChart,
 } from "lucide-react";
+
+// ✅ Shared shell used by every other public page (About, Pricing,
+// Contact, FAQ, etc). Lives at src/pages/Landing/components/PublicLayout.
+import PublicLayout from "../Landing/components/PublicLayout";
 
 /* ═══════════════════════════════════════════════════
    ILM ORA  ·  CAREERS PAGE
@@ -12,13 +17,22 @@ import {
    Tone: Editorial/Magazine — warm cream BG, bold type
 ═══════════════════════════════════════════════════ */
 
-const C = {
+// ✅ THEME FIX: page previously used one hard-coded palette (`C`) for
+// everything, so toggling light/dark never changed the page body — only
+// PublicLayout's navbar/footer changed. Now we keep two palettes (LIGHT /
+// DARK) and pick one based on the `theme` prop. Brand accents (orange,
+// green, teal, pink) and the always-dark hero/CTA navy stay identical in
+// both so nothing else about the design changes — only surfaces, borders,
+// and text swap between light and dark.
+const LIGHT = {
   bg:           "#fbeee0",
   bgCard:       "#ffffff",
   bgSub:        "#fdf5ec",
   bgDark:       "#f5e8d5",
   border:       "#e8d9c4",
   borderMid:    "#d5c4aa",
+  surface:      "#ffffff",
+  text:         "#1a2340",
   navy:         "#1a2340",
   navyDark:     "#0f172a",
   orange:       "#F97316",
@@ -34,16 +48,49 @@ const C = {
   white:        "#ffffff",
 };
 
-const CSS = `
+const DARK = {
+  bg:           "#0d1117",
+  bgCard:       "#161b26",
+  bgSub:        "#161d2b",
+  bgDark:       "#0a0e17",
+  border:       "#2a3245",
+  borderMid:    "#3a4560",
+  surface:      "#161b26",
+  text:         "#f1f5f9",
+  navy:         "#1a2340",
+  navyDark:     "#0f172a",
+  orange:       "#F97316",
+  orangeLight:  "#fff3e8",
+  orangeBorder: "#fcd4a8",
+  green:        "#16a34a",
+  greenLight:   "#f0fdf4",
+  greenBorder:  "#bbf7d0",
+  teal:         "#0d9488",
+  pink:         "#db2777",
+  muted:        "#94a3b8",
+  muted2:       "#64748b",
+  white:        "#ffffff",
+};
+
+/* ─────────────────────────────────────────────────────────────
+   ✅ ALIGNMENT FIX: everything is scoped under `.car-page` instead
+   of bare `*` / `html` / `body` selectors. The old global reset
+   (`*,*::before,*::after{margin:0;padding:0;}`) leaked outside
+   this component and stripped margin/padding off PublicLayout's
+   navbar and footer — that's what caused the "cut" look.
+───────────────────────────────────────────────────────────── */
+const getCSS = (C) => `
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
 
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html{scroll-behavior:smooth;}
-body{background:${C.bg};-webkit-font-smoothing:antialiased;}
+.car-page, .car-page *, .car-page *::before, .car-page *::after{box-sizing:border-box;}
+.car-page h1, .car-page h2, .car-page h3, .car-page h4,
+.car-page p, .car-page ul, .car-page ol, .car-page figure,
+.car-page button, .car-page span, .car-page div, .car-page a { margin:0; padding:0; }
+.car-page{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;}
 
-::-webkit-scrollbar{width:4px;}
-::-webkit-scrollbar-track{background:${C.bgSub};}
-::-webkit-scrollbar-thumb{background:${C.orange}80;border-radius:4px;}
+.car-page ::-webkit-scrollbar{width:4px;}
+.car-page ::-webkit-scrollbar-track{background:${C.bgSub};}
+.car-page ::-webkit-scrollbar-thumb{background:${C.orange}80;border-radius:4px;}
 
 @keyframes fadeUp{
   from{opacity:0;transform:translateY(24px);}
@@ -60,53 +107,34 @@ body{background:${C.bg};-webkit-font-smoothing:antialiased;}
   to{opacity:1;transform:scale(1);}
 }
 
-/* ── Navbar ── */
-.car-nav{
-  position:sticky;top:0;z-index:100;
-  background:${C.white};
-  border-bottom:1px solid ${C.border};
-  padding:0 60px;height:68px;
-  display:flex;align-items:center;justify-content:space-between;
-  box-shadow:0 2px 16px rgba(26,35,64,0.05);
-}
-.car-logo{
-  font-family:'Plus Jakarta Sans',sans-serif;
-  font-size:26px;font-weight:900;
-  letter-spacing:-0.5px;cursor:pointer;
-  border:none;background:none;padding:0;
-  display:inline-flex;align-items:center;user-select:none;
-}
-.car-logo .ilm{color:${C.green};}
-.car-logo .ora{color:${C.orange};margin-left:6px;}
-
 /* ── Hero ── */
-.car-hero{
+.car-page .car-hero{
   background:${C.navy};
   position:relative;overflow:hidden;
-  padding:96px 60px 0;
+  padding:52px 60px 0;
 }
-.car-hero::before{
+.car-page .car-hero::before{
   content:'';position:absolute;inset:0;
   background:
     radial-gradient(ellipse 80% 60% at 70% 0%, ${C.orange}18 0%, transparent 60%),
     radial-gradient(ellipse 50% 40% at 10% 80%, ${C.green}12 0%, transparent 55%);
   pointer-events:none;
 }
-.car-hero-inner{
+.car-page .car-hero-inner{
   max-width:1200px;margin:0 auto;
-  display:grid;grid-template-columns:1fr 420px;
-  gap:60px;align-items:flex-end;
+  display:grid;grid-template-columns:1fr 400px;
+  gap:48px;align-items:flex-end;
   position:relative;z-index:1;
 }
-.car-hero-text{padding-bottom:72px;}
-.car-hero-visual{
+.car-page .car-hero-text{padding-bottom:52px;}
+.car-page .car-hero-visual{
   position:relative;
   display:flex;flex-direction:column;gap:0;
   align-self:flex-end;
 }
 
 /* ── Job card (hero preview) ── */
-.job-preview-card{
+.car-page .job-preview-card{
   background:rgba(255,255,255,0.06);
   border:1px solid rgba(255,255,255,0.12);
   border-radius:20px 20px 0 0;
@@ -115,16 +143,16 @@ body{background:${C.bg};-webkit-font-smoothing:antialiased;}
 }
 
 /* ── Section ── */
-.car-section{
+.car-page .car-section{
   padding:80px 60px;
 }
-.car-section-inner{
+.car-page .car-section-inner{
   max-width:1200px;margin:0 auto;
 }
 
 /* ── Role card ── */
-.role-card{
-  background:${C.white};
+.car-page .role-card{
+  background:${C.surface};
   border:1.5px solid ${C.border};
   border-radius:20px;
   padding:28px 32px;
@@ -134,53 +162,53 @@ body{background:${C.bg};-webkit-font-smoothing:antialiased;}
   transition:border-color 0.2s,box-shadow 0.2s,transform 0.2s;
   text-decoration:none;
 }
-.role-card:hover{
+.car-page .role-card:hover{
   border-color:${C.orange};
   box-shadow:0 8px 32px rgba(249,115,22,0.10);
   transform:translateY(-2px);
 }
-.role-tag{
+.car-page .role-tag{
   font-size:10px;font-weight:700;letter-spacing:0.08em;
   text-transform:uppercase;font-family:'DM Mono',monospace;
   padding:3px 10px;border-radius:999px;
   display:inline-block;
 }
-.role-arrow{
+.car-page .role-arrow{
   width:40px;height:40px;border-radius:50%;
   background:${C.bgSub};border:1.5px solid ${C.border};
   display:flex;align-items:center;justify-content:center;
   flex-shrink:0;color:${C.muted};
   transition:background 0.2s,border-color 0.2s,color 0.2s,transform 0.2s;
 }
-.role-card:hover .role-arrow{
+.car-page .role-card:hover .role-arrow{
   background:${C.orange};border-color:${C.orange};
   color:${C.white};transform:translateX(3px);
 }
 
 /* ── Value card ── */
-.val-card{
-  background:${C.white};border:1.5px solid ${C.border};
+.car-page .val-card{
+  background:${C.surface};border:1.5px solid ${C.border};
   border-radius:20px;padding:32px 28px;
   transition:box-shadow 0.2s,transform 0.2s;
 }
-.val-card:hover{
+.car-page .val-card:hover{
   box-shadow:0 8px 28px rgba(26,35,64,0.07);
   transform:translateY(-3px);
 }
 
 /* ── Perks card ── */
-.perk-card{
+.car-page .perk-card{
   background:${C.bgSub};
   border:1.5px solid ${C.border};
   border-radius:16px;padding:24px 20px;
   transition:background 0.2s,border-color 0.2s;
 }
-.perk-card:hover{
-  background:${C.white};border-color:${C.borderMid};
+.car-page .perk-card:hover{
+  background:${C.surface};border-color:${C.borderMid};
 }
 
 /* ── Stat pill ── */
-.stat-pill{
+.car-page .stat-pill{
   display:flex;flex-direction:column;align-items:center;
   padding:20px 24px;background:rgba(255,255,255,0.07);
   border:1px solid rgba(255,255,255,0.12);
@@ -188,7 +216,7 @@ body{background:${C.bg};-webkit-font-smoothing:antialiased;}
 }
 
 /* ── Buttons ── */
-.btn-orange{
+.car-page .btn-orange{
   display:inline-flex;align-items:center;gap:8px;
   padding:14px 32px;
   background:linear-gradient(135deg,${C.orange},#fb923c);
@@ -198,9 +226,9 @@ body{background:${C.bg};-webkit-font-smoothing:antialiased;}
   box-shadow:0 6px 24px ${C.orange}40;
   transition:transform 0.18s,box-shadow 0.18s;
 }
-.btn-orange:hover{transform:translateY(-2px);box-shadow:0 10px 32px ${C.orange}55;}
+.car-page .btn-orange:hover{transform:translateY(-2px);box-shadow:0 10px 32px ${C.orange}55;}
 
-.btn-ghost{
+.car-page .btn-ghost{
   display:inline-flex;align-items:center;gap:8px;
   padding:13px 28px;background:transparent;
   color:rgba(255,255,255,0.8);font-weight:700;font-size:14px;
@@ -208,10 +236,10 @@ body{background:${C.bg};-webkit-font-smoothing:antialiased;}
   cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;
   transition:border-color 0.18s,background 0.18s,color 0.18s;
 }
-.btn-ghost:hover{border-color:rgba(255,255,255,0.5);color:#fff;}
+.car-page .btn-ghost:hover{border-color:rgba(255,255,255,0.5);color:#fff;}
 
 /* ── Filter tab ── */
-.filter-tab{
+.car-page .filter-tab{
   padding:8px 18px;border-radius:999px;
   font-size:13px;font-weight:700;
   font-family:'Plus Jakarta Sans',sans-serif;
@@ -219,33 +247,33 @@ body{background:${C.bg};-webkit-font-smoothing:antialiased;}
   background:transparent;cursor:pointer;color:${C.muted};
   transition:all 0.18s;
 }
-.filter-tab.active,.filter-tab:hover{
+.car-page .filter-tab.active,.car-page .filter-tab:hover{
   background:${C.navy};border-color:${C.navy};color:#fff;
 }
 
 /* ── Labels ── */
-.sec-label{
+.car-page .sec-label{
   font-size:11px;font-weight:700;letter-spacing:0.1em;
   text-transform:uppercase;font-family:'DM Mono',monospace;
   margin-bottom:10px;display:block;
 }
-.sec-heading{
+.car-page .sec-heading{
   font-family:'Plus Jakarta Sans',sans-serif;
   font-weight:900;line-height:1.1;letter-spacing:-0.03em;
-  color:${C.navy};
+  color:${C.text};
 }
-.sec-body{
+.car-page .sec-body{
   font-family:'Sora',sans-serif;
   font-size:15px;color:${C.muted};line-height:1.8;
 }
 
 /* ── CTA banner ── */
-.cta-banner{
+.car-page .cta-banner{
   background:${C.navy};
   padding:72px 60px;text-align:center;
   position:relative;overflow:hidden;
 }
-.cta-banner::before{
+.car-page .cta-banner::before{
   content:'';position:absolute;inset:0;
   background:radial-gradient(ellipse 60% 80% at 50% 0%, ${C.orange}18 0%, transparent 65%);
   pointer-events:none;
@@ -253,31 +281,38 @@ body{background:${C.bg};-webkit-font-smoothing:antialiased;}
 
 /* ── RESPONSIVE ── */
 @media(max-width:1100px){
-  .car-hero-inner{grid-template-columns:1fr;gap:0;}
-  .car-hero-visual{display:none;}
-  .car-hero{padding:80px 40px 0;}
-  .car-hero-text{padding-bottom:52px;}
-  .car-section{padding:64px 40px;}
-  .car-nav{padding:0 40px;}
-  .cta-banner{padding:56px 40px;}
+  .car-page .car-hero-inner{display:flex;flex-direction:column;align-items:stretch;gap:0;}
+  .car-page .car-hero-text{width:100%;padding-bottom:36px;}
+  .car-page .car-hero-visual{
+    display:flex;
+    align-self:center;
+    width:100%;max-width:440px;
+    margin:0 auto 36px;
+  }
+  .car-page .car-hero{padding:44px 40px 0;}
+  .car-page .car-section{padding:64px 40px;}
+  .car-page .cta-banner{padding:56px 40px;}
 }
 @media(max-width:768px){
-  .car-nav{padding:0 20px;height:58px;}
-  .car-hero{padding:60px 20px 0;}
-  .car-hero-text{padding-bottom:44px;}
-  .car-section{padding:52px 20px;}
-  .cta-banner{padding:44px 20px;}
-  .values-grid{grid-template-columns:1fr !important;}
-  .perks-grid{grid-template-columns:1fr 1fr !important;}
-  .stats-row{grid-template-columns:1fr 1fr !important;}
-  .role-card{flex-direction:column;align-items:flex-start;}
-  .role-card .role-arrow{align-self:flex-end;}
+  .car-page .car-hero{padding:36px 20px 0;}
+  .car-page .car-hero-text{padding-bottom:32px;}
+  .car-page .car-hero-visual{max-width:100%;margin-bottom:28px;}
+  .car-page .job-preview-card{padding:24px;}
+  .car-page .car-section{padding:52px 20px;}
+  .car-page .cta-banner{padding:44px 20px;}
+  .car-page .values-grid{grid-template-columns:1fr !important;}
+  .car-page .perks-grid{grid-template-columns:1fr 1fr !important;}
+  .car-page .stats-row{grid-template-columns:1fr 1fr !important;}
+  .car-page .role-card{flex-direction:column;align-items:flex-start;}
+  .car-page .role-card .role-arrow{align-self:flex-end;}
 }
 @media(max-width:480px){
-  .perks-grid{grid-template-columns:1fr !important;}
-  .stats-row{grid-template-columns:1fr 1fr !important;}
+  .car-page .perks-grid{grid-template-columns:1fr !important;}
+  .car-page .stats-row{grid-template-columns:1fr 1fr !important;}
+  .car-page .job-preview-card{padding:20px;}
 }
 `;
+
 
 /* ── Data ── */
 const OPEN_ROLES = [
@@ -287,9 +322,9 @@ const OPEN_ROLES = [
     type: "Full-time",
     location: "Remote (India)",
     icon: Code2,
-    color: C.green,
-    bg: C.greenLight,
-    border: C.greenBorder,
+    color: LIGHT.green,
+    bg: LIGHT.greenLight,
+    border: LIGHT.greenBorder,
     tag: "Engineering",
   },
   {
@@ -297,10 +332,10 @@ const OPEN_ROLES = [
     dept: "Engineering",
     type: "Full-time",
     location: "Remote (India)",
-    icon: Code2,
-    color: C.orange,
-    bg: C.orangeLight,
-    border: C.orangeBorder,
+    icon: Server,
+    color: LIGHT.orange,
+    bg: LIGHT.orangeLight,
+    border: LIGHT.orangeBorder,
     tag: "Engineering",
   },
   {
@@ -309,7 +344,7 @@ const OPEN_ROLES = [
     type: "Full-time",
     location: "Remote (India)",
     icon: PenTool,
-    color: C.teal,
+    color: LIGHT.teal,
     bg: "#f0fdfa",
     border: "#99f6e4",
     tag: "Content",
@@ -320,7 +355,7 @@ const OPEN_ROLES = [
     type: "Full-time",
     location: "Remote (India)",
     icon: Megaphone,
-    color: C.pink,
+    color: LIGHT.pink,
     bg: "#fdf2f8",
     border: "#f9a8d4",
     tag: "Marketing",
@@ -331,9 +366,9 @@ const OPEN_ROLES = [
     type: "Contract",
     location: "Remote (India)",
     icon: BookOpen,
-    color: C.green,
-    bg: C.greenLight,
-    border: C.greenBorder,
+    color: LIGHT.green,
+    bg: LIGHT.greenLight,
+    border: LIGHT.greenBorder,
     tag: "Content",
   },
   {
@@ -342,9 +377,9 @@ const OPEN_ROLES = [
     type: "Full-time",
     location: "Remote (India)",
     icon: BarChart3,
-    color: C.orange,
-    bg: C.orangeLight,
-    border: C.orangeBorder,
+    color: LIGHT.orange,
+    bg: LIGHT.orangeLight,
+    border: LIGHT.orangeBorder,
     tag: "Data",
   },
   {
@@ -353,7 +388,7 @@ const OPEN_ROLES = [
     type: "Internship",
     location: "Remote (India)",
     icon: Star,
-    color: C.teal,
+    color: LIGHT.teal,
     bg: "#f0fdfa",
     border: "#99f6e4",
     tag: "Internship",
@@ -364,7 +399,7 @@ const OPEN_ROLES = [
     type: "Full-time",
     location: "Remote (India)",
     icon: Shield,
-    color: C.navy,
+    color: LIGHT.navy,
     bg: "#f1f5f9",
     border: "#cbd5e1",
     tag: "Operations",
@@ -373,46 +408,46 @@ const OPEN_ROLES = [
 
 const VALUES = [
   {
-    icon: Zap, color: C.orange,
+    icon: Zap, color: LIGHT.orange,
     title: "Move with speed",
     desc: "We ship fast, learn faster. Bureaucracy slows missions — we trust teams to decide and act without waiting for permission.",
   },
   {
-    icon: Globe2, color: C.green,
+    icon: Globe2, color: LIGHT.green,
     title: "Access is everything",
     desc: "Every decision we make is filtered through one lens: does this expand access to quality education for more people?",
   },
   {
-    icon: Heart, color: C.pink,
+    icon: Heart, color: LIGHT.pink,
     title: "Learner obsessed",
     desc: "We are building for learners first. Their success stories are the only metrics that truly matter.",
   },
   {
-    icon: TrendingUp, color: C.teal,
+    icon: TrendingUp, color: LIGHT.teal,
     title: "Grow in public",
     desc: "We celebrate mistakes as learning opportunities and share wins openly. Growth happens in community, not isolation.",
   },
   {
-    icon: Users, color: C.orange,
+    icon: Users, color: LIGHT.orange,
     title: "Build together",
     desc: "The best ideas come from unlikely places. We keep our culture flat, collaborative, and genuinely inclusive.",
   },
   {
-    icon: Star, color: C.green,
+    icon: Star, color: LIGHT.green,
     title: "Craft with pride",
     desc: "We never ship something we aren't proud of. Quality is not a checkbox — it's a mindset baked into everything.",
   },
 ];
 
 const PERKS = [
-  { emoji: "🏠", title: "100% Remote", desc: "Work from anywhere in India. Your city, your setup." },
-  { emoji: "📚", title: "Free Learning", desc: "Unlimited access to all ILM ORA courses and content." },
-  { emoji: "💰", title: "Competitive Pay", desc: "Market-rate salaries benchmarked quarterly." },
-  { emoji: "⏰", title: "Async-first", desc: "No unnecessary meetings. Deep work is protected." },
-  { emoji: "🌱", title: "Career Growth", desc: "Clear growth paths with quarterly reviews and mentoring." },
-  { emoji: "🩺", title: "Health Cover", desc: "Full health insurance for you and your family." },
-  { emoji: "🎯", title: "Equity", desc: "Early-stage ESOPs for all full-time team members." },
-  { emoji: "🏖️", title: "Unlimited Leaves", desc: "Trust-based leave policy — take what you need." },
+  { icon: Home, title: "100% Remote", desc: "Work from anywhere in India. Your city, your setup." },
+  { icon: BookOpen, title: "Free Learning", desc: "Unlimited access to all ILM ORA courses and content." },
+  { icon: Wallet, title: "Competitive Pay", desc: "Market-rate salaries benchmarked quarterly." },
+  { icon: Clock, title: "Async-first", desc: "No unnecessary meetings. Deep work is protected." },
+  { icon: Sprout, title: "Career Growth", desc: "Clear growth paths with quarterly reviews and mentoring." },
+  { icon: HeartPulse, title: "Health Cover", desc: "Full health insurance for you and your family." },
+  { icon: Target, title: "Equity", desc: "Early-stage ESOPs for all full-time team members." },
+  { icon: Umbrella, title: "Unlimited Leaves", desc: "Trust-based leave policy — take what you need." },
 ];
 
 const DEPTS = ["All", "Engineering", "Content", "Marketing", "Data", "Operations", "Internship"];
@@ -446,12 +481,25 @@ const useFadeIn = (delay = 0) => {
   };
 };
 
-/* ══════════════════ MAIN ══════════════════ */
-const Careers = () => {
+/* ══════════════════ MAIN ══════════════════
+   Rendered INSIDE PublicLayout, so this page gets the exact same
+   AnnouncementBanner → Navbar → ... → Footer shell as every other
+   public page. The old custom `.car-nav` bar and the bottom footer
+   div have been removed so there's only ONE navbar and ONE footer
+   on the page. All page-local CSS is scoped under `.car-page` so
+   it can never leak into PublicLayout's navbar/footer.
+═══════════════════════════════════════════════════════════ */
+const Careers = ({ theme, toggleTheme, setShowLoginModal, scrollToSection }) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [heroVis, setHeroVis] = useState(false);
   const [activeFilter, setActiveFilter] = useState("All");
+
+  // ✅ THEME FIX: pick the palette from the current theme, and rebuild the
+  // scoped CSS string with it so every color on this page — not just the
+  // navbar/footer from PublicLayout — responds to the light/dark toggle.
+  const C = theme === "dark" ? DARK : LIGHT;
+  const CSS = getCSS(C);
 
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [pathname]);
   useEffect(() => {
@@ -476,33 +524,23 @@ const Careers = () => {
   };
 
   return (
-    <>
+    <PublicLayout
+      theme={theme}
+      toggleTheme={toggleTheme}
+      setShowLoginModal={setShowLoginModal}
+      scrollToSection={scrollToSection}
+    >
       <style>{CSS}</style>
-      <div style={{
-        minHeight: "100vh",
-        background: C.bg,
-        fontFamily: "'Sora','Plus Jakarta Sans',system-ui,sans-serif",
-      }}>
-
-        {/* ══ NAVBAR ══ */}
-        <nav className="car-nav">
-          <button className="car-logo" onClick={() => navigate("/")}>
-            <span className="ilm">ILM</span>
-            <span className="ora">ORA</span>
-          </button>
-          <a href="mailto:careers@ilmora.ai" style={{
-            display: "inline-flex", alignItems: "center", gap: 8,
-            padding: "9px 20px", borderRadius: 10,
-            background: C.orangeLight, border: `1.5px solid ${C.orangeBorder}`,
-            fontSize: 13, fontWeight: 700, color: C.orange,
-            fontFamily: "'Plus Jakarta Sans',sans-serif",
-            textDecoration: "none",
-            transition: "background 0.18s",
-          }}>
-            <Mail size={14} />
-            careers@ilmora.ai
-          </a>
-        </nav>
+      <div
+        className="car-page"
+        style={{
+          minHeight: "100vh",
+          background: C.bg,
+          fontFamily: "'Sora','Plus Jakarta Sans',system-ui,sans-serif",
+          width: "100%",
+          overflowX: "hidden",
+        }}
+      >
 
         {/* ══ HERO ══ */}
         <div className="car-hero">
@@ -511,7 +549,7 @@ const Careers = () => {
             {/* Left: Text */}
             <div className="car-hero-text">
               {/* Badge */}
-              <div style={{ ...hf(0), marginBottom: 28 }}>
+              <div style={{ ...hf(0), marginBottom: 20 }}>
                 <span style={{
                   display: "inline-flex", alignItems: "center", gap: 8,
                   padding: "6px 18px", borderRadius: 999,
@@ -534,11 +572,11 @@ const Careers = () => {
                 ...hf(80),
                 fontFamily: "'Plus Jakarta Sans',sans-serif",
                 fontWeight: 900,
-                fontSize: "clamp(38px, 5.5vw, 72px)",
-                lineHeight: 1.05,
+                fontSize: "clamp(34px, 5vw, 62px)",
+                lineHeight: 1.06,
                 letterSpacing: "-0.03em",
                 color: C.white,
-                marginBottom: 24,
+                marginBottom: 18,
               }}>
                 Build the future<br />
                 of{" "}
@@ -554,8 +592,8 @@ const Careers = () => {
               {/* Sub */}
               <p style={{
                 ...hf(160),
-                fontSize: 17, color: "#94a3b8",
-                lineHeight: 1.8, maxWidth: 520, marginBottom: 44,
+                fontSize: 16, color: "#94a3b8",
+                lineHeight: 1.7, maxWidth: 520, marginBottom: 32,
                 fontFamily: "'Sora',sans-serif",
               }}>
                 ILM ORA is India's newest professional learning platform. We're a
@@ -564,7 +602,7 @@ const Careers = () => {
               </p>
 
               {/* CTAs */}
-              <div style={{ ...hf(220), display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 56 }}>
+              <div style={{ ...hf(220), display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 36 }}>
                 <button
                   className="btn-orange"
                   onClick={() => document.getElementById("open-roles")?.scrollIntoView({ behavior: "smooth" })}
@@ -656,23 +694,23 @@ const Careers = () => {
         </div>
 
         {/* ══ WHY ILM ORA ══ */}
-        <section id="culture" className="car-section" style={{ background: C.white, borderBottom: `1px solid ${C.border}` }}>
+        <section id="culture" className="car-section" style={{ background: C.surface, borderBottom: `1px solid ${C.border}` }}>
           <div className="car-section-inner">
-            <WhySection />
+            <WhySection C={C} />
           </div>
         </section>
 
         {/* ══ VALUES ══ */}
         <section className="car-section" style={{ background: C.bg, borderBottom: `1px solid ${C.border}` }}>
           <div className="car-section-inner">
-            <ValuesSection />
+            <ValuesSection C={C} />
           </div>
         </section>
 
         {/* ══ PERKS ══ */}
-        <section className="car-section" style={{ background: C.white, borderBottom: `1px solid ${C.border}` }}>
+        <section className="car-section" style={{ background: C.surface, borderBottom: `1px solid ${C.border}` }}>
           <div className="car-section-inner">
-            <PerksSection />
+            <PerksSection C={C} />
           </div>
         </section>
 
@@ -685,6 +723,7 @@ const Careers = () => {
               activeFilter={activeFilter}
               setActiveFilter={setActiveFilter}
               typeColor={typeColor}
+              C={C}
             />
           </div>
         </section>
@@ -722,33 +761,13 @@ const Careers = () => {
           </div>
         </div>
 
-        {/* ══ FOOTER ══ */}
-        <div style={{
-          padding: "20px 60px",
-          borderTop: `1px solid ${C.border}`,
-          background: C.bg,
-          display: "flex", justifyContent: "space-between",
-          alignItems: "center", flexWrap: "wrap", gap: 12,
-        }}>
-          <span style={{
-            fontFamily: "'Plus Jakarta Sans',sans-serif",
-            fontSize: 20, fontWeight: 900, letterSpacing: "-0.5px",
-          }}>
-            <span style={{ color: C.green }}>ILM</span>
-            <span style={{ color: C.orange, marginLeft: 5 }}>ORA</span>
-          </span>
-          <span style={{ fontSize: 12.5, color: C.muted2, fontFamily: "'Sora',sans-serif" }}>
-            © 2026 ILM ORA. All rights reserved.
-          </span>
-        </div>
-
       </div>
-    </>
+    </PublicLayout>
   );
 };
 
 /* ══ Why Section ══ */
-const WhySection = () => {
+const WhySection = ({ C }) => {
   const h = useFadeIn(0);
   const g = useFadeIn(80);
   return (
@@ -774,26 +793,35 @@ const WhySection = () => {
         {/* Highlight cards */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {[
-            { icon: "🚀", title: "Early-stage energy", desc: "Your work ships to real learners. No layers of approval." },
-            { icon: "🌍", title: "Mission-driven", desc: "Every feature we ship improves access to quality education." },
-            { icon: "📈", title: "Growing fast", desc: "1,200+ learners in our first cohort cycle. Momentum is real." },
-          ].map((item, i) => (
-            <div key={i} style={{
-              display: "flex", gap: 18, alignItems: "flex-start",
-              padding: "20px 24px",
-              background: C.bgSub, border: `1.5px solid ${C.border}`,
-              borderRadius: 16,
-            }}>
-              <span style={{ fontSize: 24, lineHeight: 1, flexShrink: 0, marginTop: 2 }}>{item.icon}</span>
-              <div>
+            { icon: Rocket, title: "Early-stage energy", desc: "Your work ships to real learners. No layers of approval." },
+            { icon: Globe, title: "Mission-driven", desc: "Every feature we ship improves access to quality education." },
+            { icon: LineChart, title: "Growing fast", desc: "1,200+ learners in our first cohort cycle. Momentum is real." },
+          ].map((item, i) => {
+            const Ic = item.icon;
+            return (
+              <div key={i} style={{
+                display: "flex", gap: 18, alignItems: "flex-start",
+                padding: "20px 24px",
+                background: C.bgSub, border: `1.5px solid ${C.border}`,
+                borderRadius: 16,
+              }}>
                 <div style={{
-                  fontFamily: "'Plus Jakarta Sans',sans-serif",
-                  fontWeight: 800, fontSize: 15, color: C.navy, marginBottom: 4,
-                }}>{item.title}</div>
-                <div style={{ fontSize: 13.5, color: C.muted, fontFamily: "'Sora',sans-serif", lineHeight: 1.7 }}>{item.desc}</div>
+                  width: 40, height: 40, borderRadius: 11, flexShrink: 0,
+                  background: C.orange + "14", border: `1.5px solid ${C.orange}30`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <Ic size={18} color={C.orange} strokeWidth={1.9} />
+                </div>
+                <div>
+                  <div style={{
+                    fontFamily: "'Plus Jakarta Sans',sans-serif",
+                    fontWeight: 800, fontSize: 15, color: C.text, marginBottom: 4,
+                  }}>{item.title}</div>
+                  <div style={{ fontSize: 13.5, color: C.muted, fontFamily: "'Sora',sans-serif", lineHeight: 1.7 }}>{item.desc}</div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
@@ -801,7 +829,7 @@ const WhySection = () => {
 };
 
 /* ══ Values Section ══ */
-const ValuesSection = () => {
+const ValuesSection = ({ C }) => {
   const h = useFadeIn(0);
   const g = useFadeIn(80);
   return (
@@ -828,7 +856,7 @@ const ValuesSection = () => {
               </div>
               <h3 style={{
                 fontFamily: "'Plus Jakarta Sans',sans-serif",
-                fontWeight: 800, fontSize: 15.5, color: C.navy,
+                fontWeight: 800, fontSize: 15.5, color: C.text,
                 marginBottom: 10, letterSpacing: "-0.2px",
               }}>{title}</h3>
               <p style={{ fontSize: 13.5, color: C.muted, lineHeight: 1.8, fontFamily: "'Sora',sans-serif" }}>{desc}</p>
@@ -841,7 +869,7 @@ const ValuesSection = () => {
 };
 
 /* ══ Perks Section ══ */
-const PerksSection = () => {
+const PerksSection = ({ C }) => {
   const h = useFadeIn(0);
   const g = useFadeIn(80);
   return (
@@ -857,16 +885,25 @@ const PerksSection = () => {
       </div>
       <div ref={g.ref} style={g.style}>
         <div className="perks-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
-          {PERKS.map((p, i) => (
-            <div key={i} className="perk-card">
-              <div style={{ fontSize: 28, marginBottom: 12, lineHeight: 1 }}>{p.emoji}</div>
-              <div style={{
-                fontFamily: "'Plus Jakarta Sans',sans-serif",
-                fontWeight: 800, fontSize: 14.5, color: C.navy, marginBottom: 6,
-              }}>{p.title}</div>
-              <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.7, fontFamily: "'Sora',sans-serif" }}>{p.desc}</div>
-            </div>
-          ))}
+          {PERKS.map((p, i) => {
+            const Ic = p.icon;
+            return (
+              <div key={i} className="perk-card">
+                <div style={{
+                  width: 44, height: 44, borderRadius: 12, marginBottom: 14,
+                  background: C.orange + "14", border: `1.5px solid ${C.orange}30`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <Ic size={20} color={C.orange} strokeWidth={1.9} />
+                </div>
+                <div style={{
+                  fontFamily: "'Plus Jakarta Sans',sans-serif",
+                  fontWeight: 800, fontSize: 14.5, color: C.text, marginBottom: 6,
+                }}>{p.title}</div>
+                <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.7, fontFamily: "'Sora',sans-serif" }}>{p.desc}</div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </>
@@ -874,7 +911,7 @@ const PerksSection = () => {
 };
 
 /* ══ Roles Section ══ */
-const RolesSection = ({ roles, allRoles, activeFilter, setActiveFilter, typeColor }) => {
+const RolesSection = ({ roles, allRoles, activeFilter, setActiveFilter, typeColor, C }) => {
   const h = useFadeIn(0);
   const g = useFadeIn(80);
   return (
@@ -940,7 +977,7 @@ const RolesSection = ({ roles, allRoles, activeFilter, setActiveFilter, typeColo
                 <div style={{ minWidth: 0 }}>
                   <div style={{
                     fontFamily: "'Plus Jakarta Sans',sans-serif",
-                    fontWeight: 800, fontSize: 16, color: C.navy,
+                    fontWeight: 800, fontSize: 16, color: C.text,
                     marginBottom: 6, letterSpacing: "-0.2px",
                   }}>{role.title}</div>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>

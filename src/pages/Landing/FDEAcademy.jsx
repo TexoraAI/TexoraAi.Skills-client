@@ -4,33 +4,91 @@ import {
   BookOpen, Users, FlaskConical, Trophy, ChevronDown,
   Zap, Target, Code2, Briefcase, CheckCircle2, ArrowRight,
   Download, Send, Star, Globe, Shield, TrendingUp,
-  Moon, Sun, GraduationCap, Layers, Brain, Rocket, LogOut, Menu,
+  GraduationCap, Layers, Brain, Rocket,
   Award, Calendar, MapPin, Heart,
 } from "lucide-react";
-import slide1 from "/FDE Academy/1.jpg";
-import slide2 from "/FDE Academy/2.jpg";
-import slide3 from "/FDE Academy/3.jpg";
-import slide4 from "/FDE Academy/4.jpg";
+import slide1 from "/FDE Academy/1.webp";
+import slide2 from "/FDE Academy/2.webp";
+import slide3 from "/FDE Academy/3.webp";
+import slide4 from "/FDE Academy/4.webp";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu, DropdownMenuContent,
-  DropdownMenuItem, DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+// ✅ Shared shell used by every other public page (Careers, About, Pricing,
+// Terms of Service, etc). Rendering inside it gives this page the exact
+// same AnnouncementBanner → Navbar → ... → Footer as every other public
+// page — so there is only ONE navbar and ONE footer across the whole site.
+import PublicLayout from "../Landing/components/PublicLayout";
 
-import MegaMenu from "../../components/MegaMenu";
-import auth from "../../auth";
+/* ═══════════════════════════════════════════════════════════
+   Same LIGHT/DARK palette as TermsOfService.jsx, so this page's
+   light/dark theme matches every other public page exactly.
+═══════════════════════════════════════════════════════════ */
+const LIGHT = {
+  bg:           "#fbeee0",
+  surface:      "#ffffff",
+  bgSub:        "#fdf5ec",
+  bgSubDark:    "#f5e8d5",
+  border:       "#e8d9c4",
+  borderMid:    "#d5c4aa",
+  heading:      "#1a2340",
+  navy:         "#1a2340",
+  orange:       "#F97316",
+  orangeHov:    "#ea6b0e",
+  orangeLight:  "#fff3e8",
+  orangeBorder: "#fcd4a8",
+  green:        "#16a34a",
+  greenLight:   "#e8f5ef",
+  greenBorder:  "#a3d9bc",
+  teal:         "#0d9488",
+  rose:         "#e11d48",
+  roseLight:    "#fef2f4",
+  amber:        "#d97706",
+  pink:         "#db2777",
+  muted:        "#5a6173",
+  muted2:       "#8a93a8",
+};
+
+const DARK = {
+  bg:           "#0d1117",
+  surface:      "#161b26",
+  bgSub:        "#161d2b",
+  bgSubDark:    "#0a0e17",
+  border:       "#2a3245",
+  borderMid:    "#3a4560",
+  heading:      "#f1f5f9",
+  navy:         "#1a2340",
+  orange:       "#F97316",
+  orangeHov:    "#fb923c",
+  orangeLight:  "#fff3e8",
+  orangeBorder: "#fcd4a8",
+  green:        "#16a34a",
+  greenLight:   "#e8f5ef",
+  greenBorder:  "#a3d9bc",
+  teal:         "#0d9488",
+  rose:         "#e11d48",
+  roseLight:    "#fef2f4",
+  amber:        "#d97706",
+  pink:         "#db2777",
+  muted:        "#94a3b8",
+  muted2:       "#64748b",
+};
 
 /* ─── RESPONSIVE HOOK ─────────────────────────────── */
 function useBreakpoint() {
   const [w, setW] = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
   useEffect(() => {
-    const fn = () => setW(window.innerWidth);
-    window.addEventListener("resize", fn);
-    return () => window.removeEventListener("resize", fn);
+    let raf = null;
+    const fn = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        setW(window.innerWidth);
+        raf = null;
+      });
+    };
+    window.addEventListener("resize", fn, { passive: true });
+    return () => {
+      window.removeEventListener("resize", fn);
+      if (raf) cancelAnimationFrame(raf);
+    };
   }, []);
   return { isMobile: w < 640, isTablet: w >= 640 && w < 1024, isDesktop: w >= 1024, w };
 }
@@ -178,186 +236,13 @@ const SLIDES = [
   },
 ];
 
-/* ─── NAVBAR ──────────────────────────────────────── */
-function LMSNavbar({ theme, toggleTheme, onApply }) {
-  const navigate = useNavigate();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  useEffect(() => {
-    const userData = sessionStorage.getItem("user");
-    if (userData) { try { setUser(JSON.parse(userData)); } catch { sessionStorage.removeItem("user"); } }
-  }, []);
-
-  const handleLogout = () => {
-    sessionStorage.removeItem("user");
-    localStorage.removeItem("lms_token");
-    localStorage.removeItem("lms_user");
-    localStorage.removeItem("role");
-    setUser(null);
-    navigate("/login");
-  };
-
-  const navLinks = [{ text: "Mentors", href: "/#mentors" }];
-  const navButtons = [
-    { text: "FDE Academy", action: () => navigate("/fde-academy") },
-    { text: "ILM ORA Meet",      action: () => navigate("/ilm-ora-meet") },
-    { text: "AI Resume Builder", action: () => navigate("/resume-builder") },
-
-  ];
-
-  return (
-    <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? "bg-white/95 dark:bg-black/95 backdrop-blur-xl shadow-md" : "bg-white/80 dark:bg-black/80 backdrop-blur-md"} border-b border-[#F97316]/20 dark:border-gray-800`}>
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-[68px]">
-          <div className="flex items-center cursor-pointer hover:scale-105 transition-transform flex-shrink-0" onClick={() => navigate("/")}>
-            <span className="text-[28px] sm:text-[32px] font-extrabold tracking-wide font-serif leading-none whitespace-nowrap">
-              <span className="text-green-600">ILM</span>
-              <span className="text-[#F97316] ml-1">ORA</span>
-              <span className="inline-flex items-center bg-orange-50 border border-[#F97316] rounded ml-1.5 px-1.5 py-0.5 text-[0.45rem] sm:text-[0.5rem] font-sans font-semibold tracking-widest text-[#F97316] uppercase leading-snug align-middle">Beta</span>
-            </span>
-          </div>
-          <div className="hidden xl:flex items-center gap-1 flex-1 justify-center mx-6">
-            <MegaMenu />
-            {navLinks.map((link) => (
-              <button key={link.text} onClick={() => { if (link.action) link.action(); else if (link.href) navigate(link.href); }} className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-4 py-2 rounded-lg hover:bg-[#F97316]/5 text-[15px] whitespace-nowrap bg-transparent border-none cursor-pointer">{link.text}</button>
-            ))}
-            {navButtons.map((btn) => (
-              <button key={btn.text} onClick={btn.action} className="text-[#1E293B] dark:text-gray-300 hover:text-[#F97316] font-medium transition-colors px-4 py-2 rounded-lg hover:bg-[#F97316]/5 text-[15px] whitespace-nowrap bg-transparent border-none cursor-pointer">{btn.text}</button>
-            ))}
-          </div>
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <button onClick={toggleTheme} className="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-[#F6EDE6] dark:hover:bg-gray-900 transition shadow-sm bg-white dark:bg-black flex-shrink-0">
-              {theme === "dark" ? <Sun className="w-[18px] h-[18px] text-[#F97316]" /> : <Moon className="w-[18px] h-[18px] text-[#1E293B]" />}
-            </button>
-            {!user && (
-              <Button onClick={onApply} className="hidden xl:flex bg-[#F97316] hover:bg-[#ea6e0b] text-white font-bold px-5 py-2.5 rounded-xl items-center gap-2 shadow-md hover:shadow-lg transition-all text-[15px] h-10 whitespace-nowrap border-0">
-                <Send className="w-4 h-4" /> Apply Now
-              </Button>
-            )}
-            {user && (
-              <div className="hidden xl:block">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="gap-2 rounded-xl border-gray-200 dark:border-gray-700 h-10 px-3">
-                      <Avatar className="w-7 h-7"><AvatarImage src={user.picture} alt={user.name} /><AvatarFallback className="bg-[#1E293B] text-white text-xs">{user.name?.charAt(0) || "U"}</AvatarFallback></Avatar>
-                      <ChevronDown className="w-3 h-3" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-72 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
-                    <div className="px-3 py-3 bg-[#F6EDE6] dark:bg-gray-800 rounded-t-md">
-                      <p className="font-semibold text-sm text-[#1E293B] dark:text-white truncate">{user.name || "User"}</p>
-                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
-                    </div>
-                    <DropdownMenuSeparator />
-                    {[
-                      { icon: GraduationCap, label: "My Learning", desc: "View your courses", path: "/my-learning" },
-                      { icon: Users, label: "Edit Profile", desc: "Update your info", path: "/edit-profile" },
-                    ].map((item) => (
-                      <DropdownMenuItem key={item.label} onClick={() => navigate(item.path)} className="gap-3 cursor-pointer">
-                        <div className="w-8 h-8 rounded-lg bg-[#F97316]/10 flex items-center justify-center"><item.icon className="w-4 h-4 text-[#F97316]" /></div>
-                        <div><p className="text-sm font-medium">{item.label}</p><p className="text-xs text-gray-500">{item.desc}</p></div>
-                      </DropdownMenuItem>
-                    ))}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout} className="gap-3 text-red-600 cursor-pointer">
-                      <LogOut className="w-4 h-4" /><span className="text-sm font-medium">Logout</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            )}
-            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <button className="xl:hidden flex items-center justify-center w-10 h-10 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black hover:bg-[#F6EDE6] dark:hover:bg-gray-900 transition shadow-sm" aria-label="Open menu">
-                  <Menu className="w-5 h-5 text-[#1E293B] dark:text-white" />
-                </button>
-              </SheetTrigger>
-              <SheetContent side="right" className="bg-white dark:bg-gray-950 w-[300px] sm:w-[340px] p-0 border-l border-gray-100 dark:border-gray-800">
-                <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-800">
-                  <span className="text-[26px] font-extrabold font-serif leading-none"><span className="text-green-600">ILM</span><span className="text-[#F97316] ml-1">ORA</span></span>
-                </div>
-                <div className="flex flex-col px-4 py-4 gap-1 overflow-y-auto">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 px-3 mb-1">Navigation</p>
-                  <button
-  onClick={() => {
-    navigate("/");
-    setMobileMenuOpen(false);
-  }}
-  className="flex items-center text-left text-[15px] font-semibold py-3 px-3 rounded-xl w-full"
->
-  Courses
-</button>
-
-<button
-  onClick={() => {
-    navigate("/fde-academy");
-    setMobileMenuOpen(false);
-  }}
-  className="flex items-center text-left text-[15px] font-semibold py-3 px-3 rounded-xl w-full"
->
-  FDE Academy
-</button>
-
-<button
-  onClick={() => {
-    navigate("/ilm-ora-meet");
-    setMobileMenuOpen(false);
-  }}
-  className="flex items-center text-left text-[15px] font-semibold py-3 px-3 rounded-xl w-full"
->
-  ILM ORA Meet
-</button>
-
-<button
-  onClick={() => {
-    navigate("/resume-builder");
-    setMobileMenuOpen(false);
-  }}
-  className="flex items-center text-left text-[15px] font-semibold py-3 px-3 rounded-xl w-full"
->
-  AI Resume Builder
-</button>
-                  {navLinks.map((link) => (
-                    <button key={link.text} onClick={() => { if (link.action) link.action(); else if (link.href) navigate(link.href); setMobileMenuOpen(false); }} className="flex items-center text-left text-[15px] font-semibold text-[#1E293B] dark:text-gray-100 hover:text-[#F97316] transition-colors py-3 px-3 rounded-xl hover:bg-[#F97316]/8 bg-transparent border-none cursor-pointer w-full">{link.text}</button>
-                  ))}
-                  {navButtons.map((btn) => (
-                    <button key={btn.text} onClick={() => { btn.action(); setMobileMenuOpen(false); }} className="flex items-center text-left text-[15px] font-semibold text-[#1E293B] dark:text-gray-100 hover:text-[#F97316] transition-colors py-3 px-3 rounded-xl hover:bg-[#F97316]/8 bg-transparent border-none cursor-pointer w-full">{btn.text}</button>
-                  ))}
-                  <div className="my-3 h-px bg-gray-100 dark:bg-gray-800" />
-                  {user ? (
-                    <div className="flex flex-col gap-2 px-1">
-                      <div className="flex items-center gap-3 px-3 py-3 bg-[#F6EDE6] dark:bg-gray-900 rounded-xl mb-1">
-                        <div className="w-9 h-9 bg-[#1E293B] rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">{user.name?.charAt(0) || "U"}</div>
-                        <div className="min-w-0"><p className="font-semibold text-sm text-[#1E293B] dark:text-white truncate">{user.name || "User"}</p><p className="text-xs text-gray-500 truncate">{user.email}</p></div>
-                      </div>
-                      <Button onClick={() => { navigate("/my-learning"); setMobileMenuOpen(false); }} className="w-full bg-[#1E293B] hover:bg-[#334155] text-white rounded-xl h-11 text-[15px] font-semibold">My Learning</Button>
-                      <Button variant="outline" onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className="w-full border-red-200 text-red-600 hover:bg-red-50 rounded-xl h-11 text-[15px] font-semibold"><LogOut className="w-4 h-4 mr-2" /> Logout</Button>
-                    </div>
-                  ) : (
-                    <div className="px-1">
-                      <Button onClick={() => { onApply(); setMobileMenuOpen(false); }} className="w-full bg-[#F97316] hover:bg-[#ea6e0b] text-white font-bold flex items-center justify-center gap-2 rounded-xl h-12 text-[15px] shadow-md border-0"><Send className="w-4 h-4" /> Apply Now</Button>
-                    </div>
-                  )}
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
-        </div>
-      </div>
-    </nav>
-  );
-}
-
 /* ─── MAIN COMPONENT ──────────────────────────────── */
-export default function FDEAcademy({ theme: themeProp, toggleTheme: toggleThemeProp }) {
+export default function FDEAcademy({
+  theme: themeProp,
+  toggleTheme: toggleThemeProp,
+  setShowLoginModal,
+  scrollToSection,
+}) {
   const { isMobile, isTablet } = useBreakpoint();
   const [activeTab, setActiveTab]     = useState("overview");
   const [activePhase, setActivePhase] = useState(0);
@@ -368,16 +253,36 @@ export default function FDEAcademy({ theme: themeProp, toggleTheme: toggleThemeP
 
   const dark = themeProp === "dark";
 
+  // Same palette as TermsOfService.jsx, so light/dark theme matches
+  // every other public page exactly.
+  const C = dark ? DARK : LIGHT;
+
+  // Any tab click should land the user at the top of the page, not
+  // wherever they'd scrolled to on the previous tab.
   useEffect(() => {
-    const t = setInterval(() => setSlide(s => (s + 1) % SLIDES.length), 4500);
-    return () => clearInterval(t);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [activeTab]);
+
+  useEffect(() => {
+    let t = setInterval(() => setSlide(s => (s + 1) % SLIDES.length), 4500);
+    const onVisibility = () => {
+      clearInterval(t);
+      if (!document.hidden) {
+        t = setInterval(() => setSlide(s => (s + 1) % SLIDES.length), 4500);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      clearInterval(t);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, []);
 
-  const bg      = dark ? "#0d1320" : "#f5ede0";
-  const surface = dark ? "#18202e" : "#fff";
-  const border  = dark ? "#263045" : "#e5ddd0";
-  const text    = dark ? "#e8ecf4" : "#1a2744";
-  const muted   = dark ? "#7a8aaa" : "#888";
+  const bg      = C.bg;
+  const surface = C.surface;
+  const border  = C.border;
+  const text    = C.heading;
+  const muted   = C.muted;
 
   const S = SLIDES[slide];
   const handleApply      = () => setShowApply(true);
@@ -394,9 +299,13 @@ export default function FDEAcademy({ theme: themeProp, toggleTheme: toggleThemeP
   const maxW         = "1280px";
 
   return (
-    <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", background: bg, minHeight: "100vh", transition: "background 0.3s", overflowX: "hidden" }}>
-
-      <LMSNavbar theme={themeProp} toggleTheme={toggleThemeProp} onApply={handleApply} />
+    <PublicLayout
+      theme={themeProp}
+      toggleTheme={toggleThemeProp}
+      setShowLoginModal={setShowLoginModal}
+      scrollToSection={scrollToSection}
+    >
+    <div className="fde-page" style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", background: bg, minHeight: "100vh", transition: "background 0.3s", overflowX: "hidden" }}>
 
       {/* ── APPLY MODAL ── */}
       {showApply && (
@@ -437,7 +346,7 @@ export default function FDEAcademy({ theme: themeProp, toggleTheme: toggleThemeP
       )}
 
       {/* ── HERO ── */}
-      <div style={{ maxWidth: maxW, margin: "0 auto", padding: heroPad, paddingTop: `calc(68px + ${isMobile ? "24px" : isTablet ? "32px" : "48px"})`, display: "flex", flexDirection: isMobile ? "column" : "row", gap: isMobile ? "28px" : isTablet ? "32px" : "48px", alignItems: isMobile ? "stretch" : "center" }}>
+      <div style={{ maxWidth: maxW, margin: "0 auto", padding: heroPad, display: "flex", flexDirection: isMobile ? "column" : "row", gap: isMobile ? "28px" : isTablet ? "32px" : "48px", alignItems: isMobile ? "stretch" : "center" }}>
         {/* LEFT */}
         <div style={{ flex: isMobile ? "none" : "0 0 46%", minWidth: 0 }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: "7px", background: surface, border: `1.5px solid ${border}`, borderRadius: "50px", padding: "6px 16px", marginBottom: isMobile ? "18px" : "24px", maxWidth: "100%" }}>
@@ -494,6 +403,9 @@ export default function FDEAcademy({ theme: themeProp, toggleTheme: toggleThemeP
   key={slide}
   src={S.img}
   alt={S.imgAlt}
+  loading="eager"
+  decoding="async"
+  fetchPriority="high"
   style={{
     width: "100%",
     height: "100%",
@@ -502,7 +414,6 @@ export default function FDEAcademy({ theme: themeProp, toggleTheme: toggleThemeP
     animation: "fadeIn 0.6s ease"
   }}
 />
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(13,19,32,0.85) 0%, rgba(13,19,32,0.15) 55%, transparent 100%)" }} />
               <div style={{ position: "absolute", top: "16px", left: "16px", background: "rgba(232,106,42,0.92)", borderRadius: "8px", padding: "5px 12px" }}>
                 <span style={{ fontSize: "10px", fontWeight: 700, color: "#fff", letterSpacing: "0.5px" }}>LIVE COHORT</span>
               </div>
@@ -523,6 +434,9 @@ export default function FDEAcademy({ theme: themeProp, toggleTheme: toggleThemeP
                   <img
   src={sl.img}
   alt={sl.imgAlt}
+  loading="lazy"
+  decoding="async"
+  fetchPriority="low"
   style={{
     width: "100%",
     height: "100%",
@@ -543,6 +457,9 @@ export default function FDEAcademy({ theme: themeProp, toggleTheme: toggleThemeP
   key={slide}
   src={S.img}
   alt={S.imgAlt}
+  loading="eager"
+  decoding="async"
+  fetchPriority="high"
   style={{
     width: "100%",
     height: "100%",
@@ -1149,48 +1066,17 @@ export default function FDEAcademy({ theme: themeProp, toggleTheme: toggleThemeP
         </div>
       </div>
 
-      {/* ── FOOTER ── */}
-      <div style={{ background: "#1a2744", padding: isMobile ? "14px 16px" : "14px 40px", display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center", gap: "10px" }}>
-        <GraduationCap size={15} color="#e86a2a" />
-        <span style={{ color: "#cdd5e8", fontSize: isMobile ? "11px" : "13px", textAlign: "center" }}>FDE Academy · PGP in Forward Deployed Engineering & Applied AI Solutions</span>
-        <span style={{ background: "#e86a2a", color: "#fff", padding: "4px 14px", borderRadius: "20px", fontSize: "11px", fontWeight: 700 }}>Now Enrolling</span>
-      </div>
+      {/* Footer, navbar, and announcement banner now come from the
+          shared PublicLayout shell below — no page-local nav/footer. */}
 
       <style>{`
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        * { box-sizing: border-box; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #d0c8be; border-radius: 3px; }
+        .fde-page, .fde-page *, .fde-page *::before, .fde-page *::after { box-sizing: border-box; }
+        .fde-page ::-webkit-scrollbar { width: 6px; height: 6px; }
+        .fde-page ::-webkit-scrollbar-track { background: transparent; }
+        .fde-page ::-webkit-scrollbar-thumb { background: #d0c8be; border-radius: 3px; }
       `}</style>
     </div>
+    </PublicLayout>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

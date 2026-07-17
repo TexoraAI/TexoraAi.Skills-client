@@ -7,10 +7,10 @@ import {
   GraduationCap, Layers, Brain, Rocket,
   Award, Calendar, MapPin, Heart,
 } from "lucide-react";
-import slide1 from "/fde-academy/1.webp";
-import slide2 from "/fde-academy/2.webp";
-import slide3 from "/fde-academy/3.webp";
-import slide4 from "/fde-academy/4.webp";
+import slide1 from "/fde-academy-assets/1.webp";
+import slide2 from "/fde-academy-assets/2.webp";
+import slide3 from "/fde-academy-assets/3.webp";
+import slide4 from "/fde-academy-assets/4.webp";
 // ✅ Shared shell used by every other public page (Careers, About, Pricing,
 // Terms of Service, etc). Rendering inside it gives this page the exact
 // same AnnouncementBanner → Navbar → ... → Footer as every other public

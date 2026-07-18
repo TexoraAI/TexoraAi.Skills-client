@@ -969,14 +969,14 @@ export default function FAQ() {
               Can't find what you're looking for? Our support team is happy to help you within 24 hours.
             </p>
             <a
-              href="mailto:support@ilmora.com"
+              href="mailto:ilmora@texora.ai"
               className="inline-flex items-center gap-2 bg-[#F97316] hover:bg-[#ea6c0a] text-white font-bold px-7 py-3 rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 text-sm"
             >
               <Mail className="w-4 h-4" />
               Contact Support
             </a>
             <p className="text-gray-500 text-xs mt-4">
-              support@ilmora.com · Mon–Fri, 9am–6pm IST
+              ilmora@texora.ai · Mon–Fri, 9am–6pm IST
             </p>
           </div>
         </div>

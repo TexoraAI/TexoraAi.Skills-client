@@ -1457,7 +1457,7 @@ const HelpCenter = ({ theme, toggleTheme, setShowLoginModal }) => {
                   </button>
                 </div>
                 <p className="text-xs mt-5" style={{ color: "#6b7280" }}>
-                  support@ilmora.com · Mon–Sat, 9 AM – 7 PM IST
+                   ilmora@texora.ai · Mon–Sat, 9 AM – 7 PM IST
                 </p>
               </div>
             </div>

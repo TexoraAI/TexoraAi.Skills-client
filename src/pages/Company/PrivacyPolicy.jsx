@@ -743,7 +743,7 @@ const PrivacyPolicy = ({ theme, toggleTheme, setShowLoginModal }) => {
             "ILM ORA is not directed at or intended for children under the age of 13.",
             "We do not knowingly collect, maintain, or use personal information from children under 13.",
             "Users between 13–18 must have verifiable parental or guardian consent.",
-            "If you believe a child has provided us with personal data, contact privacy@ilmora.ai immediately.",
+            "If you believe a child has provided us with personal data, contact ilmora@texora.ai immediately.",
             "Upon confirmation, we will promptly delete any such data from our systems.",
           ],
         },
@@ -783,7 +783,7 @@ const PrivacyPolicy = ({ theme, toggleTheme, setShowLoginModal }) => {
           subtitle: "Your Options on Updates", details: [
             "Continued use of ILM ORA after the effective date constitutes acceptance of the updated policy.",
             "If you disagree with material changes, you may delete your account before the effective date.",
-            "You may access prior versions of this policy by contacting privacy@ilmora.ai.",
+            "You may access prior versions of this policy by contacting ilmora@texora.ai.",
             "We encourage you to review this policy periodically to stay informed.",
           ],
         },
@@ -976,12 +976,12 @@ const PrivacyPolicy = ({ theme, toggleTheme, setShowLoginModal }) => {
               }}>
                 Questions?
               </div>
-              <a href="mailto:privacy@ilmora.ai" style={{
+              <a href="mailto:ilmora@texora.ai" style={{
                 display: "flex", alignItems: "center", gap: 8,
                 fontSize: 13, fontFamily: "'Sora', sans-serif", fontWeight: 700,
               }}>
                 <Mail size={13} color={T.orange} strokeWidth={2.2} />
-                <span style={{ color: T.heading }}>privacy@ilmora.ai</span>
+                <span style={{ color: T.heading }}>ilmora@texora.ai</span>
               </a>
               <div style={{ fontSize: 12, color: T.muted, fontWeight: 600, marginTop: 8, fontFamily: "'Sora', sans-serif" }}>
                 Mon–Fri, 9am–6pm IST
@@ -1016,7 +1016,7 @@ const PrivacyPolicy = ({ theme, toggleTheme, setShowLoginModal }) => {
                   If you are located in the <strong style={{ color: T.heading, fontWeight: 800 }}>European Economic Area (EEA) or UK</strong>,
                   you have additional rights under GDPR including access, portability, correction, erasure, and the right to object.
                   California residents have rights under <strong style={{ color: T.heading, fontWeight: 800 }}>CCPA</strong>.
-                  Contact <a href="mailto:privacy@ilmora.ai">privacy@ilmora.ai</a> to exercise any of these rights.
+                  Contact <a href="mailto:ilmora@texora.ai">ilmora@texora.ai</a> to exercise any of these rights.
                 </p>
               </div>
             </div>
@@ -1074,7 +1074,7 @@ const PrivacyPolicy = ({ theme, toggleTheme, setShowLoginModal }) => {
               <p style={{ fontSize: 13.5, color: T.text, lineHeight: 1.8, fontWeight: 500, fontFamily: "'Sora', sans-serif" }}>
                 This privacy policy is part of ILM ORA's commitment to transparency. For our complete legal terms, visit our{" "}
                 <a href="/terms-of-service">Terms of Service</a>. For account support, contact{" "}
-                <a href="mailto:support@ilmora.ai">support@ilmora.ai</a>.
+                <a href="mailto:ilmora@texora.ai">ilmora@texora.ai</a>.
               </p>
             </div>
           </main>
@@ -1128,8 +1128,8 @@ const PrivacyPolicy = ({ theme, toggleTheme, setShowLoginModal }) => {
 
             <div className="contact-grid">
               {[
-                { title: "Privacy Team", email: "privacy@ilmora.ai", emoji: "🛡️", note: "Data rights, GDPR & privacy queries" },
-                { title: "Support Team", email: "support@ilmora.ai", emoji: "💬", note: "Account & general assistance"        },
+                { title: "Privacy Team", email: "ilmora@texora.ai", emoji: "🛡️", note: "Data rights, GDPR & privacy queries" },
+                { title: "Support Team", email: "ilmora@texora.ai", emoji: "💬", note: "Account & general assistance"        },
               ].map((c, i) => (
                 <div key={i} className="pp-contact-card">
                   <div style={{ fontSize: 26, marginBottom: 12 }}>{c.emoji}</div>
@@ -1152,7 +1152,7 @@ const PrivacyPolicy = ({ theme, toggleTheme, setShowLoginModal }) => {
                 <Shield size={15} color="#fff" strokeWidth={2.5} />
                 Contact Privacy Team
               </a>
-              <a href="mailto:support@ilmora.ai" className="btn-ghost">
+              <a href="mailto:ilmora@texora.ai" className="btn-ghost">
                 <Mail size={15} color={T.orange} strokeWidth={2.2} />
                 Get Support
               </a>

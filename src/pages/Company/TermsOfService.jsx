@@ -587,7 +587,7 @@ const TermsOfService = ({ theme, toggleTheme, setShowLoginModal, scrollToSection
       subsections: [
         { title: "Account Security", points: [
           "You are solely responsible for all activities that occur under your account.",
-          "Notify us immediately at security@ilmora.ai if you suspect any unauthorized access.",
+          "Notify us immediately at ilmora@texora.ai if you suspect any unauthorized access.",
           "Do not share account credentials or allow simultaneous sessions from multiple users.",
           "ILM ORA is not liable for any loss or damage from unauthorized use of your account.",
         ]},
@@ -620,7 +620,7 @@ const TermsOfService = ({ theme, toggleTheme, setShowLoginModal, scrollToSection
           "Course content — text, video, audio, code — is owned by ILM ORA or the respective instructor.",
           "Sharing, distributing, or re-uploading course content constitutes copyright infringement.",
           "Unauthorized sharing may result in statutory damages up to $150,000 per incident.",
-          "Report infringement to copyright@ilmora.ai with full details of the alleged violation.",
+          "Report infringement to ilmora@texora.ai with full details of the alleged violation.",
         ]},
       ],
     },
@@ -688,7 +688,7 @@ const TermsOfService = ({ theme, toggleTheme, setShowLoginModal, scrollToSection
       summary: "How accounts are closed and how policies may change",
       subsections: [
         { title: "Termination by You", points: [
-          "You may cancel your account at any time via account settings or by contacting support@ilmora.ai.",
+          "You may cancel your account at any time via account settings or by contacting ilmora@texora.ai.",
           "Cancellation takes effect at the end of your current paid billing period.",
           "You remain responsible for all charges incurred before your termination date.",
           "Download your data and certificates before cancellation — access may not be available afterward.",
@@ -718,16 +718,16 @@ const TermsOfService = ({ theme, toggleTheme, setShowLoginModal, scrollToSection
           "These Terms represent the entire agreement between you and ILM ORA.",
         ]},
         { title: "Dispute Resolution & Arbitration", points: [
-          "We encourage informal resolution — contact legal@ilmora.ai before commencing formal proceedings.",
+          "We encourage informal resolution — contact ilmora@texora.ai before commencing formal proceedings.",
           "Unresolved disputes may be submitted to binding individual arbitration under applicable rules.",
-          "You may opt out of arbitration within 30 days of account creation by written notice to legal@ilmora.ai.",
+          "You may opt out of arbitration within 30 days of account creation by written notice to ilmora@texora.ai.",
           "Class action lawsuits and class arbitration are waived — all claims must be brought individually.",
           "Nothing prevents either party from seeking injunctive relief in court for IP infringement matters.",
         ]},
         { title: "Compliance", points: [
           "Users must comply with all applicable local, national, and international laws and regulations.",
           "International users are responsible for compliance with local data protection and privacy laws.",
-          "Report compliance concerns to compliance@ilmora.ai promptly.",
+          "Report compliance concerns to ilmora@texora.ai promptly.",
         ]},
       ],
     },
@@ -812,7 +812,7 @@ const TermsOfService = ({ theme, toggleTheme, setShowLoginModal, scrollToSection
                 <button className="btn-orange" onClick={() => scrollTo("acceptance")}>
                   Read the Terms <ArrowRight size={16} />
                 </button>
-                <a href="mailto:legal@ilmora.ai" className="btn-ghost-dark">
+                <a href="mailto:ilmora@texora.ai" className="btn-ghost-dark">
                   Contact Legal Team
                 </a>
               </div>
@@ -962,14 +962,14 @@ const TermsOfService = ({ theme, toggleTheme, setShowLoginModal, scrollToSection
                     Questions?
                   </div>
                   <a
-                    href="mailto:legal@ilmora.ai"
+                    href="mailto:ilmora@texora.ai"
                     style={{
                       display: "flex", alignItems: "center", gap: 8,
                       fontSize: 13, fontFamily: "'Sora', sans-serif", fontWeight: 600,
                     }}
                   >
                     <Mail size={13} color={C.orangeHov} strokeWidth={2} />
-                    <span style={{ color: "#1a2340" }}>legal@ilmora.ai</span>
+                    <span style={{ color: "#1a2340" }}>ilmora@texora.ai</span>
                   </a>
                   <div style={{
                     fontSize: 11.5, color: "#5a6173",
@@ -1040,7 +1040,7 @@ const TermsOfService = ({ theme, toggleTheme, setShowLoginModal, scrollToSection
                       <strong style={{ color: "#1a2340" }}>binding individual arbitration</strong>.
                       You waive your right to a jury trial or class action. You may opt out within{" "}
                       <strong style={{ color: "#1a2340" }}>30 days</strong> of account creation
-                      by emailing <a href="mailto:legal@ilmora.ai">legal@ilmora.ai</a>.
+                      by emailing <a href="mailto:ilmora@texora.ai">ilmora@texora.ai</a>.
                     </p>
                   </div>
                 </div>
@@ -1103,7 +1103,7 @@ const TermsOfService = ({ theme, toggleTheme, setShowLoginModal, scrollToSection
                     For information on how we handle your personal data, review our{" "}
                     <a href="/privacy-policy">Privacy Policy</a>.
                     For account support, contact{" "}
-                    <a href="mailto:support@ilmora.ai">support@ilmora.ai</a>.
+                    <a href="mailto:ilmora@texora.ai">ilmora@texora.ai</a>.
                   </p>
                 </div>
               </main>
@@ -1148,8 +1148,8 @@ const TermsOfService = ({ theme, toggleTheme, setShowLoginModal, scrollToSection
               style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 36, textAlign: "left" }}
             >
               {[
-                { title: "Legal Team",   email: "legal@ilmora.ai",   Icon: Scale,        note: "Terms, compliance & IP queries" },
-                { title: "Support Team", email: "support@ilmora.ai", Icon: CheckCircle2, note: "Account & billing assistance"   },
+                { title: "Legal Team",   email: "ilmora@texora.ai",   Icon: Scale,        note: "Terms, compliance & IP queries" },
+                { title: "Support Team", email: "ilmora@texora.ai", Icon: CheckCircle2, note: "Account & billing assistance"   },
               ].map((c, i) => {
                 const Ic = c.Icon;
                 return (
@@ -1188,11 +1188,11 @@ const TermsOfService = ({ theme, toggleTheme, setShowLoginModal, scrollToSection
             </div>
 
             <div className="cta-btns" style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-              <a href="mailto:legal@ilmora.ai" className="btn-orange">
+              <a href="mailto:ilmora@texora.ai" className="btn-orange">
                 <Mail size={16} />
                 Contact Legal Team
               </a>
-              <a href="mailto:support@ilmora.ai" className="btn-ghost-dark">
+              <a href="mailto:ilmora@texora.ai" className="btn-ghost-dark">
                 <CheckCircle2 size={15} />
                 Get Support
               </a>

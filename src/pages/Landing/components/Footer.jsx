@@ -543,10 +543,10 @@ export default function Footer({ scrollToSection }) {
               <p className="text-sm text-[#D1D5DB] flex items-center gap-2">
                 <span className="text-[#F97316]">✉</span>
                 <a
-                  href="mailto:marketing@texora.ai"
+                  href="mailto: ilmora@texora.ai"
                   className="hover:text-[#F97316] transition-colors duration-300"
                 >
-                  marketing@texora.ai
+                   ilmora@texora.ai
                 </a>
               </p>
  

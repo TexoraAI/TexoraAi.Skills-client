@@ -368,14 +368,14 @@ const ContactUs = ({ theme, toggleTheme, setShowLoginModal, scrollToSection }) =
       icon: Mail,
       color: C.orange,
       label: "Email Us",
-      value: "support@ilmora.ai",
+      value: "ilmora@texora.ai",
       sub: "We reply within 24 hours",
     },
     {
       icon: Phone,
       color: C.green,
       label: "Call Us",
-      value: "+91 9210970334",
+      value: "+91 9205299338",
       sub: "Mon – Fri, 9am to 6pm IST",
     },
     {
@@ -520,9 +520,9 @@ const ContactUs = ({ theme, toggleTheme, setShowLoginModal, scrollToSection }) =
               >
                 Send a Message <ArrowRight size={16} />
               </button>
-              <a href="mailto:support@ilmora.ai" className="btn-ghost-dark">
+              <a href="mailto:ilmora@texora.ai" className="btn-ghost-dark">
                 <Mail size={15} />
-                support@ilmora.ai
+                ilmora@texora.ai
               </a>
             </div>
 
@@ -727,7 +727,7 @@ const ContactUs = ({ theme, toggleTheme, setShowLoginModal, scrollToSection }) =
                       </label>
                       <input
                         name="phone" type="tel" value={form.phone} onChange={handleChange}
-                        placeholder="+91 92109 70334"
+                        placeholder="+91 9205299338"
                         className="con-input"
                       />
                     </div>
@@ -842,14 +842,14 @@ const ContactUs = ({ theme, toggleTheme, setShowLoginModal, scrollToSection }) =
                     Still have questions?
                   </p>
                   <a
-                    href="mailto:support@ilmora.ai"
+                    href="mailto:ilmora@texora.ai"
                     style={{
                       fontSize: 13.5, fontWeight: 800, color: C.orangeHov,
                       fontFamily: "'Plus Jakarta Sans',sans-serif",
                       textDecoration: "none",
                     }}
                   >
-                    support@ilmora.ai →
+                    ilmora@texora.ai →
                   </a>
                 </div>
               </div>

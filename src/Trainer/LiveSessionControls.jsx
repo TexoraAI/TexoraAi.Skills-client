@@ -5,6 +5,8 @@ import {
   startLiveSessionWithToken,
   endLiveSession,
   getSessionParticipants,
+  startRecordingLive,
+  stopRecordingLive,
 } from "@/services/liveSessionService";
 import {
   FaPhoneSlash,
@@ -76,9 +78,14 @@ const LiveSessionControls = () => {
   const [camOn, setCamOn] = useState(true);
   const [screenOn, setScreenOn] = useState(false);
   const [recording, setRecording] = useState(true);
+  const [recToggling, setRecToggling] = useState(false);
+  const [recError, setRecError] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [sidebarTab, setSidebarTab] = useState("chat");
   const [participants, setParticipants] = useState([]);
+  const startedRef = useRef(false);
+  const recTogglingRef = useRef(false);
+  const recCooldownRef = useRef(false);
   // ✅ NEW: DB participants (real emails from backend)
   const [dbParticipants, setDbParticipants] = useState([]);
   const [messages, setMessages] = useState(() => [
@@ -125,6 +132,68 @@ const LiveSessionControls = () => {
     setParticipants(list);
   }, []);
 
+  // const toggleRecording = useCallback(async () => {
+  //   if (!id) return;
+  //   // ✅ Synchronous ref check — closes the gap that React state (async,
+  //   // batched) leaves open on a very fast double-click.
+  //   if (recTogglingRef.current) return;
+  //   recTogglingRef.current = true;
+
+  //   setRecError(null);
+  //   setRecToggling(true);
+  //   try {
+  //     if (recording) {
+  //       await stopRecordingLive(id);
+  //       setRecording(false);
+  //     } else {
+  //       await startRecordingLive(id);
+  //       setRecording(true);
+  //     }
+  //   } catch (err) {
+  //     console.error(err);
+  //     setRecError(err?.response?.data?.error || "Failed to toggle recording.");
+  //   } finally {
+  //     setRecToggling(false);
+  //     recTogglingRef.current = false;
+  //   }
+  // }, [id, recording]);
+  const toggleRecording = useCallback(async () => {
+    if (!id) return;
+    if (recTogglingRef.current) return;
+    // ✅ NEW — block clicks during the post-toggle cooldown window too,
+    // not just while the request itself is in flight.
+    if (recCooldownRef.current) {
+      setRecError("Please wait a few seconds before toggling recording again.");
+      return;
+    }
+    recTogglingRef.current = true;
+
+    setRecError(null);
+    setRecToggling(true);
+    try {
+      if (recording) {
+        await stopRecordingLive(id);
+        setRecording(false);
+      } else {
+        await startRecordingLive(id);
+        setRecording(true);
+      }
+    } catch (err) {
+      console.error(err);
+      setRecError(err?.response?.data?.error || "Failed to toggle recording.");
+    } finally {
+      setRecToggling(false);
+      recTogglingRef.current = false;
+      // ✅ NEW — 12s cooldown after every toggle (success OR failure),
+      // since LiveKit/egress needs time to tear down/spin up on this
+      // all-in-one WSL setup before it can reliably accept another call.
+      recCooldownRef.current = true;
+      setTimeout(() => {
+        recCooldownRef.current = false;
+      }, 12000);
+    }
+  }, [id, recording]);
+
   // ✅ NEW: fetch real participants from DB
   const fetchDbParticipants = useCallback(async () => {
     if (!id) return;
@@ -136,9 +205,183 @@ const LiveSessionControls = () => {
     }
   }, [id]);
 
+  // useEffect(() => {
+  //   if (!id) return;
+  //   const serverUrl = import.meta.env.VITE_LIVEKIT_URL || "ws://localhost:7880";
+
+  //   const start = async () => {
+  //     let token;
+  //     let room_name;
+
+  //     try {
+  //       const saved = sessionStorage.getItem("call_state");
+  //       const saved_parsed = saved ? JSON.parse(saved) : null;
+
+  //       if (saved_parsed?.token) {
+  //         token = saved_parsed.token;
+  //         room_name = saved_parsed.room;
+  //       } else {
+  //         const res = await startLiveSessionWithToken(id);
+  //         token = res?.data?.token;
+  //         room_name = res?.data?.room;
+  //         setSessionTitle(res?.data?.title || `Session ${id}`);
+  //       }
+
+  //       if (!token) {
+  //         console.error("No token returned");
+  //         return;
+  //       }
+  //     } catch (err) {
+  //       console.error("startLiveSessionWithToken failed:", err);
+  //       return;
+  //     }
+
+  //     const room = new Room({ adaptiveStream: true, dynacast: true });
+  //     roomRef.current = room;
+
+  //     try {
+  //       await room.connect(serverUrl, token);
+  //       sessionStorage.removeItem("call_state");
+  //       setConnected(true);
+  //       refreshParticipants();
+
+  //       // ✅ NEW: Fetch DB participants immediately on connect, then poll every 5s
+  //       fetchDbParticipants();
+  //       participantPollRef.current = setInterval(fetchDbParticipants, 5000);
+
+  //       // Auto-end poll every 20s
+  //       const token_for_poll =
+  //         localStorage.getItem("token") ||
+  //         localStorage.getItem("lms_token") ||
+  //         localStorage.getItem("accessToken") ||
+  //         (() => {
+  //           try {
+  //             return JSON.parse(localStorage.getItem("lms_user") || "{}")
+  //               ?.token;
+  //           } catch {
+  //             return null;
+  //           }
+  //         })();
+
+  //       autoEndPollRef.current = setInterval(async () => {
+  //         try {
+  //           const res = await fetch(
+  //             `${import.meta.env.VITE_API_BASE_URL || "http://localhost:9000"}/api/live-sessions/${id}`,
+  //             {
+  //               headers: token_for_poll
+  //                 ? { Authorization: `Bearer ${token_for_poll}` }
+  //                 : {},
+  //             },
+  //           );
+  //           if (!res.ok) return;
+  //           const data = await res.json();
+  //           if (data.status === "ENDED") {
+  //             clearInterval(autoEndPollRef.current);
+  //             setAutoEndWarning(true);
+  //             setTimeout(() => {
+  //               roomRef.current?.disconnect();
+  //               navigate("/trainer/live");
+  //             }, 3000);
+  //           }
+  //         } catch (_) {
+  //           // silently ignore network errors during poll
+  //         }
+  //       }, 20000);
+  //     } catch (err) {
+  //       console.error("LiveKit connect failed:", err);
+  //       return;
+  //     }
+
+  //     try {
+  //       const tracks = await createLocalTracks({ audio: true, video: true });
+  //       for (const track of tracks) {
+  //         await room.localParticipant.publishTrack(track);
+  //         if (track.kind === Track.Kind.Video) {
+  //           localVideoTrackRef.current = track;
+  //           if (localPreviewRef.current) {
+  //             const el = track.attach();
+  //             Object.assign(el.style, {
+  //               width: "100%",
+  //               height: "100%",
+  //               objectFit: "cover",
+  //               display: "block",
+  //               transform: "scaleX(-1)",
+  //             });
+  //             localPreviewRef.current.innerHTML = "";
+  //             localPreviewRef.current.appendChild(el);
+  //           }
+  //         }
+  //         if (track.kind === Track.Kind.Audio)
+  //           localAudioTrackRef.current = track;
+  //       }
+  //     } catch (err) {
+  //       console.error("createLocalTracks failed:", err);
+  //     }
+
+  //     room.remoteParticipants.forEach((participant) => {
+  //       participant.trackPublications.forEach((pub) => {
+  //         if (pub.isSubscribed && pub.track)
+  //           attachTrack(pub.track, remoteGridRef.current);
+  //       });
+  //     });
+
+  //     room.on(RoomEvent.TrackSubscribed, (track) =>
+  //       attachTrack(track, remoteGridRef.current),
+  //     );
+  //     room.on(RoomEvent.TrackUnsubscribed, (track) =>
+  //       track.detach().forEach((el) => el.remove()),
+  //     );
+  //     room.on(RoomEvent.ParticipantConnected, (p) => {
+  //       refreshParticipants();
+  //       // ✅ NEW: also refresh DB list when someone joins via WebRTC
+  //       fetchDbParticipants();
+  //       pushSystem(`${p.name || p.identity} joined`);
+  //     });
+  //     room.on(RoomEvent.ParticipantDisconnected, (p) => {
+  //       refreshParticipants();
+  //       pushSystem(`${p.name || p.identity} left`);
+  //     });
+  //     room.on(RoomEvent.DataReceived, (payload, participant) => {
+  //       try {
+  //         const decoded = new TextDecoder().decode(payload);
+  //         const msg = JSON.parse(decoded);
+  //         if (msg.text)
+  //           setMessages((prev) => [
+  //             ...prev,
+  //             {
+  //               id: Date.now(),
+  //               user: participant?.name || participant?.identity || "Student",
+  //               text: msg.text,
+  //               time: getTime(),
+  //               self: false,
+  //             },
+  //           ]);
+  //       } catch (_) {}
+  //     });
+  //     room.on(RoomEvent.Disconnected, () => setConnected(false));
+  //   };
+
+  //   start();
+
+  //   return () => {
+  //     if (autoEndPollRef.current) clearInterval(autoEndPollRef.current);
+  //     // ✅ NEW: clear participant poll on unmount
+  //     if (participantPollRef.current) clearInterval(participantPollRef.current);
+  //     roomRef.current?.disconnect();
+  //   };
+  // }, [id]);
+
   useEffect(() => {
     if (!id) return;
     const serverUrl = import.meta.env.VITE_LIVEKIT_URL || "ws://localhost:7880";
+
+    // ✅ Synchronous ref guard — checked before any await, so React
+    // StrictMode's dev double-mount (or any fast double-invoke) can only
+    // ever run start() once per real mount.
+    if (startedRef.current) {
+      return;
+    }
+    startedRef.current = true;
 
     const start = async () => {
       let token;
@@ -160,10 +403,12 @@ const LiveSessionControls = () => {
 
         if (!token) {
           console.error("No token returned");
+          startedRef.current = false; // allow retry
           return;
         }
       } catch (err) {
         console.error("startLiveSessionWithToken failed:", err);
+        startedRef.current = false; // allow retry on failure
         return;
       }
 
@@ -176,11 +421,9 @@ const LiveSessionControls = () => {
         setConnected(true);
         refreshParticipants();
 
-        // ✅ NEW: Fetch DB participants immediately on connect, then poll every 5s
         fetchDbParticipants();
         participantPollRef.current = setInterval(fetchDbParticipants, 5000);
 
-        // Auto-end poll every 20s
         const token_for_poll =
           localStorage.getItem("token") ||
           localStorage.getItem("lms_token") ||
@@ -220,6 +463,7 @@ const LiveSessionControls = () => {
         }, 20000);
       } catch (err) {
         console.error("LiveKit connect failed:", err);
+        startedRef.current = false; // allow retry on failure
         return;
       }
 
@@ -264,7 +508,6 @@ const LiveSessionControls = () => {
       );
       room.on(RoomEvent.ParticipantConnected, (p) => {
         refreshParticipants();
-        // ✅ NEW: also refresh DB list when someone joins via WebRTC
         fetchDbParticipants();
         pushSystem(`${p.name || p.identity} joined`);
       });
@@ -296,9 +539,11 @@ const LiveSessionControls = () => {
 
     return () => {
       if (autoEndPollRef.current) clearInterval(autoEndPollRef.current);
-      // ✅ NEW: clear participant poll on unmount
       if (participantPollRef.current) clearInterval(participantPollRef.current);
       roomRef.current?.disconnect();
+      // ✅ Reset on genuine unmount so a real remount (navigating away and
+      // back, e.g.) is able to start a fresh session normally.
+      startedRef.current = false;
     };
   }, [id]);
 
@@ -491,12 +736,37 @@ const LiveSessionControls = () => {
             {/* ✅ UPDATED: show real DB count instead of LiveKit count */}
             <span>{activeDbParticipants.length} Participants</span>
           </div>
-          <button
+          {/* <button
             style={{ ...S.recBtn, ...(recording ? S.recBtnOn : S.recBtnOff) }}
             onClick={() => setRecording((r) => !r)}
           >
             <FaDotCircle size={10} /> {recording ? "Recording" : "Record"}
+          </button> */}
+          <button
+            style={{
+              ...S.recBtn,
+              ...(recording ? S.recBtnOn : S.recBtnOff),
+              opacity: recToggling ? 0.6 : 1,
+              cursor: recToggling ? "not-allowed" : "pointer",
+            }}
+            onClick={toggleRecording}
+            disabled={recToggling}
+          >
+            <FaDotCircle size={10} />{" "}
+            {recToggling ? "Please wait…" : recording ? "Recording" : "Record"}
           </button>
+          {recError && (
+            <span
+              style={{
+                fontSize: 10,
+                color: "#f87171",
+                marginLeft: 4,
+                fontFamily: "'Poppins',sans-serif",
+              }}
+            >
+              ⚠️ {recError}
+            </span>
+          )}
           <button style={S.endBtn} onClick={handleEndSession}>
             <FaPhoneSlash size={12} /> End Session
           </button>
@@ -705,8 +975,7 @@ const LiveSessionControls = () => {
                       <div
                         style={{
                           ...S.pAv,
-                          background:
-                            "linear-gradient(135deg,#8b5cf6,#ec4899)",
+                          background: "linear-gradient(135deg,#8b5cf6,#ec4899)",
                         }}
                       >
                         {(p.studentEmail?.[0] || "S").toUpperCase()}

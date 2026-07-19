@@ -186,6 +186,11 @@ const adminMenus = [
     path: "/admin/organisation-overview",
   },
   {
+    name: "Assessment System",
+    icon: ClipboardCheck,
+    path: "/admin/assessment-system",
+  },
+  {
     name: "Course Management", icon: BookOpen,
     children: [
       { name: "All Courses", path: "/admin/courses", icon: BookOpen },
@@ -234,7 +239,13 @@ const adminMenus = [
       { name: "Usage Analytics",  path: "/admin/usage",            icon: LineChart },
       { name: "Skill Analytics",  path: "/admin/skill-analytics",  icon: Brain },
       { name: "Feedback Review",  path: "/admin/feedback-review",  icon: MessageCircleQuestion },
+      {
+        name: "Attendance",
+        path: "/admin/attendance",
+        icon: CalendarDays,
+      },
       { name: "Settings",         path: "/admin/settings",         icon: Settings },
+
     ],
   },
 ];

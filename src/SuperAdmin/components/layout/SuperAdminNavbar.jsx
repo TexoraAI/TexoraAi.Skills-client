@@ -57,6 +57,12 @@ const NAV = [
         permission: PERMISSIONS.VIEW_ORGANIZATIONS,
       },
       {
+        label: "Assessment System",
+        path: "/superadmin/assessment-system",
+        icon: ic.approvals, // clipboard-checkmark path, already defined in `ic`
+        permission: PERMISSIONS.VIEW_ORGANIZATIONS, // reuse, or swap for a dedicated permission if you have one
+      },
+      {
         label: "Batch Management", // ✅ ADD THIS
         path: "/superadmin/batch-control", // ✅ matches App.jsx route
         icon: ic.permissions, // reuse any icon, or add a new one
@@ -73,6 +79,12 @@ const NAV = [
         path: "/superadmin/feedback-review",
         icon: ic.approvals, // reuses the checkmark-circle path already defined in `ic`
         permission: PERMISSIONS.VIEW_ANALYTICS, // swap for whatever permission gates feedback in your setup
+      },
+      {
+        label: "Attendance Review",
+        path: "/superadmin/attendance-review",
+        icon: ic.approvals,
+        permission: PERMISSIONS.VIEW_ANALYTICS,
       },
 
       {

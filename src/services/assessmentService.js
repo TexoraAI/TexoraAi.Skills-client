@@ -86,6 +86,13 @@ export const hasAttempted = (quizId) =>
 
 export const getMyQuizHistory = () => API.get("/attempts/my");
 
+/**
+ * Admin/Trainer: get every attempt (studentEmail + score) for one quiz.
+ * GET /attempts/quiz/:quizId
+ */
+export const getQuizAttemptsByQuizId = (quizId) =>
+  API.get(`/attempts/quiz/${quizId}`);
+
 /* ========================================================= */
 /* ===================== ASSIGNMENTS ======================== */
 /* ========================================================= */
@@ -395,6 +402,115 @@ export const markStudyPlanProgress = (progressData) =>
   API.post("/v1/study-plans/progress/mark", progressData);
 
 /* ========================================================= */
+/* ========= 📊 ADMIN / SUPER ADMIN REPORTS ================ */
+/* ========================================================= */
+
+/**
+ * Tenant Admin: quiz report scoped to their org
+ * GET /quizzes/admin
+ */
+export const getQuizAdminReport = () => API.get("/quizzes/admin");
+
+/**
+ * Super Admin: quiz report for standalone (no-org) trainers/students
+ * GET /quizzes/superadmin
+ */
+export const getQuizSuperAdminReport = () => API.get("/quizzes/superadmin");
+
+/**
+ * Tenant Admin: assignment report scoped to their org
+ * GET /assignments/admin
+ */
+export const getAssignmentAdminReport = () => API.get("/assignments/admin");
+
+/**
+ * Super Admin: assignment report for standalone (no-org) trainers/students
+ * GET /assignments/superadmin
+ */
+export const getAssignmentSuperAdminReport = () =>
+  API.get("/assignments/superadmin");
+
+/**
+ * Tenant Admin: coding problem report scoped to their org
+ * GET /v1/problems/admin
+ */
+export const getCodingProblemAdminReport = () => API.get("/v1/problems/admin");
+
+/**
+ * Super Admin: coding problem report for standalone (no-org) trainers/students
+ * GET /v1/problems/superadmin
+ */
+export const getCodingProblemSuperAdminReport = () =>
+  API.get("/v1/problems/superadmin");
+
+/**
+ * Tenant Admin: study plan report scoped to their org
+ * GET /v1/study-plans/admin
+ */
+export const getStudyPlanAdminReport = () => API.get("/v1/study-plans/admin");
+
+/**
+ * Super Admin: study plan report for standalone (no-org) trainers/students
+ * GET /v1/study-plans/superadmin
+ */
+export const getStudyPlanSuperAdminReport = () =>
+  API.get("/v1/study-plans/superadmin");
+
+//searet
+/**
+ * Admin/Trainer: see all batches a coding problem is assigned to.
+ * GET /v1/assignments/problem/:problemId
+ */
+export const getAssignmentsByProblemId = (problemId) =>
+  API.get(`/v1/assignments/problem/${problemId}`);
+
+/**
+ * Tenant Admin: get a study plan's full sections/items (bypasses trainer-ownership check).
+ * GET /v1/study-plans/admin/:id/items
+ */
+export const getStudyPlanItemsAdmin = (id) =>
+  API.get(`/v1/study-plans/admin/${id}/items`);
+
+export const getAssignmentsByProblemIdSuperAdmin = (problemId) =>
+  API.get(`/v1/assignments/superadmin/problem/${problemId}`);
+
+export const getStudyPlanItemsSuperAdmin = (id) =>
+  API.get(`/v1/study-plans/superadmin/${id}/items`);
+
+/* ========================================================= */
+/* ========= 🚩 ASSESSMENT FEATURE FLAGS =================== */
+/* ========================================================= */
+
+/**
+ * Org-scoped: get feature flags for an organization.
+ * Used by OrganizationDetailsPage -> FeatureControlsTab
+ * GET /assessment-feature-flags/org/:organizationId
+ */
+export const getAssessmentOrgFeatureFlags = (organizationId) =>
+  API.get(`/assessment-feature-flags/org/${organizationId}`);
+
+/**
+ * Org-scoped: update feature flags for an organization.
+ * Body: { enabled, features: { create_quiz: true, attempt_quiz: false, ... } }
+ * PUT /assessment-feature-flags/org/:organizationId
+ */
+export const updateAssessmentOrgFeatureFlags = (organizationId, dto) =>
+  API.put(`/assessment-feature-flags/org/${organizationId}`, dto);
+
+/**
+ * Individual-scoped: get feature flags for an org-less trainer/student.
+ * GET /assessment-feature-flags/individual?email=...
+ */
+export const getAssessmentIndividualFeatureFlags = (email) =>
+  API.get("/assessment-feature-flags/individual", { params: { email } });
+
+/**
+ * Individual-scoped: update feature flags for an org-less trainer/student.
+ * PUT /assessment-feature-flags/individual?email=...
+ */
+export const updateAssessmentIndividualFeatureFlags = (email, dto) =>
+  API.put("/assessment-feature-flags/individual", dto, { params: { email } });
+/* ========================================================= */
 /* 🔥 DEFAULT EXPORT (FIXED) */
 /* ========================================================= */
 
@@ -410,6 +526,7 @@ export default {
   getAttemptById,
   hasAttempted,
   getMyQuizHistory,
+  getQuizAttemptsByQuizId,
   getTrainerQuizzes,
   getStudentQuizzes,
   createAssignment,
@@ -465,4 +582,26 @@ export default {
   getStudentStudyPlans,
   getStudentStudyPlanById,
   markStudyPlanProgress,
+
+  // ── Admin / Super Admin Reports ─────────────────────────
+  getQuizAdminReport,
+  getQuizSuperAdminReport,
+  getAssignmentAdminReport,
+  getAssignmentSuperAdminReport,
+  getCodingProblemAdminReport,
+  getCodingProblemSuperAdminReport,
+  getStudyPlanAdminReport,
+  getStudyPlanSuperAdminReport,
+
+  //separet
+  getAssignmentsByProblemId,
+  getStudyPlanItemsAdmin,
+  getStudyPlanItemsSuperAdmin,
+  getAssignmentsByProblemIdSuperAdmin,
+
+  // ── Assessment Feature Flags ────────────────────────────
+  getAssessmentOrgFeatureFlags,
+  updateAssessmentOrgFeatureFlags,
+  getAssessmentIndividualFeatureFlags,
+  updateAssessmentIndividualFeatureFlags,
 };

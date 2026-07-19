@@ -1,5 +1,19 @@
+// //src//student//attendance.jsx--->student file
 // import React, { useEffect, useRef, useState, useCallback } from "react";
-// import { Calendar, CheckCircle, XCircle, AlertCircle, TrendingUp, BarChart3, ChevronDown, Check } from "lucide-react";
+// import {
+//   Calendar,
+//   CheckCircle,
+//   XCircle,
+//   AlertCircle,
+//   TrendingUp,
+//   BarChart3,
+//   ChevronDown,
+//   Check,
+//   Sparkles,
+//   Activity,
+//   Download,
+//   Filter,
+// } from "lucide-react";
 // import attendanceService from "../services/attendanceService";
 
 // const STYLES = `
@@ -12,14 +26,62 @@
 
 // .sa{font-family:'Poppins',sans-serif;min-height:100vh;background:var(--bg);color:var(--tx);}
 // .sa-top{padding:24px 24px 20px;max-width:1400px;margin:0 auto;}
-// .sa-top-row{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px;}
-// .sa-top-l{display:flex;align-items:center;gap:14px;}
-// .sa-top-ico{width:52px;height:52px;border-radius:14px;background:rgba(34,211,238,.10);border:1px solid rgba(34,211,238,.18);display:flex;align-items:center;justify-content:center;color:var(--c1);flex-shrink:0;}
-// .sa-bdg{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:50px;border:1px solid var(--bd);background:rgba(34,211,238,.08);color:var(--c1);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;}
-// .sa-h1{font-size:24px;font-weight:800;color:var(--tx);margin:0 0 2px;}
-// .sa-sub{font-size:13px;color:var(--mu);margin:0;}
 
-// /* ── CUSTOM DROPDOWN ── fully themed, no portal ── */
+// /* ── HERO SECTION ── overflow visible so dropdown shows ── */
+// .sa-hero{
+//   border-radius:24px;
+//   padding:30px 36px;
+//   background:var(--card);
+//   border:1px solid var(--bd);
+//   position:relative;
+//   overflow:visible;        /* ← KEY FIX: was hidden, dropdown was clipped */
+//   margin-bottom:20px;
+//   box-shadow:var(--sh);
+// }
+// .sa-dk .sa-hero{background:#141414;border-color:rgba(255,255,255,0.07);}
+
+// /* grid & glow clipped inside a pseudo-wrapper so border-radius still applies visually */
+// .sa-hero-bg{
+//   position:absolute;inset:0;
+//   border-radius:24px;
+//   overflow:hidden;
+//   pointer-events:none;
+//   z-index:0;
+// }
+// .sa-hero-grid{
+//   position:absolute;inset:0;
+//   opacity:0.025;
+//   background-image:linear-gradient(rgba(0,0,0,0.12) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,0.12) 1px,transparent 1px);
+//   background-size:40px 40px;
+// }
+// .sa-dk .sa-hero-grid{opacity:0.04;background-image:linear-gradient(rgba(255,255,255,0.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.5) 1px,transparent 1px);}
+// .sa-hero-glow{
+//   position:absolute;top:-30%;left:40%;
+//   width:300px;height:200px;
+//   background:radial-gradient(ellipse,rgba(34,211,238,0.06),transparent 70%);
+// }
+// .sa-hero-inner{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+// .sa-hero-eyebrow{display:flex;align-items:center;gap:7px;margin-bottom:10px;}
+// .sa-hero-eyebrow-txt{font-size:9px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--mu);font-family:'Poppins',sans-serif;}
+// .sa-hero-title{font-family:'Poppins',sans-serif;font-weight:700;font-size:clamp(1.5rem,3vw,2.2rem);color:#22d3ee;margin:0 0 6px;line-height:1.1;letter-spacing:-0.02em;}
+// .sa-hero-desc{font-size:12px;color:var(--mu);margin-top:7px;font-weight:500;font-family:'Poppins',sans-serif;}
+// .sa-hero-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+// .sa-hero-stats{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.04);border:1px solid var(--bd);border-radius:12px;padding:8px 16px;font-size:11px;font-weight:600;font-family:'Poppins',sans-serif;color:var(--mu);}
+// .sa-hero-stats-div{width:1px;height:14px;background:var(--bd);}
+// .sa-hero-act{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.04);border:1px solid var(--bd);border-radius:10px;padding:8px 14px;}
+// .sa-hero-dots{display:flex;gap:3px;align-items:flex-end;height:14px;}
+// .sa-hero-dot{width:3px;border-radius:2px;background:var(--mu);display:block;}
+// .sa-live-badge{display:flex;align-items:center;gap:7px;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.3);border-radius:999px;padding:8px 18px;color:var(--c1);font-size:11px;font-weight:700;letter-spacing:.1em;font-family:'Poppins',sans-serif;}
+// .sa-live-dot{width:6px;height:6px;border-radius:50%;background:var(--c1);display:inline-block;}
+
+// @keyframes sa-blink{0%,100%{opacity:1}50%{opacity:0.15}}
+// .sa-d1{animation:sa-blink 1.6s ease infinite;}
+// .sa-d2{animation:sa-blink 1.6s 0.3s ease infinite;}
+// .sa-d3{animation:sa-blink 1.6s 0.6s ease infinite;}
+// @keyframes sa-pulse-ring{0%{box-shadow:0 0 0 0 rgba(34,211,238,0.5)}70%{box-shadow:0 0 0 8px rgba(34,211,238,0)}100%{box-shadow:0 0 0 0 rgba(34,211,238,0)}}
+// .sa-live-badge{animation:sa-pulse-ring 2.2s ease-out infinite;}
+
+// /* ── CUSTOM DROPDOWN ── */
 // .sa-month-wrap{display:flex;align-items:center;gap:10px;position:relative;}
 // .sa-month-ico{width:38px;height:38px;border-radius:11px;background:rgba(34,211,238,.10);border:1px solid rgba(34,211,238,.15);display:flex;align-items:center;justify-content:center;color:var(--c1);flex-shrink:0;}
 // .sa-dd{position:relative;min-width:185px;font-family:'Poppins',sans-serif;}
@@ -28,7 +90,19 @@
 // .sa-dd-btn.open{border-color:var(--c1);box-shadow:0 0 0 3px rgba(34,211,238,.12);}
 // .sa-dd-chev{flex-shrink:0;color:var(--mu);transition:transform .2s;}
 // .sa-dd-btn.open .sa-dd-chev{transform:rotate(180deg);}
-// .sa-dd-menu{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:9999;background:var(--card);border:1px solid var(--bd);border-radius:14px;box-shadow:var(--shl);overflow:hidden;max-height:256px;overflow-y:auto;animation:sa-fadein .12s ease;}
+// .sa-dd-menu{
+//   position:fixed;          /* ← FIXED positioning: escapes all overflow:hidden parents */
+//   z-index:99999;
+//   background:var(--card);
+//   border:1px solid var(--bd);
+//   border-radius:14px;
+//   box-shadow:var(--shl);
+//   overflow:hidden;
+//   max-height:256px;
+//   overflow-y:auto;
+//   animation:sa-fadein .12s ease;
+//   min-width:185px;
+// }
 // @keyframes sa-fadein{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
 // .sa-dd-menu::-webkit-scrollbar{width:4px;}
 // .sa-dd-menu::-webkit-scrollbar-thumb{background:var(--bd);border-radius:4px;}
@@ -94,6 +168,11 @@
 // .sa-period-ico{width:36px;height:36px;border-radius:10px;background:rgba(34,211,238,.10);border:1px solid rgba(34,211,238,.15);display:flex;align-items:center;justify-content:center;color:var(--c1);flex-shrink:0;}
 // .sa-period-name{font-size:13px;font-weight:700;color:var(--tx);margin:0 0 2px;}
 // .sa-period-sub{font-size:11px;color:var(--mu);margin:0;}
+// .sa-filter-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px 20px;border-bottom:1px solid var(--bd);background:var(--bg);}
+// .sa-filter-sel,.sa-filter-date{padding:8px 10px;border-radius:9px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-family:'Poppins',sans-serif;font-size:12px;outline:none;}
+// .sa-filter-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:9px;border:none;font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:opacity .2s,transform .15s;}
+// .sa-filter-btn:hover{opacity:.87;transform:translateY(-1px);}
+// .sa-filter-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 // `;
 
 // if (!document.getElementById("sa-at-st")) {
@@ -103,23 +182,38 @@
 //   document.head.appendChild(t);
 // }
 
-// const isDark = () =>
+// const isDarkFn = () =>
 //   document.documentElement.classList.contains("dark") ||
 //   document.body.classList.contains("dark") ||
 //   window.matchMedia("(prefers-color-scheme: dark)").matches;
 
-// const formatDateDDMMYYYY = d => {
+// const formatDateDDMMYYYY = (d) => {
 //   const dt = new Date(d);
-//   return `${String(dt.getDate()).padStart(2,"0")}-${String(dt.getMonth()+1).padStart(2,"0")}-${dt.getFullYear()}`;
+//   return `${String(dt.getDate()).padStart(2, "0")}-${String(dt.getMonth() + 1).padStart(2, "0")}-${dt.getFullYear()}`;
 // };
-// const isToday = d => {
-//   const t = new Date(), dt = new Date(d);
-//   return dt.getDate()===t.getDate() && dt.getMonth()===t.getMonth() && dt.getFullYear()===t.getFullYear();
+// const isTodayFn = (d) => {
+//   const t = new Date(),
+//     dt = new Date(d);
+//   return (
+//     dt.getDate() === t.getDate() &&
+//     dt.getMonth() === t.getMonth() &&
+//     dt.getFullYear() === t.getFullYear()
+//   );
 // };
 
 // const monthMap = {
-//   January:1,February:2,March:3,April:4,May:5,June:6,
-//   July:7,August:8,September:9,October:10,November:11,December:12,
+//   January: 1,
+//   February: 2,
+//   March: 3,
+//   April: 4,
+//   May: 5,
+//   June: 6,
+//   July: 7,
+//   August: 8,
+//   September: 9,
+//   October: 10,
+//   November: 11,
+//   December: 12,
 // };
 
 // const STAT_GRADS = [
@@ -129,34 +223,67 @@
 //   "linear-gradient(135deg,#1e3a8a,#2563eb)",
 // ];
 
-// /* ─── Custom Dropdown — no portal, inherits CSS vars perfectly ─────────── */
+// /* ─── Custom Dropdown — position:fixed menu to escape overflow:hidden ─── */
 // const MonthDropdown = ({ value, onChange, year }) => {
 //   const [open, setOpen] = useState(false);
+//   const [menuStyle, setMenuStyle] = useState({});
+//   const btnRef = useRef(null);
 //   const ref = useRef(null);
 //   const months = Object.keys(monthMap);
 
+//   // Calculate fixed position from button's screen coords
+//   const openMenu = () => {
+//     if (btnRef.current) {
+//       const rect = btnRef.current.getBoundingClientRect();
+//       setMenuStyle({
+//         top: rect.bottom + 6,
+//         left: rect.left,
+//         width: rect.width,
+//       });
+//     }
+//     setOpen((o) => !o);
+//   };
+
 //   useEffect(() => {
-//     const handler = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+//     const handler = (e) => {
+//       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+//     };
 //     document.addEventListener("mousedown", handler);
 //     return () => document.removeEventListener("mousedown", handler);
 //   }, []);
 
 //   return (
 //     <div className="sa-dd" ref={ref}>
-//       <div className={`sa-dd-btn${open ? " open" : ""}`} onClick={() => setOpen(o => !o)}>
-//         <span>{value} {year}</span>
+//       <div
+//         ref={btnRef}
+//         className={`sa-dd-btn${open ? " open" : ""}`}
+//         onClick={openMenu}
+//       >
+//         <span>
+//           {value} {year}
+//         </span>
 //         <ChevronDown size={15} className="sa-dd-chev" />
 //       </div>
 //       {open && (
-//         <div className="sa-dd-menu">
-//           {months.map(m => (
+//         <div className="sa-dd-menu" style={menuStyle}>
+//           {months.map((m) => (
 //             <div
 //               key={m}
 //               className={`sa-dd-opt${value === m ? " sel" : ""}`}
-//               onClick={() => { onChange(m); setOpen(false); }}
+//               onClick={() => {
+//                 onChange(m);
+//                 setOpen(false);
+//               }}
 //             >
-//               <span>{m} {year}</span>
-//               {value === m && <Check size={13} style={{color:"var(--c1)",flexShrink:0}}/>}
+//               <span>
+//                 {m} {year}
+//               </span>
+//               {value === m && (
+//                 <Check
+//                   size={13}
+//                   style={{ color: "var(--c1)", flexShrink: 0 }}
+//                 />
+//               )}
 //             </div>
 //           ))}
 //         </div>
@@ -165,103 +292,289 @@
 //   );
 // };
 
-// /* ─── Main ───────────────────────────────────────────────────────────────── */
+// /* ─── Main ─────────────────────────────────────────────────────────────── */
 // const StudentAttendance = () => {
 //   const [month, setMonth] = useState("February");
 //   const [attendanceData, setAttendanceData] = useState([]);
 //   const [loading, setLoading] = useState(false);
-//   const [dark, setDark] = useState(isDark);
+//   const [dark, setDark] = useState(isDarkFn);
 //   const year = new Date().getFullYear();
 //   const [leftWidth, setLeftWidth] = useState(62);
+
+//   // ── NEW — History filters + Excel download (additive) ──
+//   const [useFilter, setUseFilter] = useState(false); // toggle between monthly view and filtered history
+//   const [filterType, setFilterType] = useState("THIS_MONTH");
+//   const [filterStartDate, setFilterStartDate] = useState("");
+//   const [filterEndDate, setFilterEndDate] = useState("");
+//   const [filterLoading, setFilterLoading] = useState(false);
+//   const [filterError, setFilterError] = useState(null);
+//   const [downloading, setDownloading] = useState(false);
 //   const isDragging = useRef(false);
 //   const containerRef = useRef(null);
 
 //   useEffect(() => {
-//     const o = new MutationObserver(() => setDark(isDark()));
-//     o.observe(document.documentElement, { attributes:true, attributeFilter:["class"] });
-//     o.observe(document.body, { attributes:true, attributeFilter:["class"] });
+//     const o = new MutationObserver(() => setDark(isDarkFn()));
+//     o.observe(document.documentElement, {
+//       attributes: true,
+//       attributeFilter: ["class"],
+//     });
+//     o.observe(document.body, { attributes: true, attributeFilter: ["class"] });
 //     return () => o.disconnect();
 //   }, []);
 
-//   const onMouseDown = useCallback(() => { isDragging.current=true; document.body.style.cursor="col-resize"; document.body.style.userSelect="none"; }, []);
-//   const onMouseMove = useCallback(e => {
+//   const onMouseDown = useCallback(() => {
+//     isDragging.current = true;
+//     document.body.style.cursor = "col-resize";
+//     document.body.style.userSelect = "none";
+//   }, []);
+
+//   const onMouseMove = useCallback((e) => {
 //     if (!isDragging.current || !containerRef.current) return;
 //     const rect = containerRef.current.getBoundingClientRect();
 //     const nl = ((e.clientX - rect.left) / rect.width) * 100;
 //     if (nl > 30 && nl < 80) setLeftWidth(nl);
 //   }, []);
-//   const onMouseUp = useCallback(() => { isDragging.current=false; document.body.style.cursor=""; document.body.style.userSelect=""; }, []);
+
+//   const onMouseUp = useCallback(() => {
+//     isDragging.current = false;
+//     document.body.style.cursor = "";
+//     document.body.style.userSelect = "";
+//   }, []);
 
 //   useEffect(() => {
 //     window.addEventListener("mousemove", onMouseMove);
 //     window.addEventListener("mouseup", onMouseUp);
-//     return () => { window.removeEventListener("mousemove", onMouseMove); window.removeEventListener("mouseup", onMouseUp); };
+//     return () => {
+//       window.removeEventListener("mousemove", onMouseMove);
+//       window.removeEventListener("mouseup", onMouseUp);
+//     };
 //   }, [onMouseMove, onMouseUp]);
 
-//   useEffect(() => { loadAttendance(); }, [month]);
+//   useEffect(() => {
+//     loadAttendance();
+//   }, [month]);
 
 //   const loadAttendance = async () => {
 //     setLoading(true);
 //     try {
-//       const res = await attendanceService.getMonthlyAttendance(year, monthMap[month]);
-//       setAttendanceData(res.data.map(a => ({
-//         rawDate: a.attendanceDate,
-//         date: formatDateDDMMYYYY(a.attendanceDate),
-//         isToday: isToday(a.attendanceDate),
-//         status: a.status==="PRESENT" ? "Present" : a.status==="ABSENT" ? "Absent" : "Late",
-//       })));
-//     } catch (e) { console.error(e); setAttendanceData([]); }
-//     finally { setLoading(false); }
+//       const res = await attendanceService.getMonthlyAttendance(
+//         year,
+//         monthMap[month],
+//       );
+//       setAttendanceData(
+//         res.data.map((a) => ({
+//           rawDate: a.attendanceDate,
+//           date: formatDateDDMMYYYY(a.attendanceDate),
+//           isToday: isTodayFn(a.attendanceDate),
+//           status:
+//             a.status === "PRESENT"
+//               ? "Present"
+//               : a.status === "ABSENT"
+//                 ? "Absent"
+//                 : "Late",
+//         })),
+//       );
+//     } catch (e) {
+//       console.error(e);
+//       setAttendanceData([]);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+//   // ── NEW — fetch filtered attendance history (replaces monthly view when active) ──
+//   const loadFilteredHistory = async () => {
+//     if (filterType === "CUSTOM" && (!filterStartDate || !filterEndDate)) {
+//       setFilterError("Select both start and end date for a custom range.");
+//       return;
+//     }
+//     setFilterLoading(true);
+//     setFilterError(null);
+//     try {
+//       const r = await attendanceService.getStudentHistory({
+//         filterType,
+//         startDate: filterType === "CUSTOM" ? filterStartDate : undefined,
+//         endDate: filterType === "CUSTOM" ? filterEndDate : undefined,
+//       });
+//       setAttendanceData(
+//         (r.data.records || []).map((a) => ({
+//           rawDate: a.attendanceDate,
+//           date: formatDateDDMMYYYY(a.attendanceDate),
+//           isToday: isTodayFn(a.attendanceDate),
+//           status:
+//             a.status === "PRESENT"
+//               ? "Present"
+//               : a.status === "ABSENT"
+//                 ? "Absent"
+//                 : "Late",
+//         })),
+//       );
+//     } catch (e) {
+//       console.error(e);
+//       setFilterError("Failed to load filtered history.");
+//     } finally {
+//       setFilterLoading(false);
+//     }
 //   };
 
-//   const totalDays   = attendanceData.length;
-//   const presentDays = attendanceData.filter(a => a.status==="Present").length;
-//   const lateDays    = attendanceData.filter(a => a.status==="Late").length;
-//   const absentDays  = attendanceData.filter(a => a.status==="Absent").length;
-//   const pct         = totalDays > 0 ? (((presentDays+lateDays)/totalDays)*100).toFixed(1) : 0;
+//   // ── NEW — download Excel for current filter ──
+//   const handleDownload = async () => {
+//     if (filterType === "CUSTOM" && (!filterStartDate || !filterEndDate)) {
+//       setFilterError("Select both start and end date for a custom range.");
+//       return;
+//     }
+//     setDownloading(true);
+//     setFilterError(null);
+//     try {
+//       const r = await attendanceService.downloadStudentReport({
+//         filterType,
+//         startDate: filterType === "CUSTOM" ? filterStartDate : undefined,
+//         endDate: filterType === "CUSTOM" ? filterEndDate : undefined,
+//       });
+//       const url = window.URL.createObjectURL(new Blob([r.data]));
+//       const link = document.createElement("a");
+//       link.href = url;
+//       link.setAttribute("download", "attendance-report.xlsx");
+//       document.body.appendChild(link);
+//       link.click();
+//       link.remove();
+//       window.URL.revokeObjectURL(url);
+//     } catch (e) {
+//       console.error(e);
+//       setFilterError("Failed to download report.");
+//     } finally {
+//       setDownloading(false);
+//     }
+//   };
+
+//   // Switching back to monthly view (filter toggled off) reloads the monthly data
+//   useEffect(() => {
+//     if (!useFilter) {
+//       loadAttendance();
+//     }
+//     // eslint-disable-next-line react-hooks/exhaustive-deps
+//   }, [useFilter]);
+
+//   const totalDays = attendanceData.length;
+//   const presentDays = attendanceData.filter(
+//     (a) => a.status === "Present",
+//   ).length;
+//   const lateDays = attendanceData.filter((a) => a.status === "Late").length;
+//   const absentDays = attendanceData.filter((a) => a.status === "Absent").length;
+//   const pct =
+//     totalDays > 0
+//       ? (((presentDays + lateDays) / totalDays) * 100).toFixed(1)
+//       : 0;
 
 //   const statCards = [
-//     { icon:<CheckCircle size={16}/>, value:presentDays, label:"Present", grad:STAT_GRADS[0] },
-//     { icon:<AlertCircle size={16}/>, value:lateDays,    label:"Late",    grad:STAT_GRADS[1] },
-//     { icon:<XCircle     size={16}/>, value:absentDays,  label:"Absent",  grad:STAT_GRADS[2] },
-//     { icon:<BarChart3   size={16}/>, value:`${pct}%`,   label:"Rate",    grad:STAT_GRADS[3] },
+//     {
+//       icon: <CheckCircle size={16} />,
+//       value: presentDays,
+//       label: "Present",
+//       grad: STAT_GRADS[0],
+//     },
+//     {
+//       icon: <AlertCircle size={16} />,
+//       value: lateDays,
+//       label: "Late",
+//       grad: STAT_GRADS[1],
+//     },
+//     {
+//       icon: <XCircle size={16} />,
+//       value: absentDays,
+//       label: "Absent",
+//       grad: STAT_GRADS[2],
+//     },
+//     {
+//       icon: <BarChart3 size={16} />,
+//       value: `${pct}%`,
+//       label: "Rate",
+//       grad: STAT_GRADS[3],
+//     },
 //   ];
 
-//   const statusBadge = s => {
-//     if (s==="Present") return <span className="sa-badge sa-badge-present">Present</span>;
-//     if (s==="Late")    return <span className="sa-badge sa-badge-late">Late</span>;
-//     return                    <span className="sa-badge sa-badge-absent">Absent</span>;
+//   const statusBadge = (s) => {
+//     if (s === "Present")
+//       return <span className="sa-badge sa-badge-present">Present</span>;
+//     if (s === "Late")
+//       return <span className="sa-badge sa-badge-late">Late</span>;
+//     return <span className="sa-badge sa-badge-absent">Absent</span>;
 //   };
-//   const statusIcon = s => {
-//     if (s==="Present") return <CheckCircle size={16} style={{color:"var(--c3)"}}/>;
-//     if (s==="Late")    return <AlertCircle size={16} style={{color:"var(--c2)"}}/>;
-//     return                     <XCircle    size={16} style={{color:"var(--cr)"}}/>;
+//   const statusIcon = (s) => {
+//     if (s === "Present")
+//       return <CheckCircle size={16} style={{ color: "var(--c3)" }} />;
+//     if (s === "Late")
+//       return <AlertCircle size={16} style={{ color: "var(--c2)" }} />;
+//     return <XCircle size={16} style={{ color: "var(--cr)" }} />;
 //   };
 
 //   return (
 //     <div className={`sa${dark ? " sa-dk" : ""}`}>
-
 //       <div className="sa-top">
-//         <div className="sa-top-row">
-//           <div className="sa-top-l">
-//             <div className="sa-top-ico"><Calendar size={24}/></div>
+//         {/* ═══ HERO SECTION ═══ */}
+//         <div className="sa-hero">
+//           {/* BG effects in a clipped wrapper — hero card itself is overflow:visible */}
+//           <div className="sa-hero-bg">
+//             <div className="sa-hero-grid" />
+//             <div className="sa-hero-glow" />
+//           </div>
+
+//           <div className="sa-hero-inner">
 //             <div>
-//               <div className="sa-bdg"><Calendar size={10}/> Attendance Overview</div>
-//               <h1 className="sa-h1">Attendance</h1>
-//               <p className="sa-sub">Track your monthly attendance and performance</p>
+//               <div className="sa-hero-eyebrow">
+//                 <Sparkles size={11} color="var(--mu)" />
+//                 <span className="sa-hero-eyebrow-txt">Attendance Tracking</span>
+//               </div>
+//               <h1 className="sa-hero-title">Attendance</h1>
+//               <p className="sa-hero-desc">
+//                 Track your monthly attendance and performance
+//               </p>
+//             </div>
+
+//             <div className="sa-hero-right">
+//               {/* Stats pill */}
+//               <div className="sa-hero-stats">
+//                 <span>{totalDays} days</span>
+//                 <span className="sa-hero-stats-div" />
+//                 <span style={{ color: "var(--c3)", fontWeight: 700 }}>
+//                   {presentDays} present
+//                 </span>
+//                 <span className="sa-hero-stats-div" />
+//                 <span style={{ color: "var(--c1)", fontWeight: 700 }}>
+//                   {pct}% rate
+//                 </span>
+//               </div>
+
+//               {/* Activity bars */}
+//               <div className="sa-hero-act">
+//                 <Activity size={12} color="var(--mu)" />
+//                 <div className="sa-hero-dots">
+//                   <span className="sa-hero-dot sa-d1" style={{ height: 10 }} />
+//                   <span className="sa-hero-dot sa-d2" style={{ height: 14 }} />
+//                   <span className="sa-hero-dot sa-d3" style={{ height: 7 }} />
+//                 </div>
+//               </div>
+
+//               {/* Month Dropdown — fixed-position menu, never clipped */}
+//               <div className="sa-month-wrap">
+//                 <div className="sa-month-ico">
+//                   <Calendar size={16} />
+//                 </div>
+//                 <MonthDropdown value={month} onChange={setMonth} year={year} />
+//               </div>
+
+//               {/* Live badge */}
+//               <div className="sa-live-badge">
+//                 <span className="sa-live-dot" />
+//                 LIVE
+//               </div>
 //             </div>
 //           </div>
-
-//           <div className="sa-month-wrap">
-//             <div className="sa-month-ico"><Calendar size={16}/></div>
-//             {/* Custom dropdown — no shadcn portal — inherits --card/--bd perfectly */}
-//             <MonthDropdown value={month} onChange={setMonth} year={year} />
-//           </div>
 //         </div>
+//         {/* ═══ END HERO ═══ */}
 
 //         <div className="sa-stats">
 //           {statCards.map((s, i) => (
-//             <div key={i} className="sa-stat" style={{background:s.grad}}>
+//             <div key={i} className="sa-stat" style={{ background: s.grad }}>
 //               <div className="sa-sico">{s.icon}</div>
 //               <div className="sa-sv">{s.value}</div>
 //               <div className="sa-sl">{s.label}</div>
@@ -270,27 +583,143 @@
 //         </div>
 //       </div>
 
-//       <div ref={containerRef} className="sa-panels" style={{height:"calc(100vh - 280px)", minHeight:380}}>
-
+//       <div
+//         ref={containerRef}
+//         className="sa-panels"
+//         style={{ height: "calc(100vh - 360px)", minHeight: 380 }}
+//       >
 //         {/* Table */}
-//         <div className="sa-table-panel" style={{width:`${leftWidth}%`}}>
-//           <div className="sa-panel-head">
-//             <BarChart3 size={15} style={{color:"var(--c1)"}}/>
-//             <span className="sa-panel-title">Monthly Attendance — {month} {year}</span>
+//         <div className="sa-table-panel" style={{ width: `${leftWidth}%` }}>
+//           {/* <div className="sa-panel-head">
+//             <BarChart3 size={15} style={{ color: "var(--c1)" }} />
+//             <span className="sa-panel-title">
+//               Monthly Attendance — {month} {year}
+//             </span>
 //           </div>
+//           <div className="sa-table-scroll"> */}
+//           <div
+//             className="sa-panel-head"
+//             style={{ justifyContent: "space-between" }}
+//           >
+//             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+//               <BarChart3 size={15} style={{ color: "var(--c1)" }} />
+//               <span className="sa-panel-title">
+//                 {useFilter
+//                   ? "Filtered Attendance History"
+//                   : `Monthly Attendance — ${month} ${year}`}
+//               </span>
+//             </div>
+//             <button
+//               className="sa-filter-btn"
+//               style={{
+//                 background: useFilter ? "var(--c1)" : "var(--bd)",
+//                 color: useFilter ? "#0a0a0a" : "var(--tx)",
+//               }}
+//               onClick={() => setUseFilter((v) => !v)}
+//             >
+//               <Filter size={13} />{" "}
+//               {useFilter ? "Monthly View" : "Filter & Export"}
+//             </button>
+//           </div>
+
+//           {/* NEW — filter bar, shown only when useFilter is on */}
+//           {useFilter && (
+//             <div className="sa-filter-bar">
+//               <select
+//                 className="sa-filter-sel"
+//                 value={filterType}
+//                 onChange={(e) => setFilterType(e.target.value)}
+//               >
+//                 <option value="TODAY">Today</option>
+//                 <option value="YESTERDAY">Yesterday</option>
+//                 <option value="LAST_7_DAYS">Last 7 Days</option>
+//                 <option value="LAST_14_DAYS">Last 14 Days</option>
+//                 <option value="LAST_30_DAYS">Last 30 Days</option>
+//                 <option value="THIS_WEEK">This Week</option>
+//                 <option value="THIS_MONTH">This Month</option>
+//                 <option value="CUSTOM">Custom Range</option>
+//               </select>
+
+//               {filterType === "CUSTOM" && (
+//                 <>
+//                   <input
+//                     type="date"
+//                     className="sa-filter-date"
+//                     value={filterStartDate}
+//                     onChange={(e) => setFilterStartDate(e.target.value)}
+//                   />
+//                   <input
+//                     type="date"
+//                     className="sa-filter-date"
+//                     value={filterEndDate}
+//                     onChange={(e) => setFilterEndDate(e.target.value)}
+//                   />
+//                 </>
+//               )}
+
+//               <button
+//                 className="sa-filter-btn"
+//                 style={{ background: "var(--c1)", color: "#0a0a0a" }}
+//                 disabled={filterLoading}
+//                 onClick={loadFilteredHistory}
+//               >
+//                 {filterLoading ? "Loading…" : "Search"}
+//               </button>
+//               <button
+//                 className="sa-filter-btn"
+//                 style={{ background: "#a78bfa", color: "#0a0a0a" }}
+//                 disabled={downloading}
+//                 onClick={handleDownload}
+//               >
+//                 <Download size={13} />{" "}
+//                 {downloading ? "Downloading…" : "Download Excel"}
+//               </button>
+
+//               {filterError && (
+//                 <span
+//                   style={{ color: "var(--cr)", fontSize: 11, fontWeight: 600 }}
+//                 >
+//                   {filterError}
+//                 </span>
+//               )}
+//             </div>
+//           )}
+
 //           <div className="sa-table-scroll">
 //             <table className="sa-t">
-//               <thead><tr><th>Date</th><th>Status</th><th>Indicator</th></tr></thead>
+//               <thead>
+//                 <tr>
+//                   <th>Date</th>
+//                   <th>Status</th>
+//                   <th>Indicator</th>
+//                 </tr>
+//               </thead>
 //               <tbody>
-//                 {loading && <tr className="sa-empty-row"><td colSpan={3}>Loading attendance...</td></tr>}
-//                 {!loading && attendanceData.length===0 && <tr className="sa-empty-row"><td colSpan={3}>No attendance records found</td></tr>}
-//                 {!loading && attendanceData.map((att, idx) => (
-//                   <tr key={idx} className={att.isToday ? "today" : ""}>
-//                     <td><div className="sa-td-date">{att.date}{att.isToday && <span className="sa-today-tag">Today</span>}</div></td>
-//                     <td>{statusBadge(att.status)}</td>
-//                     <td>{statusIcon(att.status)}</td>
+//                 {loading && (
+//                   <tr className="sa-empty-row">
+//                     <td colSpan={3}>Loading attendance...</td>
 //                   </tr>
-//                 ))}
+//                 )}
+//                 {!loading && attendanceData.length === 0 && (
+//                   <tr className="sa-empty-row">
+//                     <td colSpan={3}>No attendance records found</td>
+//                   </tr>
+//                 )}
+//                 {!loading &&
+//                   attendanceData.map((att, idx) => (
+//                     <tr key={idx} className={att.isToday ? "today" : ""}>
+//                       <td>
+//                         <div className="sa-td-date">
+//                           {att.date}
+//                           {att.isToday && (
+//                             <span className="sa-today-tag">Today</span>
+//                           )}
+//                         </div>
+//                       </td>
+//                       <td>{statusBadge(att.status)}</td>
+//                       <td>{statusIcon(att.status)}</td>
+//                     </tr>
+//                   ))}
 //               </tbody>
 //             </table>
 //           </div>
@@ -300,11 +729,23 @@
 //         <div className="sa-handle" onMouseDown={onMouseDown}>
 //           <div className="sa-handle-pill">
 //             <svg width="5" height="12" viewBox="0 0 6 12" fill="none">
-//               <path d="M1 1L0 6L1 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{color:"var(--mu)"}}/>
+//               <path
+//                 d="M1 1L0 6L1 11"
+//                 stroke="currentColor"
+//                 strokeWidth="1.5"
+//                 strokeLinecap="round"
+//                 style={{ color: "var(--mu)" }}
+//               />
 //             </svg>
-//             <div className="sa-handle-line"/>
+//             <div className="sa-handle-line" />
 //             <svg width="5" height="12" viewBox="0 0 6 12" fill="none">
-//               <path d="M5 1L6 6L5 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{color:"var(--mu)"}}/>
+//               <path
+//                 d="M5 1L6 6L5 11"
+//                 stroke="currentColor"
+//                 strokeWidth="1.5"
+//                 strokeLinecap="round"
+//                 style={{ color: "var(--mu)" }}
+//               />
 //             </svg>
 //           </div>
 //         </div>
@@ -312,7 +753,7 @@
 //         {/* Summary */}
 //         <div className="sa-summary">
 //           <div className="sa-panel-head">
-//             <TrendingUp size={15} style={{color:"var(--c1)"}}/>
+//             <TrendingUp size={15} style={{ color: "var(--c1)" }} />
 //             <span className="sa-panel-title">Summary</span>
 //           </div>
 //           <div className="sa-sum-body">
@@ -320,9 +761,17 @@
 //               <p className="sa-sum-lbl">Attendance Rate</p>
 //               <div className="sa-rate-box">
 //                 <p className="sa-rate-val">{pct}%</p>
-//                 <p className="sa-rate-sub">{presentDays+lateDays} of {totalDays} days</p>
+//                 <p className="sa-rate-sub">
+//                   {presentDays + lateDays} of {totalDays} days
+//                 </p>
 //                 <div className="sa-rate-bar">
-//                   <div className="sa-rate-fill" style={{width:`${pct}%`, background:"linear-gradient(90deg,var(--c1),var(--c3))"}}/>
+//                   <div
+//                     className="sa-rate-fill"
+//                     style={{
+//                       width: `${pct}%`,
+//                       background: "linear-gradient(90deg,var(--c1),var(--c3))",
+//                     }}
+//                   />
 //                 </div>
 //               </div>
 //             </div>
@@ -330,16 +779,33 @@
 //               <p className="sa-sum-lbl">Breakdown</p>
 //               <div className="sa-breakdown">
 //                 {[
-//                   {label:"Present",value:presentDays,dot:"var(--c3)",val:"var(--c3)"},
-//                   {label:"Late",   value:lateDays,   dot:"var(--c2)",val:"var(--c2)"},
-//                   {label:"Absent", value:absentDays, dot:"var(--cr)", val:"var(--cr)"},
+//                   {
+//                     label: "Present",
+//                     value: presentDays,
+//                     dot: "var(--c3)",
+//                     val: "var(--c3)",
+//                   },
+//                   {
+//                     label: "Late",
+//                     value: lateDays,
+//                     dot: "var(--c2)",
+//                     val: "var(--c2)",
+//                   },
+//                   {
+//                     label: "Absent",
+//                     value: absentDays,
+//                     dot: "var(--cr)",
+//                     val: "var(--cr)",
+//                   },
 //                 ].map((s, i) => (
 //                   <div key={i} className="sa-brow">
 //                     <div className="sa-brow-l">
-//                       <div className="sa-bdot" style={{background:s.dot}}/>
+//                       <div className="sa-bdot" style={{ background: s.dot }} />
 //                       <span className="sa-brow-lbl">{s.label}</span>
 //                     </div>
-//                     <span className="sa-brow-val" style={{color:s.val}}>{s.value}</span>
+//                     <span className="sa-brow-val" style={{ color: s.val }}>
+//                       {s.value}
+//                     </span>
 //                   </div>
 //                 ))}
 //               </div>
@@ -347,58 +813,39 @@
 //             <div>
 //               <p className="sa-sum-lbl">Period</p>
 //               <div className="sa-period-card">
-//                 <div className="sa-period-ico"><Calendar size={16}/></div>
+//                 <div className="sa-period-ico">
+//                   <Calendar size={16} />
+//                 </div>
 //                 <div>
-//                   <p className="sa-period-name">{month} {year}</p>
+//                   <p className="sa-period-name">
+//                     {month} {year}
+//                   </p>
 //                   <p className="sa-period-sub">{totalDays} records found</p>
 //                 </div>
 //               </div>
 //             </div>
 //           </div>
 //         </div>
-
 //       </div>
 //     </div>
 //   );
 // };
 
 // export default StudentAttendance;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+//src//student//attendance.jsx--->student file
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { Calendar, CheckCircle, XCircle, AlertCircle, TrendingUp, BarChart3, ChevronDown, Check, Sparkles, Activity } from "lucide-react";
+import {
+  Calendar,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  TrendingUp,
+  BarChart3,
+  Sparkles,
+  Activity,
+  Download,
+  Filter,
+} from "lucide-react";
 import attendanceService from "../services/attendanceService";
 
 const STYLES = `
@@ -466,35 +913,6 @@ const STYLES = `
 @keyframes sa-pulse-ring{0%{box-shadow:0 0 0 0 rgba(34,211,238,0.5)}70%{box-shadow:0 0 0 8px rgba(34,211,238,0)}100%{box-shadow:0 0 0 0 rgba(34,211,238,0)}}
 .sa-live-badge{animation:sa-pulse-ring 2.2s ease-out infinite;}
 
-/* ── CUSTOM DROPDOWN ── */
-.sa-month-wrap{display:flex;align-items:center;gap:10px;position:relative;}
-.sa-month-ico{width:38px;height:38px;border-radius:11px;background:rgba(34,211,238,.10);border:1px solid rgba(34,211,238,.15);display:flex;align-items:center;justify-content:center;color:var(--c1);flex-shrink:0;}
-.sa-dd{position:relative;min-width:185px;font-family:'Poppins',sans-serif;}
-.sa-dd-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;height:42px;padding:0 14px;border-radius:13px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-family:'Poppins',sans-serif;font-size:13px;font-weight:600;cursor:pointer;user-select:none;box-shadow:var(--sh);transition:border-color .2s,box-shadow .2s;}
-.sa-dd-btn:hover{border-color:rgba(34,211,238,.35);}
-.sa-dd-btn.open{border-color:var(--c1);box-shadow:0 0 0 3px rgba(34,211,238,.12);}
-.sa-dd-chev{flex-shrink:0;color:var(--mu);transition:transform .2s;}
-.sa-dd-btn.open .sa-dd-chev{transform:rotate(180deg);}
-.sa-dd-menu{
-  position:fixed;          /* ← FIXED positioning: escapes all overflow:hidden parents */
-  z-index:99999;
-  background:var(--card);
-  border:1px solid var(--bd);
-  border-radius:14px;
-  box-shadow:var(--shl);
-  overflow:hidden;
-  max-height:256px;
-  overflow-y:auto;
-  animation:sa-fadein .12s ease;
-  min-width:185px;
-}
-@keyframes sa-fadein{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
-.sa-dd-menu::-webkit-scrollbar{width:4px;}
-.sa-dd-menu::-webkit-scrollbar-thumb{background:var(--bd);border-radius:4px;}
-.sa-dd-opt{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;font-family:'Poppins',sans-serif;font-size:13px;font-weight:500;color:var(--tx);transition:background .12s;}
-.sa-dd-opt:hover{background:rgba(34,211,238,.06);}
-.sa-dd-opt.sel{color:var(--c1);font-weight:700;background:rgba(34,211,238,.06);}
-
 /* ── STAT CARDS ── */
 .sa-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:20px;}
 .sa-stat{border-radius:var(--r);padding:18px 20px;color:#fff;position:relative;overflow:hidden;box-shadow:var(--sh);}
@@ -553,6 +971,11 @@ table.sa-t{width:100%;border-collapse:collapse;font-size:13px;}
 .sa-period-ico{width:36px;height:36px;border-radius:10px;background:rgba(34,211,238,.10);border:1px solid rgba(34,211,238,.15);display:flex;align-items:center;justify-content:center;color:var(--c1);flex-shrink:0;}
 .sa-period-name{font-size:13px;font-weight:700;color:var(--tx);margin:0 0 2px;}
 .sa-period-sub{font-size:11px;color:var(--mu);margin:0;}
+.sa-filter-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px 20px;border-bottom:1px solid var(--bd);background:var(--bg);}
+.sa-filter-sel,.sa-filter-date{padding:8px 10px;border-radius:9px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-family:'Poppins',sans-serif;font-size:12px;outline:none;}
+.sa-filter-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:9px;border:none;font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:opacity .2s,transform .15s;}
+.sa-filter-btn:hover{opacity:.87;transform:translateY(-1px);}
+.sa-filter-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 `;
 
 if (!document.getElementById("sa-at-st")) {
@@ -567,18 +990,18 @@ const isDarkFn = () =>
   document.body.classList.contains("dark") ||
   window.matchMedia("(prefers-color-scheme: dark)").matches;
 
-const formatDateDDMMYYYY = d => {
+const formatDateDDMMYYYY = (d) => {
   const dt = new Date(d);
-  return `${String(dt.getDate()).padStart(2,"0")}-${String(dt.getMonth()+1).padStart(2,"0")}-${dt.getFullYear()}`;
+  return `${String(dt.getDate()).padStart(2, "0")}-${String(dt.getMonth() + 1).padStart(2, "0")}-${dt.getFullYear()}`;
 };
-const isTodayFn = d => {
-  const t = new Date(), dt = new Date(d);
-  return dt.getDate()===t.getDate() && dt.getMonth()===t.getMonth() && dt.getFullYear()===t.getFullYear();
-};
-
-const monthMap = {
-  January:1,February:2,March:3,April:4,May:5,June:6,
-  July:7,August:8,September:9,October:10,November:11,December:12,
+const isTodayFn = (d) => {
+  const t = new Date(),
+    dt = new Date(d);
+  return (
+    dt.getDate() === t.getDate() &&
+    dt.getMonth() === t.getMonth() &&
+    dt.getFullYear() === t.getFullYear()
+  );
 };
 
 const STAT_GRADS = [
@@ -588,76 +1011,31 @@ const STAT_GRADS = [
   "linear-gradient(135deg,#1e3a8a,#2563eb)",
 ];
 
-/* ─── Custom Dropdown — position:fixed menu to escape overflow:hidden ─── */
-const MonthDropdown = ({ value, onChange, year }) => {
-  const [open, setOpen] = useState(false);
-  const [menuStyle, setMenuStyle] = useState({});
-  const btnRef = useRef(null);
-  const ref = useRef(null);
-  const months = Object.keys(monthMap);
-
-  // Calculate fixed position from button's screen coords
-  const openMenu = () => {
-    if (btnRef.current) {
-      const rect = btnRef.current.getBoundingClientRect();
-      setMenuStyle({
-        top: rect.bottom + 6,
-        left: rect.left,
-        width: rect.width,
-      });
-    }
-    setOpen(o => !o);
-  };
-
-  useEffect(() => {
-    const handler = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  return (
-    <div className="sa-dd" ref={ref}>
-      <div
-        ref={btnRef}
-        className={`sa-dd-btn${open ? " open" : ""}`}
-        onClick={openMenu}
-      >
-        <span>{value} {year}</span>
-        <ChevronDown size={15} className="sa-dd-chev" />
-      </div>
-      {open && (
-        <div className="sa-dd-menu" style={menuStyle}>
-          {months.map(m => (
-            <div
-              key={m}
-              className={`sa-dd-opt${value === m ? " sel" : ""}`}
-              onClick={() => { onChange(m); setOpen(false); }}
-            >
-              <span>{m} {year}</span>
-              {value === m && <Check size={13} style={{color:"var(--c1)",flexShrink:0}}/>}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
-
 /* ─── Main ─────────────────────────────────────────────────────────────── */
 const StudentAttendance = () => {
-  const [month, setMonth] = useState("February");
   const [attendanceData, setAttendanceData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [dark, setDark] = useState(isDarkFn);
   const year = new Date().getFullYear();
   const [leftWidth, setLeftWidth] = useState(62);
+
+  // Filters — this is now the ONLY data source, defaults to current month
+  const [filterType, setFilterType] = useState("THIS_MONTH");
+  const [filterStartDate, setFilterStartDate] = useState("");
+  const [filterEndDate, setFilterEndDate] = useState("");
+  const [filterLoading, setFilterLoading] = useState(false);
+  const [filterError, setFilterError] = useState(null);
+  const [downloading, setDownloading] = useState(false);
   const isDragging = useRef(false);
   const containerRef = useRef(null);
 
   useEffect(() => {
     const o = new MutationObserver(() => setDark(isDarkFn()));
-    o.observe(document.documentElement, { attributes:true, attributeFilter:["class"] });
-    o.observe(document.body, { attributes:true, attributeFilter:["class"] });
+    o.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    o.observe(document.body, { attributes: true, attributeFilter: ["class"] });
     return () => o.disconnect();
   }, []);
 
@@ -667,7 +1045,7 @@ const StudentAttendance = () => {
     document.body.style.userSelect = "none";
   }, []);
 
-  const onMouseMove = useCallback(e => {
+  const onMouseMove = useCallback((e) => {
     if (!isDragging.current || !containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const nl = ((e.clientX - rect.left) / rect.width) * 100;
@@ -689,54 +1067,142 @@ const StudentAttendance = () => {
     };
   }, [onMouseMove, onMouseUp]);
 
-  useEffect(() => { loadAttendance(); }, [month]);
-
-  const loadAttendance = async () => {
+  // Fetch filtered attendance history — the only data source for this page
+  const loadFilteredHistory = async () => {
+    if (filterType === "CUSTOM" && (!filterStartDate || !filterEndDate)) {
+      setFilterError("Select both start and end date for a custom range.");
+      return;
+    }
     setLoading(true);
+    setFilterLoading(true);
+    setFilterError(null);
     try {
-      const res = await attendanceService.getMonthlyAttendance(year, monthMap[month]);
-      setAttendanceData(res.data.map(a => ({
-        rawDate: a.attendanceDate,
-        date: formatDateDDMMYYYY(a.attendanceDate),
-        isToday: isTodayFn(a.attendanceDate),
-        status: a.status==="PRESENT" ? "Present" : a.status==="ABSENT" ? "Absent" : "Late",
-      })));
+      const r = await attendanceService.getStudentHistory({
+        filterType,
+        startDate: filterType === "CUSTOM" ? filterStartDate : undefined,
+        endDate: filterType === "CUSTOM" ? filterEndDate : undefined,
+      });
+      setAttendanceData(
+        (r.data.records || []).map((a) => ({
+          rawDate: a.attendanceDate,
+          date: formatDateDDMMYYYY(a.attendanceDate),
+          isToday: isTodayFn(a.attendanceDate),
+          status:
+            a.status === "PRESENT"
+              ? "Present"
+              : a.status === "ABSENT"
+                ? "Absent"
+                : "Late",
+        })),
+      );
     } catch (e) {
       console.error(e);
-      setAttendanceData([]);
+      setFilterError("Failed to load filtered history.");
     } finally {
       setLoading(false);
+      setFilterLoading(false);
     }
   };
 
-  const totalDays   = attendanceData.length;
-  const presentDays = attendanceData.filter(a => a.status==="Present").length;
-  const lateDays    = attendanceData.filter(a => a.status==="Late").length;
-  const absentDays  = attendanceData.filter(a => a.status==="Absent").length;
-  const pct         = totalDays > 0 ? (((presentDays+lateDays)/totalDays)*100).toFixed(1) : 0;
+  // Download Excel for current filter
+  const handleDownload = async () => {
+    if (filterType === "CUSTOM" && (!filterStartDate || !filterEndDate)) {
+      setFilterError("Select both start and end date for a custom range.");
+      return;
+    }
+    setDownloading(true);
+    setFilterError(null);
+    try {
+      const r = await attendanceService.downloadStudentReport({
+        filterType,
+        startDate: filterType === "CUSTOM" ? filterStartDate : undefined,
+        endDate: filterType === "CUSTOM" ? filterEndDate : undefined,
+      });
+      const url = window.URL.createObjectURL(new Blob([r.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "attendance-report.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error(e);
+      setFilterError("Failed to download report.");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  // Auto-run for every filter except CUSTOM, which needs explicit Search
+  useEffect(() => {
+    if (filterType !== "CUSTOM") {
+      loadFilteredHistory();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterType]);
+
+  const totalDays = attendanceData.length;
+  const presentDays = attendanceData.filter(
+    (a) => a.status === "Present",
+  ).length;
+  const lateDays = attendanceData.filter((a) => a.status === "Late").length;
+  const absentDays = attendanceData.filter((a) => a.status === "Absent").length;
+  const pct =
+    totalDays > 0
+      ? (((presentDays + lateDays) / totalDays) * 100).toFixed(1)
+      : 0;
 
   const statCards = [
-    { icon:<CheckCircle size={16}/>, value:presentDays, label:"Present", grad:STAT_GRADS[0] },
-    { icon:<AlertCircle size={16}/>, value:lateDays,    label:"Late",    grad:STAT_GRADS[1] },
-    { icon:<XCircle     size={16}/>, value:absentDays,  label:"Absent",  grad:STAT_GRADS[2] },
-    { icon:<BarChart3   size={16}/>, value:`${pct}%`,   label:"Rate",    grad:STAT_GRADS[3] },
+    {
+      icon: <CheckCircle size={16} />,
+      value: presentDays,
+      label: "Present",
+      grad: STAT_GRADS[0],
+    },
+    {
+      icon: <AlertCircle size={16} />,
+      value: lateDays,
+      label: "Late",
+      grad: STAT_GRADS[1],
+    },
+    {
+      icon: <XCircle size={16} />,
+      value: absentDays,
+      label: "Absent",
+      grad: STAT_GRADS[2],
+    },
+    {
+      icon: <BarChart3 size={16} />,
+      value: `${pct}%`,
+      label: "Rate",
+      grad: STAT_GRADS[3],
+    },
   ];
 
-  const statusBadge = s => {
-    if (s==="Present") return <span className="sa-badge sa-badge-present">Present</span>;
-    if (s==="Late")    return <span className="sa-badge sa-badge-late">Late</span>;
-    return                    <span className="sa-badge sa-badge-absent">Absent</span>;
+  const statusBadge = (s) => {
+    if (s === "Present")
+      return <span className="sa-badge sa-badge-present">Present</span>;
+    if (s === "Late")
+      return <span className="sa-badge sa-badge-late">Late</span>;
+    return <span className="sa-badge sa-badge-absent">Absent</span>;
   };
-  const statusIcon = s => {
-    if (s==="Present") return <CheckCircle size={16} style={{color:"var(--c3)"}}/>;
-    if (s==="Late")    return <AlertCircle size={16} style={{color:"var(--c2)"}}/>;
-    return                     <XCircle    size={16} style={{color:"var(--cr)"}}/>;
+  const statusIcon = (s) => {
+    if (s === "Present")
+      return <CheckCircle size={16} style={{ color: "var(--c3)" }} />;
+    if (s === "Late")
+      return <AlertCircle size={16} style={{ color: "var(--c2)" }} />;
+    return <XCircle size={16} style={{ color: "var(--cr)" }} />;
   };
+
+  const periodLabel =
+    filterType === "CUSTOM"
+      ? "Custom Range"
+      : filterType.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
   return (
     <div className={`sa${dark ? " sa-dk" : ""}`}>
       <div className="sa-top">
-
         {/* ═══ HERO SECTION ═══ */}
         <div className="sa-hero">
           {/* BG effects in a clipped wrapper — hero card itself is overflow:visible */}
@@ -752,7 +1218,9 @@ const StudentAttendance = () => {
                 <span className="sa-hero-eyebrow-txt">Attendance Tracking</span>
               </div>
               <h1 className="sa-hero-title">Attendance</h1>
-              <p className="sa-hero-desc">Track your monthly attendance and performance</p>
+              <p className="sa-hero-desc">
+                Track your monthly attendance and performance
+              </p>
             </div>
 
             <div className="sa-hero-right">
@@ -760,25 +1228,23 @@ const StudentAttendance = () => {
               <div className="sa-hero-stats">
                 <span>{totalDays} days</span>
                 <span className="sa-hero-stats-div" />
-                <span style={{color:"var(--c3)",fontWeight:700}}>{presentDays} present</span>
+                <span style={{ color: "var(--c3)", fontWeight: 700 }}>
+                  {presentDays} present
+                </span>
                 <span className="sa-hero-stats-div" />
-                <span style={{color:"var(--c1)",fontWeight:700}}>{pct}% rate</span>
+                <span style={{ color: "var(--c1)", fontWeight: 700 }}>
+                  {pct}% rate
+                </span>
               </div>
 
               {/* Activity bars */}
               <div className="sa-hero-act">
                 <Activity size={12} color="var(--mu)" />
                 <div className="sa-hero-dots">
-                  <span className="sa-hero-dot sa-d1" style={{height:10}} />
-                  <span className="sa-hero-dot sa-d2" style={{height:14}} />
-                  <span className="sa-hero-dot sa-d3" style={{height:7}} />
+                  <span className="sa-hero-dot sa-d1" style={{ height: 10 }} />
+                  <span className="sa-hero-dot sa-d2" style={{ height: 14 }} />
+                  <span className="sa-hero-dot sa-d3" style={{ height: 7 }} />
                 </div>
-              </div>
-
-              {/* Month Dropdown — fixed-position menu, never clipped */}
-              <div className="sa-month-wrap">
-                <div className="sa-month-ico"><Calendar size={16}/></div>
-                <MonthDropdown value={month} onChange={setMonth} year={year} />
               </div>
 
               {/* Live badge */}
@@ -793,7 +1259,7 @@ const StudentAttendance = () => {
 
         <div className="sa-stats">
           {statCards.map((s, i) => (
-            <div key={i} className="sa-stat" style={{background:s.grad}}>
+            <div key={i} className="sa-stat" style={{ background: s.grad }}>
               <div className="sa-sico">{s.icon}</div>
               <div className="sa-sv">{s.value}</div>
               <div className="sa-sl">{s.label}</div>
@@ -802,27 +1268,114 @@ const StudentAttendance = () => {
         </div>
       </div>
 
-      <div ref={containerRef} className="sa-panels" style={{height:"calc(100vh - 360px)", minHeight:380}}>
-
+      <div
+        ref={containerRef}
+        className="sa-panels"
+        style={{ height: "calc(100vh - 360px)", minHeight: 380 }}
+      >
         {/* Table */}
-        <div className="sa-table-panel" style={{width:`${leftWidth}%`}}>
+        <div className="sa-table-panel" style={{ width: `${leftWidth}%` }}>
           <div className="sa-panel-head">
-            <BarChart3 size={15} style={{color:"var(--c1)"}}/>
-            <span className="sa-panel-title">Monthly Attendance — {month} {year}</span>
+            <BarChart3 size={15} style={{ color: "var(--c1)" }} />
+            <span className="sa-panel-title">Attendance History</span>
           </div>
+
+          {/* Filter bar — always visible, this is the only view now */}
+          <div className="sa-filter-bar">
+            <select
+              className="sa-filter-sel"
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+            >
+              <option value="TODAY">Today</option>
+              <option value="YESTERDAY">Yesterday</option>
+              <option value="LAST_7_DAYS">Last 7 Days</option>
+              <option value="LAST_14_DAYS">Last 14 Days</option>
+              <option value="LAST_30_DAYS">Last 30 Days</option>
+              <option value="THIS_WEEK">This Week</option>
+              <option value="THIS_MONTH">This Month</option>
+              <option value="CUSTOM">Custom Range</option>
+            </select>
+
+            {filterType === "CUSTOM" && (
+              <>
+                <input
+                  type="date"
+                  className="sa-filter-date"
+                  value={filterStartDate}
+                  onChange={(e) => setFilterStartDate(e.target.value)}
+                />
+                <input
+                  type="date"
+                  className="sa-filter-date"
+                  value={filterEndDate}
+                  onChange={(e) => setFilterEndDate(e.target.value)}
+                />
+              </>
+            )}
+
+            <button
+              className="sa-filter-btn"
+              style={{ background: "var(--c1)", color: "#0a0a0a" }}
+              disabled={filterLoading}
+              onClick={loadFilteredHistory}
+            >
+              {filterLoading ? "Loading…" : "Search"}
+            </button>
+            <button
+              className="sa-filter-btn"
+              style={{ background: "#a78bfa", color: "#0a0a0a" }}
+              disabled={downloading}
+              onClick={handleDownload}
+            >
+              <Download size={13} />{" "}
+              {downloading ? "Downloading…" : "Download Excel"}
+            </button>
+
+            {filterError && (
+              <span
+                style={{ color: "var(--cr)", fontSize: 11, fontWeight: 600 }}
+              >
+                {filterError}
+              </span>
+            )}
+          </div>
+
           <div className="sa-table-scroll">
             <table className="sa-t">
-              <thead><tr><th>Date</th><th>Status</th><th>Indicator</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th>Indicator</th>
+                </tr>
+              </thead>
               <tbody>
-                {loading && <tr className="sa-empty-row"><td colSpan={3}>Loading attendance...</td></tr>}
-                {!loading && attendanceData.length===0 && <tr className="sa-empty-row"><td colSpan={3}>No attendance records found</td></tr>}
-                {!loading && attendanceData.map((att, idx) => (
-                  <tr key={idx} className={att.isToday ? "today" : ""}>
-                    <td><div className="sa-td-date">{att.date}{att.isToday && <span className="sa-today-tag">Today</span>}</div></td>
-                    <td>{statusBadge(att.status)}</td>
-                    <td>{statusIcon(att.status)}</td>
+                {loading && (
+                  <tr className="sa-empty-row">
+                    <td colSpan={3}>Loading attendance...</td>
                   </tr>
-                ))}
+                )}
+                {!loading && attendanceData.length === 0 && (
+                  <tr className="sa-empty-row">
+                    <td colSpan={3}>No attendance records found</td>
+                  </tr>
+                )}
+                {!loading &&
+                  attendanceData.map((att, idx) => (
+                    <tr key={idx} className={att.isToday ? "today" : ""}>
+                      <td>
+                        <div className="sa-td-date">
+                          {att.date}
+                          {att.isToday && (
+                            <span className="sa-today-tag">Today</span>
+                          )}
+                        </div>
+                      </td>
+                      <td>{statusBadge(att.status)}</td>
+                      <td>{statusIcon(att.status)}</td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
@@ -832,11 +1385,23 @@ const StudentAttendance = () => {
         <div className="sa-handle" onMouseDown={onMouseDown}>
           <div className="sa-handle-pill">
             <svg width="5" height="12" viewBox="0 0 6 12" fill="none">
-              <path d="M1 1L0 6L1 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{color:"var(--mu)"}}/>
+              <path
+                d="M1 1L0 6L1 11"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                style={{ color: "var(--mu)" }}
+              />
             </svg>
-            <div className="sa-handle-line"/>
+            <div className="sa-handle-line" />
             <svg width="5" height="12" viewBox="0 0 6 12" fill="none">
-              <path d="M5 1L6 6L5 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{color:"var(--mu)"}}/>
+              <path
+                d="M5 1L6 6L5 11"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                style={{ color: "var(--mu)" }}
+              />
             </svg>
           </div>
         </div>
@@ -844,7 +1409,7 @@ const StudentAttendance = () => {
         {/* Summary */}
         <div className="sa-summary">
           <div className="sa-panel-head">
-            <TrendingUp size={15} style={{color:"var(--c1)"}}/>
+            <TrendingUp size={15} style={{ color: "var(--c1)" }} />
             <span className="sa-panel-title">Summary</span>
           </div>
           <div className="sa-sum-body">
@@ -852,9 +1417,17 @@ const StudentAttendance = () => {
               <p className="sa-sum-lbl">Attendance Rate</p>
               <div className="sa-rate-box">
                 <p className="sa-rate-val">{pct}%</p>
-                <p className="sa-rate-sub">{presentDays+lateDays} of {totalDays} days</p>
+                <p className="sa-rate-sub">
+                  {presentDays + lateDays} of {totalDays} days
+                </p>
                 <div className="sa-rate-bar">
-                  <div className="sa-rate-fill" style={{width:`${pct}%`, background:"linear-gradient(90deg,var(--c1),var(--c3))"}}/>
+                  <div
+                    className="sa-rate-fill"
+                    style={{
+                      width: `${pct}%`,
+                      background: "linear-gradient(90deg,var(--c1),var(--c3))",
+                    }}
+                  />
                 </div>
               </div>
             </div>
@@ -862,16 +1435,33 @@ const StudentAttendance = () => {
               <p className="sa-sum-lbl">Breakdown</p>
               <div className="sa-breakdown">
                 {[
-                  {label:"Present",value:presentDays,dot:"var(--c3)",val:"var(--c3)"},
-                  {label:"Late",   value:lateDays,   dot:"var(--c2)",val:"var(--c2)"},
-                  {label:"Absent", value:absentDays, dot:"var(--cr)", val:"var(--cr)"},
+                  {
+                    label: "Present",
+                    value: presentDays,
+                    dot: "var(--c3)",
+                    val: "var(--c3)",
+                  },
+                  {
+                    label: "Late",
+                    value: lateDays,
+                    dot: "var(--c2)",
+                    val: "var(--c2)",
+                  },
+                  {
+                    label: "Absent",
+                    value: absentDays,
+                    dot: "var(--cr)",
+                    val: "var(--cr)",
+                  },
                 ].map((s, i) => (
                   <div key={i} className="sa-brow">
                     <div className="sa-brow-l">
-                      <div className="sa-bdot" style={{background:s.dot}}/>
+                      <div className="sa-bdot" style={{ background: s.dot }} />
                       <span className="sa-brow-lbl">{s.label}</span>
                     </div>
-                    <span className="sa-brow-val" style={{color:s.val}}>{s.value}</span>
+                    <span className="sa-brow-val" style={{ color: s.val }}>
+                      {s.value}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -879,16 +1469,17 @@ const StudentAttendance = () => {
             <div>
               <p className="sa-sum-lbl">Period</p>
               <div className="sa-period-card">
-                <div className="sa-period-ico"><Calendar size={16}/></div>
+                <div className="sa-period-ico">
+                  <Calendar size={16} />
+                </div>
                 <div>
-                  <p className="sa-period-name">{month} {year}</p>
+                  <p className="sa-period-name">{periodLabel}</p>
                   <p className="sa-period-sub">{totalDays} records found</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );

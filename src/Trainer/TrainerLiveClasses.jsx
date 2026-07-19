@@ -380,6 +380,21 @@ function getBatchName(b, id) {
   return b.name ?? b.batchName ?? b.batch_name ?? b.BatchName ?? `Batch ${id}`;
 }
 
+// function parseScheduledDateTime(session) {
+//   const rawDate = session.scheduledDate ?? session.date ?? "";
+//   const rawTime = session.scheduledTime ?? session.time ?? "";
+//   if (!rawDate || !rawTime) return null;
+//   let dateStr = String(rawDate).trim();
+//   if (/^\d{8}$/.test(dateStr))
+//     dateStr = `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
+//   let timeStr = String(rawTime).trim();
+//   if (/^\d{4}$/.test(timeStr))
+//     timeStr = `${timeStr.slice(0, 2)}:${timeStr.slice(2, 4)}`;
+//   if (/^\d{2}\d{2}:\d{2}$/.test(timeStr))
+//     timeStr = `${timeStr.slice(0, 2)}:${timeStr.slice(2)}`;
+//   const dt = new Date(`${dateStr}T${timeStr}`);
+//   return isNaN(dt.getTime()) ? null : dt;
+// }
 function parseScheduledDateTime(session) {
   const rawDate = session.scheduledDate ?? session.date ?? "";
   const rawTime = session.scheduledTime ?? session.time ?? "";
@@ -392,8 +407,100 @@ function parseScheduledDateTime(session) {
     timeStr = `${timeStr.slice(0, 2)}:${timeStr.slice(2, 4)}`;
   if (/^\d{2}\d{2}:\d{2}$/.test(timeStr))
     timeStr = `${timeStr.slice(0, 2)}:${timeStr.slice(2)}`;
+  // ✅ NEW — if the session carries a timezone, interpret date/time in THAT zone
+  if (session.timezone) {
+    const dt = zonedDateTimeToUTC(dateStr, timeStr, session.timezone);
+    return dt && !isNaN(dt.getTime()) ? dt : null;
+  }
+  // Legacy fallback for sessions created before this feature existed
   const dt = new Date(`${dateStr}T${timeStr}`);
   return isNaN(dt.getTime()) ? null : dt;
+}
+
+/* ═══ TIMEZONE DATA & HELPERS (NEW) ═══ */
+const TIMEZONES = [
+  { id: "Pacific/Midway", label: "Midway Island" },
+  { id: "Pacific/Honolulu", label: "Hawaii" },
+  { id: "America/Anchorage", label: "Alaska" },
+  { id: "America/Los_Angeles", label: "Los Angeles" },
+  { id: "America/Denver", label: "Denver" },
+  { id: "America/Chicago", label: "Chicago" },
+  { id: "America/New_York", label: "New York" },
+  { id: "America/Sao_Paulo", label: "Sao Paulo" },
+  { id: "Atlantic/Azores", label: "Azores" },
+  { id: "UTC", label: "UTC" },
+  { id: "Europe/London", label: "London" },
+  { id: "Europe/Paris", label: "Paris" },
+  { id: "Europe/Berlin", label: "Berlin" },
+  { id: "Europe/Athens", label: "Athens" },
+  { id: "Europe/Moscow", label: "Moscow" },
+  { id: "Africa/Cairo", label: "Cairo" },
+  { id: "Africa/Johannesburg", label: "Johannesburg" },
+  { id: "Asia/Jerusalem", label: "Jerusalem" },
+  { id: "Asia/Dubai", label: "Dubai" },
+  { id: "Asia/Karachi", label: "Karachi" },
+  { id: "Asia/Kolkata", label: "India" },
+  { id: "Asia/Dhaka", label: "Dhaka" },
+  { id: "Asia/Bangkok", label: "Bangkok" },
+  { id: "Asia/Jakarta", label: "Jakarta" },
+  { id: "Asia/Shanghai", label: "China" },
+  { id: "Asia/Singapore", label: "Singapore" },
+  { id: "Asia/Tokyo", label: "Tokyo" },
+  { id: "Asia/Seoul", label: "Seoul" },
+  { id: "Australia/Perth", label: "Perth" },
+  { id: "Australia/Sydney", label: "Sydney" },
+  { id: "Pacific/Auckland", label: "Auckland" },
+  { id: "Pacific/Fiji", label: "Fiji" },
+];
+
+function getTzOffsetMinutes(tz, atDate = new Date()) {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: tz,
+      hour12: false,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    })
+      .formatToParts(atDate)
+      .reduce((acc, p) => {
+        acc[p.type] = p.value;
+        return acc;
+      }, {});
+    const asUTC = Date.UTC(
+      Number(parts.year),
+      Number(parts.month) - 1,
+      Number(parts.day),
+      Number(parts.hour),
+      Number(parts.minute),
+      Number(parts.second),
+    );
+    return Math.round((asUTC - atDate.getTime()) / 60000);
+  } catch {
+    return 0;
+  }
+}
+
+function formatTzOffset(mins) {
+  const sign = mins >= 0 ? "+" : "-";
+  const abs = Math.abs(mins);
+  const h = Math.floor(abs / 60);
+  const m = abs % 60;
+  return `UTC${sign}${h}${m ? ":" + String(m).padStart(2, "0") : ""}`;
+}
+
+const DEFAULT_TIMEZONE =
+  Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+
+// Interpret date+time strings as belonging to `tz`; return the absolute instant (Date).
+function zonedDateTimeToUTC(dateStr, timeStr, tz) {
+  if (!dateStr || !timeStr) return null;
+  const naiveUTC = new Date(`${dateStr}T${timeStr}:00Z`);
+  const offsetMin = getTzOffsetMinutes(tz, naiveUTC);
+  return new Date(naiveUTC.getTime() - offsetMin * 60000);
 }
 
 function canShowGoLive(session) {
@@ -1118,6 +1225,38 @@ function CompactLabel({ children, t }) {
     </label>
   );
 }
+/* ══════════════════════════════════════════════════
+   TIMEZONE SELECT (NEW)
+══════════════════════════════════════════════════ */
+function TimezoneSelect({ t, value, onChange }) {
+  return (
+    <div style={{ position: "relative" }}>
+      <select
+        className="sls-input"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        style={{ cursor: "pointer", paddingRight: 30 }}
+      >
+        {TIMEZONES.map((tz) => (
+          <option key={tz.id} value={tz.id}>
+            {tz.label} ({formatTzOffset(getTzOffsetMinutes(tz.id))})
+          </option>
+        ))}
+      </select>
+      <ChevronDown
+        size={11}
+        color={t.textMuted}
+        style={{
+          position: "absolute",
+          right: 10,
+          top: "50%",
+          transform: "translateY(-50%)",
+          pointerEvents: "none",
+        }}
+      />
+    </div>
+  );
+}
 
 /* ══════════════════════════════════════════════════
    MAIN COMPONENT
@@ -1425,6 +1564,7 @@ function StartLiveThreePanel({ t, isDark, navigate }) {
   //   chat: true,
   //   recording: true,
   //   notifications: true,
+  //   isPublished: false, // ADD
   //   mode: "",
   //   meetingLink: "",
   //   roomId: genRoomId(),
@@ -1443,13 +1583,13 @@ function StartLiveThreePanel({ t, isDark, navigate }) {
     mode: "",
     meetingLink: "",
     roomId: genRoomId(),
+    timezone: DEFAULT_TIMEZONE, // ✅ NEW
+    scheduleMode: "schedule", // ✅ NEW — "schedule" | "now"
   });
   const upd = (key, val) => {
     setForm((p) => ({ ...p, [key]: val }));
     if (key === "date" || key === "time") setShortScheduleWarning(null);
   };
-
-  const durations = ["2", "5", "10", "15", "30", "45", "60", "75", "90", "120"];
 
   useEffect(() => {
     (async () => {
@@ -1523,43 +1663,139 @@ function StartLiveThreePanel({ t, isDark, navigate }) {
   const batchLabel = selectedBatch
     ? getBatchName(selectedBatch, form.batchId)
     : null;
-  // const step1Valid =
-  //   form.title.trim() && form.batchId && form.date && form.time;
+
   // ✅ batchId no longer required — session can be global (no batch)
-  const step1Valid = form.title.trim() && form.date && form.time;
+  // const step1Valid = form.title.trim() && form.date && form.time;
+  // ✅ batchId no longer required — session can be global (no batch)
+  // ✅ "Start Now" mode doesn't need date/time
+  const step1Valid =
+    form.scheduleMode === "now"
+      ? form.title.trim()
+      : form.title.trim() && form.date && form.time;
   // const buildPayload = (status) => ({
   //   title: form.title,
   //   description: form.description,
-  //   batchId: Number(form.batchId),
+  //   // ✅ batchId is optional — null if not selected (global session)
+  //   ...(form.batchId ? { batchId: Number(form.batchId) } : {}),
   //   scheduledDate: form.date,
   //   scheduledTime: form.time,
   //   duration: Number(form.duration),
   //   chatEnabled: form.chat,
   //   autoRecord: form.recording,
   //   notifyStudents: form.notifications,
+  //   isPublished: form.isPublished,
+  //   // ✅ meetingType maps to backend field
+  //   meetingType: form.mode === "external" ? "EXTERNAL" : "CUSTOM",
   //   ...(status ? { status } : {}),
-  //   ...(form.mode === "custom" ? { roomId: form.roomId } : {}),
-  //   ...(form.mode === "external" ? { meetingLink: form.meetingLink } : {}),
+  //   ...(form.mode === "external"
+  //     ? { externalMeetingUrl: form.meetingLink }
+  //     : {}),
   // });
-  const buildPayload = (status) => ({
-    title: form.title,
-    description: form.description,
-    // ✅ batchId is optional — null if not selected (global session)
-    ...(form.batchId ? { batchId: Number(form.batchId) } : {}),
-    scheduledDate: form.date,
-    scheduledTime: form.time,
-    duration: Number(form.duration),
-    chatEnabled: form.chat,
-    autoRecord: form.recording,
-    notifyStudents: form.notifications,
-    isPublished: form.isPublished,
-    // ✅ meetingType maps to backend field
-    meetingType: form.mode === "external" ? "EXTERNAL" : "CUSTOM",
-    ...(status ? { status } : {}),
-    ...(form.mode === "external"
-      ? { externalMeetingUrl: form.meetingLink }
-      : {}),
-  });
+  const buildPayload = (status) => {
+    // ✅ "Start Now" — use this instant's date/time in the chosen timezone
+    let scheduledDate = form.date;
+    let scheduledTime = form.time;
+    const tz = form.scheduleMode === "now" ? DEFAULT_TIMEZONE : form.timezone;
+    if (form.scheduleMode === "now") {
+      const nowParts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: tz,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      })
+        .formatToParts(new Date())
+        .reduce((acc, p) => {
+          acc[p.type] = p.value;
+          return acc;
+        }, {});
+      scheduledDate = `${nowParts.year}-${nowParts.month}-${nowParts.day}`;
+      scheduledTime = `${nowParts.hour}:${nowParts.minute}`;
+    }
+    return {
+      title: form.title,
+      description: form.description,
+      // ✅ batchId is optional — null if not selected (global session)
+      ...(form.batchId ? { batchId: Number(form.batchId) } : {}),
+      scheduledDate,
+      scheduledTime,
+      timezone: tz, // ✅ NEW — always sent
+      duration: Number(form.duration),
+      chatEnabled: form.chat,
+      autoRecord: form.recording,
+      notifyStudents: form.notifications,
+      isPublished: form.isPublished,
+      // ✅ meetingType maps to backend field
+      meetingType: form.mode === "external" ? "EXTERNAL" : "CUSTOM",
+      ...(status ? { status } : {}),
+      ...(form.mode === "external"
+        ? { externalMeetingUrl: form.meetingLink }
+        : {}),
+    };
+  };
+  // const handleGoLive = async () => {
+  //   setError(null);
+  //   setShortScheduleWarning(null);
+  //   if (!form.title.trim()) {
+  //     setError("Session title is required.");
+  //     setCurrentStep(1);
+  //     return;
+  //   }
+
+  //   if (!form.date) {
+  //     setError("Please select a date.");
+  //     setCurrentStep(1);
+  //     return;
+  //   }
+  //   if (!form.time) {
+  //     setError("Please select a time.");
+  //     setCurrentStep(1);
+  //     return;
+  //   }
+  //   if (!form.duration) {
+  //     setError("Please select a duration.");
+  //     setCurrentStep(1);
+  //     return;
+  //   }
+
+  //   const scheduledDateTime = new Date(`${form.date}T${form.time}`);
+  //   const now = new Date();
+  //   if (scheduledDateTime <= now) {
+  //     setError("Scheduled date and time must be in the future.");
+  //     setCurrentStep(1);
+  //     return;
+  //   }
+
+  //   const diffMin = (scheduledDateTime - now) / (1000 * 60);
+  //   if (diffMin < 30) {
+  //     setShortScheduleWarning(
+  //       `⚡ Session starts in ${Math.ceil(diffMin)} min. Students will get an immediate notification instead of a 15-min reminder.`,
+  //     );
+  //   }
+
+  //   try {
+  //     setSubmitting(true);
+  //     const res = await createLiveSession(buildPayload());
+  //     navigate(`/trainer/session-scheduled/${res.data.id}`, {
+  //       state: {
+  //         scheduledDate: form.date,
+  //         scheduledTime: form.time,
+  //         title: form.title,
+  //         duration: form.duration,
+  //       },
+  //     });
+  //   } catch (err) {
+  //     console.error(err);
+  //     setError(
+  //       err?.response?.data?.error ||
+  //         "Failed to create session. Please try again.",
+  //     );
+  //   } finally {
+  //     setSubmitting(false);
+  //   }
+  // };
   const handleGoLive = async () => {
     setError(null);
     setShortScheduleWarning(null);
@@ -1568,11 +1804,42 @@ function StartLiveThreePanel({ t, isDark, navigate }) {
       setCurrentStep(1);
       return;
     }
-    // if (!form.batchId) {
-    //   setError("Please select a batch.");
-    //   setCurrentStep(1);
-    //   return;
-    // }
+    if (!form.duration) {
+      setError("Please enter a duration.");
+      setCurrentStep(1);
+      return;
+    }
+
+    // ✅ NEW — "Start Now": create then immediately go live
+    if (form.scheduleMode === "now") {
+      try {
+        setSubmitting(true);
+        const res = await createLiveSession(buildPayload());
+        const liveRes = await startLiveSessionWithToken(res.data.id);
+        const { room, token } = liveRes.data;
+        if (!token) {
+          setError(
+            "Session created, but couldn't get a live token. Start it from the dashboard.",
+          );
+          return;
+        }
+        sessionStorage.setItem("call_state", JSON.stringify({ room, token }));
+        navigate(`/trainer/live-controls/${res.data.id}`, {
+          state: { room, token },
+        });
+      } catch (err) {
+        console.error(err);
+        setError(
+          err?.response?.data?.error ||
+            "Failed to start session. Please try again.",
+        );
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
+
+    // ── Scheduled flow (unchanged logic, now timezone-aware) ──
     if (!form.date) {
       setError("Please select a date.");
       setCurrentStep(1);
@@ -1583,25 +1850,17 @@ function StartLiveThreePanel({ t, isDark, navigate }) {
       setCurrentStep(1);
       return;
     }
-    if (!form.duration) {
-      setError("Please select a duration.");
-      setCurrentStep(1);
-      return;
-    }
 
-    const scheduledDateTime = new Date(`${form.date}T${form.time}`);
+    const scheduledDateTime = zonedDateTimeToUTC(
+      form.date,
+      form.time,
+      form.timezone,
+    );
     const now = new Date();
-    if (scheduledDateTime <= now) {
+    if (!scheduledDateTime || scheduledDateTime <= now) {
       setError("Scheduled date and time must be in the future.");
       setCurrentStep(1);
       return;
-    }
-
-    const diffMin = (scheduledDateTime - now) / (1000 * 60);
-    if (diffMin < 30) {
-      setShortScheduleWarning(
-        `⚡ Session starts in ${Math.ceil(diffMin)} min. Students will get an immediate notification instead of a 15-min reminder.`,
-      );
     }
 
     try {
@@ -1611,6 +1870,7 @@ function StartLiveThreePanel({ t, isDark, navigate }) {
         state: {
           scheduledDate: form.date,
           scheduledTime: form.time,
+          timezone: form.timezone,
           title: form.title,
           duration: form.duration,
         },
@@ -1912,7 +2172,7 @@ function StartLiveThreePanel({ t, isDark, navigate }) {
             </div>
           </div>
         )}
-        <button
+        {/* <button
           onClick={handlePublish}
           disabled={publishing}
           style={{
@@ -1935,7 +2195,33 @@ function StartLiveThreePanel({ t, isDark, navigate }) {
         >
           <Send size={11} />
           {publishing ? "Scheduling…" : "Schedule for Later"}
-        </button>
+        </button> */}
+        {form.scheduleMode !== "now" && (
+          <button
+            onClick={handlePublish}
+            disabled={publishing}
+            style={{
+              width: "100%",
+              padding: "7px 0",
+              borderRadius: 7,
+              border: `1px solid ${t.border}`,
+              background: "transparent",
+              color: t.textSub,
+              fontSize: 10,
+              fontWeight: 600,
+              cursor: publishing ? "not-allowed" : "pointer",
+              fontFamily: "'Poppins',sans-serif",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 5,
+              transition: "all 0.18s",
+            }}
+          >
+            <Send size={11} />
+            {publishing ? "Scheduling…" : "Schedule for Later"}
+          </button>
+        )}
       </div>
     </div>
   );
@@ -2098,6 +2384,128 @@ function StartLiveThreePanel({ t, isDark, navigate }) {
               gap: 12,
             }}
           >
+            {/* ✅ NEW — Schedule vs Start Now */}
+            <div style={{ display: "flex", gap: 8 }}>
+              <div
+                className={`mode-card${form.scheduleMode === "schedule" ? " sel-custom" : ""}`}
+                onClick={() => upd("scheduleMode", "schedule")}
+              >
+                <div
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 7,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background:
+                      form.scheduleMode === "schedule"
+                        ? "rgba(34,197,94,0.14)"
+                        : isDark
+                          ? "rgba(255,255,255,0.06)"
+                          : "#f1f5f9",
+                    border: `1px solid ${form.scheduleMode === "schedule" ? "rgba(34,197,94,0.35)" : t.modeCardBorder}`,
+                    flexShrink: 0,
+                  }}
+                >
+                  <Calendar
+                    size={13}
+                    color={
+                      form.scheduleMode === "schedule"
+                        ? "#22c55e"
+                        : t.calIconColor
+                    }
+                  />
+                </div>
+                <div>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color:
+                        form.scheduleMode === "schedule" ? "#22c55e" : t.text,
+                      fontFamily: "'Poppins',sans-serif",
+                    }}
+                  >
+                    Schedule
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 9,
+                      color: t.textSub,
+                      fontFamily: "'Poppins',sans-serif",
+                    }}
+                  >
+                    Pick date & time
+                  </div>
+                </div>
+                {form.scheduleMode === "schedule" && (
+                  <CheckCircle2
+                    size={13}
+                    color="#22c55e"
+                    style={{ marginLeft: "auto" }}
+                  />
+                )}
+              </div>
+              <div
+                className={`mode-card${form.scheduleMode === "now" ? " sel-ext" : ""}`}
+                onClick={() => upd("scheduleMode", "now")}
+              >
+                <div
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 7,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background:
+                      form.scheduleMode === "now"
+                        ? "rgba(0,120,212,0.12)"
+                        : isDark
+                          ? "rgba(255,255,255,0.06)"
+                          : "#f1f5f9",
+                    border: `1px solid ${form.scheduleMode === "now" ? "rgba(0,120,212,0.35)" : t.modeCardBorder}`,
+                    flexShrink: 0,
+                  }}
+                >
+                  <Zap
+                    size={13}
+                    color={
+                      form.scheduleMode === "now" ? "#0078d4" : t.calIconColor
+                    }
+                  />
+                </div>
+                <div>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: form.scheduleMode === "now" ? "#0078d4" : t.text,
+                      fontFamily: "'Poppins',sans-serif",
+                    }}
+                  >
+                    Start Now
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 9,
+                      color: t.textSub,
+                      fontFamily: "'Poppins',sans-serif",
+                    }}
+                  >
+                    Go live immediately
+                  </div>
+                </div>
+                {form.scheduleMode === "now" && (
+                  <CheckCircle2
+                    size={13}
+                    color="#0078d4"
+                    style={{ marginLeft: "auto" }}
+                  />
+                )}
+              </div>
+            </div>
             <div>
               <CompactLabel t={t}>Session Title *</CompactLabel>
               <input
@@ -2174,7 +2582,7 @@ function StartLiveThreePanel({ t, isDark, navigate }) {
                 />
               </div>
             </div>
-            <div
+            {/* <div
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr 1fr",
@@ -2227,6 +2635,72 @@ function StartLiveThreePanel({ t, isDark, navigate }) {
                     }}
                   />
                 </div>
+              </div>
+            </div> */}
+            {form.scheduleMode === "schedule" && (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 8,
+                }}
+              >
+                <div>
+                  <CompactLabel t={t}>Date *</CompactLabel>
+                  <input
+                    type="date"
+                    className="sls-input"
+                    value={form.date}
+                    onChange={(e) => upd("date", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <CompactLabel t={t}>Time *</CompactLabel>
+                  <input
+                    type="time"
+                    className="sls-input"
+                    value={form.time}
+                    onChange={(e) => upd("time", e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  form.scheduleMode === "schedule" ? "1fr 1fr" : "1fr",
+                gap: 8,
+              }}
+            >
+              {form.scheduleMode === "schedule" && (
+                <div>
+                  <CompactLabel t={t}>Timezone *</CompactLabel>
+                  <TimezoneSelect
+                    t={t}
+                    value={form.timezone}
+                    onChange={(tz) => upd("timezone", tz)}
+                  />
+                </div>
+              )}
+              <div>
+                <CompactLabel t={t}>
+                  Duration (minutes) * — max 150
+                </CompactLabel>
+                <input
+                  type="number"
+                  min="1"
+                  max="150"
+                  className="sls-input"
+                  value={form.duration}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === "" || (Number(v) >= 0 && Number(v) <= 150))
+                      upd("duration", v);
+                  }}
+                  placeholder="e.g. 45"
+                />
               </div>
             </div>
 
@@ -2653,15 +3127,36 @@ function StartLiveThreePanel({ t, isDark, navigate }) {
                   value: batchLabel || "—",
                   icon: <Users size={10} color="#22d3ee" />,
                 },
+                // {
+                //   label: "Date",
+                //   value: form.date || "—",
+                //   icon: <Calendar size={10} color="#a78bfa" />,
+                // },
+                // {
+                //   label: "Time",
+                //   value: form.time || "—",
+                //   icon: <Clock size={10} color="#f59e0b" />,
+                // },
                 {
                   label: "Date",
-                  value: form.date || "—",
+                  value: form.scheduleMode === "now" ? "Now" : form.date || "—",
                   icon: <Calendar size={10} color="#a78bfa" />,
                 },
                 {
                   label: "Time",
-                  value: form.time || "—",
+                  value:
+                    form.scheduleMode === "now"
+                      ? "Immediately"
+                      : form.time || "—",
                   icon: <Clock size={10} color="#f59e0b" />,
+                },
+                {
+                  label: "Timezone",
+                  value:
+                    form.scheduleMode === "now"
+                      ? DEFAULT_TIMEZONE
+                      : form.timezone || "—",
+                  icon: <Globe size={10} color="#0078d4" />,
                 },
                 {
                   label: "Duration",
@@ -2816,8 +3311,15 @@ function StartLiveThreePanel({ t, isDark, navigate }) {
                     : "none",
               }}
             >
-              {submitting ? (
+              {/* {submitting ? (
                 "Scheduling…"
+              ) : ( */}
+              {submitting ? (
+                form.scheduleMode === "now" ? (
+                  "Starting…"
+                ) : (
+                  "Scheduling…"
+                )
               ) : (
                 <>
                   <span
@@ -2832,13 +3334,18 @@ function StartLiveThreePanel({ t, isDark, navigate }) {
                         : "none",
                     }}
                   />
-                  {form.mode === "external"
+                  {/* {form.mode === "external"
                     ? "Save & Notify Students"
-                    : "Schedule Session"}
+                    : "Schedule Session"} */}
+                  {form.scheduleMode === "now"
+                    ? "Start Now"
+                    : form.mode === "external"
+                      ? "Save & Notify Students"
+                      : "Schedule Session"}
                 </>
               )}
             </button>
-            <button
+            {/* <button
               onClick={handlePublish}
               disabled={publishing}
               style={{
@@ -2860,7 +3367,32 @@ function StartLiveThreePanel({ t, isDark, navigate }) {
             >
               <Send size={12} />
               {publishing ? "Scheduling…" : "Schedule for Later (Publish)"}
-            </button>
+            </button> */}
+            {form.scheduleMode !== "now" && (
+              <button
+                onClick={handlePublish}
+                disabled={publishing}
+                style={{
+                  width: "100%",
+                  padding: "9px 0",
+                  borderRadius: 9,
+                  border: `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "#e2e8f0"}`,
+                  background: "transparent",
+                  color: t.textSub,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  cursor: publishing ? "not-allowed" : "pointer",
+                  fontFamily: "'Poppins',sans-serif",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 6,
+                }}
+              >
+                <Send size={12} />
+                {publishing ? "Scheduling…" : "Schedule for Later (Publish)"}
+              </button>
+            )}
           </div>
         )}
       </div>

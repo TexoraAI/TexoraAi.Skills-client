@@ -213,27 +213,6 @@ export const clearWhiteboardSession = (sessionId) =>
 
 // ─── AI COMPANION ──────────────────────────────────────────────
 
-// POST /api/v1/ai-companion/chat
-// Body: { sessionId, mode, message, additionalContext }
-// mode values: POST_MEETING_FOLLOWUP | DAILY_REFLECTION | CROSS_MEETING_ANALYST
-//              TOP_5_THINGS | SUMMARIZER | DAILY_REPORT | GENERATE_QUIZ
-//              COACHING | CUSTOM_QUESTION
-// export const sendAiCompanionMessage = (
-//   sessionId,
-//   mode,
-//   message,
-//   additionalContext = null,
-// ) =>
-//   axios.post(
-//     `${API_BASE}/v1/ai-companion/chat`,
-//     {
-//       sessionId,
-//       mode,
-//       message,
-//       additionalContext,
-//     },
-//     getAuthHeader(),
-//   );
 // Replace the existing sendAiCompanionMessage export with this:
 export const sendAiCompanionMessage = (
   sessionId,
@@ -364,68 +343,12 @@ export const getSessionActionItems = (sessionId) =>
     getAuthHeader(),
   );
 
-// ─── AI COMPANION — WORKFLOWS ──────────────────────────────────
-
-// /** GET /api/v1/ai-companion/workflows/templates */
-// export const getWorkflowTemplates = () =>
-//   axios.get(`${API_BASE}/v1/ai-companion/workflows/templates`, getAuthHeader());
-
-// /** POST /api/v1/ai-companion/workflows */
-// export const createWorkflow = (data) =>
-//   axios.post(`${API_BASE}/v1/ai-companion/workflows`, data, getAuthHeader());
-
-// /** GET /api/v1/ai-companion/workflows/my */
-// export const getMyWorkflows = () =>
-//   axios.get(`${API_BASE}/v1/ai-companion/workflows/my`, getAuthHeader());
-
-// /** GET /api/v1/ai-companion/workflows/:id */
-// export const getWorkflow = (id) =>
-//   axios.get(`${API_BASE}/v1/ai-companion/workflows/${id}`, getAuthHeader());
-
-// /** PUT /api/v1/ai-companion/workflows/:id */
-// export const updateWorkflow = (id, data) =>
-//   axios.put(
-//     `${API_BASE}/v1/ai-companion/workflows/${id}`,
-//     data,
-//     getAuthHeader(),
-//   );
-
-// /** DELETE /api/v1/ai-companion/workflows/:id */
-// export const deleteWorkflow = (id) =>
-//   axios.delete(`${API_BASE}/v1/ai-companion/workflows/${id}`, getAuthHeader());
-
-// /** POST /api/v1/ai-companion/workflows/:id/run */
-// export const runWorkflow = (id, data = {}) =>
-//   axios.post(
-//     `${API_BASE}/v1/ai-companion/workflows/${id}/run`,
-//     data,
-//     getAuthHeader(),
-//   );
-
-// /** GET /api/v1/ai-companion/workflows/runs */
-// export const getWorkflowRuns = () =>
-//   axios.get(`${API_BASE}/v1/ai-companion/workflows/runs`, getAuthHeader());
-// =================================================================
-// REPLACE the existing "─── AI COMPANION — WORKFLOWS ───" section
-// in src/services/liveSessionService.js with this block.
-// No other changes needed in that file.
-// =================================================================
-
 // ─── AI COMPANION — WORKFLOWS ────────────────────────────────────
 
 /** POST /api/v1/ai-companion/workflows */
 export const createWorkflow = (data) =>
   axios.post(`${API_BASE}/v1/ai-companion/workflows`, data, getAuthHeader());
 
-/**
- * GET /api/v1/ai-companion/workflows
- * Optional params: { search: string, status: string }
- * Examples:
- *   getMyWorkflows()                          → all workflows
- *   getMyWorkflows({ search: "email" })       → by name
- *   getMyWorkflows({ status: "ACTIVE" })      → by status
- *   getMyWorkflows({ search: "x", status: "DRAFT" }) → combined
- */
 export const getMyWorkflows = (params = {}) =>
   axios.get(`${API_BASE}/v1/ai-companion/workflows`, {
     ...getAuthHeader(),
@@ -545,6 +468,20 @@ export const generateAiTranscriptSummary = (transcriptId) =>
     getAuthHeader(),
   );
 
+// ✅ NEW — mid-session recording toggle
+export const startRecordingLive = (sessionId) =>
+  axios.post(
+    `${API_BASE}/live-sessions/${sessionId}/recording/start`,
+    {},
+    getAuthHeader(),
+  );
+
+export const stopRecordingLive = (sessionId) =>
+  axios.post(
+    `${API_BASE}/live-sessions/${sessionId}/recording/stop`,
+    {},
+    getAuthHeader(),
+  );
 /**
  * POST /api/v1/ai-companion/transcripts/{transcriptId}/ask
  * Body: { question }

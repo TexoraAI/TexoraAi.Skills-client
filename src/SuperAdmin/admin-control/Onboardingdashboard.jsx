@@ -66,6 +66,11 @@ import {
 import { courseService } from "../../services/courseService";
 import videoService from "../../services/videoService";
 import fileService from "../../services/fileService";
+import attendanceService from "../../services/attendanceService";
+import {
+  getAssessmentIndividualFeatureFlags,
+  updateAssessmentIndividualFeatureFlags,
+} from "../../services/assessmentService";
 export const SERVICES_CONFIG = [
   {
     key: "assessment",
@@ -78,115 +83,69 @@ export const SERVICES_CONFIG = [
     glow: "rgba(139,92,246,0.4)",
     features: {
       trainer: [
-        { key: "create_quiz", label: "Create quiz", endpoint: "POST /quizzes" },
         {
-          key: "delete_quiz",
-          label: "Delete quiz",
-          endpoint: "DELETE /quizzes/:id",
+          key: "create_quiz",
+          label: "Create & manage quizzes",
+          endpoint: "POST /quizzes + related",
         },
         {
-          key: "add_question",
-          label: "Add question",
-          endpoint: "POST /questions",
-        },
-        {
-          key: "add_option",
-          label: "Add answer option",
-          endpoint: "POST /options",
-        },
-        {
-          key: "upload_bulk_quiz",
-          label: "Bulk upload quiz (CSV)",
-          endpoint: "POST /quizzes/upload-bulk",
+          key: "create_assignment",
+          label: "Create & manage assignments",
+          endpoint: "POST /assignments + related",
         },
         {
           key: "create_coding_problem",
-          label: "Create coding problem",
-          endpoint: "POST /v1/problems",
+          label: "Create & manage coding problems",
+          endpoint: "POST /v1/problems + related",
         },
         {
-          key: "update_coding_problem",
-          label: "Edit coding problem",
-          endpoint: "PUT /v1/problems/:id",
-        },
-        {
-          key: "delete_coding_problem",
-          label: "Delete coding problem",
-          endpoint: "DELETE /v1/problems/:id",
-        },
-        {
-          key: "assign_problem_to_batch",
-          label: "Assign problem to batch",
-          endpoint: "POST /v1/assignments",
-        },
-        {
-          key: "evaluate_submission",
-          label: "Grade submissions",
-          endpoint: "PUT /submissions/evaluate/:id",
-        },
-        {
-          key: "view_submissions",
-          label: "View all submissions",
-          endpoint: "GET /submissions/:assignmentId",
+          key: "create_study_plan",
+          label: "Create & manage study plans",
+          endpoint: "POST /v1/study-plans + related",
         },
       ],
       student: [
         {
-          key: "view_trainer_quizzes",
-          label: "View available quizzes",
-          endpoint: "GET /quizzes/student",
-        },
-        {
-          key: "submit_quiz_attempt",
-          label: "Attempt a quiz",
-          endpoint: "POST /attempts/submit",
-        },
-        {
-          key: "view_quiz_history",
-          label: "View quiz history",
-          endpoint: "GET /attempts/my",
-        },
-        {
-          key: "view_student_problems",
-          label: "View coding problems",
-          endpoint: "GET /v1/assignments/student/problems",
-        },
-        {
-          key: "submit_code_for_judge",
-          label: "Submit code solution",
-          endpoint: "POST /v1/assignments/student/problems/:id/submit",
-        },
-        {
-          key: "run_code_free",
-          label: "Free code execution",
-          endpoint: "POST /v1/code/run",
-        },
-        {
-          key: "view_my_code_submissions",
-          label: "View code submission history",
-          endpoint: "GET /v1/code/submissions/student",
+          key: "attempt_quiz",
+          label: "Attempt quizzes",
+          endpoint: "POST /attempts/submit + related",
         },
         {
           key: "submit_assignment",
-          label: "Submit assignment file",
-          endpoint: "POST /submissions/:assignmentId",
+          label: "Submit assignments",
+          endpoint: "POST /submissions/:assignmentId + related",
         },
         {
-          key: "view_my_submissions",
-          label: "View my submissions",
-          endpoint: "GET /submissions/my",
+          key: "solve_coding_problem",
+          label: "Solve coding problems",
+          endpoint: "POST /v1/code/run + related",
+        },
+        {
+          key: "access_study_plan",
+          label: "Access study plans",
+          endpoint: "GET /v1/study-plans/student + related",
         },
       ],
       admin: [
         {
-          key: "get_all_quizzes",
-          label: "View all quizzes",
-          endpoint: "GET /quizzes",
+          key: "view_quiz_admin_report",
+          label: "View quiz admin report",
+          endpoint: "GET /quizzes/admin",
         },
         {
-          key: "get_batch_code_submissions",
-          label: "View batch code submissions",
-          endpoint: "GET /v1/code/submissions/batch/:batchId",
+          key: "view_assignment_admin_report",
+          label: "View assignment admin report",
+          endpoint: "GET /assignments/admin",
+        },
+        {
+          key: "view_coding_problem_admin_report",
+          label: "View coding problem admin report",
+          endpoint: "GET /v1/problems/admin",
+        },
+        {
+          key: "view_study_plan_admin_report",
+          label: "View study plan admin report",
+          endpoint: "GET /v1/study-plans/admin",
         },
       ],
     },
@@ -195,7 +154,7 @@ export const SERVICES_CONFIG = [
     key: "attendance",
     label: "Attendance",
     icon: "🗓️",
-    gradient: "linear-gradient(135deg,#14b8a6,#06b6d4)",
+    gradient: "linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%)",
     color: "#14b8a6",
     colorLight: "#f0fdfa",
     colorDark: "rgba(20,184,166,0.15)",
@@ -208,24 +167,70 @@ export const SERVICES_CONFIG = [
           endpoint: "POST /trainer/attendance/mark",
         },
         {
-          key: "get_trainer_batches",
-          label: "View assigned batches",
-          endpoint: "GET /batch/trainer",
+          key: "mark_trainer_session",
+          label: "Mark own session attendance",
+          endpoint: "POST /trainer/attendance/session/mark",
         },
         {
-          key: "get_batch_students",
-          label: "View students in batch",
-          endpoint: "GET /chat/trainer/students?batchId=",
+          key: "get_trainer_session_history",
+          label: "View own session history",
+          endpoint: "GET /trainer/attendance/session/history",
+        },
+        {
+          key: "get_trainer_history",
+          label: "View marked attendance history",
+          endpoint: "GET /trainer/attendance/history",
+        },
+        {
+          key: "get_trainer_session_history_filter",
+          label: "View filtered session history",
+          endpoint: "GET /trainer/attendance/session/history/filter",
+        },
+        {
+          key: "download_trainer_report",
+          label: "Download attendance report",
+          endpoint: "GET /trainer/attendance/download",
         },
       ],
       student: [
         {
-          key: "view_monthly_attendance",
+          key: "get_monthly_attendance",
           label: "View monthly attendance",
           endpoint: "GET /student/attendance/monthly",
         },
+        {
+          key: "get_student_history",
+          label: "View attendance history",
+          endpoint: "GET /student/attendance/history",
+        },
+        {
+          key: "download_student_report",
+          label: "Download attendance report",
+          endpoint: "GET /student/attendance/download",
+        },
       ],
-      admin: [],
+      admin: [
+        {
+          key: "get_admin_overview",
+          label: "View batch attendance overview",
+          endpoint: "GET /trainer/attendance/admin/overview",
+        },
+        {
+          key: "get_admin_batch_detail",
+          label: "View batch attendance detail",
+          endpoint: "GET /trainer/attendance/admin/batch/:batchId",
+        },
+        {
+          key: "get_admin_history",
+          label: "View admin attendance history",
+          endpoint: "GET /trainer/attendance/admin/history",
+        },
+        {
+          key: "download_admin_report",
+          label: "Download admin attendance report",
+          endpoint: "GET /trainer/attendance/admin/download",
+        },
+      ],
     },
   },
   {
@@ -1109,6 +1114,34 @@ function buildDefaultChatDTOOM(enabled = true) {
   });
   return { enabled, features };
 }
+
+const ATTENDANCE_SVC_OM = SERVICES_CONFIG.find((s) => s.key === "attendance");
+function getAllAttendanceKeysOM() {
+  return Object.values(ATTENDANCE_SVC_OM.features)
+    .flat()
+    .map((f) => f.key);
+}
+function buildDefaultAttendanceDTOOM(enabled = true) {
+  const features = {};
+  getAllAttendanceKeysOM().forEach((k) => {
+    features[k] = enabled;
+  });
+  return { enabled, features };
+}
+
+const ASSESSMENT_SVC_OM = SERVICES_CONFIG.find((s) => s.key === "assessment");
+function getAllAssessmentKeysOM() {
+  return Object.values(ASSESSMENT_SVC_OM.features)
+    .flat()
+    .map((f) => f.key);
+}
+function buildDefaultAssessmentDTOOM(enabled = true) {
+  const features = {};
+  getAllAssessmentKeysOM().forEach((k) => {
+    features[k] = enabled;
+  });
+  return { enabled, features };
+}
 // const COURSE_SVC = SERVICES_CONFIG.find((s) => s.key === "course");
 
 // function getAllCourseFeatureKeys() {
@@ -1735,6 +1768,26 @@ const FeatureControlsSection = ({ userEmail, color, userRole }) => {
   const [chatDrawerOpen, setChatDrawerOpen] = useState(false);
 
   const chatSvc = CHAT_SVC_OM;
+  const [attendanceDto, setAttendanceDto] = useState(() =>
+    buildDefaultAttendanceDTOOM(true),
+  );
+  const [attendanceLoading, setAttendanceLoading] = useState(true);
+  const [attendanceSaving, setAttendanceSaving] = useState(false);
+  const [attendanceSaved, setAttendanceSaved] = useState(false);
+  const [attendanceDrawerOpen, setAttendanceDrawerOpen] = useState(false);
+
+  const attendanceSvc = ATTENDANCE_SVC_OM;
+
+  // ── ASSESSMENT state ─────────────────────────────────────────────────────────
+  const [assessmentDto, setAssessmentDto] = useState(() =>
+    buildDefaultAssessmentDTOOM(true),
+  );
+  const [assessmentLoading, setAssessmentLoading] = useState(true);
+  const [assessmentSaving, setAssessmentSaving] = useState(false);
+  const [assessmentSaved, setAssessmentSaved] = useState(false);
+  const [assessmentDrawerOpen, setAssessmentDrawerOpen] = useState(false);
+
+  const assessmentSvc = ASSESSMENT_SVC_OM;
 
   const batchSvc = BATCH_SVC_OM;
   const courseSvc = COURSE_SVC_OM;
@@ -1843,6 +1896,49 @@ const FeatureControlsSection = ({ userEmail, color, userRole }) => {
       })
       .catch(() => setChatDto(buildDefaultChatDTOOM(true)))
       .finally(() => setChatLoading(false));
+  }, [userEmail]);
+
+  // ── Load ATTENDANCE flags ───────────────────────────────────────────────────
+  useEffect(() => {
+    if (!userEmail) return;
+    setAttendanceLoading(true);
+    attendanceService
+      .getIndividualAttendanceFeatureFlags(userEmail)
+      .then((res) => {
+        const data = res.data;
+        if (data && typeof data === "object" && data.features) {
+          const defaults = buildDefaultAttendanceDTOOM(true);
+          setAttendanceDto({
+            enabled: data.enabled ?? true,
+            features: { ...defaults.features, ...data.features },
+          });
+        } else {
+          setAttendanceDto(buildDefaultAttendanceDTOOM(true));
+        }
+      })
+      .catch(() => setAttendanceDto(buildDefaultAttendanceDTOOM(true)))
+      .finally(() => setAttendanceLoading(false));
+  }, [userEmail]);
+
+  // ── Load ASSESSMENT flags ────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!userEmail) return;
+    setAssessmentLoading(true);
+    getAssessmentIndividualFeatureFlags(userEmail)
+      .then((res) => {
+        const data = res.data;
+        if (data && typeof data === "object" && data.features) {
+          const defaults = buildDefaultAssessmentDTOOM(true);
+          setAssessmentDto({
+            enabled: data.enabled ?? true,
+            features: { ...defaults.features, ...data.features },
+          });
+        } else {
+          setAssessmentDto(buildDefaultAssessmentDTOOM(true));
+        }
+      })
+      .catch(() => setAssessmentDto(buildDefaultAssessmentDTOOM(true)))
+      .finally(() => setAssessmentLoading(false));
   }, [userEmail]);
   const pushToast = useCallback(
     ({ svcLabel, featLabel, enabled, color: c }) => {
@@ -1970,6 +2066,54 @@ const FeatureControlsSection = ({ userEmail, color, userRole }) => {
       setChatSaving(false);
     }
   };
+  // ── ATTENDANCE handlers ─────────────────────────────────────────────────────
+  const handleAttendanceToggleFeature = (featKey, val) => {
+    setAttendanceDto((prev) => {
+      const newFeatures = { ...prev.features, [featKey]: val };
+      const anyOn = Object.values(newFeatures).some(Boolean);
+      return { enabled: anyOn, features: newFeatures };
+    });
+  };
+  const handleAttendanceToggleService = (val) =>
+    setAttendanceDto(buildDefaultAttendanceDTOOM(val));
+  const handleAttendanceSave = async () => {
+    setAttendanceSaving(true);
+    try {
+      await attendanceService.updateIndividualAttendanceFeatureFlags(
+        userEmail,
+        attendanceDto,
+      );
+      setAttendanceSaved(true);
+      setTimeout(() => setAttendanceSaved(false), 2800);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setAttendanceSaving(false);
+    }
+  };
+
+  // ── ASSESSMENT handlers ──────────────────────────────────────────────────────
+  const handleAssessmentToggleFeature = (featKey, val) => {
+    setAssessmentDto((prev) => {
+      const newFeatures = { ...prev.features, [featKey]: val };
+      const anyOn = Object.values(newFeatures).some(Boolean);
+      return { enabled: anyOn, features: newFeatures };
+    });
+  };
+  const handleAssessmentToggleService = (val) =>
+    setAssessmentDto(buildDefaultAssessmentDTOOM(val));
+  const handleAssessmentSave = async () => {
+    setAssessmentSaving(true);
+    try {
+      await updateAssessmentIndividualFeatureFlags(userEmail, assessmentDto);
+      setAssessmentSaved(true);
+      setTimeout(() => setAssessmentSaved(false), 2800);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setAssessmentSaving(false);
+    }
+  };
   const allowedRole = userRole === "business" ? "admin" : userRole || "trainer";
 
   const batchTotalKeys = getAllBatchKeysOM().length;
@@ -2016,7 +2160,18 @@ const FeatureControlsSection = ({ userEmail, color, userRole }) => {
     (f) => chatDto.features[f.key] !== false,
   ).length;
   const showChatCard = chatRoleFeats.length > 0;
+  const attendanceRoleFeats = attendanceSvc.features[allowedRole] || [];
+  const attendanceRoleOn = attendanceRoleFeats.filter(
+    (f) => attendanceDto.features[f.key] !== false,
+  ).length;
+  const showAttendanceCard = attendanceRoleFeats.length > 0;
   // Hide a service card entirely if this role has no features for it
+
+  const assessmentRoleFeats = assessmentSvc.features[allowedRole] || [];
+  const assessmentRoleOn = assessmentRoleFeats.filter(
+    (f) => assessmentDto.features[f.key] !== false,
+  ).length;
+  const showAssessmentCard = assessmentRoleFeats.length > 0;
   const showBatchCard = batchRoleFeats.length > 0;
   const showCourseCard = courseRoleFeats.length > 0;
 
@@ -2175,7 +2330,9 @@ const FeatureControlsSection = ({ userEmail, color, userRole }) => {
           courseLoading &&
           videoLoading &&
           fileLoading &&
-          chatLoading ? (
+          chatLoading &&
+          attendanceLoading &&
+          assessmentLoading ? (
             <div
               style={{
                 padding: "18px 0",
@@ -2325,6 +2482,58 @@ const FeatureControlsSection = ({ userEmail, color, userRole }) => {
                   loading={chatLoading}
                 />
               )}
+              {showAttendanceCard && (
+                <ServiceCardOM
+                  svc={attendanceSvc}
+                  svcEnabled={attendanceDto.enabled ?? true}
+                  onKeys={attendanceRoleOn}
+                  totalKeys={attendanceRoleFeats.length}
+                  pct={
+                    attendanceRoleFeats.length > 0
+                      ? Math.round(
+                          (attendanceRoleOn / attendanceRoleFeats.length) * 100,
+                        )
+                      : 0
+                  }
+                  onToggleService={(val) => {
+                    handleAttendanceToggleService(val);
+                    pushToast({
+                      svcLabel: attendanceSvc.label,
+                      featLabel: "All features",
+                      enabled: val,
+                      color: attendanceSvc.color,
+                    });
+                  }}
+                  onDrawerOpen={() => setAttendanceDrawerOpen(true)}
+                  loading={attendanceLoading}
+                />
+              )}
+              {showAssessmentCard && (
+                <ServiceCardOM
+                  svc={assessmentSvc}
+                  svcEnabled={assessmentDto.enabled ?? true}
+                  onKeys={assessmentRoleOn}
+                  totalKeys={assessmentRoleFeats.length}
+                  pct={
+                    assessmentRoleFeats.length > 0
+                      ? Math.round(
+                          (assessmentRoleOn / assessmentRoleFeats.length) * 100,
+                        )
+                      : 0
+                  }
+                  onToggleService={(val) => {
+                    handleAssessmentToggleService(val);
+                    pushToast({
+                      svcLabel: assessmentSvc.label,
+                      featLabel: "All features",
+                      enabled: val,
+                      color: assessmentSvc.color,
+                    });
+                  }}
+                  onDrawerOpen={() => setAssessmentDrawerOpen(true)}
+                  loading={assessmentLoading}
+                />
+              )}
             </div>
           )}
 
@@ -2391,6 +2600,32 @@ const FeatureControlsSection = ({ userEmail, color, userRole }) => {
               onSave={handleChatSave}
               saving={chatSaving}
               saved={chatSaved}
+              userRole={userRole}
+            />
+          )}
+          {attendanceDrawerOpen && (
+            <AttendanceDrawerOM
+              dto={attendanceDto}
+              onToggleFeature={handleAttendanceToggleFeature}
+              onToggleService={handleAttendanceToggleService}
+              onClose={() => setAttendanceDrawerOpen(false)}
+              onToast={pushToast}
+              onSave={handleAttendanceSave}
+              saving={attendanceSaving}
+              saved={attendanceSaved}
+              userRole={userRole}
+            />
+          )}
+          {assessmentDrawerOpen && (
+            <AssessmentDrawerOM
+              dto={assessmentDto}
+              onToggleFeature={handleAssessmentToggleFeature}
+              onToggleService={handleAssessmentToggleService}
+              onClose={() => setAssessmentDrawerOpen(false)}
+              onToast={pushToast}
+              onSave={handleAssessmentSave}
+              saving={assessmentSaving}
+              saved={assessmentSaved}
               userRole={userRole}
             />
           )}
@@ -4312,6 +4547,820 @@ const ChatDrawerOM = ({
           )}
         </div>
         {/* Feature list */}
+        <div style={{ flex: 1, padding: "14px 18px", overflowY: "auto" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 10,
+            }}
+          >
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: "#94a3b8",
+              }}
+            >
+              {activeRole} · {countEnabled(activeRole)}/
+              {totalForRole(activeRole)} enabled
+            </span>
+            <div style={{ display: "flex", gap: 5 }}>
+              <button
+                onClick={() => handleRoleAll(false)}
+                style={{
+                  fontSize: 9.5,
+                  padding: "3px 9px",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 6,
+                  background: "transparent",
+                  cursor: "pointer",
+                  color: "#94a3b8",
+                  fontWeight: 600,
+                  fontFamily: "inherit",
+                }}
+              >
+                All off
+              </button>
+              <button
+                onClick={() => handleRoleAll(true)}
+                style={{
+                  fontSize: 9.5,
+                  padding: "3px 9px",
+                  border: `1px solid ${svc.color}`,
+                  borderRadius: 6,
+                  background: svc.colorLight,
+                  cursor: "pointer",
+                  color: svc.color,
+                  fontWeight: 600,
+                  fontFamily: "inherit",
+                }}
+              >
+                All on
+              </button>
+            </div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            {(svc.features[activeRole] || []).map((feat, idx) => {
+              const isOn = dto.features[feat.key] ?? true;
+              return (
+                <div
+                  key={feat.key}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "10px 12px",
+                    borderRadius: 10,
+                    background: isOn ? svc.colorLight + "80" : "#f8fafc",
+                    border: `1px solid ${isOn ? svc.color + "30" : "#f1f5f9"}`,
+                    cursor: "pointer",
+                  }}
+                  onClick={() => {
+                    onToggleFeature(feat.key, !isOn);
+                    onToast({
+                      svcLabel: svc.label,
+                      featLabel: feat.label,
+                      enabled: !isOn,
+                      color: svc.color,
+                    });
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 22,
+                      height: 22,
+                      borderRadius: 6,
+                      background: isOn ? svc.color : "#e5e7eb",
+                      color: isOn ? "#fff" : "#94a3b8",
+                      fontSize: 10,
+                      fontWeight: 800,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {idx + 1}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: isOn ? "#0f172a" : "#94a3b8",
+                      }}
+                    >
+                      {feat.label}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 9.5,
+                        color: "#94a3b8",
+                        fontFamily: "monospace",
+                        marginTop: 1,
+                        opacity: 0.7,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {feat.endpoint}
+                    </div>
+                  </div>
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <MiniTgl
+                      checked={isOn}
+                      onChange={(e) => {
+                        onToggleFeature(feat.key, e.target.checked);
+                        onToast({
+                          svcLabel: svc.label,
+                          featLabel: feat.label,
+                          enabled: e.target.checked,
+                          color: svc.color,
+                        });
+                      }}
+                      color={svc.color}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const AttendanceDrawerOM = ({
+  dto,
+  onToggleFeature,
+  onToggleService,
+  onClose,
+  onToast,
+  onSave,
+  saving,
+  saved,
+  userRole,
+}) => {
+  const svc = ATTENDANCE_SVC_OM;
+  const allowedRole = userRole === "business" ? "admin" : userRole || "trainer";
+  const roles = Object.keys(svc.features).filter(
+    (r) => r === allowedRole && (svc.features[r] || []).length > 0,
+  );
+  const [activeRole, setActiveRole] = useState(roles[0] || "trainer");
+  const svcEnabled = dto.enabled ?? true;
+
+  const countEnabled = (role) =>
+    (svc.features[role] || []).filter((f) => dto.features[f.key] !== false)
+      .length;
+  const totalForRole = (role) => (svc.features[role] || []).length;
+
+  const handleRoleAll = (val) => {
+    (svc.features[activeRole] || []).forEach((f) => {
+      if ((dto.features[f.key] ?? true) !== val) {
+        onToggleFeature(f.key, val);
+        onToast({
+          svcLabel: svc.label,
+          featLabel: f.label,
+          enabled: val,
+          color: svc.color,
+        });
+      }
+    });
+  };
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 8000,
+        display: "flex",
+        justifyContent: "flex-end",
+      }}
+    >
+      <div
+        onClick={onClose}
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "rgba(0,0,0,0.55)",
+          backdropFilter: "blur(6px)",
+        }}
+      />
+      <div
+        style={{
+          position: "relative",
+          width: 500,
+          height: "100%",
+          background: "#fff",
+          display: "flex",
+          flexDirection: "column",
+          boxShadow: `-20px 0 60px rgba(0,0,0,0.3)`,
+          animation: "drawerSlide 0.3s cubic-bezier(0.22,1,0.36,1)",
+          overflowY: "auto",
+        }}
+      >
+        <div
+          style={{
+            background: svc.gradient,
+            padding: "24px 22px 20px",
+            flexShrink: 0,
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              top: -30,
+              right: -30,
+              width: 120,
+              height: 120,
+              borderRadius: "50%",
+              background: "rgba(255,255,255,0.08)",
+            }}
+          />
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              position: "relative",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 14,
+                  background: "rgba(255,255,255,0.2)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 22,
+                }}
+              >
+                {svc.icon}
+              </div>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: "#fff" }}>
+                  {svc.label}
+                </div>
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: "rgba(255,255,255,0.7)",
+                    marginTop: 2,
+                  }}
+                >
+                  {
+                    getAllAttendanceKeysOM().filter(
+                      (k) => dto.features[k] !== false,
+                    ).length
+                  }{" "}
+                  / {getAllAttendanceKeysOM().length} features active
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: 9,
+                background: "rgba(255,255,255,0.2)",
+                border: "none",
+                cursor: "pointer",
+                color: "#fff",
+                fontSize: 15,
+                fontWeight: 700,
+              }}
+            >
+              ✕
+            </button>
+          </div>
+          {/* Master switch */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginTop: 16,
+              background: "rgba(255,255,255,0.12)",
+              borderRadius: 11,
+              padding: "9px 13px",
+              border: "1px solid rgba(255,255,255,0.15)",
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#fff" }}>
+                Service master switch
+              </div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.65)" }}>
+                Disabling blocks all features for all roles
+              </div>
+            </div>
+            <MiniTgl
+              checked={svcEnabled}
+              onChange={(e) => {
+                onToggleService(e.target.checked);
+                onToast({
+                  svcLabel: svc.label,
+                  featLabel: "All features",
+                  enabled: e.target.checked,
+                  color: svc.color,
+                });
+              }}
+              color="#fff"
+              size="md"
+            />
+          </div>
+          {/* Save button */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              gap: 8,
+              marginTop: 12,
+            }}
+          >
+            <button
+              onClick={onSave}
+              disabled={saving}
+              style={{
+                fontSize: 12,
+                padding: "8px 20px",
+                border: "none",
+                borderRadius: 10,
+                background: saving
+                  ? "rgba(255,255,255,0.2)"
+                  : "rgba(255,255,255,0.92)",
+                cursor: saving ? "not-allowed" : "pointer",
+                color: saving ? "rgba(255,255,255,0.5)" : svc.color,
+                fontWeight: 700,
+                boxShadow: saving ? "none" : "0 2px 8px rgba(0,0,0,0.2)",
+                transition: "all 0.15s",
+              }}
+            >
+              {saving ? "Saving…" : saved ? "✓ Saved!" : "💾 Save changes"}
+            </button>
+          </div>
+          {/* Role tabs */}
+          {roles.length > 0 && (
+            <div style={{ display: "flex", gap: 5, marginTop: 12 }}>
+              {roles.map((role) => {
+                const pill = ROLE_PILL[role] || { label: role };
+                const isActive = activeRole === role;
+                return (
+                  <button
+                    key={role}
+                    onClick={() => setActiveRole(role)}
+                    style={{
+                      flex: 1,
+                      padding: "6px 8px",
+                      borderRadius: 8,
+                      border: "none",
+                      cursor: "pointer",
+                      background: isActive
+                        ? "rgba(255,255,255,0.92)"
+                        : "rgba(255,255,255,0.18)",
+                      color: isActive ? svc.color : "#fff",
+                      fontWeight: 700,
+                      fontSize: 11,
+                    }}
+                  >
+                    {pill.label}
+                    <span
+                      style={{
+                        display: "block",
+                        fontSize: 9.5,
+                        fontWeight: 400,
+                        opacity: 0.75,
+                        marginTop: 1,
+                      }}
+                    >
+                      {countEnabled(role)}/{totalForRole(role)} on
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        {/* Feature list */}
+        <div style={{ flex: 1, padding: "14px 18px", overflowY: "auto" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 10,
+            }}
+          >
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: "#94a3b8",
+              }}
+            >
+              {activeRole} · {countEnabled(activeRole)}/
+              {totalForRole(activeRole)} enabled
+            </span>
+            <div style={{ display: "flex", gap: 5 }}>
+              <button
+                onClick={() => handleRoleAll(false)}
+                style={{
+                  fontSize: 9.5,
+                  padding: "3px 9px",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 6,
+                  background: "transparent",
+                  cursor: "pointer",
+                  color: "#94a3b8",
+                  fontWeight: 600,
+                  fontFamily: "inherit",
+                }}
+              >
+                All off
+              </button>
+              <button
+                onClick={() => handleRoleAll(true)}
+                style={{
+                  fontSize: 9.5,
+                  padding: "3px 9px",
+                  border: `1px solid ${svc.color}`,
+                  borderRadius: 6,
+                  background: svc.colorLight,
+                  cursor: "pointer",
+                  color: svc.color,
+                  fontWeight: 600,
+                  fontFamily: "inherit",
+                }}
+              >
+                All on
+              </button>
+            </div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            {(svc.features[activeRole] || []).map((feat, idx) => {
+              const isOn = dto.features[feat.key] ?? true;
+              return (
+                <div
+                  key={feat.key}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "10px 12px",
+                    borderRadius: 10,
+                    background: isOn ? svc.colorLight + "80" : "#f8fafc",
+                    border: `1px solid ${isOn ? svc.color + "30" : "#f1f5f9"}`,
+                    cursor: "pointer",
+                  }}
+                  onClick={() => {
+                    onToggleFeature(feat.key, !isOn);
+                    onToast({
+                      svcLabel: svc.label,
+                      featLabel: feat.label,
+                      enabled: !isOn,
+                      color: svc.color,
+                    });
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 22,
+                      height: 22,
+                      borderRadius: 6,
+                      background: isOn ? svc.color : "#e5e7eb",
+                      color: isOn ? "#fff" : "#94a3b8",
+                      fontSize: 10,
+                      fontWeight: 800,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {idx + 1}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: isOn ? "#0f172a" : "#94a3b8",
+                      }}
+                    >
+                      {feat.label}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 9.5,
+                        color: "#94a3b8",
+                        fontFamily: "monospace",
+                        marginTop: 1,
+                        opacity: 0.7,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {feat.endpoint}
+                    </div>
+                  </div>
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <MiniTgl
+                      checked={isOn}
+                      onChange={(e) => {
+                        onToggleFeature(feat.key, e.target.checked);
+                        onToast({
+                          svcLabel: svc.label,
+                          featLabel: feat.label,
+                          enabled: e.target.checked,
+                          color: svc.color,
+                        });
+                      }}
+                      color={svc.color}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const AssessmentDrawerOM = ({
+  dto,
+  onToggleFeature,
+  onToggleService,
+  onClose,
+  onToast,
+  onSave,
+  saving,
+  saved,
+  userRole,
+}) => {
+  const svc = ASSESSMENT_SVC_OM;
+  const allowedRole = userRole === "business" ? "admin" : userRole || "trainer";
+  const roles = Object.keys(svc.features).filter(
+    (r) => r === allowedRole && (svc.features[r] || []).length > 0,
+  );
+  const [activeRole, setActiveRole] = useState(roles[0] || "trainer");
+  const svcEnabled = dto.enabled ?? true;
+
+  const countEnabled = (role) =>
+    (svc.features[role] || []).filter((f) => dto.features[f.key] !== false)
+      .length;
+  const totalForRole = (role) => (svc.features[role] || []).length;
+
+  const handleRoleAll = (val) => {
+    (svc.features[activeRole] || []).forEach((f) => {
+      if ((dto.features[f.key] ?? true) !== val) {
+        onToggleFeature(f.key, val);
+        onToast({
+          svcLabel: svc.label,
+          featLabel: f.label,
+          enabled: val,
+          color: svc.color,
+        });
+      }
+    });
+  };
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 8000,
+        display: "flex",
+        justifyContent: "flex-end",
+      }}
+    >
+      <div
+        onClick={onClose}
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "rgba(0,0,0,0.55)",
+          backdropFilter: "blur(6px)",
+        }}
+      />
+      <div
+        style={{
+          position: "relative",
+          width: 500,
+          height: "100%",
+          background: "#fff",
+          display: "flex",
+          flexDirection: "column",
+          boxShadow: `-20px 0 60px rgba(0,0,0,0.3)`,
+          animation: "drawerSlide 0.3s cubic-bezier(0.22,1,0.36,1)",
+          overflowY: "auto",
+        }}
+      >
+        <div
+          style={{
+            background: svc.gradient,
+            padding: "24px 22px 20px",
+            flexShrink: 0,
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              top: -30,
+              right: -30,
+              width: 120,
+              height: 120,
+              borderRadius: "50%",
+              background: "rgba(255,255,255,0.08)",
+            }}
+          />
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              position: "relative",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 14,
+                  background: "rgba(255,255,255,0.2)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 22,
+                }}
+              >
+                {svc.icon}
+              </div>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: "#fff" }}>
+                  {svc.label}
+                </div>
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: "rgba(255,255,255,0.7)",
+                    marginTop: 2,
+                  }}
+                >
+                  {
+                    getAllAssessmentKeysOM().filter(
+                      (k) => dto.features[k] !== false,
+                    ).length
+                  }{" "}
+                  / {getAllAssessmentKeysOM().length} features active
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: 9,
+                background: "rgba(255,255,255,0.2)",
+                border: "none",
+                cursor: "pointer",
+                color: "#fff",
+                fontSize: 15,
+                fontWeight: 700,
+              }}
+            >
+              ✕
+            </button>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginTop: 16,
+              background: "rgba(255,255,255,0.12)",
+              borderRadius: 11,
+              padding: "9px 13px",
+              border: "1px solid rgba(255,255,255,0.15)",
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#fff" }}>
+                Service master switch
+              </div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.65)" }}>
+                Disabling blocks all features for all roles
+              </div>
+            </div>
+            <MiniTgl
+              checked={svcEnabled}
+              onChange={(e) => {
+                onToggleService(e.target.checked);
+                onToast({
+                  svcLabel: svc.label,
+                  featLabel: "All features",
+                  enabled: e.target.checked,
+                  color: svc.color,
+                });
+              }}
+              color="#fff"
+              size="md"
+            />
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              gap: 8,
+              marginTop: 12,
+            }}
+          >
+            <button
+              onClick={onSave}
+              disabled={saving}
+              style={{
+                fontSize: 12,
+                padding: "8px 20px",
+                border: "none",
+                borderRadius: 10,
+                background: saving
+                  ? "rgba(255,255,255,0.2)"
+                  : "rgba(255,255,255,0.92)",
+                cursor: saving ? "not-allowed" : "pointer",
+                color: saving ? "rgba(255,255,255,0.5)" : svc.color,
+                fontWeight: 700,
+                boxShadow: saving ? "none" : "0 2px 8px rgba(0,0,0,0.2)",
+                transition: "all 0.15s",
+              }}
+            >
+              {saving ? "Saving…" : saved ? "✓ Saved!" : "💾 Save changes"}
+            </button>
+          </div>
+          {roles.length > 0 && (
+            <div style={{ display: "flex", gap: 5, marginTop: 12 }}>
+              {roles.map((role) => {
+                const pill = ROLE_PILL[role] || { label: role };
+                const isActive = activeRole === role;
+                return (
+                  <button
+                    key={role}
+                    onClick={() => setActiveRole(role)}
+                    style={{
+                      flex: 1,
+                      padding: "6px 8px",
+                      borderRadius: 8,
+                      border: "none",
+                      cursor: "pointer",
+                      background: isActive
+                        ? "rgba(255,255,255,0.92)"
+                        : "rgba(255,255,255,0.18)",
+                      color: isActive ? svc.color : "#fff",
+                      fontWeight: 700,
+                      fontSize: 11,
+                    }}
+                  >
+                    {pill.label}
+                    <span
+                      style={{
+                        display: "block",
+                        fontSize: 9.5,
+                        fontWeight: 400,
+                        opacity: 0.75,
+                        marginTop: 1,
+                      }}
+                    >
+                      {countEnabled(role)}/{totalForRole(role)} on
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
         <div style={{ flex: 1, padding: "14px 18px", overflowY: "auto" }}>
           <div
             style={{

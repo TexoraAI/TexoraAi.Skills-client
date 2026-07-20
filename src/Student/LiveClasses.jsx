@@ -1354,15 +1354,16 @@ const LiveClasses = () => {
 
       // Real, unique student id (instead of a hardcoded id) so LiveKit
       // does not disconnect any existing connection under the same identity.
-      const user = JSON.parse(localStorage.getItem("lms_user") || "{}");
-      const studentId = user?.id || user?.studentId;
-      if (!studentId) {
-        console.error("No student id found in lms_user — cannot join with a unique identity.");
-        return;
-      }
+      // const user = JSON.parse(localStorage.getItem("lms_user") || "{}");
+      // const studentId = user?.id || user?.studentId;
+      // if (!studentId) {
+      //   console.error("No student id found in lms_user — cannot join with a unique identity.");
+      //   return;
+      // }
 
-      const res = await joinLiveSession(selected.id, studentId);
-
+      // const res = await joinLiveSession(selected.id, studentId);
+// Identity now comes from the JWT server-side — no localStorage lookup needed.
+const res = await joinLiveSession(selected.id);
       // Hands the token/room off to the context, which owns the actual
       // LiveKit Room connection at a level above the router so it never
       // gets disconnected by in-app navigation.

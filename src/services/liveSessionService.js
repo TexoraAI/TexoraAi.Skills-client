@@ -78,9 +78,14 @@ export const getPublishedSessions = () =>
   axios.get(`${API_BASE}/live-sessions/published`);
 // ─── JOIN SESSION ──────────────────────────────────────────────
 
-export const joinLiveSession = (sessionId, studentId) =>
+// export const joinLiveSession = (sessionId, studentId) =>
+//   axios.get(
+//     `${API_BASE}/live-sessions/${sessionId}/join?studentId=${studentId}`,
+//     getAuthHeader(),
+//   );
+export const joinLiveSession = (sessionId) =>
   axios.get(
-    `${API_BASE}/live-sessions/${sessionId}/join?studentId=${studentId}`,
+    `${API_BASE}/live-sessions/${sessionId}/join`,
     getAuthHeader(),
   );
 

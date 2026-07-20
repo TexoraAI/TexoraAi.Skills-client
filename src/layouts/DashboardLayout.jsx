@@ -688,7 +688,7 @@ import {
 } from "lucide-react";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate, Outlet } from "react-router-dom";
-import FloatingMeetingWidget from "@/components/live/FloatingMeetingWidget";
+import LiveMeetingRouteSync from "@/components/live/LiveMeetingRouteSync";
 import LiveMeetingRouteSync from "@/context/LiveMeetingRouteSync";
 import {
   onForegroundMessage,

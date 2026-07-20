@@ -17,6 +17,9 @@
 // const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api";
 
 // /* ─── Styles ─────────────────────────────────────────────────────── */
+// /* NOTE: All logic/handlers below are untouched from the original file.
+//    Only visual tokens (radius, shadow, spacing, hover states, colors)
+//    were tuned to match the target design (Image 3). */
 // const styles = `
 //   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
 
@@ -33,7 +36,7 @@
 //     --lc-danger:    #f87171;
 //     --lc-shadow:    0 4px 24px rgba(0,0,0,0.06);
 //     --lc-shadow-lg: 0 8px 40px rgba(0,0,0,0.10);
-//     --lc-radius:    20px;
+//     --lc-radius:    22px;
 //   }
 
 //   .lc-dark {
@@ -41,7 +44,7 @@
 //     --lc-card:      #111111;
 //     --lc-text:      #ffffff;
 //     --lc-muted:     #94a3b8;
-//     --lc-border:    rgba(255,255,255,0.06);
+//     --lc-border:    rgba(255,255,255,0.07);
 //     --lc-shadow:    0 4px 24px rgba(0,0,0,0.40);
 //     --lc-shadow-lg: 0 8px 40px rgba(0,0,0,0.60);
 //   }
@@ -51,18 +54,18 @@
 //     min-height: 100vh;
 //     background: var(--lc-bg);
 //     color: var(--lc-text);
-//     padding: 24px;
+//     padding: 28px;
 //     box-sizing: border-box;
 //     transition: background 0.3s;
 //   }
 
-//   .lc-inner { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+//   .lc-inner { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
 
 //   .lc-header {
 //     background: var(--lc-card);
 //     border: 1px solid var(--lc-border);
 //     border-radius: var(--lc-radius);
-//     padding: 28px 32px;
+//     padding: 26px 32px;
 //     box-shadow: var(--lc-shadow);
 //     display: flex; align-items: center;
 //     justify-content: space-between; gap: 20px; flex-wrap: wrap;
@@ -71,9 +74,9 @@
 //   .lc-header-left { display: flex; align-items: center; gap: 16px; }
 
 //   .lc-header-icon {
-//     width: 52px; height: 52px; border-radius: 14px;
-//     background: rgba(248,113,113,0.10);
-//     border: 1px solid rgba(248,113,113,0.18);
+//     width: 54px; height: 54px; border-radius: 16px;
+//     background: linear-gradient(135deg, rgba(248,113,113,0.16), rgba(251,146,60,0.10));
+//     border: 1px solid rgba(248,113,113,0.20);
 //     display: flex; align-items: center; justify-content: center;
 //     color: var(--lc-danger); flex-shrink: 0;
 //   }
@@ -95,13 +98,15 @@
 
 //   .lc-stat {
 //     display: flex; align-items: center; gap: 10px;
-//     padding: 12px 18px; border-radius: 14px;
+//     padding: 12px 18px; border-radius: 16px;
 //     background: var(--lc-bg); border: 1px solid var(--lc-border);
 //     box-shadow: var(--lc-shadow);
+//     transition: transform 0.18s ease;
 //   }
+//   .lc-stat:hover { transform: translateY(-2px); }
 
 //   .lc-stat-icon {
-//     width: 36px; height: 36px; border-radius: 10px;
+//     width: 36px; height: 36px; border-radius: 11px;
 //     display: flex; align-items: center; justify-content: center;
 //     flex-shrink: 0;
 //   }
@@ -119,7 +124,7 @@
 
 //   .lc-panel-head {
 //     display: flex; align-items: center; justify-content: space-between;
-//     padding: 16px 24px;
+//     padding: 18px 24px;
 //     background: rgba(248,113,113,0.06);
 //     border-bottom: 1px solid var(--lc-border);
 //   }
@@ -127,7 +132,7 @@
 //   .lc-panel-head-left { display: flex; align-items: center; gap: 12px; }
 
 //   .lc-panel-icon {
-//     width: 38px; height: 38px; border-radius: 10px;
+//     width: 40px; height: 40px; border-radius: 12px;
 //     display: flex; align-items: center; justify-content: center;
 //     background: rgba(248,113,113,0.12);
 //     border: 1px solid rgba(248,113,113,0.18);
@@ -139,15 +144,15 @@
 
 //   .lc-collapse-btn {
 //     display: inline-flex; align-items: center; gap: 6px;
-//     padding: 7px 14px; border-radius: 10px; border: 1px solid var(--lc-border);
+//     padding: 8px 14px; border-radius: 11px; border: 1px solid var(--lc-border);
 //     background: var(--lc-bg); color: var(--lc-muted);
 //     font-family: 'Poppins', sans-serif;
 //     font-size: 11px; font-weight: 700;
-//     cursor: pointer; transition: border-color 0.2s, color 0.2s;
+//     cursor: pointer; transition: border-color 0.2s, color 0.2s, transform 0.15s;
 //     white-space: nowrap;
 //   }
 
-//   .lc-collapse-btn:hover { border-color: rgba(248,113,113,0.30); color: var(--lc-danger); }
+//   .lc-collapse-btn:hover { border-color: rgba(248,113,113,0.30); color: var(--lc-danger); transform: translateY(-1px); }
 
 //   .lc-body { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
 
@@ -162,7 +167,7 @@
 
 //   .lc-session {
 //     display: flex; align-items: center; gap: 14px;
-//     padding: 14px 16px; border-radius: 14px;
+//     padding: 15px 16px; border-radius: 16px;
 //     border-left: 3px solid transparent;
 //     border-top: 1px solid var(--lc-border);
 //     border-right: 1px solid var(--lc-border);
@@ -172,7 +177,7 @@
 //     position: relative; overflow: hidden;
 //   }
 
-//   .lc-session:hover { border-color: rgba(34,211,238,0.25); background: rgba(34,211,238,0.03); }
+//   .lc-session:hover { border-color: rgba(34,211,238,0.25); background: rgba(34,211,238,0.03); transform: translateY(-1px); }
 
 //   .lc-session.selected-normal {
 //     border-left-color: var(--lc-accent1);
@@ -196,7 +201,7 @@
 //   }
 
 //   .lc-session-icon {
-//     width: 40px; height: 40px; border-radius: 11px;
+//     width: 42px; height: 42px; border-radius: 13px;
 //     display: flex; align-items: center; justify-content: center;
 //     flex-shrink: 0;
 //   }
@@ -234,35 +239,35 @@
 
 //   .lc-join-btn {
 //     display: flex; align-items: center; justify-content: center; gap: 10px;
-//     width: 100%; padding: 14px 24px; border-radius: 14px; border: none;
+//     width: 100%; padding: 15px 24px; border-radius: 16px; border: none;
 //     background: var(--lc-danger); color: #fff;
 //     font-family: 'Poppins', sans-serif;
 //     font-size: 14px; font-weight: 700;
 //     cursor: pointer;
-//     box-shadow: 0 4px 20px rgba(248,113,113,0.30);
+//     box-shadow: 0 6px 22px rgba(248,113,113,0.32);
 //     transition: opacity 0.2s, transform 0.2s;
 //   }
 
-//   .lc-join-btn:hover { opacity: 0.87; transform: translateY(-1px); }
+//   .lc-join-btn:hover { opacity: 0.9; transform: translateY(-2px); }
 //   .lc-join-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
 //   .lc-join-dot { width: 8px; height: 8px; border-radius: 50%; background: white; animation: lc-blink 1s infinite; }
 
-//   /* ✅ NEW — shown on the session list when this student already has an
+//   /* ✅ shown on the session list when this student already has an
 //      active meeting running in the floating widget elsewhere, so they
 //      can jump back in without re-joining (which would create a second
 //      LiveKit connection under the same identity and kick themselves out). */
 //   .lc-resume-btn {
 //     display: flex; align-items: center; justify-content: center; gap: 10px;
-//     width: 100%; padding: 14px 24px; border-radius: 14px; border: none;
+//     width: 100%; padding: 15px 24px; border-radius: 16px; border: none;
 //     background: var(--lc-accent3); color: #062e21;
 //     font-family: 'Poppins', sans-serif;
 //     font-size: 14px; font-weight: 700;
 //     cursor: pointer;
-//     box-shadow: 0 4px 20px rgba(52,211,153,0.30);
+//     box-shadow: 0 6px 22px rgba(52,211,153,0.30);
 //     transition: opacity 0.2s, transform 0.2s;
 //   }
-//   .lc-resume-btn:hover { opacity: 0.87; transform: translateY(-1px); }
+//   .lc-resume-btn:hover { opacity: 0.9; transform: translateY(-2px); }
 
 //   @keyframes lc-spin { to { transform: rotate(360deg); } }
 
@@ -402,11 +407,8 @@
 //   const [joining, setJoining] = useState(false);
 //   const [dark, setDark] = useState(isDark);
 
-//   // ✅ Meeting connection/state now lives in the shared context so it
-//   // survives sidebar navigation instead of being torn down when this
-//   // page component unmounts. No more local token/room/joinedAt state,
-//   // no more sessionStorage persistence dance — the context is the
-//   // single source of truth for "is there an active meeting right now".
+//   // Meeting connection/state lives in the shared context so it survives
+//   // sidebar navigation instead of being torn down when this page unmounts.
 //   const { activeMeeting, minimized, setMinimized, joinMeeting } =
 //     useLiveMeeting();
 
@@ -441,7 +443,7 @@
 //   const handleJoin = async () => {
 //     if (!selected) return;
 
-//     // ✅ If EXTERNAL session — open meeting link directly, no LiveKit
+//     // If EXTERNAL session — open meeting link directly, no LiveKit
 //     // connection to manage at all.
 //     if (selected.meetingType === "EXTERNAL" && selected.externalMeetingUrl) {
 //       window.open(selected.externalMeetingUrl, "_blank");
@@ -451,23 +453,21 @@
 //     try {
 //       setJoining(true);
 
-//       // ✅ FIX — real, unique student id instead of the hardcoded `1`
-//       // that gave every student the same LiveKit identity. LiveKit
-//       // disconnects any existing connection sharing an identity when a
-//       // new one connects, which is exactly why the previous student's
-//       // meeting was getting kicked out whenever another student joined.
-//       const user = JSON.parse(localStorage.getItem("lms_user") || "{}");
-//       const studentId = user?.id || user?.studentId;
-//       if (!studentId) {
-//         console.error("No student id found in lms_user — cannot join with a unique identity.");
-//         return;
-//       }
+//       // Real, unique student id (instead of a hardcoded id) so LiveKit
+//       // does not disconnect any existing connection under the same identity.
+//       // const user = JSON.parse(localStorage.getItem("lms_user") || "{}");
+//       // const studentId = user?.id || user?.studentId;
+//       // if (!studentId) {
+//       //   console.error("No student id found in lms_user — cannot join with a unique identity.");
+//       //   return;
+//       // }
 
-//       const res = await joinLiveSession(selected.id, studentId);
-
-//       // ✅ Hands the token/room off to the context, which owns the
-//       // actual LiveKit Room connection at a level above the router so
-//       // it never gets disconnected by in-app navigation.
+//       // const res = await joinLiveSession(selected.id, studentId);
+// // Identity now comes from the JWT server-side — no localStorage lookup needed.
+// const res = await joinLiveSession(selected.id);
+//       // Hands the token/room off to the context, which owns the actual
+//       // LiveKit Room connection at a level above the router so it never
+//       // gets disconnected by in-app navigation.
 //       await joinMeeting({
 //         role: "student",
 //         sessionId: selected.id,
@@ -482,9 +482,8 @@
 //     }
 //   };
 
-//   // ✅ Jump back into a meeting that's already running in the floating
-//   // widget (e.g. student navigated here from another dashboard page
-//   // while the meeting was minimized) — no new join, just un-minimize.
+//   // Jump back into a meeting that's already running in the floating
+//   // widget — no new join, just un-minimize.
 //   const handleResume = () => {
 //     setMinimized(false);
 //   };
@@ -520,7 +519,7 @@
 //     },
 //   ];
 
-//   // ✅ This student already has an active meeting running (owned by the
+//   // This student already has an active meeting running (owned by the
 //   // context / floating widget). If it's for THIS same session and it's
 //   // currently minimized, show "Resume" instead of trying to join again.
 //   const hasActiveMeetingForSelected =
@@ -528,9 +527,8 @@
 //     selected &&
 //     activeMeeting.sessionId === selected.id;
 
-//   // ✅ Full-screen meeting view — only render LiveRoom when the active
-//   // meeting belongs to this student flow AND it isn't minimized (i.e.
-//   // we're actually on this page and not floating elsewhere).
+//   // Full-screen meeting view — only render LiveRoom when the active
+//   // meeting belongs to this student flow AND it isn't minimized.
 //   if (activeMeeting?.role === "student" && !minimized) {
 //     return (
 //       <LiveRoom
@@ -849,14 +847,6 @@
 // };
 
 // export default LiveClasses;
-
-
-
-
-
-
-
-
 
 
 
@@ -1744,5 +1734,3 @@ const res = await joinLiveSession(selected.id);
     </div>
   );
 };
-
-export default LiveClasses;

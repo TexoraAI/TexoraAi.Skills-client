@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { useLiveMeeting } from "./LiveMeetingContext";
+import { useLiveMeeting } from "../../context/LiveMeetingContext";
 
 const isOnFullMeetingRoute = (pathname, meeting) => {
   if (!meeting) return false;

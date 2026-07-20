@@ -1,33 +1,37 @@
+
 // // for github //
 // import { Bell, X } from "lucide-react";
 // import React, { useState, useEffect, useRef, useCallback } from "react";
 // import { useLocation, useNavigate, Outlet } from "react-router-dom";
-// import { onForegroundMessage, registerFcmToken } from "../services/firebaseService";
+// import {
+//   onForegroundMessage,
+//   registerFcmToken,
+// } from "../services/firebaseService";
 // import { useTrainerTheme } from "../Trainer/trainerTheme";
 // import {
 //   connectWebSocket,
 //   disconnectWebSocket,
 // } from "../services/notificationService";
-
+// import userService from "../services/userService";
 // // ── Notification type → icon map ─────────────────────────────
 // const TYPE_ICON = {
-//   NEW_VIDEO:            "🎥",
-//   NEW_FILE:             "📁",
-//   NEW_ASSESSMENT:       "📝",
-//   NEW_CONTENT:          "📘",
-//   NEW_QUIZ:             "📝",
-//   NEW_COURSE:           "🎓",
-//   NEW_ASSIGNMENT:       "📋",
-//   BATCH_UPDATE:         "🏫",
-//   BATCH_ASSIGNED:       "🏫",
-//   NEW_CHAT:             "💬",
-//   CHAT_MESSAGE:         "💬",
-//   LIVE_SESSION:         "📡",
+//   NEW_VIDEO: "🎥",
+//   NEW_FILE: "📁",
+//   NEW_ASSESSMENT: "📝",
+//   NEW_CONTENT: "📘",
+//   NEW_QUIZ: "📝",
+//   NEW_COURSE: "🎓",
+//   NEW_ASSIGNMENT: "📋",
+//   BATCH_UPDATE: "🏫",
+//   BATCH_ASSIGNED: "🏫",
+//   NEW_CHAT: "💬",
+//   CHAT_MESSAGE: "💬",
+//   LIVE_SESSION: "📡",
 //   LIVE_SESSION_STARTED: "📡",
-//   ATTENDANCE_MARKED:    "✅",
-//   DOUBT_RAISED:         "❓",
-//   ASSIGNMENT_SUBMIT:    "📤",
-//   DEFAULT:              "🔔",
+//   ATTENDANCE_MARKED: "✅",
+//   DOUBT_RAISED: "❓",
+//   ASSIGNMENT_SUBMIT: "📤",
+//   DEFAULT: "🔔",
 // };
 // const getIcon = (type) => TYPE_ICON[type] ?? TYPE_ICON.DEFAULT;
 
@@ -46,8 +50,8 @@
 //   } catch (_) {}
 // };
 // if (typeof window !== "undefined") {
-//   window.addEventListener("click",      unlockAudio, { passive: true });
-//   window.addEventListener("keydown",    unlockAudio, { passive: true });
+//   window.addEventListener("click", unlockAudio, { passive: true });
+//   window.addEventListener("keydown", unlockAudio, { passive: true });
 //   window.addEventListener("touchstart", unlockAudio, { passive: true });
 // }
 
@@ -57,21 +61,27 @@
 //     const ctx = getAudioCtx();
 //     const doPlay = () => {
 //       const t = ctx.currentTime;
-//       const o1 = ctx.createOscillator(), g1 = ctx.createGain();
-//       o1.connect(g1); g1.connect(ctx.destination);
+//       const o1 = ctx.createOscillator(),
+//         g1 = ctx.createGain();
+//       o1.connect(g1);
+//       g1.connect(ctx.destination);
 //       o1.type = "sine";
 //       o1.frequency.setValueAtTime(880, t);
 //       g1.gain.setValueAtTime(0.6, t);
 //       g1.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
-//       o1.start(t); o1.stop(t + 0.22);
+//       o1.start(t);
+//       o1.stop(t + 0.22);
 
-//       const o2 = ctx.createOscillator(), g2 = ctx.createGain();
-//       o2.connect(g2); g2.connect(ctx.destination);
+//       const o2 = ctx.createOscillator(),
+//         g2 = ctx.createGain();
+//       o2.connect(g2);
+//       g2.connect(ctx.destination);
 //       o2.type = "sine";
 //       o2.frequency.setValueAtTime(1100, t + 0.25);
 //       g2.gain.setValueAtTime(0.5, t + 0.25);
 //       g2.gain.exponentialRampToValueAtTime(0.001, t + 0.48);
-//       o2.start(t + 0.25); o2.stop(t + 0.48);
+//       o2.start(t + 0.25);
+//       o2.stop(t + 0.48);
 //     };
 //     if (ctx.state === "suspended") ctx.resume().then(doPlay);
 //     else doPlay();
@@ -84,7 +94,7 @@
 // // Notification permission banner
 // // ─────────────────────────────────────────────────────────────
 // const NotificationBanner = () => {
-//   const [show, setShow]     = useState(false);
+//   const [show, setShow] = useState(false);
 //   const [asking, setAsking] = useState(false);
 
 //   useEffect(() => {
@@ -119,26 +129,28 @@
 //   if (!show) return null;
 
 //   return (
-//     <div style={{
-//       position:     "fixed",
-//       bottom:       24,
-//       left:         "50%",
-//       transform:    "translateX(-50%)",
-//       background:   "#1e293b",
-//       color:        "#f8fafc",
-//       padding:      "13px 18px",
-//       borderRadius: 14,
-//       display:      "flex",
-//       alignItems:   "center",
-//       gap:          12,
-//       boxShadow:    "0 8px 32px rgba(0,0,0,0.28)",
-//       border:       "1px solid rgba(255,255,255,0.08)",
-//       zIndex:       9998,
-//       fontFamily:   "DM Sans, sans-serif",
-//       fontSize:     "0.86rem",
-//       whiteSpace:   "nowrap",
-//       animation:    "bnrIn 0.35s ease",
-//     }}>
+//     <div
+//       style={{
+//         position: "fixed",
+//         bottom: 24,
+//         left: "50%",
+//         transform: "translateX(-50%)",
+//         background: "#1e293b",
+//         color: "#f8fafc",
+//         padding: "13px 18px",
+//         borderRadius: 14,
+//         display: "flex",
+//         alignItems: "center",
+//         gap: 12,
+//         boxShadow: "0 8px 32px rgba(0,0,0,0.28)",
+//         border: "1px solid rgba(255,255,255,0.08)",
+//         zIndex: 9998,
+//         fontFamily: "DM Sans, sans-serif",
+//         fontSize: "0.86rem",
+//         whiteSpace: "nowrap",
+//         animation: "bnrIn 0.35s ease",
+//       }}
+//     >
 //       <style>{`
 //         @keyframes bnrIn {
 //           from { opacity: 0; transform: translateX(-50%) translateY(16px); }
@@ -153,17 +165,17 @@
 //         onClick={handleEnable}
 //         disabled={asking}
 //         style={{
-//           background:   "#F97316",
-//           color:        "#fff",
-//           border:       "none",
+//           background: "#F97316",
+//           color: "#fff",
+//           border: "none",
 //           borderRadius: 8,
-//           padding:      "7px 16px",
-//           cursor:       asking ? "not-allowed" : "pointer",
-//           fontWeight:   700,
-//           fontSize:     "0.82rem",
-//           opacity:      asking ? 0.7 : 1,
-//           fontFamily:   "inherit",
-//           boxShadow:    "0 2px 8px rgba(249,115,22,0.35)",
+//           padding: "7px 16px",
+//           cursor: asking ? "not-allowed" : "pointer",
+//           fontWeight: 700,
+//           fontSize: "0.82rem",
+//           opacity: asking ? 0.7 : 1,
+//           fontFamily: "inherit",
+//           boxShadow: "0 2px 8px rgba(249,115,22,0.35)",
 //         }}
 //       >
 //         {asking ? "Enabling…" : "Enable"}
@@ -172,12 +184,12 @@
 //         onClick={handleDismiss}
 //         style={{
 //           background: "none",
-//           border:     "none",
-//           color:      "#64748b",
-//           cursor:     "pointer",
-//           display:    "flex",
+//           border: "none",
+//           color: "#64748b",
+//           cursor: "pointer",
+//           display: "flex",
 //           alignItems: "center",
-//           padding:    0,
+//           padding: 0,
 //         }}
 //       >
 //         <X size={16} />
@@ -190,78 +202,94 @@
 // // Toast stack
 // // ─────────────────────────────────────────────────────────────
 // const ToastStack = ({ toasts, onDismiss, onNavigate }) => (
-//   <div style={{
-//     position:      "fixed",
-//     top:           24,
-//     right:         24,
-//     zIndex:        9999,
-//     display:       "flex",
-//     flexDirection: "column",
-//     gap:           10,
-//     alignItems:    "flex-end",
-//     maxWidth:      360,
-//   }}>
+//   <div
+//     style={{
+//       position: "fixed",
+//       top: 24,
+//       right: 24,
+//       zIndex: 9999,
+//       display: "flex",
+//       flexDirection: "column",
+//       gap: 10,
+//       alignItems: "flex-end",
+//       maxWidth: 360,
+//     }}
+//   >
 //     {toasts.map((t) => (
 //       <div
 //         key={t.id}
 //         onClick={() => onNavigate(t)}
 //         style={{
-//           background:     "rgba(255,255,255,0.98)",
-//           color:          "#0f172a",
-//           padding:        "12px 16px",
-//           borderRadius:   14,
-//           fontSize:       13,
-//           fontWeight:     600,
-//           boxShadow:      "0 8px 32px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06)",
-//           border:         "1px solid rgba(226,232,240,0.9)",
-//           display:        "flex",
-//           alignItems:     "flex-start",
-//           gap:            10,
-//           animation:      "slideDown 0.3s ease",
-//           cursor:         "pointer",
-//           width:          "100%",
+//           background: "rgba(255,255,255,0.98)",
+//           color: "#0f172a",
+//           padding: "12px 16px",
+//           borderRadius: 14,
+//           fontSize: 13,
+//           fontWeight: 600,
+//           boxShadow: "0 8px 32px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06)",
+//           border: "1px solid rgba(226,232,240,0.9)",
+//           display: "flex",
+//           alignItems: "flex-start",
+//           gap: 10,
+//           animation: "slideDown 0.3s ease",
+//           cursor: "pointer",
+//           width: "100%",
 //           backdropFilter: "blur(12px)",
 //         }}
 //       >
-//         <div style={{
-//           width:          36,
-//           height:         36,
-//           borderRadius:   10,
-//           flexShrink:     0,
-//           background:     "rgba(249,115,22,0.1)",
-//           border:         "1px solid rgba(249,115,22,0.2)",
-//           display:        "flex",
-//           alignItems:     "center",
-//           justifyContent: "center",
-//           fontSize:       16,
-//         }}>
+//         <div
+//           style={{
+//             width: 36,
+//             height: 36,
+//             borderRadius: 10,
+//             flexShrink: 0,
+//             background: "rgba(249,115,22,0.1)",
+//             border: "1px solid rgba(249,115,22,0.2)",
+//             display: "flex",
+//             alignItems: "center",
+//             justifyContent: "center",
+//             fontSize: 16,
+//           }}
+//         >
 //           {getIcon(t.type)}
 //         </div>
 //         <div style={{ flex: 1, minWidth: 0 }}>
-//           <div style={{ fontWeight: 700, marginBottom: 2, fontSize: 13, color: "#0f172a" }}>
+//           <div
+//             style={{
+//               fontWeight: 700,
+//               marginBottom: 2,
+//               fontSize: 13,
+//               color: "#0f172a",
+//             }}
+//           >
 //             {t.title}
 //           </div>
-//           <div style={{
-//             color:        "#64748b",
-//             fontSize:     12,
-//             fontWeight:   400,
-//             overflow:     "hidden",
-//             textOverflow: "ellipsis",
-//             whiteSpace:   "nowrap",
-//           }}>
+//           <div
+//             style={{
+//               color: "#64748b",
+//               fontSize: 12,
+//               fontWeight: 400,
+//               overflow: "hidden",
+//               textOverflow: "ellipsis",
+//               whiteSpace: "nowrap",
+//             }}
+//           >
 //             {t.message}
 //           </div>
 //         </div>
 //         <button
-//           onClick={(e) => { e.stopPropagation(); onDismiss(t.id); }}
+//           onClick={(e) => {
+//             e.stopPropagation();
+//             onDismiss(t.id);
+//           }}
 //           style={{
 //             background: "none",
-//             border:     "none",
-//             color:      "#94a3b8",
-//             cursor:     "pointer",
-//             padding:    0,
+//             border: "none",
+//             color: "#94a3b8",
+//             cursor: "pointer",
+//             padding: 0,
 //             flexShrink: 0,
-//             display:    "flex",
+//             display: "flex",
 //             alignItems: "center",
 //           }}
 //         >
@@ -282,40 +310,69 @@
 // // Main layout
 // // ─────────────────────────────────────────────────────────────
 // const DashboardLayout = ({ SidebarComponent }) => {
-//   const { t }    = useTrainerTheme();
+//   const { t } = useTrainerTheme();
 //   const navigate = useNavigate();
 //   const location = useLocation();
-//   const base     = "/" + location.pathname.split("/")[1];
+//   const base = "/" + location.pathname.split("/")[1];
 
 //   const [toasts, setToasts] = useState([]);
-//   const toastCounterRef     = useRef(0);
+//   const toastCounterRef = useRef(0);
 
 //   const [isDark, setIsDark] = useState(
-//     () => typeof document !== "undefined" &&
+//     () =>
+//       typeof document !== "undefined" &&
 //       (document.documentElement.classList.contains("dark") ||
-//        document.documentElement.getAttribute("data-theme") === "dark")
+//         document.documentElement.getAttribute("data-theme") === "dark"),
 //   );
 
 //   useEffect(() => {
 //     const obs = new MutationObserver(() => {
 //       setIsDark(
 //         document.documentElement.classList.contains("dark") ||
-//         document.documentElement.getAttribute("data-theme") === "dark"
+//           document.documentElement.getAttribute("data-theme") === "dark",
 //       );
 //     });
 //     obs.observe(document.documentElement, {
-//       attributes: true, attributeFilter: ["class", "data-theme"],
+//       attributes: true,
+//       attributeFilter: ["class", "data-theme"],
 //     });
 //     return () => obs.disconnect();
 //   }, []);
 
 //   const userEmail = localStorage.getItem("email");
-//   const userRole  = location.pathname.startsWith("/student") ? "STUDENT"
-//                   : location.pathname.startsWith("/trainer") ? "TRAINER"
-//                   : location.pathname.startsWith("/admin")   ? "ADMIN"
-//                   : "BUSINESS";
+//   const userRole = location.pathname.startsWith("/student")
+//     ? "STUDENT"
+//     : location.pathname.startsWith("/trainer")
+//       ? "TRAINER"
+//       : location.pathname.startsWith("/admin")
+//         ? "ADMIN"
+//         : "BUSINESS";
 
 //   const notifPath = `${base}/notifications`;
+
+//   // ✅ Avatar initial — fetched fresh from API, cached in localStorage
+//   const [userInitial, setUserInitial] = useState(
+//     (localStorage.getItem("userName") || "U").trim().charAt(0).toUpperCase() ||
+//       "U",
+//   );
+
+//   useEffect(() => {
+//     let cancelled = false;
+//     userService
+//       .getMyProfile()
+//       .then((res) => {
+//         if (cancelled) return;
+//         const name = res.data?.displayName || res.data?.name || "User";
+//         localStorage.setItem("userName", name);
+//         setUserInitial(name.trim().charAt(0).toUpperCase() || "U");
+//       })
+//       .catch(() => {
+//         // keep whatever is cached in localStorage if the call fails
+//       });
+//     return () => {
+//       cancelled = true;
+//     };
+//   }, [location.pathname]);
 
 //   const addToast = useCallback((title, message, type) => {
 //     playSound();
@@ -326,8 +383,12 @@
 //     }, 5000);
 //   }, []);
 
-//   const dismissToast     = (id) => setToasts((prev) => prev.filter((tt) => tt.id !== id));
-//   const handleToastClick = (toast) => { dismissToast(toast.id); navigate(notifPath); };
+//   const dismissToast = (id) =>
+//     setToasts((prev) => prev.filter((tt) => tt.id !== id));
+//   const handleToastClick = (toast) => {
+//     dismissToast(toast.id);
+//     navigate(notifPath);
+//   };
 
 //   // ── Single WebSocket for whole app ────────────────────────
 //   useEffect(() => {
@@ -337,7 +398,9 @@
 //       userRole,
 //       onMessage: (notif) => {
 //         addToast(notif.title, notif.message, notif.type);
-//         window.dispatchEvent(new CustomEvent("lms:notification", { detail: notif }));
+//         window.dispatchEvent(
+//           new CustomEvent("lms:notification", { detail: notif }),
+//         );
 //       },
 //     });
 //     return () => disconnectWebSocket();
@@ -346,12 +409,15 @@
 //   // ── FCM foreground — tab open but minimized ───────────────
 //   useEffect(() => {
 //     onForegroundMessage((payload) => {
-//       const title   = payload.notification?.title || payload.data?.title || "New Notification";
-//       const body    = payload.notification?.body  || payload.data?.body  || "";
-//       const type    = payload.data?.type    || "DEFAULT";
+//       const title =
+//         payload.notification?.title ||
+//         payload.data?.title ||
+//         "New Notification";
+//       const body = payload.notification?.body || payload.data?.body || "";
+//       const type = payload.data?.type || "DEFAULT";
 //       // ✅ FIX: self-notification check for FCM foreground
 //       // If the FCM message is a chat type, check sender vs current user
-//       const sender  = payload.data?.senderEmail || "";
+//       const sender = payload.data?.senderEmail || "";
 //       const current = (localStorage.getItem("email") || "").toLowerCase();
 //       if (type === "NEW_CHAT" && sender && sender.toLowerCase() === current) {
 //         console.log("⏭️ Skipping self FCM notification");
@@ -362,44 +428,55 @@
 //   }, [addToast]);
 
 //   const headerStyle = {
-//     height:               64,
-//     display:              "flex",
-//     alignItems:           "center",
-//     justifyContent:       "space-between",
-//     padding:              "0 24px",
-//     background:           isDark ? "rgba(10,10,10,0.92)" : "rgba(255,255,255,0.88)",
-//     backdropFilter:       "blur(14px)",
+//     height: 64,
+//     display: "flex",
+//     alignItems: "center",
+//     justifyContent: "space-between",
+//     padding: "0 24px",
+//     background: isDark ? "rgba(10,10,10,0.92)" : "rgba(255,255,255,0.88)",
+//     backdropFilter: "blur(14px)",
 //     WebkitBackdropFilter: "blur(14px)",
-//     borderBottom:         isDark
+//     borderBottom: isDark
 //       ? "1px solid rgba(255,255,255,0.06)"
 //       : "1px solid rgba(226,232,240,0.85)",
-//     boxShadow:            isDark ? "none" : "0 1px 4px rgba(0,0,0,0.05)",
-//     position:             "sticky",
-//     top:                  0,
-//     zIndex:               20,
+//     boxShadow: isDark ? "none" : "0 1px 4px rgba(0,0,0,0.05)",
+//     position: "sticky",
+//     top: 0,
+//     zIndex: 20,
 //   };
 
 //   return (
-//     <div style={{
-//       height:     "100vh",
-//       background: isDark ? "#0a0a0a" : "#F8F9FB",
-//       color:      isDark ? "#ffffff" : "#0f172a",
-//     }}>
+//     <div
+//       style={{
+//         height: "100vh",
+//         background: isDark ? "#0a0a0a" : "#F8F9FB",
+//         color: isDark ? "#ffffff" : "#0f172a",
+//       }}
+//     >
 //       <div style={{ display: "flex", height: "100%", overflow: "hidden" }}>
-
 //         {/* Sidebar */}
-//         <aside>
-//           {SidebarComponent && <SidebarComponent />}
-//         </aside>
+//         <aside>{SidebarComponent && <SidebarComponent />}</aside>
 
 //         {/* Main content column */}
-//         <div style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
-
+//         <div
+//           style={{
+//             display: "flex",
+//             flexDirection: "column",
+//             flex: 1,
+//             minWidth: 0,
+//           }}
+//         >
 //           {/* ═══ HEADER ═══ */}
 //           <div style={headerStyle}>
 //             {/* Right: bell + avatar */}
-//             <div style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: "auto" }}>
-
+//             <div
+//               style={{
+//                 display: "flex",
+//                 alignItems: "center",
+//                 gap: 10,
+//                 marginLeft: "auto",
+//               }}
+//             >
 //               {/* Notification bell */}
 //               <NotificationBellSlot
 //                 navigate={navigate}
@@ -411,26 +488,26 @@
 //               <button
 //                 onClick={() => navigate(`${base}/profile`)}
 //                 style={{
-//                   width:          36,
-//                   height:         36,
-//                   borderRadius:   "50%",
-//                   background:     "linear-gradient(135deg, #F97316, #EA580C)",
-//                   color:          "#fff",
-//                   fontWeight:     700,
-//                   fontSize:       14,
-//                   display:        "flex",
-//                   alignItems:     "center",
+//                   width: 36,
+//                   height: 36,
+//                   borderRadius: "50%",
+//                   background: "linear-gradient(135deg, #F97316, #EA580C)",
+//                   color: "#fff",
+//                   fontWeight: 700,
+//                   fontSize: 14,
+//                   display: "flex",
+//                   alignItems: "center",
 //                   justifyContent: "center",
-//                   border:         "2px solid rgba(249,115,22,0.3)",
-//                   boxShadow:      "0 2px 10px rgba(249,115,22,0.35)",
-//                   cursor:         "pointer",
-//                   fontFamily:     "inherit",
-//                   transition:     "opacity 0.2s",
+//                   border: "2px solid rgba(249,115,22,0.3)",
+//                   boxShadow: "0 2px 10px rgba(249,115,22,0.35)",
+//                   cursor: "pointer",
+//                   fontFamily: "inherit",
+//                   transition: "opacity 0.2s",
 //                 }}
-//                 onMouseEnter={e => e.currentTarget.style.opacity = "0.85"}
-//                 onMouseLeave={e => e.currentTarget.style.opacity = "1"}
+//                 onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
+//                 onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
 //               >
-//                 S
+//                 {userInitial}
 //               </button>
 //             </div>
 //           </div>
@@ -462,7 +539,9 @@
 
 //   useEffect(() => {
 //     import("../services/notificationService").then(({ fetchUnreadCount }) => {
-//       fetchUnreadCount().then(setUnreadCount).catch(() => {});
+//       fetchUnreadCount()
+//         .then(setUnreadCount)
+//         .catch(() => {});
 //     });
 //   }, []);
 
@@ -474,53 +553,63 @@
 
 //   return (
 //     <button
-//       onClick={() => { setUnreadCount(0); navigate(notifPath); }}
+//       onClick={() => {
+//         setUnreadCount(0);
+//         navigate(notifPath);
+//       }}
 //       onMouseEnter={() => setHov(true)}
 //       onMouseLeave={() => setHov(false)}
 //       style={{
-//         position:       "relative",
-//         width:          38,
-//         height:         38,
-//         borderRadius:   10,
-//         background:     hov
-//           ? isDark ? "rgba(255,255,255,0.06)" : "rgba(241,245,249,0.9)"
+//         position: "relative",
+//         width: 38,
+//         height: 38,
+//         borderRadius: 10,
+//         background: hov
+//           ? isDark
+//             ? "rgba(255,255,255,0.06)"
+//             : "rgba(241,245,249,0.9)"
 //           : "transparent",
-//         border:         isDark
+//         border: isDark
 //           ? "1px solid rgba(255,255,255,0.07)"
 //           : "1px solid rgba(226,232,240,0.8)",
-//         display:        "flex",
-//         alignItems:     "center",
+//         display: "flex",
+//         alignItems: "center",
 //         justifyContent: "center",
-//         cursor:         "pointer",
-//         transition:     "all 0.2s",
-//         boxShadow:      hov && !isDark ? "0 1px 4px rgba(0,0,0,0.06)" : "none",
+//         cursor: "pointer",
+//         transition: "all 0.2s",
+//         boxShadow: hov && !isDark ? "0 1px 4px rgba(0,0,0,0.06)" : "none",
 //       }}
 //     >
 //       <Bell
 //         size={18}
 //         color={isDark ? "#94a3b8" : "#64748b"}
-//         style={{ transition: "transform 0.2s", transform: hov ? "rotate(12deg)" : "none" }}
+//         style={{
+//           transition: "transform 0.2s",
+//           transform: hov ? "rotate(12deg)" : "none",
+//         }}
 //       />
 //       {unreadCount > 0 && (
-//         <span style={{
-//           position:       "absolute",
-//           top:            -3,
-//           right:          -3,
-//           minWidth:       18,
-//           height:         18,
-//           borderRadius:   999,
-//           background:     "#F97316",
-//           color:          "#fff",
-//           fontSize:       9,
-//           fontWeight:     700,
-//           display:        "flex",
-//           alignItems:     "center",
-//           justifyContent: "center",
-//           padding:        "0 4px",
-//           boxShadow:      "0 2px 6px rgba(249,115,22,0.45)",
-//           border:         isDark ? "2px solid #0a0a0a" : "2px solid #fff",
-//           fontFamily:     "inherit",
-//         }}>
+//         <span
+//           style={{
+//             position: "absolute",
+//             top: -3,
+//             right: -3,
+//             minWidth: 18,
+//             height: 18,
+//             borderRadius: 999,
+//             background: "#F97316",
+//             color: "#fff",
+//             fontSize: 9,
+//             fontWeight: 700,
+//             display: "flex",
+//             alignItems: "center",
+//             justifyContent: "center",
+//             padding: "0 4px",
+//             boxShadow: "0 2px 6px rgba(249,115,22,0.45)",
+//             border: isDark ? "2px solid #0a0a0a" : "2px solid #fff",
+//             fontFamily: "inherit",
+//           }}
+//         >
 //           {unreadCount > 99 ? "99+" : unreadCount}
 //         </span>
 //       )}
@@ -555,10 +644,51 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // for github //
-import { Bell, X } from "lucide-react";
+import {
+  Bell,
+  X,
+  Video,
+  FileText,
+  ClipboardCheck,
+  BookOpen,
+  ClipboardList,
+  GraduationCap,
+  ClipboardEdit,
+  Building2,
+  MessageSquare,
+  Radio,
+  CheckCircle2,
+  HelpCircle,
+  Send,
+} from "lucide-react";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate, Outlet } from "react-router-dom";
+import FloatingMeetingWidget from "@/components/live/FloatingMeetingWidget";
+import LiveMeetingRouteSync from "@/context/LiveMeetingRouteSync";
 import {
   onForegroundMessage,
   registerFcmToken,
@@ -569,25 +699,26 @@ import {
   disconnectWebSocket,
 } from "../services/notificationService";
 import userService from "../services/userService";
-// ── Notification type → icon map ─────────────────────────────
+
+// ── Notification type → REAL icon map (no more emoji placeholders) ──
 const TYPE_ICON = {
-  NEW_VIDEO: "🎥",
-  NEW_FILE: "📁",
-  NEW_ASSESSMENT: "📝",
-  NEW_CONTENT: "📘",
-  NEW_QUIZ: "📝",
-  NEW_COURSE: "🎓",
-  NEW_ASSIGNMENT: "📋",
-  BATCH_UPDATE: "🏫",
-  BATCH_ASSIGNED: "🏫",
-  NEW_CHAT: "💬",
-  CHAT_MESSAGE: "💬",
-  LIVE_SESSION: "📡",
-  LIVE_SESSION_STARTED: "📡",
-  ATTENDANCE_MARKED: "✅",
-  DOUBT_RAISED: "❓",
-  ASSIGNMENT_SUBMIT: "📤",
-  DEFAULT: "🔔",
+  NEW_VIDEO: Video,
+  NEW_FILE: FileText,
+  NEW_ASSESSMENT: ClipboardCheck,
+  NEW_CONTENT: BookOpen,
+  NEW_QUIZ: ClipboardList,
+  NEW_COURSE: GraduationCap,
+  NEW_ASSIGNMENT: ClipboardEdit,
+  BATCH_UPDATE: Building2,
+  BATCH_ASSIGNED: Building2,
+  NEW_CHAT: MessageSquare,
+  CHAT_MESSAGE: MessageSquare,
+  LIVE_SESSION: Radio,
+  LIVE_SESSION_STARTED: Radio,
+  ATTENDANCE_MARKED: CheckCircle2,
+  DOUBT_RAISED: HelpCircle,
+  ASSIGNMENT_SUBMIT: Send,
+  DEFAULT: Bell,
 };
 const getIcon = (type) => TYPE_ICON[type] ?? TYPE_ICON.DEFAULT;
 
@@ -713,7 +844,21 @@ const NotificationBanner = () => {
           to   { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
       `}</style>
-      <span style={{ fontSize: 18 }}>🔔</span>
+      {/* ✅ Real icon instead of 🔔 emoji */}
+      <span
+        style={{
+          width: 26,
+          height: 26,
+          borderRadius: 8,
+          background: "rgba(249,115,22,0.15)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
+      >
+        <Bell size={15} color="#F97316" />
+      </span>
       <span style={{ color: "#cbd5e1" }}>
         Enable notifications to get video &amp; course alerts
       </span>
@@ -771,88 +916,92 @@ const ToastStack = ({ toasts, onDismiss, onNavigate }) => (
       maxWidth: 360,
     }}
   >
-    {toasts.map((t) => (
-      <div
-        key={t.id}
-        onClick={() => onNavigate(t)}
-        style={{
-          background: "rgba(255,255,255,0.98)",
-          color: "#0f172a",
-          padding: "12px 16px",
-          borderRadius: 14,
-          fontSize: 13,
-          fontWeight: 600,
-          boxShadow: "0 8px 32px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06)",
-          border: "1px solid rgba(226,232,240,0.9)",
-          display: "flex",
-          alignItems: "flex-start",
-          gap: 10,
-          animation: "slideDown 0.3s ease",
-          cursor: "pointer",
-          width: "100%",
-          backdropFilter: "blur(12px)",
-        }}
-      >
+    {toasts.map((t) => {
+      const Icon = getIcon(t.type);
+      return (
         <div
+          key={t.id}
+          onClick={() => onNavigate(t)}
           style={{
-            width: 36,
-            height: 36,
-            borderRadius: 10,
-            flexShrink: 0,
-            background: "rgba(249,115,22,0.1)",
-            border: "1px solid rgba(249,115,22,0.2)",
+            background: "rgba(255,255,255,0.98)",
+            color: "#0f172a",
+            padding: "12px 16px",
+            borderRadius: 14,
+            fontSize: 13,
+            fontWeight: 600,
+            boxShadow:
+              "0 8px 32px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06)",
+            border: "1px solid rgba(226,232,240,0.9)",
             display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 16,
-          }}
-        >
-          {getIcon(t.type)}
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div
-            style={{
-              fontWeight: 700,
-              marginBottom: 2,
-              fontSize: 13,
-              color: "#0f172a",
-            }}
-          >
-            {t.title}
-          </div>
-          <div
-            style={{
-              color: "#64748b",
-              fontSize: 12,
-              fontWeight: 400,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {t.message}
-          </div>
-        </div>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDismiss(t.id);
-          }}
-          style={{
-            background: "none",
-            border: "none",
-            color: "#94a3b8",
+            alignItems: "flex-start",
+            gap: 10,
+            animation: "slideDown 0.3s ease",
             cursor: "pointer",
-            padding: 0,
-            flexShrink: 0,
-            display: "flex",
-            alignItems: "center",
+            width: "100%",
+            backdropFilter: "blur(12px)",
           }}
         >
-          <X size={14} />
-        </button>
-      </div>
-    ))}
+          {/* ✅ Real lucide icon instead of emoji */}
+          <div
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              flexShrink: 0,
+              background: "rgba(249,115,22,0.1)",
+              border: "1px solid rgba(249,115,22,0.2)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Icon size={17} color="#F97316" />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div
+              style={{
+                fontWeight: 700,
+                marginBottom: 2,
+                fontSize: 13,
+                color: "#0f172a",
+              }}
+            >
+              {t.title}
+            </div>
+            <div
+              style={{
+                color: "#64748b",
+                fontSize: 12,
+                fontWeight: 400,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {t.message}
+            </div>
+          </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDismiss(t.id);
+            }}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#94a3b8",
+              cursor: "pointer",
+              padding: 0,
+              flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <X size={14} />
+          </button>
+        </div>
+      );
+    })}
     <style>{`
       @keyframes slideDown {
         from { opacity: 0; transform: translateY(-14px); }
@@ -1074,6 +1223,14 @@ const DashboardLayout = ({ SidebarComponent }) => {
           </main>
         </div>
       </div>
+
+      {/* ✅ Moved out of the inner overflow:hidden flex column and up to
+          the true root level — same tier as the toast stack and banner
+          below — so the floating meeting widget (position: fixed) is
+          never at risk of being clipped or trapped by an ancestor that
+          might later get a transform/filter applied to it. */}
+      <FloatingMeetingWidget />
+      <LiveMeetingRouteSync />
 
       <NotificationBanner />
 

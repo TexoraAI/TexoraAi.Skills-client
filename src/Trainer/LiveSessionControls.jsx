@@ -1628,6 +1628,7 @@
 
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
 import { Room, RoomEvent, Track, createLocalTracks } from "livekit-client";
 import {
@@ -1655,6 +1656,68 @@ import {
 ───────────────────────────────────────────────────────────── */
 const getTime = () =>
   new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+/* ─────────────────────────────────────────────────────────────
+   ✅ NEW: MEETING PERSISTENCE (bug #2)
+   Stores {token, room, startedAt} per session id in localStorage
+   (survives refresh, back/forward, tab close+reopen — sessionStorage
+   only survives refresh within the same tab). Reconnect uses the
+   SAME token instead of asking the backend to start a new session, and
+   the timer is re-derived from `startedAt` (wall clock), so it never
+   resets to 00:00. Cleared only when the trainer explicitly ends the
+   session or the backend reports it as ENDED — never on refresh/
+   navigate-away, since those should reconnect, not reset.
+───────────────────────────────────────────────────────────── */
+const CALL_STATE_PREFIX = "trainer_live_state_";
+const CALL_STATE_TTL_MS = 8 * 60 * 60 * 1000; // stale-token safety net
+
+const loadPersistedCallState = (sessionId) => {
+  try {
+    const raw = localStorage.getItem(`${CALL_STATE_PREFIX}${sessionId}`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed?.token || !parsed?.startedAt) return null;
+    if (Date.now() - parsed.startedAt > CALL_STATE_TTL_MS) {
+      localStorage.removeItem(`${CALL_STATE_PREFIX}${sessionId}`);
+      return null;
+    }
+    return parsed;
+  } catch (_) {
+    return null;
+  }
+};
+
+const savePersistedCallState = (sessionId, state) => {
+  try {
+    localStorage.setItem(
+      `${CALL_STATE_PREFIX}${sessionId}`,
+      JSON.stringify(state),
+    );
+  } catch (_) {}
+};
+
+const clearPersistedCallState = (sessionId) => {
+  try {
+    localStorage.removeItem(`${CALL_STATE_PREFIX}${sessionId}`);
+  } catch (_) {}
+  try {
+    // legacy key written by the launcher screens (TrainerLiveClasses.jsx)
+    sessionStorage.removeItem("call_state");
+  } catch (_) {}
+};
+
+// Reads the legacy sessionStorage bootstrap value written the moment the
+// trainer clicks "Go Live" / "Start Now" — kept as a fallback source for
+// the very first connect, before we've had a chance to write our own
+// localStorage entry.
+const readLegacyCallState = () => {
+  try {
+    const raw = sessionStorage.getItem("call_state");
+    return raw ? JSON.parse(raw) : null;
+  } catch (_) {
+    return null;
+  }
+};
 
 /* ✅ FIX (bug #3): camera and screen-share are now tracked as two
    completely separate publications (Track.Source.Camera vs
@@ -1836,14 +1899,25 @@ const useResponsiveDevice = () => {
   return { ...size, device, cfg: DEVICE_CONFIG[device] };
 };
 
-/* ─── Live Timer ─── */
-const useLiveTimer = (running) => {
-  const [secs, setSecs] = useState(0);
+/* ─── Live Timer ───
+   ✅ FIX (bug #2): the old version counted local ticks from 0, so any
+   refresh/remount reset it to 00:00. This version derives elapsed time
+   from `Date.now() - startedAtMs` on every tick, where startedAtMs is
+   the persisted, cross-refresh meeting start time. A re-render (e.g.
+   after a refresh) simply recomputes the correct elapsed duration
+   instead of restarting a counter — it's also immune to background-tab
+   timer throttling, since it reads the wall clock instead of trusting
+   how many 1s ticks actually fired. */
+const useElapsedTimer = (startedAtMs) => {
+  const [, tick] = useState(0);
   useEffect(() => {
-    if (!running) return;
-    const id = setInterval(() => setSecs((s) => s + 1), 1000);
+    if (!startedAtMs) return;
+    const id = setInterval(() => tick((n) => n + 1), 1000);
     return () => clearInterval(id);
-  }, [running]);
+  }, [startedAtMs]);
+
+  if (!startedAtMs) return "00:00:00";
+  const secs = Math.max(0, Math.floor((Date.now() - startedAtMs) / 1000));
   const hh = String(Math.floor(secs / 3600)).padStart(2, "0");
   const mm = String(Math.floor((secs % 3600) / 60)).padStart(2, "0");
   const ss = String(secs % 60).padStart(2, "0");
@@ -1909,7 +1983,16 @@ const LiveSessionControls = () => {
   const [sessionTitle, setSessionTitle] = useState(`Session ${id}`);
   const [autoEndWarning, setAutoEndWarning] = useState(false);
 
-  const timer = useLiveTimer(connected);
+  // ✅ NEW: wall-clock anchor for the meeting timer — set once on first
+  // connect (or restored from persisted/legacy state on reconnect) and
+  // never reset for the lifetime of this meeting.
+  const [meetingStartedAt, setMeetingStartedAt] = useState(null);
+  const timer = useElapsedTimer(meetingStartedAt);
+
+  // ✅ NEW: floating Picture-in-Picture window state.
+  const [pipWindow, setPipWindow] = useState(null);
+  const pipVideoRef = useRef(null); // fallback target for native video PiP
+  const userClosedPipRef = useRef(false);
 
   const pushSystem = useCallback((text) => {
     setMessages((prev) => [
@@ -2050,19 +2133,34 @@ const LiveSessionControls = () => {
     const start = async () => {
       let token;
       let room_name;
+      let startedAt;
 
       try {
-        const saved = sessionStorage.getItem("call_state");
-        const saved_parsed = saved ? JSON.parse(saved) : null;
+        // ✅ FIX (bug #2): reconnect priority is
+        //   1) our own persisted state for THIS session id (localStorage —
+        //      survives refresh / back / tab close+reopen), which also
+        //      carries the original startedAt so the timer never resets;
+        //   2) the legacy sessionStorage bootstrap value written the
+        //      instant the trainer clicked "Go Live" (first load only);
+        //   3) otherwise, ask the backend for a fresh token (first time
+        //      this trainer is opening this session).
+        const persisted = loadPersistedCallState(id);
+        const legacy = readLegacyCallState();
 
-        if (saved_parsed?.token) {
-          token = saved_parsed.token;
-          room_name = saved_parsed.room;
+        if (persisted?.token) {
+          token = persisted.token;
+          room_name = persisted.room;
+          startedAt = persisted.startedAt;
+        } else if (legacy?.token) {
+          token = legacy.token;
+          room_name = legacy.room;
+          startedAt = legacy.startedAt || Date.now();
         } else {
           const res = await startLiveSessionWithToken(id);
           token = res?.data?.token;
           room_name = res?.data?.room;
           setSessionTitle(res?.data?.title || `Session ${id}`);
+          startedAt = Date.now();
         }
 
         if (!token) {
@@ -2076,12 +2174,19 @@ const LiveSessionControls = () => {
         return;
       }
 
+      // Persist immediately so a refresh that happens mid-connect still
+      // has something to reconnect with, and set the timer anchor.
+      setMeetingStartedAt(startedAt);
+      savePersistedCallState(id, { token, room: room_name, startedAt });
+      try {
+        sessionStorage.removeItem("call_state");
+      } catch (_) {}
+
       const room = new Room({ adaptiveStream: true, dynacast: true });
       roomRef.current = room;
 
       try {
         await room.connect(serverUrl, token);
-        sessionStorage.removeItem("call_state");
         setConnected(true);
         refreshParticipants();
         rebuild();
@@ -2116,6 +2221,7 @@ const LiveSessionControls = () => {
             const data = await res.json();
             if (data.status === "ENDED") {
               clearInterval(autoEndPollRef.current);
+              clearPersistedCallState(id);
               setAutoEndWarning(true);
               setTimeout(() => {
                 roomRef.current?.disconnect();
@@ -2270,6 +2376,124 @@ const LiveSessionControls = () => {
     }
   }, [screenOn, rebuild]);
 
+  /* ─────────────────────────────────────────────────────────────
+     ✅ NEW: PICTURE-IN-PICTURE (bug #4)
+     Whatever is currently the "main" thing on stage — the active
+     screen share if any, otherwise a camera — is what floats. Uses the
+     Document Picture-in-Picture API (real floating window, same as
+     Meet/Zoom/Teams) where the browser supports it, and falls back to
+     the standard single-<video> Picture-in-Picture API otherwise.
+  ───────────────────────────────────────────────────────────── */
+  const pipMainTile =
+    screenTile || camTiles.find((t) => !t.isLocal) || camTiles[0] || null;
+
+  const closePiP = useCallback(() => {
+    setPipWindow((win) => {
+      if (win) {
+        try {
+          win.close();
+        } catch (_) {}
+      }
+      return null;
+    });
+    const v = pipVideoRef.current;
+    if (v && document.pictureInPictureElement === v) {
+      document.exitPictureInPicture().catch(() => {});
+    }
+  }, []);
+
+  const openFallbackVideoPiP = useCallback(async () => {
+    try {
+      const el = pipVideoRef.current;
+      const track = pipMainTile?.track;
+      if (!el || !track || !document.pictureInPictureEnabled) return;
+      track.attach(el);
+      if (document.pictureInPictureElement !== el) {
+        await el.requestPictureInPicture();
+      }
+    } catch (err) {
+      console.warn("Fallback video PiP unavailable:", err);
+    }
+  }, [pipMainTile]);
+
+  const openPiP = useCallback(async () => {
+    if (pipWindow || userClosedPipRef.current) return;
+    if (!("documentPictureInPicture" in window)) {
+      openFallbackVideoPiP();
+      return;
+    }
+    try {
+      const pip = await window.documentPictureInPicture.requestWindow({
+        width: 360,
+        height: 260,
+      });
+
+      // Carry the app's fonts/colors into the floating window so the
+      // reused <VideoTile>/control styles render correctly there too.
+      [...document.styleSheets].forEach((styleSheet) => {
+        try {
+          const rules = [...styleSheet.cssRules]
+            .map((r) => r.cssText)
+            .join("");
+          const style = pip.document.createElement("style");
+          style.textContent = rules;
+          pip.document.head.appendChild(style);
+        } catch (_) {
+          if (styleSheet.href) {
+            const link = pip.document.createElement("link");
+            link.rel = "stylesheet";
+            link.href = styleSheet.href;
+            pip.document.head.appendChild(link);
+          }
+        }
+      });
+      pip.document.body.style.margin = "0";
+      pip.document.body.style.background = "#0d1117";
+      pip.document.body.style.overflow = "hidden";
+
+      pip.addEventListener("pagehide", () => setPipWindow(null));
+
+      setPipWindow(pip);
+    } catch (err) {
+      console.warn("Document PiP failed, using fallback:", err);
+      openFallbackVideoPiP();
+    }
+  }, [pipWindow, openFallbackVideoPiP]);
+
+  const returnToMeeting = useCallback(() => {
+    userClosedPipRef.current = true;
+    closePiP();
+    window.focus();
+    setTimeout(() => {
+      userClosedPipRef.current = false;
+    }, 500);
+  }, [closePiP]);
+
+  // Auto float when the trainer switches tabs/apps or minimizes; auto
+  // return when they come back — only while actually in a live meeting.
+  // This is what makes background navigation (bug #3) feel seamless:
+  // nothing here pauses audio/video/screen-share/timer/participants,
+  // it only changes where the video is *displayed*.
+  useEffect(() => {
+    if (!connected) return;
+    const onVisibility = () => {
+      if (document.hidden) {
+        openPiP();
+      } else {
+        userClosedPipRef.current = false;
+        closePiP();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, [connected, openPiP, closePiP]);
+
+  // Always close any floating window on genuine unmount.
+  useEffect(() => {
+    return () => closePiP();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const sendMessage = useCallback(() => {
     const text = input.trim();
     if (!text) return;
@@ -2303,6 +2527,11 @@ const LiveSessionControls = () => {
     try {
       await endLiveSession(id);
     } catch (_) {}
+    // ✅ Only clear persisted state here — a genuine, trainer-initiated
+    // end of the session. Refreshing, hitting Back, or just navigating
+    // away (the ✕ button) must NOT clear this, so the trainer reconnects
+    // to the same meeting with the timer intact next time.
+    clearPersistedCallState(id);
     roomRef.current?.disconnect();
     navigate("/trainer/live");
   }, [id, navigate]);
@@ -2557,6 +2786,13 @@ const LiveSessionControls = () => {
                   }}
                 />
                 <CtrlBtn
+                  icon={<span style={{ fontSize: 15 }}>🗔</span>}
+                  label={pipWindow ? "Return" : "Pop out"}
+                  active={!!pipWindow}
+                  compact={deviceCfg.ctrlCompact}
+                  onClick={() => (pipWindow ? returnToMeeting() : openPiP())}
+                />
+                <CtrlBtn
                   icon={<FaUsers />}
                   label="People"
                   active={sidebarOpen && sidebarTab === "participants"}
@@ -2772,6 +3008,40 @@ const LiveSessionControls = () => {
           )}
         </div>
       </div>
+
+      {/* Hidden element powering the native-video PiP fallback for
+          browsers without the Document Picture-in-Picture API. */}
+      <video
+        ref={pipVideoRef}
+        muted
+        playsInline
+        style={{
+          position: "fixed",
+          width: 1,
+          height: 1,
+          opacity: 0,
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* ✅ NEW: floating meeting window — a real separate browser
+          window when Document PiP is supported, so it keeps rendering
+          live updates (video, timer) even while the main tab is
+          backgrounded, with one click ("Return to meeting") to come
+          back. */}
+      {pipWindow &&
+        createPortal(
+          <PipPanel
+            tile={pipMainTile}
+            timer={timer}
+            micOn={micOn}
+            camOn={camOn}
+            onToggleMic={toggleMic}
+            onToggleCam={toggleCam}
+            onReturn={returnToMeeting}
+          />,
+          pipWindow.document.body,
+        )}
     </div>
   );
 };
@@ -2858,6 +3128,119 @@ const VideoTile = ({ tile, small, device = "desktop" }) => {
     </div>
   );
 };
+
+/* ✅ NEW: content rendered inside the floating Document PiP window —
+   the current main-stage tile (screen share if live, else a camera),
+   the live timer, quick mic/cam toggles, and a one-click way back. */
+const pipCtrlBtnStyle = (danger) => ({
+  width: 32,
+  height: 32,
+  borderRadius: 10,
+  border: "none",
+  background: danger ? "#7f1d1d" : "rgba(255,255,255,.1)",
+  color: danger ? "#fca5a5" : "#e2e8f0",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  cursor: "pointer",
+});
+
+const PipPanel = ({
+  tile,
+  timer,
+  micOn,
+  camOn,
+  onToggleMic,
+  onToggleCam,
+  onReturn,
+}) => (
+  <div
+    style={{
+      width: "100%",
+      height: "100vh",
+      display: "flex",
+      flexDirection: "column",
+      background: "#0d1117",
+      fontFamily: "'Poppins',sans-serif",
+    }}
+  >
+    <div style={{ flex: 1, position: "relative", minHeight: 0 }}>
+      {tile ? (
+        <VideoTile tile={tile} device="phone" />
+      ) : (
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#64748b",
+            fontSize: 12,
+          }}
+        >
+          No active video
+        </div>
+      )}
+      <div
+        style={{
+          position: "absolute",
+          top: 8,
+          left: 8,
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          background: "rgba(0,0,0,.55)",
+          padding: "3px 9px",
+          borderRadius: 999,
+          fontSize: 10,
+          fontWeight: 700,
+          color: "#fff",
+        }}
+      >
+        <span
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: "50%",
+            background: "#ef4444",
+          }}
+        />
+        LIVE · {timer}
+      </div>
+    </div>
+    <div
+      style={{
+        flexShrink: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 8,
+        padding: 8,
+        background: "#111826",
+      }}
+    >
+      <button onClick={onToggleMic} style={pipCtrlBtnStyle(!micOn)}>
+        {micOn ? <FaMicrophone size={13} /> : <FaMicrophoneSlash size={13} />}
+      </button>
+      <button onClick={onToggleCam} style={pipCtrlBtnStyle(!camOn)}>
+        {camOn ? <FaVideo size={13} /> : <FaVideoSlash size={13} />}
+      </button>
+      <button
+        onClick={onReturn}
+        style={{
+          ...pipCtrlBtnStyle(false),
+          width: "auto",
+          padding: "0 14px",
+          fontSize: 11,
+          fontWeight: 700,
+        }}
+      >
+        Return to meeting
+      </button>
+    </div>
+  </div>
+);
 
 /* ✅ FIX (bug #1): dedicated, always-mounted audio element per remote
    mic. autoPlay + explicit .play() with a fallback "click to enable"

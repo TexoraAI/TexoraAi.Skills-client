@@ -15,6 +15,37 @@ import {
 
 const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api";
 
+// ✅ NEW (bug #2 — meeting persistence): remembers an in-progress live
+// session in sessionStorage (survives refresh / browser Back / reopening
+// this tab) so the student reconnects to the SAME meeting with the SAME
+// token instead of the join screen flashing back up and a brand-new
+// join happening. sessionStorage (not localStorage) is used on purpose:
+// it's per-tab, so two tabs can't both try to hold the same LiveKit
+// identity at once and fight over the connection.
+const LIVE_SESSION_KEY = "lms_active_live_session";
+
+const readPersistedSession = () => {
+  try {
+    const raw = sessionStorage.getItem(LIVE_SESSION_KEY);
+    if (!raw) return null;
+    const saved = JSON.parse(raw);
+    if (saved && saved.token && saved.room) return saved;
+  } catch (_) {}
+  return null;
+};
+
+const persistSession = (data) => {
+  try {
+    sessionStorage.setItem(LIVE_SESSION_KEY, JSON.stringify(data));
+  } catch (_) {}
+};
+
+const clearPersistedSession = () => {
+  try {
+    sessionStorage.removeItem(LIVE_SESSION_KEY);
+  } catch (_) {}
+};
+
 /* ─── Styles ─────────────────────────────────────────────────────── */
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
@@ -380,9 +411,17 @@ const isDark = () =>
 
 const LiveClasses = () => {
   const [sessions, setSessions] = useState([]);
-  const [selected, setSelected] = useState(null);
-  const [token, setToken] = useState(null);
-  const [room, setRoom] = useState(null);
+  // ✅ FIX (bug #2): lazy initializers run synchronously on first render,
+  // so if a live session was already in progress (refresh / back button /
+  // reopening this tab) we land straight back in LiveRoom with the SAME
+  // token instead of the session list flashing up first.
+  const persisted = readPersistedSession();
+  const [selected, setSelected] = useState(() =>
+    persisted ? { id: persisted.sessionId } : null,
+  );
+  const [token, setToken] = useState(() => persisted?.token || null);
+  const [room, setRoom] = useState(() => persisted?.room || null);
+  const [joinedAt, setJoinedAt] = useState(() => persisted?.joinedAt || null);
   const [collapsed, setCollapsed] = useState(false);
   const [joining, setJoining] = useState(false);
   const [dark, setDark] = useState(isDark);
@@ -427,8 +466,20 @@ const LiveClasses = () => {
       setJoining(true);
       const studentId = 1;
       const res = await joinLiveSession(selected.id, studentId);
+      const startedAt = Date.now();
       setToken(res.data.token);
       setRoom(res.data.room);
+      setJoinedAt(startedAt);
+      // ✅ FIX (bug #2): remember this join so a refresh/back/reopen
+      // reconnects to the SAME meeting instead of calling joinLiveSession
+      // again (which would look like starting a new meeting) and instead
+      // of the timer restarting from 00:00.
+      persistSession({
+        token: res.data.token,
+        room: res.data.room,
+        sessionId: selected.id,
+        joinedAt: startedAt,
+      });
     } catch (err) {
       console.error("Join failed", err);
     } finally {
@@ -437,9 +488,11 @@ const LiveClasses = () => {
   };
 
   const handleExit = () => {
+    clearPersistedSession();
     setToken(null);
     setRoom(null);
     setSelected(null);
+    setJoinedAt(null);
   };
 
   if (token)
@@ -448,6 +501,7 @@ const LiveClasses = () => {
         token={token}
         roomName={room}
         sessionId={selected?.id}
+        joinedAt={joinedAt}
         onSessionEnded={handleExit}
         onLeave={handleExit}
       />

@@ -1823,9 +1823,17 @@ function StartLiveThreePanel({ t, isDark, navigate }) {
           );
           return;
         }
-        sessionStorage.setItem("call_state", JSON.stringify({ room, token }));
+        // ✅ NEW: stamp startedAt so the meeting room can anchor its
+        // timer to a real wall-clock moment (see LiveSessionControls'
+        // meeting-persistence fix) instead of resetting to 00:00 on the
+        // first refresh.
+        const startedAt = Date.now();
+        sessionStorage.setItem(
+          "call_state",
+          JSON.stringify({ room, token, startedAt }),
+        );
         navigate(`/trainer/live-controls/${res.data.id}`, {
-          state: { room, token },
+          state: { room, token, startedAt },
         });
       } catch (err) {
         console.error(err);
@@ -3764,8 +3772,15 @@ function PanelLiveDashboard({ t, isDark, navigate }) {
         live: prev.live + 1,
         scheduled: Math.max(0, prev.scheduled - 1),
       }));
-      sessionStorage.setItem("call_state", JSON.stringify({ room, token }));
-      navigate(`/trainer/live-controls/${id}`, { state: { room, token } });
+      // ✅ NEW: same startedAt stamp as the "Start Now" path above.
+      const startedAt = Date.now();
+      sessionStorage.setItem(
+        "call_state",
+        JSON.stringify({ room, token, startedAt }),
+      );
+      navigate(`/trainer/live-controls/${id}`, {
+        state: { room, token, startedAt },
+      });
     } catch (err) {
       console.error(err);
       const msg =

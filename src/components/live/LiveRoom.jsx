@@ -1,1203 +1,5 @@
-
-// import { useEffect, useRef, useState, useCallback } from "react";
-// import { Room, RoomEvent, Track, createLocalTracks } from "livekit-client";
-// import {
-//   Mic,
-//   MicOff,
-//   Video,
-//   VideoOff,
-//   MonitorUp,
-//   MonitorOff,
-//   PhoneOff,
-//   MessageSquare,
-//   Users,
-//   ChevronRight,
-//   ChevronLeft,
-//   Send,
-//   X,
-//   Radio,
-//   Timer,
-//   Disc2,
-//   Wifi,
-//   WifiOff,
-// } from "lucide-react";
-// import {
-//   getSessionById,
-//   participantJoin,
-//   participantLeave,
-// } from "@/services/liveSessionService";
-
-// const getTime = () =>
-//   new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-
-// // ✅ CHANGED — clears old video before attaching new one + handles screen share objectFit
-// const attachTrack = (track, container) => {
-//   if (!container || !track) return;
-//   const el = track.attach();
-//   if (track.kind === Track.Kind.Video) {
-//     Object.assign(el.style, {
-//       width: "100%",
-//       height: "100%",
-//       objectFit:
-//         track.source === Track.Source.ScreenShare ? "contain" : "cover",
-//       display: "block",
-//       position: "absolute",
-//       inset: "0",
-//     });
-//     container.innerHTML = ""; // ✅ clear old track before adding new
-//   }
-//   container.appendChild(el);
-// };
-
-// const useLiveTimer = (running) => {
-//   const [secs, setSecs] = useState(0);
-//   useEffect(() => {
-//     if (!running) {
-//       setSecs(0);
-//       return;
-//     }
-//     const id = setInterval(() => setSecs((s) => s + 1), 1000);
-//     return () => clearInterval(id);
-//   }, [running]);
-//   const hh = String(Math.floor(secs / 3600)).padStart(2, "0");
-//   const mm = String(Math.floor((secs % 3600) / 60)).padStart(2, "0");
-//   const ss = String(secs % 60).padStart(2, "0");
-//   return `${hh}:${mm}:${ss}`;
-// };
-
-// const LiveRoom = ({ token, roomName, sessionId, onSessionEnded, onLeave }) => {
-//   const roomRef = useRef(null);
-//   const remoteRef = useRef(null);
-//   const localRef = useRef(null);
-//   const localVideoTrackRef = useRef(null);
-//   const localAudioTrackRef = useRef(null);
-//   const screenTrackRef = useRef(null);
-//   const chatEndRef = useRef(null);
-//   const autoEndPollRef = useRef(null);
-
-//   const [connected, setConnected] = useState(false);
-//   const [micOn, setMicOn] = useState(true);
-//   const [camOn, setCamOn] = useState(true);
-//   const [screenOn, setScreenOn] = useState(false);
-//   const [sidebarOpen, setSidebarOpen] = useState(false);
-//   const [sidebarTab, setSidebarTab] = useState("chat");
-//   const [trainerOnline, setTrainerOnline] = useState(false);
-//   const [participants, setParticipants] = useState([]);
-//   const [msgInput, setMsgInput] = useState("");
-//   const [sessionEndedWarning, setSessionEndedWarning] = useState(false);
-
-//   const [messages, setMessages] = useState(() => [
-//     {
-//       id: 1,
-//       name: "System",
-//       text: "Session started. Welcome!",
-//       time: getTime(),
-//       self: false,
-//       system: true,
-//     },
-//   ]);
-
-//   const timer = useLiveTimer(connected);
-
-//   const pushSystemMsg = useCallback((text) => {
-//     setMessages((prev) => [
-//       ...prev,
-//       {
-//         id: Date.now(),
-//         name: "System",
-//         text,
-//         time: getTime(),
-//         self: false,
-//         system: true,
-//       },
-//     ]);
-//   }, []);
-
-//   const updateParticipants = useCallback(() => {
-//     if (!roomRef.current) return;
-//     const list = [];
-//     roomRef.current.remoteParticipants.forEach((p) => {
-//       list.push({ id: p.identity, name: p.name || p.identity, isHost: true });
-//     });
-//     setParticipants([{ id: "you", name: "You (Me)", self: true }, ...list]);
-//   }, []);
-
-//   useEffect(() => {
-//     const serverUrl =
-//       (typeof import.meta !== "undefined" &&
-//         import.meta.env?.VITE_LIVEKIT_URL) ||
-//       "ws://localhost:7880";
-
-//     const start = async () => {
-//       const room = new Room({ adaptiveStream: true, dynacast: true });
-//       roomRef.current = room;
-
-//       try {
-//         await room.connect(serverUrl, token);
-//         setConnected(true);
-
-//         if (sessionId) {
-//           try {
-//             const user = JSON.parse(localStorage.getItem("lms_user") || "{}");
-//             const batchId = user?.batchId || 1;
-//             const trainerEmail = user?.trainerEmail || "";
-//             await participantJoin(sessionId, batchId, trainerEmail);
-//           } catch (e) {
-//             console.warn("participantJoin DB call failed:", e);
-//           }
-//         }
-
-//         if (sessionId) {
-//           autoEndPollRef.current = setInterval(async () => {
-//             try {
-//               const res = await getSessionById(sessionId);
-//               if (res?.data?.status === "ENDED") {
-//                 clearInterval(autoEndPollRef.current);
-//                 setSessionEndedWarning(true);
-//                 setTimeout(() => {
-//                   roomRef.current?.disconnect();
-//                   if (typeof onSessionEnded === "function") onSessionEnded();
-//                 }, 3000);
-//               }
-//             } catch (_) {}
-//           }, 20000);
-//         }
-
-//         const tracks = await createLocalTracks({ audio: true, video: true });
-//         for (const track of tracks) {
-//           await room.localParticipant.publishTrack(track);
-//           if (track.kind === Track.Kind.Video) {
-//             localVideoTrackRef.current = track;
-//             if (localRef.current) {
-//               const el = track.attach();
-//               Object.assign(el.style, {
-//                 width: "100%",
-//                 height: "100%",
-//                 objectFit: "cover",
-//                 display: "block",
-//                 transform: "scaleX(-1)",
-//               });
-//               localRef.current.innerHTML = "";
-//               localRef.current.appendChild(el);
-//             }
-//           }
-//           if (track.kind === Track.Kind.Audio) {
-//             localAudioTrackRef.current = track;
-//           }
-//         }
-
-//         // attach already-existing remote tracks
-//         room.remoteParticipants.forEach((participant) => {
-//           participant.trackPublications.forEach((pub) => {
-//             if (pub.isSubscribed && pub.track) {
-//               attachTrack(pub.track, remoteRef.current);
-//             }
-//           });
-//           setTrainerOnline(true);
-//         });
-//         updateParticipants();
-
-//         // ✅ CHANGED — clears remote area first, then attaches
-//         // handles both camera and screen share tracks from trainer
-//         room.on(
-//           RoomEvent.TrackSubscribed,
-//           (track, publication, participant) => {
-//             if (remoteRef.current) {
-//               remoteRef.current.innerHTML = ""; // clear old track
-//             }
-//             attachTrack(track, remoteRef.current);
-//             setTrainerOnline(true);
-//             updateParticipants();
-//           },
-//         );
-
-//         // ✅ CHANGED — when screen share stops, restore camera track
-//         room.on(
-//           RoomEvent.TrackUnsubscribed,
-//           (track, publication, participant) => {
-//             track.detach().forEach((el) => el.remove());
-
-//             if (track.source === Track.Source.ScreenShare) {
-//               // screen share ended — restore trainer camera
-//               if (remoteRef.current) remoteRef.current.innerHTML = "";
-//               participant.trackPublications.forEach((pub) => {
-//                 if (
-//                   pub.isSubscribed &&
-//                   pub.track &&
-//                   pub.track.source !== Track.Source.ScreenShare
-//                 ) {
-//                   attachTrack(pub.track, remoteRef.current);
-//                 }
-//               });
-//             }
-//           },
-//         );
-
-//         room.on(RoomEvent.ParticipantConnected, (p) => {
-//           setTrainerOnline(true);
-//           updateParticipants();
-//           pushSystemMsg(`${p.name || p.identity} joined`);
-//         });
-
-//         room.on(RoomEvent.ParticipantDisconnected, (p) => {
-//           updateParticipants();
-//           pushSystemMsg(`${p.name || p.identity} left`);
-//         });
-
-//         room.on(RoomEvent.Disconnected, () => {
-//           setConnected(false);
-//           setTrainerOnline(false);
-//         });
-
-//         room.on(RoomEvent.DataReceived, (payload, participant) => {
-//           try {
-//             const decoded = new TextDecoder().decode(payload);
-//             const msg = JSON.parse(decoded);
-//             if (msg.text) {
-//               setMessages((prev) => [
-//                 ...prev,
-//                 {
-//                   id: Date.now(),
-//                   name: participant?.name || participant?.identity || "Trainer",
-//                   text: msg.text,
-//                   time: getTime(),
-//                   self: false,
-//                 },
-//               ]);
-//             }
-//           } catch (_) {}
-//         });
-//       } catch (err) {
-//         console.error("LiveKit error:", err);
-//         setConnected(false);
-//       }
-//     };
-
-//     start();
-
-//     return () => {
-//       if (autoEndPollRef.current) clearInterval(autoEndPollRef.current);
-//       if (sessionId) {
-//         participantLeave(sessionId).catch(() => {});
-//       }
-//       roomRef.current?.disconnect();
-//     };
-//   }, [token]);
-
-//   useEffect(() => {
-//     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-//   }, [messages, sidebarTab, sidebarOpen]);
-
-//   const toggleMic = useCallback(async () => {
-//     const track = localAudioTrackRef.current;
-//     if (!track) return;
-//     if (micOn) await track.mute();
-//     else await track.unmute();
-//     setMicOn((v) => !v);
-//   }, [micOn]);
-
-//   const toggleCam = useCallback(async () => {
-//     const track = localVideoTrackRef.current;
-//     if (!track) return;
-//     if (camOn) {
-//       await track.mute();
-//       if (localRef.current) localRef.current.style.visibility = "hidden";
-//     } else {
-//       await track.unmute();
-//       if (localRef.current) localRef.current.style.visibility = "visible";
-//     }
-//     setCamOn((v) => !v);
-//   }, [camOn]);
-
-//   const toggleScreen = useCallback(async () => {
-//     const room = roomRef.current;
-//     if (!room) return;
-
-//     if (screenOn) {
-//       try {
-//         await room.localParticipant.setScreenShareEnabled(false);
-//       } catch (e) {
-//         console.warn("stop screen share:", e);
-//       }
-//       screenTrackRef.current = null;
-//       setScreenOn(false);
-//       if (localVideoTrackRef.current && camOn && localRef.current) {
-//         const el = localVideoTrackRef.current.attach();
-//         Object.assign(el.style, {
-//           width: "100%",
-//           height: "100%",
-//           objectFit: "cover",
-//           display: "block",
-//           transform: "scaleX(-1)",
-//         });
-//         localRef.current.innerHTML = "";
-//         localRef.current.appendChild(el);
-//         localRef.current.style.visibility = "visible";
-//       }
-//     } else {
-//       try {
-//         const pub = await room.localParticipant.setScreenShareEnabled(true);
-//         if (!pub) return;
-//         const screenTrack = pub.track;
-//         screenTrackRef.current = screenTrack;
-//         if (screenTrack && localRef.current) {
-//           const el = screenTrack.attach();
-//           Object.assign(el.style, {
-//             width: "100%",
-//             height: "100%",
-//             objectFit: "contain",
-//             display: "block",
-//           });
-//           localRef.current.innerHTML = "";
-//           localRef.current.appendChild(el);
-//           localRef.current.style.visibility = "visible";
-//         }
-//         setScreenOn(true);
-//         const mediaTrack = screenTrack?.mediaStreamTrack;
-//         if (mediaTrack) {
-//           mediaTrack.addEventListener("ended", () => {
-//             room.localParticipant.setScreenShareEnabled(false).catch(() => {});
-//             screenTrackRef.current = null;
-//             setScreenOn(false);
-//             if (localVideoTrackRef.current && camOn && localRef.current) {
-//               const el2 = localVideoTrackRef.current.attach();
-//               Object.assign(el2.style, {
-//                 width: "100%",
-//                 height: "100%",
-//                 objectFit: "cover",
-//                 display: "block",
-//                 transform: "scaleX(-1)",
-//               });
-//               localRef.current.innerHTML = "";
-//               localRef.current.appendChild(el2);
-//             }
-//           });
-//         }
-//       } catch (err) {
-//         console.warn("Screen share failed/cancelled:", err);
-//       }
-//     }
-//   }, [screenOn, camOn]);
-
-//   const handleLeave = useCallback(() => {
-//     if (autoEndPollRef.current) clearInterval(autoEndPollRef.current);
-//     if (sessionId) {
-//       participantLeave(sessionId).catch(() => {});
-//     }
-//     roomRef.current?.disconnect();
-//     localVideoTrackRef.current?.stop();
-//     localAudioTrackRef.current?.stop();
-//     screenTrackRef.current?.stop();
-//     if (typeof onLeave === "function") onLeave();
-//   }, [onLeave, sessionId]);
-
-//   const sendMsg = useCallback(() => {
-//     const text = msgInput.trim();
-//     if (!text) return;
-//     setMessages((prev) => [
-//       ...prev,
-//       { id: Date.now(), name: "You", text, time: getTime(), self: true },
-//     ]);
-//     setMsgInput("");
-//     try {
-//       const payload = new TextEncoder().encode(JSON.stringify({ text }));
-//       roomRef.current?.localParticipant?.publishData(payload, {
-//         reliable: true,
-//       });
-//     } catch (e) {
-//       console.warn("data send failed:", e);
-//     }
-//   }, [msgInput]);
-
-//   const openTab = useCallback(
-//     (tab) => {
-//       if (sidebarOpen && sidebarTab === tab) setSidebarOpen(false);
-//       else {
-//         setSidebarTab(tab);
-//         setSidebarOpen(true);
-//       }
-//     },
-//     [sidebarOpen, sidebarTab],
-//   );
-
-//   return (
-//     <div style={S.root}>
-//       {sessionEndedWarning && (
-//         <div style={S.autoEndToast}>
-//           <span style={{ fontSize: 18 }}>⏱️</span>
-//           <div>
-//             <div style={{ fontWeight: 700, fontSize: 13 }}>
-//               Session ended by trainer
-//             </div>
-//             <div style={{ fontSize: 11, opacity: 0.85 }}>
-//               Redirecting you out in 3 seconds…
-//             </div>
-//           </div>
-//         </div>
-//       )}
-
-//       {/* TOP BAR */}
-//       <div style={S.topBar}>
-//         <div style={S.topLeft}>
-//           <div style={S.liveBadge}>
-//             <span style={S.liveDot} />
-//             LIVE
-//           </div>
-//           <div style={S.recBadge}>
-//             <Disc2 size={11} />
-//             REC
-//           </div>
-//           <div style={S.timerBadge}>
-//             <Timer size={12} />
-//             {timer}
-//           </div>
-//           <span style={S.sessionName}>{roomName || "Live Session"}</span>
-//         </div>
-//         <div style={S.topRight}>
-//           <div
-//             style={{ ...S.connBadge, ...(connected ? S.connOn : S.connOff) }}
-//           >
-//             {connected ? <Wifi size={12} /> : <WifiOff size={12} />}
-//             {connected ? "Connected" : "Connecting…"}
-//           </div>
-//           <div style={S.trainerBadge}>
-//             <Radio
-//               size={12}
-//               style={{ color: trainerOnline ? "#34d399" : "#64748b" }}
-//             />
-//             <span style={{ color: trainerOnline ? "#34d399" : "#64748b" }}>
-//               {trainerOnline ? "Trainer Online" : "Waiting for Trainer"}
-//             </span>
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* MAIN AREA */}
-//       <div style={S.mainArea}>
-//         {/* Stage */}
-//         <div style={S.stage}>
-//           {/* ✅ position relative so absolute remote tracks show correctly */}
-//           <div
-//             ref={remoteRef}
-//             style={{ position: "absolute", inset: 0, overflow: "hidden" }}
-//           />
-
-//           {!trainerOnline && (
-//             <div style={S.stagePH}>
-//               <div style={S.avatarRing}>
-//                 <div style={S.avatarInner}>T</div>
-//               </div>
-//               <p style={S.phText}>Waiting for trainer's stream…</p>
-//               <p style={S.phSub}>Session will begin shortly</p>
-//             </div>
-//           )}
-
-//           {/* Student PIP */}
-//           <div style={S.pip}>
-//             <div
-//               ref={localRef}
-//               style={{
-//                 width: "100%",
-//                 height: "100%",
-//                 visibility: camOn || screenOn ? "visible" : "hidden",
-//               }}
-//             />
-//             {!camOn && !screenOn && (
-//               <div style={S.pipOff}>
-//                 <VideoOff size={18} color="#64748b" />
-//                 <span style={S.pipOffTxt}>Cam Off</span>
-//               </div>
-//             )}
-//             <span style={S.pipLabel}>You{screenOn ? " · Sharing" : ""}</span>
-//           </div>
-//         </div>
-
-//         {/* Handle */}
-//         <div
-//           style={S.handle}
-//           onClick={() => setSidebarOpen((v) => !v)}
-//           title={sidebarOpen ? "Collapse" : "Expand"}
-//         >
-//           {sidebarOpen ? (
-//             <ChevronRight size={15} color="#64748b" />
-//           ) : (
-//             <ChevronLeft size={15} color="#64748b" />
-//           )}
-//         </div>
-
-//         {/* Sidebar */}
-//         {sidebarOpen && (
-//           <div style={S.sidebar}>
-//             <div style={S.tabRow}>
-//               <button
-//                 style={{ ...S.tab, ...(sidebarTab === "chat" ? S.tabOn : {}) }}
-//                 onClick={() => setSidebarTab("chat")}
-//               >
-//                 <MessageSquare size={13} /> Chat
-//               </button>
-//               <button
-//                 style={{
-//                   ...S.tab,
-//                   ...(sidebarTab === "people" ? S.tabOn : {}),
-//                 }}
-//                 onClick={() => setSidebarTab("people")}
-//               >
-//                 <Users size={13} /> People
-//                 <span style={S.cnt}>{participants.length || 1}</span>
-//               </button>
-//               <button style={S.closeBtn} onClick={() => setSidebarOpen(false)}>
-//                 <X size={14} />
-//               </button>
-//             </div>
-
-//             {sidebarTab === "chat" && (
-//               <div style={S.chatWrap}>
-//                 <div style={S.msgList}>
-//                   {messages.map((m) => (
-//                     <div
-//                       key={m.id}
-//                       style={{ ...S.msgRow, ...(m.self ? S.msgSelf : {}) }}
-//                     >
-//                       {!m.self && !m.system && (
-//                         <div style={S.av}>{m.name[0]}</div>
-//                       )}
-//                       {m.system ? (
-//                         <div style={S.sysBubble}>{m.text}</div>
-//                       ) : (
-//                         <div
-//                           style={{
-//                             ...S.bubble,
-//                             ...(m.self ? S.bSelf : S.bOther),
-//                           }}
-//                         >
-//                           {!m.self && <span style={S.bName}>{m.name}</span>}
-//                           <span style={S.bText}>{m.text}</span>
-//                           <span style={S.bTime}>{m.time}</span>
-//                         </div>
-//                       )}
-//                     </div>
-//                   ))}
-//                   <div ref={chatEndRef} />
-//                 </div>
-//                 <div style={S.inputRow}>
-//                   <input
-//                     style={S.chatInput}
-//                     placeholder="Type a message…"
-//                     value={msgInput}
-//                     onChange={(e) => setMsgInput(e.target.value)}
-//                     onKeyDown={(e) => {
-//                       if (e.key === "Enter" && !e.shiftKey) {
-//                         e.preventDefault();
-//                         sendMsg();
-//                       }
-//                     }}
-//                   />
-//                   <button style={S.sendBtn} onClick={sendMsg}>
-//                     <Send size={14} />
-//                   </button>
-//                 </div>
-//               </div>
-//             )}
-
-//             {sidebarTab === "people" && (
-//               <div style={S.peopleList}>
-//                 <PersonRow name="You (Me)" self />
-//                 {participants
-//                   .filter((p) => !p.self)
-//                   .map((p) => (
-//                     <PersonRow key={p.id} name={p.name} isHost={p.isHost} />
-//                   ))}
-//                 {participants.filter((p) => !p.self).length === 0 && (
-//                   <p style={S.emptyPpl}>No other participants yet</p>
-//                 )}
-//               </div>
-//             )}
-//           </div>
-//         )}
-//       </div>
-
-//       {/* CONTROL BAR */}
-//       <div style={S.ctrlBar}>
-//         <div style={S.ctrlGrp}>
-//           <Btn
-//             icon={micOn ? <Mic size={18} /> : <MicOff size={18} />}
-//             label={micOn ? "Mute" : "Unmute"}
-//             danger={!micOn}
-//             onClick={toggleMic}
-//           />
-//           <Btn
-//             icon={camOn ? <Video size={18} /> : <VideoOff size={18} />}
-//             label={camOn ? "Stop Cam" : "Start Cam"}
-//             danger={!camOn}
-//             onClick={toggleCam}
-//           />
-//           <Btn
-//             icon={screenOn ? <MonitorOff size={18} /> : <MonitorUp size={18} />}
-//             label={screenOn ? "Stop Share" : "Share Screen"}
-//             active={screenOn}
-//             onClick={toggleScreen}
-//           />
-//         </div>
-//         <div style={S.ctrlGrp}>
-//           <Btn
-//             icon={<MessageSquare size={18} />}
-//             label="Chat"
-//             active={sidebarOpen && sidebarTab === "chat"}
-//             onClick={() => openTab("chat")}
-//           />
-//           <Btn
-//             icon={<Users size={18} />}
-//             label="People"
-//             active={sidebarOpen && sidebarTab === "people"}
-//             onClick={() => openTab("people")}
-//           />
-//         </div>
-//         <div style={S.ctrlGrp}>
-//           <Btn
-//             icon={<PhoneOff size={18} />}
-//             label="Leave"
-//             leave
-//             onClick={handleLeave}
-//           />
-//         </div>
-//       </div>
-
-//       <style>{`
-//         @keyframes livePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.5)} }
-//         @keyframes recBlink  { 0%,100%{opacity:1} 50%{opacity:.2} }
-//         @keyframes slideIn   { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
-//         @keyframes toastIn   { from{opacity:0;transform:translateX(-50%) translateY(-12px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
-//       `}</style>
-//     </div>
-//   );
-// };
-
-// const PersonRow = ({ name, isHost, self }) => (
-//   <div style={S.pRow}>
-//     <div
-//       style={{
-//         ...S.pAv,
-//         background: self
-//           ? "linear-gradient(135deg,#0ea5e9,#6366f1)"
-//           : "linear-gradient(135deg,#8b5cf6,#ec4899)",
-//       }}
-//     >
-//       {name[0]}
-//     </div>
-//     <span style={S.pName}>{name}</span>
-//     {isHost && <span style={S.hostTag}>Host</span>}
-//     {self && <span style={S.youTag}>You</span>}
-//   </div>
-// );
-
-// const Btn = ({ icon, label, active, danger, leave, onClick }) => {
-//   const [hov, setHov] = useState(false);
-//   const bg = leave
-//     ? hov
-//       ? "#dc2626"
-//       : "#ef4444"
-//     : danger
-//       ? hov
-//         ? "#991b1b"
-//         : "#7f1d1d"
-//       : active
-//         ? hov
-//           ? "rgba(99,102,241,.38)"
-//           : "rgba(99,102,241,.22)"
-//         : hov
-//           ? "rgba(255,255,255,.14)"
-//           : "rgba(255,255,255,.07)";
-//   const col = leave
-//     ? "#fff"
-//     : danger
-//       ? "#fca5a5"
-//       : active
-//         ? "#a5b4fc"
-//         : "#cbd5e1";
-//   return (
-//     <button
-//       onClick={onClick}
-//       onMouseEnter={() => setHov(true)}
-//       onMouseLeave={() => setHov(false)}
-//       style={{
-//         display: "flex",
-//         flexDirection: "column",
-//         alignItems: "center",
-//         gap: 5,
-//         background: bg,
-//         color: col,
-//         border: danger
-//           ? "1px solid rgba(239,68,68,.3)"
-//           : active
-//             ? "1px solid rgba(99,102,241,.35)"
-//             : "1px solid transparent",
-//         borderRadius: 14,
-//         padding: "10px 20px",
-//         cursor: "pointer",
-//         fontSize: 11,
-//         fontWeight: 600,
-//         fontFamily: "inherit",
-//         letterSpacing: 0.3,
-//         transition: "all .18s",
-//       }}
-//     >
-//       {icon}
-//       <span>{label}</span>
-//     </button>
-//   );
-// };
-
-// const S = {
-//   root: {
-//     display: "flex",
-//     flexDirection: "column",
-//     height: "100vh",
-//     background: "#07090f",
-//     fontFamily: "'DM Sans','Segoe UI',sans-serif",
-//     color: "#e2e8f0",
-//     overflow: "hidden",
-//   },
-//   autoEndToast: {
-//     position: "fixed",
-//     top: 60,
-//     left: "50%",
-//     transform: "translateX(-50%)",
-//     zIndex: 99999,
-//     display: "flex",
-//     alignItems: "center",
-//     gap: 12,
-//     padding: "14px 24px",
-//     borderRadius: 14,
-//     background: "linear-gradient(135deg,#dc2626,#f43f5e)",
-//     color: "#fff",
-//     fontFamily: "'DM Sans','Segoe UI',sans-serif",
-//     boxShadow: "0 8px 32px rgba(244,63,94,0.5)",
-//     animation: "toastIn 0.35s ease",
-//     minWidth: 300,
-//   },
-//   topBar: {
-//     display: "flex",
-//     alignItems: "center",
-//     justifyContent: "space-between",
-//     padding: "10px 20px",
-//     background: "#0d1117",
-//     borderBottom: "1px solid rgba(255,255,255,.06)",
-//     flexShrink: 0,
-//   },
-//   topLeft: { display: "flex", alignItems: "center", gap: 10 },
-//   topRight: { display: "flex", alignItems: "center", gap: 10 },
-//   liveBadge: {
-//     display: "flex",
-//     alignItems: "center",
-//     gap: 5,
-//     background: "rgba(239,68,68,.14)",
-//     border: "1px solid rgba(239,68,68,.28)",
-//     borderRadius: 8,
-//     padding: "3px 9px",
-//     fontSize: 10,
-//     fontWeight: 800,
-//     letterSpacing: 1.5,
-//     color: "#ef4444",
-//   },
-//   liveDot: {
-//     width: 7,
-//     height: 7,
-//     borderRadius: "50%",
-//     background: "#ef4444",
-//     animation: "livePulse 1.2s ease-in-out infinite",
-//     display: "inline-block",
-//   },
-//   recBadge: {
-//     display: "flex",
-//     alignItems: "center",
-//     gap: 4,
-//     background: "rgba(248,113,113,.09)",
-//     border: "1px solid rgba(248,113,113,.18)",
-//     borderRadius: 8,
-//     padding: "3px 8px",
-//     fontSize: 10,
-//     fontWeight: 700,
-//     letterSpacing: 1,
-//     color: "#fca5a5",
-//     animation: "recBlink 2s infinite",
-//   },
-//   timerBadge: {
-//     display: "flex",
-//     alignItems: "center",
-//     gap: 5,
-//     fontSize: 12,
-//     fontWeight: 600,
-//     color: "#94a3b8",
-//     background: "rgba(255,255,255,.05)",
-//     borderRadius: 8,
-//     padding: "3px 10px",
-//     fontVariantNumeric: "tabular-nums",
-//   },
-//   sessionName: {
-//     fontSize: 14,
-//     fontWeight: 600,
-//     color: "#f1f5f9",
-//     marginLeft: 4,
-//   },
-//   connBadge: {
-//     display: "flex",
-//     alignItems: "center",
-//     gap: 5,
-//     fontSize: 11,
-//     fontWeight: 600,
-//     borderRadius: 8,
-//     padding: "3px 10px",
-//   },
-//   connOn: {
-//     background: "rgba(52,211,153,.1)",
-//     border: "1px solid rgba(52,211,153,.24)",
-//     color: "#34d399",
-//   },
-//   connOff: {
-//     background: "rgba(100,116,139,.1)",
-//     border: "1px solid rgba(100,116,139,.2)",
-//     color: "#94a3b8",
-//   },
-//   trainerBadge: {
-//     display: "flex",
-//     alignItems: "center",
-//     gap: 5,
-//     fontSize: 11,
-//     fontWeight: 600,
-//     background: "rgba(255,255,255,.04)",
-//     borderRadius: 8,
-//     padding: "3px 10px",
-//   },
-//   mainArea: { flex: 1, display: "flex", overflow: "hidden" },
-//   stage: {
-//     flex: 1,
-//     position: "relative",
-//     background: "#05070d",
-//     overflow: "hidden",
-//   },
-//   remoteVideo: { position: "absolute", inset: 0 },
-//   stagePH: {
-//     position: "absolute",
-//     inset: 0,
-//     display: "flex",
-//     flexDirection: "column",
-//     alignItems: "center",
-//     justifyContent: "center",
-//     gap: 14,
-//     zIndex: 1,
-//   },
-//   avatarRing: {
-//     width: 96,
-//     height: 96,
-//     borderRadius: "50%",
-//     background: "linear-gradient(135deg,#3b82f6,#8b5cf6)",
-//     padding: 3,
-//   },
-//   avatarInner: {
-//     width: "100%",
-//     height: "100%",
-//     borderRadius: "50%",
-//     background: "#0d1117",
-//     display: "flex",
-//     alignItems: "center",
-//     justifyContent: "center",
-//     fontSize: 36,
-//     fontWeight: 800,
-//     color: "#fff",
-//   },
-//   phText: { margin: 0, fontSize: 16, fontWeight: 600, color: "#94a3b8" },
-//   phSub: { margin: 0, fontSize: 12, color: "#334155" },
-//   pip: {
-//     position: "absolute",
-//     bottom: 20,
-//     right: 20,
-//     width: 176,
-//     height: 118,
-//     borderRadius: 14,
-//     overflow: "hidden",
-//     border: "2px solid rgba(255,255,255,.13)",
-//     background: "#0d1117",
-//     boxShadow: "0 8px 32px rgba(0,0,0,.7)",
-//     zIndex: 10,
-//   },
-//   pipOff: {
-//     position: "absolute",
-//     inset: 0,
-//     display: "flex",
-//     flexDirection: "column",
-//     alignItems: "center",
-//     justifyContent: "center",
-//     gap: 5,
-//     background: "#0f172a",
-//   },
-//   pipOffTxt: { fontSize: 10, color: "#475569" },
-//   pipLabel: {
-//     position: "absolute",
-//     bottom: 6,
-//     left: 8,
-//     fontSize: 10,
-//     color: "#fff",
-//     background: "rgba(0,0,0,.6)",
-//     padding: "1px 7px",
-//     borderRadius: 5,
-//     pointerEvents: "none",
-//   },
-//   handle: {
-//     width: 22,
-//     display: "flex",
-//     alignItems: "center",
-//     justifyContent: "center",
-//     background: "#0d1117",
-//     borderLeft: "1px solid rgba(255,255,255,.05)",
-//     cursor: "pointer",
-//     flexShrink: 0,
-//   },
-//   sidebar: {
-//     width: 320,
-//     background: "#0d1117",
-//     borderLeft: "1px solid rgba(255,255,255,.06)",
-//     display: "flex",
-//     flexDirection: "column",
-//     animation: "slideIn .2s ease",
-//     flexShrink: 0,
-//   },
-//   tabRow: {
-//     display: "flex",
-//     alignItems: "center",
-//     gap: 6,
-//     padding: "10px 12px",
-//     borderBottom: "1px solid rgba(255,255,255,.06)",
-//     flexShrink: 0,
-//   },
-//   tab: {
-//     flex: 1,
-//     display: "flex",
-//     alignItems: "center",
-//     justifyContent: "center",
-//     gap: 5,
-//     padding: "7px 0",
-//     borderRadius: 10,
-//     border: "none",
-//     background: "transparent",
-//     color: "#475569",
-//     cursor: "pointer",
-//     fontSize: 13,
-//     fontFamily: "inherit",
-//     fontWeight: 600,
-//     transition: "all .15s",
-//   },
-//   tabOn: { background: "rgba(99,102,241,.15)", color: "#818cf8" },
-//   cnt: {
-//     fontSize: 10,
-//     background: "rgba(99,102,241,.2)",
-//     color: "#a5b4fc",
-//     borderRadius: 10,
-//     padding: "1px 6px",
-//     marginLeft: 3,
-//   },
-//   closeBtn: {
-//     background: "none",
-//     border: "none",
-//     color: "#334155",
-//     cursor: "pointer",
-//     display: "flex",
-//     marginLeft: "auto",
-//     padding: 4,
-//   },
-//   chatWrap: {
-//     flex: 1,
-//     display: "flex",
-//     flexDirection: "column",
-//     overflow: "hidden",
-//   },
-//   msgList: {
-//     flex: 1,
-//     overflowY: "auto",
-//     padding: "12px 14px",
-//     display: "flex",
-//     flexDirection: "column",
-//     gap: 10,
-//   },
-//   msgRow: { display: "flex", alignItems: "flex-end", gap: 7 },
-//   msgSelf: { flexDirection: "row-reverse" },
-//   av: {
-//     width: 28,
-//     height: 28,
-//     borderRadius: "50%",
-//     background: "linear-gradient(135deg,#3b82f6,#8b5cf6)",
-//     display: "flex",
-//     alignItems: "center",
-//     justifyContent: "center",
-//     fontSize: 12,
-//     fontWeight: 700,
-//     flexShrink: 0,
-//   },
-//   sysBubble: {
-//     fontSize: 11,
-//     color: "#475569",
-//     background: "rgba(255,255,255,.04)",
-//     borderRadius: 8,
-//     padding: "4px 10px",
-//     fontStyle: "italic",
-//     margin: "0 auto",
-//   },
-//   bubble: {
-//     maxWidth: "78%",
-//     borderRadius: 14,
-//     padding: "7px 11px",
-//     display: "flex",
-//     flexDirection: "column",
-//     gap: 2,
-//   },
-//   bSelf: {
-//     background: "linear-gradient(135deg,#3b82f6,#8b5cf6)",
-//     borderBottomRightRadius: 2,
-//   },
-//   bOther: { background: "#1e293b", borderBottomLeftRadius: 2 },
-//   bName: { fontSize: 10, color: "#94a3b8", fontWeight: 600 },
-//   bText: { fontSize: 13, color: "#f1f5f9", lineHeight: 1.45 },
-//   bTime: {
-//     fontSize: 10,
-//     color: "rgba(255,255,255,.3)",
-//     alignSelf: "flex-end",
-//   },
-//   inputRow: {
-//     display: "flex",
-//     gap: 7,
-//     padding: "10px 12px",
-//     borderTop: "1px solid rgba(255,255,255,.06)",
-//     flexShrink: 0,
-//   },
-//   chatInput: {
-//     flex: 1,
-//     background: "#1e293b",
-//     border: "1px solid rgba(255,255,255,.08)",
-//     borderRadius: 10,
-//     padding: "8px 12px",
-//     color: "#e2e8f0",
-//     fontSize: 13,
-//     fontFamily: "inherit",
-//     outline: "none",
-//   },
-//   sendBtn: {
-//     background: "linear-gradient(135deg,#3b82f6,#8b5cf6)",
-//     border: "none",
-//     borderRadius: 10,
-//     padding: "0 14px",
-//     color: "#fff",
-//     cursor: "pointer",
-//     display: "flex",
-//     alignItems: "center",
-//     flexShrink: 0,
-//   },
-//   peopleList: {
-//     flex: 1,
-//     overflowY: "auto",
-//     padding: "10px 12px",
-//     display: "flex",
-//     flexDirection: "column",
-//     gap: 4,
-//   },
-//   emptyPpl: {
-//     fontSize: 12,
-//     color: "#334155",
-//     textAlign: "center",
-//     marginTop: 20,
-//   },
-//   pRow: {
-//     display: "flex",
-//     alignItems: "center",
-//     gap: 10,
-//     padding: "8px 10px",
-//     borderRadius: 10,
-//     background: "rgba(255,255,255,.03)",
-//   },
-//   pAv: {
-//     width: 32,
-//     height: 32,
-//     borderRadius: "50%",
-//     display: "flex",
-//     alignItems: "center",
-//     justifyContent: "center",
-//     fontSize: 14,
-//     fontWeight: 700,
-//     flexShrink: 0,
-//   },
-//   pName: { flex: 1, fontSize: 13, color: "#cbd5e1" },
-//   hostTag: {
-//     fontSize: 10,
-//     background: "rgba(59,130,246,.15)",
-//     color: "#60a5fa",
-//     padding: "2px 8px",
-//     borderRadius: 6,
-//     fontWeight: 600,
-//   },
-//   youTag: {
-//     fontSize: 10,
-//     background: "rgba(52,211,153,.12)",
-//     color: "#6ee7b7",
-//     padding: "2px 8px",
-//     borderRadius: 6,
-//     fontWeight: 600,
-//   },
-//   ctrlBar: {
-//     display: "flex",
-//     alignItems: "center",
-//     justifyContent: "space-between",
-//     padding: "12px 24px",
-//     background: "#0d1117",
-//     borderTop: "1px solid rgba(255,255,255,.06)",
-//     flexShrink: 0,
-//   },
-//   ctrlGrp: { display: "flex", alignItems: "center", gap: 6 },
-// };
-
-// export default LiveRoom;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { Room, RoomEvent, Track, createLocalTracks } from "livekit-client";
 import {
   Mic,
@@ -1220,6 +22,7 @@ import {
   Wifi,
   WifiOff,
   AlertTriangle,
+  PictureInPicture2,
 } from "lucide-react";
 import {
   getSessionById,
@@ -1230,16 +33,28 @@ import {
 const getTime = () =>
   new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-const useLiveTimer = (running) => {
-  const [secs, setSecs] = useState(0);
+// ✅ FIX (bug #2 — meeting persistence): the timer now derives elapsed
+// time from a persisted wall-clock `startedAt` timestamp instead of an
+// in-memory counter that always began at 0. On refresh/back/reconnect,
+// LiveClasses passes the ORIGINAL join timestamp back in, so the timer
+// picks up exactly where it left off instead of restarting. Computing
+// from `Date.now() - startedAt` on every tick (rather than "+1 each
+// tick") also keeps the timer accurate even when the tab is backgrounded
+// and the browser throttles setInterval to fire less often.
+const useLiveTimer = (running, startedAt) => {
+  const [secs, setSecs] = useState(() =>
+    startedAt ? Math.max(0, Math.floor((Date.now() - startedAt) / 1000)) : 0,
+  );
+
   useEffect(() => {
-    if (!running) {
-      setSecs(0);
-      return;
-    }
-    const id = setInterval(() => setSecs((s) => s + 1), 1000);
+    if (!running) return;
+    const anchor = startedAt || Date.now();
+    const tick = () => setSecs(Math.max(0, Math.floor((Date.now() - anchor) / 1000)));
+    tick();
+    const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-  }, [running]);
+  }, [running, startedAt]);
+
   const hh = String(Math.floor(secs / 3600)).padStart(2, "0");
   const mm = String(Math.floor((secs % 3600) / 60)).padStart(2, "0");
   const ss = String(secs % 60).padStart(2, "0");
@@ -1253,10 +68,10 @@ const useLiveTimer = (running) => {
 // This alone fixes: audio disappearing, screen share landing inside
 // the camera tile, and the "own camera not visible" issue.
 // ────────────────────────────────────────────────────────────────
-function VideoTrackEl({ track, mirrored, fit = "cover" }) {
-  const ref = useRef(null);
+function VideoTrackEl({ track, mirrored, fit = "cover", hidden, videoRef }) {
+  const internalRef = useRef(null);
   useEffect(() => {
-    const el = ref.current;
+    const el = internalRef.current;
     if (!track || !el) return;
     track.attach(el);
     return () => {
@@ -1267,18 +82,33 @@ function VideoTrackEl({ track, mirrored, fit = "cover" }) {
   }, [track]);
   return (
     <video
-      ref={ref}
+      ref={(node) => {
+        internalRef.current = node;
+        if (videoRef) videoRef.current = node;
+      }}
       autoPlay
       playsInline
       muted
-      style={{
-        width: "100%",
-        height: "100%",
-        objectFit: fit,
-        transform: mirrored ? "scaleX(-1)" : "none",
-        display: "block",
-        background: "#000",
-      }}
+      style={
+        hidden
+          ? {
+              position: "absolute",
+              left: -9999,
+              top: -9999,
+              width: 2,
+              height: 2,
+              opacity: 0,
+              pointerEvents: "none",
+            }
+          : {
+              width: "100%",
+              height: "100%",
+              objectFit: fit,
+              transform: mirrored ? "scaleX(-1)" : "none",
+              display: "block",
+              background: "#000",
+            }
+      }
     />
   );
 }
@@ -1296,6 +126,125 @@ function AudioTrackEl({ track }) {
     };
   }, [track]);
   return <audio ref={ref} autoPlay />;
+}
+
+// ✅ NEW — content shown inside the floating Document PiP window.
+// Mirrors Meet's floating tile: video (or an avatar if the camera's
+// off), a timer, a mic toggle, and a one-click "return to meeting"
+// button that focuses the original tab.
+function PiPPanel({ track, isScreen, label, timer, micOn, onToggleMic, onReturn }) {
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        position: "relative",
+        background: "#000",
+        display: "flex",
+        flexDirection: "column",
+        fontFamily: "system-ui, sans-serif",
+      }}
+    >
+      <div style={{ flex: 1, minHeight: 0, position: "relative" }}>
+        {track ? (
+          <VideoTrackEl track={track} fit={isScreen ? "contain" : "cover"} />
+        ) : (
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#94a3b8",
+              fontSize: 13,
+            }}
+          >
+            Meeting in progress…
+          </div>
+        )}
+        <div
+          style={{
+            position: "absolute",
+            top: 6,
+            left: 8,
+            fontSize: 11,
+            color: "#fff",
+            background: "rgba(0,0,0,.55)",
+            padding: "3px 8px",
+            borderRadius: 6,
+          }}
+        >
+          {timer}
+        </div>
+        <div
+          style={{
+            position: "absolute",
+            bottom: 6,
+            left: 8,
+            fontSize: 10,
+            color: "#fff",
+            background: "rgba(0,0,0,.55)",
+            padding: "2px 7px",
+            borderRadius: 6,
+          }}
+        >
+          {label}
+        </div>
+      </div>
+      <div
+        style={{
+          flexShrink: 0,
+          display: "flex",
+          gap: 6,
+          padding: 6,
+          background: "#0d1117",
+        }}
+      >
+        <button
+          onClick={onToggleMic}
+          style={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
+            padding: "6px 8px",
+            borderRadius: 8,
+            border: "none",
+            background: micOn ? "rgba(255,255,255,.12)" : "#7f1d1d",
+            color: micOn ? "#e2e8f0" : "#fca5a5",
+            fontSize: 11,
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+        >
+          {micOn ? <Mic size={13} /> : <MicOff size={13} />}
+          {micOn ? "Mute" : "Unmute"}
+        </button>
+        <button
+          onClick={onReturn}
+          style={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
+            padding: "6px 8px",
+            borderRadius: 8,
+            border: "none",
+            background: "rgba(34,211,238,.18)",
+            color: "#67e8f9",
+            fontSize: 11,
+            fontWeight: 700,
+            cursor: "pointer",
+          }}
+        >
+          Return to meeting
+        </button>
+      </div>
+    </div>
+  );
 }
 
 // ✅ NEW — cheap viewport awareness so 50–100+ tiles don't all decode
@@ -1414,7 +363,15 @@ function FilmStrip({ participants }) {
   );
 }
 
-const LiveRoom = ({ token, roomName, sessionId, onSessionEnded, onLeave }) => {
+const LiveRoom = ({
+  token,
+  roomName,
+  sessionId,
+  joinedAt, // ✅ NEW — persisted wall-clock join time (ms); keeps the timer
+  // correct across refresh/back/reconnect instead of restarting at 00:00
+  onSessionEnded,
+  onLeave,
+}) => {
   const roomRef = useRef(null);
   const localVideoTrackRef = useRef(null);
   const localAudioTrackRef = useRef(null);
@@ -1444,7 +401,7 @@ const LiveRoom = ({ token, roomName, sessionId, onSessionEnded, onLeave }) => {
     },
   ]);
 
-  const timer = useLiveTimer(connected);
+  const timer = useLiveTimer(connected, joinedAt);
 
   const pushSystemMsg = useCallback((text) => {
     setMessages((prev) => [
@@ -1740,8 +697,161 @@ const LiveRoom = ({ token, roomName, sessionId, onSessionEnded, onLeave }) => {
     [participants],
   );
 
+  // ────────────────────────────────────────────────────────────────
+  // ✅ NEW (bug #4 — Picture-in-Picture): floating PiP window, same
+  // idea Google Meet uses (the exact "wants to enter picture-in-
+  // picture automatically" browser prompt shows up for that reason).
+  //
+  // What it shows, in priority order: whoever is presenting their
+  // screen → else the local camera → else the first remote camera.
+  // `track.attach()` supports attaching the SAME LiveKit track to more
+  // than one <video> element at once, so the PiP window gets its own
+  // video element instead of having to physically move DOM nodes out
+  // of the main grid (which would fight React's reconciliation).
+  // ────────────────────────────────────────────────────────────────
+  const pipTrack =
+    screenSharer?.screenTrack ||
+    participants.find((p) => p.isLocal)?.cameraTrack ||
+    participants.find((p) => !p.isLocal && p.cameraTrack)?.cameraTrack ||
+    null;
+  const pipIsScreen = !!screenSharer?.screenTrack;
+  const pipLabel = screenSharer
+    ? screenSharer.isLocal
+      ? "You are presenting"
+      : `${screenSharer.name} is presenting`
+    : "Live meeting";
+
+  const [pipWindow, setPipWindow] = useState(null);
+  const pipFallbackVideoRef = useRef(null);
+  const pipSupported =
+    typeof window !== "undefined" && "documentPictureInPicture" in window;
+
+  const closePiP = useCallback(() => {
+    setPipWindow((win) => {
+      if (win && !win.closed) win.close();
+      return null;
+    });
+    // classic-API fallback cleanup
+    if (document.pictureInPictureElement) {
+      document.exitPictureInPicture().catch(() => {});
+    }
+  }, []);
+
+  const openPiP = useCallback(async () => {
+    if (pipWindow) return;
+
+    if (pipSupported) {
+      try {
+        const win = await window.documentPictureInPicture.requestWindow({
+          width: 340,
+          height: 220,
+        });
+
+        // Carry the app's styling into the PiP window's document so the
+        // mini video tile/buttons look right instead of unstyled.
+        [...document.styleSheets].forEach((sheet) => {
+          try {
+            const css = [...sheet.cssRules].map((r) => r.cssText).join("");
+            const style = win.document.createElement("style");
+            style.textContent = css;
+            win.document.head.appendChild(style);
+          } catch (_) {
+            if (sheet.href) {
+              const link = win.document.createElement("link");
+              link.rel = "stylesheet";
+              link.href = sheet.href;
+              win.document.head.appendChild(link);
+            }
+          }
+        });
+        win.document.body.style.margin = "0";
+        win.document.body.style.background = "#000";
+        win.document.body.style.overflow = "hidden";
+
+        win.addEventListener("pagehide", () => setPipWindow(null), {
+          once: true,
+        });
+
+        setPipWindow(win);
+        return;
+      } catch (err) {
+        // Most likely NotAllowedError from calling this without a fresh
+        // user gesture (e.g. the automatic tab-hide trigger below) —
+        // fall through to the classic element-level PiP API.
+        console.warn("Document PiP unavailable, falling back:", err);
+      }
+    }
+
+    // Fallback for Firefox/Safari or a blocked Document PiP request:
+    // classic <video>.requestPictureInPicture() on a small always-mounted
+    // video element mirroring the same track.
+    const el = pipFallbackVideoRef.current;
+    if (el && el.requestPictureInPicture) {
+      try {
+        await el.requestPictureInPicture();
+      } catch (_) {
+        // Browser blocked it (usually needs a direct click) — the manual
+        // PiP button in the control bar is a guaranteed user gesture.
+      }
+    }
+  }, [pipSupported, pipWindow]);
+
+  const togglePiP = useCallback(() => {
+    if (pipWindow || document.pictureInPictureElement) closePiP();
+    else openPiP();
+  }, [pipWindow, openPiP, closePiP]);
+
+  // Auto-open when the tab/app goes to the background, auto-close when
+  // it's foregrounded again. Browsers vary on whether a silent call here
+  // is allowed without a fresh click — when blocked it just no-ops, and
+  // the manual button always works since it's a direct user gesture.
+  useEffect(() => {
+    if (!connected) return;
+    const onVisibility = () => {
+      if (document.hidden) openPiP();
+      else closePiP();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, [connected, openPiP, closePiP]);
+
+  // Make sure a floating PiP window never outlives the meeting screen.
+  useEffect(() => {
+    return () => closePiP();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div style={S.root} className="lr-root">
+      {/* ✅ NEW — always-mounted, visually-hidden video used only as the
+          target for the classic requestPictureInPicture() fallback when
+          the Document PiP API isn't available. */}
+      <VideoTrackEl
+        videoRef={pipFallbackVideoRef}
+        track={pipTrack}
+        fit={pipIsScreen ? "contain" : "cover"}
+        hidden
+      />
+
+      {/* ✅ NEW — the actual floating PiP window content, rendered via a
+          React portal straight into the PiP window's own document. */}
+      {pipWindow &&
+        createPortal(
+          <PiPPanel
+            track={pipTrack}
+            isScreen={pipIsScreen}
+            label={pipLabel}
+            timer={timer}
+            micOn={micOn}
+            onToggleMic={toggleMic}
+            onReturn={() => {
+              window.focus();
+              closePiP();
+            }}
+          />,
+          pipWindow.document.body,
+        )}
+
       {sessionEndedWarning && (
         <div style={S.autoEndToast} className="lr-toast">
           <span style={{ fontSize: 18 }}>⏱️</span>
@@ -1957,6 +1067,12 @@ const LiveRoom = ({ token, roomName, sessionId, onSessionEnded, onLeave }) => {
             label="People"
             active={sidebarOpen && sidebarTab === "people"}
             onClick={() => openTab("people")}
+          />
+          <Btn
+            icon={<PictureInPicture2 size={18} />}
+            label="PiP"
+            active={!!pipWindow}
+            onClick={togglePiP}
           />
         </div>
         <div style={S.ctrlGrp}>

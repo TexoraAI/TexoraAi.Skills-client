@@ -689,7 +689,6 @@ import {
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate, Outlet } from "react-router-dom";
 import LiveMeetingRouteSync from "@/components/live/LiveMeetingRouteSync";
-import LiveMeetingRouteSync from "@/context/LiveMeetingRouteSync";
 import {
   onForegroundMessage,
   registerFcmToken,

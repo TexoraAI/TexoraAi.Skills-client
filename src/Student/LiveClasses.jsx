@@ -1734,3 +1734,4 @@ const res = await joinLiveSession(selected.id);
     </div>
   );
 };
+export default LiveClasses; 

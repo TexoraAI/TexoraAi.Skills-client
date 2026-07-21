@@ -3061,14 +3061,22 @@ const LiveSessionControls = () => {
         const checkSessionStatus = async () => {
           try {
             const freshToken = getFreshAuthToken();
+            // const res = await fetch(
+            //   `${import.meta.env.VITE_API_BASE_URL || "http://localhost:9000"}/api/live-sessions/${id}`,
+            //   {
+            //     headers: freshToken
+            //       ? { Authorization: `Bearer ${freshToken}` }
+            //       : {},
+            //   },
+            // );
             const res = await fetch(
-              `${import.meta.env.VITE_API_BASE_URL || "http://localhost:9000"}/api/live-sessions/${id}`,
-              {
-                headers: freshToken
-                  ? { Authorization: `Bearer ${freshToken}` }
-                  : {},
-              },
-            );
+  `${import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api"}/live-sessions/${id}`,
+  {
+    headers: freshToken
+      ? { Authorization: `Bearer ${freshToken}` }
+      : {},
+  },
+);
             if (!res.ok) {
               // Fresh token still failing (e.g. session deleted, or a
               // genuine auth problem) — safe to skip this tick. The

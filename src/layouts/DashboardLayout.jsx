@@ -1,8 +1,25 @@
-
 // // for github //
-// import { Bell, X } from "lucide-react";
+// import {
+//   Bell,
+//   X,
+//   Video,
+//   FileText,
+//   ClipboardCheck,
+//   BookOpen,
+//   ClipboardList,
+//   GraduationCap,
+//   ClipboardEdit,
+//   Building2,
+//   MessageSquare,
+//   Radio,
+//   CheckCircle2,
+//   HelpCircle,
+//   Send,
+// } from "lucide-react";
 // import React, { useState, useEffect, useRef, useCallback } from "react";
 // import { useLocation, useNavigate, Outlet } from "react-router-dom";
+// import LiveMeetingRouteSync from "@/components/live/LiveMeetingRouteSync";
+// import FloatingMeetingWidget from "@/components/live/FloatingMeetingWidget";
 // import {
 //   onForegroundMessage,
 //   registerFcmToken,
@@ -13,25 +30,26 @@
 //   disconnectWebSocket,
 // } from "../services/notificationService";
 // import userService from "../services/userService";
-// // ── Notification type → icon map ─────────────────────────────
+
+// // ── Notification type → REAL icon map (no more emoji placeholders) ──
 // const TYPE_ICON = {
-//   NEW_VIDEO: "🎥",
-//   NEW_FILE: "📁",
-//   NEW_ASSESSMENT: "📝",
-//   NEW_CONTENT: "📘",
-//   NEW_QUIZ: "📝",
-//   NEW_COURSE: "🎓",
-//   NEW_ASSIGNMENT: "📋",
-//   BATCH_UPDATE: "🏫",
-//   BATCH_ASSIGNED: "🏫",
-//   NEW_CHAT: "💬",
-//   CHAT_MESSAGE: "💬",
-//   LIVE_SESSION: "📡",
-//   LIVE_SESSION_STARTED: "📡",
-//   ATTENDANCE_MARKED: "✅",
-//   DOUBT_RAISED: "❓",
-//   ASSIGNMENT_SUBMIT: "📤",
-//   DEFAULT: "🔔",
+//   NEW_VIDEO: Video,
+//   NEW_FILE: FileText,
+//   NEW_ASSESSMENT: ClipboardCheck,
+//   NEW_CONTENT: BookOpen,
+//   NEW_QUIZ: ClipboardList,
+//   NEW_COURSE: GraduationCap,
+//   NEW_ASSIGNMENT: ClipboardEdit,
+//   BATCH_UPDATE: Building2,
+//   BATCH_ASSIGNED: Building2,
+//   NEW_CHAT: MessageSquare,
+//   CHAT_MESSAGE: MessageSquare,
+//   LIVE_SESSION: Radio,
+//   LIVE_SESSION_STARTED: Radio,
+//   ATTENDANCE_MARKED: CheckCircle2,
+//   DOUBT_RAISED: HelpCircle,
+//   ASSIGNMENT_SUBMIT: Send,
+//   DEFAULT: Bell,
 // };
 // const getIcon = (type) => TYPE_ICON[type] ?? TYPE_ICON.DEFAULT;
 
@@ -157,7 +175,21 @@
 //           to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 //         }
 //       `}</style>
-//       <span style={{ fontSize: 18 }}>🔔</span>
+//       {/* ✅ Real icon instead of 🔔 emoji */}
+//       <span
+//         style={{
+//           width: 26,
+//           height: 26,
+//           borderRadius: 8,
+//           background: "rgba(249,115,22,0.15)",
+//           display: "flex",
+//           alignItems: "center",
+//           justifyContent: "center",
+//           flexShrink: 0,
+//         }}
+//       >
+//         <Bell size={15} color="#F97316" />
+//       </span>
 //       <span style={{ color: "#cbd5e1" }}>
 //         Enable notifications to get video &amp; course alerts
 //       </span>
@@ -215,88 +247,92 @@
 //       maxWidth: 360,
 //     }}
 //   >
-//     {toasts.map((t) => (
-//       <div
-//         key={t.id}
-//         onClick={() => onNavigate(t)}
-//         style={{
-//           background: "rgba(255,255,255,0.98)",
-//           color: "#0f172a",
-//           padding: "12px 16px",
-//           borderRadius: 14,
-//           fontSize: 13,
-//           fontWeight: 600,
-//           boxShadow: "0 8px 32px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06)",
-//           border: "1px solid rgba(226,232,240,0.9)",
-//           display: "flex",
-//           alignItems: "flex-start",
-//           gap: 10,
-//           animation: "slideDown 0.3s ease",
-//           cursor: "pointer",
-//           width: "100%",
-//           backdropFilter: "blur(12px)",
-//         }}
-//       >
+//     {toasts.map((t) => {
+//       const Icon = getIcon(t.type);
+//       return (
 //         <div
+//           key={t.id}
+//           onClick={() => onNavigate(t)}
 //           style={{
-//             width: 36,
-//             height: 36,
-//             borderRadius: 10,
-//             flexShrink: 0,
-//             background: "rgba(249,115,22,0.1)",
-//             border: "1px solid rgba(249,115,22,0.2)",
+//             background: "rgba(255,255,255,0.98)",
+//             color: "#0f172a",
+//             padding: "12px 16px",
+//             borderRadius: 14,
+//             fontSize: 13,
+//             fontWeight: 600,
+//             boxShadow:
+//               "0 8px 32px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06)",
+//             border: "1px solid rgba(226,232,240,0.9)",
 //             display: "flex",
-//             alignItems: "center",
-//             justifyContent: "center",
-//             fontSize: 16,
-//           }}
-//         >
-//           {getIcon(t.type)}
-//         </div>
-//         <div style={{ flex: 1, minWidth: 0 }}>
-//           <div
-//             style={{
-//               fontWeight: 700,
-//               marginBottom: 2,
-//               fontSize: 13,
-//               color: "#0f172a",
-//             }}
-//           >
-//             {t.title}
-//           </div>
-//           <div
-//             style={{
-//               color: "#64748b",
-//               fontSize: 12,
-//               fontWeight: 400,
-//               overflow: "hidden",
-//               textOverflow: "ellipsis",
-//               whiteSpace: "nowrap",
-//             }}
-//           >
-//             {t.message}
-//           </div>
-//         </div>
-//         <button
-//           onClick={(e) => {
-//             e.stopPropagation();
-//             onDismiss(t.id);
-//           }}
-//           style={{
-//             background: "none",
-//             border: "none",
-//             color: "#94a3b8",
+//             alignItems: "flex-start",
+//             gap: 10,
+//             animation: "slideDown 0.3s ease",
 //             cursor: "pointer",
-//             padding: 0,
-//             flexShrink: 0,
-//             display: "flex",
-//             alignItems: "center",
+//             width: "100%",
+//             backdropFilter: "blur(12px)",
 //           }}
 //         >
-//           <X size={14} />
-//         </button>
-//       </div>
-//     ))}
+//           {/* ✅ Real lucide icon instead of emoji */}
+//           <div
+//             style={{
+//               width: 36,
+//               height: 36,
+//               borderRadius: 10,
+//               flexShrink: 0,
+//               background: "rgba(249,115,22,0.1)",
+//               border: "1px solid rgba(249,115,22,0.2)",
+//               display: "flex",
+//               alignItems: "center",
+//               justifyContent: "center",
+//             }}
+//           >
+//             <Icon size={17} color="#F97316" />
+//           </div>
+//           <div style={{ flex: 1, minWidth: 0 }}>
+//             <div
+//               style={{
+//                 fontWeight: 700,
+//                 marginBottom: 2,
+//                 fontSize: 13,
+//                 color: "#0f172a",
+//               }}
+//             >
+//               {t.title}
+//             </div>
+//             <div
+//               style={{
+//                 color: "#64748b",
+//                 fontSize: 12,
+//                 fontWeight: 400,
+//                 overflow: "hidden",
+//                 textOverflow: "ellipsis",
+//                 whiteSpace: "nowrap",
+//               }}
+//             >
+//               {t.message}
+//             </div>
+//           </div>
+//           <button
+//             onClick={(e) => {
+//               e.stopPropagation();
+//               onDismiss(t.id);
+//             }}
+//             style={{
+//               background: "none",
+//               border: "none",
+//               color: "#94a3b8",
+//               cursor: "pointer",
+//               padding: 0,
+//               flexShrink: 0,
+//               display: "flex",
+//               alignItems: "center",
+//             }}
+//           >
+//             <X size={14} />
+//           </button>
+//         </div>
+//       );
+//     })}
 //     <style>{`
 //       @keyframes slideDown {
 //         from { opacity: 0; transform: translateY(-14px); }
@@ -519,6 +555,14 @@
 //         </div>
 //       </div>
 
+//       {/* ✅ Moved out of the inner overflow:hidden flex column and up to
+//           the true root level — same tier as the toast stack and banner
+//           below — so the floating meeting widget (position: fixed) is
+//           never at risk of being clipped or trapped by an ancestor that
+//           might later get a transform/filter applied to it. */}
+//       <FloatingMeetingWidget />
+//       <LiveMeetingRouteSync />
+
 //       <NotificationBanner />
 
 //       <ToastStack
@@ -618,31 +662,6 @@
 // };
 
 // export default DashboardLayout;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1160,7 +1179,7 @@ const DashboardLayout = ({ SidebarComponent }) => {
       }}
     >
       <div style={{ display: "flex", height: "100%", overflow: "hidden" }}>
-        {/* Sidebar */}
+        {/* Sidebar — always visible, live room or not */}
         <aside>{SidebarComponent && <SidebarComponent />}</aside>
 
         {/* Main content column */}
@@ -1174,6 +1193,27 @@ const DashboardLayout = ({ SidebarComponent }) => {
         >
           {/* ═══ HEADER ═══ */}
           <div style={headerStyle}>
+            {/* ✅ Always-present, normally-empty slot. When the user
+                is inside a live session, LiveRoom portals its
+                LIVE / session name / timer / REC / participants /
+                signal / End Session / more-menu controls in here, so
+                they sit in the same row as the existing bell + avatar
+                instead of drawing a second top bar. On every other
+                page this stays empty and the header looks exactly
+                like it did before. */}
+            <div
+              id="lr-topbar-slot"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                flex: 1,
+                minWidth: 0,
+                gap: 8,
+                flexWrap: "wrap",
+              }}
+            />
+
             {/* Right: bell + avatar */}
             <div
               style={{

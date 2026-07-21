@@ -490,7 +490,7 @@
 //       }}
 //     >
 //       <div style={{ display: "flex", height: "100%", overflow: "hidden" }}>
-//         {/* Sidebar */}
+//         {/* Sidebar — always visible, live room or not */}
 //         <aside>{SidebarComponent && <SidebarComponent />}</aside>
 
 //         {/* Main content column */}
@@ -504,6 +504,27 @@
 //         >
 //           {/* ═══ HEADER ═══ */}
 //           <div style={headerStyle}>
+//             {/* ✅ Always-present, normally-empty slot. When the user
+//                 is inside a live session, LiveRoom portals its
+//                 LIVE / session name / timer / REC / participants /
+//                 signal / End Session / more-menu controls in here, so
+//                 they sit in the same row as the existing bell + avatar
+//                 instead of drawing a second top bar. On every other
+//                 page this stays empty and the header looks exactly
+//                 like it did before. */}
+//             <div
+//               id="lr-topbar-slot"
+//               style={{
+//                 display: "flex",
+//                 alignItems: "center",
+//                 justifyContent: "space-between",
+//                 flex: 1,
+//                 minWidth: 0,
+//                 gap: 8,
+//                 flexWrap: "wrap",
+//               }}
+//             />
+
 //             {/* Right: bell + avatar */}
 //             <div
 //               style={{
@@ -687,6 +708,25 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // for github //
 import {
   Bell,
@@ -798,6 +838,122 @@ const playSound = () => {
 };
 
 // ─────────────────────────────────────────────────────────────
+// Shared responsive CSS for this file only — scoped under .dl-root
+// so it can't leak into / clash with anything else on the page.
+// Layout-affecting rules (padding, gaps, widths, flex-wrap) live
+// here so media queries can win; colors that depend on the isDark
+// flag stay as inline styles below, computed in JS as before.
+// ─────────────────────────────────────────────────────────────
+const DashboardResponsiveStyles = () => (
+  <style>{`
+    .dl-root, .dl-root * { box-sizing: border-box; }
+    .dl-root { overflow-x: hidden; }
+    .dl-shell { min-width: 0; }
+
+    .dl-aside {
+      flex-shrink: 0;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      max-width: 100vw;
+    }
+
+    .dl-main-col { min-width: 0; }
+    .dl-main { min-width: 0; }
+
+    .dl-header {
+      height: 64px;
+      padding: 0 24px;
+      gap: 12px;
+    }
+    .dl-topbar-slot { gap: 8px; }
+    .dl-right-cluster { gap: 10px; }
+    .dl-avatar { width: 36px; height: 36px; font-size: 14px; }
+    .dl-bell { width: 38px; height: 38px; }
+
+    .dl-toast-stack {
+      top: 24px;
+      right: 24px;
+      max-width: 360px;
+    }
+    .dl-banner {
+      bottom: 24px;
+      padding: 13px 18px;
+      white-space: nowrap;
+    }
+
+    /* ---- Large laptop / small desktop ---- */
+    @media (max-width: 1439px) {
+      .dl-toast-stack { max-width: 340px; }
+    }
+
+    /* ---- Laptop ---- */
+    @media (max-width: 1199px) {
+      .dl-header { padding: 0 20px; }
+    }
+
+    /* ---- Tablet / iPad / iPad Air ---- */
+    @media (max-width: 1023px) {
+      .dl-header { height: 60px; padding: 0 16px; gap: 8px; }
+      .dl-toast-stack { top: 16px; right: 16px; max-width: min(320px, calc(100vw - 32px)); }
+      .dl-banner { bottom: 16px; max-width: calc(100vw - 32px); }
+    }
+
+    /* ---- iPad Mini / small tablet / large phone landscape ---- */
+    @media (max-width: 820px) {
+      .dl-header { gap: 6px; }
+      .dl-right-cluster { gap: 8px; }
+    }
+
+    /* ---- Mobile: phones, iPhone SE and up ---- */
+    @media (max-width: 640px) {
+      .dl-header { height: 56px; padding: 0 12px; }
+      .dl-avatar { width: 32px; height: 32px; font-size: 13px; }
+      .dl-bell { width: 34px; height: 34px; }
+      .dl-topbar-slot { flex-wrap: wrap; }
+
+      .dl-toast-stack {
+        top: 12px;
+        left: 12px;
+        right: 12px;
+        max-width: none;
+        align-items: stretch;
+      }
+
+      .dl-banner {
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        transform: none;
+        max-width: none;
+        width: auto;
+        white-space: normal;
+        flex-wrap: wrap;
+        row-gap: 8px;
+      }
+    }
+
+    /* ---- iPhone SE / very small phones ---- */
+    @media (max-width: 375px) {
+      .dl-header { padding: 0 10px; }
+      .dl-right-cluster { gap: 6px; }
+    }
+
+    /* ---- Respect iOS safe areas (notch / home indicator) ---- */
+    @supports (padding: max(0px)) {
+      .dl-header { padding-left: max(24px, env(safe-area-inset-left)); padding-right: max(24px, env(safe-area-inset-right)); }
+      @media (max-width: 1023px) {
+        .dl-header { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+      }
+      @media (max-width: 640px) {
+        .dl-header { padding-left: max(12px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); }
+      }
+      .dl-banner { margin-bottom: env(safe-area-inset-bottom); }
+    }
+  `}</style>
+);
+
+// ─────────────────────────────────────────────────────────────
 // Notification permission banner
 // ─────────────────────────────────────────────────────────────
 const NotificationBanner = () => {
@@ -837,14 +993,13 @@ const NotificationBanner = () => {
 
   return (
     <div
+      className="dl-banner"
       style={{
         position: "fixed",
-        bottom: 24,
         left: "50%",
         transform: "translateX(-50%)",
         background: "#1e293b",
         color: "#f8fafc",
-        padding: "13px 18px",
         borderRadius: 14,
         display: "flex",
         alignItems: "center",
@@ -854,7 +1009,6 @@ const NotificationBanner = () => {
         zIndex: 9998,
         fontFamily: "DM Sans, sans-serif",
         fontSize: "0.86rem",
-        whiteSpace: "nowrap",
         animation: "bnrIn 0.35s ease",
       }}
     >
@@ -862,6 +1016,12 @@ const NotificationBanner = () => {
         @keyframes bnrIn {
           from { opacity: 0; transform: translateX(-50%) translateY(16px); }
           to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        @media (max-width: 640px) {
+          @keyframes bnrIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
         }
       `}</style>
       {/* ✅ Real icon instead of 🔔 emoji */}
@@ -879,7 +1039,7 @@ const NotificationBanner = () => {
       >
         <Bell size={15} color="#F97316" />
       </span>
-      <span style={{ color: "#cbd5e1" }}>
+      <span style={{ color: "#cbd5e1", minWidth: 0 }}>
         Enable notifications to get video &amp; course alerts
       </span>
       <button
@@ -897,6 +1057,7 @@ const NotificationBanner = () => {
           opacity: asking ? 0.7 : 1,
           fontFamily: "inherit",
           boxShadow: "0 2px 8px rgba(249,115,22,0.35)",
+          flexShrink: 0,
         }}
       >
         {asking ? "Enabling…" : "Enable"}
@@ -911,6 +1072,7 @@ const NotificationBanner = () => {
           display: "flex",
           alignItems: "center",
           padding: 0,
+          flexShrink: 0,
         }}
       >
         <X size={16} />
@@ -924,16 +1086,14 @@ const NotificationBanner = () => {
 // ─────────────────────────────────────────────────────────────
 const ToastStack = ({ toasts, onDismiss, onNavigate }) => (
   <div
+    className="dl-toast-stack"
     style={{
       position: "fixed",
-      top: 24,
-      right: 24,
       zIndex: 9999,
       display: "flex",
       flexDirection: "column",
       gap: 10,
       alignItems: "flex-end",
-      maxWidth: 360,
     }}
   >
     {toasts.map((t) => {
@@ -1152,12 +1312,13 @@ const DashboardLayout = ({ SidebarComponent }) => {
     });
   }, [addToast]);
 
+  // Layout-affecting values (height/padding/gap) now come from the
+  // .dl-header class (see DashboardResponsiveStyles) so media queries
+  // can resize them; only the isDark-dependent visuals stay inline.
   const headerStyle = {
-    height: 64,
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: "0 24px",
     background: isDark ? "rgba(10,10,10,0.92)" : "rgba(255,255,255,0.88)",
     backdropFilter: "blur(14px)",
     WebkitBackdropFilter: "blur(14px)",
@@ -1172,18 +1333,27 @@ const DashboardLayout = ({ SidebarComponent }) => {
 
   return (
     <div
+      className="dl-root"
       style={{
         height: "100vh",
         background: isDark ? "#0a0a0a" : "#F8F9FB",
         color: isDark ? "#ffffff" : "#0f172a",
       }}
     >
-      <div style={{ display: "flex", height: "100%", overflow: "hidden" }}>
+      <DashboardResponsiveStyles />
+
+      <div
+        className="dl-shell"
+        style={{ display: "flex", height: "100%", overflow: "hidden" }}
+      >
         {/* Sidebar — always visible, live room or not */}
-        <aside>{SidebarComponent && <SidebarComponent />}</aside>
+        <aside className="dl-aside">
+          {SidebarComponent && <SidebarComponent />}
+        </aside>
 
         {/* Main content column */}
         <div
+          className="dl-main-col"
           style={{
             display: "flex",
             flexDirection: "column",
@@ -1192,7 +1362,7 @@ const DashboardLayout = ({ SidebarComponent }) => {
           }}
         >
           {/* ═══ HEADER ═══ */}
-          <div style={headerStyle}>
+          <div className="dl-header" style={headerStyle}>
             {/* ✅ Always-present, normally-empty slot. When the user
                 is inside a live session, LiveRoom portals its
                 LIVE / session name / timer / REC / participants /
@@ -1203,24 +1373,24 @@ const DashboardLayout = ({ SidebarComponent }) => {
                 like it did before. */}
             <div
               id="lr-topbar-slot"
+              className="dl-topbar-slot"
               style={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
                 flex: 1,
                 minWidth: 0,
-                gap: 8,
-                flexWrap: "wrap",
               }}
             />
 
             {/* Right: bell + avatar */}
             <div
+              className="dl-right-cluster"
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 10,
                 marginLeft: "auto",
+                flexShrink: 0,
               }}
             >
               {/* Notification bell */}
@@ -1232,15 +1402,13 @@ const DashboardLayout = ({ SidebarComponent }) => {
 
               {/* Avatar */}
               <button
+                className="dl-avatar"
                 onClick={() => navigate(`${base}/profile`)}
                 style={{
-                  width: 36,
-                  height: 36,
                   borderRadius: "50%",
                   background: "linear-gradient(135deg, #F97316, #EA580C)",
                   color: "#fff",
                   fontWeight: 700,
-                  fontSize: 14,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -1249,6 +1417,7 @@ const DashboardLayout = ({ SidebarComponent }) => {
                   cursor: "pointer",
                   fontFamily: "inherit",
                   transition: "opacity 0.2s",
+                  flexShrink: 0,
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
                 onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
@@ -1259,7 +1428,10 @@ const DashboardLayout = ({ SidebarComponent }) => {
           </div>
 
           {/* ═══ MAIN ═══ */}
-          <main style={{ flex: 1, overflowY: "auto", background: t.pageBg }}>
+          <main
+            className="dl-main"
+            style={{ flex: 1, overflowY: "auto", background: t.pageBg }}
+          >
             <Outlet />
           </main>
         </div>
@@ -1307,6 +1479,7 @@ const NotificationBellSlot = ({ navigate, notifPath, isDark }) => {
 
   return (
     <button
+      className="dl-bell"
       onClick={() => {
         setUnreadCount(0);
         navigate(notifPath);
@@ -1315,8 +1488,6 @@ const NotificationBellSlot = ({ navigate, notifPath, isDark }) => {
       onMouseLeave={() => setHov(false)}
       style={{
         position: "relative",
-        width: 38,
-        height: 38,
         borderRadius: 10,
         background: hov
           ? isDark
@@ -1332,6 +1503,7 @@ const NotificationBellSlot = ({ navigate, notifPath, isDark }) => {
         cursor: "pointer",
         transition: "all 0.2s",
         boxShadow: hov && !isDark ? "0 1px 4px rgba(0,0,0,0.06)" : "none",
+        flexShrink: 0,
       }}
     >
       <Bell

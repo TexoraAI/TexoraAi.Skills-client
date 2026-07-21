@@ -4,7 +4,7 @@
 //   Mic, MicOff, Video, VideoOff, MonitorUp, MonitorOff, MonitorPlay,
 //   PhoneOff, MessageSquare, Users, ChevronRight, ChevronLeft, Send, X,
 //   Radio, Timer, Disc2, AlertTriangle, PictureInPicture2, Hand, Settings,
-//   Captions, MoreVertical, SignalHigh, SmilePlus,
+//   Captions, MoreVertical, SignalHigh, SmilePlus, Bell, Crown,
 // } from "lucide-react";
 // import { getSessionById, participantLeave } from "@/services/liveSessionService";
 // import { useLiveMeeting } from "@/context/LiveMeetingContext";
@@ -128,7 +128,9 @@
 //         </div>
 //       )}
 //       {!p.isLocal && p.micTrack && <AudioTrackEl track={p.micTrack} />}
-//       {raised && <div style={S.stripHandBadge}><Hand size={11} color="#1a1a1a" /></div>}
+//       <div style={S.stripBadgeTopLeft}>
+//         {raised ? <Hand size={11} color="#1a1a1a" /> : <Crown size={11} color="#1a1a1a" />}
+//       </div>
 //       <div style={S.stripMicDot}>{p.micMuted ? <MicOff size={10} /> : <Mic size={10} />}</div>
 //       <div style={S.stripName}>{p.isLocal ? "You" : p.name}</div>
 //     </div>
@@ -172,7 +174,7 @@
 //         {p.micMuted ? <MicOff size={13} /> : <Mic size={13} />}
 //         <span>{p.isLocal ? "You" : p.name}</span>
 //       </div>
-//       {p.isHost && !p.isLocal && <span style={S.stageHostTag}>Host</span>}
+//       {p.isHost && <span style={S.stageHostTag}>Host</span>}
 //       {raised && <div style={S.stageHandBadge}><Hand size={14} color="#1a1a1a" /><span>Hand raised</span></div>}
 //       <EmojiFloaters floaters={floaters} />
 //     </div>
@@ -186,6 +188,14 @@
 //  * single owner of the Room instance. This is what prevents the
 //  * duplicate-connection bug (two Rooms under the same identity kicking
 //  * each other out) that existed when this component connected on its own.
+//  *
+//  * NOTE ON VISUAL SCOPE: the reference screenshot also shows a left
+//  * app-navigation sidebar and a top-right notification/avatar cluster.
+//  * Those belong to the persistent app shell/Layout that wraps every
+//  * page (not to this component) and weren't part of the source files
+//  * provided, so they aren't reproduced here — only the meeting UI that
+//  * LiveRoom itself owns (top bar, stage, filmstrip, chat/people panel,
+//  * control bar) has been pixel-matched.
 //  */
 // const LiveRoom = ({ sessionId, onSessionEnded, onLeave }) => {
 //   const {
@@ -199,7 +209,7 @@
 //   const autoEndPollRef = useRef(null);
 //   const pipFallbackVideoRef = useRef(null);
 
-//   const [sidebarOpen, setSidebarOpen] = useState(false);
+//   const [sidebarOpen, setSidebarOpen] = useState(true);
 //   const [sidebarTab, setSidebarTab] = useState("chat");
 //   const [msgInput, setMsgInput] = useState("");
 //   const [sessionEndedWarning, setSessionEndedWarning] = useState(false);
@@ -209,6 +219,19 @@
 //   const [menuOpen, setMenuOpen] = useState(false);
 //   const [reactionPickerOpen, setReactionPickerOpen] = useState(false);
 //   const [pipWindow, setPipWindow] = useState(null);
+
+//   // The shell (DashboardLayout) always renders an empty
+//   // #lr-topbar-slot element inside its existing bell/avatar header
+//   // row. When LiveRoom mounts, it portals its LIVE/timer/REC/
+//   // participants/End Session controls into that slot so they sit
+//   // alongside the bell + avatar in a single row, instead of drawing a
+//   // second, separate top bar. If the slot isn't found (e.g. LiveRoom
+//   // used standalone outside the shell), it falls back to rendering
+//   // its own bar normally.
+//   const [topbarSlotEl, setTopbarSlotEl] = useState(null);
+//   useEffect(() => {
+//     setTopbarSlotEl(document.getElementById("lr-topbar-slot"));
+//   }, []);
 
 //   const timer = useLiveTimer(connected, activeMeeting?.joinedAt);
 //   const handRaised = !!raisedHands.you;
@@ -350,33 +373,39 @@
 //         </div>
 //       )}
 
-//       <div style={S.topBar} className="lr-topbar">
-//         <div style={S.topLeft} className="lr-topleft">
-//           <div style={S.logo}><div style={S.logoMark}><Radio size={14} /></div><span style={S.logoText}>ILM ORA</span></div>
-//           <div style={S.liveBadge}><span style={S.liveDot} />LIVE</div>
-//           <span style={S.sessionName} className="lr-sessionname">{activeMeeting?.title || activeMeeting?.roomName || "Live Session"}</span>
-//           <div style={S.timerBadge}><Timer size={12} />{timer}</div>
-//           {recordingBadge && <div style={S.recBadge}><Disc2 size={11} />REC</div>}
-//         </div>
-//         <div style={S.topRight} className="lr-topright">
-//           <div style={S.peopleCountBadge}><Users size={13} />{participants.length || 1}</div>
-//           <div style={{ ...S.connBadge, ...(connected ? S.connOn : S.connOff) }}><SignalHigh size={13} /></div>
-//           <button style={S.endSessionBtn} onClick={handleLeave}><PhoneOff size={14} /><span className="lr-btn-label">End Session</span></button>
-//           <div style={{ position: "relative" }}>
-//             <button style={S.iconGhostBtn} onClick={() => setMenuOpen((v) => !v)} title="More options"><MoreVertical size={16} /></button>
-//             {menuOpen && (
-//               <div style={S.dropMenu}>
-//                 <button style={S.dropMenuItem} onClick={() => { setRecordingBadge((v) => !v); setMenuOpen(false); }}>
-//                   <Disc2 size={13} />{recordingBadge ? "Hide REC badge" : "Show REC badge"}
-//                 </button>
-//                 <button style={S.dropMenuItem} onClick={() => { setSettingsOpen(true); setMenuOpen(false); }}>
-//                   <Settings size={13} />Settings
-//                 </button>
+//       {(() => {
+//         const topBarInner = (
+//           <>
+//             <div style={S.topLeft} className="lr-topleft">
+//               <div style={S.liveBadge}><span style={S.liveDot} />LIVE</div>
+//               <span style={S.sessionName} className="lr-sessionname">{activeMeeting?.title || activeMeeting?.roomName || "Live Session"}</span>
+//               <div style={S.timerBadge}><Timer size={13} />{timer}</div>
+//               {recordingBadge && <div style={S.recBadge}><Disc2 size={11} />REC</div>}
+//             </div>
+//             <div style={S.topRight} className="lr-topright">
+//               <div style={S.peopleCountBadge}><Users size={14} />{participants.length || 1}</div>
+//               <div style={{ ...S.connBadge, ...(connected ? S.connOn : S.connOff) }}><SignalHigh size={14} /></div>
+//               <button style={S.endSessionBtn} onClick={handleLeave}><PhoneOff size={14} /><span className="lr-btn-label">End Session</span></button>
+//               <div style={{ position: "relative" }}>
+//                 <button style={S.iconGhostBtn} onClick={() => setMenuOpen((v) => !v)} title="More options"><MoreVertical size={16} /></button>
+//                 {menuOpen && (
+//                   <div style={S.dropMenu}>
+//                     <button style={S.dropMenuItem} onClick={() => { setRecordingBadge((v) => !v); setMenuOpen(false); }}>
+//                       <Disc2 size={13} />{recordingBadge ? "Hide REC badge" : "Show REC badge"}
+//                     </button>
+//                     <button style={S.dropMenuItem} onClick={() => { setSettingsOpen(true); setMenuOpen(false); }}>
+//                       <Settings size={13} />Settings
+//                     </button>
+//                   </div>
+//                 )}
 //               </div>
-//             )}
-//           </div>
-//         </div>
-//       </div>
+//             </div>
+//           </>
+//         );
+//         return topbarSlotEl
+//           ? createPortal(topBarInner, topbarSlotEl)
+//           : <div style={S.topBar} className="lr-topbar">{topBarInner}</div>;
+//       })()}
 
 //       <div style={S.mainArea}>
 //         <div style={S.stageColumn} className="lr-stagecolumn">
@@ -400,12 +429,12 @@
 //           <div style={S.sidebar} className="lr-sidebar">
 //             <div style={S.tabRow}>
 //               <button style={{ ...S.tab, ...(sidebarTab === "chat" ? S.tabOn : {}) }} onClick={() => setSidebarTab("chat")}>
-//                 <MessageSquare size={13} /> Chat
+//                 <MessageSquare size={15} /> Chat
 //               </button>
 //               <button style={{ ...S.tab, ...(sidebarTab === "people" ? S.tabOn : {}) }} onClick={() => setSidebarTab("people")}>
-//                 <Users size={13} /> People<span style={S.cnt}>{participants.length || 1}</span>
+//                 <Users size={15} /> People<span style={S.cnt}>{participants.length || 1}</span>
 //               </button>
-//               <button style={S.closeBtn} onClick={() => setSidebarOpen(false)}><X size={14} /></button>
+//               <button style={S.closeBtn} onClick={() => setSidebarOpen(false)}><X size={16} /></button>
 //             </div>
 
 //             {sidebarTab === "chat" && (
@@ -431,7 +460,7 @@
 //                   <input style={S.chatInput} placeholder="Type a message…" value={msgInput}
 //                     onChange={(e) => setMsgInput(e.target.value)}
 //                     onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMsg(); } }} />
-//                   <button style={S.sendBtn} onClick={sendMsg}><Send size={14} /></button>
+//                   <button style={S.sendBtn} onClick={sendMsg}><Send size={16} /></button>
 //                 </div>
 //               </div>
 //             )}
@@ -496,7 +525,7 @@
 //           )}
 //         </div>
 //         <Btn icon={<MessageSquare size={18} />} label="Chat" active={sidebarOpen && sidebarTab === "chat"} onClick={() => openTab("chat")} />
-//         <Btn icon={<Users size={18} />} label="People" active={sidebarOpen && sidebarTab === "people"} onClick={() => openTab("people")} />
+//         <Btn icon={<Users size={18} />} label="People" badge={participants.length || 1} active={sidebarOpen && sidebarTab === "people"} onClick={() => openTab("people")} />
 //         <Btn icon={<Settings size={18} />} label="Settings" active={settingsOpen} onClick={() => setSettingsOpen((v) => !v)} />
 //         <Btn icon={<Captions size={18} />} label="Captions" active={captionsOn} onClick={() => setCaptionsOn((v) => !v)} />
 //         <Btn icon={<Disc2 size={18} />} label="Record" active={recordingBadge} onClick={() => setRecordingBadge((v) => !v)} />
@@ -514,7 +543,7 @@
 
 //         .lr-tile, .lr-strip-tile, .lr-stage { transition: transform 0.18s ease, box-shadow 0.18s ease; }
 //         .lr-strip-tile:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.35); }
-//         .lr-strip-tile-active { border: 2px solid #818cf8 !important; }
+//         .lr-strip-tile-active { border: 2px solid #6d5ef7 !important; }
 //         .lr-ctrl-btn { transition: all 0.16s ease; }
 //         .lr-ctrl-btn:active { transform: scale(0.94); }
 //         .lr-sidebar { animation: slideIn .2s ease; }
@@ -564,95 +593,109 @@
 //   </div>
 // );
 
-// const Btn = ({ icon, label, active, danger, leave, onClick }) => {
+// const Btn = ({ icon, label, active, danger, leave, badge, onClick }) => {
 //   const [hov, setHov] = useState(false);
 //   const bg = leave ? (hov ? "#dc2626" : "#ef4444")
 //     : danger ? (hov ? "#991b1b" : "#7f1d1d")
-//     : active ? (hov ? "rgba(99,102,241,.38)" : "rgba(99,102,241,.22)")
-//     : (hov ? "rgba(255,255,255,.14)" : "rgba(255,255,255,.07)");
-//   const col = leave ? "#fff" : danger ? "#fca5a5" : active ? "#a5b4fc" : "#cbd5e1";
+//     : active ? (hov ? "rgba(109,94,247,.34)" : "rgba(109,94,247,.20)")
+//     : (hov ? "rgba(255,255,255,.10)" : "rgba(255,255,255,.05)");
+//   const col = leave ? "#fff" : danger ? "#fca5a5" : active ? "#c4b8ff" : "#cbd5e1";
 //   return (
-//     <button className="lr-ctrl-btn" onClick={onClick} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
-//       style={{
-//         display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: bg, color: col,
-//         border: danger ? "1px solid rgba(239,68,68,.3)" : active ? "1px solid rgba(99,102,241,.35)" : "1px solid transparent",
-//         borderRadius: 14, padding: "10px 16px", cursor: "pointer", fontSize: 10, fontWeight: 600,
-//         fontFamily: "inherit", letterSpacing: 0.2, flexShrink: 0,
-//       }}>
-//       {icon}
-//       <span className="lr-btn-label">{label}</span>
-//     </button>
+//     <div style={{ position: "relative", flexShrink: 0 }}>
+//       <button className="lr-ctrl-btn" onClick={onClick} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+//         style={{
+//           display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: bg, color: col,
+//           border: danger ? "1px solid rgba(239,68,68,.3)" : active ? "1px solid rgba(109,94,247,.45)" : "1px solid rgba(255,255,255,.06)",
+//           borderRadius: 14, padding: "10px 16px", cursor: "pointer", fontSize: 10, fontWeight: 600,
+//           fontFamily: "inherit", letterSpacing: 0.2, flexShrink: 0,
+//           boxShadow: active ? "0 0 0 1px rgba(109,94,247,.25), 0 6px 16px -4px rgba(109,94,247,.35)" : "none",
+//         }}>
+//         {icon}
+//         <span className="lr-btn-label">{label}</span>
+//       </button>
+//       {!!badge && <span style={S.ctrlBadge}>{badge}</span>}
+//     </div>
 //   );
 // };
 
 // const S = {
-//   root: { display: "flex", flexDirection: "column", height: "100vh", background: "#07090f", fontFamily: "'DM Sans','Segoe UI',sans-serif", color: "#e2e8f0", overflow: "hidden" },
-//   autoEndToast: { position: "fixed", top: 60, left: "50%", transform: "translateX(-50%)", zIndex: 99999, display: "flex", alignItems: "center", gap: 12, padding: "14px 24px", borderRadius: 14, background: "linear-gradient(135deg,#dc2626,#f43f5e)", color: "#fff", fontFamily: "'DM Sans','Segoe UI',sans-serif", boxShadow: "0 8px 32px rgba(244,63,94,0.5)", animation: "toastIn 0.35s ease", minWidth: 300 },
-//   topBar: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 20px", background: "#0d1117", borderBottom: "1px solid rgba(255,255,255,.06)", flexShrink: 0, flexWrap: "wrap", gap: 8 },
+//   root: { display: "flex", flexDirection: "column", height: "100%", width: "100%", background: "#050608", fontFamily: "'Inter','Segoe UI',sans-serif", color: "#e2e8f0", overflow: "hidden" },
+//   autoEndToast: { position: "fixed", top: 60, left: "50%", transform: "translateX(-50%)", zIndex: 99999, display: "flex", alignItems: "center", gap: 12, padding: "14px 24px", borderRadius: 14, background: "linear-gradient(135deg,#dc2626,#f43f5e)", color: "#fff", fontFamily: "'Inter','Segoe UI',sans-serif", boxShadow: "0 8px 32px rgba(244,63,94,0.5)", animation: "toastIn 0.35s ease", minWidth: 300 },
+
+//   topBar: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 20px", background: "#0b0d12", borderBottom: "1px solid rgba(255,255,255,.06)", flexShrink: 0, flexWrap: "wrap", gap: 8 },
 //   topLeft: { display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" },
 //   topRight: { display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" },
-//   logo: { display: "flex", alignItems: "center", gap: 8, paddingRight: 6, borderRight: "1px solid rgba(255,255,255,.08)", marginRight: 2 },
-//   logoMark: { width: 24, height: 24, borderRadius: 7, background: "linear-gradient(135deg,#f97316,#ef4444)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" },
-//   logoText: { fontSize: 13, fontWeight: 800, letterSpacing: 0.5, color: "#f1f5f9" },
-//   liveBadge: { display: "flex", alignItems: "center", gap: 5, background: "rgba(239,68,68,.14)", border: "1px solid rgba(239,68,68,.28)", borderRadius: 8, padding: "3px 9px", fontSize: 10, fontWeight: 800, letterSpacing: 1.5, color: "#ef4444" },
+
+//   liveBadge: { display: "flex", alignItems: "center", gap: 6, background: "rgba(239,68,68,.14)", border: "1px solid rgba(239,68,68,.28)", borderRadius: 8, padding: "5px 10px", fontSize: 11, fontWeight: 800, letterSpacing: 1.2, color: "#ef4444" },
 //   liveDot: { width: 7, height: 7, borderRadius: "50%", background: "#ef4444", animation: "livePulse 1.2s ease-in-out infinite", display: "inline-block" },
-//   recBadge: { display: "flex", alignItems: "center", gap: 4, background: "rgba(248,113,113,.09)", border: "1px solid rgba(248,113,113,.18)", borderRadius: 8, padding: "3px 8px", fontSize: 10, fontWeight: 700, letterSpacing: 1, color: "#fca5a5", animation: "recBlink 2s infinite" },
-//   timerBadge: { display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "#94a3b8", background: "rgba(255,255,255,.05)", borderRadius: 8, padding: "3px 10px", fontVariantNumeric: "tabular-nums" },
-//   sessionName: { fontSize: 14, fontWeight: 600, color: "#f1f5f9", marginLeft: 2 },
-//   peopleCountBadge: { display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "#cbd5e1", background: "rgba(255,255,255,.05)", borderRadius: 8, padding: "4px 10px" },
-//   connBadge: { display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 8, padding: "5px 8px" },
-//   connOn: { background: "rgba(52,211,153,.1)", border: "1px solid rgba(52,211,153,.24)", color: "#34d399" },
+//   recBadge: { display: "flex", alignItems: "center", gap: 5, background: "rgba(127,29,29,.35)", border: "1px solid rgba(248,113,113,.25)", borderRadius: 8, padding: "5px 10px", fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "#fca5a5", animation: "recBlink 2s infinite" },
+//   timerBadge: { display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: "#cbd5e1", background: "rgba(255,255,255,.06)", borderRadius: 8, padding: "5px 10px", fontVariantNumeric: "tabular-nums" },
+//   sessionName: { fontSize: 15, fontWeight: 700, color: "#f8fafc", marginLeft: 2 },
+
+//   peopleCountBadge: { display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: "#cbd5e1", background: "rgba(255,255,255,.06)", borderRadius: 8, padding: "6px 10px" },
+//   connBadge: { display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 8, padding: "6px 9px" },
+//   connOn: { background: "rgba(34,197,94,.12)", border: "1px solid rgba(34,197,94,.28)", color: "#22c55e" },
 //   connOff: { background: "rgba(100,116,139,.1)", border: "1px solid rgba(100,116,139,.2)", color: "#94a3b8" },
-//   endSessionBtn: { display: "flex", alignItems: "center", gap: 6, background: "#ef4444", color: "#fff", border: "none", borderRadius: 10, padding: "8px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 14px rgba(239,68,68,.35)" },
-//   iconGhostBtn: { background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 9, padding: 7, color: "#94a3b8", cursor: "pointer", display: "flex" },
+//   endSessionBtn: { display: "flex", alignItems: "center", gap: 6, background: "#ef4444", color: "#fff", border: "none", borderRadius: 10, padding: "9px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 14px rgba(239,68,68,.35)" },
+//   iconGhostBtn: { background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 9, padding: 8, color: "#94a3b8", cursor: "pointer", display: "flex" },
 //   dropMenu: { position: "absolute", top: "calc(100% + 8px)", right: 0, background: "#161b26", border: "1px solid rgba(255,255,255,.08)", borderRadius: 12, padding: 6, minWidth: 180, boxShadow: "0 12px 32px rgba(0,0,0,.5)", zIndex: 50, display: "flex", flexDirection: "column", gap: 2 },
 //   dropMenuItem: { display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", color: "#cbd5e1", fontSize: 12, fontWeight: 600, padding: "8px 10px", borderRadius: 8, cursor: "pointer", textAlign: "left" },
+//   bellBtn: { position: "relative", background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 9, padding: 8, color: "#94a3b8", cursor: "pointer", display: "flex" },
+//   bellBadge: { position: "absolute", top: -6, right: -8, background: "#ef4444", color: "#fff", fontSize: 9, fontWeight: 800, borderRadius: 8, padding: "1px 5px", border: "2px solid #0b0d12", lineHeight: 1.3 },
+//   topAvatar: { width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg,#f59e0b,#f97316)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800, color: "#fff", flexShrink: 0 },
+
 //   reactionPicker: { position: "absolute", bottom: "calc(100% + 10px)", left: "50%", transform: "translateX(-50%)", display: "flex", gap: 4, padding: "8px 10px", background: "#161b26", border: "1px solid rgba(255,255,255,.08)", borderRadius: 999, boxShadow: "0 12px 32px rgba(0,0,0,.5)", zIndex: 50 },
 //   reactionPickerBtn: { width: 36, height: 36, border: "none", background: "transparent", fontSize: 19, cursor: "pointer", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", transition: "background .15s, transform .15s" },
+//   ctrlBadge: { position: "absolute", top: -4, right: -4, background: "#6d5ef7", color: "#fff", fontSize: 9, fontWeight: 800, borderRadius: 8, padding: "1px 5px", border: "2px solid #050608", lineHeight: 1.3 },
+
 //   mainArea: { flex: 1, display: "flex", overflow: "hidden" },
-//   stageColumn: { flex: 1, display: "flex", flexDirection: "column", gap: 12, padding: 16, overflow: "hidden", minWidth: 0 },
-//   stage: { flex: 1, position: "relative", background: "#161a20", borderRadius: 18, overflow: "hidden", border: "1px solid rgba(255,255,255,.06)", display: "flex", alignItems: "center", justifyContent: "center", minHeight: 0 },
+//   stageColumn: { flex: 1, display: "flex", flexDirection: "column", gap: 14, padding: 18, overflow: "hidden", minWidth: 0 },
+//   stage: { flex: 1, position: "relative", background: "#12141a", borderRadius: 20, overflow: "hidden", border: "1px solid rgba(255,255,255,.06)", display: "flex", alignItems: "center", justifyContent: "center", minHeight: 0 },
 //   stageEmpty: { color: "#475569", fontSize: 13, fontWeight: 500 },
-//   stageAvatarWrap: { position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "#1b1f28" },
-//   stageAvatar: { width: 96, height: 96, borderRadius: "50%", background: "linear-gradient(135deg,#3b82f6,#8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 34, fontWeight: 800, color: "#fff" },
-//   stageNameTag: { position: "absolute", bottom: 14, left: 14, display: "flex", alignItems: "center", gap: 7, fontSize: 13, fontWeight: 600, color: "#fff", background: "rgba(0,0,0,.55)", borderRadius: 9, padding: "5px 12px" },
-//   stageHostTag: { position: "absolute", top: 14, right: 14, fontSize: 11, fontWeight: 700, color: "#60a5fa", background: "rgba(59,130,246,.18)", borderRadius: 7, padding: "3px 9px" },
-//   stageHandBadge: { position: "absolute", top: 54, left: 14, display: "flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 700, color: "#1a1a1a", background: "#fbbf24", borderRadius: 8, padding: "5px 10px", boxShadow: "0 4px 14px rgba(251,191,36,.4)", animation: "recBlink 1.4s infinite" },
-//   screenLabel: { position: "absolute", top: 14, left: 14, display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "#fff", background: "rgba(0,0,0,.55)", borderRadius: 8, padding: "5px 10px" },
-//   captionsBar: { display: "flex", alignItems: "center", gap: 8, background: "rgba(0,0,0,.55)", borderRadius: 10, padding: "8px 14px", fontSize: 12, color: "#e2e8f0", flexShrink: 0 },
+//   stageAvatarWrap: { position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "#14161d" },
+//   stageAvatar: { width: 108, height: 108, borderRadius: "50%", background: "linear-gradient(135deg,#6d5ef7,#8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40, fontWeight: 800, color: "#fff", boxShadow: "0 10px 40px rgba(109,94,247,.35)" },
+//   stageNameTag: { position: "absolute", bottom: 16, left: 16, display: "flex", alignItems: "center", gap: 7, fontSize: 13, fontWeight: 600, color: "#fff", background: "rgba(10,12,18,.72)", borderRadius: 9, padding: "6px 12px" },
+//   stageHostTag: { position: "absolute", top: 16, right: 16, fontSize: 12, fontWeight: 700, color: "#93c5fd", background: "rgba(37,99,235,.22)", border: "1px solid rgba(96,165,250,.25)", borderRadius: 8, padding: "4px 12px" },
+//   stageHandBadge: { position: "absolute", top: 60, left: 16, display: "flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 700, color: "#1a1a1a", background: "#fbbf24", borderRadius: 8, padding: "5px 10px", boxShadow: "0 4px 14px rgba(251,191,36,.4)", animation: "recBlink 1.4s infinite" },
+//   screenLabel: { position: "absolute", top: 16, left: 16, display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "#fff", background: "rgba(10,12,18,.72)", borderRadius: 8, padding: "5px 10px" },
+//   captionsBar: { display: "flex", alignItems: "center", gap: 8, background: "rgba(10,12,18,.72)", borderRadius: 10, padding: "8px 14px", fontSize: 12, color: "#e2e8f0", flexShrink: 0 },
 //   floaterLayer: { position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" },
 //   floaterEmoji: { position: "absolute", bottom: 20, fontSize: 30, animation: "floatUp 2.4s ease-out forwards" },
-//   filmstrip: { flexShrink: 0, display: "flex", gap: 10, padding: "2px 2px 4px", overflowX: "auto" },
-//   stripTile: { position: "relative", flex: "0 0 auto", width: "clamp(84px, 12vw, 140px)", aspectRatio: "16 / 9", background: "#1b1f28", borderRadius: 12, overflow: "hidden", border: "1px solid rgba(255,255,255,.06)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "default" },
+
+//   filmstrip: { flexShrink: 0, display: "flex", gap: 12, padding: "2px 2px 4px", overflowX: "auto" },
+//   stripTile: { position: "relative", flex: "0 0 auto", width: "clamp(150px, 14vw, 190px)", aspectRatio: "16 / 12.6", background: "#14161d", borderRadius: 16, overflow: "hidden", border: "1px solid rgba(255,255,255,.07)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "default" },
 //   stripOverflow: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,.04)" },
 //   stripAvatarWrap: { position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" },
-//   stripAvatar: { width: "42%", aspectRatio: "1 / 1", minWidth: 28, maxWidth: 46, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 800, color: "#fff" },
-//   stripMicDot: { position: "absolute", top: 6, right: 6, width: 18, height: 18, borderRadius: "50%", background: "rgba(0,0,0,.55)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" },
-//   stripHandBadge: { position: "absolute", top: 6, left: 6, width: 18, height: 18, borderRadius: "50%", background: "#fbbf24", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(251,191,36,.5)" },
-//   stripName: { position: "absolute", bottom: 5, left: 6, fontSize: 10, fontWeight: 600, color: "#fff", background: "rgba(0,0,0,.5)", borderRadius: 5, padding: "1px 6px", maxWidth: "calc(100% - 12px)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-//   handle: { width: 22, display: "flex", alignItems: "center", justifyContent: "center", background: "#0d1117", borderLeft: "1px solid rgba(255,255,255,.05)", cursor: "pointer", flexShrink: 0 },
-//   sidebar: { width: 320, background: "#0d1117", borderLeft: "1px solid rgba(255,255,255,.06)", display: "flex", flexDirection: "column", flexShrink: 0 },
-//   tabRow: { display: "flex", alignItems: "center", gap: 6, padding: "10px 12px", borderBottom: "1px solid rgba(255,255,255,.06)", flexShrink: 0 },
-//   tab: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, padding: "8px 0 9px", borderRadius: 0, border: "none", borderBottom: "2px solid transparent", background: "transparent", color: "#64748b", cursor: "pointer", fontSize: 13, fontFamily: "inherit", fontWeight: 600, transition: "all .15s" },
-//   tabOn: { color: "#60a5fa", borderBottom: "2px solid #60a5fa" },
-//   cnt: { fontSize: 10, background: "rgba(99,102,241,.2)", color: "#a5b4fc", borderRadius: 10, padding: "1px 6px", marginLeft: 3 },
+//   stripAvatar: { width: "40%", aspectRatio: "1 / 1", minWidth: 34, maxWidth: 56, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, fontWeight: 800, color: "#fff" },
+//   stripBadgeTopLeft: { position: "absolute", top: 8, left: 8, width: 20, height: 20, borderRadius: "50%", background: "#fbbf24", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(251,191,36,.5)" },
+//   stripMicDot: { position: "absolute", top: 8, right: 8, width: 20, height: 20, borderRadius: "50%", background: "rgba(10,12,18,.72)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" },
+//   stripName: { position: "absolute", bottom: 7, left: 8, fontSize: 11, fontWeight: 600, color: "#fff", background: "rgba(10,12,18,.68)", borderRadius: 6, padding: "2px 8px", maxWidth: "calc(100% - 14px)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+
+//   handle: { width: 22, display: "flex", alignItems: "center", justifyContent: "center", background: "#0b0d12", borderLeft: "1px solid rgba(255,255,255,.05)", cursor: "pointer", flexShrink: 0 },
+//   sidebar: { width: 340, background: "#0b0d12", borderLeft: "1px solid rgba(255,255,255,.06)", display: "flex", flexDirection: "column", flexShrink: 0 },
+//   tabRow: { display: "flex", alignItems: "center", gap: 6, padding: "12px 14px", borderBottom: "1px solid rgba(255,255,255,.06)", flexShrink: 0 },
+//   tab: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 0 11px", borderRadius: 0, border: "none", borderBottom: "2px solid transparent", background: "transparent", color: "#64748b", cursor: "pointer", fontSize: 14, fontFamily: "inherit", fontWeight: 700, transition: "all .15s" },
+//   tabOn: { color: "#6d8bf7", borderBottom: "2px solid #6d8bf7" },
+//   cnt: { fontSize: 11, background: "rgba(109,94,247,.2)", color: "#b7aefc", borderRadius: 10, padding: "1px 7px", marginLeft: 3 },
 //   closeBtn: { background: "none", border: "none", color: "#334155", cursor: "pointer", display: "flex", marginLeft: "auto", padding: 4 },
+
 //   chatWrap: { flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" },
-//   msgList: { flex: 1, overflowY: "auto", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 10 },
-//   msgRow: { display: "flex", alignItems: "flex-end", gap: 7 },
-//   msgCol: { display: "flex", flexDirection: "column", gap: 3, maxWidth: "88%", alignSelf: "flex-start" },
+//   msgList: { flex: 1, overflowY: "auto", padding: "16px 16px", display: "flex", flexDirection: "column", gap: 14 },
+//   msgRow: { display: "flex", alignItems: "flex-end", gap: 7, justifyContent: "center" },
+//   msgCol: { display: "flex", flexDirection: "column", gap: 4, maxWidth: "82%", alignSelf: "flex-start" },
 //   msgColSelf: { alignSelf: "flex-end", alignItems: "flex-end" },
-//   bHeader: { display: "flex", alignItems: "baseline", gap: 7, fontSize: 11, fontWeight: 700, color: "#93c5fd", padding: "0 2px" },
-//   bHeaderSelf: { color: "#a5b4fc" },
-//   bHeaderTime: { fontSize: 10, fontWeight: 500, color: "#475569" },
-//   sysBubble: { fontSize: 11, color: "#475569", background: "rgba(255,255,255,.04)", borderRadius: 8, padding: "4px 10px", fontStyle: "italic", margin: "0 auto" },
-//   bubble: { maxWidth: "100%", borderRadius: 14, padding: "8px 12px", display: "flex", flexDirection: "column", gap: 2 },
-//   bSelf: { background: "linear-gradient(135deg,#3b82f6,#8b5cf6)", borderTopRightRadius: 3 },
-//   bOther: { background: "#1e293b", borderTopLeftRadius: 3 },
-//   bText: { fontSize: 13, color: "#f1f5f9", lineHeight: 1.45 },
-//   inputRow: { display: "flex", gap: 7, padding: "10px 12px", borderTop: "1px solid rgba(255,255,255,.06)", flexShrink: 0 },
-//   chatInput: { flex: 1, background: "#1e293b", border: "1px solid rgba(255,255,255,.08)", borderRadius: 10, padding: "8px 12px", color: "#e2e8f0", fontSize: 13, fontFamily: "inherit", outline: "none" },
-//   sendBtn: { background: "linear-gradient(135deg,#3b82f6,#8b5cf6)", border: "none", borderRadius: 10, padding: "0 14px", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", flexShrink: 0 },
+//   bHeader: { display: "flex", alignItems: "baseline", gap: 8, fontSize: 12, fontWeight: 700, color: "#7ba9f7", padding: "0 2px" },
+//   bHeaderSelf: { color: "#b7aefc" },
+//   bHeaderTime: { fontSize: 11, fontWeight: 500, color: "#475569" },
+//   sysBubble: { fontSize: 12, color: "#8b93a5", background: "rgba(255,255,255,.05)", borderRadius: 8, padding: "6px 14px", fontWeight: 500 },
+//   bubble: { maxWidth: "100%", borderRadius: 16, padding: "9px 14px", display: "flex", flexDirection: "column", gap: 2 },
+//   bSelf: { background: "linear-gradient(135deg,#6d5ef7,#8b5cf6)", borderBottomRightRadius: 4 },
+//   bOther: { background: "#1c1f28", borderBottomLeftRadius: 4 },
+//   bText: { fontSize: 14, color: "#f1f5f9", lineHeight: 1.45 },
+//   inputRow: { display: "flex", gap: 8, padding: "12px 14px", borderTop: "1px solid rgba(255,255,255,.06)", flexShrink: 0 },
+//   chatInput: { flex: 1, background: "#161922", border: "1px solid rgba(255,255,255,.08)", borderRadius: 999, padding: "10px 16px", color: "#e2e8f0", fontSize: 13, fontFamily: "inherit", outline: "none" },
+//   sendBtn: { background: "linear-gradient(135deg,#6d5ef7,#8b5cf6)", border: "none", borderRadius: "50%", width: 40, height: 40, color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
+
 //   peopleList: { flex: 1, overflowY: "auto", padding: "10px 12px", display: "flex", flexDirection: "column", gap: 4 },
 //   emptyPpl: { fontSize: 12, color: "#334155", textAlign: "center", marginTop: 20 },
 //   pRow: { display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", borderRadius: 10, background: "rgba(255,255,255,.03)" },
@@ -660,17 +703,44 @@
 //   pName: { flex: 1, fontSize: 13, color: "#cbd5e1" },
 //   hostTag: { fontSize: 10, background: "rgba(59,130,246,.15)", color: "#60a5fa", padding: "2px 8px", borderRadius: 6, fontWeight: 600 },
 //   youTag: { fontSize: 10, background: "rgba(52,211,153,.12)", color: "#6ee7b7", padding: "2px 8px", borderRadius: 6, fontWeight: 600 },
+
 //   settingsOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" },
 //   settingsPanel: { width: 320, background: "#111726", border: "1px solid rgba(255,255,255,.08)", borderRadius: 16, overflow: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,.6)" },
 //   settingsHead: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,.06)" },
 //   settingsBody: { padding: 16, display: "flex", flexDirection: "column", gap: 12 },
 //   settingsRow: { display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13, color: "#cbd5e1" },
 //   settingsToggle: { border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.05)", color: "#94a3b8", borderRadius: 20, padding: "5px 14px", fontSize: 11, fontWeight: 700, cursor: "pointer" },
-//   settingsToggleOn: { background: "rgba(99,102,241,.22)", borderColor: "rgba(99,102,241,.4)", color: "#a5b4fc" },
-//   ctrlBar: { display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "12px 20px", background: "#0d1117", borderTop: "1px solid rgba(255,255,255,.06)", flexShrink: 0, overflowX: "auto" },
+//   settingsToggleOn: { background: "rgba(109,94,247,.22)", borderColor: "rgba(109,94,247,.4)", color: "#b7aefc" },
+
+//   ctrlBar: { display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "14px 20px", background: "#0b0d12", borderTop: "1px solid rgba(255,255,255,.06)", flexShrink: 0, overflowX: "auto" },
 // };
 
 // export default LiveRoom;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -738,6 +808,52 @@ const useLiveTimer = (running, startedAt) => {
   return `${hh}:${mm}:${ss}`;
 };
 
+// Fires a callback when a pointer goes down outside every ref in `refs`,
+// or when Escape is pressed. Used to make the popups (reaction picker,
+// overflow menu, mobile sidebar) close reliably instead of relying on
+// ad-hoc onClick wiring, which is what caused the React-picker
+// flicker/close bugs.
+function useDismiss(active, onDismiss, refs = []) {
+  useEffect(() => {
+    if (!active) return undefined;
+    const handlePointer = (e) => {
+      const insideAny = refs.some((r) => r.current && r.current.contains(e.target));
+      if (!insideAny) onDismiss();
+    };
+    const handleKey = (e) => {
+      if (e.key === "Escape") onDismiss();
+    };
+    document.addEventListener("mousedown", handlePointer, true);
+    document.addEventListener("touchstart", handlePointer, true);
+    document.addEventListener("keydown", handleKey, true);
+    return () => {
+      document.removeEventListener("mousedown", handlePointer, true);
+      document.removeEventListener("touchstart", handlePointer, true);
+      document.removeEventListener("keydown", handleKey, true);
+    };
+  }, [active, onDismiss, refs]);
+}
+
+// Watches document.documentElement's "dark" class (the same flag
+// App.jsx toggles via `document.documentElement.classList.toggle("dark", ...)`)
+// so the top header can pick light/dark colors without needing a new
+// prop threaded through, and without touching any meeting/LiveKit state.
+function useIsDarkTheme() {
+  const [isDark, setIsDark] = useState(
+    () => typeof document !== "undefined" && document.documentElement.classList.contains("dark"),
+  );
+  useEffect(() => {
+    if (typeof document === "undefined") return undefined;
+    const root = document.documentElement;
+    const update = () => setIsDark(root.classList.contains("dark"));
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+  return isDark;
+}
+
 function VideoTrackEl({ track, mirrored, fit = "cover", hidden, videoRef }) {
   const internalRef = useRef(null);
   useEffect(() => {
@@ -783,11 +899,11 @@ function PiPPanel({ track, isScreen, label, timer, micOn, onToggleMic, onReturn 
         <div style={{ position: "absolute", bottom: 6, left: 8, fontSize: 10, color: "#fff", background: "rgba(0,0,0,.55)", padding: "2px 7px", borderRadius: 6 }}>{label}</div>
       </div>
       <div style={{ flexShrink: 0, display: "flex", gap: 6, padding: 6, background: "#0d1117" }}>
-        <button onClick={onToggleMic} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "6px 8px", borderRadius: 8, border: "none", background: micOn ? "rgba(255,255,255,.12)" : "#7f1d1d", color: micOn ? "#e2e8f0" : "#fca5a5", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+        <button onClick={onToggleMic} aria-label={micOn ? "Mute microphone" : "Unmute microphone"} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "6px 8px", borderRadius: 8, border: "none", background: micOn ? "rgba(255,255,255,.12)" : "#7f1d1d", color: micOn ? "#e2e8f0" : "#fca5a5", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
           {micOn ? <Mic size={13} /> : <MicOff size={13} />}
           {micOn ? "Mute" : "Unmute"}
         </button>
-        <button onClick={onReturn} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "6px 8px", borderRadius: 8, border: "none", background: "rgba(34,211,238,.18)", color: "#67e8f9", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
+        <button onClick={onReturn} aria-label="Return to meeting window" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "6px 8px", borderRadius: 8, border: "none", background: "rgba(34,211,238,.18)", color: "#67e8f9", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
           Return to meeting
         </button>
       </div>
@@ -808,9 +924,9 @@ function useInView(ref) {
   return inView;
 }
 
-function EmojiFloaters({ floaters }) {
+function EmojiFloaters({ floaters, S }) {
   return (
-    <div style={S.floaterLayer}>
+    <div style={S.floaterLayer} aria-hidden="true">
       {floaters.map((f, i) => (
         <span key={f.id} style={{ ...S.floaterEmoji, left: `${10 + ((i * 17) % 80)}%`, animationDelay: `${(i % 4) * 0.15}s` }}>
           {f.emoji}
@@ -820,7 +936,7 @@ function EmojiFloaters({ floaters }) {
   );
 }
 
-function StripTile({ p, active, raised }) {
+function StripTile({ p, active, raised, S }) {
   const wrapRef = useRef(null);
   const inView = useInView(wrapRef);
   const hasVideo = !!p.cameraTrack && !p.cameraMuted && inView;
@@ -846,7 +962,7 @@ function StripTile({ p, active, raised }) {
   );
 }
 
-function StripOverflow({ count }) {
+function StripOverflow({ count, S }) {
   return (
     <div style={{ ...S.stripTile, ...S.stripOverflow }} className="lr-strip-tile">
       <span style={{ fontSize: 13, fontWeight: 700, color: "#cbd5e1" }}>+{count}</span>
@@ -855,12 +971,12 @@ function StripOverflow({ count }) {
   );
 }
 
-function StageTile({ p, floaters, raised }) {
+function StageTile({ p, floaters, raised, S }) {
   if (!p) {
     return (
       <div style={S.stage}>
         <div style={S.stageEmpty}>Waiting for participants…</div>
-        <EmojiFloaters floaters={floaters} />
+        <EmojiFloaters floaters={floaters} S={S} />
       </div>
     );
   }
@@ -885,7 +1001,7 @@ function StageTile({ p, floaters, raised }) {
       </div>
       {p.isHost && <span style={S.stageHostTag}>Host</span>}
       {raised && <div style={S.stageHandBadge}><Hand size={14} color="#1a1a1a" /><span>Hand raised</span></div>}
-      <EmojiFloaters floaters={floaters} />
+      <EmojiFloaters floaters={floaters} S={S} />
     </div>
   );
 }
@@ -904,7 +1020,7 @@ function StageTile({ p, floaters, raised }) {
  * page (not to this component) and weren't part of the source files
  * provided, so they aren't reproduced here — only the meeting UI that
  * LiveRoom itself owns (top bar, stage, filmstrip, chat/people panel,
- * control bar) has been pixel-matched.
+ * control bar) has been pixel-matched and made responsive here.
  */
 const LiveRoom = ({ sessionId, onSessionEnded, onLeave }) => {
   const {
@@ -917,6 +1033,10 @@ const LiveRoom = ({ sessionId, onSessionEnded, onLeave }) => {
   const chatEndRef = useRef(null);
   const autoEndPollRef = useRef(null);
   const pipFallbackVideoRef = useRef(null);
+  const menuBtnRef = useRef(null);
+  const menuPanelRef = useRef(null);
+  const reactionBtnRef = useRef(null);
+  const reactionPanelRef = useRef(null);
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [sidebarTab, setSidebarTab] = useState("chat");
@@ -1062,6 +1182,26 @@ const LiveRoom = ({ sessionId, onSessionEnded, onLeave }) => {
 
   useEffect(() => () => closePiP(), []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // --- Popup dismissal (fixes the "React picker closes immediately /
+  // flickers / doesn't close on outside click" bug: previously there
+  // was no outside-click or Escape handling at all, so the picker's
+  // open state only ever changed from the toggle button itself). ---
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
+  const closeReactionPicker = useCallback(() => setReactionPickerOpen(false), []);
+  useDismiss(menuOpen, closeMenu, [menuBtnRef, menuPanelRef]);
+  useDismiss(reactionPickerOpen, closeReactionPicker, [reactionBtnRef, reactionPanelRef]);
+
+  const handleReactionSelect = useCallback((emoji) => {
+    sendReaction(emoji);
+    setReactionPickerOpen(false);
+  }, [sendReaction]);
+
+  const S = LR_STYLES;
+  // Top header only: dark stays byte-for-byte identical to before,
+  // light gets real background/border/text/icon/badge contrast.
+  const isDark = useIsDarkTheme();
+  const headerS = useMemo(() => (isDark ? HEADER_DARK : HEADER_LIGHT), [isDark]);
+
   return (
     <div style={S.root} className="lr-root">
       <VideoTrackEl videoRef={pipFallbackVideoRef} track={pipTrack} fit={pipIsScreen ? "contain" : "cover"} hidden />
@@ -1073,7 +1213,7 @@ const LiveRoom = ({ sessionId, onSessionEnded, onLeave }) => {
       )}
 
       {sessionEndedWarning && (
-        <div style={S.autoEndToast} className="lr-toast">
+        <div style={S.autoEndToast} className="lr-toast" role="alert">
           <span style={{ fontSize: 18 }}>⏱️</span>
           <div>
             <div style={{ fontWeight: 700, fontSize: 13 }}>Session ended by trainer</div>
@@ -1085,24 +1225,34 @@ const LiveRoom = ({ sessionId, onSessionEnded, onLeave }) => {
       {(() => {
         const topBarInner = (
           <>
-            <div style={S.topLeft} className="lr-topleft">
-              <div style={S.liveBadge}><span style={S.liveDot} />LIVE</div>
-              <span style={S.sessionName} className="lr-sessionname">{activeMeeting?.title || activeMeeting?.roomName || "Live Session"}</span>
-              <div style={S.timerBadge}><Timer size={13} />{timer}</div>
-              {recordingBadge && <div style={S.recBadge}><Disc2 size={11} />REC</div>}
+            <div style={headerS.topLeft} className="lr-topleft">
+              <div style={headerS.liveBadge}><span style={headerS.liveDot} />LIVE</div>
+              <span style={headerS.sessionName} className="lr-sessionname">{activeMeeting?.title || activeMeeting?.roomName || "Live Session"}</span>
+              <div style={headerS.timerBadge}><Timer size={13} />{timer}</div>
+              {recordingBadge && <div style={headerS.recBadge}><Disc2 size={11} />REC</div>}
             </div>
-            <div style={S.topRight} className="lr-topright">
-              <div style={S.peopleCountBadge}><Users size={14} />{participants.length || 1}</div>
-              <div style={{ ...S.connBadge, ...(connected ? S.connOn : S.connOff) }}><SignalHigh size={14} /></div>
-              <button style={S.endSessionBtn} onClick={handleLeave}><PhoneOff size={14} /><span className="lr-btn-label">End Session</span></button>
+            <div style={headerS.topRight} className="lr-topright">
+              <div style={headerS.peopleCountBadge}><Users size={14} />{participants.length || 1}</div>
+              <div style={{ ...headerS.connBadge, ...(connected ? headerS.connOn : headerS.connOff) }} aria-label={connected ? "Connected" : "Disconnected"}><SignalHigh size={14} /></div>
+              <button style={headerS.endSessionBtn} onClick={handleLeave} aria-label="End session"><PhoneOff size={14} /><span className="lr-btn-label">End Session</span></button>
               <div style={{ position: "relative" }}>
-                <button style={S.iconGhostBtn} onClick={() => setMenuOpen((v) => !v)} title="More options"><MoreVertical size={16} /></button>
+                <button
+                  ref={menuBtnRef}
+                  style={headerS.iconGhostBtn}
+                  onClick={() => setMenuOpen((v) => !v)}
+                  title="More options"
+                  aria-label="More options"
+                  aria-haspopup="menu"
+                  aria-expanded={menuOpen}
+                >
+                  <MoreVertical size={16} />
+                </button>
                 {menuOpen && (
-                  <div style={S.dropMenu}>
-                    <button style={S.dropMenuItem} onClick={() => { setRecordingBadge((v) => !v); setMenuOpen(false); }}>
+                  <div ref={menuPanelRef} style={headerS.dropMenu} role="menu">
+                    <button role="menuitem" style={headerS.dropMenuItem} onClick={() => { setRecordingBadge((v) => !v); setMenuOpen(false); }}>
                       <Disc2 size={13} />{recordingBadge ? "Hide REC badge" : "Show REC badge"}
                     </button>
-                    <button style={S.dropMenuItem} onClick={() => { setSettingsOpen(true); setMenuOpen(false); }}>
+                    <button role="menuitem" style={headerS.dropMenuItem} onClick={() => { setSettingsOpen(true); setMenuOpen(false); }}>
                       <Settings size={13} />Settings
                     </button>
                   </div>
@@ -1113,37 +1263,49 @@ const LiveRoom = ({ sessionId, onSessionEnded, onLeave }) => {
         );
         return topbarSlotEl
           ? createPortal(topBarInner, topbarSlotEl)
-          : <div style={S.topBar} className="lr-topbar">{topBarInner}</div>;
+          : <div style={headerS.topBar} className="lr-topbar">{topBarInner}</div>;
       })()}
 
-      <div style={S.mainArea}>
+      <div style={S.mainArea} className="lr-mainarea">
         <div style={S.stageColumn} className="lr-stagecolumn">
-          <StageTile p={featured} floaters={floaters} raised={featured ? (featured.isLocal ? handRaised : !!raisedHands[featured.identity]) : false} />
+          <StageTile p={featured} floaters={floaters} raised={featured ? (featured.isLocal ? handRaised : !!raisedHands[featured.identity]) : false} S={S} />
           {captionsOn && <div style={S.captionsBar}><Captions size={13} /><span>Live captions are enabled for this session.</span></div>}
           {(visibleStrip.length > 0 || overflowCount > 0) && (
             <div data-scroll-root className="lr-filmstrip" style={S.filmstrip}>
               {visibleStrip.map((p) => (
-                <StripTile key={p.identity} p={p} active={p.isLocal} raised={p.isLocal ? handRaised : !!raisedHands[p.identity]} />
+                <StripTile key={p.identity} p={p} active={p.isLocal} raised={p.isLocal ? handRaised : !!raisedHands[p.identity]} S={S} />
               ))}
-              {overflowCount > 0 && <StripOverflow count={overflowCount} />}
+              {overflowCount > 0 && <StripOverflow count={overflowCount} S={S} />}
             </div>
           )}
         </div>
 
-        <div style={S.handle} className="lr-handle" onClick={() => setSidebarOpen((v) => !v)} title={sidebarOpen ? "Collapse" : "Expand"}>
+        <button
+          type="button"
+          style={S.handle}
+          className="lr-handle"
+          onClick={() => setSidebarOpen((v) => !v)}
+          title={sidebarOpen ? "Collapse panel" : "Expand panel"}
+          aria-label={sidebarOpen ? "Collapse side panel" : "Expand side panel"}
+          aria-expanded={sidebarOpen}
+        >
           {sidebarOpen ? <ChevronRight size={15} color="#64748b" /> : <ChevronLeft size={15} color="#64748b" />}
-        </div>
+        </button>
 
         {sidebarOpen && (
-          <div style={S.sidebar} className="lr-sidebar">
+          <div style={S.sidebarBackdrop} className="lr-sidebar-backdrop" onClick={() => setSidebarOpen(false)} aria-hidden="true" />
+        )}
+
+        {sidebarOpen && (
+          <div style={S.sidebar} className="lr-sidebar" role="complementary" aria-label={sidebarTab === "chat" ? "Chat panel" : "People panel"}>
             <div style={S.tabRow}>
-              <button style={{ ...S.tab, ...(sidebarTab === "chat" ? S.tabOn : {}) }} onClick={() => setSidebarTab("chat")}>
+              <button style={{ ...S.tab, ...(sidebarTab === "chat" ? S.tabOn : {}) }} onClick={() => setSidebarTab("chat")} aria-pressed={sidebarTab === "chat"}>
                 <MessageSquare size={15} /> Chat
               </button>
-              <button style={{ ...S.tab, ...(sidebarTab === "people" ? S.tabOn : {}) }} onClick={() => setSidebarTab("people")}>
+              <button style={{ ...S.tab, ...(sidebarTab === "people" ? S.tabOn : {}) }} onClick={() => setSidebarTab("people")} aria-pressed={sidebarTab === "people"}>
                 <Users size={15} /> People<span style={S.cnt}>{participants.length || 1}</span>
               </button>
-              <button style={S.closeBtn} onClick={() => setSidebarOpen(false)}><X size={16} /></button>
+              <button style={S.closeBtn} onClick={() => setSidebarOpen(false)} aria-label="Close panel"><X size={16} /></button>
             </div>
 
             {sidebarTab === "chat" && (
@@ -1166,10 +1328,15 @@ const LiveRoom = ({ sessionId, onSessionEnded, onLeave }) => {
                   <div ref={chatEndRef} />
                 </div>
                 <div style={S.inputRow}>
-                  <input style={S.chatInput} placeholder="Type a message…" value={msgInput}
+                  <input
+                    style={S.chatInput}
+                    placeholder="Type a message…"
+                    aria-label="Type a message"
+                    value={msgInput}
                     onChange={(e) => setMsgInput(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMsg(); } }} />
-                  <button style={S.sendBtn} onClick={sendMsg}><Send size={16} /></button>
+                    onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMsg(); } }}
+                  />
+                  <button style={S.sendBtn} onClick={sendMsg} aria-label="Send message"><Send size={16} /></button>
                 </div>
               </div>
             )}
@@ -1178,7 +1345,7 @@ const LiveRoom = ({ sessionId, onSessionEnded, onLeave }) => {
               <div style={S.peopleList}>
                 {participants.map((p) => (
                   <PersonRow key={p.identity} name={p.isLocal ? "You (Me)" : p.name} isHost={p.isHost} self={p.isLocal}
-                    handRaised={p.isLocal ? handRaised : !!raisedHands[p.identity]} />
+                    handRaised={p.isLocal ? handRaised : !!raisedHands[p.identity]} S={S} />
                 ))}
                 {participants.length <= 1 && <p style={S.emptyPpl}>No other participants yet</p>}
               </div>
@@ -1188,22 +1355,29 @@ const LiveRoom = ({ sessionId, onSessionEnded, onLeave }) => {
       </div>
 
       {settingsOpen && (
-        <div style={S.settingsOverlay} onClick={() => setSettingsOpen(false)}>
-          <div style={S.settingsPanel} onClick={(e) => e.stopPropagation()}>
+        <div style={S.settingsOverlay} onClick={() => setSettingsOpen(false)} role="presentation">
+          <div
+            style={S.settingsPanel}
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Settings"
+            onKeyDown={(e) => { if (e.key === "Escape") setSettingsOpen(false); }}
+          >
             <div style={S.settingsHead}>
               <span style={{ fontWeight: 700, fontSize: 14 }}>Settings</span>
-              <button style={S.closeBtn} onClick={() => setSettingsOpen(false)}><X size={16} /></button>
+              <button style={S.closeBtn} onClick={() => setSettingsOpen(false)} aria-label="Close settings"><X size={16} /></button>
             </div>
             <div style={S.settingsBody}>
               <div style={S.settingsRow}>
                 <span>Live captions</span>
-                <button style={{ ...S.settingsToggle, ...(captionsOn ? S.settingsToggleOn : {}) }} onClick={() => setCaptionsOn((v) => !v)}>
+                <button style={{ ...S.settingsToggle, ...(captionsOn ? S.settingsToggleOn : {}) }} onClick={() => setCaptionsOn((v) => !v)} aria-pressed={captionsOn}>
                   {captionsOn ? "On" : "Off"}
                 </button>
               </div>
               <div style={S.settingsRow}>
                 <span>Show REC badge</span>
-                <button style={{ ...S.settingsToggle, ...(recordingBadge ? S.settingsToggleOn : {}) }} onClick={() => setRecordingBadge((v) => !v)}>
+                <button style={{ ...S.settingsToggle, ...(recordingBadge ? S.settingsToggleOn : {}) }} onClick={() => setRecordingBadge((v) => !v)} aria-pressed={recordingBadge}>
                   {recordingBadge ? "On" : "Off"}
                 </button>
               </div>
@@ -1212,18 +1386,30 @@ const LiveRoom = ({ sessionId, onSessionEnded, onLeave }) => {
         </div>
       )}
 
-      <div style={S.ctrlBar} className="lr-ctrlbar">
-        <Btn icon={micOn ? <Mic size={18} /> : <MicOff size={18} />} label="Mic" danger={!micOn} onClick={toggleMic} />
-        <Btn icon={camOn ? <Video size={18} /> : <VideoOff size={18} />} label="Camera" danger={!camOn} onClick={toggleCam} />
-        <Btn icon={screenOn ? <MonitorOff size={18} /> : <MonitorUp size={18} />} label="Present" active={screenOn} onClick={toggleScreen} />
-        <Btn icon={<Hand size={18} />} label="Raise Hand" active={handRaised} onClick={toggleHandRaise} />
+      <div style={S.ctrlBar} className="lr-ctrlbar" role="toolbar" aria-label="Meeting controls">
+        <Btn icon={micOn ? <Mic size={18} /> : <MicOff size={18} />} label="Mic" danger={!micOn} onClick={toggleMic} pressed={micOn} S={S} />
+        <Btn icon={camOn ? <Video size={18} /> : <VideoOff size={18} />} label="Camera" danger={!camOn} onClick={toggleCam} pressed={camOn} S={S} />
+        <Btn icon={screenOn ? <MonitorOff size={18} /> : <MonitorUp size={18} />} label="Present" active={screenOn} onClick={toggleScreen} pressed={screenOn} S={S} />
+        <Btn icon={<Hand size={18} />} label="Raise Hand" active={handRaised} onClick={toggleHandRaise} pressed={handRaised} S={S} />
         <div style={{ position: "relative" }}>
-          <Btn icon={<SmilePlus size={18} />} label="React" active={reactionPickerOpen} onClick={() => setReactionPickerOpen((v) => !v)} />
+          <Btn
+            btnRef={reactionBtnRef}
+            icon={<SmilePlus size={18} />}
+            label="React"
+            active={reactionPickerOpen}
+            onClick={() => setReactionPickerOpen((v) => !v)}
+            ariaHasPopup="true"
+            ariaExpanded={reactionPickerOpen}
+            S={S}
+          />
           {reactionPickerOpen && (
-            <div style={S.reactionPicker}>
+            <div ref={reactionPanelRef} style={S.reactionPicker} role="menu" aria-label="Send a reaction">
               {REACTIONS.map((emoji) => (
-                <button key={emoji} style={S.reactionPickerBtn}
-                  onClick={() => { sendReaction(emoji); setReactionPickerOpen(false); }}
+                <button
+                  key={emoji}
+                  role="menuitem"
+                  style={S.reactionPickerBtn}
+                  onClick={() => handleReactionSelect(emoji)}
                   onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,.08)"; e.currentTarget.style.transform = "translateY(-2px) scale(1.15)"; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.transform = "none"; }}
                   aria-label={`React with ${emoji}`}>
@@ -1233,22 +1419,27 @@ const LiveRoom = ({ sessionId, onSessionEnded, onLeave }) => {
             </div>
           )}
         </div>
-        <Btn icon={<MessageSquare size={18} />} label="Chat" active={sidebarOpen && sidebarTab === "chat"} onClick={() => openTab("chat")} />
-        <Btn icon={<Users size={18} />} label="People" badge={participants.length || 1} active={sidebarOpen && sidebarTab === "people"} onClick={() => openTab("people")} />
-        <Btn icon={<Settings size={18} />} label="Settings" active={settingsOpen} onClick={() => setSettingsOpen((v) => !v)} />
-        <Btn icon={<Captions size={18} />} label="Captions" active={captionsOn} onClick={() => setCaptionsOn((v) => !v)} />
-        <Btn icon={<Disc2 size={18} />} label="Record" active={recordingBadge} onClick={() => setRecordingBadge((v) => !v)} />
-        <Btn icon={<PictureInPicture2 size={18} />} label="PiP" active={!!pipWindow} onClick={togglePiP} />
-        <Btn icon={<PhoneOff size={18} />} label="Leave" leave onClick={handleLeave} />
+        <Btn icon={<MessageSquare size={18} />} label="Chat" active={sidebarOpen && sidebarTab === "chat"} onClick={() => openTab("chat")} S={S} />
+        <Btn icon={<Users size={18} />} label="People" badge={participants.length || 1} active={sidebarOpen && sidebarTab === "people"} onClick={() => openTab("people")} S={S} />
+        <Btn icon={<Settings size={18} />} label="Settings" active={settingsOpen} onClick={() => setSettingsOpen((v) => !v)} S={S} />
+        <Btn icon={<Captions size={18} />} label="Captions" active={captionsOn} onClick={() => setCaptionsOn((v) => !v)} pressed={captionsOn} S={S} />
+        <Btn icon={<Disc2 size={18} />} label="Record" active={recordingBadge} onClick={() => setRecordingBadge((v) => !v)} pressed={recordingBadge} S={S} />
+        <Btn icon={<PictureInPicture2 size={18} />} label="PiP" active={!!pipWindow} onClick={togglePiP} pressed={!!pipWindow} S={S} />
+        <Btn icon={<PhoneOff size={18} />} label="Leave" leave onClick={handleLeave} S={S} />
       </div>
 
       <style>{`
         @keyframes livePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.5)} }
         @keyframes recBlink  { 0%,100%{opacity:1} 50%{opacity:.2} }
         @keyframes slideIn   { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+        @keyframes slideUp   { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes fadeIn    { from{opacity:0} to{opacity:1} }
         @keyframes toastIn   { from{opacity:0;transform:translateX(-50%) translateY(-12px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
         @keyframes fadeScaleIn { from{opacity:0;transform:scale(0.96)} to{opacity:1;transform:scale(1)} }
         @keyframes floatUp { 0%{opacity:0;transform:translateY(0) scale(0.6)} 15%{opacity:1;transform:translateY(-20px) scale(1)} 100%{opacity:0;transform:translateY(-160px) scale(1.1)} }
+
+        .lr-root, .lr-root * { box-sizing: border-box; }
+        .lr-root { max-width: 100vw; }
 
         .lr-tile, .lr-strip-tile, .lr-stage { transition: transform 0.18s ease, box-shadow 0.18s ease; }
         .lr-strip-tile:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.35); }
@@ -1257,52 +1448,128 @@ const LiveRoom = ({ sessionId, onSessionEnded, onLeave }) => {
         .lr-ctrl-btn:active { transform: scale(0.94); }
         .lr-sidebar { animation: slideIn .2s ease; }
         .lr-stage { animation: fadeScaleIn .25s ease; }
+        .lr-sidebar-backdrop { display: none; }
+
+        /* Keyboard-accessible focus rings everywhere, without adding a
+           visible ring on mouse/touch interaction. */
+        .lr-root button:focus { outline: none; }
+        .lr-root button:focus-visible,
+        .lr-root input:focus-visible,
+        .lr-root a:focus-visible {
+          outline: 2px solid #8b7dfb;
+          outline-offset: 2px;
+          border-radius: 6px;
+        }
+
+        .lr-filmstrip { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.18) transparent; }
+        .lr-filmstrip::-webkit-scrollbar { height: 6px; }
+        .lr-filmstrip::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); border-radius: 999px; }
+        .lr-ctrlbar { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.18) transparent; }
+        .lr-ctrlbar::-webkit-scrollbar { height: 5px; }
+        .lr-ctrlbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); border-radius: 999px; }
 
         .lr-btn-label { display: inline; }
-        @media (max-width: 1439px) { .lr-sidebar { width: 300px !important; } }
-        @media (max-width: 1199px) { .lr-sidebar { width: 280px !important; } .lr-ctrl-btn { padding: 9px 14px !important; } }
+
+        /* ---- Large laptop / small desktop ---- */
+        @media (max-width: 1439px) { .lr-sidebar { width: 320px !important; } }
+
+        /* ---- Laptop ---- */
+        @media (max-width: 1199px) {
+          .lr-sidebar { width: 300px !important; }
+          .lr-ctrl-btn { padding: 9px 14px !important; }
+        }
+
+        /* ---- Tablet (iPad, iPad Air, Android tablets): sidebar becomes
+           a floating overlay with a backdrop, rather than pushing the
+           stage narrower than it needs to be. ---- */
         @media (max-width: 1023px) {
-          .lr-sidebar { position: fixed !important; inset: 0 !important; top: 54px !important; width: 100% !important; z-index: 500 !important; }
+          .lr-mainarea { position: relative; }
+          .lr-sidebar {
+            position: absolute !important;
+            top: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: min(320px, 88vw) !important;
+            z-index: 40;
+            box-shadow: -12px 0 32px rgba(0,0,0,.45);
+            animation: slideIn .22s ease;
+          }
+          .lr-sidebar-backdrop {
+            display: block;
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,.35);
+            z-index: 30;
+            animation: fadeIn .18s ease;
+          }
           .lr-handle { display: none !important; }
         }
+
+        /* ---- Mobile: sidebar is a full-screen overlay ---- */
+        @media (max-width: 767px) {
+          .lr-sidebar {
+            width: 100% !important;
+            max-width: 100% !important;
+          }
+          .lr-sessionname { display: none; }
+          .lr-stage { border-radius: 12px !important; }
+        }
+
         @media (max-width: 899px) {
           .lr-topbar { padding: 8px 12px !important; }
           .lr-ctrlbar { padding: 10px 14px !important; }
           .lr-ctrl-btn { padding: 8px 12px !important; }
           .lr-stagecolumn { padding: 10px !important; gap: 8px !important; }
         }
-        @media (max-width: 767px) { .lr-sessionname { display: none; } .lr-stage { border-radius: 12px !important; } }
+
         @media (max-width: 599px) {
           .lr-topbar { flex-wrap: wrap; row-gap: 6px; }
           .lr-topright { order: 3; width: 100%; justify-content: flex-start; }
-          .lr-ctrlbar { padding: 8px 6px !important; gap: 3px !important; overflow-x: auto; }
+          .lr-ctrlbar { padding: 8px 6px !important; gap: 3px !important; overflow-x: auto; -webkit-overflow-scrolling: touch; }
           .lr-btn-label { display: none !important; }
           .lr-ctrl-btn { padding: 10px !important; border-radius: 12px !important; }
         }
-        @media (max-width: 430px) { .lr-stagecolumn { padding: 6px !important; gap: 6px !important; } .lr-filmstrip { padding: 6px 8px !important; gap: 6px !important; } }
-        @media (max-width: 375px) { .lr-ctrl-btn { padding: 8px !important; } .lr-topbar { padding: 6px 8px !important; } }
-        @media (max-width: 420px) { .lr-toast { min-width: unset !important; width: 92vw !important; padding: 10px 14px !important; } }
+
+        @media (max-width: 430px) {
+          .lr-stagecolumn { padding: 6px !important; gap: 6px !important; }
+          .lr-filmstrip { padding: 6px 8px !important; gap: 6px !important; }
+        }
+
+        @media (max-width: 375px) {
+          .lr-ctrl-btn { padding: 8px !important; }
+          .lr-topbar { padding: 6px 8px !important; }
+        }
+
+        @media (max-width: 420px) {
+          .lr-toast { min-width: unset !important; width: 92vw !important; padding: 10px 14px !important; }
+        }
+
         @media (max-height: 480px) and (orientation: landscape) {
           .lr-topbar { padding: 4px 10px !important; }
           .lr-ctrlbar { padding: 6px 12px !important; }
           .lr-ctrl-btn { padding: 6px 10px !important; gap: 2px !important; }
+          .lr-sidebar { width: min(280px, 70vw) !important; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .lr-root * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
         }
       `}</style>
     </div>
   );
 };
 
-const PersonRow = ({ name, isHost, self, handRaised }) => (
+const PersonRow = ({ name, isHost, self, handRaised, S }) => (
   <div style={S.pRow}>
     <div style={{ ...S.pAv, background: self ? "linear-gradient(135deg,#0ea5e9,#6366f1)" : "linear-gradient(135deg,#8b5cf6,#ec4899)" }}>{name[0]}</div>
     <span style={S.pName}>{name}</span>
-    {handRaised && <Hand size={13} color="#fbbf24" />}
+    {handRaised && <Hand size={13} color="#fbbf24" aria-label="Hand raised" />}
     {isHost && <span style={S.hostTag}>Host</span>}
     {self && <span style={S.youTag}>You</span>}
   </div>
 );
 
-const Btn = ({ icon, label, active, danger, leave, badge, onClick }) => {
+const Btn = ({ icon, label, active, danger, leave, badge, onClick, btnRef, pressed, ariaHasPopup, ariaExpanded, S }) => {
   const [hov, setHov] = useState(false);
   const bg = leave ? (hov ? "#dc2626" : "#ef4444")
     : danger ? (hov ? "#991b1b" : "#7f1d1d")
@@ -1311,7 +1578,16 @@ const Btn = ({ icon, label, active, danger, leave, badge, onClick }) => {
   const col = leave ? "#fff" : danger ? "#fca5a5" : active ? "#c4b8ff" : "#cbd5e1";
   return (
     <div style={{ position: "relative", flexShrink: 0 }}>
-      <button className="lr-ctrl-btn" onClick={onClick} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+      <button
+        ref={btnRef}
+        className="lr-ctrl-btn"
+        onClick={onClick}
+        onMouseEnter={() => setHov(true)}
+        onMouseLeave={() => setHov(false)}
+        aria-label={label}
+        aria-pressed={typeof pressed === "boolean" ? pressed : undefined}
+        aria-haspopup={ariaHasPopup}
+        aria-expanded={ariaExpanded}
         style={{
           display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: bg, color: col,
           border: danger ? "1px solid rgba(239,68,68,.3)" : active ? "1px solid rgba(109,94,247,.45)" : "1px solid rgba(255,255,255,.06)",
@@ -1327,10 +1603,12 @@ const Btn = ({ icon, label, active, danger, leave, badge, onClick }) => {
   );
 };
 
-const S = {
-  root: { display: "flex", flexDirection: "column", height: "100%", width: "100%", background: "#050608", fontFamily: "'Inter','Segoe UI',sans-serif", color: "#e2e8f0", overflow: "hidden" },
-  autoEndToast: { position: "fixed", top: 60, left: "50%", transform: "translateX(-50%)", zIndex: 99999, display: "flex", alignItems: "center", gap: 12, padding: "14px 24px", borderRadius: 14, background: "linear-gradient(135deg,#dc2626,#f43f5e)", color: "#fff", fontFamily: "'Inter','Segoe UI',sans-serif", boxShadow: "0 8px 32px rgba(244,63,94,0.5)", animation: "toastIn 0.35s ease", minWidth: 300 },
-
+// Top-header-only theme tokens. HEADER_DARK is byte-for-byte the same
+// as the header styles that used to live in LR_STYLES, so dark mode is
+// visually unchanged. HEADER_LIGHT gives the same pieces WCAG-friendly
+// contrast on a light surface. Nothing outside the header (stage,
+// filmstrip, sidebar, controls) reads from these.
+const HEADER_DARK = {
   topBar: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 20px", background: "#0b0d12", borderBottom: "1px solid rgba(255,255,255,.06)", flexShrink: 0, flexWrap: "wrap", gap: 8 },
   topLeft: { display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" },
   topRight: { display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" },
@@ -1349,15 +1627,48 @@ const S = {
   iconGhostBtn: { background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 9, padding: 8, color: "#94a3b8", cursor: "pointer", display: "flex" },
   dropMenu: { position: "absolute", top: "calc(100% + 8px)", right: 0, background: "#161b26", border: "1px solid rgba(255,255,255,.08)", borderRadius: 12, padding: 6, minWidth: 180, boxShadow: "0 12px 32px rgba(0,0,0,.5)", zIndex: 50, display: "flex", flexDirection: "column", gap: 2 },
   dropMenuItem: { display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", color: "#cbd5e1", fontSize: 12, fontWeight: 600, padding: "8px 10px", borderRadius: 8, cursor: "pointer", textAlign: "left" },
+};
+
+const HEADER_LIGHT = {
+  topBar: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 20px", background: "#ffffff", borderBottom: "1px solid #e2e8f0", flexShrink: 0, flexWrap: "wrap", gap: 8 },
+  topLeft: { display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" },
+  topRight: { display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" },
+
+  liveBadge: { display: "flex", alignItems: "center", gap: 6, background: "rgba(220,38,38,.08)", border: "1px solid rgba(220,38,38,.35)", borderRadius: 8, padding: "5px 10px", fontSize: 11, fontWeight: 800, letterSpacing: 1.2, color: "#dc2626" },
+  liveDot: { width: 7, height: 7, borderRadius: "50%", background: "#dc2626", animation: "livePulse 1.2s ease-in-out infinite", display: "inline-block" },
+  recBadge: { display: "flex", alignItems: "center", gap: 5, background: "rgba(220,38,38,.08)", border: "1px solid rgba(220,38,38,.3)", borderRadius: 8, padding: "5px 10px", fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "#b91c1c", animation: "recBlink 2s infinite" },
+  timerBadge: { display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: "#334155", background: "#f1f5f9", border: "1px solid #e2e8f0", borderRadius: 8, padding: "5px 10px", fontVariantNumeric: "tabular-nums" },
+  sessionName: { fontSize: 15, fontWeight: 700, color: "#0f172a", marginLeft: 2 },
+
+  peopleCountBadge: { display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: "#334155", background: "#f1f5f9", border: "1px solid #e2e8f0", borderRadius: 8, padding: "6px 10px" },
+  connBadge: { display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 8, padding: "6px 9px" },
+  connOn: { background: "rgba(22,163,74,.1)", border: "1px solid rgba(22,163,74,.35)", color: "#16a34a" },
+  connOff: { background: "#f1f5f9", border: "1px solid #e2e8f0", color: "#64748b" },
+  endSessionBtn: { display: "flex", alignItems: "center", gap: 6, background: "#ef4444", color: "#fff", border: "none", borderRadius: 10, padding: "9px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 14px rgba(239,68,68,.25)" },
+  iconGhostBtn: { background: "#f1f5f9", border: "1px solid #e2e8f0", borderRadius: 9, padding: 8, color: "#475569", cursor: "pointer", display: "flex" },
+  dropMenu: { position: "absolute", top: "calc(100% + 8px)", right: 0, background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 12, padding: 6, minWidth: 180, boxShadow: "0 12px 32px rgba(15,23,42,.18)", zIndex: 50, display: "flex", flexDirection: "column", gap: 2 },
+  dropMenuItem: { display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", color: "#334155", fontSize: 12, fontWeight: 600, padding: "8px 10px", borderRadius: 8, cursor: "pointer", textAlign: "left" },
+};
+
+const LR_STYLES = {
+  root: { display: "flex", flexDirection: "column", height: "100%", width: "100%", background: "#050608", fontFamily: "'Inter','Segoe UI',sans-serif", color: "#e2e8f0", overflow: "hidden" },
+  autoEndToast: { position: "fixed", top: 60, left: "50%", transform: "translateX(-50%)", zIndex: 99999, display: "flex", alignItems: "center", gap: 12, padding: "14px 24px", borderRadius: 14, background: "linear-gradient(135deg,#dc2626,#f43f5e)", color: "#fff", fontFamily: "'Inter','Segoe UI',sans-serif", boxShadow: "0 8px 32px rgba(244,63,94,0.5)", animation: "toastIn 0.35s ease", minWidth: 300 },
+
+  // NOTE: top-header styles (topBar, liveBadge, timerBadge, recBadge,
+  // sessionName, peopleCountBadge, connBadge/connOn/connOff,
+  // endSessionBtn, iconGhostBtn, dropMenu, dropMenuItem) now live in
+  // HEADER_DARK / HEADER_LIGHT above so the header can switch with the
+  // app theme. Everything below this line is unrelated to the header
+  // and unaffected by theme.
   bellBtn: { position: "relative", background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 9, padding: 8, color: "#94a3b8", cursor: "pointer", display: "flex" },
   bellBadge: { position: "absolute", top: -6, right: -8, background: "#ef4444", color: "#fff", fontSize: 9, fontWeight: 800, borderRadius: 8, padding: "1px 5px", border: "2px solid #0b0d12", lineHeight: 1.3 },
   topAvatar: { width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg,#f59e0b,#f97316)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800, color: "#fff", flexShrink: 0 },
 
-  reactionPicker: { position: "absolute", bottom: "calc(100% + 10px)", left: "50%", transform: "translateX(-50%)", display: "flex", gap: 4, padding: "8px 10px", background: "#161b26", border: "1px solid rgba(255,255,255,.08)", borderRadius: 999, boxShadow: "0 12px 32px rgba(0,0,0,.5)", zIndex: 50 },
+  reactionPicker: { position: "absolute", bottom: "calc(100% + 10px)", left: "50%", transform: "translateX(-50%)", display: "flex", gap: 4, padding: "8px 10px", background: "#161b26", border: "1px solid rgba(255,255,255,.08)", borderRadius: 999, boxShadow: "0 12px 32px rgba(0,0,0,.5)", zIndex: 50, animation: "slideUp .16s ease" },
   reactionPickerBtn: { width: 36, height: 36, border: "none", background: "transparent", fontSize: 19, cursor: "pointer", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", transition: "background .15s, transform .15s" },
   ctrlBadge: { position: "absolute", top: -4, right: -4, background: "#6d5ef7", color: "#fff", fontSize: 9, fontWeight: 800, borderRadius: 8, padding: "1px 5px", border: "2px solid #050608", lineHeight: 1.3 },
 
-  mainArea: { flex: 1, display: "flex", overflow: "hidden" },
+  mainArea: { flex: 1, display: "flex", overflow: "hidden", position: "relative", minWidth: 0 },
   stageColumn: { flex: 1, display: "flex", flexDirection: "column", gap: 14, padding: 18, overflow: "hidden", minWidth: 0 },
   stage: { flex: 1, position: "relative", background: "#12141a", borderRadius: 20, overflow: "hidden", border: "1px solid rgba(255,255,255,.06)", display: "flex", alignItems: "center", justifyContent: "center", minHeight: 0 },
   stageEmpty: { color: "#475569", fontSize: 13, fontWeight: 500 },
@@ -1372,7 +1683,7 @@ const S = {
   floaterEmoji: { position: "absolute", bottom: 20, fontSize: 30, animation: "floatUp 2.4s ease-out forwards" },
 
   filmstrip: { flexShrink: 0, display: "flex", gap: 12, padding: "2px 2px 4px", overflowX: "auto" },
-  stripTile: { position: "relative", flex: "0 0 auto", width: "clamp(150px, 14vw, 190px)", aspectRatio: "16 / 12.6", background: "#14161d", borderRadius: 16, overflow: "hidden", border: "1px solid rgba(255,255,255,.07)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "default" },
+  stripTile: { position: "relative", flex: "0 0 auto", width: "clamp(96px, 14vw, 190px)", aspectRatio: "16 / 12.6", background: "#14161d", borderRadius: 16, overflow: "hidden", border: "1px solid rgba(255,255,255,.07)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "default" },
   stripOverflow: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,.04)" },
   stripAvatarWrap: { position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" },
   stripAvatar: { width: "40%", aspectRatio: "1 / 1", minWidth: 34, maxWidth: 56, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, fontWeight: 800, color: "#fff" },
@@ -1380,16 +1691,17 @@ const S = {
   stripMicDot: { position: "absolute", top: 8, right: 8, width: 20, height: 20, borderRadius: "50%", background: "rgba(10,12,18,.72)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" },
   stripName: { position: "absolute", bottom: 7, left: 8, fontSize: 11, fontWeight: 600, color: "#fff", background: "rgba(10,12,18,.68)", borderRadius: 6, padding: "2px 8px", maxWidth: "calc(100% - 14px)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
 
-  handle: { width: 22, display: "flex", alignItems: "center", justifyContent: "center", background: "#0b0d12", borderLeft: "1px solid rgba(255,255,255,.05)", cursor: "pointer", flexShrink: 0 },
-  sidebar: { width: 340, background: "#0b0d12", borderLeft: "1px solid rgba(255,255,255,.06)", display: "flex", flexDirection: "column", flexShrink: 0 },
+  handle: { width: 22, display: "flex", alignItems: "center", justifyContent: "center", background: "#0b0d12", border: "none", borderLeft: "1px solid rgba(255,255,255,.05)", cursor: "pointer", flexShrink: 0, padding: 0 },
+  sidebar: { width: 340, background: "#0b0d12", borderLeft: "1px solid rgba(255,255,255,.06)", display: "flex", flexDirection: "column", flexShrink: 0, minWidth: 0 },
+  sidebarBackdrop: { display: "none" },
   tabRow: { display: "flex", alignItems: "center", gap: 6, padding: "12px 14px", borderBottom: "1px solid rgba(255,255,255,.06)", flexShrink: 0 },
   tab: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 0 11px", borderRadius: 0, border: "none", borderBottom: "2px solid transparent", background: "transparent", color: "#64748b", cursor: "pointer", fontSize: 14, fontFamily: "inherit", fontWeight: 700, transition: "all .15s" },
   tabOn: { color: "#6d8bf7", borderBottom: "2px solid #6d8bf7" },
   cnt: { fontSize: 11, background: "rgba(109,94,247,.2)", color: "#b7aefc", borderRadius: 10, padding: "1px 7px", marginLeft: 3 },
   closeBtn: { background: "none", border: "none", color: "#334155", cursor: "pointer", display: "flex", marginLeft: "auto", padding: 4 },
 
-  chatWrap: { flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" },
-  msgList: { flex: 1, overflowY: "auto", padding: "16px 16px", display: "flex", flexDirection: "column", gap: 14 },
+  chatWrap: { flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 },
+  msgList: { flex: 1, overflowY: "auto", padding: "16px 16px", display: "flex", flexDirection: "column", gap: 14, minHeight: 0 },
   msgRow: { display: "flex", alignItems: "flex-end", gap: 7, justifyContent: "center" },
   msgCol: { display: "flex", flexDirection: "column", gap: 4, maxWidth: "82%", alignSelf: "flex-start" },
   msgColSelf: { alignSelf: "flex-end", alignItems: "flex-end" },
@@ -1397,31 +1709,31 @@ const S = {
   bHeaderSelf: { color: "#b7aefc" },
   bHeaderTime: { fontSize: 11, fontWeight: 500, color: "#475569" },
   sysBubble: { fontSize: 12, color: "#8b93a5", background: "rgba(255,255,255,.05)", borderRadius: 8, padding: "6px 14px", fontWeight: 500 },
-  bubble: { maxWidth: "100%", borderRadius: 16, padding: "9px 14px", display: "flex", flexDirection: "column", gap: 2 },
+  bubble: { maxWidth: "100%", borderRadius: 16, padding: "9px 14px", display: "flex", flexDirection: "column", gap: 2, wordBreak: "break-word" },
   bSelf: { background: "linear-gradient(135deg,#6d5ef7,#8b5cf6)", borderBottomRightRadius: 4 },
   bOther: { background: "#1c1f28", borderBottomLeftRadius: 4 },
   bText: { fontSize: 14, color: "#f1f5f9", lineHeight: 1.45 },
   inputRow: { display: "flex", gap: 8, padding: "12px 14px", borderTop: "1px solid rgba(255,255,255,.06)", flexShrink: 0 },
-  chatInput: { flex: 1, background: "#161922", border: "1px solid rgba(255,255,255,.08)", borderRadius: 999, padding: "10px 16px", color: "#e2e8f0", fontSize: 13, fontFamily: "inherit", outline: "none" },
+  chatInput: { flex: 1, minWidth: 0, background: "#161922", border: "1px solid rgba(255,255,255,.08)", borderRadius: 999, padding: "10px 16px", color: "#e2e8f0", fontSize: 13, fontFamily: "inherit", outline: "none" },
   sendBtn: { background: "linear-gradient(135deg,#6d5ef7,#8b5cf6)", border: "none", borderRadius: "50%", width: 40, height: 40, color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
 
-  peopleList: { flex: 1, overflowY: "auto", padding: "10px 12px", display: "flex", flexDirection: "column", gap: 4 },
+  peopleList: { flex: 1, overflowY: "auto", padding: "10px 12px", display: "flex", flexDirection: "column", gap: 4, minHeight: 0 },
   emptyPpl: { fontSize: 12, color: "#334155", textAlign: "center", marginTop: 20 },
   pRow: { display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", borderRadius: 10, background: "rgba(255,255,255,.03)" },
   pAv: { width: 32, height: 32, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, flexShrink: 0 },
-  pName: { flex: 1, fontSize: 13, color: "#cbd5e1" },
-  hostTag: { fontSize: 10, background: "rgba(59,130,246,.15)", color: "#60a5fa", padding: "2px 8px", borderRadius: 6, fontWeight: 600 },
-  youTag: { fontSize: 10, background: "rgba(52,211,153,.12)", color: "#6ee7b7", padding: "2px 8px", borderRadius: 6, fontWeight: 600 },
+  pName: { flex: 1, fontSize: 13, color: "#cbd5e1", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  hostTag: { fontSize: 10, background: "rgba(59,130,246,.15)", color: "#60a5fa", padding: "2px 8px", borderRadius: 6, fontWeight: 600, flexShrink: 0 },
+  youTag: { fontSize: 10, background: "rgba(52,211,153,.12)", color: "#6ee7b7", padding: "2px 8px", borderRadius: 6, fontWeight: 600, flexShrink: 0 },
 
-  settingsOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" },
-  settingsPanel: { width: 320, background: "#111726", border: "1px solid rgba(255,255,255,.08)", borderRadius: 16, overflow: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,.6)" },
+  settingsOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 },
+  settingsPanel: { width: 320, maxWidth: "100%", background: "#111726", border: "1px solid rgba(255,255,255,.08)", borderRadius: 16, overflow: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,.6)" },
   settingsHead: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,.06)" },
   settingsBody: { padding: 16, display: "flex", flexDirection: "column", gap: 12 },
   settingsRow: { display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13, color: "#cbd5e1" },
   settingsToggle: { border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.05)", color: "#94a3b8", borderRadius: 20, padding: "5px 14px", fontSize: 11, fontWeight: 700, cursor: "pointer" },
   settingsToggleOn: { background: "rgba(109,94,247,.22)", borderColor: "rgba(109,94,247,.4)", color: "#b7aefc" },
 
-  ctrlBar: { display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "14px 20px", background: "#0b0d12", borderTop: "1px solid rgba(255,255,255,.06)", flexShrink: 0, overflowX: "auto" },
+  ctrlBar: { display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "14px 20px", background: "#0b0d12", borderTop: "1px solid rgba(255,255,255,.06)", flexShrink: 0, overflowX: "auto", flexWrap: "nowrap" },
 };
 
 export default LiveRoom;

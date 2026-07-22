@@ -545,11 +545,9 @@ useEffect(() => {
     setReactionPickerOpen(false);
   }, [sendReaction]);
 
-  const S = isDark ? LR_STYLES_DARK : LR_STYLES_LIGHT;
-  // Top header only: dark stays byte-for-byte identical to before,
-  // light gets real background/border/text/icon/badge contrast.
-  const isDark = useIsDarkTheme();
-  const headerS = useMemo(() => (isDark ? HEADER_DARK : HEADER_LIGHT), [isDark]);
+const isDark = useIsDarkTheme();
+const headerS = useMemo(() => (isDark ? HEADER_DARK : HEADER_LIGHT), [isDark]);
+const S = isDark ? LR_STYLES_DARK : LR_STYLES_LIGHT;
 
   // NOTE: the top bar / control bar use env(safe-area-inset-*) padding
   // for notch and home-indicator devices. That only activates if the

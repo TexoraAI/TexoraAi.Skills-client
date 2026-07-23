@@ -84,10 +84,7 @@ export const getPublishedSessions = () =>
 //     getAuthHeader(),
 //   );
 export const joinLiveSession = (sessionId) =>
-  axios.get(
-    `${API_BASE}/live-sessions/${sessionId}/join`,
-    getAuthHeader(),
-  );
+  axios.get(`${API_BASE}/live-sessions/${sessionId}/join`, getAuthHeader());
 
 export const joinLiveSessionPublic = (sessionId, bookingId) =>
   axios.get(
@@ -496,5 +493,168 @@ export const askAiTranscript = (transcriptId, question) =>
   axios.post(
     `${API_BASE}/v1/ai-companion/transcripts/${transcriptId}/ask`,
     { question },
+    getAuthHeader(),
+  );
+
+// ✅ NEW — guest join (no auth), name-only
+export const joinLiveSessionGuest = (sessionId, name) =>
+  axios.get(
+    `${API_BASE}/live-sessions/${sessionId}/join-guest?name=${encodeURIComponent(name)}`,
+  );
+
+// ✅ NEW — public session status/details for the join-waiting screen (no auth)
+export const getPublicSessionStatus = (sessionId) =>
+  axios.get(`${API_BASE}/live-sessions/public/session/${sessionId}`);
+
+// ─── MEETINGS (Google-Meet-style module) ──────────────────────
+
+/**
+ * POST /api/meetings/instant
+ * Body: { title?, organizationId?, creatorName }
+ * creatorRole is no longer sent — extracted server-side from the JWT.
+ * creatorName is the logged-in user's display name (for the public
+ * join page host badge) — required now, since JWT has no name claim.
+ * Meeting becomes ACTIVE immediately.
+ */
+export const createInstantMeeting = (data) =>
+  axios.post(`${API_BASE}/meetings/instant`, data, getAuthHeader());
+/**
+ * POST /api/meetings/scheduled
+ * Body: { title, date, time, timezone, organizationId?, creatorName }
+ * creatorRole is no longer sent — extracted server-side from the JWT.
+ * date: "yyyy-MM-dd"  time: "HH:mm"  timezone: e.g. "Asia/Kolkata"
+ */
+export const createScheduledMeeting = (data) =>
+  axios.post(`${API_BASE}/meetings/scheduled`, data, getAuthHeader());
+/**
+ * GET /api/meetings/validate/{joinCode}
+ * Returns { valid: true, meeting } or { valid: false, message }
+ * Used by the "Enter session code" join box on every dashboard.
+ */
+export const validateMeetingJoinCode = (joinCode) =>
+  axios.get(`${API_BASE}/meetings/validate/${joinCode}`, getAuthHeader());
+
+/**
+ * GET /api/meetings/join/{joinCode}
+ * Full meeting details for a join code (404-style error if not found).
+ */
+export const getMeetingByJoinCode = (joinCode) =>
+  axios.get(`${API_BASE}/meetings/join/${joinCode}`, getAuthHeader());
+
+export const getMeetingById = (meetingId) =>
+  axios.get(`${API_BASE}/meetings/${meetingId}`, getAuthHeader());
+
+/** GET /api/meetings/my — all meetings created by the logged-in user (from JWT) */
+export const getMyMeetings = () =>
+  axios.get(`${API_BASE}/meetings/my`, getAuthHeader());
+
+/**
+ * GET /api/meetings/my/calendar?month=yyyy-MM
+ * Returns meetings for the logged-in user grouped by date:
+ * { "2026-07-25": [ {...meeting}, ... ], "2026-07-28": [...] }
+ * month is optional — omit it to get the current month.
+ */
+export const getMeetingsCalendar = (month) =>
+  axios.get(
+    `${API_BASE}/meetings/my/calendar${month ? `?month=${month}` : ""}`,
+    getAuthHeader(),
+  );
+
+/** POST /api/meetings/{id}/start — force-start a SCHEDULED meeting early */
+export const startScheduledMeeting = (meetingId) =>
+  axios.post(`${API_BASE}/meetings/${meetingId}/start`, {}, getAuthHeader());
+
+/** POST /api/meetings/{id}/end */
+export const endMeeting = (meetingId) =>
+  axios.post(`${API_BASE}/meetings/${meetingId}/end`, {}, getAuthHeader());
+
+/** DELETE /api/meetings/{id} — host only, permanently deletes the meeting + its join requests */
+export const deleteMeetingApi = (meetingId) =>
+  axios.delete(`${API_BASE}/meetings/${meetingId}`, getAuthHeader());
+/**
+ * GET /api/meetings/{id}/token?displayName=...
+ * Returns { room, token } for the LiveKit room — only works while
+ * the meeting is ACTIVE.
+ */
+export const getMeetingJoinToken = (meetingId, displayName) =>
+  axios.get(
+    `${API_BASE}/meetings/${meetingId}/token${displayName ? `?displayName=${encodeURIComponent(displayName)}` : ""}`,
+    getAuthHeader(),
+  );
+// ─── MEETINGS — Guest lobby (public, guarded by guestIdentity) ─────
+
+/** POST /api/meetings/{id}/join-requests — public, no auth (anonymous guest) */
+// export const requestToJoin = (meetingId, guestName) =>
+//   axios.post(`${API_BASE}/meetings/${meetingId}/join-requests`, { guestName });
+/** POST /api/meetings/{id}/join-requests — public, no auth (anonymous guest) */
+export const requestToJoin = (meetingId, guestName, guestEmail) =>
+  axios.post(`${API_BASE}/meetings/${meetingId}/join-requests`, {
+    guestName,
+    guestEmail,
+  });
+
+/** GET /api/meetings/{id}/join-requests/{requestId}?guestIdentity=... — public */
+export const getJoinRequestStatus = (meetingId, requestId, guestIdentity) =>
+  axios.get(`${API_BASE}/meetings/${meetingId}/join-requests/${requestId}`, {
+    params: { guestIdentity },
+  });
+
+/** GET /api/meetings/{id}/token/guest/{requestId}?guestIdentity=...&displayName=... — public */
+export const getGuestToken = (
+  meetingId,
+  requestId,
+  guestIdentity,
+  displayName,
+) =>
+  axios.get(`${API_BASE}/meetings/${meetingId}/token/guest/${requestId}`, {
+    params: { guestIdentity, displayName },
+  });
+
+// ─── MEETINGS — Host-only lobby controls ───────────────────────────
+
+/**
+ * GET /api/meetings/{id}/token?displayName=...
+ * Host join — backend rejects this for non-hosts now, so this is the
+ * same call as getMeetingJoinToken above. Kept as an alias for clarity
+ * at call sites; consider removing one to avoid duplication.
+ */
+export const joinMeetingAsHost = (meetingId, displayName) =>
+  axios.get(`${API_BASE}/meetings/${meetingId}/token`, {
+    ...getAuthHeader(),
+    params: { displayName },
+  });
+
+/** GET /api/meetings/{id}/join-requests — host only */
+export const listPendingJoinRequests = (meetingId) =>
+  axios.get(`${API_BASE}/meetings/${meetingId}/join-requests`, getAuthHeader());
+
+/** GET /api/meetings/{id}/join-requests/all — host only, all guests who ever requested (any status) */
+export const getAllJoinRequests = (meetingId) =>
+  axios.get(
+    `${API_BASE}/meetings/${meetingId}/join-requests/all`,
+    getAuthHeader(),
+  );
+
+/** POST /api/meetings/{id}/join-requests/{requestId}/admit — host only */
+export const admitJoinRequest = (meetingId, requestId) =>
+  axios.post(
+    `${API_BASE}/meetings/${meetingId}/join-requests/${requestId}/admit`,
+    {},
+    getAuthHeader(),
+  );
+
+/** POST /api/meetings/{id}/join-requests/{requestId}/deny — host only */
+export const denyJoinRequest = (meetingId, requestId) =>
+  axios.post(
+    `${API_BASE}/meetings/${meetingId}/join-requests/${requestId}/deny`,
+    {},
+    getAuthHeader(),
+  );
+
+/** POST /api/meetings/{id}/join-requests/admit-all — host only */
+export const admitAllJoinRequests = (meetingId) =>
+  axios.post(
+    `${API_BASE}/meetings/${meetingId}/join-requests/admit-all`,
+    {},
     getAuthHeader(),
   );

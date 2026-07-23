@@ -109,7 +109,13 @@ const NAV = [
   //   icon: ic.featuredPrograms,
   //   permission: null,
   // },
-
+{
+    type: "item",
+    label: "WorkSpace",
+    path: "/superadmin/workspace",
+    icon: ic.video,
+    permission: null, // swap for a PERMISSIONS.* value if you want to gate it
+  },
   {
     type: "dropdown",
     label: "Landing Pages",

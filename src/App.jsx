@@ -162,6 +162,10 @@ const SendEmail                 = lazyLoad(() => import("./SuperAdmin/settings/S
 /* Profile */
 const SuperAdminProfile         = lazyLoad(() => import("./SuperAdmin/profile/SuperAdminProfile"));
 
+const SuperAdminMeetings = lazyLoad(
+  () => import("./SuperAdmin/meetings/SuperAdminMeetings"),
+);
+
 /* ================= CMS MANAGEMENT ================= */
 
 
@@ -180,6 +184,9 @@ const PublicBooking                 = lazyLoad(() => import("./pages/public/Publ
 const PublicBookingConfirmation     = lazyLoad(() => import("./pages/public/PublicBookingConfirmation"));
 const PublicJoinSession             = lazyLoad(() => import("./pages/public/PublicJoinSession"));
 const PublicSessionComplete         = lazyLoad(() => import("./pages/public/PublicSessionComplete"));
+const IlmoraMeetingPage = lazyLoad(
+  () => import("./pages/public/IlmoraMeeting.jsx"),
+);
 /* ================= LANDING ================= */
 const CoursePreview        = lazyLoad(() => import("./pages/CoursePreview"));
 const CourseDetail         = lazyLoad(() => import("./pages/Landing/CourseDetailsPage"));
@@ -249,6 +256,7 @@ const SkillMap              = lazyLoad(() => import("./Student/SkillMap.jsx"));
 const StudentCompilerPage   = lazyLoad(() => import("./Student/StudentCompilerPage.jsx"),);
 const StudentStudyPlanPage = lazyLoad( () => import("./Student/StudentStudyPlanPage.jsx"),);
 const ResumeBuilder        = lazyLoad(() => import("./Student/ResumeBuilder.jsx"));
+const StudentMeetings = lazyLoad(() => import("./Student/StudentMeetings.jsx"));
 /* ================= TRAINER ================= */
 const TrainerAssessments    = lazyLoad(() => import("./Trainer/Assessments"));
 const TrainerAttendance     = lazyLoad(() => import("./Trainer/Attendance"));
@@ -288,6 +296,8 @@ const TrainerStudyPlanPage  = lazyLoad (() => import("./Trainer/TrainerStudyPlan
 const WhiteboardPanel       = lazyLoad(() => import("./Trainer/WhiteboardPanel.jsx"));
 
 const AiCompanionPage       = lazyLoad(() => import("./Trainer/AiCompanionPage.jsx"));
+
+const TrainerMeetings = lazyLoad(() => import("./Trainer/TrainerMeetings.jsx"));
 /* ================= ADMIN ================= */
 const AdminBatches              = lazyLoad(() => import("./Admin/AdminBatches"));
 const AdminDashboard            = lazyLoad(() => import("./Admin/AdminDashboard"));
@@ -321,6 +331,7 @@ const AdminAssessmentSystem = lazyLoad(
   () => import("./Admin/AdminAssessmentSystem"),
 );
 const AdminAttendance = lazyLoad(() => import("./Admin/AdminAttendance"));
+const AdminMeetings = lazyLoad(() => import("./Admin/AdminMeetings.jsx"));
 /* ================= BUSINESS ================= */
 const BusinessDashboard = lazyLoad(() => import("./Business/BusinessDashboard"));
 const NewEnrollments    = lazyLoad(() => import("./Business/Enrollments/NewEnrollments.jsx"));
@@ -542,6 +553,10 @@ seedCMSData();
             <Route path="/public/session-complete" element={<PublicSessionComplete />} />
             <Route path="/public/booking-confirmation/:id" element={<PublicBookingConfirmation />} />
             <Route path="/public/sessions" element={<PublicSessionsPage />} />
+             <Route
+              path="/workspace/:joinCode"
+              element={<IlmoraMeetingPage />}
+            />
             
          
             {/* ================= COMPANY ================= */}
@@ -679,6 +694,7 @@ seedCMSData();
               <Route path="compiler" element={<StudentCompilerPage />} />
               <Route path="study-plan" element={<StudentStudyPlanPage />} />
               <Route path="resume-builder" element={<ResumeBuilder />} />
+              <Route path="workspace" element={<StudentMeetings />} />
             </Route>
 
             {/* ================= TRAINER ================= */}
@@ -726,6 +742,7 @@ seedCMSData();
               <Route path="ai-companion" element={<AiCompanionPage />} />
               <Route path="whiteboard" element={<WhiteboardPanel />} />
               {/* <Route path="ai-companion" element={<AiCompanionPanel />} /> */}
+              <Route path="workspace" element={<TrainerMeetings />} />
             </Route>
 
             {/* ================= ADMIN ================= */}
@@ -764,6 +781,7 @@ seedCMSData();
              
               <Route path="feedback-review" element={<AdminFeedback />} />
               <Route path="skill-analytics" element={<AdminSkillDashboard />} />
+               <Route path="workspace" element={<AdminMeetings />} />
             </Route>
 
             {/* ================= BUSINESS ================= */}
@@ -808,6 +826,7 @@ seedCMSData();
             >
               {/* Dashboard */}
               <Route index element={<SuperAdminDashboard />} />
+              <Route path="workspace" element={<SuperAdminMeetings />} />
 
               {/* ================= STUDENT CONTROL ================= */}
               <Route path="students" element={<StudentControlPage />} />

@@ -79,7 +79,14 @@
 //         cameraTrack: null, cameraMuted: true, micTrack: null, micMuted: true, screenTrack: null,
 //       };
 //       p.trackPublications.forEach((pub) => {
-//         if (!pub.isSubscribed || !pub.track) return;
+//         // NOTE: previously required `pub.isSubscribed` as well as
+//         // `pub.track`. `isSubscribed` can flip to true a beat *after*
+//         // `pub.track` is actually attached/playable, which was making
+//         // the spotlight/grid switch lag a moment behind a remote
+//         // participant starting or stopping a screen share. `pub.track`
+//         // being present already implies it's usable, so that alone is
+//         // the correct (and faster) check.
+//         if (!pub.track) return;
 //         if (pub.source === Track.Source.Camera) { entry.cameraTrack = pub.track; entry.cameraMuted = pub.isMuted; }
 //         else if (pub.source === Track.Source.Microphone) { entry.micTrack = pub.track; entry.micMuted = pub.isMuted; }
 //         else if (pub.source === Track.Source.ScreenShare) { entry.screenTrack = pub.track; }
@@ -221,8 +228,21 @@
 //     if (!room) return;
 //     try {
 //       if (screenOn) {
-//         await room.localParticipant.setScreenShareEnabled(false);
+//         // FIX: previously this awaited `setScreenShareEnabled(false)`
+//         // before touching any state, and the layout only updated once
+//         // the LiveKit "LocalTrackUnpublished" event round-tripped back
+//         // through syncParticipants(). That round trip is what made the
+//         // UI feel slow to "snap back" to the normal grid after ending a
+//         // share (see the reported delay). We now flip `screenOn` and
+//         // optimistically clear the local participant's screenTrack
+//         // immediately — before the await — so the spotlight/grid
+//         // layout switches back the instant the button is pressed. The
+//         // real unpublish still happens right after; syncParticipants()
+//         // in `finally` reconciles with the real LiveKit state either
+//         // way, so this can't get out of sync.
 //         setScreenOn(false);
+//         setParticipants((prev) => prev.map((p) => (p.isLocal ? { ...p, screenTrack: null } : p)));
+//         await room.localParticipant.setScreenShareEnabled(false);
 //       } else {
 //         const pub = await room.localParticipant.setScreenShareEnabled(true);
 //         if (!pub) return;
@@ -230,6 +250,7 @@
 //         pub.track?.mediaStreamTrack?.addEventListener("ended", () => {
 //           room.localParticipant.setScreenShareEnabled(false).catch(() => {});
 //           setScreenOn(false);
+//           setParticipants((prev) => prev.map((p) => (p.isLocal ? { ...p, screenTrack: null } : p)));
 //           syncParticipants();
 //         });
 //       }
@@ -303,46 +324,6 @@
 //   if (!ctx) throw new Error("useLiveMeeting must be used within LiveMeetingProvider");
 //   return ctx;
 // };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -515,6 +496,27 @@ export function LiveMeetingProvider({ children }) {
               setRaisedHands((prev) => ({ ...prev, [identity]: !!msg.raised }));
               pushSystemMsg(`${participant?.name || identity} ${msg.raised ? "raised" : "lowered"} their hand`);
             }
+            return;
+          }
+
+          // FIX (trainer-sync gap): the trainer's "Lower All Hands" broadcasts
+          // { type: "trainer_command", command: "handsLowered", value: true } over
+          // the same data channel. Without this branch the trainer's own view
+          // clears immediately but this student's UI kept showing their hand as
+          // raised (out of sync) until they manually toggled it. This clears the
+          // local "you" flag and re-publishes raiseHand:false so the trainer and
+          // every other participant's raisedHands map also gets the update -
+          // same publishData contract toggleHandRaise already uses below.
+          if (msg.type === "trainer_command" && msg.command === "handsLowered" && msg.value) {
+            setRaisedHands((prev) => {
+              if (!prev.you) return prev;
+              return { ...prev, you: false };
+            });
+            pushSystemMsg("Your hand was lowered by the trainer.");
+            try {
+              const downPayload = new TextEncoder().encode(JSON.stringify({ type: "raiseHand", raised: false }));
+              roomRef.current?.localParticipant?.publishData(downPayload, { reliable: true });
+            } catch (_) {}
             return;
           }
 

@@ -25,7 +25,20 @@ jobs:
             export NODE_OPTIONS="--max-old-space-size=2048"
             npm install
             npm run build
-            sudo rm -rf /var/www/html/*
+            sudo find /var/www/html/ -mindepth 1 -not -name '.htaccess' -delete
             sudo cp -r dist/* /var/www/html/
-            sudo bash -c 'printf "Options -MultiViews\nRewriteEngine On\nRewriteCond %%{REQUEST_FILENAME} !-f\nRewriteRule ^ index.html [QL]\n" > /var/www/html/.htaccess'
-            sudo systemctl restart httpd
+
+            NEW_HTACCESS=$(printf "Options -MultiViews\nRewriteEngine On\nRewriteBase /\nRewriteCond %%{REQUEST_FILENAME} !-f\nRewriteCond %%{REQUEST_FILENAME} !-d\nRewriteRule ^ index.html [L]\n")
+            CURRENT_HTACCESS=""
+            if [ -f /var/www/html/.htaccess ]; then
+              CURRENT_HTACCESS=$(cat /var/www/html/.htaccess)
+            fi
+
+            if [ "$CURRENT_HTACCESS" != "$NEW_HTACCESS" ]; then
+              echo ".htaccess is missing or different, updating it"
+              echo "$NEW_HTACCESS" | sudo tee /var/www/html/.htaccess > /dev/null
+              sudo apachectl configtest
+              sudo systemctl reload httpd
+            else
+              echo ".htaccess already correct, skipping rewrite and reload"
+            fi

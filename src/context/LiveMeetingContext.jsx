@@ -7,6 +7,38 @@
 // const nowLabel = () =>
 //   new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
+// // ── AUDIO FIX ────────────────────────────────────────────────────
+// // Root cause: audio was only attached inside <LiveRoom>, which
+// // unmounts whenever `minimized` becomes true (i.e. any Dashboard
+// // navigation). This component renders the same hidden <audio>
+// // elements, but lives inside LiveMeetingProvider — which sits above
+// // the router and NEVER unmounts on navigation, whether LiveRoom or
+// // FloatingMeetingWidget is the currently-visible UI. Audio now keeps
+// // playing on every route, exactly like Meet/Teams.
+// function RemoteAudioTrack({ track }) {
+//   const ref = useRef(null);
+//   useEffect(() => {
+//     const el = ref.current;
+//     if (!track || !el) return;
+//     track.attach(el);
+//     return () => { try { track.detach(el); } catch (_) {} };
+//   }, [track]);
+//   return <audio ref={ref} autoPlay />;
+// }
+
+// function RemoteAudioLayer({ participants }) {
+//   return (
+//     <div style={{ position: "fixed", width: 0, height: 0, overflow: "hidden" }} aria-hidden="true">
+//       {participants
+//         .filter((p) => !p.isLocal && p.micTrack)
+//         .map((p) => (
+//           <RemoteAudioTrack key={p.identity} track={p.micTrack} />
+//         ))}
+//     </div>
+//   );
+// }
+// // ─────────────────────────────────────────────────────────────────
+
 // export function LiveMeetingProvider({ children }) {
 //   const roomRef = useRef(null);
 //   const localVideoTrackRef = useRef(null);
@@ -21,10 +53,7 @@
 //   const [screenOn, setScreenOn] = useState(false);
 //   const [participants, setParticipants] = useState([]);
 //   const [messages, setMessages] = useState([]);
-
-//   // 👇 raised-hand map: identity -> true/false, driven by broadcast data
 //   const [raisedHands, setRaisedHands] = useState({});
-//   // 👇 floating emoji reactions, auto-expire after a few seconds
 //   const [floaters, setFloaters] = useState([]);
 
 //   const syncParticipants = useCallback(() => {
@@ -66,8 +95,6 @@
 //     }]);
 //   }, []);
 
-//   // ── Join (called once per session; re-entering an already-active
-//   // meeting just un-minimizes it instead of reconnecting) ──────────
 //   const joinMeeting = useCallback(async ({ role, sessionId, roomName, token, title, joinedAt }) => {
 //     if (roomRef.current && activeMeeting?.sessionId === sessionId && activeMeeting?.roomName === roomName) {
 //       setMinimized(false);
@@ -92,7 +119,6 @@
 //       .on(RoomEvent.ParticipantDisconnected, (p) => {
 //         syncParticipants();
 //         pushSystemMsg(`${p.name || p.identity} left`);
-//         // clean up their raised-hand state if they had one set
 //         setRaisedHands((prev) => {
 //           if (!(p.identity in prev)) return prev;
 //           const next = { ...prev };
@@ -105,7 +131,6 @@
 //         try {
 //           const msg = JSON.parse(new TextDecoder().decode(payload));
 
-//           // Emoji reaction — floats on the stage, auto-expires
 //           if (msg.type === "reaction") {
 //             const id = ++floaterIdRef.current;
 //             setFloaters((prev) => [
@@ -118,7 +143,6 @@
 //             return;
 //           }
 
-//           // Raise-hand broadcast
 //           if (msg.type === "raiseHand") {
 //             const identity = participant?.identity;
 //             if (identity) {
@@ -223,8 +247,6 @@
 //     } catch (_) {}
 //   }, []);
 
-//   // 👇 Raise hand — single owning Room, so this is actually seen by
-//   // every other participant (unlike a component-local room would be).
 //   const toggleHandRaise = useCallback(() => {
 //     setRaisedHands((prev) => {
 //       const next = !prev.you;
@@ -239,8 +261,6 @@
 //     });
 //   }, [pushSystemMsg]);
 
-//   // 👇 Emoji reaction — broadcasts + shows locally immediately (no
-//   // need to wait for the round-trip through LiveKit for your own UI).
 //   const sendReaction = useCallback((emoji) => {
 //     const id = ++floaterIdRef.current;
 //     setFloaters((prev) => [...prev, { id, emoji, name: "You" }]);
@@ -268,7 +288,14 @@
 //     room: roomRef.current,
 //   };
 
-//   return <LiveMeetingContext.Provider value={value}>{children}</LiveMeetingContext.Provider>;
+//   return (
+//     <LiveMeetingContext.Provider value={value}>
+//       {children}
+//       {/* AUDIO FIX: always mounted, survives every route change and
+//           every minimized/expanded UI switch. */}
+//       <RemoteAudioLayer participants={participants} />
+//     </LiveMeetingContext.Provider>
+//   );
 // }
 
 // export const useLiveMeeting = () => {
@@ -276,6 +303,29 @@
 //   if (!ctx) throw new Error("useLiveMeeting must be used within LiveMeetingProvider");
 //   return ctx;
 // };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -388,7 +438,14 @@ export function LiveMeetingProvider({ children }) {
         cameraTrack: null, cameraMuted: true, micTrack: null, micMuted: true, screenTrack: null,
       };
       p.trackPublications.forEach((pub) => {
-        if (!pub.isSubscribed || !pub.track) return;
+        // NOTE: previously required `pub.isSubscribed` as well as
+        // `pub.track`. `isSubscribed` can flip to true a beat *after*
+        // `pub.track` is actually attached/playable, which was making
+        // the spotlight/grid switch lag a moment behind a remote
+        // participant starting or stopping a screen share. `pub.track`
+        // being present already implies it's usable, so that alone is
+        // the correct (and faster) check.
+        if (!pub.track) return;
         if (pub.source === Track.Source.Camera) { entry.cameraTrack = pub.track; entry.cameraMuted = pub.isMuted; }
         else if (pub.source === Track.Source.Microphone) { entry.micTrack = pub.track; entry.micMuted = pub.isMuted; }
         else if (pub.source === Track.Source.ScreenShare) { entry.screenTrack = pub.track; }
@@ -530,8 +587,21 @@ export function LiveMeetingProvider({ children }) {
     if (!room) return;
     try {
       if (screenOn) {
-        await room.localParticipant.setScreenShareEnabled(false);
+        // FIX: previously this awaited `setScreenShareEnabled(false)`
+        // before touching any state, and the layout only updated once
+        // the LiveKit "LocalTrackUnpublished" event round-tripped back
+        // through syncParticipants(). That round trip is what made the
+        // UI feel slow to "snap back" to the normal grid after ending a
+        // share (see the reported delay). We now flip `screenOn` and
+        // optimistically clear the local participant's screenTrack
+        // immediately — before the await — so the spotlight/grid
+        // layout switches back the instant the button is pressed. The
+        // real unpublish still happens right after; syncParticipants()
+        // in `finally` reconciles with the real LiveKit state either
+        // way, so this can't get out of sync.
         setScreenOn(false);
+        setParticipants((prev) => prev.map((p) => (p.isLocal ? { ...p, screenTrack: null } : p)));
+        await room.localParticipant.setScreenShareEnabled(false);
       } else {
         const pub = await room.localParticipant.setScreenShareEnabled(true);
         if (!pub) return;
@@ -539,6 +609,7 @@ export function LiveMeetingProvider({ children }) {
         pub.track?.mediaStreamTrack?.addEventListener("ended", () => {
           room.localParticipant.setScreenShareEnabled(false).catch(() => {});
           setScreenOn(false);
+          setParticipants((prev) => prev.map((p) => (p.isLocal ? { ...p, screenTrack: null } : p)));
           syncParticipants();
         });
       }

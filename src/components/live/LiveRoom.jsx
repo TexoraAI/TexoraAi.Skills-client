@@ -197,8 +197,8 @@
 //       style={{ ...S.stripTile, ...(compact ? S.stripTileCompact : {}), ...S.stripOverflow }}
 //       className="lr-strip-tile"
 //     >
-//       <span style={{ fontSize: 13, fontWeight: 700, color: "#cbd5e1" }}>+{count}</span>
-//       <span style={{ fontSize: 9, color: "#64748b", marginTop: 2 }}>others</span>
+//       <span style={{ fontSize: 13, fontWeight: 700, color: S.stripOverflowText }}>+{count}</span>
+//       <span style={{ fontSize: 9, color: S.stripOverflowSubtext, marginTop: 2 }}>others</span>
 //     </div>
 //   );
 // }
@@ -369,14 +369,27 @@
 //   // ── Reaction picker position (portal fix) ──────────────────────
 // const [reactionPickerPos, setReactionPickerPos] = useState(null);
 
+// // Approx half-width of the 6-emoji picker (36px btn + 4px gap ×6, plus
+// // padding) — used to clamp the popup so it never overflows the left/
+// // right edge of narrow phones (iPhone SE, Pixel, folded devices) when
+// // the React button sits near a screen edge or the control bar is
+// // scrolled.
+// const REACTION_PICKER_HALF_WIDTH = 130;
+// const VIEWPORT_EDGE_MARGIN = 8;
+
 // const updateReactionPickerPos = useCallback(() => {
 //   const btn = reactionBtnRef.current;
 //   if (!btn) return;
 
 //   const rect = btn.getBoundingClientRect();
+//   const rawLeft = rect.left + rect.width / 2;
+//   const clampedLeft = Math.min(
+//     Math.max(rawLeft, REACTION_PICKER_HALF_WIDTH + VIEWPORT_EDGE_MARGIN),
+//     window.innerWidth - REACTION_PICKER_HALF_WIDTH - VIEWPORT_EDGE_MARGIN,
+//   );
 
 //   setReactionPickerPos({
-//     left: rect.left + rect.width / 2,
+//     left: clampedLeft,
 //     bottom: window.innerHeight - rect.top + 10,
 //   });
 // }, []);
@@ -545,9 +558,9 @@
 //     setReactionPickerOpen(false);
 //   }, [sendReaction]);
 
-// const isDark = useIsDarkTheme();
-// const headerS = useMemo(() => (isDark ? HEADER_DARK : HEADER_LIGHT), [isDark]);
-// const S = isDark ? LR_STYLES_DARK : LR_STYLES_LIGHT;
+//   const isDark = useIsDarkTheme();
+//   const headerS = useMemo(() => (isDark ? HEADER_DARK : HEADER_LIGHT), [isDark]);
+//   const S = isDark ? LR_STYLES_DARK : LR_STYLES_LIGHT;
 
 //   // NOTE: the top bar / control bar use env(safe-area-inset-*) padding
 //   // for notch and home-indicator devices. That only activates if the
@@ -556,7 +569,18 @@
 //   // wherever the app shell renders it (e.g. index.html / _document).
 
 //   return (
-//     <div style={S.root} className="lr-root">
+//     <div
+//       style={{
+//         ...S.root,
+//         // CSS custom properties so the media-query-only sidebar overlay
+//         // (tablet/mobile, see .lr-sidebar rules in <style> below) can
+//         // pick the right background/shadow for the active theme instead
+//         // of a hardcoded dark value.
+//         "--lr-sidebar-overlay-bg": S.sidebarOverlayBg,
+//         "--lr-sidebar-overlay-shadow": S.sidebarOverlayShadow,
+//       }}
+//       className="lr-root"
+//     >
 //       <VideoTrackEl videoRef={pipFallbackVideoRef} track={pipTrack} fit={pipIsScreen ? "contain" : "cover"} hidden />
 
 //       {pipWindow && createPortal(
@@ -666,7 +690,7 @@
 //           aria-label={sidebarOpen ? "Collapse side panel" : "Expand side panel"}
 //           aria-expanded={sidebarOpen}
 //         >
-//           {sidebarOpen ? <ChevronRight size={15} color="#64748b" /> : <ChevronLeft size={15} color="#64748b" />}
+//           {sidebarOpen ? <ChevronRight size={15} color={S.handleIconColor} /> : <ChevronLeft size={15} color={S.handleIconColor} />}
 //         </button>
 
 //         {sidebarOpen && (
@@ -800,7 +824,7 @@
 //                 role="menuitem"
 //                 style={S.reactionPickerBtn}
 //                 onClick={() => handleReactionSelect(emoji)}
-//                 onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,.08)"; e.currentTarget.style.transform = "translateY(-2px) scale(1.15)"; }}
+//                 onMouseEnter={(e) => { e.currentTarget.style.background = S.reactionPickerBtnHoverBg; e.currentTarget.style.transform = "translateY(-2px) scale(1.15)"; }}
 //                 onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.transform = "none"; }}
 //                 aria-label={`React with ${emoji}`}>
 //                 {emoji}
@@ -838,7 +862,7 @@
 //         @keyframes tileIn { from{opacity:0;transform:scale(0.9)} to{opacity:1;transform:scale(1)} }
 
 //         .lr-root, .lr-root * { box-sizing: border-box; }
-//         .lr-root { max-width: 100vw; }
+//         .lr-root { max-width: 100vw; overflow-x: hidden; }
 
 //         .lr-tile, .lr-strip-tile, .lr-stage, .lr-grid-tile { transition: transform 0.18s cubic-bezier(.2,.7,.3,1), box-shadow 0.18s ease, border-color .18s ease; will-change: transform; backface-visibility: hidden; }
 //         .lr-strip-tile:hover { transform: translateY(-4px) scale(1.015); box-shadow: 0 10px 26px rgba(0,0,0,0.4); border-color: rgba(255,255,255,.18) !important; }
@@ -925,9 +949,9 @@
 //             bottom: 0 !important;
 //             width: min(320px, 88vw) !important;
 //             z-index: 40;
-//             box-shadow: -12px 0 32px rgba(0,0,0,.45);
+//             box-shadow: var(--lr-sidebar-overlay-shadow, -12px 0 32px rgba(0,0,0,.45));
 //             animation: slideIn .28s cubic-bezier(.16,1,.3,1);
-//             background: rgba(11,13,18,.82) !important;
+//             background: var(--lr-sidebar-overlay-bg, rgba(11,13,18,.82)) !important;
 //             backdrop-filter: blur(20px);
 //             -webkit-backdrop-filter: blur(20px);
 //           }
@@ -981,6 +1005,19 @@
 //           .lr-topbar { padding: 6px max(8px, env(safe-area-inset-right)) 6px max(8px, env(safe-area-inset-left)) !important; }
 //         }
 
+//         /* ---- Ultra-small: folded phones (Galaxy Z Fold cover screen),
+//            very old/small Android devices, smallest possible viewports.
+//            Shrinks touch targets from 56px down to a still-tappable 44px
+//            and tightens every gap so nothing gets clipped or forces
+//            horizontal scroll on the page itself. ---- */
+//         @media (max-width: 340px) {
+//           .lr-ctrlbar { gap: 4px !important; }
+//           .lr-ctrl-btn { padding: 6px !important; border-radius: 12px !important; min-width: 44px !important; min-height: 44px !important; }
+//           .lr-stagecolumn { padding: 4px !important; gap: 4px !important; }
+//           .lr-filmstrip { padding: 4px 6px !important; gap: 4px !important; }
+//           .lr-sidebar { width: 100vw !important; }
+//         }
+
 //         @media (max-width: 420px) {
 //           .lr-toast { min-width: unset !important; width: 92vw !important; padding: 10px 14px !important; }
 //         }
@@ -990,6 +1027,8 @@
 //           .lr-ctrlbar { padding: 6px max(12px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)) !important; }
 //           .lr-ctrl-btn { padding: 6px 10px !important; gap: 2px !important; }
 //           .lr-sidebar { width: min(280px, 70vw) !important; }
+//           .lr-stagecolumn { padding: 6px !important; gap: 6px !important; }
+//           .lr-filmstrip { padding: 4px !important; gap: 6px !important; }
 //         }
 
 //         @media (prefers-reduced-motion: reduce) {
@@ -1010,13 +1049,19 @@
 //   </div>
 // );
 
+// // Button colors now come entirely from the S (theme) object instead of
+// // being hardcoded for a dark background -- this is what made every
+// // control-bar icon/label (Mic, Camera, Present, Chat, People, etc.)
+// // nearly invisible in light mode. Dark-mode token values below are
+// // byte-for-byte the old hardcoded values, so dark mode is unchanged.
 // const Btn = ({ icon, label, active, danger, leave, badge, onClick, btnRef, pressed, ariaHasPopup, ariaExpanded, S }) => {
 //   const [hov, setHov] = useState(false);
-//   const bg = leave ? (hov ? "#dc2626" : "#ef4444")
-//     : danger ? (hov ? "#991b1b" : "#7f1d1d")
-//     : active ? (hov ? "rgba(109,94,247,.34)" : "rgba(109,94,247,.20)")
-//     : (hov ? "rgba(255,255,255,.10)" : "rgba(255,255,255,.05)");
-//   const col = leave ? "#fff" : danger ? "#fca5a5" : active ? "#c4b8ff" : "#cbd5e1";
+//   const bg = leave ? (hov ? S.btnLeaveBgHover : S.btnLeaveBg)
+//     : danger ? (hov ? S.btnDangerBgHover : S.btnDangerBg)
+//     : active ? (hov ? S.btnActiveBgHover : S.btnActiveBg)
+//     : (hov ? S.btnBgHover : S.btnBg);
+//   const col = leave ? S.btnLeaveCol : danger ? S.btnDangerCol : active ? S.btnActiveCol : S.btnCol;
+//   const border = danger ? S.btnDangerBorder : active ? S.btnActiveBorder : S.btnBorder;
 //   return (
 //     <div style={{ position: "relative", flexShrink: 0 }}>
 //       <button
@@ -1031,7 +1076,7 @@
 //         aria-expanded={ariaExpanded}
 //         style={{
 //           display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: bg, color: col,
-//           border: danger ? "1px solid rgba(239,68,68,.3)" : active ? "1px solid rgba(109,94,247,.45)" : "1px solid rgba(255,255,255,.06)",
+//           border: `1px solid ${border}`,
 //           borderRadius: 14, padding: "10px 16px", cursor: "pointer", fontSize: 10, fontWeight: 600,
 //           fontFamily: "inherit", letterSpacing: 0.2, flexShrink: 0,
 //           boxShadow: active ? "0 0 0 1px rgba(109,94,247,.25), 0 6px 16px -4px rgba(109,94,247,.35)" : "none",
@@ -1101,7 +1146,35 @@
 
 //   reactionPicker: { position: "absolute", bottom: "calc(100% + 10px)", left: "50%", transform: "translateX(-50%)", display: "flex", gap: 4, padding: "8px 10px", background: "#111111", border: "1px solid rgba(255,255,255,.06)", borderRadius: 999, boxShadow: "0 4px 24px rgba(0,0,0,.40)", zIndex: 50, animation: "slideUp .16s ease" },
 //   reactionPickerBtn: { width: 36, height: 36, border: "none", background: "transparent", fontSize: 19, cursor: "pointer", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", transition: "background .15s, transform .15s" },
+//   reactionPickerBtnHoverBg: "rgba(255,255,255,.08)",
 //   ctrlBadge: { position: "absolute", top: -4, right: -4, background: "#6d5ef7", color: "#fff", fontSize: 9, fontWeight: 800, borderRadius: 8, padding: "1px 5px", border: "2px solid #0a0a0a", lineHeight: 1.3 },
+
+//   // Control-bar button tokens (see Btn component). Identical to the old
+//   // hardcoded values so dark mode is visually unchanged.
+//   btnBg: "rgba(255,255,255,.05)",
+//   btnBgHover: "rgba(255,255,255,.10)",
+//   btnCol: "#cbd5e1",
+//   btnBorder: "rgba(255,255,255,.06)",
+//   btnActiveBg: "rgba(109,94,247,.20)",
+//   btnActiveBgHover: "rgba(109,94,247,.34)",
+//   btnActiveCol: "#c4b8ff",
+//   btnActiveBorder: "rgba(109,94,247,.45)",
+//   btnDangerBg: "#7f1d1d",
+//   btnDangerBgHover: "#991b1b",
+//   btnDangerCol: "#fca5a5",
+//   btnDangerBorder: "rgba(239,68,68,.3)",
+//   btnLeaveBg: "#ef4444",
+//   btnLeaveBgHover: "#dc2626",
+//   btnLeaveCol: "#fff",
+
+//   handleIconColor: "#64748b",
+//   stripOverflowText: "#cbd5e1",
+//   stripOverflowSubtext: "#64748b",
+
+//   // Tablet/mobile sidebar overlay (see .lr-sidebar media query below).
+//   // Same value as the old hardcoded dark rgba, so dark mode is unchanged.
+//   sidebarOverlayBg: "rgba(11,13,18,.82)",
+//   sidebarOverlayShadow: "-12px 0 32px rgba(0,0,0,.45)",
 
 //   mainArea: { flex: 1, display: "flex", overflow: "hidden", position: "relative", minWidth: 0 },
 //   stageColumn: { flex: 1, display: "flex", flexDirection: "column", gap: 14, padding: 18, overflow: "hidden", minWidth: 0, position: "relative", maxWidth: 1800, width: "100%", margin: "0 auto" },
@@ -1173,9 +1246,9 @@
 //   youTag: { fontSize: 10, background: "rgba(52,211,153,.12)", color: "#6ee7b7", padding: "2px 8px", borderRadius: 6, fontWeight: 600, flexShrink: 0 },
 
 //   settingsOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 },
-//   settingsPanel: { width: 320, maxWidth: "100%", background: "#111111", border: "1px solid rgba(255,255,255,.06)", borderRadius: 16, overflow: "hidden", boxShadow: "0 4px 24px rgba(0,0,0,.40)" },
-//   settingsHead: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,.06)" },
-//   settingsBody: { padding: 16, display: "flex", flexDirection: "column", gap: 12 },
+//   settingsPanel: { width: 320, maxWidth: "100%", maxHeight: "90vh", background: "#111111", border: "1px solid rgba(255,255,255,.06)", borderRadius: 16, overflow: "hidden", boxShadow: "0 4px 24px rgba(0,0,0,.40)", display: "flex", flexDirection: "column" },
+//   settingsHead: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,.06)", flexShrink: 0 },
+//   settingsBody: { padding: 16, display: "flex", flexDirection: "column", gap: 12, overflowY: "auto" },
 //   settingsRow: { display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13, color: "#e2e8f0" },
 //   settingsToggle: { border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.05)", color: "#94a3b8", borderRadius: 20, padding: "5px 14px", fontSize: 11, fontWeight: 700, cursor: "pointer" },
 //   settingsToggleOn: { background: "rgba(109,94,247,.22)", borderColor: "rgba(109,94,247,.4)", color: "#b7aefc" },
@@ -1193,7 +1266,37 @@
 
 //   reactionPicker: { position: "absolute", bottom: "calc(100% + 10px)", left: "50%", transform: "translateX(-50%)", display: "flex", gap: 4, padding: "8px 10px", background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 999, boxShadow: "0 12px 32px rgba(15,23,42,.18)", zIndex: 50, animation: "slideUp .16s ease" },
 //   reactionPickerBtn: { width: 36, height: 36, border: "none", background: "transparent", fontSize: 19, cursor: "pointer", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", transition: "background .15s, transform .15s" },
+//   reactionPickerBtnHoverBg: "rgba(15,23,42,.06)",
 //   ctrlBadge: { position: "absolute", top: -4, right: -4, background: "#6d5ef7", color: "#fff", fontSize: 9, fontWeight: 800, borderRadius: 8, padding: "1px 5px", border: "2px solid #f8f9fc", lineHeight: 1.3 },
+
+//   // Control-bar button tokens (see Btn component). WCAG-friendly on the
+//   // light surface -- this is the fix for the "text/icons too light in
+//   // light mode" bug.
+//   btnBg: "#f1f5f9",
+//   btnBgHover: "#e2e8f0",
+//   btnCol: "#475569",
+//   btnBorder: "#e2e8f0",
+//   btnActiveBg: "rgba(109,94,247,.12)",
+//   btnActiveBgHover: "rgba(109,94,247,.20)",
+//   btnActiveCol: "#6d5ef7",
+//   btnActiveBorder: "rgba(109,94,247,.35)",
+//   btnDangerBg: "rgba(239,68,68,.08)",
+//   btnDangerBgHover: "rgba(239,68,68,.16)",
+//   btnDangerCol: "#dc2626",
+//   btnDangerBorder: "rgba(239,68,68,.3)",
+//   btnLeaveBg: "#ef4444",
+//   btnLeaveBgHover: "#dc2626",
+//   btnLeaveCol: "#fff",
+
+//   handleIconColor: "#64748b",
+//   stripOverflowText: "#475569",
+//   stripOverflowSubtext: "#8a8fa3",
+
+//   // Tablet/mobile sidebar overlay (see .lr-sidebar media query below).
+//   // Fixes the bug where the overlay stayed dark on tablet/phone widths
+//   // even in light mode, making light-mode text unreadable.
+//   sidebarOverlayBg: "rgba(255,255,255,.92)",
+//   sidebarOverlayShadow: "-12px 0 32px rgba(15,23,42,.18)",
 
 //   mainArea: { flex: 1, display: "flex", overflow: "hidden", position: "relative", minWidth: 0 },
 //   stageColumn: { flex: 1, display: "flex", flexDirection: "column", gap: 14, padding: 18, overflow: "hidden", minWidth: 0, position: "relative", maxWidth: 1800, width: "100%", margin: "0 auto" },
@@ -1265,9 +1368,9 @@
 //   youTag: { fontSize: 10, background: "rgba(22,163,74,.12)", color: "#15803d", padding: "2px 8px", borderRadius: 6, fontWeight: 600, flexShrink: 0 },
 
 //   settingsOverlay: { position: "fixed", inset: 0, background: "rgba(15,23,42,.4)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 },
-//   settingsPanel: { width: 320, maxWidth: "100%", background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 16, overflow: "hidden", boxShadow: "0 20px 60px rgba(15,23,42,.18)" },
-//   settingsHead: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderBottom: "1px solid #e2e8f0" },
-//   settingsBody: { padding: 16, display: "flex", flexDirection: "column", gap: 12 },
+//   settingsPanel: { width: 320, maxWidth: "100%", maxHeight: "90vh", background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 16, overflow: "hidden", boxShadow: "0 20px 60px rgba(15,23,42,.18)", display: "flex", flexDirection: "column" },
+//   settingsHead: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderBottom: "1px solid #e2e8f0", flexShrink: 0 },
+//   settingsBody: { padding: 16, display: "flex", flexDirection: "column", gap: 12, overflowY: "auto" },
 //   settingsRow: { display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13, color: "#16182b" },
 //   settingsToggle: { border: "1px solid #e2e8f0", background: "#f8f9fc", color: "#8a8fa3", borderRadius: 20, padding: "5px 14px", fontSize: 11, fontWeight: 700, cursor: "pointer" },
 //   settingsToggleOn: { background: "rgba(109,94,247,.12)", borderColor: "rgba(109,94,247,.35)", color: "#6d5ef7" },
@@ -1324,16 +1427,14 @@
 
 
 
-
-
-
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import {
   Mic, MicOff, Video, VideoOff, MonitorUp, MonitorOff, MonitorPlay,
-  PhoneOff, MessageSquare, Users, ChevronRight, ChevronLeft, Send, X,
+  PhoneOff, MessageSquare, Users, Send, X,
   Radio, Timer, Disc2, AlertTriangle, PictureInPicture2, Hand, Settings,
   Captions, MoreVertical, SignalHigh, SmilePlus, Bell, Crown,
+  Search, ExternalLink, Maximize2,
 } from "lucide-react";
 import { getSessionById, participantLeave } from "@/services/liveSessionService";
 import { useLiveMeeting } from "@/context/LiveMeetingContext";
@@ -1404,7 +1505,7 @@ function useIsDarkTheme() {
   return isDark;
 }
 
-function VideoTrackEl({ track, mirrored, fit = "cover", hidden, videoRef }) {
+function VideoTrackEl({ track, mirrored, fit = "cover", hidden, videoRef, bgColor = "#000" }) {
   const internalRef = useRef(null);
   useEffect(() => {
     const el = internalRef.current;
@@ -1418,7 +1519,7 @@ function VideoTrackEl({ track, mirrored, fit = "cover", hidden, videoRef }) {
       autoPlay playsInline muted
       style={hidden
         ? { position: "absolute", left: -9999, top: -9999, width: 2, height: 2, opacity: 0, pointerEvents: "none" }
-        : { width: "100%", height: "100%", objectFit: fit, transform: mirrored ? "scaleX(-1)" : "none", display: "block", background: "#000" }}
+        : { width: "100%", height: "100%", objectFit: fit, transform: mirrored ? "scaleX(-1)" : "none", display: "block", background: bgColor }}
     />
   );
 }
@@ -1532,7 +1633,7 @@ function StripOverflow({ count, compact, S }) {
   );
 }
 
-function StageTile({ p, raised, S }) {
+function StageTile({ p, raised, S, stageRef, onZoom, onPopOut, onFullscreen, isFullscreen }) {
   if (!p) {
     return (
       <div style={S.stageOuter}>
@@ -1553,17 +1654,34 @@ function StageTile({ p, raised, S }) {
     // itself stretch to fill an arbitrary (non-16:9) parent shape.
     <div style={S.stageOuter}>
       <div
+        ref={stageRef}
         style={{ ...S.stage, ...(isScreen ? S.stagePresenting : {}) }}
         className={`lr-stage${speaking ? " lr-speaking" : ""}${isScreen ? " lr-stage-presenting" : ""}`}
       >
         {hasVideo ? (
-          <VideoTrackEl track={track} mirrored={!isScreen && p.isLocal} fit={isScreen ? "contain" : "cover"} />
+          <VideoTrackEl track={track} mirrored={!isScreen && p.isLocal} fit={isScreen ? "contain" : "cover"} bgColor={isScreen ? S.stage.background : "#000"} />
         ) : (
           <div style={S.stageAvatarWrap}><div style={S.stageAvatar}>{initial}</div></div>
         )}
         
         {isScreen && (
           <div style={S.screenLabel}><MonitorPlay size={13} />{p.isLocal ? "You are presenting" : `${p.name} is presenting`}</div>
+        )}
+        {/* Screen-share hover toolbar: zoom / pop-out / full screen,
+            same idea as the floating controls Meet/Zoom show over a
+            shared-screen tile. Only shown while someone is presenting. */}
+        {isScreen && (onZoom || onPopOut || onFullscreen) && (
+          <div className="lr-stage-toolbar" style={S.stageToolbar}>
+            <button type="button" style={S.stageToolbarBtn} onClick={onZoom} title="Zoom in" aria-label="Zoom in on shared screen">
+              <Search size={15} />
+            </button>
+            <button type="button" style={S.stageToolbarBtn} onClick={onPopOut} title="Pop out" aria-label="Pop out shared screen into a floating window">
+              <ExternalLink size={15} />
+            </button>
+            <button type="button" style={S.stageToolbarBtn} onClick={onFullscreen} title={isFullscreen ? "Exit full screen" : "Full screen"} aria-label={isFullscreen ? "Exit full screen" : "Enter full screen"}>
+              <Maximize2 size={15} />
+            </button>
+          </div>
         )}
         <div style={S.stageNameTag}>
           {speaking && !p.micMuted && (
@@ -1676,6 +1794,8 @@ const LiveRoom = ({ sessionId, onSessionEnded, onLeave }) => {
   const menuPanelRef = useRef(null);
   const reactionBtnRef = useRef(null);
   const reactionPanelRef = useRef(null);
+  const ctrlBarRef = useRef(null);
+  const stageRef = useRef(null);
 
   // Sidebar starts open on desktop (docked chat, matches Meet/Zoom) but
   // collapses automatically on tablets and phones, where it becomes a
@@ -1686,6 +1806,11 @@ const LiveRoom = ({ sessionId, onSessionEnded, onLeave }) => {
     typeof window === "undefined" ? true : window.innerWidth > 1023
   );
   const [sidebarTab, setSidebarTab] = useState("chat");
+  // Docked sidebar width, adjustable by dragging the resize handle
+  // between the stage and the panel (desktop only — tablet/mobile
+  // widths are forced by CSS media queries regardless of this value).
+  const [sidebarWidth, setSidebarWidth] = useState(340);
+  const isResizingRef = useRef(false);
   const [msgInput, setMsgInput] = useState("");
   const [sessionEndedWarning, setSessionEndedWarning] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -1694,6 +1819,8 @@ const LiveRoom = ({ sessionId, onSessionEnded, onLeave }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [reactionPickerOpen, setReactionPickerOpen] = useState(false);
   const [pipWindow, setPipWindow] = useState(null);
+  const [stageFullscreen, setStageFullscreen] = useState(false);
+  const [zoomModalOpen, setZoomModalOpen] = useState(false);
   
   // ── Reaction picker position (portal fix) ──────────────────────
 const [reactionPickerPos, setReactionPickerPos] = useState(null);
@@ -1736,6 +1863,58 @@ useEffect(() => {
     window.removeEventListener("scroll", updateReactionPickerPos, true);
   };
 }, [reactionPickerOpen, updateReactionPickerPos]);
+
+  // Control bar starts scrolled to its true left edge. Combined with
+  // switching justify-content from "center" to "flex-start" once the
+  // bar overflows (see the .lr-ctrlbar media queries below), this is
+  // what fixes Mic/Camera being invisible on phones: a horizontally
+  // centered flex row that overflows hides its *leading* children
+  // outside the scrollable area in most browsers, so the first two
+  // buttons (Mic, Camera) were effectively unreachable.
+  useEffect(() => {
+    if (ctrlBarRef.current) ctrlBarRef.current.scrollLeft = 0;
+  }, []);
+
+  // ── Sidebar resize (replaces the old collapse/expand chevron) ──
+  const handleResizeStart = useCallback((e) => {
+    isResizingRef.current = true;
+    if (typeof document !== "undefined") {
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+    }
+    e.preventDefault();
+  }, []);
+
+  useEffect(() => {
+    const SIDEBAR_MIN = 280;
+    const SIDEBAR_MAX = 560;
+    const handleMove = (e) => {
+      if (!isResizingRef.current) return;
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      if (typeof clientX !== "number") return;
+      const next = Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, window.innerWidth - clientX));
+      setSidebarWidth(next);
+    };
+    const handleUp = () => {
+      if (!isResizingRef.current) return;
+      isResizingRef.current = false;
+      if (typeof document !== "undefined") {
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+      }
+    };
+    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointerup", handleUp);
+    window.addEventListener("touchmove", handleMove, { passive: false });
+    window.addEventListener("touchend", handleUp);
+    return () => {
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", handleUp);
+      window.removeEventListener("touchmove", handleMove);
+      window.removeEventListener("touchend", handleUp);
+    };
+  }, []);
+
   // The shell (DashboardLayout) always renders an empty
   // #lr-topbar-slot element inside its existing bell/avatar header
   // row. When LiveRoom mounts, it portals its LIVE/timer/REC/
@@ -1873,6 +2052,28 @@ useEffect(() => {
 
   useEffect(() => () => closePiP(), []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // --- Screen-share stage toolbar actions (zoom / pop-out / full
+  // screen) — the overlay that appears on hover over the presented
+  // screen, matching Meet/Zoom's floating controls. ---
+  const handleStageFullscreen = useCallback(() => {
+    const el = stageRef.current;
+    if (!el) return;
+    if (!document.fullscreenElement) {
+      (el.requestFullscreen?.() || Promise.resolve()).catch(() => {});
+    } else {
+      (document.exitFullscreen?.() || Promise.resolve()).catch(() => {});
+    }
+  }, []);
+
+  useEffect(() => {
+    const onFsChange = () => setStageFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onFsChange);
+    return () => document.removeEventListener("fullscreenchange", onFsChange);
+  }, []);
+
+  const handleStageZoom = useCallback(() => setZoomModalOpen(true), []);
+  const handleStagePopOut = useCallback(() => { openPiP(); }, [openPiP]);
+
   // --- Popup dismissal (fixes the "React picker closes immediately /
   // flickers / doesn't close on outside click" bug: previously there
   // was no outside-click or Escape handling at all, so the picker's
@@ -1981,7 +2182,16 @@ useEffect(() => {
             </>
           ) : (
             <>
-              <StageTile p={featured} raised={featured ? (featured.isLocal ? handRaised : !!raisedHands[featured.identity]) : false} S={S} />
+              <StageTile
+                p={featured}
+                raised={featured ? (featured.isLocal ? handRaised : !!raisedHands[featured.identity]) : false}
+                S={S}
+                stageRef={stageRef}
+                onZoom={handleStageZoom}
+                onPopOut={handleStagePopOut}
+                onFullscreen={handleStageFullscreen}
+                isFullscreen={stageFullscreen}
+              />
               {captionsOn && <div style={S.captionsBar}><Captions size={13} /><span>Live captions are enabled for this session.</span></div>}
               {(visibleStrip.length > 0 || overflowCount > 0) && (
                 <div
@@ -2010,24 +2220,27 @@ useEffect(() => {
           <EmojiFloaters floaters={floaters} S={S} />
         </div>
 
-        <button
-          type="button"
-          style={S.handle}
-          className="lr-handle"
-          onClick={() => setSidebarOpen((v) => !v)}
-          title={sidebarOpen ? "Collapse panel" : "Expand panel"}
-          aria-label={sidebarOpen ? "Collapse side panel" : "Expand side panel"}
-          aria-expanded={sidebarOpen}
-        >
-          {sidebarOpen ? <ChevronRight size={15} color={S.handleIconColor} /> : <ChevronLeft size={15} color={S.handleIconColor} />}
-        </button>
+        {sidebarOpen && (
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize side panel"
+            title="Drag to resize"
+            className="lr-resize-handle"
+            style={S.resizeHandle}
+            onPointerDown={handleResizeStart}
+            onTouchStart={handleResizeStart}
+          >
+            <span className="lr-resize-grip" style={S.resizeGrip} />
+          </div>
+        )}
 
         {sidebarOpen && (
           <div style={S.sidebarBackdrop} className="lr-sidebar-backdrop" onClick={() => setSidebarOpen(false)} aria-hidden="true" />
         )}
 
         {sidebarOpen && (
-          <div style={S.sidebar} className="lr-sidebar" role="complementary" aria-label={sidebarTab === "chat" ? "Chat panel" : "People panel"}>
+          <div style={{ ...S.sidebar, width: sidebarWidth }} className="lr-sidebar" role="complementary" aria-label={sidebarTab === "chat" ? "Chat panel" : "People panel"}>
             <div style={S.tabRow}>
               <button style={{ ...S.tab, ...(sidebarTab === "chat" ? S.tabOn : {}) }} onClick={() => setSidebarTab("chat")} aria-pressed={sidebarTab === "chat"}>
                 <MessageSquare size={15} /> Chat
@@ -2116,7 +2329,16 @@ useEffect(() => {
         </div>
       )}
 
-      <div style={S.ctrlBar} className="lr-ctrlbar" role="toolbar" aria-label="Meeting controls">
+      {zoomModalOpen && screenSharer && (
+        <div style={S.zoomOverlay} role="dialog" aria-modal="true" aria-label="Zoomed shared screen" onClick={() => setZoomModalOpen(false)}>
+          <button style={S.zoomCloseBtn} onClick={() => setZoomModalOpen(false)} aria-label="Close zoom view"><X size={20} /></button>
+          <div style={S.zoomVideoWrap} onClick={(e) => e.stopPropagation()}>
+            <VideoTrackEl track={screenSharer.screenTrack} fit="contain" bgColor="#000" />
+          </div>
+        </div>
+      )}
+
+      <div ref={ctrlBarRef} style={S.ctrlBar} className="lr-ctrlbar" role="toolbar" aria-label="Meeting controls">
         <Btn icon={micOn ? <Mic size={18} /> : <MicOff size={18} />} label="Mic" danger={!micOn} onClick={toggleMic} pressed={micOn} S={S} />
         <Btn icon={camOn ? <Video size={18} /> : <VideoOff size={18} />} label="Camera" danger={!camOn} onClick={toggleCam} pressed={camOn} S={S} />
         <Btn icon={screenOn ? <MonitorOff size={18} /> : <MonitorUp size={18} />} label="Present" active={screenOn} onClick={toggleScreen} pressed={screenOn} S={S} />
@@ -2213,6 +2435,40 @@ useEffect(() => {
         .lr-msg-row { animation: msgIn .18s ease; }
         .lr-sidebar-backdrop { display: none; }
 
+        /* Screen-share hover toolbar (zoom / pop-out / full screen).
+           Hidden until the presented tile is hovered, always visible
+           on touch devices (no hover concept) via the touch media
+           query further down. */
+        .lr-stage-toolbar { opacity: 0; transition: opacity .15s ease; }
+        .lr-stage:hover .lr-stage-toolbar,
+        .lr-stage-toolbar:focus-within { opacity: 1; }
+        @media (hover: none) {
+          .lr-stage-toolbar { opacity: .92; }
+        }
+
+        /* Resize handle (replaces the old collapse/expand chevron):
+           a hairline divider that turns into a filled accent line plus
+           a visible grip pill on hover/drag, with a col-resize cursor
+           for the whole hit area. */
+        .lr-resize-handle { position: relative; cursor: col-resize; }
+        .lr-resize-handle::before {
+          content: ""; position: absolute; top: 0; bottom: 0; left: 50%;
+          width: 1px; transform: translateX(-50%);
+          background: var(--lr-divider-color, rgba(255,255,255,.08));
+          transition: background .15s ease, width .15s ease;
+        }
+        .lr-resize-handle:hover::before,
+        .lr-resize-handle:active::before {
+          background: #6d5ef7; width: 2px;
+        }
+        .lr-resize-grip { opacity: 0; transition: opacity .15s ease; }
+        .lr-resize-handle:hover .lr-resize-grip,
+        .lr-resize-handle:active .lr-resize-grip {
+          opacity: 1;
+        }
+        @media (hover: none) {
+          .lr-resize-grip { opacity: .85; }
+        }
 
         /* Keyboard-accessible focus rings everywhere, without adding a
            visible ring on mouse/touch interaction. */
@@ -2293,7 +2549,9 @@ useEffect(() => {
             z-index: 30;
             animation: fadeIn .18s ease;
           }
-          .lr-handle { display: none !important; }
+          /* Resizing only makes sense for the docked desktop sidebar;
+             on tablet/mobile the panel is a fixed-width overlay. */
+          .lr-resize-handle { display: none !important; }
         }
 
         /* ---- Mobile: sidebar is a full-screen overlay ---- */
@@ -2313,6 +2571,14 @@ useEffect(() => {
           .lr-ctrlbar { padding: 10px max(14px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)) !important; }
           .lr-ctrl-btn { padding: 8px 12px !important; }
           .lr-stagecolumn { padding: 10px !important; gap: 8px !important; }
+          /* Fix: a horizontally-centered flex row that overflows hides
+             its leading children outside the reachable scroll range in
+             most browsers (scrollLeft can't go negative), so once the
+             control bar is wider than the viewport the first buttons —
+             Mic, Camera — became impossible to scroll to. Left-aligning
+             once we're in "may need to scroll" territory keeps every
+             button reachable from a scrollLeft of 0. */
+          .lr-ctrlbar { justify-content: flex-start !important; }
         }
 
         @media (max-width: 599px) {
@@ -2517,6 +2783,8 @@ const LR_STYLES_DARK = {
   stageHostTag: { position: "absolute", top: 16, right: 16, fontSize: 12, fontWeight: 700, color: "#93c5fd", background: "rgba(37,99,235,.22)", border: "1px solid rgba(96,165,250,.25)", borderRadius: 8, padding: "4px 12px" },
   stageHandBadge: { position: "absolute", top: 60, left: 16, display: "flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 700, color: "#1a1a1a", background: "#fbbf24", borderRadius: 8, padding: "5px 10px", boxShadow: "0 4px 14px rgba(251,191,36,.4)", animation: "recBlink 1.4s infinite" },
   screenLabel: { position: "absolute", top: 16, left: 16, display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "#fff", background: "rgba(0,0,0,.55)", borderRadius: 8, padding: "5px 10px" },
+  stageToolbar: { position: "absolute", top: 16, right: 16, display: "flex", alignItems: "center", gap: 4, background: "rgba(0,0,0,.55)", borderRadius: 10, padding: 4, zIndex: 6 },
+  stageToolbarBtn: { width: 30, height: 30, borderRadius: 7, border: "none", background: "transparent", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" },
   captionsBar: { display: "flex", alignItems: "center", gap: 8, background: "#111111", border: "1px solid rgba(255,255,255,.06)", borderRadius: 10, padding: "8px 14px", fontSize: 12, color: "#e2e8f0", flexShrink: 0 },
   floaterLayer: { position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" },
   floaterEmoji: { position: "absolute", bottom: 20, fontSize: 30, animation: "floatUp 2.4s ease-out forwards" },
@@ -2540,7 +2808,8 @@ const LR_STYLES_DARK = {
   gridHostTag: { position: "absolute", top: 10, right: 10, fontSize: 10, fontWeight: 700, color: "#93c5fd", background: "rgba(37,99,235,.22)", border: "1px solid rgba(96,165,250,.25)", borderRadius: 6, padding: "3px 8px" },
   gridHandBadge: { position: "absolute", top: 10, left: 10, width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", background: "#fbbf24", borderRadius: "50%", boxShadow: "0 4px 14px rgba(251,191,36,.4)", animation: "recBlink 1.4s infinite" },
 
-  handle: { width: 22, display: "flex", alignItems: "center", justifyContent: "center", background: "#111111", border: "none", borderLeft: "1px solid rgba(255,255,255,.06)", cursor: "pointer", flexShrink: 0, padding: 0 },
+  resizeHandle: { width: 14, display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", flexShrink: 0, padding: 0 },
+  resizeGrip: { width: 5, height: 44, borderRadius: 4, background: "rgba(255,255,255,.22)", boxShadow: "0 0 0 1px rgba(0,0,0,.3)", display: "block" },
   sidebar: { width: 340, background: "#111111", borderLeft: "1px solid rgba(255,255,255,.06)", display: "flex", flexDirection: "column", flexShrink: 0, minWidth: 0 },
   sidebarBackdrop: { display: "none" },
   tabRow: { display: "flex", alignItems: "center", gap: 6, padding: "12px 14px", borderBottom: "1px solid rgba(255,255,255,.06)", flexShrink: 0 },
@@ -2581,6 +2850,10 @@ const LR_STYLES_DARK = {
   settingsRow: { display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13, color: "#e2e8f0" },
   settingsToggle: { border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.05)", color: "#94a3b8", borderRadius: 20, padding: "5px 14px", fontSize: 11, fontWeight: 700, cursor: "pointer" },
   settingsToggleOn: { background: "rgba(109,94,247,.22)", borderColor: "rgba(109,94,247,.4)", color: "#b7aefc" },
+
+  zoomOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,.92)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 },
+  zoomCloseBtn: { position: "absolute", top: 18, right: 18, width: 38, height: 38, borderRadius: "50%", border: "1px solid rgba(255,255,255,.14)", background: "rgba(255,255,255,.08)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" },
+  zoomVideoWrap: { width: "100%", height: "100%", maxWidth: 1600, borderRadius: 12, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" },
 
   ctrlBar: { display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "14px max(20px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left))", background: "#111111", borderTop: "1px solid rgba(255,255,255,.06)", flexShrink: 0, overflowX: "auto", flexWrap: "nowrap" },
 };
@@ -2639,6 +2912,8 @@ const LR_STYLES_LIGHT = {
   stageHostTag: { position: "absolute", top: 16, right: 16, fontSize: 12, fontWeight: 700, color: "#1d4ed8", background: "rgba(37,99,235,.12)", border: "1px solid rgba(37,99,235,.2)", borderRadius: 8, padding: "4px 12px" },
   stageHandBadge: { position: "absolute", top: 60, left: 16, display: "flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 700, color: "#1a1a1a", background: "#fbbf24", borderRadius: 8, padding: "5px 10px", boxShadow: "0 4px 14px rgba(251,191,36,.4)", animation: "recBlink 1.4s infinite" },
   screenLabel: { position: "absolute", top: 16, left: 16, display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "#fff", background: "rgba(0,0,0,.6)", borderRadius: 8, padding: "5px 10px" },
+  stageToolbar: { position: "absolute", top: 16, right: 16, display: "flex", alignItems: "center", gap: 4, background: "rgba(15,23,42,.55)", borderRadius: 10, padding: 4, zIndex: 6 },
+  stageToolbarBtn: { width: 30, height: 30, borderRadius: 7, border: "none", background: "transparent", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" },
   captionsBar: { display: "flex", alignItems: "center", gap: 8, background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 10, padding: "8px 14px", fontSize: 12, color: "#16182b", flexShrink: 0 },
   floaterLayer: { position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" },
   floaterEmoji: { position: "absolute", bottom: 20, fontSize: 30, animation: "floatUp 2.4s ease-out forwards" },
@@ -2662,7 +2937,8 @@ const LR_STYLES_LIGHT = {
   gridHostTag: { position: "absolute", top: 10, right: 10, fontSize: 10, fontWeight: 700, color: "#1d4ed8", background: "rgba(37,99,235,.12)", border: "1px solid rgba(37,99,235,.2)", borderRadius: 6, padding: "3px 8px" },
   gridHandBadge: { position: "absolute", top: 10, left: 10, width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", background: "#fbbf24", borderRadius: "50%", boxShadow: "0 4px 14px rgba(251,191,36,.4)", animation: "recBlink 1.4s infinite" },
 
-  handle: { width: 22, display: "flex", alignItems: "center", justifyContent: "center", background: "#ffffff", border: "none", borderLeft: "1px solid #e2e8f0", cursor: "pointer", flexShrink: 0, padding: 0 },
+  resizeHandle: { width: 14, display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", flexShrink: 0, padding: 0 },
+  resizeGrip: { width: 5, height: 44, borderRadius: 4, background: "#cbd5e1", boxShadow: "0 0 0 1px rgba(15,23,42,.08)", display: "block" },
   sidebar: { width: 340, background: "#ffffff", borderLeft: "1px solid #e2e8f0", display: "flex", flexDirection: "column", flexShrink: 0, minWidth: 0 },
   sidebarBackdrop: { display: "none" },
   tabRow: { display: "flex", alignItems: "center", gap: 6, padding: "12px 14px", borderBottom: "1px solid #e2e8f0", flexShrink: 0 },
@@ -2703,6 +2979,10 @@ const LR_STYLES_LIGHT = {
   settingsRow: { display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13, color: "#16182b" },
   settingsToggle: { border: "1px solid #e2e8f0", background: "#f8f9fc", color: "#8a8fa3", borderRadius: 20, padding: "5px 14px", fontSize: 11, fontWeight: 700, cursor: "pointer" },
   settingsToggleOn: { background: "rgba(109,94,247,.12)", borderColor: "rgba(109,94,247,.35)", color: "#6d5ef7" },
+
+  zoomOverlay: { position: "fixed", inset: 0, background: "rgba(15,23,42,.92)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 },
+  zoomCloseBtn: { position: "absolute", top: 18, right: 18, width: 38, height: 38, borderRadius: "50%", border: "1px solid rgba(255,255,255,.2)", background: "rgba(255,255,255,.12)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" },
+  zoomVideoWrap: { width: "100%", height: "100%", maxWidth: 1600, borderRadius: 12, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" },
 
   ctrlBar: { display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "14px max(20px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left))", background: "#ffffff", borderTop: "1px solid #e2e8f0", flexShrink: 0, overflowX: "auto", flexWrap: "nowrap" },
 };

@@ -10,38 +10,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Build React App
-        run: npm run build
-
-      - name: Deploy Files to EC2
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          source: "dist/"
-          target: "/home/ec2-user/"
-
-      - name: Setup and restart Apache
+      - name: Deploy and Build on EC2
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            cd TexoraAi.Skills-client
+            git fetch origin
+            git reset --hard origin/main
+            rm -rf dist
+            export NODE_OPTIONS="--max-old-space-size=2048"
+            npm install
+            npm run build
             sudo rm -rf /var/www/html/*
-            sudo cp -r /home/ec2-user/dist/* /var/www/html/
-            sudo rm -rf /home/ec2-user/dist
+            sudo cp -r dist/* /var/www/html/
             sudo bash -c 'printf "Options -MultiViews\nRewriteEngine On\nRewriteCond %%{REQUEST_FILENAME} !-f\nRewriteRule ^ index.html [QL]\n" > /var/www/html/.htaccess'
             sudo systemctl restart httpd

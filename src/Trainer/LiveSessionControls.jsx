@@ -3060,7 +3060,6 @@ const DEVICE_CONFIG = {
     ctrlCompact: true,
     hideClassName: true,
     hideHeaderExtras: true,
-    gridMinTile: 130,
   },
   phoneLg: {
     filmstripTile: { width: 92, height: 92 },
@@ -3068,7 +3067,6 @@ const DEVICE_CONFIG = {
     ctrlCompact: true,
     hideClassName: true,
     hideHeaderExtras: true,
-    gridMinTile: 150,
   },
   tablet: {
     filmstripTile: { width: 112, height: 112 },
@@ -3076,7 +3074,6 @@ const DEVICE_CONFIG = {
     ctrlCompact: false,
     hideClassName: false,
     hideHeaderExtras: false,
-    gridMinTile: 220,
   },
   laptop: {
     filmstripTile: { width: 118, height: 118 },
@@ -3084,7 +3081,6 @@ const DEVICE_CONFIG = {
     ctrlCompact: false,
     hideClassName: false,
     hideHeaderExtras: false,
-    gridMinTile: 240,
   },
   desktop: {
     filmstripTile: { width: 128, height: 128 },
@@ -3092,7 +3088,6 @@ const DEVICE_CONFIG = {
     ctrlCompact: false,
     hideClassName: false,
     hideHeaderExtras: false,
-    gridMinTile: 260,
   },
 };
 
@@ -3210,10 +3205,6 @@ const LiveSessionControls = () => {
   const [floaters, setFloaters] = useState([]);
   const floaterIdRef = useRef(0);
 
-  // ── Active-speaker tracking (Meet/Zoom style border highlight). Backed
-  // by LiveKit's own ActiveSpeakersChanged event — no polling, no guessing.
-  const [activeSpeakerIds, setActiveSpeakerIds] = useState(() => new Set());
-
   const { w: viewportW, device, cfg: deviceCfg } = useResponsiveDevice();
   const isCompactDevice = device === "phone" || device === "phoneLg";
   const [messages, setMessages] = useState(() => [
@@ -3247,13 +3238,8 @@ const LiveSessionControls = () => {
   const [openParticipantMenuId, setOpenParticipantMenuId] = useState(null);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [viewMenuOpen, setViewMenuOpen] = useState(false);
-  // "Spotlight On" = one big main tile + filmstrip (Meet's pinned view).
-  // "Tile view" = an even responsive gallery grid of every participant,
-  // Meet's default "Grid view". Both are real render paths now — see
-  // the JSX below — not just a label toggle.
   const [spotlightOn, setSpotlightOn] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [stageFullscreen, setStageFullscreen] = useState(false);
   const [settingsQuickOpen, setSettingsQuickOpen] = useState(false);
   const [pendingRequests, setPendingRequests] = useState([]); // [{identity, name, time}]
   const pendingIdentitiesRef = useRef(new Set());
@@ -3263,7 +3249,6 @@ const LiveSessionControls = () => {
   const [sidebarResizeHover, setSidebarResizeHover] = useState(false);
   const sidebarResizeRef = useRef({ startX: 0, startWidth: 320 });
   const rootRef = useRef(null);
-  const stageRef = useRef(null);
   const moreMenuBtnRef = useRef(null);
   const moreMenuPanelRef = useRef(null);
   const viewMenuBtnRef = useRef(null);
@@ -3531,16 +3516,6 @@ const LiveSessionControls = () => {
       room.on(RoomEvent.TrackUnmuted, () => rebuild());
       room.on(RoomEvent.LocalTrackPublished, () => rebuild());
       room.on(RoomEvent.LocalTrackUnpublished, () => rebuild());
-      // Active-speaker highlight, same source LiveKit's own examples use.
-      // `speakers` is an array of Participant objects currently detected
-      // as talking (local or remote) — we only need their identities.
-      room.on(RoomEvent.ActiveSpeakersChanged, (speakers) => {
-        setActiveSpeakerIds(
-          new Set(
-            speakers.map((p) => (p.isLocal ? "you" : p.identity)),
-          ),
-        );
-      });
       room.on(RoomEvent.ParticipantConnected, (p) => {
         pendingIdentitiesRef.current.add(p.identity);
         setPendingRequests((prev) =>
@@ -3664,21 +3639,8 @@ const LiveSessionControls = () => {
       rebuild();
     } else {
       try {
-        // FIX (recursive "hall of mirrors" screen share — see reported
-        // bug): sharing "This Tab" while that tab is displaying the call
-        // captures itself, then captures that capture, forever. Chrome's
-        // getDisplayMedia supports `selfBrowserSurface: "exclude"`, which
-        // removes the current tab from the picker entirely so it can't be
-        // selected by accident, plus `surfaceSwitching`/`systemAudio` to
-        // match Meet's own share-picker behavior. LiveKit's
-        // setScreenShareEnabled forwards its options object straight
-        // through to getDisplayMedia, so no other plumbing is needed.
-        // Older/non-Chromium browsers silently ignore unknown keys.
         const pub = await room.localParticipant.setScreenShareEnabled(true, {
           audio: false,
-          selfBrowserSurface: "exclude",
-          surfaceSwitching: "include",
-          systemAudio: "exclude",
         });
         if (!pub) return;
         setScreenOn(true);
@@ -3712,6 +3674,30 @@ const LiveSessionControls = () => {
     screenTile || camTiles.find((t) => t.isLocal) || camTiles[0] || null;
   const filmstripTiles = camTiles.filter((t) => t.id !== mainTile?.id);
 
+  // FIX (trainer can't see everyone): the "View" menu already offered a
+  // "Tile view" option (setSpotlightOn(false)), but nothing ever read
+  // spotlightOn to change what rendered — the stage always showed one
+  // big mainTile plus a filmstrip capped at MAX_VISIBLE_FILMSTRIP_TILES,
+  // so with more than ~7 participants the trainer physically could not
+  // see everyone at once, no matter which view was selected. Tile view
+  // is now real: a responsive Meet-style grid of every camTile. Screen
+  // share still always takes over the stage (matching Meet/Zoom/Teams,
+  // where a presentation forces speaker-style layout regardless of the
+  // viewer's chosen gallery/tile preference).
+  const useGridView = !spotlightOn && !screenTile;
+  const gridTileCount = camTiles.length;
+  const computeGridColumns = (count) => {
+    if (count <= 1) return 1;
+    if (count <= 4) return 2;
+    if (count <= 6) return 3;
+    if (count <= 9) return 3;
+    if (count <= 16) return 4;
+    return 5;
+  };
+  const gridColumns = isCompactDevice
+    ? Math.min(2, computeGridColumns(gridTileCount))
+    : computeGridColumns(gridTileCount);
+
   // Meet caps the visible filmstrip and folds the rest into a "+N" tile
   // instead of shrinking every tile as more students join. Purely a
   // display cap on top of the existing filmstripTiles list above — the
@@ -3731,15 +3717,6 @@ const LiveSessionControls = () => {
   });
   const visibleFilmstripTiles = filmstripTilesByPriority.slice(0, MAX_VISIBLE_FILMSTRIP_TILES);
   const filmstripOverflowCount = Math.max(0, filmstripTiles.length - MAX_VISIBLE_FILMSTRIP_TILES);
-
-  // ── FIX ("trainer can't see all participants"): the old layout only
-  // ever showed ONE big tile + a 6-tile-max filmstrip, with everyone else
-  // silently folded into a "+N" chip — there was no way to actually view
-  // them. "Tile view" (spotlightOn === false) now renders every camTile
-  // (no cap) in a responsive, scrollable Meet-style gallery grid instead.
-  // "Spotlight view" keeps the original single-tile + capped filmstrip,
-  // matching Meet's own Spotlight vs Grid distinction.
-  const allTilesForGrid = screenTile ? [screenTile, ...camTiles] : camTiles;
 
   const closePiP = useCallback(() => {
     setPipWindow((win) => {
@@ -3820,28 +3797,6 @@ const LiveSessionControls = () => {
       userClosedPipRef.current = false;
     }, 500);
   }, [closePiP]);
-
-  // Fullscreen just the video stage (main tile / grid), matching the
-  // Meet reference's per-tile expand icon (Image 6) rather than only
-  // offering whole-page fullscreen from the top bar.
-  const toggleStageFullscreen = useCallback(() => {
-    const el = stageRef.current;
-    if (!el) return;
-    if (!document.fullscreenElement) {
-      el.requestFullscreen?.().catch(() => {});
-    } else {
-      document.exitFullscreen?.().catch(() => {});
-    }
-  }, []);
-
-  useEffect(() => {
-    const onFsChange = () => {
-      const fsEl = document.fullscreenElement;
-      setStageFullscreen(!!fsEl && fsEl === stageRef.current);
-    };
-    document.addEventListener("fullscreenchange", onFsChange);
-    return () => document.removeEventListener("fullscreenchange", onFsChange);
-  }, []);
 
   useEffect(() => {
     performAutoEndRef.current = async (message) => {
@@ -4186,14 +4141,6 @@ const LiveSessionControls = () => {
         .ilm-tcbtn:hover{transform:translateY(-2px);filter:brightness(1.12)}
         .ilm-prow:hover{background:rgba(255,255,255,.055) !important}
         .ilm-root button{font-family:'Inter',sans-serif}
-        .ilm-stagehover{position:relative}
-        .ilm-stagehover .ilm-stage-hover-controls{opacity:0;pointer-events:none;transition:opacity .15s ease}
-        .ilm-stagehover:hover .ilm-stage-hover-controls{opacity:1;pointer-events:auto}
-        .ilm-gridtile{position:relative;border-radius:12px;overflow:hidden;background:#171A21;border:1px solid rgba(255,255,255,.08)}
-        .ilm-gridtile.ilm-speaking{border-color:#34d399;box-shadow:0 0 0 2px rgba(52,211,153,.55)}
-        .ilm-resizehandle{position:relative}
-        .ilm-resizehandle:hover::after,.ilm-resizehandle.active::after{opacity:1}
-        .ilm-resizehandle::after{content:'';position:absolute;top:50%;left:50%;width:4px;height:36px;transform:translate(-50%,-50%);border-radius:4px;background:rgba(255,255,255,.4);opacity:0;transition:opacity .15s ease}
       `}</style>
 
       {autoEndWarning && (
@@ -4352,18 +4299,53 @@ const LiveSessionControls = () => {
 
       {/* ══════════════ BODY ══════════════ */}
       <div style={S.body}>
-        <div style={S.videoArea} ref={stageRef}>
+        <div style={S.videoArea}>
           {connected ? (
             <>
-              {spotlightOn ? (
+              {useGridView ? (
+                // Google Meet–style "Tile view": every participant gets an
+                // equal tile in a responsive grid, so the trainer can always
+                // see the whole class at once instead of a capped filmstrip.
+                <div style={{ ...S.gridWrap, ...(isCompactDevice ? S.gridWrapCompact : null) }}>
+                  <div
+                    style={{
+                      ...S.videoGrid,
+                      gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
+                    }}
+                  >
+                    {camTiles.map((t) => (
+                      <div key={t.id} className="ilm-card" style={S.gridTile}>
+                        <VideoTile
+                          tile={t}
+                          device={device}
+                          handRaised={!!raisedHands[t.identity]}
+                          tileFloaters={floaters.filter((f) => f.identity === t.identity)}
+                        />
+                        {t.isLocal && (
+                          <div style={S.gridHostChip}>
+                            You (Trainer) <span style={S.hostChipBadge}>Host</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    className="ilm-hoverscale"
+                    style={{ ...S.spotlightBtn, top: 14, right: 14 }}
+                    onClick={() => setSpotlightOn(true)}
+                  >
+                    <Pin size={12} strokeWidth={2.4} />
+                    Switch to Spotlight
+                  </button>
+                </div>
+              ) : (
                 <div style={{ ...S.stageWrap, ...(isCompactDevice ? S.stageWrapCompact : null) }}>
-                  <div style={S.mainStage} className="ilm-card ilm-stagehover">
+                  <div style={S.mainStage} className="ilm-card">
                     <VideoTile
                       tile={mainTile}
                       device={device}
                       large
                       handRaised={!!raisedHands[mainTile?.identity]}
-                      speaking={!screenTile && activeSpeakerIds.has(mainTile?.identity)}
                       tileFloaters={floaters.filter((f) => f.identity === mainTile?.identity)}
                     />
                     {mainTile?.isLocal && !mainTile?.isScreen && (
@@ -4371,10 +4353,10 @@ const LiveSessionControls = () => {
                         You (Trainer) <span style={S.hostChipBadge}>Host</span>
                       </div>
                     )}
-                    {mainTile?.isScreen && (
+                    {mainTile?.isScreen && !mainTile?.isLocal && (
                       <div style={S.presentingChip}>
                         <ScreenShare size={12} strokeWidth={2.4} />
-                        {mainTile.isLocal ? "You're presenting" : mainTile.name}
+                        {mainTile.name}
                       </div>
                     )}
                     <button
@@ -4385,27 +4367,6 @@ const LiveSessionControls = () => {
                       <Pin size={12} strokeWidth={2.4} />
                       Spotlight {spotlightOn ? "On" : "Off"}
                     </button>
-                    {/* Meet-style hover controls (Image 6): zoom / pop-out /
-                        fullscreen icons that fade in only on hover, bottom
-                        right of the stage. */}
-                    <div className="ilm-stage-hover-controls" style={S.stageHoverControls}>
-                      <button
-                        className="ilm-hoverscale"
-                        style={S.stageHoverBtn}
-                        title="Pop out"
-                        onClick={() => (pipWindow ? returnToMeeting() : openPiP())}
-                      >
-                        <PictureInPicture2 size={14} strokeWidth={2.2} />
-                      </button>
-                      <button
-                        className="ilm-hoverscale"
-                        style={S.stageHoverBtn}
-                        title={stageFullscreen ? "Exit full screen" : "Full screen"}
-                        onClick={toggleStageFullscreen}
-                      >
-                        <Maximize2 size={14} strokeWidth={2.2} />
-                      </button>
-                    </div>
                   </div>
 
                   {(filmstripTiles.length > 0) && (
@@ -4432,27 +4393,24 @@ const LiveSessionControls = () => {
                               device={device}
                               small
                               handRaised={!!raisedHands[t.identity]}
-                              speaking={activeSpeakerIds.has(t.identity)}
                               tileFloaters={floaters.filter((f) => f.identity === t.identity)}
                             />
                           </div>
                         ))}
                         {filmstripOverflowCount > 0 && (
-                          <button
+                          <div
                             className="ilm-filmtile"
-                            onClick={() => setSpotlightOn(false)}
-                            title="Switch to tile view to see everyone"
                             style={{
                               ...S.filmstripTile,
                               ...S.filmstripOverflowTile,
                               width: deviceCfg.filmstripTile.width,
                               height: deviceCfg.filmstripTile.height,
-                              cursor: "pointer",
-                              border: "1px solid rgba(255,255,255,.08)",
                             }}
+                            title={`${filmstripOverflowCount} more participant${filmstripOverflowCount === 1 ? "" : "s"}`}
+                            onClick={() => setSpotlightOn(false)}
                           >
                             +{filmstripOverflowCount}
-                          </button>
+                          </div>
                         )}
                       </div>
                       <button className="ilm-hoverscale" style={S.filmArrow} onClick={() => scrollFilmstrip(1)}>
@@ -4460,56 +4418,6 @@ const LiveSessionControls = () => {
                       </button>
                     </div>
                   )}
-                </div>
-              ) : (
-                // ── "Tile view": a real, scrollable, responsive gallery
-                // grid showing EVERY participant (no 6-tile cap, no
-                // hidden "+N"). This is the direct fix for "trainer is
-                // unable to see all participants" — previously there was
-                // no render path that showed more than 1 + 6 tiles.
-                <div style={{ ...S.gridWrap, ...(isCompactDevice ? S.gridWrapCompact : null) }}>
-                  <div
-                    style={{
-                      ...S.gridGrid,
-                      gridTemplateColumns: `repeat(auto-fill, minmax(${deviceCfg.gridMinTile}px, 1fr))`,
-                    }}
-                  >
-                    {allTilesForGrid.map((t) => (
-                      <div
-                        key={t.id}
-                        className={`ilm-gridtile ${activeSpeakerIds.has(t.identity) && !t.isScreen ? "ilm-speaking" : ""}`}
-                        style={S.gridTileOuter}
-                      >
-                        <VideoTile
-                          tile={t}
-                          device={device}
-                          handRaised={!!raisedHands[t.identity]}
-                          speaking={!t.isScreen && activeSpeakerIds.has(t.identity)}
-                          tileFloaters={floaters.filter((f) => f.identity === t.identity)}
-                          fill
-                        />
-                        {t.isScreen && (
-                          <div style={S.presentingChipSm}>
-                            <ScreenShare size={11} strokeWidth={2.4} />
-                            {t.isLocal ? "You're presenting" : t.name}
-                          </div>
-                        )}
-                        {t.isLocal && !t.isScreen && (
-                          <div style={S.hostChipSm}>
-                            You <span style={S.hostChipBadge}>Host</span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  <button
-                    className="ilm-hoverscale"
-                    style={{ ...S.spotlightBtn, top: 14, right: 14 }}
-                    onClick={() => setSpotlightOn(true)}
-                  >
-                    <Pin size={12} strokeWidth={2.4} />
-                    Switch to Spotlight
-                  </button>
                 </div>
               )}
 
@@ -4583,12 +4491,18 @@ const LiveSessionControls = () => {
         </div>
 
         {sidebarOpen && (deviceCfg.sidebarMode === "panelNarrow" || deviceCfg.sidebarMode === "panelFull") && (
+          // FIX: this handle used to be a 6px-wide hit area around a bare
+          // 1px line with no visible affordance until you were already
+          // hovering it — easy to miss and hard to grab (see the reported
+          // "can't find the resize handle" screenshot). It now always shows
+          // a small rounded grip pill, like the drag handles in Meet/Zoom/
+          // Teams side-panel dividers, so it's discoverable at a glance
+          // instead of only appearing once the mouse happens to land on it.
           <div
             onMouseDown={handleSidebarResizeStart}
             onMouseEnter={() => setSidebarResizeHover(true)}
             onMouseLeave={() => setSidebarResizeHover(false)}
             title="Drag to resize"
-            className={`ilm-resizehandle${sidebarResizing ? " active" : ""}`}
             style={{
               flexShrink: 0,
               width: 10,
@@ -4597,19 +4511,23 @@ const LiveSessionControls = () => {
               cursor: "col-resize",
               zIndex: 6,
               background: "transparent",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
             <div
               style={{
-                width: 1,
-                height: "100%",
-                margin: "0 auto",
+                width: sidebarResizing || sidebarResizeHover ? 4 : 3,
+                height: 56,
+                borderRadius: 999,
                 background: sidebarResizing
                   ? "#3b82f6"
                   : sidebarResizeHover
-                    ? "rgba(255,255,255,.35)"
-                    : "rgba(255,255,255,.14)",
-                transition: "background .15s",
+                    ? "rgba(255,255,255,.55)"
+                    : "rgba(255,255,255,.18)",
+                boxShadow: sidebarResizing ? "0 0 0 4px rgba(59,130,246,.18)" : "none",
+                transition: "background .15s, width .15s, box-shadow .15s",
               }}
             />
           </div>
@@ -4997,7 +4915,7 @@ const LiveSessionControls = () => {
 const AVATAR_SIZE_BY_DEVICE = { phone: 52, phoneLg: 60, tablet: 76, laptop: 92, desktop: 108 };
 const AVATAR_FONT_BY_DEVICE = { phone: 17, phoneLg: 19, tablet: 24, laptop: 30, desktop: 36 };
 
-const VideoTile = ({ tile, small, large, fill, device = "desktop", handRaised, speaking, tileFloaters }) => {
+const VideoTile = ({ tile, small, large, device = "desktop", handRaised, tileFloaters }) => {
   const videoRef = useRef(null);
 
   useEffect(() => {
@@ -5015,12 +4933,7 @@ const VideoTile = ({ tile, small, large, fill, device = "desktop", handRaised, s
   const initials = (tile?.name || "?").trim().charAt(0).toUpperCase();
 
   return (
-    <div
-      style={{
-        ...(small ? S.filmstripVideoWrap : S.stageVideoWrap),
-        ...(speaking ? S.speakingRing : null),
-      }}
-    >
+    <div style={small ? S.filmstripVideoWrap : S.stageVideoWrap}>
       {showVideo ? (
         <video
           ref={videoRef}
@@ -5030,12 +4943,7 @@ const VideoTile = ({ tile, small, large, fill, device = "desktop", handRaised, s
           style={{
             width: "100%",
             height: "100%",
-            // Camera feeds: cover + centered so a face never looks like a
-            // stretched "flat rectangular box" regardless of the tile's
-            // aspect ratio (the reported bug). Screen shares still use
-            // "contain" so nothing gets cropped off a shared document.
             objectFit: tile.isScreen ? "contain" : "cover",
-            objectPosition: "center",
             background: "#000",
             transform: tile.isLocal && !tile.isScreen ? "scaleX(-1)" : "none",
             display: "block",
@@ -5055,7 +4963,7 @@ const VideoTile = ({ tile, small, large, fill, device = "desktop", handRaised, s
           </div>
         </div>
       )}
-      {(small || fill) && (
+      {small && (
         <span style={S.tileNameTagSm}>
           {tile?.micMuted && !tile?.isScreen && <MicOff size={9} strokeWidth={2.4} style={{ marginRight: 4 }} />}
           {tile?.name}
@@ -5454,6 +5362,39 @@ const S = {
   videoArea: { flex: 1, position: "relative", overflow: "hidden", minWidth: 0, background: "#0B0D11" },
   stageWrap: { position: "absolute", inset: 0, display: "flex", flexDirection: "column", gap: 12, padding: "16px" },
   stageWrapCompact: { padding: "8px", gap: 8 },
+  gridWrap: { position: "absolute", inset: 0, padding: "16px", overflowY: "auto" },
+  gridWrapCompact: { padding: "8px" },
+  videoGrid: {
+    display: "grid",
+    gap: 12,
+    gridAutoRows: "minmax(140px, 1fr)",
+    height: "100%",
+    alignContent: "center",
+  },
+  gridTile: {
+    position: "relative",
+    borderRadius: 16,
+    overflow: "hidden",
+    background: "#050608",
+    border: "1px solid rgba(255,255,255,.08)",
+    boxShadow: "0 12px 30px rgba(0,0,0,.35)",
+    aspectRatio: "16 / 10",
+  },
+  gridHostChip: {
+    position: "absolute",
+    top: 10,
+    left: 10,
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    background: "rgba(11,13,17,.68)",
+    backdropFilter: "blur(6px)",
+    color: "#fff",
+    fontSize: 11,
+    fontWeight: 600,
+    padding: "4px 9px",
+    borderRadius: 7,
+  },
   mainStage: {
     flex: 1,
     minHeight: 0,
@@ -5465,28 +5406,6 @@ const S = {
     boxShadow: "0 24px 56px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.02)",
   },
   stageVideoWrap: { width: "100%", height: "100%", position: "relative", background: "#000", borderRadius: 18, overflow: "hidden" },
-  speakingRing: { boxShadow: "inset 0 0 0 3px #34d399" },
-  stageHoverControls: {
-    position: "absolute",
-    bottom: 14,
-    right: 14,
-    display: "flex",
-    gap: 8,
-    zIndex: 8,
-  },
-  stageHoverBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: "50%",
-    border: "1px solid rgba(255,255,255,.14)",
-    background: "rgba(11,13,17,.72)",
-    backdropFilter: "blur(6px)",
-    color: "#E5E7EB",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    cursor: "pointer",
-  },
   hostChip: {
     position: "absolute",
     top: 14,
@@ -5501,22 +5420,6 @@ const S = {
     fontWeight: 600,
     padding: "6px 12px",
     borderRadius: 8,
-  },
-  hostChipSm: {
-    position: "absolute",
-    top: 8,
-    left: 8,
-    display: "flex",
-    alignItems: "center",
-    gap: 6,
-    background: "rgba(11,13,17,.68)",
-    backdropFilter: "blur(6px)",
-    color: "#fff",
-    fontSize: 10.5,
-    fontWeight: 600,
-    padding: "3px 8px",
-    borderRadius: 6,
-    zIndex: 3,
   },
   hostChipBadge: {
     fontSize: 10,
@@ -5544,7 +5447,6 @@ const S = {
     borderRadius: 999,
     cursor: "pointer",
     boxShadow: "0 6px 18px rgba(0,0,0,.3)",
-    zIndex: 8,
   },
   spotlightBtnOn: { color: "#93c5fd", border: "1px solid rgba(96,165,250,.4)", background: "rgba(37,99,235,.22)" },
   presentingChip: {
@@ -5563,24 +5465,6 @@ const S = {
     fontWeight: 700,
     padding: "6px 14px",
     borderRadius: 999,
-  },
-  presentingChipSm: {
-    position: "absolute",
-    top: 8,
-    left: "50%",
-    transform: "translateX(-50%)",
-    display: "flex",
-    alignItems: "center",
-    gap: 5,
-    background: "rgba(11,13,17,.72)",
-    backdropFilter: "blur(6px)",
-    border: "1px solid rgba(255,255,255,.1)",
-    color: "#fff",
-    fontSize: 10.5,
-    fontWeight: 700,
-    padding: "3px 10px",
-    borderRadius: 999,
-    zIndex: 3,
   },
   tileHandBadge: {
     position: "absolute",
@@ -5654,10 +5538,6 @@ const S = {
     fontWeight: 700,
   },
   filmstripVideoWrap: { width: "100%", height: "100%", position: "relative", background: "#171A21", borderRadius: 12, overflow: "hidden" },
-  gridWrap: { position: "absolute", inset: 0, padding: 16, overflowY: "auto" },
-  gridWrapCompact: { padding: 8 },
-  gridGrid: { display: "grid", gap: 12, alignContent: "start" },
-  gridTileOuter: { aspectRatio: "16 / 10", width: "100%" },
   audioLayer: { position: "absolute", width: 0, height: 0, overflow: "hidden" },
   hiddenAudio: { position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" },
   enableAudioBtn: {

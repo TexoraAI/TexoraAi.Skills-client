@@ -125,12 +125,18 @@
 //       ? "You (Trainer)"
 //       : participant.name || participant.identity || "Student";
 //     const baseId = isLocal ? "local" : participant.identity;
+//     // identity: the raw LiveKit identity for this participant ("you" for the
+//     // trainer, matching the key the student-side context uses for its own
+//     // hand-raise state). Used only to look up raisedHands/reaction data —
+//     // does not change any tile-building behavior above.
+//     const identity = isLocal ? "you" : participant.identity;
 
 //     camTiles.push({
 //       id: `${baseId}-cam`,
 //       name,
 //       isLocal,
 //       isHost: isLocal,
+//       identity,
 //       track: camPub && camPub.track ? camPub.track : null,
 //       videoMuted: !camPub || !!camPub.isMuted || !camPub.track,
 //       micMuted,
@@ -309,6 +315,16 @@
 //   const [screenTile, setScreenTile] = useState(null);
 //   const [remoteAudioTracks, setRemoteAudioTracks] = useState([]);
 //   const [audioBlocked, setAudioBlocked] = useState(false);
+
+//   // ── Real-time student actions (hand raise / reactions), mirrored from
+//   // LiveMeetingContext's student-side shape: raisedHands is keyed by
+//   // participant identity, floaters is a flat list of live emoji floats
+//   // each tagged with the identity that sent it so a tile can filter to
+//   // "its own" floaters. Populated from RoomEvent.DataReceived below —
+//   // this is new state only, no existing state/logic is touched.
+//   const [raisedHands, setRaisedHands] = useState({});
+//   const [floaters, setFloaters] = useState([]);
+//   const floaterIdRef = useRef(0);
 
 //   const { w: viewportW, device, cfg: deviceCfg } = useResponsiveDevice();
 //   const isCompactDevice = device === "phone" || device === "phoneLg";
@@ -638,12 +654,52 @@
 //         setPendingRequests((prev) => prev.filter((r) => r.identity !== p.identity));
 //         refreshParticipants();
 //         pushSystem(`${p.name || p.identity} left`);
+//         setRaisedHands((prev) => {
+//           if (!(p.identity in prev)) return prev;
+//           const next = { ...prev };
+//           delete next[p.identity];
+//           return next;
+//         });
 //         rebuild();
 //       });
 //       room.on(RoomEvent.DataReceived, (payload, participant) => {
 //         try {
 //           const decoded = new TextDecoder().decode(payload);
 //           const msg = JSON.parse(decoded);
+
+//           // Same data-channel contract LiveMeetingContext already listens
+//           // for on the student side: { type: "reaction", emoji } and
+//           // { type: "raiseHand", raised }. Keyed by the sender's identity
+//           // so the trainer knows exactly which student/tile it belongs to.
+//           if (msg.type === "reaction") {
+//             const identity = participant?.identity;
+//             const fId = ++floaterIdRef.current;
+//             setFloaters((prev) => [
+//               ...prev,
+//               {
+//                 id: fId,
+//                 identity,
+//                 emoji: msg.emoji,
+//                 name: participant?.name || identity || "Someone",
+//               },
+//             ]);
+//             setTimeout(() => {
+//               setFloaters((prev) => prev.filter((f) => f.id !== fId));
+//             }, 2500);
+//             return;
+//           }
+
+//           if (msg.type === "raiseHand") {
+//             const identity = participant?.identity;
+//             if (identity) {
+//               setRaisedHands((prev) => ({ ...prev, [identity]: !!msg.raised }));
+//               pushSystem(
+//                 `${participant?.name || identity} ${msg.raised ? "raised" : "lowered"} their hand`,
+//               );
+//             }
+//             return;
+//           }
+
 //           if (msg.text)
 //             setMessages((prev) => [
 //               ...prev,
@@ -738,6 +794,26 @@
 //   const mainTile =
 //     screenTile || camTiles.find((t) => t.isLocal) || camTiles[0] || null;
 //   const filmstripTiles = camTiles.filter((t) => t.id !== mainTile?.id);
+
+//   // Meet caps the visible filmstrip and folds the rest into a "+N" tile
+//   // instead of shrinking every tile as more students join. Purely a
+//   // display cap on top of the existing filmstripTiles list above — the
+//   // selection logic itself isn't touched.
+//   //
+//   // FIX: a raised hand must never be the thing that gets pushed into the
+//   // "+N" overflow tile — the trainer can't see (or lower) a hand they
+//   // can't see. So before slicing to the cap, raised-hand tiles are
+//   // stably sorted to the front (same "raised-hand-first" rule already
+//   // used for the Participants list below). Everyone else keeps their
+//   // existing relative order.
+//   const MAX_VISIBLE_FILMSTRIP_TILES = 6;
+//   const filmstripTilesByPriority = [...filmstripTiles].sort((a, b) => {
+//     const aRaised = raisedHands[a.identity] ? 1 : 0;
+//     const bRaised = raisedHands[b.identity] ? 1 : 0;
+//     return bRaised - aRaised;
+//   });
+//   const visibleFilmstripTiles = filmstripTilesByPriority.slice(0, MAX_VISIBLE_FILMSTRIP_TILES);
+//   const filmstripOverflowCount = Math.max(0, filmstripTiles.length - MAX_VISIBLE_FILMSTRIP_TILES);
 
 //   const closePiP = useCallback(() => {
 //     setPipWindow((win) => {
@@ -927,6 +1003,78 @@
 //     (p.studentEmail || "").toLowerCase().includes(participantSearch.toLowerCase()),
 //   );
 
+//   // ── Matches a DB participant row (activeDbParticipants) to its live
+//   // LiveKit camTile, so the Participants panel can show real mic/cam/
+//   // hand-raise/presenting state instead of the previous hardcoded icons.
+//   // The DB row and the LiveKit room don't share one guaranteed common id
+//   // field, so this tries every plausible match (identity/userId/studentId
+//   // first, then a case-insensitive email/name check) and just returns
+//   // null — falling back to the previous "unknown" look — if nothing
+//   // lines up. Doesn't touch camTiles/buildSnapshot's own logic.
+//   //
+//   // ⚠️ VERIFY: this is only as good as the LiveKit token's `identity`
+//   // field actually matching one of studentEmail/studentId/userId/id.
+//   // Confirm on the backend (wherever the student join token is minted,
+//   // e.g. next to startLiveSessionWithToken) which value is passed as
+//   // `identity` — if it's some other internal id, add it to the
+//   // `candidates` list below.
+//   const identityMismatchWarnedRef = useRef(false);
+//   const findLiveTileForDbParticipant = useCallback(
+//     (p) => {
+//       if (!p) return null;
+//       const candidates = [p.identity, p.userId, p.studentId, p.id]
+//         .filter(Boolean)
+//         .map(String);
+//       let tile = camTiles.find(
+//         (t) => !t.isLocal && candidates.includes(String(t.identity)),
+//       );
+//       if (!tile && p.studentEmail) {
+//         const emailLc = String(p.studentEmail).toLowerCase();
+//         tile = camTiles.find(
+//           (t) =>
+//             !t.isLocal &&
+//             (String(t.name).toLowerCase() === emailLc ||
+//               String(t.identity).toLowerCase() === emailLc),
+//         );
+//       }
+//       return tile || null;
+//     },
+//     [camTiles],
+//   );
+
+//   // Dev-time visibility only: if there are connected remote students AND
+//   // active DB participants but the matcher can't line up a single one of
+//   // them, that's a strong signal the LiveKit `identity` scheme doesn't
+//   // match studentEmail/studentId/userId/id — surfacing it loudly here
+//   // beats silently showing every row with stale fallback icons.
+//   useEffect(() => {
+//     const remoteTiles = camTiles.filter((t) => !t.isLocal);
+//     if (
+//       !identityMismatchWarnedRef.current &&
+//       remoteTiles.length > 0 &&
+//       activeDbParticipants.length > 0
+//     ) {
+//       const anyMatch = activeDbParticipants.some((p) => findLiveTileForDbParticipant(p));
+//       if (!anyMatch) {
+//         identityMismatchWarnedRef.current = true;
+//         console.warn(
+//           "[LiveSessionControls] Participants panel: couldn't match any DB participant to a live LiveKit tile. " +
+//             "Check that the join token's `identity` matches studentEmail/studentId/userId/id — " +
+//             "live mic/cam/hand-raise status will show stale fallback icons until this is fixed.",
+//         );
+//       }
+//     }
+//   }, [camTiles, activeDbParticipants, findLiveTileForDbParticipant]);
+
+//   // Raised-hand-first ordering for the Participants list, matching
+//   // Meet/Zoom trainer-panel behavior — a stable sort so participants
+//   // without a raised hand keep their existing relative order.
+//   const sortedFilteredDbParticipants = [...filteredDbParticipants].sort((a, b) => {
+//     const aRaised = raisedHands[findLiveTileForDbParticipant(a)?.identity] ? 1 : 0;
+//     const bRaised = raisedHands[findLiveTileForDbParticipant(b)?.identity] ? 1 : 0;
+//     return bRaised - aRaised;
+//   });
+
 //   /* ── Presentation-only handlers: toggle a visual flag, drop a system
 //      chat note, and (if it's something we can genuinely do — mic/cam/
 //      screen-share/recording, which already have real handlers above)
@@ -1080,6 +1228,7 @@
 //         @keyframes panelIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
 //         @keyframes chatFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 //         @keyframes menuIn{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+//         @keyframes floatUp{0%{opacity:0;transform:translateY(0) scale(.6)}15%{opacity:1;transform:translateY(-10px) scale(1)}100%{opacity:0;transform:translateY(-120px) scale(1.05)}}
 //         .ilm-hoverscale{transition:transform .15s ease,background .15s ease,border-color .15s ease}
 //         .ilm-hoverscale:hover{transform:scale(1.03)}
 //         .ilm-card{transition:all .2s ease}
@@ -1252,10 +1401,22 @@
 //             <>
 //               <div style={{ ...S.stageWrap, ...(isCompactDevice ? S.stageWrapCompact : null) }}>
 //                 <div style={S.mainStage} className="ilm-card">
-//                   <VideoTile tile={mainTile} device={device} large />
+//                   <VideoTile
+//                     tile={mainTile}
+//                     device={device}
+//                     large
+//                     handRaised={!!raisedHands[mainTile?.identity]}
+//                     tileFloaters={floaters.filter((f) => f.identity === mainTile?.identity)}
+//                   />
 //                   {mainTile?.isLocal && !mainTile?.isScreen && (
 //                     <div style={S.hostChip}>
 //                       You (Trainer) <span style={S.hostChipBadge}>Host</span>
+//                     </div>
+//                   )}
+//                   {mainTile?.isScreen && !mainTile?.isLocal && (
+//                     <div style={S.presentingChip}>
+//                       <ScreenShare size={12} strokeWidth={2.4} />
+//                       {mainTile.name}
 //                     </div>
 //                   )}
 //                   <button
@@ -1277,7 +1438,7 @@
 //                       ref={filmstripRef}
 //                       style={{ ...S.filmstrip, ...(isCompactDevice ? S.filmstripCompact : null) }}
 //                     >
-//                       {filmstripTiles.map((t) => (
+//                       {visibleFilmstripTiles.map((t) => (
 //                         <div
 //                           key={t.id}
 //                           className="ilm-filmtile"
@@ -1287,9 +1448,29 @@
 //                             height: deviceCfg.filmstripTile.height,
 //                           }}
 //                         >
-//                           <VideoTile tile={t} device={device} small />
+//                           <VideoTile
+//                             tile={t}
+//                             device={device}
+//                             small
+//                             handRaised={!!raisedHands[t.identity]}
+//                             tileFloaters={floaters.filter((f) => f.identity === t.identity)}
+//                           />
 //                         </div>
 //                       ))}
+//                       {filmstripOverflowCount > 0 && (
+//                         <div
+//                           className="ilm-filmtile"
+//                           style={{
+//                             ...S.filmstripTile,
+//                             ...S.filmstripOverflowTile,
+//                             width: deviceCfg.filmstripTile.width,
+//                             height: deviceCfg.filmstripTile.height,
+//                           }}
+//                           title={`${filmstripOverflowCount} more participant${filmstripOverflowCount === 1 ? "" : "s"}`}
+//                         >
+//                           +{filmstripOverflowCount}
+//                         </div>
+//                       )}
 //                     </div>
 //                     <button className="ilm-hoverscale" style={S.filmArrow} onClick={() => scrollFilmstrip(1)}>
 //                       <ChevronRight size={14} />
@@ -1446,7 +1627,17 @@
 //                     icon={<Hand size={16} />}
 //                     label="Lower All Hands"
 //                     tone="amber"
-//                     onClick={() => toggleTrainerFlag("handsLowered", "All raised hands lowered.", "")}
+//                     onClick={() => {
+//                       toggleTrainerFlag("handsLowered", "All raised hands lowered.", "");
+//                       // Clear the real per-participant hand-raise state the
+//                       // trainer tracks locally, so every hand badge (tile +
+//                       // Participants list) disappears immediately. The
+//                       // broadcastTrainerCommand call inside
+//                       // toggleTrainerFlag above already notifies students;
+//                       // this just makes the trainer's own view authoritative
+//                       // right away instead of waiting on echoes back.
+//                       setRaisedHands({});
+//                     }}
 //                   />
 //                   <TCBtn
 //                     icon={<MessageSquareOff size={16} />}
@@ -1569,7 +1760,12 @@
 //                     {camOn ? <Video size={13} color="#8b90a0" /> : <VideoOff size={13} color="#f87171" />}
 //                   </div>
 
-//                   {filteredDbParticipants.map((p) => (
+//                   {sortedFilteredDbParticipants.map((p) => {
+//                     const liveTile = findLiveTileForDbParticipant(p);
+//                     const liveIdentity = liveTile?.identity;
+//                     const isHandRaised = !!raisedHands[liveIdentity];
+//                     const isPresenting = !!(screenTile && screenTile.id === `${liveIdentity}-screen`);
+//                     return (
 //                     <div key={p.id} style={{ ...S.pRow, position: "relative" }} className="ilm-prow">
 //                       <div style={{ ...S.pAv, background: "linear-gradient(135deg,#8b5cf6,#ec4899)" }}>
 //                         {(p.studentEmail?.[0] || "S").toUpperCase()}
@@ -1585,7 +1781,30 @@
 //                             : "—"}
 //                         </div>
 //                       </div>
-//                       <MicOff size={13} color="#8b90a0" />
+//                       {isHandRaised && (
+//                         <span style={S.pHandBadge} title="Hand raised">
+//                           <Hand size={12} strokeWidth={2.5} />
+//                         </span>
+//                       )}
+//                       {isPresenting && (
+//                         <ScreenShare size={13} color="#93c5fd" title="Presenting" />
+//                       )}
+//                       {liveTile ? (
+//                         liveTile.micMuted ? (
+//                           <MicOff size={13} color="#f87171" />
+//                         ) : (
+//                           <Mic size={13} color="#8b90a0" />
+//                         )
+//                       ) : (
+//                         <MicOff size={13} color="#8b90a0" />
+//                       )}
+//                       {liveTile ? (
+//                         liveTile.videoMuted ? (
+//                           <VideoOff size={13} color="#f87171" />
+//                         ) : (
+//                           <Video size={13} color="#8b90a0" />
+//                         )
+//                       ) : null}
 //                       <button
 //                         style={S.pMenuBtn}
 //                         onClick={() => setOpenParticipantMenuId((cur) => (cur === p.id ? null : p.id))}
@@ -1603,7 +1822,8 @@
 //                         />
 //                       )}
 //                     </div>
-//                   ))}
+//                     );
+//                   })}
 
 //                   {filteredDbParticipants.length === 0 && (
 //                     <div style={S.emptyPeople}>
@@ -1742,7 +1962,7 @@
 // const AVATAR_SIZE_BY_DEVICE = { phone: 52, phoneLg: 60, tablet: 76, laptop: 92, desktop: 108 };
 // const AVATAR_FONT_BY_DEVICE = { phone: 17, phoneLg: 19, tablet: 24, laptop: 30, desktop: 36 };
 
-// const VideoTile = ({ tile, small, large, device = "desktop" }) => {
+// const VideoTile = ({ tile, small, large, device = "desktop", handRaised, tileFloaters }) => {
 //   const videoRef = useRef(null);
 
 //   useEffect(() => {
@@ -1795,6 +2015,27 @@
 //           {tile?.micMuted && !tile?.isScreen && <MicOff size={9} strokeWidth={2.4} style={{ marginRight: 4 }} />}
 //           {tile?.name}
 //         </span>
+//       )}
+//       {handRaised && !tile?.isScreen && (
+//         <span style={small ? S.tileHandBadgeSm : S.tileHandBadge} title="Hand raised">
+//           <Hand size={small ? 11 : 14} strokeWidth={2.5} />
+//         </span>
+//       )}
+//       {!!tileFloaters?.length && (
+//         <div style={S.tileFloaterLayer} aria-hidden="true">
+//           {tileFloaters.map((f) => (
+//             <span
+//               key={f.id}
+//               style={{
+//                 ...S.tileFloaterEmoji,
+//                 left: `${20 + ((f.id * 37) % 60)}%`,
+//                 fontSize: small ? 16 : 28,
+//               }}
+//             >
+//               {f.emoji}
+//             </span>
+//           ))}
+//         </div>
 //       )}
 //     </div>
 //   );
@@ -2173,10 +2414,10 @@
 //     minHeight: 0,
 //     borderRadius: 18,
 //     overflow: "hidden",
-//     background: "#000",
+//     background: "#050608",
 //     position: "relative",
-//     border: "1px solid rgba(255,255,255,.06)",
-//     boxShadow: "0 20px 48px rgba(0,0,0,.35)",
+//     border: "1px solid rgba(255,255,255,.08)",
+//     boxShadow: "0 24px 56px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.02)",
 //   },
 //   stageVideoWrap: { width: "100%", height: "100%", position: "relative", background: "#000", borderRadius: 18, overflow: "hidden" },
 //   hostChip: {
@@ -2210,17 +2451,70 @@
 //     display: "flex",
 //     alignItems: "center",
 //     gap: 6,
-//     background: "rgba(11,13,17,.68)",
-//     backdropFilter: "blur(6px)",
-//     border: "1px solid rgba(255,255,255,.1)",
+//     background: "rgba(11,13,17,.58)",
+//     backdropFilter: "blur(10px)",
+//     border: "1px solid rgba(255,255,255,.12)",
 //     color: "#cbd0da",
 //     fontSize: 11.5,
 //     fontWeight: 700,
-//     padding: "6px 12px",
+//     padding: "7px 13px",
 //     borderRadius: 999,
 //     cursor: "pointer",
+//     boxShadow: "0 6px 18px rgba(0,0,0,.3)",
 //   },
-//   spotlightBtnOn: { color: "#93c5fd", border: "1px solid rgba(96,165,250,.3)" },
+//   spotlightBtnOn: { color: "#93c5fd", border: "1px solid rgba(96,165,250,.4)", background: "rgba(37,99,235,.22)" },
+//   presentingChip: {
+//     position: "absolute",
+//     top: 14,
+//     left: "50%",
+//     transform: "translateX(-50%)",
+//     display: "flex",
+//     alignItems: "center",
+//     gap: 7,
+//     background: "rgba(11,13,17,.72)",
+//     backdropFilter: "blur(6px)",
+//     border: "1px solid rgba(255,255,255,.1)",
+//     color: "#fff",
+//     fontSize: 12,
+//     fontWeight: 700,
+//     padding: "6px 14px",
+//     borderRadius: 999,
+//   },
+//   tileHandBadge: {
+//     position: "absolute",
+//     top: 14,
+//     left: 14,
+//     width: 30,
+//     height: 30,
+//     borderRadius: "50%",
+//     background: "#fbbf24",
+//     color: "#1a1a1a",
+//     display: "flex",
+//     alignItems: "center",
+//     justifyContent: "center",
+//     boxShadow: "0 4px 14px rgba(251,191,36,.45)",
+//     animation: "recBlink 1.4s infinite",
+//     zIndex: 5,
+//   },
+//   tileHandBadgeSm: {
+//     position: "absolute",
+//     top: 6,
+//     left: 6,
+//     display: "flex",
+//     alignItems: "center",
+//     gap: 3,
+//     fontSize: 9,
+//     fontWeight: 700,
+//     color: "#1a1a1a",
+//     background: "#fbbf24",
+//     borderRadius: 999,
+//     padding: "3px 5px",
+//     boxShadow: "0 2px 8px rgba(251,191,36,.45)",
+//     animation: "recBlink 1.4s infinite",
+//     zIndex: 5,
+//   },
+//   tileFloaterLayer: { position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden", zIndex: 4 },
+//   tileFloaterEmoji: { position: "absolute", bottom: 8, animation: "floatUp 2.2s ease-out forwards" },
 //   filmstripRow: { flexShrink: 0, display: "flex", alignItems: "center", gap: 8 },
 //   filmArrow: {
 //     flexShrink: 0,
@@ -2241,13 +2535,23 @@
 //     flexShrink: 0,
 //     width: 128,
 //     height: 128,
-//     borderRadius: 14,
+//     borderRadius: 12,
 //     overflow: "hidden",
 //     background: "#171A21",
-//     border: "1px solid rgba(255,255,255,.06)",
+//     border: "1px solid rgba(255,255,255,.08)",
+//     boxShadow: "0 8px 20px rgba(0,0,0,.35)",
 //     position: "relative",
 //   },
-//   filmstripVideoWrap: { width: "100%", height: "100%", position: "relative", background: "#171A21", borderRadius: 14, overflow: "hidden" },
+//   filmstripOverflowTile: {
+//     display: "flex",
+//     alignItems: "center",
+//     justifyContent: "center",
+//     background: "rgba(255,255,255,.06)",
+//     color: "#cbd0da",
+//     fontSize: 14,
+//     fontWeight: 700,
+//   },
+//   filmstripVideoWrap: { width: "100%", height: "100%", position: "relative", background: "#171A21", borderRadius: 12, overflow: "hidden" },
 //   audioLayer: { position: "absolute", width: 0, height: 0, overflow: "hidden" },
 //   hiddenAudio: { position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" },
 //   enableAudioBtn: {
@@ -2421,6 +2725,19 @@
 //   pName: { flex: 1, fontSize: 12.5, color: "#E5E7EB", fontWeight: 500 },
 //   pJoinedText: { fontSize: 10, color: "#6B7280", marginTop: 1 },
 //   hostTag: { fontSize: 9.5, background: "rgba(37,99,235,.15)", color: "#93c5fd", padding: "3px 9px", borderRadius: 999, fontWeight: 700, letterSpacing: "0.04em" },
+//   pHandBadge: {
+//     display: "flex",
+//     alignItems: "center",
+//     justifyContent: "center",
+//     width: 20,
+//     height: 20,
+//     borderRadius: "50%",
+//     background: "#fbbf24",
+//     color: "#1a1a1a",
+//     boxShadow: "0 2px 8px rgba(251,191,36,.45)",
+//     animation: "recBlink 1.4s infinite",
+//     flexShrink: 0,
+//   },
 //   pMenuBtn: { background: "none", border: "none", color: "#8b90a0", cursor: "pointer", display: "flex", padding: 2, flexShrink: 0 },
 //   participantMenu: {
 //     position: "absolute",
@@ -2496,23 +2813,6 @@
 // };
 
 // export default LiveSessionControls;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2760,6 +3060,7 @@ const DEVICE_CONFIG = {
     ctrlCompact: true,
     hideClassName: true,
     hideHeaderExtras: true,
+    gridMinTile: 130,
   },
   phoneLg: {
     filmstripTile: { width: 92, height: 92 },
@@ -2767,6 +3068,7 @@ const DEVICE_CONFIG = {
     ctrlCompact: true,
     hideClassName: true,
     hideHeaderExtras: true,
+    gridMinTile: 150,
   },
   tablet: {
     filmstripTile: { width: 112, height: 112 },
@@ -2774,6 +3076,7 @@ const DEVICE_CONFIG = {
     ctrlCompact: false,
     hideClassName: false,
     hideHeaderExtras: false,
+    gridMinTile: 220,
   },
   laptop: {
     filmstripTile: { width: 118, height: 118 },
@@ -2781,6 +3084,7 @@ const DEVICE_CONFIG = {
     ctrlCompact: false,
     hideClassName: false,
     hideHeaderExtras: false,
+    gridMinTile: 240,
   },
   desktop: {
     filmstripTile: { width: 128, height: 128 },
@@ -2788,6 +3092,7 @@ const DEVICE_CONFIG = {
     ctrlCompact: false,
     hideClassName: false,
     hideHeaderExtras: false,
+    gridMinTile: 260,
   },
 };
 
@@ -2905,6 +3210,10 @@ const LiveSessionControls = () => {
   const [floaters, setFloaters] = useState([]);
   const floaterIdRef = useRef(0);
 
+  // ── Active-speaker tracking (Meet/Zoom style border highlight). Backed
+  // by LiveKit's own ActiveSpeakersChanged event — no polling, no guessing.
+  const [activeSpeakerIds, setActiveSpeakerIds] = useState(() => new Set());
+
   const { w: viewportW, device, cfg: deviceCfg } = useResponsiveDevice();
   const isCompactDevice = device === "phone" || device === "phoneLg";
   const [messages, setMessages] = useState(() => [
@@ -2938,8 +3247,13 @@ const LiveSessionControls = () => {
   const [openParticipantMenuId, setOpenParticipantMenuId] = useState(null);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [viewMenuOpen, setViewMenuOpen] = useState(false);
+  // "Spotlight On" = one big main tile + filmstrip (Meet's pinned view).
+  // "Tile view" = an even responsive gallery grid of every participant,
+  // Meet's default "Grid view". Both are real render paths now — see
+  // the JSX below — not just a label toggle.
   const [spotlightOn, setSpotlightOn] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [stageFullscreen, setStageFullscreen] = useState(false);
   const [settingsQuickOpen, setSettingsQuickOpen] = useState(false);
   const [pendingRequests, setPendingRequests] = useState([]); // [{identity, name, time}]
   const pendingIdentitiesRef = useRef(new Set());
@@ -2949,6 +3263,7 @@ const LiveSessionControls = () => {
   const [sidebarResizeHover, setSidebarResizeHover] = useState(false);
   const sidebarResizeRef = useRef({ startX: 0, startWidth: 320 });
   const rootRef = useRef(null);
+  const stageRef = useRef(null);
   const moreMenuBtnRef = useRef(null);
   const moreMenuPanelRef = useRef(null);
   const viewMenuBtnRef = useRef(null);
@@ -3216,6 +3531,16 @@ const LiveSessionControls = () => {
       room.on(RoomEvent.TrackUnmuted, () => rebuild());
       room.on(RoomEvent.LocalTrackPublished, () => rebuild());
       room.on(RoomEvent.LocalTrackUnpublished, () => rebuild());
+      // Active-speaker highlight, same source LiveKit's own examples use.
+      // `speakers` is an array of Participant objects currently detected
+      // as talking (local or remote) — we only need their identities.
+      room.on(RoomEvent.ActiveSpeakersChanged, (speakers) => {
+        setActiveSpeakerIds(
+          new Set(
+            speakers.map((p) => (p.isLocal ? "you" : p.identity)),
+          ),
+        );
+      });
       room.on(RoomEvent.ParticipantConnected, (p) => {
         pendingIdentitiesRef.current.add(p.identity);
         setPendingRequests((prev) =>
@@ -3339,8 +3664,21 @@ const LiveSessionControls = () => {
       rebuild();
     } else {
       try {
+        // FIX (recursive "hall of mirrors" screen share — see reported
+        // bug): sharing "This Tab" while that tab is displaying the call
+        // captures itself, then captures that capture, forever. Chrome's
+        // getDisplayMedia supports `selfBrowserSurface: "exclude"`, which
+        // removes the current tab from the picker entirely so it can't be
+        // selected by accident, plus `surfaceSwitching`/`systemAudio` to
+        // match Meet's own share-picker behavior. LiveKit's
+        // setScreenShareEnabled forwards its options object straight
+        // through to getDisplayMedia, so no other plumbing is needed.
+        // Older/non-Chromium browsers silently ignore unknown keys.
         const pub = await room.localParticipant.setScreenShareEnabled(true, {
           audio: false,
+          selfBrowserSurface: "exclude",
+          surfaceSwitching: "include",
+          systemAudio: "exclude",
         });
         if (!pub) return;
         setScreenOn(true);
@@ -3393,6 +3731,15 @@ const LiveSessionControls = () => {
   });
   const visibleFilmstripTiles = filmstripTilesByPriority.slice(0, MAX_VISIBLE_FILMSTRIP_TILES);
   const filmstripOverflowCount = Math.max(0, filmstripTiles.length - MAX_VISIBLE_FILMSTRIP_TILES);
+
+  // ── FIX ("trainer can't see all participants"): the old layout only
+  // ever showed ONE big tile + a 6-tile-max filmstrip, with everyone else
+  // silently folded into a "+N" chip — there was no way to actually view
+  // them. "Tile view" (spotlightOn === false) now renders every camTile
+  // (no cap) in a responsive, scrollable Meet-style gallery grid instead.
+  // "Spotlight view" keeps the original single-tile + capped filmstrip,
+  // matching Meet's own Spotlight vs Grid distinction.
+  const allTilesForGrid = screenTile ? [screenTile, ...camTiles] : camTiles;
 
   const closePiP = useCallback(() => {
     setPipWindow((win) => {
@@ -3473,6 +3820,28 @@ const LiveSessionControls = () => {
       userClosedPipRef.current = false;
     }, 500);
   }, [closePiP]);
+
+  // Fullscreen just the video stage (main tile / grid), matching the
+  // Meet reference's per-tile expand icon (Image 6) rather than only
+  // offering whole-page fullscreen from the top bar.
+  const toggleStageFullscreen = useCallback(() => {
+    const el = stageRef.current;
+    if (!el) return;
+    if (!document.fullscreenElement) {
+      el.requestFullscreen?.().catch(() => {});
+    } else {
+      document.exitFullscreen?.().catch(() => {});
+    }
+  }, []);
+
+  useEffect(() => {
+    const onFsChange = () => {
+      const fsEl = document.fullscreenElement;
+      setStageFullscreen(!!fsEl && fsEl === stageRef.current);
+    };
+    document.addEventListener("fullscreenchange", onFsChange);
+    return () => document.removeEventListener("fullscreenchange", onFsChange);
+  }, []);
 
   useEffect(() => {
     performAutoEndRef.current = async (message) => {
@@ -3817,6 +4186,14 @@ const LiveSessionControls = () => {
         .ilm-tcbtn:hover{transform:translateY(-2px);filter:brightness(1.12)}
         .ilm-prow:hover{background:rgba(255,255,255,.055) !important}
         .ilm-root button{font-family:'Inter',sans-serif}
+        .ilm-stagehover{position:relative}
+        .ilm-stagehover .ilm-stage-hover-controls{opacity:0;pointer-events:none;transition:opacity .15s ease}
+        .ilm-stagehover:hover .ilm-stage-hover-controls{opacity:1;pointer-events:auto}
+        .ilm-gridtile{position:relative;border-radius:12px;overflow:hidden;background:#171A21;border:1px solid rgba(255,255,255,.08)}
+        .ilm-gridtile.ilm-speaking{border-color:#34d399;box-shadow:0 0 0 2px rgba(52,211,153,.55)}
+        .ilm-resizehandle{position:relative}
+        .ilm-resizehandle:hover::after,.ilm-resizehandle.active::after{opacity:1}
+        .ilm-resizehandle::after{content:'';position:absolute;top:50%;left:50%;width:4px;height:36px;transform:translate(-50%,-50%);border-radius:4px;background:rgba(255,255,255,.4);opacity:0;transition:opacity .15s ease}
       `}</style>
 
       {autoEndWarning && (
@@ -3975,88 +4352,166 @@ const LiveSessionControls = () => {
 
       {/* ══════════════ BODY ══════════════ */}
       <div style={S.body}>
-        <div style={S.videoArea}>
+        <div style={S.videoArea} ref={stageRef}>
           {connected ? (
             <>
-              <div style={{ ...S.stageWrap, ...(isCompactDevice ? S.stageWrapCompact : null) }}>
-                <div style={S.mainStage} className="ilm-card">
-                  <VideoTile
-                    tile={mainTile}
-                    device={device}
-                    large
-                    handRaised={!!raisedHands[mainTile?.identity]}
-                    tileFloaters={floaters.filter((f) => f.identity === mainTile?.identity)}
-                  />
-                  {mainTile?.isLocal && !mainTile?.isScreen && (
-                    <div style={S.hostChip}>
-                      You (Trainer) <span style={S.hostChipBadge}>Host</span>
+              {spotlightOn ? (
+                <div style={{ ...S.stageWrap, ...(isCompactDevice ? S.stageWrapCompact : null) }}>
+                  <div style={S.mainStage} className="ilm-card ilm-stagehover">
+                    <VideoTile
+                      tile={mainTile}
+                      device={device}
+                      large
+                      handRaised={!!raisedHands[mainTile?.identity]}
+                      speaking={!screenTile && activeSpeakerIds.has(mainTile?.identity)}
+                      tileFloaters={floaters.filter((f) => f.identity === mainTile?.identity)}
+                    />
+                    {mainTile?.isLocal && !mainTile?.isScreen && (
+                      <div style={S.hostChip}>
+                        You (Trainer) <span style={S.hostChipBadge}>Host</span>
+                      </div>
+                    )}
+                    {mainTile?.isScreen && (
+                      <div style={S.presentingChip}>
+                        <ScreenShare size={12} strokeWidth={2.4} />
+                        {mainTile.isLocal ? "You're presenting" : mainTile.name}
+                      </div>
+                    )}
+                    <button
+                      className="ilm-hoverscale"
+                      style={{ ...S.spotlightBtn, ...(spotlightOn ? S.spotlightBtnOn : null) }}
+                      onClick={() => setSpotlightOn((v) => !v)}
+                    >
+                      <Pin size={12} strokeWidth={2.4} />
+                      Spotlight {spotlightOn ? "On" : "Off"}
+                    </button>
+                    {/* Meet-style hover controls (Image 6): zoom / pop-out /
+                        fullscreen icons that fade in only on hover, bottom
+                        right of the stage. */}
+                    <div className="ilm-stage-hover-controls" style={S.stageHoverControls}>
+                      <button
+                        className="ilm-hoverscale"
+                        style={S.stageHoverBtn}
+                        title="Pop out"
+                        onClick={() => (pipWindow ? returnToMeeting() : openPiP())}
+                      >
+                        <PictureInPicture2 size={14} strokeWidth={2.2} />
+                      </button>
+                      <button
+                        className="ilm-hoverscale"
+                        style={S.stageHoverBtn}
+                        title={stageFullscreen ? "Exit full screen" : "Full screen"}
+                        onClick={toggleStageFullscreen}
+                      >
+                        <Maximize2 size={14} strokeWidth={2.2} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {(filmstripTiles.length > 0) && (
+                    <div style={S.filmstripRow}>
+                      <button className="ilm-hoverscale" style={S.filmArrow} onClick={() => scrollFilmstrip(-1)}>
+                        <ChevronLeft size={14} />
+                      </button>
+                      <div
+                        ref={filmstripRef}
+                        style={{ ...S.filmstrip, ...(isCompactDevice ? S.filmstripCompact : null) }}
+                      >
+                        {visibleFilmstripTiles.map((t) => (
+                          <div
+                            key={t.id}
+                            className="ilm-filmtile"
+                            style={{
+                              ...S.filmstripTile,
+                              width: deviceCfg.filmstripTile.width,
+                              height: deviceCfg.filmstripTile.height,
+                            }}
+                          >
+                            <VideoTile
+                              tile={t}
+                              device={device}
+                              small
+                              handRaised={!!raisedHands[t.identity]}
+                              speaking={activeSpeakerIds.has(t.identity)}
+                              tileFloaters={floaters.filter((f) => f.identity === t.identity)}
+                            />
+                          </div>
+                        ))}
+                        {filmstripOverflowCount > 0 && (
+                          <button
+                            className="ilm-filmtile"
+                            onClick={() => setSpotlightOn(false)}
+                            title="Switch to tile view to see everyone"
+                            style={{
+                              ...S.filmstripTile,
+                              ...S.filmstripOverflowTile,
+                              width: deviceCfg.filmstripTile.width,
+                              height: deviceCfg.filmstripTile.height,
+                              cursor: "pointer",
+                              border: "1px solid rgba(255,255,255,.08)",
+                            }}
+                          >
+                            +{filmstripOverflowCount}
+                          </button>
+                        )}
+                      </div>
+                      <button className="ilm-hoverscale" style={S.filmArrow} onClick={() => scrollFilmstrip(1)}>
+                        <ChevronRight size={14} />
+                      </button>
                     </div>
                   )}
-                  {mainTile?.isScreen && !mainTile?.isLocal && (
-                    <div style={S.presentingChip}>
-                      <ScreenShare size={12} strokeWidth={2.4} />
-                      {mainTile.name}
-                    </div>
-                  )}
+                </div>
+              ) : (
+                // ── "Tile view": a real, scrollable, responsive gallery
+                // grid showing EVERY participant (no 6-tile cap, no
+                // hidden "+N"). This is the direct fix for "trainer is
+                // unable to see all participants" — previously there was
+                // no render path that showed more than 1 + 6 tiles.
+                <div style={{ ...S.gridWrap, ...(isCompactDevice ? S.gridWrapCompact : null) }}>
+                  <div
+                    style={{
+                      ...S.gridGrid,
+                      gridTemplateColumns: `repeat(auto-fill, minmax(${deviceCfg.gridMinTile}px, 1fr))`,
+                    }}
+                  >
+                    {allTilesForGrid.map((t) => (
+                      <div
+                        key={t.id}
+                        className={`ilm-gridtile ${activeSpeakerIds.has(t.identity) && !t.isScreen ? "ilm-speaking" : ""}`}
+                        style={S.gridTileOuter}
+                      >
+                        <VideoTile
+                          tile={t}
+                          device={device}
+                          handRaised={!!raisedHands[t.identity]}
+                          speaking={!t.isScreen && activeSpeakerIds.has(t.identity)}
+                          tileFloaters={floaters.filter((f) => f.identity === t.identity)}
+                          fill
+                        />
+                        {t.isScreen && (
+                          <div style={S.presentingChipSm}>
+                            <ScreenShare size={11} strokeWidth={2.4} />
+                            {t.isLocal ? "You're presenting" : t.name}
+                          </div>
+                        )}
+                        {t.isLocal && !t.isScreen && (
+                          <div style={S.hostChipSm}>
+                            You <span style={S.hostChipBadge}>Host</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                   <button
                     className="ilm-hoverscale"
-                    style={{ ...S.spotlightBtn, ...(spotlightOn ? S.spotlightBtnOn : null) }}
-                    onClick={() => setSpotlightOn((v) => !v)}
+                    style={{ ...S.spotlightBtn, top: 14, right: 14 }}
+                    onClick={() => setSpotlightOn(true)}
                   >
                     <Pin size={12} strokeWidth={2.4} />
-                    Spotlight {spotlightOn ? "On" : "Off"}
+                    Switch to Spotlight
                   </button>
                 </div>
-
-                {(filmstripTiles.length > 0) && (
-                  <div style={S.filmstripRow}>
-                    <button className="ilm-hoverscale" style={S.filmArrow} onClick={() => scrollFilmstrip(-1)}>
-                      <ChevronLeft size={14} />
-                    </button>
-                    <div
-                      ref={filmstripRef}
-                      style={{ ...S.filmstrip, ...(isCompactDevice ? S.filmstripCompact : null) }}
-                    >
-                      {visibleFilmstripTiles.map((t) => (
-                        <div
-                          key={t.id}
-                          className="ilm-filmtile"
-                          style={{
-                            ...S.filmstripTile,
-                            width: deviceCfg.filmstripTile.width,
-                            height: deviceCfg.filmstripTile.height,
-                          }}
-                        >
-                          <VideoTile
-                            tile={t}
-                            device={device}
-                            small
-                            handRaised={!!raisedHands[t.identity]}
-                            tileFloaters={floaters.filter((f) => f.identity === t.identity)}
-                          />
-                        </div>
-                      ))}
-                      {filmstripOverflowCount > 0 && (
-                        <div
-                          className="ilm-filmtile"
-                          style={{
-                            ...S.filmstripTile,
-                            ...S.filmstripOverflowTile,
-                            width: deviceCfg.filmstripTile.width,
-                            height: deviceCfg.filmstripTile.height,
-                          }}
-                          title={`${filmstripOverflowCount} more participant${filmstripOverflowCount === 1 ? "" : "s"}`}
-                        >
-                          +{filmstripOverflowCount}
-                        </div>
-                      )}
-                    </div>
-                    <button className="ilm-hoverscale" style={S.filmArrow} onClick={() => scrollFilmstrip(1)}>
-                      <ChevronRight size={14} />
-                    </button>
-                  </div>
-                )}
-              </div>
+              )}
 
               <div style={S.audioLayer} aria-hidden="true">
                 {remoteAudioTracks.map((a) => (
@@ -4133,11 +4588,12 @@ const LiveSessionControls = () => {
             onMouseEnter={() => setSidebarResizeHover(true)}
             onMouseLeave={() => setSidebarResizeHover(false)}
             title="Drag to resize"
+            className={`ilm-resizehandle${sidebarResizing ? " active" : ""}`}
             style={{
               flexShrink: 0,
-              width: 6,
-              marginLeft: -3,
-              marginRight: -3,
+              width: 10,
+              marginLeft: -5,
+              marginRight: -5,
               cursor: "col-resize",
               zIndex: 6,
               background: "transparent",
@@ -4152,7 +4608,7 @@ const LiveSessionControls = () => {
                   ? "#3b82f6"
                   : sidebarResizeHover
                     ? "rgba(255,255,255,.35)"
-                    : "rgba(255,255,255,.1)",
+                    : "rgba(255,255,255,.14)",
                 transition: "background .15s",
               }}
             />
@@ -4541,7 +4997,7 @@ const LiveSessionControls = () => {
 const AVATAR_SIZE_BY_DEVICE = { phone: 52, phoneLg: 60, tablet: 76, laptop: 92, desktop: 108 };
 const AVATAR_FONT_BY_DEVICE = { phone: 17, phoneLg: 19, tablet: 24, laptop: 30, desktop: 36 };
 
-const VideoTile = ({ tile, small, large, device = "desktop", handRaised, tileFloaters }) => {
+const VideoTile = ({ tile, small, large, fill, device = "desktop", handRaised, speaking, tileFloaters }) => {
   const videoRef = useRef(null);
 
   useEffect(() => {
@@ -4559,7 +5015,12 @@ const VideoTile = ({ tile, small, large, device = "desktop", handRaised, tileFlo
   const initials = (tile?.name || "?").trim().charAt(0).toUpperCase();
 
   return (
-    <div style={small ? S.filmstripVideoWrap : S.stageVideoWrap}>
+    <div
+      style={{
+        ...(small ? S.filmstripVideoWrap : S.stageVideoWrap),
+        ...(speaking ? S.speakingRing : null),
+      }}
+    >
       {showVideo ? (
         <video
           ref={videoRef}
@@ -4569,7 +5030,12 @@ const VideoTile = ({ tile, small, large, device = "desktop", handRaised, tileFlo
           style={{
             width: "100%",
             height: "100%",
+            // Camera feeds: cover + centered so a face never looks like a
+            // stretched "flat rectangular box" regardless of the tile's
+            // aspect ratio (the reported bug). Screen shares still use
+            // "contain" so nothing gets cropped off a shared document.
             objectFit: tile.isScreen ? "contain" : "cover",
+            objectPosition: "center",
             background: "#000",
             transform: tile.isLocal && !tile.isScreen ? "scaleX(-1)" : "none",
             display: "block",
@@ -4589,7 +5055,7 @@ const VideoTile = ({ tile, small, large, device = "desktop", handRaised, tileFlo
           </div>
         </div>
       )}
-      {small && (
+      {(small || fill) && (
         <span style={S.tileNameTagSm}>
           {tile?.micMuted && !tile?.isScreen && <MicOff size={9} strokeWidth={2.4} style={{ marginRight: 4 }} />}
           {tile?.name}
@@ -4999,6 +5465,28 @@ const S = {
     boxShadow: "0 24px 56px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.02)",
   },
   stageVideoWrap: { width: "100%", height: "100%", position: "relative", background: "#000", borderRadius: 18, overflow: "hidden" },
+  speakingRing: { boxShadow: "inset 0 0 0 3px #34d399" },
+  stageHoverControls: {
+    position: "absolute",
+    bottom: 14,
+    right: 14,
+    display: "flex",
+    gap: 8,
+    zIndex: 8,
+  },
+  stageHoverBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: "50%",
+    border: "1px solid rgba(255,255,255,.14)",
+    background: "rgba(11,13,17,.72)",
+    backdropFilter: "blur(6px)",
+    color: "#E5E7EB",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+  },
   hostChip: {
     position: "absolute",
     top: 14,
@@ -5013,6 +5501,22 @@ const S = {
     fontWeight: 600,
     padding: "6px 12px",
     borderRadius: 8,
+  },
+  hostChipSm: {
+    position: "absolute",
+    top: 8,
+    left: 8,
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    background: "rgba(11,13,17,.68)",
+    backdropFilter: "blur(6px)",
+    color: "#fff",
+    fontSize: 10.5,
+    fontWeight: 600,
+    padding: "3px 8px",
+    borderRadius: 6,
+    zIndex: 3,
   },
   hostChipBadge: {
     fontSize: 10,
@@ -5040,6 +5544,7 @@ const S = {
     borderRadius: 999,
     cursor: "pointer",
     boxShadow: "0 6px 18px rgba(0,0,0,.3)",
+    zIndex: 8,
   },
   spotlightBtnOn: { color: "#93c5fd", border: "1px solid rgba(96,165,250,.4)", background: "rgba(37,99,235,.22)" },
   presentingChip: {
@@ -5058,6 +5563,24 @@ const S = {
     fontWeight: 700,
     padding: "6px 14px",
     borderRadius: 999,
+  },
+  presentingChipSm: {
+    position: "absolute",
+    top: 8,
+    left: "50%",
+    transform: "translateX(-50%)",
+    display: "flex",
+    alignItems: "center",
+    gap: 5,
+    background: "rgba(11,13,17,.72)",
+    backdropFilter: "blur(6px)",
+    border: "1px solid rgba(255,255,255,.1)",
+    color: "#fff",
+    fontSize: 10.5,
+    fontWeight: 700,
+    padding: "3px 10px",
+    borderRadius: 999,
+    zIndex: 3,
   },
   tileHandBadge: {
     position: "absolute",
@@ -5131,6 +5654,10 @@ const S = {
     fontWeight: 700,
   },
   filmstripVideoWrap: { width: "100%", height: "100%", position: "relative", background: "#171A21", borderRadius: 12, overflow: "hidden" },
+  gridWrap: { position: "absolute", inset: 0, padding: 16, overflowY: "auto" },
+  gridWrapCompact: { padding: 8 },
+  gridGrid: { display: "grid", gap: 12, alignContent: "start" },
+  gridTileOuter: { aspectRatio: "16 / 10", width: "100%" },
   audioLayer: { position: "absolute", width: 0, height: 0, overflow: "hidden" },
   hiddenAudio: { position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" },
   enableAudioBtn: {

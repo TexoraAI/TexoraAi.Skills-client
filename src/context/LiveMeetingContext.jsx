@@ -56,21 +56,17 @@
 //   const [raisedHands, setRaisedHands] = useState({});
 //   const [floaters, setFloaters] = useState([]);
 
-//   // ── Trainer-enforced flags. Previously the trainer's "Mute All" /
-//   // "Disable Chat" / "Block Screen Share" buttons only flipped a
-//   // *local* flag on the trainer's own screen and broadcast a
-//   // { type: "trainer_command", command, value } data message — but
-//   // nothing on the student side was listening for it, so none of these
-//   // controls had any real effect on a connected student. These flags
-//   // are the student-side source of truth for that broadcast, and are
-//   // enforced below in sendMessage/toggleMic/toggleCam/toggleScreen and
-//   // by the DataReceived "trainer_command" branch further down.
+//   // ── Trainer-enforced flags. The trainer's "Mute All" / "Disable
+//   // Chat" / "Block Screen Share" / "Disable Cameras" buttons broadcast
+//   // a { type: "trainer_command", command, value } data message. These
+//   // flags are the student-side source of truth for that broadcast,
+//   // and are enforced below in sendMessage/toggleMic/toggleCam/
+//   // toggleScreen and by the DataReceived "trainer_command" branch
+//   // further down.
 //   const [chatDisabled, setChatDisabled] = useState(false);
 //   const [micLockedByTrainer, setMicLockedByTrainer] = useState(false);
 //   const [screenShareBlocked, setScreenShareBlocked] = useState(false);
-//   // NEW: camera lock, mirrors micLockedByTrainer exactly. Previously
-//   // there was no listener at all for the trainer's "Disable Cameras" /
-//   // "Enable Cameras" buttons, so they had zero effect on students.
+//   // Camera lock, mirrors micLockedByTrainer exactly.
 //   const [cameraLockedByTrainer, setCameraLockedByTrainer] = useState(false);
 
 //   const syncParticipants = useCallback(() => {
@@ -96,13 +92,10 @@
 //         cameraTrack: null, cameraMuted: true, micTrack: null, micMuted: true, screenTrack: null,
 //       };
 //       p.trackPublications.forEach((pub) => {
-//         // NOTE: previously required `pub.isSubscribed` as well as
-//         // `pub.track`. `isSubscribed` can flip to true a beat *after*
-//         // `pub.track` is actually attached/playable, which was making
-//         // the spotlight/grid switch lag a moment behind a remote
-//         // participant starting or stopping a screen share. `pub.track`
-//         // being present already implies it's usable, so that alone is
-//         // the correct (and faster) check.
+//         // `pub.track` being present already implies it's usable, so
+//         // that alone is the correct (and fastest) check — no need to
+//         // also gate on `pub.isSubscribed`, which can lag a moment
+//         // behind the track actually being attachable.
 //         if (!pub.track) return;
 //         if (pub.source === Track.Source.Camera) { entry.cameraTrack = pub.track; entry.cameraMuted = pub.isMuted; }
 //         else if (pub.source === Track.Source.Microphone) { entry.micTrack = pub.track; entry.micMuted = pub.isMuted; }
@@ -211,6 +204,7 @@
 //                   // it just lifts the trainer-side lock so toggleMic
 //                   // works again; the student still chooses to unmute.
 //                   setMicLockedByTrainer(false);
+//                   syncParticipants();
 //                 }
 //                 break;
 //               }
@@ -219,10 +213,21 @@
 //                 pushSystemMsg("The trainer asked everyone to unmute.");
 //                 break;
 //               }
-//               // NEW: camera lock, mirrors "allMuted" exactly. Fixes
-//               // "Camera Enable/Disable Not Working" — this listener
-//               // did not exist before, so the trainer's buttons had no
-//               // effect at all on the student's actual video track.
+//               // ── Task 2 fix: camera lock, mirrors "allMuted" exactly.
+//               // BUG: the `msg.value === false` (Enable Cameras) branch
+//               // set `cameraLockedByTrainer` to false but never called
+//               // syncParticipants(), unlike every other branch here that
+//               // changes track/lock state. Because this handler is the
+//               // *only* place that clears the lock, and downstream UI
+//               // (grid tiles, participant badges, the trainer's own
+//               // "camerasDisabled" pill) reads live state that is only
+//               // guaranteed fresh right after syncParticipants() runs,
+//               // the unlock could land in state but not be reflected —
+//               // making "Enable Cameras" look like a no-op even though
+//               // toggleCam() itself was already correctly un-gated.
+//               // Always sending an explicit boolean (true/false, never
+//               // toggled) from the trainer side + always resyncing here
+//               // on both branches closes that gap.
 //               case "camerasDisabled": {
 //                 if (msg.value) {
 //                   setCameraLockedByTrainer(true);
@@ -234,8 +239,9 @@
 //                 } else {
 //                   // Mirrors "allMuted"/false: lifting the lock doesn't
 //                   // force the camera back on, it just lets the student
-//                   // choose to re-enable it themselves.
+//                   // choose to re-enable it themselves via toggleCam().
 //                   setCameraLockedByTrainer(false);
+//                   syncParticipants();
 //                   pushSystemMsg("Cameras have been re-enabled by the trainer.");
 //                 }
 //                 break;
@@ -345,9 +351,13 @@
 //     if (camOn) {
 //       await track.mute();
 //     } else {
-//       // NEW guard, mirrors toggleMic's micLockedByTrainer check —
-//       // this is what actually makes "Disable Cameras" stick instead
-//       // of the student being able to immediately click Camera back on.
+//       // Guard mirrors toggleMic's micLockedByTrainer check — this is
+//       // what makes "Disable Cameras" stick instead of the student
+//       // being able to immediately click Camera back on. Once the
+//       // trainer's "Enable Cameras" unlocks (cameraLockedByTrainer
+//       // becomes false, see the "camerasDisabled" case above), this
+//       // guard is skipped and the student can unmute their camera
+//       // normally.
 //       if (cameraLockedByTrainer) {
 //         pushSystemMsg("Your camera has been disabled by the trainer and can't be turned on right now.");
 //         return;
@@ -367,28 +377,16 @@
 //     }
 //     try {
 //       if (screenOn) {
-//         // FIX: previously this awaited `setScreenShareEnabled(false)`
-//         // before touching any state, and the layout only updated once
-//         // the LiveKit "LocalTrackUnpublished" event round-tripped back
-//         // through syncParticipants(). That round trip is what made the
-//         // UI feel slow to "snap back" to the normal grid after ending a
-//         // share (see the reported delay). We now flip `screenOn` and
-//         // optimistically clear the local participant's screenTrack
-//         // immediately — before the await — so the spotlight/grid
-//         // layout switches back the instant the button is pressed. The
-//         // real unpublish still happens right after; syncParticipants()
-//         // in `finally` reconciles with the real LiveKit state either
-//         // way, so this can't get out of sync.
+//         // Optimistically flip state before the await so the UI snaps
+//         // back to the normal grid immediately; syncParticipants() in
+//         // `finally` reconciles with the real LiveKit state either way.
 //         setScreenOn(false);
 //         setParticipants((prev) => prev.map((p) => (p.isLocal ? { ...p, screenTrack: null } : p)));
 //         await room.localParticipant.setScreenShareEnabled(false);
 //       } else {
-//         // FIX (recursive "hall of mirrors" screen share): without
-//         // these options, the browser's share picker lets the student
-//         // select the very tab/window this meeting is running in,
-//         // producing an infinite self-capture loop. selfBrowserSurface:
-//         // "exclude" removes the current tab from the picker entirely
-//         // in Chromium browsers.
+//         // selfBrowserSurface: "exclude" removes the current tab from
+//         // the picker in Chromium browsers, preventing a recursive
+//         // "hall of mirrors" self-capture loop.
 //         const pub = await room.localParticipant.setScreenShareEnabled(true, {
 //           selfBrowserSurface: "exclude",
 //           surfaceSwitching: "include",
@@ -478,6 +476,18 @@
 //   if (!ctx) throw new Error("useLiveMeeting must be used within LiveMeetingProvider");
 //   return ctx;
 // };
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -729,34 +739,39 @@ export function LiveMeetingProvider({ children }) {
                   syncParticipants();
                   pushSystemMsg("You were muted by the trainer.");
                 } else {
-                  // "Unmute All" alone doesn't force students live —
-                  // it just lifts the trainer-side lock so toggleMic
-                  // works again; the student still chooses to unmute.
+                  // BUGFIX: previously this only lifted the lock and left
+                  // the mic muted, so the student had to manually click
+                  // their own mic button — "Unmute All" looked like it
+                  // did nothing. Now it also actually unmutes the track
+                  // and updates micOn, so the mic turns back on right away.
                   setMicLockedByTrainer(false);
+                  const track = localAudioTrackRef.current;
+                  if (track) track.unmute().catch(() => {});
+                  setMicOn(true);
                   syncParticipants();
+                  pushSystemMsg("You have been unmuted by the trainer.");
                 }
                 break;
               }
               case "requestUnmuteAll": {
+                // BUGFIX: also force the actual unmute here (trainer sends
+                // this right after "allMuted:false"), so whichever message
+                // arrives is enough to bring the mic back on.
                 setMicLockedByTrainer(false);
+                const track = localAudioTrackRef.current;
+                if (track) track.unmute().catch(() => {});
+                setMicOn(true);
+                syncParticipants();
                 pushSystemMsg("The trainer asked everyone to unmute.");
                 break;
               }
               // ── Task 2 fix: camera lock, mirrors "allMuted" exactly.
               // BUG: the `msg.value === false` (Enable Cameras) branch
-              // set `cameraLockedByTrainer` to false but never called
-              // syncParticipants(), unlike every other branch here that
-              // changes track/lock state. Because this handler is the
-              // *only* place that clears the lock, and downstream UI
-              // (grid tiles, participant badges, the trainer's own
-              // "camerasDisabled" pill) reads live state that is only
-              // guaranteed fresh right after syncParticipants() runs,
-              // the unlock could land in state but not be reflected —
-              // making "Enable Cameras" look like a no-op even though
-              // toggleCam() itself was already correctly un-gated.
-              // Always sending an explicit boolean (true/false, never
-              // toggled) from the trainer side + always resyncing here
-              // on both branches closes that gap.
+              // set `cameraLockedByTrainer` to false but never actually
+              // turned the camera back on — it only lifted the lock and
+              // left `camOn` / the track muted, so "Enable Cameras" looked
+              // like a no-op to the student. Fixed below: unlocking now
+              // also unmutes the video track and sets camOn(true).
               case "camerasDisabled": {
                 if (msg.value) {
                   setCameraLockedByTrainer(true);
@@ -766,10 +781,10 @@ export function LiveMeetingProvider({ children }) {
                   syncParticipants();
                   pushSystemMsg("Your camera was disabled by the trainer.");
                 } else {
-                  // Mirrors "allMuted"/false: lifting the lock doesn't
-                  // force the camera back on, it just lets the student
-                  // choose to re-enable it themselves via toggleCam().
                   setCameraLockedByTrainer(false);
+                  const track = localVideoTrackRef.current;
+                  if (track) track.unmute().catch(() => {});
+                  setCamOn(true);
                   syncParticipants();
                   pushSystemMsg("Cameras have been re-enabled by the trainer.");
                 }

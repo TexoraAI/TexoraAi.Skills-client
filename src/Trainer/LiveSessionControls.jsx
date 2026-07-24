@@ -2877,6 +2877,7 @@
 
 
 
+
 import { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
@@ -2922,6 +2923,11 @@ import {
   MessageSquareOff,
   UserCheck,
   UserX,
+  ZoomIn,
+  ZoomOut,
+  ExternalLink,
+  Maximize,
+  MonitorX,
 } from "lucide-react";
 
 /* ─────────────────────────────────────────────────────────────
@@ -2977,11 +2983,20 @@ const readLegacyCallState = () => {
 };
 
 const buildSnapshot = (room, pendingIdentities) => {
-  if (!room) return { camTiles: [], screenTile: null, audioTracks: [] };
+  if (!room) return { camTiles: [], screenTiles: [], audioTracks: [] };
   const pending = pendingIdentities || new Set();
 
   const camTiles = [];
-  let screenTile = null;
+  // FIX (Part 2 — Student Screen Share tab): this used to be a single
+  // `screenTile` variable that each participant's data silently
+  // overwrote in turn, so if the trainer and a student (or two
+  // students) were sharing at once, whichever was processed last
+  // "won" and every other active share just disappeared with no way
+  // to see or switch to it. Now every active share is collected here;
+  // the component picks which one is currently focused on the main
+  // stage (see `focusedScreenIdentity` below) instead of this function
+  // silently deciding for it.
+  const screenTiles = [];
   const audioTracks = [];
 
   const addParticipant = (participant, isLocal) => {
@@ -3022,13 +3037,14 @@ const buildSnapshot = (room, pendingIdentities) => {
     });
 
     if (screenPub && screenPub.track) {
-      screenTile = {
+      screenTiles.push({
         id: `${baseId}-screen`,
         name: isLocal ? "You're presenting" : `${name} is presenting`,
         isLocal,
         isScreen: true,
+        identity,
         track: screenPub.track,
-      };
+      });
     }
 
     if (!isLocal && micPub && micPub.track) {
@@ -3042,7 +3058,7 @@ const buildSnapshot = (room, pendingIdentities) => {
     addParticipant(p, false);
   });
 
-  return { camTiles, screenTile, audioTracks };
+  return { camTiles, screenTiles, audioTracks };
 };
 
 const getDevice = (w) => {
@@ -3191,7 +3207,11 @@ const LiveSessionControls = () => {
   const [dbParticipants, setDbParticipants] = useState([]);
 
   const [camTiles, setCamTiles] = useState([]);
-  const [screenTile, setScreenTile] = useState(null);
+  const [screenTiles, setScreenTiles] = useState([]);
+  // Which student's share (by identity) the trainer has pinned to the
+  // main stage when more than one is active at once. Null = default to
+  // the trainer's own share if live, else whichever share came first.
+  const [focusedScreenIdentity, setFocusedScreenIdentity] = useState(null);
   const [remoteAudioTracks, setRemoteAudioTracks] = useState([]);
   const [audioBlocked, setAudioBlocked] = useState(false);
 
@@ -3301,7 +3321,7 @@ const LiveSessionControls = () => {
   const rebuild = useCallback(() => {
     const snap = buildSnapshot(roomRef.current, pendingIdentitiesRef.current);
     setCamTiles(snap.camTiles);
-    setScreenTile(snap.screenTile);
+    setScreenTiles(snap.screenTiles);
     setRemoteAudioTracks(snap.audioTracks);
   }, []);
 
@@ -3666,6 +3686,18 @@ const LiveSessionControls = () => {
     }
   }, [screenOn, rebuild]);
 
+  // Which of possibly-several simultaneous shares is on the main stage.
+  // Default preference: the trainer's own share (if live) so starting to
+  // present always takes you to your own screen; otherwise whichever
+  // share the trainer explicitly focused via the Screen Sharing panel;
+  // otherwise just the first active share. This replaces the old
+  // singular `screenTile` value everywhere below.
+  const screenTile =
+    screenTiles.find((t) => t.isLocal) ||
+    screenTiles.find((t) => t.identity === focusedScreenIdentity) ||
+    screenTiles[0] ||
+    null;
+
   // Main stage = local trainer tile (or the active screen share); every
   // other tile goes into the filmstrip — this is the same tile data as
   // before, just displayed as one persistent "speaker view" instead of
@@ -3684,7 +3716,7 @@ const LiveSessionControls = () => {
   // share still always takes over the stage (matching Meet/Zoom/Teams,
   // where a presentation forces speaker-style layout regardless of the
   // viewer's chosen gallery/tile preference).
-  const useGridView = !spotlightOn && !screenTile;
+  const useGridView = !spotlightOn && screenTiles.length === 0;
   const gridTileCount = camTiles.length;
   const computeGridColumns = (count) => {
     if (count <= 1) return 1;
@@ -3989,16 +4021,30 @@ const LiveSessionControls = () => {
   // the student-side component (RoomEvent.DataReceived, type ===
   // "trainer_command") is what turns this into real enforcement — this
   // file only owns the trainer side of that contract.
-  const broadcastTrainerCommand = useCallback((command, value) => {
+  const broadcastTrainerCommand = useCallback((command, value, extra) => {
     try {
       const payload = new TextEncoder().encode(
-        JSON.stringify({ type: "trainer_command", command, value }),
+        JSON.stringify({ type: "trainer_command", command, value, ...(extra || {}) }),
       );
       roomRef.current?.localParticipant?.publishData(payload, { reliable: true });
     } catch (e) {
       console.warn("trainer command broadcast failed:", e);
     }
   }, []);
+
+  // Targeted "stop this one student's screen share" — Part 2/3 of the
+  // spec. Unlike the other Trainer Controls buttons (which broadcast to
+  // everyone), this sends { command: "stopScreenShare", identity } and
+  // the matching student-side listener (LiveMeetingContext.jsx) only
+  // acts on it when the identity matches their own.
+  const stopStudentScreenShare = useCallback(
+    (identity, name) => {
+      broadcastTrainerCommand("stopScreenShare", true, { identity });
+      pushSystem(`Stopped ${name || "a student"}'s screen share.`);
+      setFocusedScreenIdentity((cur) => (cur === identity ? null : cur));
+    },
+    [broadcastTrainerCommand, pushSystem],
+  );
 
   const toggleTrainerFlag = useCallback((key, onLabel, offLabel) => {
     setTrainerFlags((prev) => {
@@ -4072,6 +4118,52 @@ const LiveSessionControls = () => {
     return () => document.removeEventListener("fullscreenchange", onFsChange);
   }, []);
 
+  // ── Part 2: floating controls over the shared screen (zoom in/out/
+  // reset, open in a new window, fullscreen scoped to just the stage
+  // rather than the whole widget). stageZoom is a simple CSS scale
+  // factor clamped to a sane range; stageVideoWrapRef points at the
+  // actual video-wrap DOM node so "expand" fullscreens only that tile.
+  const [stageZoom, setStageZoom] = useState(1);
+  const stageVideoWrapRef = useRef(null);
+  const zoomIn = useCallback(() => setStageZoom((z) => Math.min(2.5, +(z + 0.25).toFixed(2))), []);
+  const zoomOut = useCallback(() => setStageZoom((z) => Math.max(1, +(z - 0.25).toFixed(2))), []);
+  const resetZoom = useCallback(() => setStageZoom(1), []);
+  // Reset zoom automatically whenever the focused share changes, so a
+  // zoomed-in view doesn't carry over to a different student's screen.
+  useEffect(() => {
+    setStageZoom(1);
+  }, [mainTile?.id]);
+
+  const expandStageTile = useCallback(() => {
+    const el = stageVideoWrapRef.current;
+    if (!el) return;
+    if (!document.fullscreenElement) {
+      el.requestFullscreen?.().catch(() => {});
+    } else {
+      document.exitFullscreen?.().catch(() => {});
+    }
+  }, []);
+
+  const popOutStageTile = useCallback((tile) => {
+    if (!tile?.track) return;
+    try {
+      const stream = new MediaStream([tile.track.mediaStreamTrack]);
+      const w = window.open("", "_blank", "width=960,height=600");
+      if (!w) return;
+      w.document.title = tile.name || "Shared screen";
+      w.document.body.style.cssText = "margin:0;background:#000;overflow:hidden;";
+      const video = w.document.createElement("video");
+      video.autoplay = true;
+      video.playsInline = true;
+      video.muted = true;
+      video.style.cssText = "width:100vw;height:100vh;object-fit:contain;background:#000;display:block;";
+      video.srcObject = stream;
+      w.document.body.appendChild(video);
+    } catch (e) {
+      console.warn("pop-out window failed:", e);
+    }
+  }, []);
+
   const closeMoreMenu = useCallback(() => setMoreMenuOpen(false), []);
   const closeViewMenu = useCallback(() => setViewMenuOpen(false), []);
   useDismiss(moreMenuOpen, closeMoreMenu, [moreMenuBtnRef, moreMenuPanelRef]);
@@ -4132,6 +4224,10 @@ const LiveSessionControls = () => {
         @keyframes chatFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
         @keyframes menuIn{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
         @keyframes floatUp{0%{opacity:0;transform:translateY(0) scale(.6)}15%{opacity:1;transform:translateY(-10px) scale(1)}100%{opacity:0;transform:translateY(-120px) scale(1.05)}}
+        @keyframes presentIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+        .ilm-present-in{animation:presentIn .22s ease}
+        .ilm-present-controls{opacity:0;transition:opacity .15s ease}
+        .ilm-card:hover .ilm-present-controls,.ilm-present-controls:focus-within{opacity:1}
         .ilm-hoverscale{transition:transform .15s ease,background .15s ease,border-color .15s ease}
         .ilm-hoverscale:hover{transform:scale(1.03)}
         .ilm-card{transition:all .2s ease}
@@ -4340,83 +4436,225 @@ const LiveSessionControls = () => {
                 </div>
               ) : (
                 <div style={{ ...S.stageWrap, ...(isCompactDevice ? S.stageWrapCompact : null) }}>
-                  <div style={S.mainStage} className="ilm-card">
-                    <VideoTile
-                      tile={mainTile}
-                      device={device}
-                      large
-                      handRaised={!!raisedHands[mainTile?.identity]}
-                      tileFloaters={floaters.filter((f) => f.identity === mainTile?.identity)}
-                    />
-                    {mainTile?.isLocal && !mainTile?.isScreen && (
-                      <div style={S.hostChip}>
-                        You (Trainer) <span style={S.hostChipBadge}>Host</span>
-                      </div>
-                    )}
-                    {mainTile?.isScreen && !mainTile?.isLocal && (
-                      <div style={S.presentingChip}>
-                        <ScreenShare size={12} strokeWidth={2.4} />
-                        {mainTile.name}
-                      </div>
-                    )}
-                    <button
-                      className="ilm-hoverscale"
-                      style={{ ...S.spotlightBtn, ...(spotlightOn ? S.spotlightBtnOn : null) }}
-                      onClick={() => setSpotlightOn((v) => !v)}
+                  {mainTile?.isScreen ? (
+                    /* ── Part 1/2: Google Meet-style presentation layout.
+                       Large rounded hero stage for the shared screen +
+                       a narrow right-side column of camera tiles,
+                       instead of the old flat box with everyone crammed
+                       into a bottom strip. spotlightOn now genuinely
+                       changes the column width (Part 2 "Spotlight Mode")
+                       instead of just toggling a label. */
+                    <div
+                      style={{
+                        ...S.presentRow,
+                        ...(isCompactDevice ? S.presentRowCompact : null),
+                      }}
                     >
-                      <Pin size={12} strokeWidth={2.4} />
-                      Spotlight {spotlightOn ? "On" : "Off"}
-                    </button>
-                  </div>
-
-                  {(filmstripTiles.length > 0) && (
-                    <div style={S.filmstripRow}>
-                      <button className="ilm-hoverscale" style={S.filmArrow} onClick={() => scrollFilmstrip(-1)}>
-                        <ChevronLeft size={14} />
-                      </button>
                       <div
-                        ref={filmstripRef}
-                        style={{ ...S.filmstrip, ...(isCompactDevice ? S.filmstripCompact : null) }}
+                        style={S.presentStage}
+                        className="ilm-card ilm-present-in"
+                        key={mainTile.id /* re-trigger the fade/scale-in on presenter switch */}
+                        ref={stageVideoWrapRef}
                       >
-                        {visibleFilmstripTiles.map((t) => (
-                          <div
-                            key={t.id}
-                            className="ilm-filmtile"
-                            style={{
-                              ...S.filmstripTile,
-                              width: deviceCfg.filmstripTile.width,
-                              height: deviceCfg.filmstripTile.height,
-                            }}
+                        <VideoTile
+                          tile={mainTile}
+                          device={device}
+                          large
+                          zoom={stageZoom}
+                          handRaised={!!raisedHands[mainTile?.identity]}
+                          tileFloaters={floaters.filter((f) => f.identity === mainTile?.identity)}
+                        />
+
+                        {/* Subtle top-left presenting label, Meet-style
+                            (not the old bold centered chip). */}
+                        <div style={S.presentingLabel}>
+                          <ScreenShare size={11} strokeWidth={2.4} />
+                          {mainTile.isLocal ? "You are presenting" : mainTile.name}
+                        </div>
+
+                        <button
+                          className="ilm-hoverscale"
+                          style={{ ...S.spotlightBtn, ...(spotlightOn ? S.spotlightBtnOn : null) }}
+                          onClick={() => setSpotlightOn((v) => !v)}
+                          title={spotlightOn ? "Show a balanced layout" : "Enlarge the shared screen"}
+                        >
+                          <Pin size={12} strokeWidth={2.4} />
+                          Spotlight {spotlightOn ? "On" : "Off"}
+                        </button>
+
+                        {/* Floating controls over the shared screen —
+                            zoom in/out/reset, open in a new window,
+                            fullscreen scoped to just this stage. */}
+                        <div style={S.presentControls} className="ilm-present-controls">
+                          <button
+                            className="ilm-hoverscale"
+                            style={S.presentCtrlBtn}
+                            onClick={zoomOut}
+                            disabled={stageZoom <= 1}
+                            title="Zoom out"
                           >
-                            <VideoTile
-                              tile={t}
-                              device={device}
-                              small
-                              handRaised={!!raisedHands[t.identity]}
-                              tileFloaters={floaters.filter((f) => f.identity === t.identity)}
-                            />
-                          </div>
-                        ))}
-                        {filmstripOverflowCount > 0 && (
-                          <div
-                            className="ilm-filmtile"
-                            style={{
-                              ...S.filmstripTile,
-                              ...S.filmstripOverflowTile,
-                              width: deviceCfg.filmstripTile.width,
-                              height: deviceCfg.filmstripTile.height,
-                            }}
-                            title={`${filmstripOverflowCount} more participant${filmstripOverflowCount === 1 ? "" : "s"}`}
-                            onClick={() => setSpotlightOn(false)}
+                            <ZoomOut size={15} strokeWidth={2.2} />
+                          </button>
+                          <button
+                            className="ilm-hoverscale"
+                            style={S.presentCtrlZoomLabel}
+                            onClick={resetZoom}
+                            title="Reset zoom"
                           >
-                            +{filmstripOverflowCount}
+                            {Math.round(stageZoom * 100)}%
+                          </button>
+                          <button
+                            className="ilm-hoverscale"
+                            style={S.presentCtrlBtn}
+                            onClick={zoomIn}
+                            disabled={stageZoom >= 2.5}
+                            title="Zoom in"
+                          >
+                            <ZoomIn size={15} strokeWidth={2.2} />
+                          </button>
+                          <span style={S.presentCtrlDivider} />
+                          <button
+                            className="ilm-hoverscale"
+                            style={S.presentCtrlBtn}
+                            onClick={() => popOutStageTile(mainTile)}
+                            title="Open in new window"
+                          >
+                            <ExternalLink size={15} strokeWidth={2.2} />
+                          </button>
+                          <button
+                            className="ilm-hoverscale"
+                            style={S.presentCtrlBtn}
+                            onClick={expandStageTile}
+                            title="Full screen"
+                          >
+                            <Maximize size={15} strokeWidth={2.2} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Right-side participant column — Meet docks
+                          camera tiles beside the shared content, not
+                          under it. Reuses the same
+                          visibleFilmstripTiles/filmstripOverflowCount
+                          (raised-hand prioritized, same cap) the
+                          bottom filmstrip uses in the non-share case
+                          below — no new tile-selection logic. Spotlight
+                          On shrinks this column to a slim edge strip,
+                          matching Meet's "focus on the presentation"
+                          behavior; Spotlight Off keeps it at a normal,
+                          readable width. */}
+                      {filmstripTiles.length > 0 && (
+                        <div
+                          style={{
+                            ...S.presentSidebar,
+                            width: spotlightOn ? 96 : isCompactDevice ? 84 : 208,
+                          }}
+                          className="ilm-scroll-y"
+                        >
+                          {visibleFilmstripTiles.map((t) => (
+                            <div
+                              key={t.id}
+                              className="ilm-filmtile"
+                              style={S.presentSidebarTile}
+                              onClick={() => t.identity && setFocusedScreenIdentity(t.identity)}
+                            >
+                              <VideoTile
+                                tile={t}
+                                device={device}
+                                small
+                                hideNameTag={spotlightOn}
+                                handRaised={!!raisedHands[t.identity]}
+                                tileFloaters={floaters.filter((f) => f.identity === t.identity)}
+                              />
+                            </div>
+                          ))}
+                          {filmstripOverflowCount > 0 && (
+                            <div
+                              className="ilm-filmtile"
+                              style={{ ...S.presentSidebarTile, ...S.filmstripOverflowTile }}
+                              title={`${filmstripOverflowCount} more participant${filmstripOverflowCount === 1 ? "" : "s"}`}
+                            >
+                              +{filmstripOverflowCount}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <div style={S.mainStage} className="ilm-card">
+                        <VideoTile
+                          tile={mainTile}
+                          device={device}
+                          large
+                          handRaised={!!raisedHands[mainTile?.identity]}
+                          tileFloaters={floaters.filter((f) => f.identity === mainTile?.identity)}
+                        />
+                        {mainTile?.isLocal && (
+                          <div style={S.hostChip}>
+                            You (Trainer) <span style={S.hostChipBadge}>Host</span>
                           </div>
                         )}
+                        <button
+                          className="ilm-hoverscale"
+                          style={{ ...S.spotlightBtn, ...(spotlightOn ? S.spotlightBtnOn : null) }}
+                          onClick={() => setSpotlightOn((v) => !v)}
+                        >
+                          <Pin size={12} strokeWidth={2.4} />
+                          Spotlight {spotlightOn ? "On" : "Off"}
+                        </button>
                       </div>
-                      <button className="ilm-hoverscale" style={S.filmArrow} onClick={() => scrollFilmstrip(1)}>
-                        <ChevronRight size={14} />
-                      </button>
-                    </div>
+
+                      {(filmstripTiles.length > 0) && (
+                        <div style={S.filmstripRow}>
+                          <button className="ilm-hoverscale" style={S.filmArrow} onClick={() => scrollFilmstrip(-1)}>
+                            <ChevronLeft size={14} />
+                          </button>
+                          <div
+                            ref={filmstripRef}
+                            style={{ ...S.filmstrip, ...(isCompactDevice ? S.filmstripCompact : null) }}
+                          >
+                            {visibleFilmstripTiles.map((t) => (
+                              <div
+                                key={t.id}
+                                className="ilm-filmtile"
+                                style={{
+                                  ...S.filmstripTile,
+                                  width: deviceCfg.filmstripTile.width,
+                                  height: deviceCfg.filmstripTile.height,
+                                }}
+                              >
+                                <VideoTile
+                                  tile={t}
+                                  device={device}
+                                  small
+                                  handRaised={!!raisedHands[t.identity]}
+                                  tileFloaters={floaters.filter((f) => f.identity === t.identity)}
+                                />
+                              </div>
+                            ))}
+                            {filmstripOverflowCount > 0 && (
+                              <div
+                                className="ilm-filmtile"
+                                style={{
+                                  ...S.filmstripTile,
+                                  ...S.filmstripOverflowTile,
+                                  width: deviceCfg.filmstripTile.width,
+                                  height: deviceCfg.filmstripTile.height,
+                                }}
+                                title={`${filmstripOverflowCount} more participant${filmstripOverflowCount === 1 ? "" : "s"}`}
+                                onClick={() => setSpotlightOn(false)}
+                              >
+                                +{filmstripOverflowCount}
+                              </div>
+                            )}
+                          </div>
+                          <button className="ilm-hoverscale" style={S.filmArrow} onClick={() => scrollFilmstrip(1)}>
+                            <ChevronRight size={14} />
+                          </button>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               )}
@@ -4635,6 +4873,75 @@ const LiveSessionControls = () => {
                 </div>
               </div>
 
+              {/* ── Part 2: Student Screen Share panel — lists every
+                  active share (trainer's own + any student's) so the
+                  trainer can see who's presenting and switch the main
+                  stage focus between simultaneous shares, or stop a
+                  specific student's share outright. Only rendered once
+                  there's something to show. */}
+              {screenTiles.length > 0 && (
+                <div style={{ ...S.panelBlock, borderColor: "rgba(59,130,246,.3)" }}>
+                  <div style={S.panelHead}>
+                    <span style={S.panelTitle}>Screen Sharing ({screenTiles.length})</span>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: 12 }}>
+                    {screenTiles.map((t) => {
+                      const isFocused = t.id === mainTile?.id;
+                      return (
+                        <div
+                          key={t.id}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            padding: "8px 10px",
+                            borderRadius: 10,
+                            background: isFocused ? "rgba(59,130,246,.12)" : "rgba(255,255,255,.03)",
+                            border: isFocused ? "1px solid rgba(96,165,250,.35)" : "1px solid rgba(255,255,255,.06)",
+                          }}
+                        >
+                          <ScreenShare size={15} color={isFocused ? "#93c5fd" : "#9ca3af"} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ ...S.pName, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {t.isLocal ? "You" : t.name.replace(" is presenting", "")}
+                            </div>
+                            <div style={S.pJoinedText}>{isFocused ? "On stage now" : "Tap to focus"}</div>
+                          </div>
+                          {!isFocused && (
+                            <button
+                              className="ilm-hoverscale"
+                              onClick={() => setFocusedScreenIdentity(t.identity)}
+                              title="Show on main stage"
+                              style={{
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                width: 30, height: 30, borderRadius: 8, cursor: "pointer",
+                                border: "1px solid rgba(96,165,250,.35)", background: "rgba(59,130,246,.12)", color: "#93c5fd",
+                              }}
+                            >
+                              <Pin size={14} />
+                            </button>
+                          )}
+                          {!t.isLocal && (
+                            <button
+                              className="ilm-hoverscale"
+                              onClick={() => stopStudentScreenShare(t.identity, t.name.replace(" is presenting", ""))}
+                              title="Stop this share"
+                              style={{
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                width: 30, height: 30, borderRadius: 8, cursor: "pointer",
+                                border: "1px solid rgba(239,68,68,.4)", background: "rgba(239,68,68,.14)", color: "#f87171",
+                              }}
+                            >
+                              <MonitorX size={14} />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {pendingRequests.length > 0 && (
                 <div style={{ ...S.panelBlock, borderColor: "rgba(245,158,11,.35)" }}>
                   <div style={S.panelHead}>
@@ -4717,7 +5024,7 @@ const LiveSessionControls = () => {
                     const liveTile = findLiveTileForDbParticipant(p);
                     const liveIdentity = liveTile?.identity;
                     const isHandRaised = !!raisedHands[liveIdentity];
-                    const isPresenting = !!(screenTile && screenTile.id === `${liveIdentity}-screen`);
+                    const isPresenting = screenTiles.some((t) => t.identity === liveIdentity);
                     return (
                     <div key={p.id} style={{ ...S.pRow, position: "relative" }} className="ilm-prow">
                       <div style={{ ...S.pAv, background: "linear-gradient(135deg,#8b5cf6,#ec4899)" }}>
@@ -4915,7 +5222,7 @@ const LiveSessionControls = () => {
 const AVATAR_SIZE_BY_DEVICE = { phone: 52, phoneLg: 60, tablet: 76, laptop: 92, desktop: 108 };
 const AVATAR_FONT_BY_DEVICE = { phone: 17, phoneLg: 19, tablet: 24, laptop: 30, desktop: 36 };
 
-const VideoTile = ({ tile, small, large, device = "desktop", handRaised, tileFloaters }) => {
+const VideoTile = ({ tile, small, large, device = "desktop", handRaised, tileFloaters, zoom, hideNameTag }) => {
   const videoRef = useRef(null);
 
   useEffect(() => {
@@ -4931,6 +5238,7 @@ const VideoTile = ({ tile, small, large, device = "desktop", handRaised, tileFlo
 
   const showVideo = !!tile?.track && !tile.videoMuted;
   const initials = (tile?.name || "?").trim().charAt(0).toUpperCase();
+  const zoomScale = !small && zoom && zoom !== 1 ? zoom : null;
 
   return (
     <div style={small ? S.filmstripVideoWrap : S.stageVideoWrap}>
@@ -4945,7 +5253,14 @@ const VideoTile = ({ tile, small, large, device = "desktop", handRaised, tileFlo
             height: "100%",
             objectFit: tile.isScreen ? "contain" : "cover",
             background: "#000",
-            transform: tile.isLocal && !tile.isScreen ? "scaleX(-1)" : "none",
+            transform: [
+              tile.isLocal && !tile.isScreen ? "scaleX(-1)" : "",
+              zoomScale ? `scale(${zoomScale})` : "",
+            ]
+              .filter(Boolean)
+              .join(" ") || "none",
+            transformOrigin: "center center",
+            transition: "transform .2s ease",
             display: "block",
           }}
         />
@@ -4963,7 +5278,7 @@ const VideoTile = ({ tile, small, large, device = "desktop", handRaised, tileFlo
           </div>
         </div>
       )}
-      {small && (
+      {small && !hideNameTag && (
         <span style={S.tileNameTagSm}>
           {tile?.micMuted && !tile?.isScreen && <MicOff size={9} strokeWidth={2.4} style={{ marginRight: 4 }} />}
           {tile?.name}
@@ -5465,6 +5780,109 @@ const S = {
     fontWeight: 700,
     padding: "6px 14px",
     borderRadius: 999,
+  },
+  // ── Part 1: Google Meet-style presentation layout. presentRow holds
+  // the big hero stage + narrow right-side participant column
+  // side-by-side, replacing the old single mainStage+bottom-filmstrip
+  // box whenever someone is actively screen-sharing.
+  presentRow: { flex: 1, minHeight: 0, display: "flex", flexDirection: "row", gap: 12 },
+  presentRowCompact: { gap: 8 },
+  presentStage: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 0,
+    borderRadius: 18,
+    overflow: "hidden",
+    background: "#050608",
+    position: "relative",
+    border: "1px solid rgba(255,255,255,.08)",
+    boxShadow: "0 24px 56px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.02)",
+  },
+  // Subtle top-left "You are presenting" / "{name} is presenting" pill —
+  // Meet keeps this small and unobtrusive, unlike the old bold
+  // center-top presentingChip (still defined above for anything else
+  // that references it).
+  presentingLabel: {
+    position: "absolute",
+    top: 12,
+    left: 12,
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    background: "rgba(11,13,17,.55)",
+    backdropFilter: "blur(8px)",
+    border: "1px solid rgba(255,255,255,.08)",
+    color: "#e5e7eb",
+    fontSize: 11.5,
+    fontWeight: 600,
+    padding: "5px 10px",
+    borderRadius: 999,
+    zIndex: 6,
+  },
+  // Floating zoom/pop-out/fullscreen cluster over the shared screen.
+  // Hidden by default and revealed on hover via .ilm-present-controls
+  // (see the <style> block), matching Meet/Zoom's hover-to-reveal
+  // pattern instead of always-visible clutter over the presentation.
+  presentControls: {
+    position: "absolute",
+    bottom: 14,
+    right: 14,
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+    background: "rgba(11,13,17,.62)",
+    backdropFilter: "blur(10px)",
+    border: "1px solid rgba(255,255,255,.1)",
+    borderRadius: 999,
+    padding: 4,
+    zIndex: 6,
+  },
+  presentCtrlBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: "50%",
+    border: "none",
+    background: "transparent",
+    color: "#e5e7eb",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+  },
+  presentCtrlZoomLabel: {
+    minWidth: 40,
+    height: 30,
+    padding: "0 4px",
+    borderRadius: 999,
+    border: "none",
+    background: "transparent",
+    color: "#9ca3af",
+    fontSize: 11,
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+  presentCtrlDivider: { width: 1, height: 18, background: "rgba(255,255,255,.14)", margin: "0 2px" },
+  presentSidebar: {
+    flexShrink: 0,
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+    overflowY: "auto",
+    overflowX: "hidden",
+    paddingRight: 2,
+    transition: "width .2s ease",
+  },
+  presentSidebarTile: {
+    flexShrink: 0,
+    width: "100%",
+    aspectRatio: "16 / 10",
+    borderRadius: 12,
+    overflow: "hidden",
+    background: "#171A21",
+    border: "1px solid rgba(255,255,255,.08)",
+    boxShadow: "0 8px 20px rgba(0,0,0,.35)",
+    position: "relative",
+    cursor: "pointer",
   },
   tileHandBadge: {
     position: "absolute",

@@ -13,8 +13,6 @@ import {
   PhoneOff,
   MessageSquare,
   Users,
-  ChevronRight,
-  ChevronLeft,
   Send,
   X,
   Timer,
@@ -34,6 +32,8 @@ import {
   AlertTriangle,
   Copy,
   ExternalLink,
+  Sun,
+  Moon,
 } from "lucide-react";
 
 // FIX: there is no meetingService.js — everything lives as named exports
@@ -202,6 +202,12 @@ function buildParticipantList(room, raisedHands, speakingSet) {
   };
   addOne(room.localParticipant, true);
   room.remoteParticipants.forEach((p) => addOne(p, false));
+  // FIX (bug 5): whoever is actively speaking should surface first so
+  // people notice who's talking, instead of staying buried in the grid.
+  list.sort((a, b) => {
+    if (a.isSpeaking !== b.isSpeaking) return a.isSpeaking ? -1 : 1;
+    return 0;
+  });
   return list;
 }
 
@@ -460,26 +466,42 @@ function StripTile({ p, active, raised, S }) {
         </div>
       )}
       <div style={S.stripMicDot}>
-        {p.micMuted ? <MicOff size={10} /> : <Mic size={10} />}
+        {p.isSpeaking && !p.micMuted ? (
+          <span className="im-wave">
+            <span />
+            <span />
+            <span />
+          </span>
+        ) : p.micMuted ? (
+          <MicOff size={10} />
+        ) : (
+          <Mic size={10} />
+        )}
       </div>
       <div style={S.stripName}>{p.isLocal ? "You" : p.name}</div>
     </div>
   );
 }
 
-function StripOverflow({ count, S }) {
+// FIX (bug 5): "+N others" is now a real button — clicking it opens the
+// People panel so every hidden participant is reachable, not just a dead label.
+function StripOverflow({ count, S, onClick }) {
   return (
-    <div
-      style={{ ...S.stripTile, ...S.stripOverflow }}
+    <button
+      type="button"
+      onClick={onClick}
+      style={{ ...S.stripTile, ...S.stripOverflow, cursor: "pointer" }}
       className="im-strip-tile"
     >
-      <span style={{ fontSize: 13, fontWeight: 700, color: "#cbd5e1" }}>
+      <span
+        style={{ fontSize: 13, fontWeight: 700, color: "var(--im-text-soft)" }}
+      >
         +{count}
       </span>
-      <span style={{ fontSize: 9, color: "#64748b", marginTop: 2 }}>
-        others
+      <span style={{ fontSize: 9, color: "var(--im-text-mute)", marginTop: 2 }}>
+        others · tap to view
       </span>
-    </div>
+    </button>
   );
 }
 
@@ -516,14 +538,24 @@ function StageTile({ p, raised, S }) {
           </div>
         )}
         {!p.isLocal && p.micTrack && <AudioTrackEl track={p.micTrack} />}
-        {isScreen && (
+        {isScreen && !p.isLocal && (
           <div style={S.screenLabel}>
             <MonitorPlay size={13} />
-            {p.isLocal ? "You are presenting" : `${p.name} is presenting`}
+            {`${p.name} is presenting`}
           </div>
         )}
         <div style={S.stageNameTag}>
-          {p.micMuted ? <MicOff size={13} /> : <Mic size={13} />}
+          {p.isSpeaking && !p.micMuted ? (
+            <span className="im-wave">
+              <span />
+              <span />
+              <span />
+            </span>
+          ) : p.micMuted ? (
+            <MicOff size={13} />
+          ) : (
+            <Mic size={13} />
+          )}
           <span>{p.isLocal ? "You" : p.name}</span>
         </div>
         {p.isHost && <span style={S.stageHostTag}>Host</span>}
@@ -579,7 +611,17 @@ function GridTile({ p, raised, S }) {
         )}
         {!p.isLocal && p.micTrack && <AudioTrackEl track={p.micTrack} />}
         <div style={S.gridNameTag}>
-          {p.micMuted ? <MicOff size={12} /> : <Mic size={12} />}
+          {p.isSpeaking && !p.micMuted ? (
+            <span className="im-wave">
+              <span />
+              <span />
+              <span />
+            </span>
+          ) : p.micMuted ? (
+            <MicOff size={12} />
+          ) : (
+            <Mic size={12} />
+          )}
           <span>{p.isLocal ? "You" : p.name}</span>
         </div>
         {p.isHost && <span style={S.gridHostTag}>Host</span>}
@@ -1512,6 +1554,8 @@ function MeetingRoom({
   const pipFallbackVideoRef = useRef(null);
   const menuBtnRef = useRef(null);
   const menuPanelRef = useRef(null);
+  const speakingSetRef = useRef(new Set());
+  const sidebarRef = useRef(null);
   const reactionBtnRef = useRef(null);
   const reactionPanelRef = useRef(null);
 
@@ -1534,11 +1578,38 @@ function MeetingRoom({
   const [raisedHands, setRaisedHands] = useState({});
   const [floaters, setFloaters] = useState([]);
   const [joinedAt, setJoinedAt] = useState(null);
+  const [mediaError, setMediaError] = useState(null);
+  const [pinnedId, setPinnedId] = useState(null);
 
   const [sidebarOpen, setSidebarOpen] = useState(() =>
     typeof window === "undefined" ? true : window.innerWidth > 1023,
   );
   const [sidebarTab, setSidebarTab] = useState("chat"); // chat | people | waiting
+  // FIX (bug 4): the sidebar can now be dragged wider/narrower instead of
+  // only toggled open/closed.
+  const [sidebarWidth, setSidebarWidth] = useState(340);
+  const [isResizing, setIsResizing] = useState(false);
+  // FIX (bug 6): light/dark theme, persisted locally.
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem("im_theme") || "dark";
+    } catch (_) {
+      return "dark";
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem("im_theme", theme);
+    } catch (_) {}
+    if (typeof document !== "undefined") {
+      document.documentElement.setAttribute("data-theme", theme);
+    }
+    return () => {
+      if (typeof document !== "undefined") {
+        document.documentElement.removeAttribute("data-theme");
+      }
+    };
+  }, [theme]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [reactionPickerOpen, setReactionPickerOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -1563,14 +1634,24 @@ function MeetingRoom({
       : "";
 
   const rebuild = useCallback(() => {
-    setParticipants(buildParticipantList(roomRef.current));
-  }, []);
+    setParticipants(
+      buildParticipantList(
+        roomRef.current,
+        raisedHands,
+        speakingSetRef.current,
+      ),
+    );
+  }, [raisedHands]);
 
-  const pushSystem = useCallback((text) => {
-    setMessages((prev) => [
-      ...prev,
-      { id: Date.now() + Math.random(), system: true, text, time: getTime() },
-    ]);
+  // FIX (bug 3): join/left events are notices, NOT chat messages — they now
+  // live in their own toast queue instead of polluting the chat feed.
+  const [notices, setNotices] = useState([]);
+  const pushNotice = useCallback((text) => {
+    const id = Date.now() + Math.random();
+    setNotices((prev) => [...prev, { id, text }]);
+    setTimeout(() => {
+      setNotices((prev) => prev.filter((n) => n.id !== id));
+    }, 4000);
   }, []);
 
   const spawnFloater = useCallback((emoji, name) => {
@@ -1629,18 +1710,23 @@ function MeetingRoom({
       room.on(RoomEvent.LocalTrackUnpublished, rebuild);
       room.on(RoomEvent.ParticipantConnected, (p) => {
         rebuild();
-        pushSystem(`${p.name || p.identity} joined`);
+        pushNotice(`${p.name || p.identity} joined the meeting`);
       });
       room.on(RoomEvent.ParticipantDisconnected, (p) => {
         rebuild();
-        pushSystem(`${p.name || p.identity} left`);
+        pushNotice(`${p.name || p.identity} left the meeting`);
         setRaisedHands((prev) => {
           const next = { ...prev };
           delete next[p.identity];
           return next;
         });
       });
-      room.on(RoomEvent.ActiveSpeakersChanged, () => rebuild());
+      room.on(RoomEvent.ActiveSpeakersChanged, (speakers) => {
+        speakingSetRef.current = new Set(
+          (speakers || []).map((s) => s.identity),
+        );
+        rebuild();
+      });
       room.on(RoomEvent.DataReceived, onData);
       room.on(RoomEvent.Disconnected, () => setConnected(false));
 
@@ -1651,7 +1737,32 @@ function MeetingRoom({
           return;
         }
         setConnected(true);
-        setJoinedAt(Date.now());
+        // FIX: refreshing the page used to reset the timer to 00:00:00
+        // because it just took Date.now() again. Prefer a real start time
+        // from the backend if the DTO provides one; otherwise persist the
+        // first-seen timestamp for this meeting locally so a refresh keeps
+        // counting instead of restarting from zero.
+        const backendStarted =
+          meetingInfo?.startedAt ||
+          meetingInfo?.actualStartTime ||
+          meetingInfo?.startTime;
+        let startedAtMs = backendStarted
+          ? new Date(backendStarted).getTime()
+          : null;
+        const storageKey = `im_meeting_started_${meetingId || joinCode}`;
+        if (!startedAtMs) {
+          try {
+            const cached = localStorage.getItem(storageKey);
+            if (cached) startedAtMs = Number(cached);
+          } catch (_) {}
+        }
+        if (!startedAtMs || Number.isNaN(startedAtMs)) {
+          startedAtMs = Date.now();
+          try {
+            localStorage.setItem(storageKey, String(startedAtMs));
+          } catch (_) {}
+        }
+        setJoinedAt(startedAtMs);
         rebuild();
       } catch (err) {
         console.error("LiveKit connect failed:", err);
@@ -1695,8 +1806,28 @@ function MeetingRoom({
             if (initialAV && initialAV.micOn === false) await track.mute();
           }
         }
+        // FIX: if one of the two devices genuinely never granted permission
+        // (e.g. only camera was allowed, mic was blocked), reflect that in
+        // the toggle state instead of showing a button that silently does
+        // nothing when clicked.
+        if (!localMicRef.current) setMicOn(false);
+        if (!localCamRef.current) setCamOn(false);
+        if (!localMicRef.current || !localCamRef.current) {
+          setMediaError(
+            !localMicRef.current && !localCamRef.current
+              ? "Camera and microphone access was blocked by your browser. Allow access in your browser's site settings, then refresh."
+              : !localMicRef.current
+                ? "Microphone access was blocked by your browser. Allow access in your browser's site settings and try the mic button again."
+                : "Camera access was blocked by your browser. Allow access in your browser's site settings and try the camera button again.",
+          );
+        }
       } catch (err) {
         console.error("createLocalTracks failed:", err);
+        setMicOn(false);
+        setCamOn(false);
+        setMediaError(
+          "Couldn't access your camera/microphone. Check your browser's site permissions, then refresh the page.",
+        );
       }
       rebuild();
     };
@@ -1755,21 +1886,66 @@ function MeetingRoom({
 
   /* ── controls ─────────────────────────────────────────────────────── */
   const toggleMic = useCallback(async () => {
-    const track = localMicRef.current;
-    if (!track) return;
-    if (micOn) await track.mute();
-    else await track.unmute();
-    setMicOn((v) => !v);
-    rebuild();
+    const room = roomRef.current;
+    if (!room) return;
+    try {
+      if (!localMicRef.current) {
+        // FIX: this used to just `return` here, so anyone whose mic
+        // permission was blocked when they joined had a mic button that
+        // did nothing forever. Now we retry acquiring the mic on click.
+        const [audioTrack] = await createLocalTracks({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+        });
+        await room.localParticipant.publishTrack(audioTrack);
+        localMicRef.current = audioTrack;
+        setMicOn(true);
+        setMediaError(null);
+        rebuild();
+        return;
+      }
+      const track = localMicRef.current;
+      if (micOn) await track.mute();
+      else await track.unmute();
+      setMicOn((v) => !v);
+      rebuild();
+    } catch (err) {
+      console.error("Mic toggle failed:", err);
+      setMediaError(
+        "Couldn't access your microphone. Check your browser's site permissions and try again.",
+      );
+    }
   }, [micOn, rebuild]);
 
   const toggleCam = useCallback(async () => {
-    const track = localCamRef.current;
-    if (!track) return;
-    if (camOn) await track.mute();
-    else await track.unmute();
-    setCamOn((v) => !v);
-    rebuild();
+    const room = roomRef.current;
+    if (!room) return;
+    try {
+      if (!localCamRef.current) {
+        const [videoTrack] = await createLocalTracks({
+          video: { resolution: { width: 1280, height: 720 } },
+        });
+        await room.localParticipant.publishTrack(videoTrack);
+        localCamRef.current = videoTrack;
+        setCamOn(true);
+        setMediaError(null);
+        rebuild();
+        return;
+      }
+      const track = localCamRef.current;
+      if (camOn) await track.mute();
+      else await track.unmute();
+      setCamOn((v) => !v);
+      rebuild();
+    } catch (err) {
+      console.error("Camera toggle failed:", err);
+      setMediaError(
+        "Couldn't access your camera. Check your browser's site permissions and try again.",
+      );
+    }
   }, [camOn, rebuild]);
 
   const toggleScreen = useCallback(async () => {
@@ -1938,6 +2114,36 @@ function MeetingRoom({
       .catch(() => {});
   }, [shareLink]);
 
+  /* ── sidebar drag-to-resize (bug 4) ──────────────────────────────── */
+  const startResize = useCallback(
+    (e) => {
+      e.preventDefault();
+      setIsResizing(true);
+      const startX = e.touches ? e.touches[0].clientX : e.clientX;
+      const startWidth = sidebarWidth;
+      const onMove = (moveEvt) => {
+        const clientX = moveEvt.touches
+          ? moveEvt.touches[0].clientX
+          : moveEvt.clientX;
+        const delta = startX - clientX; // dragging left grows the sidebar
+        const next = Math.min(640, Math.max(280, startWidth + delta));
+        setSidebarWidth(next);
+      };
+      const onUp = () => {
+        setIsResizing(false);
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("mouseup", onUp);
+        window.removeEventListener("touchmove", onMove);
+        window.removeEventListener("touchend", onUp);
+      };
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
+      window.addEventListener("touchmove", onMove, { passive: false });
+      window.addEventListener("touchend", onUp);
+    },
+    [sidebarWidth],
+  );
+
   /* ── PiP ──────────────────────────────────────────────────────────── */
   const screenSharer = useMemo(
     () => participants.find((p) => !!p.screenTrack),
@@ -2061,7 +2267,7 @@ function MeetingRoom({
   const S = IM_STYLES;
 
   return (
-    <div style={S.root} className="im-root">
+    <div style={S.root} className="im-root" data-theme={theme}>
       <VideoTrackEl
         videoRef={pipFallbackVideoRef}
         track={pipTrack}
@@ -2141,6 +2347,31 @@ function MeetingRoom({
         </div>
       )}
 
+      {notices.length > 0 && (
+        <div className="im-toast-stack" aria-live="polite">
+          {notices.map((n) => (
+            <div key={n.id} style={S.noticePill}>
+              <Users size={13} />
+              <span>{n.text}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {mediaError && (
+        <div style={S.mediaErrorBar} role="alert">
+          <AlertTriangle size={14} />
+          <span>{mediaError}</span>
+          <button
+            style={S.mediaErrorClose}
+            onClick={() => setMediaError(null)}
+            aria-label="Dismiss"
+          >
+            <X size={13} />
+          </button>
+        </div>
+      )}
+
       {/* ── top bar ── */}
       <div style={S.topBar} className="im-topbar">
         <div style={S.topLeft} className="im-topleft">
@@ -2168,6 +2399,18 @@ function MeetingRoom({
           )}
         </div>
         <div style={S.topRight} className="im-topright">
+          <button
+            style={S.iconGhostBtn}
+            onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
+            title={
+              theme === "dark"
+                ? "Switch to light theme"
+                : "Switch to dark theme"
+            }
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
+          </button>
           <button
             style={S.iconGhostBtn}
             onClick={copyLink}
@@ -2241,6 +2484,16 @@ function MeetingRoom({
         </div>
       </div>
 
+      {screenOn && (
+        <div style={S.presentingBar}>
+          <MonitorPlay size={14} />
+          <span>You're presenting to everyone</span>
+          <button style={S.presentingStopBtn} onClick={toggleScreen}>
+            Stop sharing
+          </button>
+        </div>
+      )}
+
       {/* ── main area ── */}
       <div style={S.mainArea} className="im-mainarea">
         <div style={S.stageColumn} className="im-stagecolumn">
@@ -2296,7 +2549,11 @@ function MeetingRoom({
                     />
                   ))}
                   {overflowCount > 0 && (
-                    <StripOverflow count={overflowCount} S={S} />
+                    <StripOverflow
+                      count={overflowCount}
+                      S={S}
+                      onClick={() => openTab("people")}
+                    />
                   )}
                 </div>
               )}
@@ -2305,19 +2562,17 @@ function MeetingRoom({
           <EmojiFloaters floaters={floaters} S={S} />
         </div>
 
-        <button
-          type="button"
-          style={S.handle}
-          className="im-handle"
-          onClick={() => setSidebarOpen((v) => !v)}
-          aria-expanded={sidebarOpen}
-        >
-          {sidebarOpen ? (
-            <ChevronRight size={15} color="#64748b" />
-          ) : (
-            <ChevronLeft size={15} color="#64748b" />
-          )}
-        </button>
+        {sidebarOpen && (
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize sidebar"
+            style={S.handle}
+            className={`im-handle im-resize-handle${isResizing ? " im-resizing" : ""}`}
+            onMouseDown={startResize}
+            onTouchStart={startResize}
+          />
+        )}
 
         {sidebarOpen && (
           <div
@@ -2328,7 +2583,11 @@ function MeetingRoom({
         )}
 
         {sidebarOpen && (
-          <div style={S.sidebar} className="im-sidebar">
+          <div
+            ref={sidebarRef}
+            style={{ ...S.sidebar, width: sidebarWidth }}
+            className="im-sidebar"
+          >
             <div style={S.tabRow}>
               <button
                 style={{ ...S.tab, ...(sidebarTab === "chat" ? S.tabOn : {}) }}
@@ -2473,6 +2732,31 @@ function MeetingRoom({
               </button>
             </div>
             <div style={S.settingsBody}>
+              <div style={S.settingsRow}>
+                <span>Theme</span>
+                <div style={S.themeSwitch}>
+                  <button
+                    style={{
+                      ...S.themeSwitchBtn,
+                      ...(theme === "dark" ? S.themeSwitchBtnOn : {}),
+                    }}
+                    onClick={() => setTheme("dark")}
+                    aria-pressed={theme === "dark"}
+                  >
+                    <Moon size={13} /> Dark
+                  </button>
+                  <button
+                    style={{
+                      ...S.themeSwitchBtn,
+                      ...(theme === "light" ? S.themeSwitchBtnOn : {}),
+                    }}
+                    onClick={() => setTheme("light")}
+                    aria-pressed={theme === "light"}
+                  >
+                    <Sun size={13} /> Light
+                  </button>
+                </div>
+              </div>
               <div style={S.settingsRow}>
                 <span>Live captions</span>
                 <button
@@ -2642,6 +2926,39 @@ function MeetingRoom({
       </div>
 
       <style>{`
+        [data-theme="dark"] {
+          --im-page:#050608; --im-panel:#0b0d12; --im-panel-elevated:#161b26;
+          --im-tile-bg:#12141a; --im-input-bg:#161922;
+          --im-surface3:#1c1f28;
+          --im-border:rgba(255,255,255,.08); --im-border-soft:rgba(255,255,255,.06);
+          --im-ghost-bg:rgba(255,255,255,.06); --im-ghost-bg-soft:rgba(255,255,255,.03);
+          --im-text:#f8fafc; --im-text-soft:#cbd5e1; --im-text-mute:#64748b; --im-text-mute2:#94a3b8;
+          --im-scrollbar: rgba(255,255,255,.2);
+        }
+        [data-theme="light"] {
+          --im-page:#eef1f6; --im-panel:#ffffff; --im-panel-elevated:#ffffff;
+          --im-tile-bg:#e4e8f0; --im-input-bg:#f1f3f8;
+          --im-surface3:#eef0f5;
+          --im-border:rgba(15,23,42,.12); --im-border-soft:rgba(15,23,42,.08);
+          --im-ghost-bg:rgba(15,23,42,.05); --im-ghost-bg-soft:rgba(15,23,42,.035);
+          --im-text:#0f172a; --im-text-soft:#334155; --im-text-mute:#94a3b8; --im-text-mute2:#64748b;
+          --im-scrollbar: rgba(15,23,42,.22);
+        }
+        .im-root[data-theme="light"] .im-stage,
+        .im-root[data-theme="light"] .im-grid-tile,
+        .im-root[data-theme="light"] .im-strip-tile { box-shadow: 0 4px 18px rgba(15,23,42,.10); }
+        .im-root[data-theme="light"] input::placeholder { color: #94a3b8; }
+
+        @keyframes soundWave { 0%,100%{ height:3px } 50%{ height:11px } }
+        .im-wave { display:flex; align-items:flex-end; gap:2px; height:12px; }
+        .im-wave span { width:2.5px; border-radius:2px; background:#34d399; display:block; animation: soundWave .7s ease-in-out infinite; }
+        .im-wave span:nth-child(2) { animation-delay:.12s }
+        .im-wave span:nth-child(3) { animation-delay:.24s }
+
+        .im-resize-handle { cursor: col-resize; }
+        .im-resize-handle:hover, .im-resize-handle.im-resizing { background: rgba(109,94,247,.35) !important; }
+        .im-toast-stack { position: fixed; top: 70px; right: 16px; z-index: 9998; display:flex; flex-direction:column; gap:8px; pointer-events:none; }
+
         @keyframes livePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.5)} }
         @keyframes recBlink  { 0%,100%{opacity:1} 50%{opacity:.2} }
         @keyframes slideIn   { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
@@ -2889,9 +3206,9 @@ const IM_STYLES = {
     flexDirection: "column",
     height: "100vh",
     width: "100%",
-    background: "#050608",
+    background: "var(--im-page)",
     fontFamily: "'Inter','Segoe UI',sans-serif",
-    color: "#e2e8f0",
+    color: "var(--im-text-soft)",
     overflow: "hidden",
   },
   toast: {
@@ -2911,14 +3228,30 @@ const IM_STYLES = {
     animation: "toastIn .35s ease",
     minWidth: 280,
   },
+  noticePill: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    padding: "9px 14px",
+    borderRadius: 10,
+    background: "var(--im-panel-elevated)",
+    border: "1px solid var(--im-border)",
+    color: "var(--im-text-soft)",
+    fontSize: 12,
+    fontWeight: 600,
+    boxShadow: "0 8px 24px rgba(0,0,0,.35)",
+    animation: "toastIn .3s ease",
+    pointerEvents: "none",
+    maxWidth: 260,
+  },
 
   topBar: {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
     padding: "12px 20px",
-    background: "#0b0d12",
-    borderBottom: "1px solid rgba(255,255,255,.06)",
+    background: "var(--im-panel)",
+    borderBottom: "1px solid var(--im-border-soft)",
     flexShrink: 0,
     flexWrap: "wrap",
     gap: 8,
@@ -2970,8 +3303,8 @@ const IM_STYLES = {
     gap: 6,
     fontSize: 12,
     fontWeight: 600,
-    color: "#cbd5e1",
-    background: "rgba(255,255,255,.06)",
+    color: "var(--im-text-soft)",
+    background: "var(--im-ghost-bg)",
     borderRadius: 8,
     padding: "5px 10px",
     fontVariantNumeric: "tabular-nums",
@@ -2979,7 +3312,7 @@ const IM_STYLES = {
   sessionName: {
     fontSize: 15,
     fontWeight: 700,
-    color: "#f8fafc",
+    color: "var(--im-text)",
     marginLeft: 2,
   },
   peopleCountBadge: {
@@ -2988,8 +3321,8 @@ const IM_STYLES = {
     gap: 6,
     fontSize: 12,
     fontWeight: 600,
-    color: "#cbd5e1",
-    background: "rgba(255,255,255,.06)",
+    color: "var(--im-text-soft)",
+    background: "var(--im-ghost-bg)",
     borderRadius: 8,
     padding: "6px 10px",
   },
@@ -3008,7 +3341,7 @@ const IM_STYLES = {
   connOff: {
     background: "rgba(100,116,139,.1)",
     border: "1px solid rgba(100,116,139,.2)",
-    color: "#94a3b8",
+    color: "var(--im-text-mute2)",
   },
   endSessionBtn: {
     display: "flex",
@@ -3025,11 +3358,11 @@ const IM_STYLES = {
     boxShadow: "0 4px 14px rgba(239,68,68,.35)",
   },
   iconGhostBtn: {
-    background: "rgba(255,255,255,.06)",
-    border: "1px solid rgba(255,255,255,.08)",
+    background: "var(--im-ghost-bg)",
+    border: "1px solid var(--im-border)",
     borderRadius: 9,
     padding: 8,
-    color: "#94a3b8",
+    color: "var(--im-text-mute2)",
     cursor: "pointer",
     display: "flex",
   },
@@ -3037,8 +3370,8 @@ const IM_STYLES = {
     position: "absolute",
     top: "calc(100% + 8px)",
     right: 0,
-    background: "#161b26",
-    border: "1px solid rgba(255,255,255,.08)",
+    background: "var(--im-panel-elevated)",
+    border: "1px solid var(--im-border)",
     borderRadius: 12,
     padding: 6,
     minWidth: 190,
@@ -3054,7 +3387,7 @@ const IM_STYLES = {
     gap: 8,
     background: "none",
     border: "none",
-    color: "#cbd5e1",
+    color: "var(--im-text-soft)",
     fontSize: 12,
     fontWeight: 600,
     padding: "8px 10px",
@@ -3071,8 +3404,8 @@ const IM_STYLES = {
     display: "flex",
     gap: 4,
     padding: "8px 10px",
-    background: "#161b26",
-    border: "1px solid rgba(255,255,255,.08)",
+    background: "var(--im-panel-elevated)",
+    border: "1px solid var(--im-border)",
     borderRadius: 999,
     boxShadow: "0 12px 32px rgba(0,0,0,.5)",
     zIndex: 50,
@@ -3135,10 +3468,10 @@ const IM_STYLES = {
   },
   stage: {
     position: "relative",
-    background: "#12141a",
+    background: "var(--im-tile-bg)",
     borderRadius: 22,
     overflow: "hidden",
-    border: "1px solid rgba(255,255,255,.08)",
+    border: "1px solid var(--im-border)",
     boxShadow: "0 16px 44px rgba(0,0,0,.38)",
     display: "flex",
     alignItems: "center",
@@ -3149,14 +3482,14 @@ const IM_STYLES = {
     maxWidth: "100%",
     maxHeight: "100%",
   },
-  stageEmpty: { color: "#475569", fontSize: 13, fontWeight: 500 },
+  stageEmpty: { color: "var(--im-text-mute)", fontSize: 13, fontWeight: 500 },
   stageAvatarWrap: {
     position: "absolute",
     inset: 0,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "#14161d",
+    background: "var(--im-tile-bg)",
   },
   stageAvatar: {
     width: 108,
@@ -3235,8 +3568,54 @@ const IM_STYLES = {
     borderRadius: 10,
     padding: "8px 14px",
     fontSize: 12,
-    color: "#e2e8f0",
+    color: "var(--im-text-soft)",
     flexShrink: 0,
+  },
+  presentingBar: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    padding: "8px 16px",
+    background: "rgba(37,99,235,.16)",
+    borderBottom: "1px solid rgba(96,165,250,.25)",
+    color: "#93c5fd",
+    fontSize: 12,
+    fontWeight: 600,
+    flexShrink: 0,
+    flexWrap: "wrap",
+  },
+  presentingStopBtn: {
+    background: "#2563eb",
+    color: "#fff",
+    border: "none",
+    borderRadius: 8,
+    padding: "4px 12px",
+    fontSize: 11,
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+  mediaErrorBar: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    padding: "8px 16px",
+    background: "rgba(245,158,11,.16)",
+    borderBottom: "1px solid rgba(251,191,36,.3)",
+    color: "#fbbf24",
+    fontSize: 12,
+    fontWeight: 600,
+    flexShrink: 0,
+    flexWrap: "wrap",
+  },
+  mediaErrorClose: {
+    background: "none",
+    border: "none",
+    color: "#fbbf24",
+    cursor: "pointer",
+    display: "flex",
+    marginLeft: "auto",
+    padding: 2,
   },
   floaterLayer: {
     position: "absolute",
@@ -3280,10 +3659,10 @@ const IM_STYLES = {
     flex: "0 0 auto",
     width: "clamp(112px, 15vw, 220px)",
     aspectRatio: "16/12.6",
-    background: "#14161d",
+    background: "var(--im-tile-bg)",
     borderRadius: 16,
     overflow: "hidden",
-    border: "1px solid rgba(255,255,255,.08)",
+    border: "1px solid var(--im-border)",
     boxShadow: "0 4px 14px rgba(0,0,0,.22)",
     display: "flex",
     alignItems: "center",
@@ -3294,7 +3673,10 @@ const IM_STYLES = {
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    background: "rgba(255,255,255,.04)",
+    background: "var(--im-ghost-bg)",
+    border: "1px solid var(--im-border)",
+    fontFamily: "inherit",
+    padding: 0,
   },
   stripAvatarWrap: {
     position: "absolute",
@@ -3360,36 +3742,34 @@ const IM_STYLES = {
   gridWrap: {
     flex: 1,
     display: "grid",
-    gridAutoRows: "minmax(0,1fr)",
-    gap: 14,
+    gridAutoRows: "1fr",
+    gap: 8,
     minHeight: 0,
     minWidth: 0,
     overflow: "auto",
-    alignContent: "center",
+    alignContent: "stretch",
+    justifyContent: "stretch",
   },
   gridCellOuter: {
     display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: "stretch",
+    justifyContent: "stretch",
     minHeight: 0,
     minWidth: 0,
     overflow: "hidden",
   },
   gridTile: {
     position: "relative",
-    background: "#12141a",
+    background: "var(--im-tile-bg)",
     borderRadius: 18,
     overflow: "hidden",
-    border: "1px solid rgba(255,255,255,.08)",
+    border: "1px solid var(--im-border)",
     boxShadow: "0 8px 24px rgba(0,0,0,.3)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    aspectRatio: "16/9",
     height: "100%",
-    width: "auto",
-    maxWidth: "100%",
-    maxHeight: "100%",
+    width: "100%",
   },
   gridAvatar: {
     width: "26%",
@@ -3446,21 +3826,22 @@ const IM_STYLES = {
   },
 
   handle: {
-    width: 22,
+    width: 6,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "#0b0d12",
+    background: "var(--im-border)",
     border: "none",
-    borderLeft: "1px solid rgba(255,255,255,.05)",
-    cursor: "pointer",
+    cursor: "col-resize",
     flexShrink: 0,
     padding: 0,
+    touchAction: "none",
   },
   sidebar: {
     width: 340,
-    background: "#0b0d12",
-    borderLeft: "1px solid rgba(255,255,255,.06)",
+    maxWidth: "100%",
+    background: "var(--im-panel)",
+    borderLeft: "1px solid var(--im-border-soft)",
     display: "flex",
     flexDirection: "column",
     flexShrink: 0,
@@ -3472,7 +3853,7 @@ const IM_STYLES = {
     alignItems: "center",
     gap: 6,
     padding: "12px 14px",
-    borderBottom: "1px solid rgba(255,255,255,.06)",
+    borderBottom: "1px solid var(--im-border-soft)",
     flexShrink: 0,
     flexWrap: "wrap",
   },
@@ -3486,7 +3867,7 @@ const IM_STYLES = {
     border: "none",
     borderBottom: "2px solid transparent",
     background: "transparent",
-    color: "#64748b",
+    color: "var(--im-text-mute)",
     cursor: "pointer",
     fontSize: 13,
     fontFamily: "inherit",
@@ -3504,7 +3885,7 @@ const IM_STYLES = {
   closeBtn: {
     background: "none",
     border: "none",
-    color: "#334155",
+    color: "var(--im-text-mute)",
     cursor: "pointer",
     display: "flex",
     marginLeft: "auto",
@@ -3551,11 +3932,11 @@ const IM_STYLES = {
     padding: "0 2px",
   },
   bHeaderSelf: { color: "#b7aefc" },
-  bHeaderTime: { fontSize: 11, fontWeight: 500, color: "#475569" },
+  bHeaderTime: { fontSize: 11, fontWeight: 500, color: "var(--im-text-mute)" },
   sysBubble: {
     fontSize: 12,
-    color: "#8b93a5",
-    background: "rgba(255,255,255,.05)",
+    color: "var(--im-text-mute2)",
+    background: "var(--im-ghost-bg)",
     borderRadius: 8,
     padding: "6px 14px",
     fontWeight: 500,
@@ -3573,23 +3954,23 @@ const IM_STYLES = {
     background: "linear-gradient(135deg,#6d5ef7,#8b5cf6)",
     borderBottomRightRadius: 4,
   },
-  bOther: { background: "#1c1f28", borderBottomLeftRadius: 4 },
-  bText: { fontSize: 14, color: "#f1f5f9", lineHeight: 1.45 },
+  bOther: { background: "var(--im-surface3)", borderBottomLeftRadius: 4 },
+  bText: { fontSize: 14, color: "var(--im-text)", lineHeight: 1.45 },
   inputRow: {
     display: "flex",
     gap: 8,
     padding: "12px 14px",
-    borderTop: "1px solid rgba(255,255,255,.06)",
+    borderTop: "1px solid var(--im-border-soft)",
     flexShrink: 0,
   },
   chatInput: {
     flex: 1,
     minWidth: 0,
-    background: "#161922",
-    border: "1px solid rgba(255,255,255,.08)",
+    background: "var(--im-input-bg)",
+    border: "1px solid var(--im-border)",
     borderRadius: 999,
     padding: "10px 16px",
-    color: "#e2e8f0",
+    color: "var(--im-text-soft)",
     fontSize: 13,
     fontFamily: "inherit",
     outline: "none",
@@ -3619,7 +4000,7 @@ const IM_STYLES = {
   },
   emptyPpl: {
     fontSize: 12,
-    color: "#334155",
+    color: "var(--im-text-mute)",
     textAlign: "center",
     marginTop: 20,
   },
@@ -3629,7 +4010,7 @@ const IM_STYLES = {
     gap: 10,
     padding: "8px 10px",
     borderRadius: 10,
-    background: "rgba(255,255,255,.03)",
+    background: "var(--im-ghost-bg-soft)",
   },
   pAv: {
     width: 32,
@@ -3646,7 +4027,7 @@ const IM_STYLES = {
   pName: {
     flex: 1,
     fontSize: 13,
-    color: "#cbd5e1",
+    color: "var(--im-text-soft)",
     minWidth: 0,
     overflow: "hidden",
     textOverflow: "ellipsis",
@@ -3684,8 +4065,8 @@ const IM_STYLES = {
   settingsPanel: {
     width: 320,
     maxWidth: "100%",
-    background: "#111726",
-    border: "1px solid rgba(255,255,255,.08)",
+    background: "var(--im-panel-elevated)",
+    border: "1px solid var(--im-border)",
     borderRadius: 16,
     overflow: "hidden",
     boxShadow: "0 20px 60px rgba(0,0,0,.6)",
@@ -3695,7 +4076,7 @@ const IM_STYLES = {
     alignItems: "center",
     justifyContent: "space-between",
     padding: "14px 16px",
-    borderBottom: "1px solid rgba(255,255,255,.06)",
+    borderBottom: "1px solid var(--im-border-soft)",
   },
   settingsBody: {
     padding: 16,
@@ -3708,12 +4089,12 @@ const IM_STYLES = {
     alignItems: "center",
     justifyContent: "space-between",
     fontSize: 13,
-    color: "#cbd5e1",
+    color: "var(--im-text-soft)",
   },
   settingsToggle: {
-    border: "1px solid rgba(255,255,255,.1)",
-    background: "rgba(255,255,255,.05)",
-    color: "#94a3b8",
+    border: "1px solid var(--im-border)",
+    background: "var(--im-ghost-bg)",
+    color: "var(--im-text-mute2)",
     borderRadius: 20,
     padding: "5px 14px",
     fontSize: 11,
@@ -3725,6 +4106,32 @@ const IM_STYLES = {
     borderColor: "rgba(109,94,247,.4)",
     color: "#b7aefc",
   },
+  themeSwitch: {
+    display: "flex",
+    gap: 4,
+    background: "var(--im-ghost-bg)",
+    border: "1px solid var(--im-border)",
+    borderRadius: 20,
+    padding: 3,
+  },
+  themeSwitchBtn: {
+    display: "flex",
+    alignItems: "center",
+    gap: 5,
+    border: "none",
+    background: "transparent",
+    color: "var(--im-text-mute2)",
+    borderRadius: 16,
+    padding: "5px 11px",
+    fontSize: 11,
+    fontWeight: 700,
+    cursor: "pointer",
+    fontFamily: "inherit",
+  },
+  themeSwitchBtnOn: {
+    background: "rgba(109,94,247,.22)",
+    color: "#b7aefc",
+  },
 
   ctrlBar: {
     display: "flex",
@@ -3732,8 +4139,8 @@ const IM_STYLES = {
     justifyContent: "center",
     gap: 8,
     padding: "14px 20px",
-    background: "#0b0d12",
-    borderTop: "1px solid rgba(255,255,255,.06)",
+    background: "var(--im-panel)",
+    borderTop: "1px solid var(--im-border-soft)",
     flexShrink: 0,
     overflowX: "auto",
     flexWrap: "nowrap",

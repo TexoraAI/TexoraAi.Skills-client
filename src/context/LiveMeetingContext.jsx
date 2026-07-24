@@ -56,6 +56,23 @@
 //   const [raisedHands, setRaisedHands] = useState({});
 //   const [floaters, setFloaters] = useState([]);
 
+//   // ── Trainer-enforced flags. Previously the trainer's "Mute All" /
+//   // "Disable Chat" / "Block Screen Share" buttons only flipped a
+//   // *local* flag on the trainer's own screen and broadcast a
+//   // { type: "trainer_command", command, value } data message — but
+//   // nothing on the student side was listening for it, so none of these
+//   // controls had any real effect on a connected student. These flags
+//   // are the student-side source of truth for that broadcast, and are
+//   // enforced below in sendMessage/toggleMic/toggleCam/toggleScreen and
+//   // by the DataReceived "trainer_command" branch further down.
+//   const [chatDisabled, setChatDisabled] = useState(false);
+//   const [micLockedByTrainer, setMicLockedByTrainer] = useState(false);
+//   const [screenShareBlocked, setScreenShareBlocked] = useState(false);
+//   // NEW: camera lock, mirrors micLockedByTrainer exactly. Previously
+//   // there was no listener at all for the trainer's "Disable Cameras" /
+//   // "Enable Cameras" buttons, so they had zero effect on students.
+//   const [cameraLockedByTrainer, setCameraLockedByTrainer] = useState(false);
+
 //   const syncParticipants = useCallback(() => {
 //     const room = roomRef.current;
 //     if (!room) return;
@@ -159,24 +176,94 @@
 //             return;
 //           }
 
-//           // FIX (trainer-sync gap): the trainer's "Lower All Hands" broadcasts
-//           // { type: "trainer_command", command: "handsLowered", value: true } over
-//           // the same data channel. Without this branch the trainer's own view
-//           // clears immediately but this student's UI kept showing their hand as
-//           // raised (out of sync) until they manually toggled it. This clears the
-//           // local "you" flag and re-publishes raiseHand:false so the trainer and
-//           // every other participant's raisedHands map also gets the update -
-//           // same publishData contract toggleHandRaise already uses below.
-//           if (msg.type === "trainer_command" && msg.command === "handsLowered" && msg.value) {
-//             setRaisedHands((prev) => {
-//               if (!prev.you) return prev;
-//               return { ...prev, you: false };
-//             });
-//             pushSystemMsg("Your hand was lowered by the trainer.");
-//             try {
-//               const downPayload = new TextEncoder().encode(JSON.stringify({ type: "raiseHand", raised: false }));
-//               roomRef.current?.localParticipant?.publishData(downPayload, { reliable: true });
-//             } catch (_) {}
+//           // ── Trainer Controls enforcement. The trainer broadcasts
+//           // { type: "trainer_command", command, value, identity? } over
+//           // this same data channel.
+//           if (msg.type === "trainer_command") {
+//             const room = roomRef.current;
+//             switch (msg.command) {
+//               case "handsLowered": {
+//                 if (msg.value) {
+//                   setRaisedHands((prev) => (prev.you ? { ...prev, you: false } : prev));
+//                   pushSystemMsg("Your hand was lowered by the trainer.");
+//                   try {
+//                     const downPayload = new TextEncoder().encode(JSON.stringify({ type: "raiseHand", raised: false }));
+//                     room?.localParticipant?.publishData(downPayload, { reliable: true });
+//                   } catch (_) {}
+//                 }
+//                 break;
+//               }
+//               case "chatDisabled": {
+//                 setChatDisabled(!!msg.value);
+//                 pushSystemMsg(msg.value ? "Chat has been disabled by the trainer." : "Chat has been re-enabled.");
+//                 break;
+//               }
+//               case "allMuted": {
+//                 if (msg.value) {
+//                   setMicLockedByTrainer(true);
+//                   const track = localAudioTrackRef.current;
+//                   if (track) track.mute().catch(() => {});
+//                   setMicOn(false);
+//                   syncParticipants();
+//                   pushSystemMsg("You were muted by the trainer.");
+//                 } else {
+//                   // "Unmute All" alone doesn't force students live —
+//                   // it just lifts the trainer-side lock so toggleMic
+//                   // works again; the student still chooses to unmute.
+//                   setMicLockedByTrainer(false);
+//                 }
+//                 break;
+//               }
+//               case "requestUnmuteAll": {
+//                 setMicLockedByTrainer(false);
+//                 pushSystemMsg("The trainer asked everyone to unmute.");
+//                 break;
+//               }
+//               // NEW: camera lock, mirrors "allMuted" exactly. Fixes
+//               // "Camera Enable/Disable Not Working" — this listener
+//               // did not exist before, so the trainer's buttons had no
+//               // effect at all on the student's actual video track.
+//               case "camerasDisabled": {
+//                 if (msg.value) {
+//                   setCameraLockedByTrainer(true);
+//                   const track = localVideoTrackRef.current;
+//                   if (track) track.mute().catch(() => {});
+//                   setCamOn(false);
+//                   syncParticipants();
+//                   pushSystemMsg("Your camera was disabled by the trainer.");
+//                 } else {
+//                   // Mirrors "allMuted"/false: lifting the lock doesn't
+//                   // force the camera back on, it just lets the student
+//                   // choose to re-enable it themselves.
+//                   setCameraLockedByTrainer(false);
+//                   pushSystemMsg("Cameras have been re-enabled by the trainer.");
+//                 }
+//                 break;
+//               }
+//               case "screenShareBlocked": {
+//                 setScreenShareBlocked(!!msg.value);
+//                 if (msg.value) {
+//                   setScreenOn(false);
+//                   setParticipants((prev) => prev.map((p) => (p.isLocal ? { ...p, screenTrack: null } : p)));
+//                   room?.localParticipant?.setScreenShareEnabled(false).catch(() => {});
+//                 }
+//                 pushSystemMsg(msg.value ? "Screen sharing has been blocked by the trainer." : "Screen sharing is allowed again.");
+//                 break;
+//               }
+//               case "stopScreenShare": {
+//                 // Targeted at one specific student — ignore unless it's us.
+//                 const myIdentity = room?.localParticipant?.identity;
+//                 if (msg.identity && msg.identity === myIdentity) {
+//                   setScreenOn(false);
+//                   setParticipants((prev) => prev.map((p) => (p.isLocal ? { ...p, screenTrack: null } : p)));
+//                   room?.localParticipant?.setScreenShareEnabled(false).catch(() => {});
+//                   pushSystemMsg("The trainer stopped your screen share.");
+//                 }
+//                 break;
+//               }
+//               default:
+//                 break;
+//             }
 //             return;
 //           }
 
@@ -207,6 +294,10 @@
 //     syncParticipants();
 //     setRaisedHands({});
 //     setFloaters([]);
+//     setChatDisabled(false);
+//     setMicLockedByTrainer(false);
+//     setScreenShareBlocked(false);
+//     setCameraLockedByTrainer(false);
 //     setActiveMeeting({ role, sessionId, roomName, title, joinedAt: joinedAt || Date.now() });
 //     setMinimized(false);
 //     setMessages([{ id: 0, name: "System", text: "Session started. Welcome!", system: true, time: nowLabel() }]);
@@ -225,28 +316,55 @@
 //     setMessages([]);
 //     setRaisedHands({});
 //     setFloaters([]);
+//     setChatDisabled(false);
+//     setMicLockedByTrainer(false);
+//     setScreenShareBlocked(false);
+//     setCameraLockedByTrainer(false);
 //     setMinimized(false);
 //   }, []);
 
 //   const toggleMic = useCallback(async () => {
 //     const track = localAudioTrackRef.current;
 //     if (!track) return;
-//     if (micOn) await track.mute(); else await track.unmute();
+//     if (micOn) {
+//       await track.mute();
+//     } else {
+//       if (micLockedByTrainer) {
+//         pushSystemMsg("You've been muted by the trainer and can't unmute right now.");
+//         return;
+//       }
+//       await track.unmute();
+//     }
 //     setMicOn((v) => !v);
 //     syncParticipants();
-//   }, [micOn, syncParticipants]);
+//   }, [micOn, micLockedByTrainer, pushSystemMsg, syncParticipants]);
 
 //   const toggleCam = useCallback(async () => {
 //     const track = localVideoTrackRef.current;
 //     if (!track) return;
-//     if (camOn) await track.mute(); else await track.unmute();
+//     if (camOn) {
+//       await track.mute();
+//     } else {
+//       // NEW guard, mirrors toggleMic's micLockedByTrainer check —
+//       // this is what actually makes "Disable Cameras" stick instead
+//       // of the student being able to immediately click Camera back on.
+//       if (cameraLockedByTrainer) {
+//         pushSystemMsg("Your camera has been disabled by the trainer and can't be turned on right now.");
+//         return;
+//       }
+//       await track.unmute();
+//     }
 //     setCamOn((v) => !v);
 //     syncParticipants();
-//   }, [camOn, syncParticipants]);
+//   }, [camOn, cameraLockedByTrainer, pushSystemMsg, syncParticipants]);
 
 //   const toggleScreen = useCallback(async () => {
 //     const room = roomRef.current;
 //     if (!room) return;
+//     if (!screenOn && screenShareBlocked) {
+//       pushSystemMsg("Screen sharing has been blocked by the trainer.");
+//       return;
+//     }
 //     try {
 //       if (screenOn) {
 //         // FIX: previously this awaited `setScreenShareEnabled(false)`
@@ -265,7 +383,17 @@
 //         setParticipants((prev) => prev.map((p) => (p.isLocal ? { ...p, screenTrack: null } : p)));
 //         await room.localParticipant.setScreenShareEnabled(false);
 //       } else {
-//         const pub = await room.localParticipant.setScreenShareEnabled(true);
+//         // FIX (recursive "hall of mirrors" screen share): without
+//         // these options, the browser's share picker lets the student
+//         // select the very tab/window this meeting is running in,
+//         // producing an infinite self-capture loop. selfBrowserSurface:
+//         // "exclude" removes the current tab from the picker entirely
+//         // in Chromium browsers.
+//         const pub = await room.localParticipant.setScreenShareEnabled(true, {
+//           selfBrowserSurface: "exclude",
+//           surfaceSwitching: "include",
+//           systemAudio: "exclude",
+//         });
 //         if (!pub) return;
 //         setScreenOn(true);
 //         pub.track?.mediaStreamTrack?.addEventListener("ended", () => {
@@ -278,16 +406,20 @@
 //     } finally {
 //       syncParticipants();
 //     }
-//   }, [screenOn, syncParticipants]);
+//   }, [screenOn, screenShareBlocked, pushSystemMsg, syncParticipants]);
 
 //   const sendMessage = useCallback((text) => {
 //     if (!text?.trim()) return;
+//     if (chatDisabled) {
+//       pushSystemMsg("Chat is disabled by the trainer.");
+//       return;
+//     }
 //     setMessages((prev) => [...prev, { id: Date.now() + Math.random(), name: "You", text, self: true, time: nowLabel() }]);
 //     try {
 //       const payload = new TextEncoder().encode(JSON.stringify({ text }));
 //       roomRef.current?.localParticipant?.publishData(payload, { reliable: true });
 //     } catch (_) {}
-//   }, []);
+//   }, [chatDisabled, pushSystemMsg]);
 
 //   const toggleHandRaise = useCallback(() => {
 //     setRaisedHands((prev) => {
@@ -325,6 +457,7 @@
 //     activeMeeting, minimized, setMinimized,
 //     connected, micOn, camOn, screenOn, participants, messages,
 //     raisedHands, floaters,
+//     chatDisabled, micLockedByTrainer, screenShareBlocked, cameraLockedByTrainer,
 //     joinMeeting, leaveMeeting, toggleMic, toggleCam, toggleScreen, sendMessage,
 //     toggleHandRaise, sendReaction,
 //     room: roomRef.current,
@@ -345,9 +478,6 @@
 //   if (!ctx) throw new Error("useLiveMeeting must be used within LiveMeetingProvider");
 //   return ctx;
 // };
-
-
-
 
 
 
@@ -455,21 +585,17 @@ export function LiveMeetingProvider({ children }) {
   const [raisedHands, setRaisedHands] = useState({});
   const [floaters, setFloaters] = useState([]);
 
-  // ── Trainer-enforced flags. Previously the trainer's "Mute All" /
-  // "Disable Chat" / "Block Screen Share" buttons only flipped a
-  // *local* flag on the trainer's own screen and broadcast a
-  // { type: "trainer_command", command, value } data message — but
-  // nothing on the student side was listening for it, so none of these
-  // controls had any real effect on a connected student. These flags
-  // are the student-side source of truth for that broadcast, and are
-  // enforced below in sendMessage/toggleMic/toggleCam/toggleScreen and
-  // by the DataReceived "trainer_command" branch further down.
+  // ── Trainer-enforced flags. The trainer's "Mute All" / "Disable
+  // Chat" / "Block Screen Share" / "Disable Cameras" buttons broadcast
+  // a { type: "trainer_command", command, value } data message. These
+  // flags are the student-side source of truth for that broadcast,
+  // and are enforced below in sendMessage/toggleMic/toggleCam/
+  // toggleScreen and by the DataReceived "trainer_command" branch
+  // further down.
   const [chatDisabled, setChatDisabled] = useState(false);
   const [micLockedByTrainer, setMicLockedByTrainer] = useState(false);
   const [screenShareBlocked, setScreenShareBlocked] = useState(false);
-  // NEW: camera lock, mirrors micLockedByTrainer exactly. Previously
-  // there was no listener at all for the trainer's "Disable Cameras" /
-  // "Enable Cameras" buttons, so they had zero effect on students.
+  // Camera lock, mirrors micLockedByTrainer exactly.
   const [cameraLockedByTrainer, setCameraLockedByTrainer] = useState(false);
 
   const syncParticipants = useCallback(() => {
@@ -495,13 +621,10 @@ export function LiveMeetingProvider({ children }) {
         cameraTrack: null, cameraMuted: true, micTrack: null, micMuted: true, screenTrack: null,
       };
       p.trackPublications.forEach((pub) => {
-        // NOTE: previously required `pub.isSubscribed` as well as
-        // `pub.track`. `isSubscribed` can flip to true a beat *after*
-        // `pub.track` is actually attached/playable, which was making
-        // the spotlight/grid switch lag a moment behind a remote
-        // participant starting or stopping a screen share. `pub.track`
-        // being present already implies it's usable, so that alone is
-        // the correct (and faster) check.
+        // `pub.track` being present already implies it's usable, so
+        // that alone is the correct (and fastest) check — no need to
+        // also gate on `pub.isSubscribed`, which can lag a moment
+        // behind the track actually being attachable.
         if (!pub.track) return;
         if (pub.source === Track.Source.Camera) { entry.cameraTrack = pub.track; entry.cameraMuted = pub.isMuted; }
         else if (pub.source === Track.Source.Microphone) { entry.micTrack = pub.track; entry.micMuted = pub.isMuted; }
@@ -610,6 +733,7 @@ export function LiveMeetingProvider({ children }) {
                   // it just lifts the trainer-side lock so toggleMic
                   // works again; the student still chooses to unmute.
                   setMicLockedByTrainer(false);
+                  syncParticipants();
                 }
                 break;
               }
@@ -618,10 +742,21 @@ export function LiveMeetingProvider({ children }) {
                 pushSystemMsg("The trainer asked everyone to unmute.");
                 break;
               }
-              // NEW: camera lock, mirrors "allMuted" exactly. Fixes
-              // "Camera Enable/Disable Not Working" — this listener
-              // did not exist before, so the trainer's buttons had no
-              // effect at all on the student's actual video track.
+              // ── Task 2 fix: camera lock, mirrors "allMuted" exactly.
+              // BUG: the `msg.value === false` (Enable Cameras) branch
+              // set `cameraLockedByTrainer` to false but never called
+              // syncParticipants(), unlike every other branch here that
+              // changes track/lock state. Because this handler is the
+              // *only* place that clears the lock, and downstream UI
+              // (grid tiles, participant badges, the trainer's own
+              // "camerasDisabled" pill) reads live state that is only
+              // guaranteed fresh right after syncParticipants() runs,
+              // the unlock could land in state but not be reflected —
+              // making "Enable Cameras" look like a no-op even though
+              // toggleCam() itself was already correctly un-gated.
+              // Always sending an explicit boolean (true/false, never
+              // toggled) from the trainer side + always resyncing here
+              // on both branches closes that gap.
               case "camerasDisabled": {
                 if (msg.value) {
                   setCameraLockedByTrainer(true);
@@ -633,8 +768,9 @@ export function LiveMeetingProvider({ children }) {
                 } else {
                   // Mirrors "allMuted"/false: lifting the lock doesn't
                   // force the camera back on, it just lets the student
-                  // choose to re-enable it themselves.
+                  // choose to re-enable it themselves via toggleCam().
                   setCameraLockedByTrainer(false);
+                  syncParticipants();
                   pushSystemMsg("Cameras have been re-enabled by the trainer.");
                 }
                 break;
@@ -744,9 +880,13 @@ export function LiveMeetingProvider({ children }) {
     if (camOn) {
       await track.mute();
     } else {
-      // NEW guard, mirrors toggleMic's micLockedByTrainer check —
-      // this is what actually makes "Disable Cameras" stick instead
-      // of the student being able to immediately click Camera back on.
+      // Guard mirrors toggleMic's micLockedByTrainer check — this is
+      // what makes "Disable Cameras" stick instead of the student
+      // being able to immediately click Camera back on. Once the
+      // trainer's "Enable Cameras" unlocks (cameraLockedByTrainer
+      // becomes false, see the "camerasDisabled" case above), this
+      // guard is skipped and the student can unmute their camera
+      // normally.
       if (cameraLockedByTrainer) {
         pushSystemMsg("Your camera has been disabled by the trainer and can't be turned on right now.");
         return;
@@ -766,28 +906,16 @@ export function LiveMeetingProvider({ children }) {
     }
     try {
       if (screenOn) {
-        // FIX: previously this awaited `setScreenShareEnabled(false)`
-        // before touching any state, and the layout only updated once
-        // the LiveKit "LocalTrackUnpublished" event round-tripped back
-        // through syncParticipants(). That round trip is what made the
-        // UI feel slow to "snap back" to the normal grid after ending a
-        // share (see the reported delay). We now flip `screenOn` and
-        // optimistically clear the local participant's screenTrack
-        // immediately — before the await — so the spotlight/grid
-        // layout switches back the instant the button is pressed. The
-        // real unpublish still happens right after; syncParticipants()
-        // in `finally` reconciles with the real LiveKit state either
-        // way, so this can't get out of sync.
+        // Optimistically flip state before the await so the UI snaps
+        // back to the normal grid immediately; syncParticipants() in
+        // `finally` reconciles with the real LiveKit state either way.
         setScreenOn(false);
         setParticipants((prev) => prev.map((p) => (p.isLocal ? { ...p, screenTrack: null } : p)));
         await room.localParticipant.setScreenShareEnabled(false);
       } else {
-        // FIX (recursive "hall of mirrors" screen share): without
-        // these options, the browser's share picker lets the student
-        // select the very tab/window this meeting is running in,
-        // producing an infinite self-capture loop. selfBrowserSurface:
-        // "exclude" removes the current tab from the picker entirely
-        // in Chromium browsers.
+        // selfBrowserSurface: "exclude" removes the current tab from
+        // the picker in Chromium browsers, preventing a recursive
+        // "hall of mirrors" self-capture loop.
         const pub = await room.localParticipant.setScreenShareEnabled(true, {
           selfBrowserSurface: "exclude",
           surfaceSwitching: "include",

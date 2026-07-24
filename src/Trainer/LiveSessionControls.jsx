@@ -2877,7 +2877,6 @@
 
 
 
-
 import { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
@@ -2908,6 +2907,7 @@ import {
   ChevronDown,
   LayoutGrid,
   Maximize2,
+  Minimize2,
   MoreVertical,
   Settings,
   Search,
@@ -3659,8 +3659,16 @@ const LiveSessionControls = () => {
       rebuild();
     } else {
       try {
+        // FIX (recursive "hall of mirrors" screen share): without these
+        // options, the browser's picker lets the trainer select the very
+        // tab/window this meeting is running in, producing an infinite
+        // self-capture loop. selfBrowserSurface: "exclude" removes the
+        // current tab from the picker entirely in Chromium browsers.
         const pub = await room.localParticipant.setScreenShareEnabled(true, {
           audio: false,
+          selfBrowserSurface: "exclude",
+          surfaceSwitching: "include",
+          systemAudio: "exclude",
         });
         if (!pub) return;
         setScreenOn(true);
@@ -4101,21 +4109,37 @@ const LiveSessionControls = () => {
     window.addEventListener("mouseup", onUp);
   }, [sidebarWidth]);
 
+  // FIX (Fullscreen glitch): previously this set `isFullscreen` state
+  // manually right after calling requestFullscreen()/exitFullscreen(),
+  // which can desync from the real browser state (e.g. if the request
+  // is denied, blocked, or the promise rejects). The fullscreenchange
+  // listener below is now the single source of truth; this handler only
+  // *requests* the change and never sets isFullscreen itself.
   const toggleFullscreen = useCallback(() => {
     const el = rootRef.current;
-    if (!document.fullscreenElement) {
-      el?.requestFullscreen?.().catch(() => {});
-      setIsFullscreen(true);
+    const isCurrentlyFullscreen = !!(
+      document.fullscreenElement || document.webkitFullscreenElement
+    );
+    if (!isCurrentlyFullscreen) {
+      const request = el?.requestFullscreen || el?.webkitRequestFullscreen;
+      const result = request?.call(el);
+      if (result?.catch) result.catch((err) => console.warn("Fullscreen request failed:", err));
     } else {
-      document.exitFullscreen?.().catch(() => {});
-      setIsFullscreen(false);
+      const exit = document.exitFullscreen || document.webkitExitFullscreen;
+      const result = exit?.call(document);
+      if (result?.catch) result.catch(() => {});
     }
   }, []);
 
   useEffect(() => {
-    const onFsChange = () => setIsFullscreen(!!document.fullscreenElement);
+    const onFsChange = () =>
+      setIsFullscreen(!!(document.fullscreenElement || document.webkitFullscreenElement));
     document.addEventListener("fullscreenchange", onFsChange);
-    return () => document.removeEventListener("fullscreenchange", onFsChange);
+    document.addEventListener("webkitfullscreenchange", onFsChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", onFsChange);
+      document.removeEventListener("webkitfullscreenchange", onFsChange);
+    };
   }, []);
 
   // ── Part 2: floating controls over the shared screen (zoom in/out/
@@ -4332,8 +4356,17 @@ const LiveSessionControls = () => {
             </div>
           )}
           {!isCompactDevice && (
-            <button className="ilm-hoverscale" style={S.iconBtn} onClick={toggleFullscreen} title="Fullscreen">
-              <Maximize2 size={15} strokeWidth={2.25} />
+            <button
+              className="ilm-hoverscale"
+              style={S.iconBtn}
+              onClick={toggleFullscreen}
+              title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+            >
+              {isFullscreen ? (
+                <Minimize2 size={15} strokeWidth={2.25} />
+              ) : (
+                <Maximize2 size={15} strokeWidth={2.25} />
+              )}
             </button>
           )}
           {!isCompactDevice && (
@@ -4788,30 +4821,49 @@ const LiveSessionControls = () => {
                     icon={<MicOff size={16} />}
                     label="Mute All"
                     tone="red"
-                    onClick={() => toggleTrainerFlag("allMuted", "All participants muted.", "Participants can unmute themselves.")}
+                    onClick={() => {
+                      setTrainerFlags((p) => ({ ...p, allMuted: true }));
+                      pushSystem("All participants muted.");
+                      broadcastTrainerCommand("allMuted", true);
+                    }}
                   />
                   <TCBtn
                     icon={<Mic size={16} />}
                     label="Unmute All"
                     tone="green"
                     onClick={() => {
+                      setTrainerFlags((p) => ({ ...p, allMuted: false }));
                       pushSystem("Requested all participants to unmute.");
+                      broadcastTrainerCommand("allMuted", false);
                       broadcastTrainerCommand("requestUnmuteAll", true);
                     }}
                   />
+                  {/* FIX (Camera Enable/Disable not working): kept as two
+                      separate buttons per requirement. Each explicitly
+                      sets/broadcasts its own target state instead of
+                      flipping a shared flag, and both now broadcast the
+                      SAME command ("camerasDisabled") so the student-side
+                      listener (LiveMeetingContext.jsx) — which previously
+                      didn't exist at all — can reliably lock/unlock the
+                      camera track in both directions. */}
                   <TCBtn
                     icon={<VideoOff size={16} />}
                     label="Disable Cameras"
                     tone="red"
-                    onClick={() => toggleTrainerFlag("camerasDisabled", "All cameras disabled.", "Cameras re-enabled.")}
+                    onClick={() => {
+                      setTrainerFlags((p) => ({ ...p, camerasDisabled: true }));
+                      pushSystem("All cameras disabled.");
+                      broadcastTrainerCommand("camerasDisabled", true);
+                    }}
                   />
                   <TCBtn
                     icon={<Video size={16} />}
                     label="Enable Cameras"
                     tone="green"
                     onClick={() => {
+                      setTrainerFlags((p) => ({ ...p, camerasDisabled: false }));
                       pushSystem("Requested all participants to enable cameras.");
-                      broadcastTrainerCommand("requestEnableCamerasAll", true);
+                      broadcastTrainerCommand("camerasDisabled", false);
                     }}
                   />
                   <TCBtn
@@ -4834,7 +4886,11 @@ const LiveSessionControls = () => {
                     icon={<MessageSquareOff size={16} />}
                     label="Disable Chat"
                     tone="red"
-                    onClick={() => toggleTrainerFlag("chatDisabled", "Chat disabled for participants.", "Chat enabled for participants.")}
+                    onClick={() => {
+                      setTrainerFlags((p) => ({ ...p, chatDisabled: true }));
+                      pushSystem("Chat disabled for participants.");
+                      broadcastTrainerCommand("chatDisabled", true);
+                    }}
                   />
                   <TCBtn
                     icon={<MessageSquare size={16} />}
@@ -4864,11 +4920,34 @@ const LiveSessionControls = () => {
                     tone="green"
                     onClick={() => toggleTrainerFlag("micRequestsAllowed", "Mic requests are now allowed.", "Mic requests are now blocked.")}
                   />
+                  {/* FIX (Unblock Screen Share missing/not working): kept
+                      as two separate buttons per requirement. Each
+                      explicitly sets/broadcasts screenShareBlocked to its
+                      own target value rather than toggling the shared
+                      flag, so clicking either button always lands on the
+                      intended state regardless of click order. The
+                      student-side listener for "screenShareBlocked" in
+                      LiveMeetingContext.jsx already correctly handles both
+                      true and false — no student-side change needed. */}
                   <TCBtn
                     icon={<ScreenShareOff size={16} />}
                     label="Block Screen Share"
                     tone="red"
-                    onClick={() => toggleTrainerFlag("screenShareBlocked", "Screen sharing blocked for participants.", "Screen sharing allowed for participants.")}
+                    onClick={() => {
+                      setTrainerFlags((p) => ({ ...p, screenShareBlocked: true }));
+                      pushSystem("Screen sharing blocked for participants.");
+                      broadcastTrainerCommand("screenShareBlocked", true);
+                    }}
+                  />
+                  <TCBtn
+                    icon={<ScreenShare size={16} />}
+                    label="Unblock Screen Share"
+                    tone="green"
+                    onClick={() => {
+                      setTrainerFlags((p) => ({ ...p, screenShareBlocked: false }));
+                      pushSystem("Screen sharing allowed for participants.");
+                      broadcastTrainerCommand("screenShareBlocked", false);
+                    }}
                   />
                 </div>
               </div>

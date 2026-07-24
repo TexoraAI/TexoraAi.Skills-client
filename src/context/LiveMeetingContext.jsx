@@ -455,18 +455,22 @@ export function LiveMeetingProvider({ children }) {
   const [raisedHands, setRaisedHands] = useState({});
   const [floaters, setFloaters] = useState([]);
 
-  // ── Trainer-enforced flags (Part 3 fix). Previously the trainer's
-  // "Mute All" / "Disable Chat" / "Block Screen Share" buttons only
-  // flipped a *local* flag on the trainer's own screen and broadcast a
+  // ── Trainer-enforced flags. Previously the trainer's "Mute All" /
+  // "Disable Chat" / "Block Screen Share" buttons only flipped a
+  // *local* flag on the trainer's own screen and broadcast a
   // { type: "trainer_command", command, value } data message — but
   // nothing on the student side was listening for it, so none of these
-  // controls had any real effect on a connected student. These three
-  // flags are the student-side source of truth for that broadcast, and
-  // are enforced below in sendMessage/toggleMic/toggleScreen and by the
-  // DataReceived "trainer_command" branch further down.
+  // controls had any real effect on a connected student. These flags
+  // are the student-side source of truth for that broadcast, and are
+  // enforced below in sendMessage/toggleMic/toggleCam/toggleScreen and
+  // by the DataReceived "trainer_command" branch further down.
   const [chatDisabled, setChatDisabled] = useState(false);
   const [micLockedByTrainer, setMicLockedByTrainer] = useState(false);
   const [screenShareBlocked, setScreenShareBlocked] = useState(false);
+  // NEW: camera lock, mirrors micLockedByTrainer exactly. Previously
+  // there was no listener at all for the trainer's "Disable Cameras" /
+  // "Enable Cameras" buttons, so they had zero effect on students.
+  const [cameraLockedByTrainer, setCameraLockedByTrainer] = useState(false);
 
   const syncParticipants = useCallback(() => {
     const room = roomRef.current;
@@ -571,11 +575,9 @@ export function LiveMeetingProvider({ children }) {
             return;
           }
 
-          // ── Trainer Controls enforcement (Part 3 fix). The trainer
-          // broadcasts { type: "trainer_command", command, value, identity? }
-          // over this same data channel; this was previously never
-          // listened for here, which is why every Trainer Controls button
-          // "did nothing" from a student's point of view.
+          // ── Trainer Controls enforcement. The trainer broadcasts
+          // { type: "trainer_command", command, value, identity? } over
+          // this same data channel.
           if (msg.type === "trainer_command") {
             const room = roomRef.current;
             switch (msg.command) {
@@ -614,6 +616,27 @@ export function LiveMeetingProvider({ children }) {
               case "requestUnmuteAll": {
                 setMicLockedByTrainer(false);
                 pushSystemMsg("The trainer asked everyone to unmute.");
+                break;
+              }
+              // NEW: camera lock, mirrors "allMuted" exactly. Fixes
+              // "Camera Enable/Disable Not Working" — this listener
+              // did not exist before, so the trainer's buttons had no
+              // effect at all on the student's actual video track.
+              case "camerasDisabled": {
+                if (msg.value) {
+                  setCameraLockedByTrainer(true);
+                  const track = localVideoTrackRef.current;
+                  if (track) track.mute().catch(() => {});
+                  setCamOn(false);
+                  syncParticipants();
+                  pushSystemMsg("Your camera was disabled by the trainer.");
+                } else {
+                  // Mirrors "allMuted"/false: lifting the lock doesn't
+                  // force the camera back on, it just lets the student
+                  // choose to re-enable it themselves.
+                  setCameraLockedByTrainer(false);
+                  pushSystemMsg("Cameras have been re-enabled by the trainer.");
+                }
                 break;
               }
               case "screenShareBlocked": {
@@ -673,6 +696,7 @@ export function LiveMeetingProvider({ children }) {
     setChatDisabled(false);
     setMicLockedByTrainer(false);
     setScreenShareBlocked(false);
+    setCameraLockedByTrainer(false);
     setActiveMeeting({ role, sessionId, roomName, title, joinedAt: joinedAt || Date.now() });
     setMinimized(false);
     setMessages([{ id: 0, name: "System", text: "Session started. Welcome!", system: true, time: nowLabel() }]);
@@ -694,6 +718,7 @@ export function LiveMeetingProvider({ children }) {
     setChatDisabled(false);
     setMicLockedByTrainer(false);
     setScreenShareBlocked(false);
+    setCameraLockedByTrainer(false);
     setMinimized(false);
   }, []);
 
@@ -716,10 +741,21 @@ export function LiveMeetingProvider({ children }) {
   const toggleCam = useCallback(async () => {
     const track = localVideoTrackRef.current;
     if (!track) return;
-    if (camOn) await track.mute(); else await track.unmute();
+    if (camOn) {
+      await track.mute();
+    } else {
+      // NEW guard, mirrors toggleMic's micLockedByTrainer check —
+      // this is what actually makes "Disable Cameras" stick instead
+      // of the student being able to immediately click Camera back on.
+      if (cameraLockedByTrainer) {
+        pushSystemMsg("Your camera has been disabled by the trainer and can't be turned on right now.");
+        return;
+      }
+      await track.unmute();
+    }
     setCamOn((v) => !v);
     syncParticipants();
-  }, [camOn, syncParticipants]);
+  }, [camOn, cameraLockedByTrainer, pushSystemMsg, syncParticipants]);
 
   const toggleScreen = useCallback(async () => {
     const room = roomRef.current;
@@ -746,7 +782,17 @@ export function LiveMeetingProvider({ children }) {
         setParticipants((prev) => prev.map((p) => (p.isLocal ? { ...p, screenTrack: null } : p)));
         await room.localParticipant.setScreenShareEnabled(false);
       } else {
-        const pub = await room.localParticipant.setScreenShareEnabled(true);
+        // FIX (recursive "hall of mirrors" screen share): without
+        // these options, the browser's share picker lets the student
+        // select the very tab/window this meeting is running in,
+        // producing an infinite self-capture loop. selfBrowserSurface:
+        // "exclude" removes the current tab from the picker entirely
+        // in Chromium browsers.
+        const pub = await room.localParticipant.setScreenShareEnabled(true, {
+          selfBrowserSurface: "exclude",
+          surfaceSwitching: "include",
+          systemAudio: "exclude",
+        });
         if (!pub) return;
         setScreenOn(true);
         pub.track?.mediaStreamTrack?.addEventListener("ended", () => {
@@ -810,7 +856,7 @@ export function LiveMeetingProvider({ children }) {
     activeMeeting, minimized, setMinimized,
     connected, micOn, camOn, screenOn, participants, messages,
     raisedHands, floaters,
-    chatDisabled, micLockedByTrainer, screenShareBlocked,
+    chatDisabled, micLockedByTrainer, screenShareBlocked, cameraLockedByTrainer,
     joinMeeting, leaveMeeting, toggleMic, toggleCam, toggleScreen, sendMessage,
     toggleHandRaise, sendReaction,
     room: roomRef.current,

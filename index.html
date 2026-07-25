@@ -1,44 +1,96 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
 
+<head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>ILM ORA</title>
+  <!-- Preconnect for performance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="dns-prefetch" href="https://www.google-analytics.com" />
 
-  <!-- favicon -->
-  <link rel="icon" type="image/png" href="/logo.png" />
+  <!-- Poppins font (used for ILM ORA text logo) -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Favicon -->
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favIcon/fav-icon-16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favIcon/fav-icon-32.png" />
+  <link rel="icon" type="image/png" sizes="48x48" href="/images/favIcon/fav-icon-48.png" />
+
+  <!-- Apple touch icon -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favIcon/fav-icon-180.png" />
+
+  <title>ILM ORA - Intelligent Learning Management</title>
+  <meta name="description" content="Master Product, Design, Growth & Marketing with live sessions from industry experts — powered by Texora AI." />
+  <meta name="keywords" content="ILM ORA, online learning, live classes, product management course, UX design course, growth marketing course, Texora AI" />
+  <meta name="author" content="Texora Team" />
+  <meta name="copyright" content="Copyright © Texora AI" />
 
   <!-- Open Graph (WhatsApp / LinkedIn Preview) -->
   <meta property="og:title" content="ILM ORA – Learn. Grow. Lead." />
   <meta property="og:description" content="Master Product, Design, Growth & Marketing with live sessions from industry experts — powered by Texora AI." />
-  <meta property="og:image" content="https://ilmora.texora.ai/logo.png" />
   <meta property="og:url" content="https://ilmora.texora.ai/" />
   <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://ilmora.texora.ai/og-img.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="627" />
+  <meta property="og:image:alt" content="ILM ORA - Learn Product, Design, Growth & Marketing" />
 
   <!-- Twitter Preview -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="ILM ORA – Learn. Grow. Lead." />
   <meta name="twitter:description" content="Master Product, Design, Growth & Marketing with live sessions from industry experts — powered by Texora AI." />
-  <meta name="twitter:image" content="https://ilmora.texora.ai/logo.png" />
+  <meta name="twitter:image" content="https://ilmora.texora.ai/og-img.jpg" />
+  <meta name="twitter:creator" content="@texoraai" />
+
+  <link rel="canonical" href="https://ilmora.texora.ai/" />
 
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-VSSXY4LL8P"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+    function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
     gtag('config', 'G-VSSXY4LL8P');
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    "name": "ILM ORA",
+    "url": "https://ilmora.texora.ai",
+    "logo": "https://ilmora.texora.ai/images/favIcon/fav-icon-180.png",
+    "description": "ILM ORA offers live, expert-led classes in Product, Design, Growth & Marketing — powered by Texora AI.",
+    "parentOrganization": {
+      "@type": "Organization",
+      "name": "Texora AI",
+      "url": "https://texora.ai"
+    },
+    "sameAs": [
+      "https://www.linkedin.com/company/texora-ai",
+      "https://twitter.com/texoraai",
+      "https://www.instagram.com/texora_ai"
+    ]
+  }
   </script>
 
 </head>
 
 <body>
-
   <div id="root"></div>
 
-  <script type="module" src="/src/main.jsx"></script>
+  <!-- Fallback content for crawlers that do not execute JavaScript -->
+  <noscript>
+    <main style="font-family:sans-serif;max-width:960px;margin:0 auto;padding:2rem">
+      <h1>ILM ORA — Learn. Grow. Lead.</h1>
+      <p>Master Product, Design, Growth & Marketing with live sessions from industry experts — powered by Texora AI.</p>
+    </main>
+  </noscript>
 
+  <script type="module" src="/src/main.jsx"></script>
 </body>
+
 </html>

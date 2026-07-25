@@ -2270,7 +2270,7 @@ const VideoTile = ({ tile, small, large, device = "desktop", handRaised, tileFlo
         tile.track.detach(el);
       } catch (_) {}
     };
-  }, [tile?.track]);
+  }, [tile?.track, tile?.videoMuted]);
 
   const showVideo = !!tile?.track && !tile.videoMuted;
   const initials = (tile?.name || "?").trim().charAt(0).toUpperCase();

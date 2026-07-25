@@ -55,6 +55,33 @@
   padding: 0 4px;
 }
 
+/* ── Ripple-on-click fix ───────────────────────────────────────────
+   .tc-card also gets className="ripple-btn" (see LiveTrainerControlsGrid.jsx),
+   and useRipple.js appends a <span class="ripple"> on every click.
+   These rules were previously missing here (they only existed in
+   liveMeetingTheme.css, which is never imported), so the ripple span
+   had no position/overflow/animation and just kept stacking inside the
+   button on every click, making it grow bigger and bigger. */
+.tc-card.ripple-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.tc-card.ripple-btn span.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  pointer-events: none;
+  animation: tc-ripple 0.6s ease;
+}
+
+@keyframes tc-ripple {
+  to {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
 @media (max-width: 420px) {
   .tc-grid {
     grid-template-columns: repeat(2, 1fr);

@@ -10,6 +10,7 @@
 //   GitBranch, 
 //   CalendarDays,
 //   ChevronDown,
+//   ChevronRight,
 //   ClipboardCheck,
 //   ClipboardEdit,
 //   DollarSign,
@@ -52,6 +53,15 @@
 // import { useAvatarContext } from "../context/AvatarContext";
 
 // /* ================================================================
+//    SIDEBAR MODES  (3-step folding: full -> icon -> hidden -> full)
+// ================================================================ */
+// const SIDEBAR_WIDTHS = {
+//   full: 280,
+//   icon: 72,
+//   hidden: 0,
+// };
+
+// /* ================================================================
 //    MENUS
 // ================================================================ */
 // const studentMenus = [
@@ -59,6 +69,11 @@
 //     name: "Dashboard",
 //     path: "/student",
 //     icon: LayoutDashboard,
+//   },
+//   {
+//     name: "WorkSpace",
+//     path: "/student/workspace",
+//     icon: Video,
 //   },
 //   {
 //     name: "Learning & Classes",
@@ -136,6 +151,11 @@
 //   { name: "Dashboard",        path: "/trainer",         icon: LayoutDashboard },
 //   { name: "Batch Management", path: "/trainer/batches", icon: Layers },
 //   {
+//     name: "WorkSpace",
+//     path: "/trainer/workspace",
+//     icon: Video,
+//   },
+//   {
 //     name: "Content Management", icon: FileText,
 //     children: [
 //       { name: "Upload Videos",      path: "/trainer/upload-videos",      icon: Video },
@@ -181,6 +201,11 @@
 
 // const adminMenus = [
 //   { name: "Dashboard", path: "/admin", icon: LayoutDashboard },
+//   {
+//     name: "WorkSpace",
+//     path: "/admin/workspace",
+//     icon: Video,
+//   },
 //   {
 //     name: "Organisation Manager", icon: Building2,
 //     path: "/admin/organisation-overview",
@@ -306,8 +331,11 @@
 
 // /* ================================================================
 //    SIDEBAR
+//    Accepts optional controlled props (sidebarMode / setSidebarMode)
+//    from DashboardLayout. Falls back to internal state so the
+//    component still works if rendered standalone anywhere else.
 // ================================================================ */
-// const Sidebar = () => {
+// const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeProp } = {}) => {
 //   const location = useNavigate ? useLocation() : { pathname: "/" };
 //   const navigate  = useNavigate();
 
@@ -328,8 +356,35 @@
 
 //   const role = roleConfig[roleKey];
 
-//   const [collapsed,  setCollapsed]  = React.useState(false);
+//   // ── 3-step fold state: "full" | "icon" | "hidden" ──────────────
+//   const [internalMode, setInternalMode] = React.useState(() => {
+//     try {
+//       return localStorage.getItem("sidebarMode") || "full";
+//     } catch {
+//       return "full";
+//     }
+//   });
+//   const sidebarMode    = sidebarModeProp    ?? internalMode;
+//   const setSidebarMode = setSidebarModeProp ?? setInternalMode;
+
+//   React.useEffect(() => {
+//     try { localStorage.setItem("sidebarMode", sidebarMode); } catch (_) {}
+//   }, [sidebarMode]);
+
+//   const toggleSidebar = () => {
+//     setSidebarMode(prev =>
+//       prev === "full" ? "icon" : prev === "icon" ? "hidden" : "full"
+//     );
+//   };
+
+//   const collapsed = sidebarMode === "icon";   // icon-only rail
+//   const hidden    = sidebarMode === "hidden"; // fully hidden
+//   const sidebarWidth = SIDEBAR_WIDTHS[sidebarMode];
+
 //   const [openGroups, setOpenGroups] = React.useState({});
+//   const [flyoutGroup, setFlyoutGroup] = React.useState(null); // hover/click flyout in icon mode
+//   const flyoutCloseTimer = React.useRef(null);
+
 //   const [dark,       setDark]       = React.useState(
 //     document.documentElement.classList.contains("dark")
 //   );
@@ -386,11 +441,30 @@
 //     navigate("/login");
 //   };
 
+//   // ── Flyout helpers (icon mode only) ────────────────────────────
+//   const openFlyout = (name) => {
+//     if (flyoutCloseTimer.current) clearTimeout(flyoutCloseTimer.current);
+//     setFlyoutGroup(name);
+//   };
+//   const scheduleCloseFlyout = () => {
+//     if (flyoutCloseTimer.current) clearTimeout(flyoutCloseTimer.current);
+//     flyoutCloseTimer.current = setTimeout(() => setFlyoutGroup(null), 150);
+//   };
+
 //   return (
 //     <>
 //       <style>{`
 //         .sidebar-root[data-dark="true"]  { background: #000000; border-right: 1px solid #1a1a1a; }
 //         .sidebar-root[data-dark="false"] { background: #ffffff; border-right: 1px solid #e2e8f0; }
+//         .sidebar-root {
+//           position: relative;
+//           transition: width .28s ease, margin .28s ease, transform .28s ease;
+//            z-index: 40;
+//         }
+//         .sidebar-root[data-mode="hidden"] {
+//           border-right-width: 0;
+//           pointer-events: none;
+//         }
 
 //         .sidebar-nav::-webkit-scrollbar { width: 3px; }
 //         .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
@@ -402,6 +476,7 @@
 //           padding: 7px 10px; border-radius: 9px; font-size: 13px;
 //           font-weight: 500; transition: all 0.15s ease; cursor: pointer;
 //           border: none; background: transparent; text-align: left; gap: 0;
+//           position: relative;
 //         }
 //         [data-dark="false"] .nav-item              { color: #374151; }
 //         [data-dark="false"] .nav-item:hover        { color: #1d4ed8; background: #eff6ff; }
@@ -483,6 +558,33 @@
 //           margin-top: 2px; margin-bottom: 2px;
 //           display: flex; flex-direction: column; gap: 1px;
 //         }
+
+//         /* ── Flyout submenu (icon mode: hover / click beside the rail) ── */
+//         .flyout-menu {
+//           position: absolute;
+//           left: calc(100% + 8px);
+//           top: -4px;
+//           min-width: 208px;
+//           border-radius: 12px;
+//           padding: 6px;
+//           z-index: 60;
+//           display: flex;
+//           flex-direction: column;
+//           gap: 1px;
+//           animation: flyoutIn 0.14s ease;
+//         }
+//         @keyframes flyoutIn {
+//           from { opacity: 0; transform: translateX(-6px); }
+//           to   { opacity: 1; transform: translateX(0); }
+//         }
+//         [data-dark="false"] .flyout-menu { background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 12px 32px rgba(15,23,42,0.14); }
+//         [data-dark="true"]  .flyout-menu { background: #0a0a0a; border: 1px solid #1a1a1a; box-shadow: 0 12px 32px rgba(0,0,0,0.55); }
+//         .flyout-title {
+//           font-size: 11px; font-weight: 700; text-transform: uppercase;
+//           letter-spacing: 0.04em; padding: 6px 8px 4px;
+//         }
+//         [data-dark="false"] .flyout-title { color: #94a3b8; }
+//         [data-dark="true"]  .flyout-title { color: #52525b; }
 
 //         .role-badge {
 //           display: inline-flex; align-items: center; gap: 5px;
@@ -597,25 +699,92 @@
 //           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 //           margin-left: 9px;
 //         }
+
+//         /* ── Icon-mode centering fix ──
+//            When only the icon-box renders (label hidden), the button's
+//            default flex-start alignment left-shoves it against the
+//            padding instead of centering it in the 72px rail. This was
+//            the "icon layout broken" bug — center everything explicitly. */
+//         .sidebar-root[data-mode="icon"] .nav-item {
+//           justify-content: center;
+//           padding: 9px 0;
+//         }
+//         .sidebar-root[data-mode="icon"] .sidebar-nav {
+//           padding-left: 0;
+//           padding-right: 0;
+//           align-items: center;
+//         }
+//         .sidebar-root[data-mode="icon"] .sidebar-nav > div {
+//           width: 100%;
+//           display: flex;
+//           justify-content: center;
+//         }
+//         .sidebar-root[data-mode="icon"] .theme-btn {
+//           justify-content: center;
+//           padding: 6px 0;
+//         }
+//         .sidebar-root[data-mode="icon"] .user-card {
+//           justify-content: center;
+//           padding: 7px 0;
+//         }
+//         .sidebar-root[data-mode="icon"] .sidebar-footer {
+//           display: flex;
+//           flex-direction: column;
+//           align-items: center;
+//         }
+
+//         /* ── Mobile/tablet: only "full" mode becomes a fixed overlay
+//                (280px is too wide to push content on a phone/iPad).
+//                "icon" mode (72px) behaves EXACTLY like desktop — it
+//                just pushes the content column — so the fold concept
+//                (full → icon → hidden) feels identical on every device. ── */
+//         .sidebar-backdrop { display: none; }
+//         @media (max-width: 768px) {
+//           .sidebar-root[data-mode="full"] {
+//             position: fixed;
+//             top: 0; left: 0;
+//             height: 100vh;
+//             z-index: 70;
+//             box-shadow: 8px 0 32px rgba(0,0,0,0.25);
+//           }
+//           .sidebar-backdrop[data-show="true"] {
+//             display: block;
+//             position: fixed;
+//             inset: 0;
+//             background: rgba(15,23,42,0.45);
+//             z-index: 65;
+//             animation: flyoutIn 0.2s ease;
+//           }
+//         }
 //       `}</style>
+
+//       {/* Mobile-only dim backdrop — shown only behind "full" mode.
+//           "icon" mode never dims the screen, same as on desktop. */}
+//       <div
+//         className="sidebar-backdrop"
+//         data-show={sidebarMode === "full"}
+//         onClick={() => setSidebarMode("hidden")}
+//       />
 
 //       <aside
 //         className="sidebar-root"
 //         data-dark={String(dark)}
+//         data-mode={sidebarMode}
+//         aria-hidden={hidden}
 //         style={{
-//           width: collapsed ? "58px" : "234px",
-//           transition: "width 0.28s cubic-bezier(0.4,0,0.2,1)",
+//           width: sidebarWidth,
 //           flexShrink: 0,
 //           display: "flex",
 //           flexDirection: "column",
 //           height: "100vh",
 //           overflow: "hidden",
-//           zIndex: 40,
+          
+//           opacity: hidden ? 0 : 1,
 //         }}
 //       >
 //         {/* ── HEADER ── */}
 //         <div className="sidebar-header" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-//           {!collapsed && (
+//           {!collapsed && !hidden && (
 //             <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: "9px" }}>
 //               <div className="logo-icon-box" style={{
 //                 width: 33, height: 33, borderRadius: 9,
@@ -634,18 +803,20 @@
 //               </div>
 //             </div>
 //           )}
-//           <button
-//             className="collapse-btn"
-//             onClick={() => setCollapsed(c => !c)}
-//             title={collapsed ? "Expand" : "Collapse"}
-//             style={collapsed ? { margin: "0 auto" } : {}}
-//           >
-//             <Menu size={15} />
-//           </button>
+//           {!hidden && (
+//             <button
+//               className="collapse-btn"
+//               onClick={toggleSidebar}
+//               title={collapsed ? "Expand" : "Collapse"}
+//               style={collapsed ? { margin: "0 auto" } : {}}
+//             >
+//               <Menu size={15} />
+//             </button>
+//           )}
 //         </div>
 
 //         {/* ── ROLE BADGE ── */}
-//         {!collapsed && (
+//         {!collapsed && !hidden && (
 //           <div style={{ padding: "7px 10px 3px" }}>
 //             <span className="role-badge">
 //               <span className="role-dot" />
@@ -655,7 +826,7 @@
 //         )}
 
 //         {/* ── ROLE SWITCHER ── */}
-//         {showRoleDropdown && !collapsed && (
+//         {showRoleDropdown && !collapsed && !hidden && (
 //           <div style={{ padding: "4px 10px 6px" }}>
 //             <select className="role-select" value={currentRolePath} onChange={e => navigate(e.target.value)}>
 //               <option value="/student">Student</option>
@@ -668,22 +839,28 @@
 //         )}
 
 //         {/* ── NAV ── */}
-//         <nav className="sidebar-nav" style={{ flex: 1, overflowY: "auto", padding: "6px 7px", display: "flex", flexDirection: "column", gap: "2px" }}>
+//         <nav className="sidebar-nav" style={{ flex: 1, overflowY: "auto", overflowX: "visible", padding: "6px 7px", display: "flex", flexDirection: "column", gap: "2px" }}>
 //           {menus.map((item) => {
 //             const Icon    = item.icon;
 //             const isOpen  = openGroups[item.name] ?? false;
 //             const isAI    = item.name === "AI Tools"; // ✅ flag for AI group
+//             const isFlyoutOpen = collapsed && flyoutGroup === item.name;
 
 //             if (item.children) {
 //               const isGroupActive = item.children.some(c => location.pathname === c.path);
 //               return (
-//                 <div key={item.name}>
+//                 <div
+//                   key={item.name}
+//                   style={{ position: "relative" }}
+//                   onMouseEnter={() => collapsed && openFlyout(item.name)}
+//                   onMouseLeave={() => collapsed && scheduleCloseFlyout()}
+//                 >
 //                   <button
 //                     className={`nav-item ${isGroupActive ? "group-active" : ""} ${isAI ? "ai-group" : ""}`}
 //                     onClick={() => {
 //                       if (collapsed) {
-//                         setCollapsed(false);
-//                         setOpenGroups(p => ({ ...p, [item.name]: true }));
+//                         // icon mode → toggle flyout instead of expanding the rail
+//                         setFlyoutGroup(prev => (prev === item.name ? null : item.name));
 //                       } else {
 //                         setOpenGroups(p => ({ ...p, [item.name]: !isOpen }));
 //                       }
@@ -691,7 +868,7 @@
 //                     title={collapsed ? item.name : undefined}
 //                   >
 //                     <span className="icon-box"><Icon size={14} /></span>
-//                     {!collapsed && (
+//                     {!collapsed && !hidden && (
 //                       <>
 //                         <span className="nav-label">{item.name}</span>
 //                         {/* ✅ NEW badge only for AI Tools */}
@@ -710,8 +887,8 @@
 //                     )}
 //                   </button>
 
-//                   {!collapsed && isOpen && (
-//                     // ✅ AI group gets purple connector, others get blue
+//                   {/* Full mode: inline accordion connector (unchanged) */}
+//                   {!collapsed && !hidden && isOpen && (
 //                     <div className={isAI ? "ai-connector" : "child-connector"}>
 //                       {item.children.map(child => {
 //                         const active    = location.pathname === child.path;
@@ -723,6 +900,36 @@
 //                             onClick={() => navigate(child.path)}
 //                           >
 //                             <ChildIcon size={12} style={{ flexShrink: 0 }} />
+//                             <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+//                               {child.name}
+//                             </span>
+//                           </button>
+//                         );
+//                       })}
+//                     </div>
+//                   )}
+
+//                   {/* Icon mode: flyout submenu beside the rail (hover or click) */}
+//                   {isFlyoutOpen && (
+//                     <div
+//                       className="flyout-menu"
+//                       onMouseEnter={() => openFlyout(item.name)}
+//                       onMouseLeave={() => scheduleCloseFlyout()}
+//                     >
+//                       <div className="flyout-title">{item.name}</div>
+//                       {item.children.map(child => {
+//                         const active    = location.pathname === child.path;
+//                         const ChildIcon = child.icon;
+//                         return (
+//                           <button
+//                             key={child.name}
+//                             className={`${isAI ? "child-item ai-child-item" : "child-item"} ${active ? "active" : ""}`}
+//                             onClick={() => {
+//                               navigate(child.path);
+//                               setFlyoutGroup(null);
+//                             }}
+//                           >
+//                             <ChildIcon size={13} style={{ flexShrink: 0 }} />
 //                             <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
 //                               {child.name}
 //                             </span>
@@ -744,7 +951,7 @@
 //                 title={collapsed ? item.name : undefined}
 //               >
 //                 <span className="icon-box"><Icon size={14} /></span>
-//                 {!collapsed && <span className="nav-label">{item.name}</span>}
+//                 {!collapsed && !hidden && <span className="nav-label">{item.name}</span>}
 //               </button>
 //             );
 //           })}
@@ -752,22 +959,22 @@
 
 //         {/* ── FOOTER ── */}
 //         <div className="sidebar-footer">
-//           <button className="theme-btn" onClick={toggleTheme}>
+//           <button className="theme-btn" onClick={toggleTheme} title={collapsed ? (dark ? "Light Mode" : "Dark Mode") : undefined}>
 //             <span className="theme-icon-box">
 //               {dark ? <Sun size={13} color="#3b82f6" /> : <Moon size={13} color="#64748b" />}
 //             </span>
-//             {!collapsed && <span>{dark ? "Light Mode" : "Dark Mode"}</span>}
+//             {!collapsed && !hidden && <span>{dark ? "Light Mode" : "Dark Mode"}</span>}
 //           </button>
 
 //           {/* ✅ User card — profileImage hai toh photo, nahi toh initials */}
-//           <div className="user-card">
+//           <div className="user-card" title={collapsed ? userName : undefined}>
 //             <div className="user-avatar">
 //               {profileImage
 //                 ? <img src={profileImage} alt="Profile" />
 //                 : initials
 //               }
 //             </div>
-//             {!collapsed && (
+//             {!collapsed && !hidden && (
 //               <>
 //                 <div style={{ flex: 1, overflow: "hidden" }}>
 //                   <p className="user-name" style={{ fontSize: 12, fontWeight: 600, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", lineHeight: 1.3 }}>
@@ -790,6 +997,9 @@
 // };
 
 // export default Sidebar;
+
+
+
 
 
 
@@ -883,14 +1093,14 @@ import {
   Video
 } from "lucide-react";
 import React from "react";
-
+ 
 import { Phone } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import auth from "../auth";
 import userService from "../services/userService";
 // ✅ Shared AvatarContext se import
 import { useAvatarContext } from "../context/AvatarContext";
-
+ 
 /* ================================================================
    SIDEBAR MODES  (3-step folding: full -> icon -> hidden -> full)
 ================================================================ */
@@ -899,7 +1109,7 @@ const SIDEBAR_WIDTHS = {
   icon: 72,
   hidden: 0,
 };
-
+ 
 /* ================================================================
    MENUS
 ================================================================ */
@@ -950,7 +1160,7 @@ const studentMenus = [
       { name: "Certificates", path: "/student/certificates", icon: Award },
     ],
   },
-
+ 
   // ── ✅ NEW: AI Tools ──────────────────────────────────────────
   {
     name: "AI Tools",
@@ -969,7 +1179,7 @@ const studentMenus = [
     ],
   },
   // ─────────────────────────────────────────────────────────────
-
+ 
   {
     name: "Support",
     icon: MessageCircleQuestion,
@@ -985,7 +1195,7 @@ const studentMenus = [
     ],
   },
 ];
-
+ 
 const trainerMenus = [
   { name: "Dashboard",        path: "/trainer",         icon: LayoutDashboard },
   { name: "Batch Management", path: "/trainer/batches", icon: Layers },
@@ -1037,7 +1247,7 @@ const trainerMenus = [
     ],
   },
 ];
-
+ 
 const adminMenus = [
   { name: "Dashboard", path: "/admin", icon: LayoutDashboard },
   {
@@ -1069,9 +1279,9 @@ const adminMenus = [
         path: "/admin/videos",
         icon: Video,
       },
-
+ 
     ],
-
+ 
   },
   {
     name: "File Management",
@@ -1109,11 +1319,11 @@ const adminMenus = [
         icon: CalendarDays,
       },
       { name: "Settings",         path: "/admin/settings",         icon: Settings },
-
+ 
     ],
   },
 ];
-
+ 
 const businessMenus = [
   { name: "Dashboard", path: "/business", icon: LayoutDashboard },
   {
@@ -1159,7 +1369,7 @@ const businessMenus = [
     ],
   },
 ];
-
+ 
 const roleConfig = {
   student:    { label: "Student"      },
   trainer:    { label: "Trainer"      },
@@ -1167,7 +1377,7 @@ const roleConfig = {
   business:   { label: "Tenant Admin" },
   superAdmin: { label: "Super Admin"  },
 };
-
+ 
 /* ================================================================
    SIDEBAR
    Accepts optional controlled props (sidebarMode / setSidebarMode)
@@ -1177,57 +1387,76 @@ const roleConfig = {
 const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeProp } = {}) => {
   const location = useNavigate ? useLocation() : { pathname: "/" };
   const navigate  = useNavigate();
-
+ 
   // ✅ Global avatar state
   const { profileImage } = useAvatarContext();
-
+ 
   const isTrainer    = location.pathname.startsWith("/trainer");
   const isAdminRoute = location.pathname.startsWith("/admin");
   const isBusiness   = location.pathname.startsWith("/business");
   const isSuperAdmin = location.pathname.startsWith("/super-admin");
-
+ 
   let menus   = studentMenus;
   let roleKey = "student";
   if (isSuperAdmin)      { menus = superAdminMenus; roleKey = "superAdmin"; }
   else if (isTrainer)    { menus = trainerMenus;    roleKey = "trainer";    }
   else if (isAdminRoute) { menus = adminMenus;      roleKey = "admin";      }
   else if (isBusiness)   { menus = businessMenus;   roleKey = "business";   }
-
+ 
   const role = roleConfig[roleKey];
-
+ 
   // ── 3-step fold state: "full" | "icon" | "hidden" ──────────────
+  // Persisted per-role so collapsing/hiding the sidebar while on one
+  // role's pages (e.g. Student) never leaks into another role's pages
+  // (e.g. Trainer) through a shared localStorage key — that cross-role
+  // bleed is what was making the Trainer sidebar come up hidden.
+  const sidebarStorageKey = `sidebarMode:${roleKey}`;
   const [internalMode, setInternalMode] = React.useState(() => {
     try {
-      return localStorage.getItem("sidebarMode") || "full";
+      return localStorage.getItem(sidebarStorageKey) || "full";
     } catch {
       return "full";
     }
   });
   const sidebarMode    = sidebarModeProp    ?? internalMode;
   const setSidebarMode = setSidebarModeProp ?? setInternalMode;
-
+ 
+  // If the role changes (e.g. navigating from /student to /trainer)
+  // while this component stays mounted, re-sync internal mode from
+  // that role's own stored preference instead of carrying over
+  // whatever mode the previous role was left in.
   React.useEffect(() => {
-    try { localStorage.setItem("sidebarMode", sidebarMode); } catch (_) {}
-  }, [sidebarMode]);
-
+    if (sidebarModeProp !== undefined) return; // parent is in control
+    try {
+      setInternalMode(localStorage.getItem(sidebarStorageKey) || "full");
+    } catch {
+      setInternalMode("full");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roleKey]);
+ 
+  React.useEffect(() => {
+    try { localStorage.setItem(sidebarStorageKey, sidebarMode); } catch (_) {}
+  }, [sidebarMode, sidebarStorageKey]);
+ 
   const toggleSidebar = () => {
     setSidebarMode(prev =>
       prev === "full" ? "icon" : prev === "icon" ? "hidden" : "full"
     );
   };
-
+ 
   const collapsed = sidebarMode === "icon";   // icon-only rail
   const hidden    = sidebarMode === "hidden"; // fully hidden
   const sidebarWidth = SIDEBAR_WIDTHS[sidebarMode];
-
+ 
   const [openGroups, setOpenGroups] = React.useState({});
   const [flyoutGroup, setFlyoutGroup] = React.useState(null); // hover/click flyout in icon mode
   const flyoutCloseTimer = React.useRef(null);
-
+ 
   const [dark,       setDark]       = React.useState(
     document.documentElement.classList.contains("dark")
   );
-
+ 
   const toggleTheme = () => {
     setDark(prev => {
       const next = !prev;
@@ -1235,7 +1464,7 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
       return next;
     });
   };
-
+ 
   const currentRole      = localStorage.getItem("role");
   const showRoleDropdown = currentRole === "ADMIN";
   const currentRolePath  = isSuperAdmin  ? "/super-admin/dashboard"
@@ -1243,13 +1472,13 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
     : isTrainer    ? "/trainer"
     : isBusiness   ? "/business"
     : "/student";
-
+ 
   // const userName = localStorage.getItem("userName") || "User";
   // const initials  = userName.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
    const [userName, setUserName] = React.useState(
     localStorage.getItem("userName") || "User",
   );
-
+ 
   React.useEffect(() => {
     userService
       .getMyProfile()
@@ -1262,7 +1491,7 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
         // keep whatever was cached in localStorage if the call fails
       });
   }, []);
-
+ 
   const initials =
     userName
       .trim()
@@ -1272,14 +1501,14 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
       .join("")
       .slice(0, 2)
       .toUpperCase() || "U";
-
-
-
+ 
+ 
+ 
   const handleLogout = () => {
     auth.logout();
     navigate("/login");
   };
-
+ 
   // ── Flyout helpers (icon mode only) ────────────────────────────
   const openFlyout = (name) => {
     if (flyoutCloseTimer.current) clearTimeout(flyoutCloseTimer.current);
@@ -1289,7 +1518,7 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
     if (flyoutCloseTimer.current) clearTimeout(flyoutCloseTimer.current);
     flyoutCloseTimer.current = setTimeout(() => setFlyoutGroup(null), 150);
   };
-
+ 
   return (
     <>
       <style>{`
@@ -1304,12 +1533,12 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
           border-right-width: 0;
           pointer-events: none;
         }
-
+ 
         .sidebar-nav::-webkit-scrollbar { width: 3px; }
         .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
         [data-dark="true"]  .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.3); border-radius:10px; }
         [data-dark="false"] .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.2); border-radius:10px; }
-
+ 
         .nav-item {
           width: 100%; display: flex; align-items: center;
           padding: 7px 10px; border-radius: 9px; font-size: 13px;
@@ -1325,7 +1554,7 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
         [data-dark="true"]  .nav-item:hover        { color: #ffffff; background: rgba(255,255,255,0.07); }
         [data-dark="true"]  .nav-item.active       { color: #ffffff; background: #2563eb; font-weight: 600; box-shadow: 0 2px 8px rgba(37,99,235,0.4); }
         [data-dark="true"]  .nav-item.group-active { color: #60a5fa; font-weight: 600; }
-
+ 
         /* ✅ AI Tools group — subtle purple tint to stand out */
         [data-dark="false"] .nav-item.ai-group              { color: #7c3aed; }
         [data-dark="false"] .nav-item.ai-group:hover        { color: #6d28d9; background: #f5f3ff; }
@@ -1333,14 +1562,14 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
         [data-dark="true"]  .nav-item.ai-group              { color: #a78bfa; }
         [data-dark="true"]  .nav-item.ai-group:hover        { color: #c4b5fd; background: rgba(139,92,246,0.10); }
         [data-dark="true"]  .nav-item.ai-group.group-active { color: #c4b5fd; background: rgba(139,92,246,0.14); }
-
+ 
         [data-dark="false"] .nav-item.ai-group .icon-box              { background: #ede9fe; color: #7c3aed; }
         [data-dark="false"] .nav-item.ai-group:hover .icon-box        { background: #ddd6fe; color: #6d28d9; }
         [data-dark="false"] .nav-item.ai-group.group-active .icon-box { background: #ddd6fe; color: #6d28d9; }
         [data-dark="true"]  .nav-item.ai-group .icon-box              { background: rgba(139,92,246,0.12); color: #a78bfa; }
         [data-dark="true"]  .nav-item.ai-group:hover .icon-box        { background: rgba(139,92,246,0.18); color: #c4b5fd; }
         [data-dark="true"]  .nav-item.ai-group.group-active .icon-box { background: rgba(139,92,246,0.20); color: #c4b5fd; }
-
+ 
         /* ✅ AI child items — purple accent */
         [data-dark="false"] .ai-child-item        { color: #7c3aed; }
         [data-dark="false"] .ai-child-item:hover  { color: #6d28d9; background: #f5f3ff; }
@@ -1348,10 +1577,10 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
         [data-dark="true"]  .ai-child-item        { color: #a78bfa; }
         [data-dark="true"]  .ai-child-item:hover  { color: #c4b5fd; background: rgba(139,92,246,0.09); }
         [data-dark="true"]  .ai-child-item.active { color: #ffffff; background: #7c3aed; font-weight: 600; box-shadow: 0 1px 6px rgba(139,92,246,0.35); }
-
+ 
         [data-dark="false"] .ai-connector { border-left: 2px solid #ddd6fe; }
         [data-dark="true"]  .ai-connector { border-left: 2px solid rgba(139,92,246,0.25); }
-
+ 
         /* ✅ NEW badge pill next to AI Tools label */
         .ai-badge {
           font-size: 9px; font-weight: 700; letter-spacing: 0.05em;
@@ -1360,7 +1589,7 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
         }
         [data-dark="false"] .ai-badge { background: #ede9fe; color: #7c3aed; border: 1px solid #ddd6fe; }
         [data-dark="true"]  .ai-badge { background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.25); }
-
+ 
         .icon-box {
           width: 28px; height: 28px; display: flex; align-items: center;
           justify-content: center; border-radius: 7px; flex-shrink: 0; transition: background 0.15s;
@@ -1371,7 +1600,7 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
         [data-dark="true"]  .icon-box                  { background: rgba(255,255,255,0.08); color: #71717a; }
         [data-dark="true"]  .nav-item:hover .icon-box  { background: rgba(255,255,255,0.12); color: #93c5fd; }
         [data-dark="true"]  .nav-item.active .icon-box { background: rgba(255,255,255,0.20); color: #ffffff; }
-
+ 
         .child-item {
           width: 100%; display: flex; align-items: center;
           gap: 7px; padding: 6px 10px; border-radius: 7px;
@@ -1384,7 +1613,7 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
         [data-dark="true"]  .child-item        { color: #71717a; }
         [data-dark="true"]  .child-item:hover  { color: #e4e4e7; background: rgba(255,255,255,0.06); }
         [data-dark="true"]  .child-item.active { color: #ffffff; background: #2563eb; font-weight: 600; box-shadow: 0 1px 6px rgba(37,99,235,0.4); }
-
+ 
         [data-dark="false"] .child-connector { border-left: 2px solid #dbeafe; }
         [data-dark="true"]  .child-connector { border-left: 2px solid rgba(59,130,246,0.20); }
         .child-connector {
@@ -1397,7 +1626,7 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
           margin-top: 2px; margin-bottom: 2px;
           display: flex; flex-direction: column; gap: 1px;
         }
-
+ 
         /* ── Flyout submenu (icon mode: hover / click beside the rail) ── */
         .flyout-menu {
           position: absolute;
@@ -1424,7 +1653,7 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
         }
         [data-dark="false"] .flyout-title { color: #94a3b8; }
         [data-dark="true"]  .flyout-title { color: #52525b; }
-
+ 
         .role-badge {
           display: inline-flex; align-items: center; gap: 5px;
           padding: 3px 10px; border-radius: 20px;
@@ -1432,7 +1661,7 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
         }
         [data-dark="false"] .role-badge { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
         [data-dark="true"]  .role-badge { background: rgba(59,130,246,0.12); color: #60a5fa; border: 1px solid rgba(59,130,246,0.22); }
-
+ 
         .role-dot {
           width: 5px; height: 5px; border-radius: 50%;
           background: #22c55e; box-shadow: 0 0 5px #22c55e;
@@ -1442,14 +1671,14 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
           0%, 100% { opacity: 1; transform: scale(1); }
           50%       { opacity: 0.5; transform: scale(0.75); }
         }
-
+ 
         [data-dark="false"] .sidebar-header { border-bottom: 1px solid #e2e8f0; }
         [data-dark="true"]  .sidebar-header { border-bottom: 1px solid #1a1a1a; }
         [data-dark="false"] .sidebar-footer { border-top: 1px solid #e2e8f0; }
         [data-dark="true"]  .sidebar-footer { border-top: 1px solid #1a1a1a; }
         .sidebar-header { padding: 12px 10px; }
         .sidebar-footer { padding: 8px; }
-
+ 
         .collapse-btn {
           padding: 6px; border-radius: 8px; cursor: pointer;
           display: flex; align-items: center; justify-content: center; flex-shrink: 0;
@@ -1459,19 +1688,19 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
         [data-dark="false"] .collapse-btn:hover { background: #dbeafe; color: #1d4ed8; border-color: #bfdbfe; }
         [data-dark="true"]  .collapse-btn       { background: rgba(255,255,255,0.07); border: 1px solid #1a1a1a; color: #71717a; }
         [data-dark="true"]  .collapse-btn:hover { background: rgba(255,255,255,0.12); color: #60a5fa; border-color: rgba(59,130,246,0.3); }
-
+ 
         [data-dark="false"] .logo-sub { color: #111827; }
         [data-dark="true"]  .logo-sub { color: #ffffff; }
         [data-dark="false"] .logo-icon-box { background: #dbeafe; border: 1px solid #bfdbfe; }
         [data-dark="true"]  .logo-icon-box { background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.22); }
-
+ 
         .user-card {
           display: flex; align-items: center; gap: 8px;
           padding: 7px 8px; border-radius: 10px;
         }
         [data-dark="false"] .user-card { background: #f8fafc; border: 1px solid #e2e8f0; }
         [data-dark="true"]  .user-card { background: rgba(255,255,255,0.05); border: 1px solid #1a1a1a; }
-
+ 
         .user-avatar {
           width: 30px; height: 30px; border-radius: 8px;
           display: flex; align-items: center; justify-content: center;
@@ -1480,12 +1709,12 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
           overflow: hidden;
         }
         .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
-
+ 
         [data-dark="false"] .user-name       { color: #0f172a; }
         [data-dark="true"]  .user-name       { color: #ffffff; }
         [data-dark="false"] .user-role-label { color: #94a3b8; }
         [data-dark="true"]  .user-role-label { color: #52525b; }
-
+ 
         .logout-btn {
           padding: 5px; border-radius: 7px; border: none;
           cursor: pointer; display: flex; align-items: center;
@@ -1496,7 +1725,7 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
         [data-dark="false"] .logout-btn:hover { background: #fee2e2; color: #ef4444; }
         [data-dark="true"]  .logout-btn       { color: #52525b; }
         [data-dark="true"]  .logout-btn:hover { background: rgba(239,68,68,0.15); color: #f87171; }
-
+ 
         .theme-btn {
           width: 100%; display: flex; align-items: center; gap: 8px;
           padding: 6px 8px; border-radius: 8px; font-size: 12px; font-weight: 500;
@@ -1507,14 +1736,14 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
         [data-dark="false"] .theme-btn:hover { background: #f1f5f9; color: #1e293b; }
         [data-dark="true"]  .theme-btn       { color: #52525b; }
         [data-dark="true"]  .theme-btn:hover { background: rgba(255,255,255,0.06); color: #ffffff; }
-
+ 
         .theme-icon-box {
           width: 26px; height: 26px; border-radius: 7px;
           display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         }
         [data-dark="false"] .theme-icon-box { background: #f1f5f9; border: 1px solid #e2e8f0; }
         [data-dark="true"]  .theme-icon-box { background: rgba(255,255,255,0.07); border: 1px solid #1a1a1a; }
-
+ 
         [data-dark="false"] .chevron                          { color: #cbd5e1; }
         [data-dark="true"]  .chevron                          { color: #3f3f46; }
         [data-dark="false"] .nav-item.group-active .chevron   { color: #2563eb; }
@@ -1523,7 +1752,7 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
         [data-dark="false"] .nav-item.ai-group.group-active .chevron { color: #7c3aed; }
         [data-dark="true"]  .nav-item.ai-group .chevron              { color: rgba(139,92,246,0.35); }
         [data-dark="true"]  .nav-item.ai-group.group-active .chevron { color: #a78bfa; }
-
+ 
         .role-select {
           width: 100%; font-size: 11px; border-radius: 8px;
           padding: 5px 8px; outline: none; cursor: pointer; font-weight: 500;
@@ -1532,13 +1761,13 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
         [data-dark="false"] .role-select option { background: #ffffff; color: #374151; }
         [data-dark="true"]  .role-select        { border: 1px solid rgba(59,130,246,0.2); background: rgba(255,255,255,0.05); color: #93c5fd; }
         [data-dark="true"]  .role-select option { background: #000000; color: #e4e4e7; }
-
+ 
         .nav-label {
           flex: 1; text-align: left;
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
           margin-left: 9px;
         }
-
+ 
         /* ── Icon-mode centering fix ──
            When only the icon-box renders (label hidden), the button's
            default flex-start alignment left-shoves it against the
@@ -1571,7 +1800,7 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
           flex-direction: column;
           align-items: center;
         }
-
+ 
         /* ── Mobile/tablet: only "full" mode becomes a fixed overlay
                (280px is too wide to push content on a phone/iPad).
                "icon" mode (72px) behaves EXACTLY like desktop — it
@@ -1596,7 +1825,7 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
           }
         }
       `}</style>
-
+ 
       {/* Mobile-only dim backdrop — shown only behind "full" mode.
           "icon" mode never dims the screen, same as on desktop. */}
       <div
@@ -1604,7 +1833,7 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
         data-show={sidebarMode === "full"}
         onClick={() => setSidebarMode("hidden")}
       />
-
+ 
       <aside
         className="sidebar-root"
         data-dark={String(dark)}
@@ -1653,7 +1882,7 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
             </button>
           )}
         </div>
-
+ 
         {/* ── ROLE BADGE ── */}
         {!collapsed && !hidden && (
           <div style={{ padding: "7px 10px 3px" }}>
@@ -1663,7 +1892,7 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
             </span>
           </div>
         )}
-
+ 
         {/* ── ROLE SWITCHER ── */}
         {showRoleDropdown && !collapsed && !hidden && (
           <div style={{ padding: "4px 10px 6px" }}>
@@ -1676,7 +1905,7 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
             </select>
           </div>
         )}
-
+ 
         {/* ── NAV ── */}
         <nav className="sidebar-nav" style={{ flex: 1, overflowY: "auto", overflowX: "visible", padding: "6px 7px", display: "flex", flexDirection: "column", gap: "2px" }}>
           {menus.map((item) => {
@@ -1684,7 +1913,7 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
             const isOpen  = openGroups[item.name] ?? false;
             const isAI    = item.name === "AI Tools"; // ✅ flag for AI group
             const isFlyoutOpen = collapsed && flyoutGroup === item.name;
-
+ 
             if (item.children) {
               const isGroupActive = item.children.some(c => location.pathname === c.path);
               return (
@@ -1725,7 +1954,7 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
                       </>
                     )}
                   </button>
-
+ 
                   {/* Full mode: inline accordion connector (unchanged) */}
                   {!collapsed && !hidden && isOpen && (
                     <div className={isAI ? "ai-connector" : "child-connector"}>
@@ -1747,7 +1976,7 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
                       })}
                     </div>
                   )}
-
+ 
                   {/* Icon mode: flyout submenu beside the rail (hover or click) */}
                   {isFlyoutOpen && (
                     <div
@@ -1780,7 +2009,7 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
                 </div>
               );
             }
-
+ 
             const active = location.pathname === item.path;
             return (
               <button
@@ -1795,7 +2024,7 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
             );
           })}
         </nav>
-
+ 
         {/* ── FOOTER ── */}
         <div className="sidebar-footer">
           <button className="theme-btn" onClick={toggleTheme} title={collapsed ? (dark ? "Light Mode" : "Dark Mode") : undefined}>
@@ -1804,7 +2033,7 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
             </span>
             {!collapsed && !hidden && <span>{dark ? "Light Mode" : "Dark Mode"}</span>}
           </button>
-
+ 
           {/* ✅ User card — profileImage hai toh photo, nahi toh initials */}
           <div className="user-card" title={collapsed ? userName : undefined}>
             <div className="user-avatar">
@@ -1834,5 +2063,5 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
     </>
   );
 };
-
+ 
 export default Sidebar;

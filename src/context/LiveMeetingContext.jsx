@@ -1,5 +1,5 @@
 // import { createContext, useContext, useRef, useState, useCallback, useEffect } from "react";
-// import { Room, RoomEvent, Track, createLocalTracks } from "livekit-client";
+// import { Room, RoomEvent, Track, createLocalTracks, createLocalVideoTrack } from "livekit-client";
 
 // const LiveMeetingContext = createContext(null);
 // const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL || "ws://localhost:7880";
@@ -110,6 +110,48 @@
 //     setMessages((prev) => [...prev, {
 //       id: Date.now() + Math.random(), name: "System", text, system: true, time: nowLabel(),
 //     }]);
+//   }, []);
+
+//   // ── CAMERA BLACK-SCREEN FIX ──────────────────────────────────────
+//   // Root cause: toggleCam()/the "camerasDisabled" trainer command both
+//   // called `localVideoTrackRef.current.mute()` to turn the camera off.
+//   // For video, LiveKit's mute() stops the underlying MediaStreamTrack
+//   // outright (that's what actually turns the camera's hardware light
+//   // off, matching Meet/Zoom/Teams). That means the *same* LocalVideoTrack
+//   // object can never be revived with unmute() afterwards — its
+//   // MediaStreamTrack has already ended, so unmuting it just resumes
+//   // publishing a dead track, which is exactly the black screen the
+//   // trainer saw. Re-enabling has to mint a brand-new camera track,
+//   // swap it into the same publication, and let LiveKit propagate the
+//   // new track (TrackUnsubscribed → TrackSubscribed) to every remote
+//   // participant, instead of trying to resurrect the old one.
+//   const restartLocalCamera = useCallback(async () => {
+//     const room = roomRef.current;
+//     if (!room) return false;
+//     const oldTrack = localVideoTrackRef.current;
+//     try {
+//       const newTrack = await createLocalVideoTrack();
+
+//       const existingPub = Array.from(
+//         room.localParticipant.videoTrackPublications?.values?.() || [],
+//       ).find((pub) => pub.source === Track.Source.Camera);
+
+//       if (existingPub?.track) {
+//         await room.localParticipant.unpublishTrack(existingPub.track, true);
+//       } else if (oldTrack) {
+//         try { await room.localParticipant.unpublishTrack(oldTrack, true); } catch (_) {}
+//       }
+//       if (oldTrack && oldTrack !== newTrack) {
+//         try { oldTrack.stop(); } catch (_) {}
+//       }
+
+//       await room.localParticipant.publishTrack(newTrack, { source: Track.Source.Camera });
+//       localVideoTrackRef.current = newTrack;
+//       return true;
+//     } catch (err) {
+//       console.error("Failed to restart local camera track:", err);
+//       return false;
+//     }
 //   }, []);
 
 //   const joinMeeting = useCallback(async ({ role, sessionId, roomName, token, title, joinedAt }) => {
@@ -226,13 +268,16 @@
 //                 pushSystemMsg("The trainer asked everyone to unmute.");
 //                 break;
 //               }
-//               // ── Task 2 fix: camera lock, mirrors "allMuted" exactly.
-//               // BUG: the `msg.value === false` (Enable Cameras) branch
-//               // set `cameraLockedByTrainer` to false but never actually
-//               // turned the camera back on — it only lifted the lock and
-//               // left `camOn` / the track muted, so "Enable Cameras" looked
-//               // like a no-op to the student. Fixed below: unlocking now
-//               // also unmutes the video track and sets camOn(true).
+//               // ── Camera lock, mirrors "allMuted". BUG: the
+//               // `msg.value === false` (Enable Cameras) branch used to
+//               // just call `unmute()` on the same track that `mute()`
+//               // had already stopped — since that MediaStreamTrack is
+//               // dead for good, unmuting it republished nothing and the
+//               // trainer only ever saw a black tile. Fixed below:
+//               // unlocking now recreates the camera track via
+//               // restartLocalCamera() and republishes it, so the trainer
+//               // receives a live stream immediately, with no manual
+//               // click required from the student.
 //               case "camerasDisabled": {
 //                 if (msg.value) {
 //                   setCameraLockedByTrainer(true);
@@ -243,11 +288,15 @@
 //                   pushSystemMsg("Your camera was disabled by the trainer.");
 //                 } else {
 //                   setCameraLockedByTrainer(false);
-//                   const track = localVideoTrackRef.current;
-//                   if (track) track.unmute().catch(() => {});
-//                   setCamOn(true);
-//                   syncParticipants();
-//                   pushSystemMsg("Cameras have been re-enabled by the trainer.");
+//                   restartLocalCamera().then((ok) => {
+//                     setCamOn(true);
+//                     syncParticipants();
+//                     pushSystemMsg(
+//                       ok
+//                         ? "Cameras have been re-enabled by the trainer."
+//                         : "The trainer re-enabled cameras, but yours couldn't restart — check camera permissions.",
+//                     );
+//                   });
 //                 }
 //                 break;
 //               }
@@ -312,7 +361,7 @@
 //     setActiveMeeting({ role, sessionId, roomName, title, joinedAt: joinedAt || Date.now() });
 //     setMinimized(false);
 //     setMessages([{ id: 0, name: "System", text: "Session started. Welcome!", system: true, time: nowLabel() }]);
-//   }, [activeMeeting, syncParticipants, pushSystemMsg]);
+//   }, [activeMeeting, syncParticipants, pushSystemMsg, restartLocalCamera]);
 
 //   const leaveMeeting = useCallback(() => {
 //     roomRef.current?.disconnect();
@@ -351,27 +400,33 @@
 //   }, [micOn, micLockedByTrainer, pushSystemMsg, syncParticipants]);
 
 //   const toggleCam = useCallback(async () => {
-//     const track = localVideoTrackRef.current;
-//     if (!track) return;
 //     if (camOn) {
+//       const track = localVideoTrackRef.current;
+//       if (!track) return;
 //       await track.mute();
+//       setCamOn(false);
+//       syncParticipants();
 //     } else {
 //       // Guard mirrors toggleMic's micLockedByTrainer check — this is
 //       // what makes "Disable Cameras" stick instead of the student
 //       // being able to immediately click Camera back on. Once the
 //       // trainer's "Enable Cameras" unlocks (cameraLockedByTrainer
 //       // becomes false, see the "camerasDisabled" case above), this
-//       // guard is skipped and the student can unmute their camera
+//       // guard is skipped and the student can turn their camera back on
 //       // normally.
 //       if (cameraLockedByTrainer) {
 //         pushSystemMsg("Your camera has been disabled by the trainer and can't be turned on right now.");
 //         return;
 //       }
-//       await track.unmute();
+//       // Same fix as the trainer's "Enable Cameras" path: the previous
+//       // track was stopped by mute(), so it's recreated and republished
+//       // rather than unmuted, avoiding the same black-screen failure.
+//       const ok = await restartLocalCamera();
+//       setCamOn(true);
+//       syncParticipants();
+//       if (!ok) pushSystemMsg("Couldn't restart your camera — check your camera permissions.");
 //     }
-//     setCamOn((v) => !v);
-//     syncParticipants();
-//   }, [camOn, cameraLockedByTrainer, pushSystemMsg, syncParticipants]);
+//   }, [camOn, cameraLockedByTrainer, pushSystemMsg, syncParticipants, restartLocalCamera]);
 
 //   const toggleScreen = useCallback(async () => {
 //     const room = roomRef.current;
@@ -527,15 +582,30 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { createContext, useContext, useRef, useState, useCallback, useEffect } from "react";
 import { Room, RoomEvent, Track, createLocalTracks, createLocalVideoTrack } from "livekit-client";
-
+ 
 const LiveMeetingContext = createContext(null);
 const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL || "ws://localhost:7880";
-
+ 
 const nowLabel = () =>
   new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-
+ 
 // ── AUDIO FIX ────────────────────────────────────────────────────
 // Root cause: audio was only attached inside <LiveRoom>, which
 // unmounts whenever `minimized` becomes true (i.e. any Dashboard
@@ -554,7 +624,7 @@ function RemoteAudioTrack({ track }) {
   }, [track]);
   return <audio ref={ref} autoPlay />;
 }
-
+ 
 function RemoteAudioLayer({ participants }) {
   return (
     <div style={{ position: "fixed", width: 0, height: 0, overflow: "hidden" }} aria-hidden="true">
@@ -567,13 +637,13 @@ function RemoteAudioLayer({ participants }) {
   );
 }
 // ─────────────────────────────────────────────────────────────────
-
+ 
 export function LiveMeetingProvider({ children }) {
   const roomRef = useRef(null);
   const localVideoTrackRef = useRef(null);
   const localAudioTrackRef = useRef(null);
   const floaterIdRef = useRef(0);
-
+ 
   const [activeMeeting, setActiveMeeting] = useState(null); // { role, sessionId, roomName, title, joinedAt }
   const [minimized, setMinimized] = useState(false);
   const [connected, setConnected] = useState(false);
@@ -584,7 +654,7 @@ export function LiveMeetingProvider({ children }) {
   const [messages, setMessages] = useState([]);
   const [raisedHands, setRaisedHands] = useState({});
   const [floaters, setFloaters] = useState([]);
-
+ 
   // ── Trainer-enforced flags. The trainer's "Mute All" / "Disable
   // Chat" / "Block Screen Share" / "Disable Cameras" buttons broadcast
   // a { type: "trainer_command", command, value } data message. These
@@ -597,7 +667,7 @@ export function LiveMeetingProvider({ children }) {
   const [screenShareBlocked, setScreenShareBlocked] = useState(false);
   // Camera lock, mirrors micLockedByTrainer exactly.
   const [cameraLockedByTrainer, setCameraLockedByTrainer] = useState(false);
-
+ 
   const syncParticipants = useCallback(() => {
     const room = roomRef.current;
     if (!room) return;
@@ -614,7 +684,7 @@ export function LiveMeetingProvider({ children }) {
       else if (pub.source === Track.Source.ScreenShare) { localEntry.screenTrack = pub.track; }
     });
     list.push(localEntry);
-
+ 
     room.remoteParticipants.forEach((p) => {
       const entry = {
         identity: p.identity, name: p.name || p.identity, isLocal: false, isHost: true,
@@ -634,13 +704,13 @@ export function LiveMeetingProvider({ children }) {
     });
     setParticipants(list);
   }, []);
-
+ 
   const pushSystemMsg = useCallback((text) => {
     setMessages((prev) => [...prev, {
       id: Date.now() + Math.random(), name: "System", text, system: true, time: nowLabel(),
     }]);
   }, []);
-
+ 
   // ── CAMERA BLACK-SCREEN FIX ──────────────────────────────────────
   // Root cause: toggleCam()/the "camerasDisabled" trainer command both
   // called `localVideoTrackRef.current.mute()` to turn the camera off.
@@ -660,11 +730,11 @@ export function LiveMeetingProvider({ children }) {
     const oldTrack = localVideoTrackRef.current;
     try {
       const newTrack = await createLocalVideoTrack();
-
+ 
       const existingPub = Array.from(
         room.localParticipant.videoTrackPublications?.values?.() || [],
       ).find((pub) => pub.source === Track.Source.Camera);
-
+ 
       if (existingPub?.track) {
         await room.localParticipant.unpublishTrack(existingPub.track, true);
       } else if (oldTrack) {
@@ -673,7 +743,7 @@ export function LiveMeetingProvider({ children }) {
       if (oldTrack && oldTrack !== newTrack) {
         try { oldTrack.stop(); } catch (_) {}
       }
-
+ 
       await room.localParticipant.publishTrack(newTrack, { source: Track.Source.Camera });
       localVideoTrackRef.current = newTrack;
       return true;
@@ -682,7 +752,7 @@ export function LiveMeetingProvider({ children }) {
       return false;
     }
   }, []);
-
+ 
   const joinMeeting = useCallback(async ({ role, sessionId, roomName, token, title, joinedAt }) => {
     if (roomRef.current && activeMeeting?.sessionId === sessionId && activeMeeting?.roomName === roomName) {
       setMinimized(false);
@@ -692,10 +762,10 @@ export function LiveMeetingProvider({ children }) {
       await roomRef.current.disconnect();
       roomRef.current = null;
     }
-
+ 
     const room = new Room({ adaptiveStream: true, dynacast: true });
     roomRef.current = room;
-
+ 
     room
       .on(RoomEvent.TrackSubscribed, syncParticipants)
       .on(RoomEvent.TrackUnsubscribed, syncParticipants)
@@ -718,7 +788,7 @@ export function LiveMeetingProvider({ children }) {
       .on(RoomEvent.DataReceived, (payload, participant) => {
         try {
           const msg = JSON.parse(new TextDecoder().decode(payload));
-
+ 
           if (msg.type === "reaction") {
             const id = ++floaterIdRef.current;
             setFloaters((prev) => [
@@ -730,7 +800,7 @@ export function LiveMeetingProvider({ children }) {
             }, 2500);
             return;
           }
-
+ 
           if (msg.type === "raiseHand") {
             const identity = participant?.identity;
             if (identity) {
@@ -739,13 +809,98 @@ export function LiveMeetingProvider({ children }) {
             }
             return;
           }
-
+ 
           // ── Trainer Controls enforcement. The trainer broadcasts
           // { type: "trainer_command", command, value, identity? } over
           // this same data channel.
           if (msg.type === "trainer_command") {
             const room = roomRef.current;
+ 
+            // ── Manual Per-User Trainer Controls ────────────────────
+            // Per-user commands carry a `identity` field targeting one
+            // specific student. If it's present and doesn't match our
+            // own identity, this command isn't for us — ignore it so
+            // one student's manual mute/camera/chat action never
+            // affects any other student. Global broadcasts (Mute All,
+            // Disable Cameras, Disable Chat, etc.) never set `identity`,
+            // so they're untouched by this guard and keep working
+            // exactly as before.
+            const myIdentity = room?.localParticipant?.identity;
+            if (msg.identity && msg.identity !== myIdentity) {
+              return;
+            }
+ 
             switch (msg.command) {
+              // ── Manual per-user mic control. Mirrors "allMuted"
+              // exactly, but is fired only at this one student.
+              case "muteUser": {
+                setMicLockedByTrainer(true);
+                const track = localAudioTrackRef.current;
+                if (track) track.mute().catch(() => {});
+                setMicOn(false);
+                syncParticipants();
+                pushSystemMsg("You were muted by the trainer.");
+                break;
+              }
+              case "unmuteUser": {
+                setMicLockedByTrainer(false);
+                const track = localAudioTrackRef.current;
+                if (track) track.unmute().catch(() => {});
+                setMicOn(true);
+                syncParticipants();
+                pushSystemMsg("You have been unmuted by the trainer.");
+                break;
+              }
+              // ── Manual per-user camera control. Mirrors
+              // "camerasDisabled" exactly, including the
+              // restartLocalCamera() re-publish on enable so the
+              // trainer doesn't just see a black tile.
+              case "disableCamera": {
+                setCameraLockedByTrainer(true);
+                const track = localVideoTrackRef.current;
+                if (track) track.mute().catch(() => {});
+                setCamOn(false);
+                syncParticipants();
+                pushSystemMsg("Your camera was disabled by the trainer.");
+                break;
+              }
+              case "enableCamera": {
+                setCameraLockedByTrainer(false);
+                restartLocalCamera().then((ok) => {
+                  setCamOn(true);
+                  syncParticipants();
+                  pushSystemMsg(
+                    ok
+                      ? "Your camera has been re-enabled by the trainer."
+                      : "The trainer re-enabled your camera, but it couldn't restart — check camera permissions.",
+                  );
+                });
+                break;
+              }
+              // ── Manual per-user chat control. Mirrors "chatDisabled"
+              // exactly, but only for this one student.
+              case "disableChat": {
+                setChatDisabled(true);
+                pushSystemMsg("Chat has been disabled for you by the trainer.");
+                break;
+              }
+              case "enableChat": {
+                setChatDisabled(false);
+                pushSystemMsg("Chat has been re-enabled for you by the trainer.");
+                break;
+              }
+              // ── Manual per-user "Lower Hand". Mirrors "handsLowered"
+              // exactly, but targets only this one student instead of
+              // clearing every raised hand.
+              case "lowerHand": {
+                setRaisedHands((prev) => (prev.you ? { ...prev, you: false } : prev));
+                pushSystemMsg("Your hand was lowered by the trainer.");
+                try {
+                  const downPayload = new TextEncoder().encode(JSON.stringify({ type: "raiseHand", raised: false }));
+                  room?.localParticipant?.publishData(downPayload, { reliable: true });
+                } catch (_) {}
+                break;
+              }
               case "handsLowered": {
                 if (msg.value) {
                   setRaisedHands((prev) => (prev.you ? { ...prev, you: false } : prev));
@@ -855,7 +1010,7 @@ export function LiveMeetingProvider({ children }) {
             }
             return;
           }
-
+ 
           if (msg.text) {
             setMessages((prev) => [...prev, {
               id: Date.now() + Math.random(),
@@ -865,10 +1020,10 @@ export function LiveMeetingProvider({ children }) {
           }
         } catch (_) {}
       });
-
+ 
     await room.connect(LIVEKIT_URL, token);
     setConnected(true);
-
+ 
     try {
       const tracks = await createLocalTracks({ audio: true, video: true });
       for (const track of tracks) {
@@ -879,7 +1034,7 @@ export function LiveMeetingProvider({ children }) {
     } catch (err) {
       console.error("getUserMedia failed:", err);
     }
-
+ 
     syncParticipants();
     setRaisedHands({});
     setFloaters([]);
@@ -891,7 +1046,7 @@ export function LiveMeetingProvider({ children }) {
     setMinimized(false);
     setMessages([{ id: 0, name: "System", text: "Session started. Welcome!", system: true, time: nowLabel() }]);
   }, [activeMeeting, syncParticipants, pushSystemMsg, restartLocalCamera]);
-
+ 
   const leaveMeeting = useCallback(() => {
     roomRef.current?.disconnect();
     roomRef.current = null;
@@ -911,7 +1066,7 @@ export function LiveMeetingProvider({ children }) {
     setCameraLockedByTrainer(false);
     setMinimized(false);
   }, []);
-
+ 
   const toggleMic = useCallback(async () => {
     const track = localAudioTrackRef.current;
     if (!track) return;
@@ -927,7 +1082,7 @@ export function LiveMeetingProvider({ children }) {
     setMicOn((v) => !v);
     syncParticipants();
   }, [micOn, micLockedByTrainer, pushSystemMsg, syncParticipants]);
-
+ 
   const toggleCam = useCallback(async () => {
     if (camOn) {
       const track = localVideoTrackRef.current;
@@ -956,7 +1111,7 @@ export function LiveMeetingProvider({ children }) {
       if (!ok) pushSystemMsg("Couldn't restart your camera — check your camera permissions.");
     }
   }, [camOn, cameraLockedByTrainer, pushSystemMsg, syncParticipants, restartLocalCamera]);
-
+ 
   const toggleScreen = useCallback(async () => {
     const room = roomRef.current;
     if (!room) return;
@@ -994,7 +1149,7 @@ export function LiveMeetingProvider({ children }) {
       syncParticipants();
     }
   }, [screenOn, screenShareBlocked, pushSystemMsg, syncParticipants]);
-
+ 
   const sendMessage = useCallback((text) => {
     if (!text?.trim()) return;
     if (chatDisabled) {
@@ -1007,7 +1162,7 @@ export function LiveMeetingProvider({ children }) {
       roomRef.current?.localParticipant?.publishData(payload, { reliable: true });
     } catch (_) {}
   }, [chatDisabled, pushSystemMsg]);
-
+ 
   const toggleHandRaise = useCallback(() => {
     setRaisedHands((prev) => {
       const next = !prev.you;
@@ -1021,7 +1176,7 @@ export function LiveMeetingProvider({ children }) {
       return { ...prev, you: next };
     });
   }, [pushSystemMsg]);
-
+ 
   const sendReaction = useCallback((emoji) => {
     const id = ++floaterIdRef.current;
     setFloaters((prev) => [...prev, { id, emoji, name: "You" }]);
@@ -1035,11 +1190,11 @@ export function LiveMeetingProvider({ children }) {
       console.warn("reaction send failed:", e);
     }
   }, []);
-
+ 
   // Only ever cleans up on a hard app unload — never on route change,
   // because this provider is mounted above the router.
   useEffect(() => () => { roomRef.current?.disconnect(); }, []);
-
+ 
   const value = {
     activeMeeting, minimized, setMinimized,
     connected, micOn, camOn, screenOn, participants, messages,
@@ -1049,7 +1204,7 @@ export function LiveMeetingProvider({ children }) {
     toggleHandRaise, sendReaction,
     room: roomRef.current,
   };
-
+ 
   return (
     <LiveMeetingContext.Provider value={value}>
       {children}
@@ -1059,7 +1214,7 @@ export function LiveMeetingProvider({ children }) {
     </LiveMeetingContext.Provider>
   );
 }
-
+ 
 export const useLiveMeeting = () => {
   const ctx = useContext(LiveMeetingContext);
   if (!ctx) throw new Error("useLiveMeeting must be used within LiveMeetingProvider");

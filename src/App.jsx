@@ -122,10 +122,6 @@ const OrganizationAdminDetailsPage = lazyLoad(() =>
 const NewOrganizationPage = lazyLoad(() =>
   import("./SuperAdmin/admin-control/NewOrganizationPage")
 );
-// ✅ ADD HERE 👆
-const PermissionManagerPage = lazyLoad(() =>
-  import("./SuperAdmin/admin-control/PermissionManagerPage")
-);
 
 const PendingApprovalsPage = lazyLoad(() =>
   import("./SuperAdmin/admin-control/PendingApprovalsPage")
@@ -845,7 +841,7 @@ seedCMSData();
 {/* ================= ONBOARDING ================= */}
 <Route path="onboarding" element={<Onboardingdashboard />} />
 
-<Route path="permissions" element={<PermissionManagerPage />} />
+
 <Route path="pending-approvals" element={<PendingApprovalsPage />} />
 <Route path="batch-control" element={<SuperAdminBatchControl />}/>
  <Route path="courses" element={<SuperAdminCourseManagement />} />

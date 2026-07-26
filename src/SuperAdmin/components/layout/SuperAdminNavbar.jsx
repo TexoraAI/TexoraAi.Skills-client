@@ -87,12 +87,7 @@ const NAV = [
         permission: PERMISSIONS.VIEW_ANALYTICS,
       },
 
-      {
-        label: "Permissions",
-        path: "/superadmin/permissions",
-        icon: ic.permissions,
-        permission: PERMISSIONS.MANAGE_PERMISSIONS,
-      },
+      
     ],
   },
   {

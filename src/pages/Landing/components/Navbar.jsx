@@ -23,6 +23,7 @@ import {
   Sun,
   User,
   Users,
+   LayoutDashboard, 
 } from "lucide-react";
 import MobileFullScreenMenu from "./MobileFullScreenMenu";
 
@@ -221,6 +222,23 @@ export default function Navbar({ theme, toggleTheme, setShowLoginModal }) {
                         </div>
                         <div className="text-xs text-gray-400">
                           Create ATS-Friendly Professional Resumes
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                  {/* Workspace */}
+                  <button
+                    onClick={() => navigate("/workspace")}
+                    className="w-full text-left p-3 rounded-lg hover:bg-[#F97316]/[0.12]"
+                  >
+                    <div className="flex items-start gap-3">
+                      <LayoutDashboard className="w-5 h-5 text-orange-500 mt-1" />
+                      <div>
+                        <div className="font-semibold text-sm text-white">
+                          Workspace
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          Your Live Sessions & Meetings Hub
                         </div>
                       </div>
                     </div>

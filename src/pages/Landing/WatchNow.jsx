@@ -8,7 +8,7 @@
 // } from "react";
 // import { Play, ChevronLeft, ChevronRight } from "lucide-react";
 // import videoService from "../../services/videoService";
-
+ 
 // /* ============================================================
 //    UNCHANGED LOGIC — video URL parsing, source resolution, and
 //    the smart player. Do not touch.
@@ -34,44 +34,78 @@
 //     return { type: "video", url };
 //   return { type: "iframe", url };
 // }
-
+ 
 // function getVideoSourceUrl(item) {
 //   if (item.videoFileName)
 //     return videoService.getWatchNowStreamUrl(item.videoFileName);
 //   return item.externalVideoUrl || "";
 // }
-
-// function WatchNowSmartPlayer({ item }) {
+ 
+// /*
+//   WatchNowSmartPlayer lifecycle:
+//   - This component is only ever mounted while its card is the single
+//     "active" playing card (see WatchNowCarousel). As soon as the
+//     parent stops treating this card as active, React unmounts this
+//     component, which immediately removes the <video>/<iframe> node
+//     from the DOM — that alone stops a YouTube/Vimeo iframe from
+//     playing audio, since the browser tears down its embedded
+//     document.
+//   - For an uploaded <video>, we additionally pause it and clear its
+//     source on unmount so playback and buffering stop immediately
+//     rather than relying only on DOM removal timing.
+//   - onEnded lets the parent reset its "active" state back to the
+//     thumbnail once an uploaded video finishes naturally, so we never
+//     leave a finished player mounted.
+// */
+// function WatchNowSmartPlayer({ item, onEnded }) {
 //   const rawUrl = getVideoSourceUrl(item);
+//   const videoRef = useRef(null);
+ 
+//   // Explicit destroy-on-unmount for uploaded/direct <video> sources.
+//   useEffect(() => {
+//     return () => {
+//       const videoEl = videoRef.current;
+//       if (videoEl) {
+//         videoEl.pause();
+//         videoEl.removeAttribute("src");
+//         videoEl.load();
+//       }
+//     };
+//   }, []);
+ 
 //   if (!rawUrl) return null;
-
+ 
 //   if (item.videoFileName) {
 //     return (
 //       <video
+//         ref={videoRef}
 //         src={rawUrl}
 //         controls
 //         autoPlay
 //         playsInline
+//         onEnded={onEnded}
 //         className="w-full h-full rounded-2xl bg-black object-cover"
 //       />
 //     );
 //   }
-
+ 
 //   const parsed = parseVideoUrl(rawUrl);
 //   if (!parsed) return null;
-
+ 
 //   if (parsed.type === "video") {
 //     return (
 //       <video
+//         ref={videoRef}
 //         src={parsed.url}
 //         controls
 //         autoPlay
 //         playsInline
+//         onEnded={onEnded}
 //         className="w-full h-full rounded-2xl bg-black object-cover"
 //       />
 //     );
 //   }
-
+ 
 //   const sep = parsed.url.includes("?") ? "&" : "?";
 //   return (
 //     <iframe
@@ -83,12 +117,12 @@
 //     />
 //   );
 // }
-
+ 
 // /* ============================================================
 //    CAROUSEL CONFIG
 //    ============================================================ */
 // const GAP = 20; // px gap between cards, also used in width math
-
+ 
 // /*
 //   Breakpoint → visible-card-count map.
 //   NOTE: CSS width alone can't perfectly separate "iPad Pro
@@ -105,7 +139,7 @@
 //   if (width >= 641) return 2; // iPad Air / iPad Mini / Android tablet
 //   return 1; // Phones
 // }
-
+ 
 // function useVisibleCount() {
 //   const [width, setWidth] = useState(
 //     typeof window !== "undefined" ? window.innerWidth : 1280,
@@ -117,21 +151,21 @@
 //   }, []);
 //   return { visibleCount: getVisibleCount(width), isMobile: width < 641 };
 // }
-
+ 
 // /* ============================================================
 //    Single carousel card — compact version of the story slide.
 //    Play button / video player logic reused as-is.
 //    ============================================================ */
-// function StoryCard({ item, isPlaying, onPlay }) {
+// function StoryCard({ item, isPlaying, onPlay, onEnded }) {
 //   return (
 //     <div className="flex flex-col h-full rounded-2xl overflow-hidden bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl transition-shadow duration-300">
 //       <div className="relative w-full aspect-video bg-black">
 //         {isPlaying ? (
-//           <WatchNowSmartPlayer item={item} />
+//           <WatchNowSmartPlayer item={item} onEnded={onEnded} />
 //         ) : (
 //           <button
 //             type="button"
-//             onClick={() => onPlay(item.id)}
+//             onClick={onPlay}
 //             className="group relative w-full h-full block"
 //             aria-label={`Play video from ${item.personName}`}
 //           >
@@ -152,7 +186,7 @@
 //           </button>
 //         )}
 //       </div>
-
+ 
 //       <div className="flex flex-col flex-1 p-4 sm:p-5">
 //         <p className="text-sm sm:text-base font-semibold text-[#1E293B] dark:text-white leading-snug line-clamp-3">
 //           "{item.quote}"
@@ -169,7 +203,7 @@
 //     </div>
 //   );
 // }
-
+ 
 // /* ============================================================
 //    Netflix-style circular nav button
 //    ============================================================ */
@@ -186,35 +220,39 @@
 //     </button>
 //   );
 // }
-
+ 
 // /* ============================================================
 //    Carousel track — infinite loop, autoplay, drag/swipe, keyboard
 //    ============================================================ */
 // function WatchNowCarousel({ stories }) {
 //   const { visibleCount, isMobile } = useVisibleCount();
-//   const [playing, setPlaying] = useState({});
-
+//   // Single active-player key instead of a per-item map: only one card
+//   // (identified by its unique trackItems `key`) can ever be "playing"
+//   // at once. Setting this to null unmounts whichever player is
+//   // currently mounted, which stops/destroys it (see WatchNowSmartPlayer).
+//   const [playing, setPlaying] = useState(null);
+ 
 //   const containerRef = useRef(null);
 //   const trackRef = useRef(null);
 //   const autoplayRef = useRef(null);
 //   const resumeTimeoutRef = useRef(null);
-
+ 
 //   const [containerWidth, setContainerWidth] = useState(0);
 //   const [index, setIndex] = useState(0);
 //   const [transitionEnabled, setTransitionEnabled] = useState(true);
 //   const [dragDelta, setDragDelta] = useState(0);
 //   const [isHovering, setIsHovering] = useState(false);
-
+ 
 //   const dragState = useRef({
 //     dragging: false,
 //     startX: 0,
 //     startY: 0,
 //     axis: null,
 //   });
-
+ 
 //   const isLooping = stories.length > visibleCount;
 //   const clonesCount = isLooping ? visibleCount : 0;
-
+ 
 //   const trackItems = useMemo(() => {
 //     if (!isLooping) return stories.map((item) => ({ item, key: `${item.id}` }));
 //     const head = stories
@@ -226,15 +264,16 @@
 //       .map((item, i) => ({ item, key: `tail-${i}-${item.id}` }));
 //     return [...head, ...body, ...tail];
 //   }, [stories, isLooping, clonesCount]);
-
+ 
 //   // Reset position whenever breakpoint or data changes
 //   useEffect(() => {
 //     setTransitionEnabled(false);
+//     setPlaying(null); // stop/unmount any active player before re-laying-out
 //     setIndex(isLooping ? clonesCount : 0);
 //     const raf = requestAnimationFrame(() => setTransitionEnabled(true));
 //     return () => cancelAnimationFrame(raf);
 //   }, [isLooping, clonesCount, visibleCount, stories.length]);
-
+ 
 //   // Measure container width responsively
 //   useLayoutEffect(() => {
 //     const el = containerRef.current;
@@ -245,32 +284,41 @@
 //     ro.observe(el);
 //     return () => ro.disconnect();
 //   }, []);
-
+ 
 //   const cardWidth =
 //     containerWidth > 0
 //       ? (containerWidth - GAP * (visibleCount - 1)) / visibleCount
 //       : 0;
 //   const step = cardWidth + GAP;
-
-//   const goNext = useCallback(() => setIndex((i) => i + 1), []);
-//   const goPrev = useCallback(() => setIndex((i) => i - 1), []);
+ 
+//   const goNext = useCallback(() => {
+//     setPlaying(null); // stop the active player before the slide changes
+//     setIndex((i) => i + 1);
+//   }, []);
+//   const goPrev = useCallback(() => {
+//     setPlaying(null); // stop the active player before the slide changes
+//     setIndex((i) => i - 1);
+//   }, []);
 //   const goTo = useCallback(
-//     (realIdx) => setIndex(clonesCount + realIdx),
+//     (realIdx) => {
+//       setPlaying(null); // dot pagination: stop the active player first
+//       setIndex(clonesCount + realIdx);
+//     },
 //     [clonesCount],
 //   );
-
+ 
 //   // Autoplay
 //   useEffect(() => {
 //     if (!isLooping || isHovering || dragState.current.dragging) return;
 //     autoplayRef.current = setInterval(goNext, 4000);
 //     return () => clearInterval(autoplayRef.current);
 //   }, [isLooping, isHovering, goNext, cardWidth]);
-
+ 
 //   const pauseAutoplayBriefly = () => {
 //     clearInterval(autoplayRef.current);
 //     clearTimeout(resumeTimeoutRef.current);
 //   };
-
+ 
 //   // Seamless loop reset after transition completes
 //   const handleTransitionEnd = () => {
 //     if (!isLooping) return;
@@ -282,21 +330,21 @@
 //       setIndex(index + stories.length);
 //     }
 //   };
-
+ 
 //   useEffect(() => {
 //     if (!transitionEnabled) {
 //       const raf = requestAnimationFrame(() => setTransitionEnabled(true));
 //       return () => cancelAnimationFrame(raf);
 //     }
 //   }, [transitionEnabled]);
-
+ 
 //   // Keyboard navigation
 //   const handleKeyDown = (e) => {
 //     if (!isLooping) return;
 //     if (e.key === "ArrowLeft") goPrev();
 //     else if (e.key === "ArrowRight") goNext();
 //   };
-
+ 
 //   // Drag / swipe (pointer events cover mouse + touch)
 //   const onPointerDown = (e) => {
 //     if (!isLooping) return;
@@ -308,13 +356,13 @@
 //     };
 //     pauseAutoplayBriefly();
 //   };
-
+ 
 //   const onPointerMove = (e) => {
 //     const ds = dragState.current;
 //     if (!ds.dragging) return;
 //     const dx = e.clientX - ds.startX;
 //     const dy = e.clientY - ds.startY;
-
+ 
 //     if (ds.axis === null) {
 //       if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
 //       ds.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
@@ -329,7 +377,7 @@
 //       setDragDelta(dx);
 //     }
 //   };
-
+ 
 //   const endDrag = () => {
 //     const ds = dragState.current;
 //     if (!ds.dragging) return;
@@ -342,13 +390,20 @@
 //     dragState.current.axis = null;
 //     resumeTimeoutRef.current = setTimeout(() => {}, 300);
 //   };
-
-//   const handlePlay = (itemId) => {
-//     setPlaying((prev) => ({ ...prev, [itemId]: true }));
+ 
+//   // Keyed by the trackItem's unique `key` (not item.id) so that a
+//   // looping carousel's head/tail clones of the same story never both
+//   // report as "playing" — only the exact card instance the user
+//   // clicked becomes active, and starting it implicitly stops
+//   // whatever else was playing since `playing` holds a single value.
+//   const handlePlay = (key) => {
+//     setPlaying(key);
 //   };
-
+ 
+//   const resetPlaying = () => setPlaying(null);
+ 
 //   const translateX = -(index * step) + dragDelta;
-
+ 
 //   return (
 //     <div
 //       ref={containerRef}
@@ -391,14 +446,15 @@
 //             >
 //               <StoryCard
 //                 item={item}
-//                 isPlaying={!!playing[item.id]}
-//                 onPlay={handlePlay}
+//                 isPlaying={playing === key}
+//                 onPlay={() => handlePlay(key)}
+//                 onEnded={resetPlaying}
 //               />
 //             </div>
 //           ))}
 //         </div>
 //       </div>
-
+ 
 //       {isLooping && !isMobile && (
 //         <>
 //           <NavButton
@@ -413,7 +469,7 @@
 //           />
 //         </>
 //       )}
-
+ 
 //       {isLooping && isMobile && (
 //         <div className="flex sm:hidden justify-center items-center gap-4 mt-6">
 //           <NavButton direction="prev" onClick={goPrev} />
@@ -423,14 +479,14 @@
 //     </div>
 //   );
 // }
-
+ 
 // /* ============================================================
 //    Section wrapper — data fetching logic unchanged
 //    ============================================================ */
 // export default function WatchNowSection({ id = "watch-now" }) {
 //   const [stories, setStories] = useState([]);
 //   const [loading, setLoading] = useState(true);
-
+ 
 //   useEffect(() => {
 //     let active = true;
 //     videoService
@@ -444,7 +500,7 @@
 //       active = false;
 //     };
 //   }, []);
-
+ 
 //   return (
 //     <section
 //       id={id}
@@ -465,7 +521,7 @@
 //             build real-world skills and grow your career.
 //           </p>
 //         </div>
-
+ 
 //         {loading ? (
 //           <div className="flex justify-center py-16">
 //             <div className="w-6 h-6 rounded-full border-2 border-gray-200 dark:border-gray-700 border-t-[#F97316] animate-spin" />
@@ -481,6 +537,19 @@
 //     </section>
 //   );
 // }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -665,8 +734,39 @@ function useVisibleCount() {
 /* ============================================================
    Single carousel card — compact version of the story slide.
    Play button / video player logic reused as-is.
+ 
+   NEW: expandable quote. The quote is clamped to 3 lines by
+   default. We measure whether the text actually overflows that
+   clamp (via scrollHeight vs clientHeight) and only show a
+   "See more" / "Show less" toggle when it does — so short quotes
+   never get an unnecessary button.
    ============================================================ */
 function StoryCard({ item, isPlaying, onPlay, onEnded }) {
+  const [expanded, setExpanded] = useState(false);
+  const [isTruncated, setIsTruncated] = useState(false);
+  const quoteRef = useRef(null);
+
+  useLayoutEffect(() => {
+    const el = quoteRef.current;
+    if (!el) return;
+
+    const checkTruncation = () => {
+      // If not expanded, the clamp is active, so we can compare
+      // scrollHeight (full text height) to clientHeight (clamped
+      // height) directly. If expanded, temporarily can't measure
+      // this way, so we only re-check when collapsed.
+      if (!expanded) {
+        setIsTruncated(el.scrollHeight > el.clientHeight + 1);
+      }
+    };
+
+    checkTruncation();
+
+    const ro = new ResizeObserver(checkTruncation);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [expanded, item.quote]);
+
   return (
     <div className="flex flex-col h-full rounded-2xl overflow-hidden bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl transition-shadow duration-300">
       <div className="relative w-full aspect-video bg-black">
@@ -698,9 +798,25 @@ function StoryCard({ item, isPlaying, onPlay, onEnded }) {
       </div>
  
       <div className="flex flex-col flex-1 p-4 sm:p-5">
-        <p className="text-sm sm:text-base font-semibold text-[#1E293B] dark:text-white leading-snug line-clamp-3">
+        <p
+          ref={quoteRef}
+          className={`text-sm sm:text-base font-semibold text-[#1E293B] dark:text-white leading-snug ${
+            expanded ? "" : "line-clamp-3"
+          }`}
+        >
           "{item.quote}"
         </p>
+
+        {(isTruncated || expanded) && (
+          <button
+            type="button"
+            onClick={() => setExpanded((prev) => !prev)}
+            className="mt-1 self-start text-xs font-bold text-[#F97316] hover:text-[#ea6a0a] transition-colors focus:outline-none"
+          >
+            {expanded ? "Show less" : "See more"}
+          </button>
+        )}
+
         <div className="mt-auto pt-3 border-t border-gray-200 dark:border-gray-800 mt-3">
           <p className="font-bold text-[#1E293B] dark:text-white text-sm">
             {item.personName}

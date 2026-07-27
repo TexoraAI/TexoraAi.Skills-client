@@ -201,7 +201,7 @@ const FDEAcademy           = lazyLoad(() =>import("./pages/Landing/FDEAcademy"))
 const StudentHub           = lazyLoad(() => import("./pages/Landing/StudentHub"));
 const TrainerHub           = lazyLoad(() => import("./pages/Landing/TrainerHub"));
 const ManagerHub           = lazyLoad(() => import("./pages/Landing/ManagerHub"));
-
+const Workspace            = lazyLoad(() => import("./pages/Landing/Workspace"));
 /* ================= SUBJECTS ================= */
 const Class9Subjects       = lazyLoad(() => import("./pages/Landing/Subjects/Class9Subjects"));
 const Class9Math           = lazyLoad(() => import("./pages/Landing/Subjects/Class9Math"));
@@ -414,7 +414,16 @@ seedCMSData();
 />
             <Route path="/watch-demo/:videoId" element={<WatchNow />} />
             <Route path="/course/:id" element={<CoursePreview />} />
-            
+            <Route
+  path="/workspace"
+  element={
+    <Workspace
+      theme={theme}
+      toggleTheme={toggleTheme}
+      setShowLoginModal={setShowLoginModal}
+    />
+  }
+/>
             <Route path="/course-details/:id" element={<CourseDetail />} />
             <Route path="/syllabus/:id" element={<SyllabusPage />} />
             <Route

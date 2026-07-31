@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
 import { Room, RoomEvent, Track, createLocalTracks } from "livekit-client";
-import texoraLogo from "@/assets/workspace-logo.jpeg";
+import texoraLogo from "@/assets/texora-logo.png";
 import {
   Mic,
   MicOff,
@@ -3411,11 +3411,12 @@ const IM_STYLES = {
     marginLeft: 2,
   },
   logoImg: {
-    height: 28,
-    width: "auto",
-    objectFit: "contain",
-    flexShrink: 0,
-  },
+  height: 40,
+  width: 40,
+  objectFit: "contain",
+  flexShrink: 0,
+  display: "block",
+},
   peopleCountBadge: {
     display: "flex",
     alignItems: "center",

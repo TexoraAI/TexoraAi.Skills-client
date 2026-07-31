@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
 import { Room, RoomEvent, Track, createLocalTracks } from "livekit-client";
-import texoraLogo from "@/assets/texora-logo-1.jpeg";
+import texoraLogo from "@/assets/workspace-logo.jpeg";
 import {
   Mic,
   MicOff,

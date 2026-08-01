@@ -3411,12 +3411,12 @@ const IM_STYLES = {
     marginLeft: 2,
   },
   logoImg: {
-  height: 40,
-  width: 40,
-  objectFit: "contain",
-  flexShrink: 0,
-  display: "block",
-},
+    height: 56,
+    width: "auto",
+    objectFit: "contain",
+    flexShrink: 0,
+    display: "block",
+  },
   peopleCountBadge: {
     display: "flex",
     alignItems: "center",

@@ -1571,6 +1571,7 @@ function MeetingRoom({
   const roomRef = useRef(null);
   const localCamRef = useRef(null);
   const localMicRef = useRef(null);
+  const camReadyPromiseRef = useRef(null);
   const chatEndRef = useRef(null);
   const waitingPollRef = useRef(null);
   const statusPollRef = useRef(null);
@@ -1798,43 +1799,37 @@ function MeetingRoom({
         return;
       }
 
-      //   try {
-      //     const tracks = await createLocalTracks({
-      //       audio: {
-      //         echoCancellation: true,
-      //         noiseSuppression: true,
-      //         autoGainControl: true,
-      //       },
-      //       video: { resolution: { width: 1280, height: 720 } },
-      //     });
-      //     for (const track of tracks) {
-      //       await room.localParticipant.publishTrack(track);
-      //       if (track.kind === Track.Kind.Video) localCamRef.current = track;
-      //       if (track.kind === Track.Kind.Audio) localMicRef.current = track;
-      //     }
-      //   } catch (err) {
-      //     console.error("createLocalTracks failed:", err);
-      //   }
-      try {
-        const tracks = await createLocalTracks({
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
-          },
-          video: { resolution: { width: 1280, height: 720 } },
-        });
-        for (const track of tracks) {
-          await room.localParticipant.publishTrack(track);
-          if (track.kind === Track.Kind.Video) {
-            localCamRef.current = track;
-            if (initialAV && initialAV.camOn === false) await track.mute();
-          }
-          if (track.kind === Track.Kind.Audio) {
-            localMicRef.current = track;
-            if (initialAV && initialAV.micOn === false) await track.mute();
-          }
-        }
+     
+     try {
+  const tracks = await createLocalTracks({
+    audio: {
+      echoCancellation: true,
+      noiseSuppression: true,
+      autoGainControl: true,
+    },
+    video: { resolution: { width: 1280, height: 720 } },
+  });
+
+  // 👇 camera track ka publish + mute-state set karna ek promise mein capture kiya
+  camReadyPromiseRef.current = (async () => {
+    const camTrack = tracks.find((t) => t.kind === Track.Kind.Video);
+    if (camTrack) {
+      await room.localParticipant.publishTrack(camTrack);
+      localCamRef.current = camTrack;
+      if (initialAV && initialAV.camOn === false) await camTrack.mute();
+    }
+  })();
+
+  for (const track of tracks) {
+    if (track.kind === Track.Kind.Audio) {
+      await room.localParticipant.publishTrack(track);
+      localMicRef.current = track;
+      if (initialAV && initialAV.micOn === false) await track.mute();
+    }
+  }
+  await camReadyPromiseRef.current; // taaki neeche wala check (!localCamRef.current) sahi chale
+
+  
         // FIX: if one of the two devices genuinely never granted permission
         // (e.g. only camera was allowed, mic was blocked), reflect that in
         // the toggle state instead of showing a button that silently does
@@ -1952,6 +1947,7 @@ function MeetingRoom({
   const toggleCam = useCallback(async () => {
     const room = roomRef.current;
     if (!room) return;
+    if (camReadyPromiseRef.current) await camReadyPromiseRef.current; // 👈 sirf ye line add hui
     try {
       if (!localCamRef.current) {
         const [videoTrack] = await createLocalTracks({

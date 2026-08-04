@@ -169,7 +169,7 @@ const BannerStudioPage = lazyLoad(() =>
   import("./SuperAdmin/cms-management/banner-studio/pages/BannerStudioPage")
 );
 const PlatformOverview = lazyLoad(() =>
-  import("./SuperAdmin/cms-management/pages/platformoverview")
+  import("./SuperAdmin/cms-management/pages/PlatformOverview")
 );
 /* ================= AUTH PAGES ================= */
 const ApprovalPending = lazyLoad(() => import("./pages/Auth/ApprovalPending.jsx"));

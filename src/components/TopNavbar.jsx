@@ -100,6 +100,88 @@ const studentMenus = [
       },
     ],
   },
+
+  // ================= Meetings =================
+  {
+    name: "Meetings",
+    icon: Radio,
+    children: [
+      {
+        name: "Live Classes",
+        path: "/student/live-classes",
+        icon: Radio,
+      },
+      {
+        name: "Recorded Classes",
+        path: "/student/recorded-classes",
+        icon: PlayCircle,
+      },
+    ],
+  },
+
+  // ================= Skill Growth =================
+  {
+    name: "Skill & Growth",
+    icon: TrendingUp,
+    children: [
+      {
+        name: "Skill Map",
+        path: "/student/skill-map",
+        icon: Brain,
+      },
+      {
+        name: "Certificates",
+        path: "/student/certificates",
+        icon: Award,
+      },
+      {
+        name: "Study Plan",
+        path: "/student/study-plan",
+        icon: CalendarDays,
+      },
+    ],
+  },
+
+  // ================= AI =================
+  {
+    name: "AI Tools",
+    icon: Sparkles,
+    children: [
+      {
+        name: "Notebook AI",
+        path: "/student/notebook",
+        icon: NotebookPen,
+      },
+      {
+        name: "Resume Builder",
+        path: "/student/resume-builder",
+        icon: FileCode2,
+      },
+      {
+        name: "Coding Lab",
+        path: "/student/compiler",
+        icon: FileText,
+      },
+    ],
+  },
+
+  // ================= Support =================
+  {
+    name: "Support",
+    icon: MessageCircleQuestion,
+    children: [
+      {
+        name: "Ask Doubts",
+        path: "/student/doubts",
+        icon: MessageCircleQuestion,
+      },
+      {
+        name: "Feedback",
+        path: "/student/feedback",
+        icon: MessageSquare,
+      },
+    ],
+  },
 ];
 
 const trainerMenus = [

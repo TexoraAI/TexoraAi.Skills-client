@@ -15,6 +15,11 @@
 //   CheckCircle2,
 //   HelpCircle,
 //   Send,
+//   Menu,
+//   Sun,
+//   Moon,
+//   User,
+//   LogOut,
 // } from "lucide-react";
 // import React, { useState, useEffect, useRef, useCallback } from "react";
 // import { useLocation, useNavigate, Outlet } from "react-router-dom";
@@ -30,7 +35,8 @@
 //   disconnectWebSocket,
 // } from "../services/notificationService";
 // import userService from "../services/userService";
-
+// import auth from "../auth";
+// import TopNavbar from "../components/TopNavbar";
 // // ── Notification type → REAL icon map (no more emoji placeholders) ──
 // const TYPE_ICON = {
 //   NEW_VIDEO: Video,
@@ -52,6 +58,14 @@
 //   DEFAULT: Bell,
 // };
 // const getIcon = (type) => TYPE_ICON[type] ?? TYPE_ICON.DEFAULT;
+
+// // ── Role label for the profile dropdown — mirrors TopNavbar's roleConfig ──
+// const ROLE_LABELS = {
+//   STUDENT: "Student Portal",
+//   TRAINER: "Trainer Panel",
+//   ADMIN: "Manager Panel",
+//   BUSINESS: "Tenant Admin Panel",
+// };
 
 // // ── Shared AudioContext — created once, resumed on interaction ─
 // let _audioCtx = null;
@@ -117,6 +131,20 @@
 // // ─────────────────────────────────────────────────────────────
 // const DashboardResponsiveStyles = () => (
 //   <style>{`
+//     /* FIX (Bug 2): global reset so the OUTER document never scrolls.
+//        Without this, the <html>/<body> could scroll independently of
+//        .dl-main, which is what produced the "extra gap below the
+//        sticky header" feeling — you were effectively looking at two
+//        nested scroll containers fighting each other. Now there is
+//        exactly one scroll container (.dl-main); the header stays
+//        visually pinned for free since it's a sibling outside it. */
+//     html, body, #root {
+//       height: 100%;
+//       margin: 0;
+//       padding: 0;
+//       overflow: hidden;
+//     }
+
 //     .dl-root, .dl-root * { box-sizing: border-box; }
 //     .dl-root { overflow-x: hidden; }
 //     .dl-shell { min-width: 0; }
@@ -125,12 +153,29 @@
 //       flex-shrink: 0;
 //       height: 100%;
 //       overflow-y: auto;
-//       overflow-x: hidden;
+//       overflow-x: visible;
 //       max-width: 100vw;
+//       transition: width .28s ease, margin .28s ease, transform .28s ease;
 //     }
 
-//     .dl-main-col { min-width: 0; }
-//     .dl-main { min-width: 0; }
+//     .dl-main-col {
+//       min-width: 0;
+//       transition: width .28s ease, margin .28s ease, transform .28s ease;
+//     }
+
+//     /* FIX (Bug 2): smooth, contained scrolling on the single scroll
+//        container. overscroll-behavior: contain stops scroll-chaining
+//        past the top/bottom edge (another source of "janky" feeling
+//        scroll), and margin/padding are pinned to 0 so no stray
+//        top-margin can create a gap directly under the sticky header. */
+//     .dl-main {
+//       min-width: 0;
+//       margin: 0;
+//       padding: 0;
+//       scroll-behavior: smooth;
+//       overscroll-behavior: contain;
+//       -webkit-overflow-scrolling: touch;
+//     }
 
 //     .dl-header {
 //       height: 64px;
@@ -141,6 +186,23 @@
 //     .dl-right-cluster { gap: 10px; }
 //     .dl-avatar { width: 36px; height: 36px; font-size: 14px; }
 //     .dl-bell { width: 38px; height: 38px; }
+
+//     /* ── Sidebar restore control (hamburger) ──
+//        Sits in the header when the sidebar is hidden, and doubles
+//        as a floating pill on desktop / a fixed pill on mobile so
+//        it's always reachable regardless of scroll position. */
+//     .dl-restore-btn {
+//       display: none;
+//       align-items: center;
+//       justify-content: center;
+//       width: 40px;
+//       height: 40px;
+//       border-radius: 10px;
+//       cursor: pointer;
+//       flex-shrink: 0;
+//       transition: all 0.15s;
+//     }
+//     .dl-restore-btn[data-show="true"] { display: flex; }
 
 //     .dl-toast-stack {
 //       top: 24px;
@@ -295,7 +357,6 @@
 //           }
 //         }
 //       `}</style>
-//       {/* ✅ Real icon instead of 🔔 emoji */}
 //       <span
 //         style={{
 //           width: 26,
@@ -392,7 +453,6 @@
 //             backdropFilter: "blur(12px)",
 //           }}
 //         >
-//           {/* ✅ Real lucide icon instead of emoji */}
 //           <div
 //             style={{
 //               width: 36,
@@ -495,7 +555,16 @@
 //     return () => obs.disconnect();
 //   }, []);
 
-//   const userEmail = localStorage.getItem("email");
+//   // ✅ Theme toggle — flips the document class; the MutationObserver
+//   // above picks it up and syncs isDark, so every themed bit in this
+//   // header (and anywhere else watching document.documentElement)
+//   // updates together, same as Sidebar.jsx's toggle used to do.
+//   const toggleTheme = () => {
+//     const next = !document.documentElement.classList.contains("dark");
+//     document.documentElement.classList.toggle("dark", next);
+//   };
+
+// const userEmail = localStorage.getItem("email");
 //   const userRole = location.pathname.startsWith("/student")
 //     ? "STUDENT"
 //     : location.pathname.startsWith("/trainer")
@@ -504,9 +573,14 @@
 //         ? "ADMIN"
 //         : "BUSINESS";
 
+//   const roleLabel = ROLE_LABELS[userRole] || "Portal";
+
 //   const notifPath = `${base}/notifications`;
 
-//   // ✅ Avatar initial — fetched fresh from API, cached in localStorage
+//   // ✅ Avatar initial + full name — fetched fresh from API, cached in localStorage
+//   const [userName, setUserName] = useState(
+//     localStorage.getItem("userName") || "User",
+//   );
 //   const [userInitial, setUserInitial] = useState(
 //     (localStorage.getItem("userName") || "U").trim().charAt(0).toUpperCase() ||
 //       "U",
@@ -520,6 +594,7 @@
 //         if (cancelled) return;
 //         const name = res.data?.displayName || res.data?.name || "User";
 //         localStorage.setItem("userName", name);
+//         setUserName(name);
 //         setUserInitial(name.trim().charAt(0).toUpperCase() || "U");
 //       })
 //       .catch(() => {
@@ -529,6 +604,11 @@
 //       cancelled = true;
 //     };
 //   }, [location.pathname]);
+
+//   const handleLogout = () => {
+//     auth.logout();
+//     navigate("/login");
+//   };
 
 //   const addToast = useCallback((title, message, type) => {
 //     playSound();
@@ -571,8 +651,6 @@
 //         "New Notification";
 //       const body = payload.notification?.body || payload.data?.body || "";
 //       const type = payload.data?.type || "DEFAULT";
-//       // ✅ FIX: self-notification check for FCM foreground
-//       // If the FCM message is a chat type, check sender vs current user
 //       const sender = payload.data?.senderEmail || "";
 //       const current = (localStorage.getItem("email") || "").toLowerCase();
 //       if (type === "NEW_CHAT" && sender && sender.toLowerCase() === current) {
@@ -583,9 +661,6 @@
 //     });
 //   }, [addToast]);
 
-//   // Layout-affecting values (height/padding/gap) now come from the
-//   // .dl-header class (see DashboardResponsiveStyles) so media queries
-//   // can resize them; only the isDark-dependent visuals stay inline.
 //   const headerStyle = {
 //     display: "flex",
 //     alignItems: "center",
@@ -600,6 +675,7 @@
 //     position: "sticky",
 //     top: 0,
 //     zIndex: 20,
+//     flexShrink: 0,
 //   };
 
 //   return (
@@ -613,106 +689,65 @@
 //     >
 //       <DashboardResponsiveStyles />
 
-//       <div
+//      <div
 //         className="dl-shell"
-//         style={{ display: "flex", height: "100%", overflow: "hidden" }}
+//         style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}
 //       >
-//         {/* Sidebar — always visible, live room or not */}
-//         <aside className="dl-aside">
-//           {SidebarComponent && <SidebarComponent />}
-//         </aside>
+//         {/* ═══ HEADER — logo + role-tab dropdown nav (replaces Sidebar) + live-slot + theme/bell/profile ═══ */}
+//         <div className="dl-header" style={headerStyle}>
+//           <TopNavbar isDark={isDark} />
 
-//         {/* Main content column */}
-//         <div
-//           className="dl-main-col"
-//           style={{
-//             display: "flex",
-//             flexDirection: "column",
-//             flex: 1,
-//             minWidth: 0,
-//           }}
-//         >
-//           {/* ═══ HEADER ═══ */}
-//           <div className="dl-header" style={headerStyle}>
-//             {/* ✅ Always-present, normally-empty slot. When the user
-//                 is inside a live session, LiveRoom portals its
-//                 LIVE / session name / timer / REC / participants /
-//                 signal / End Session / more-menu controls in here, so
-//                 they sit in the same row as the existing bell + avatar
-//                 instead of drawing a second top bar. On every other
-//                 page this stays empty and the header looks exactly
-//                 like it did before. */}
-//             <div
-//               id="lr-topbar-slot"
-//               className="dl-topbar-slot"
-//               style={{
-//                 display: "flex",
-//                 alignItems: "center",
-//                 justifyContent: "space-between",
-//                 flex: 1,
-//                 minWidth: 0,
-//               }}
+//           <div
+//             id="lr-topbar-slot"
+//             className="dl-topbar-slot"
+//             style={{
+//               display: "flex",
+//               alignItems: "center",
+//               justifyContent: "flex-end",
+//               flexShrink: 0,
+//               minWidth: 0,
+//             }}
+//           />
+
+//           {/* Right: theme toggle + bell + profile dropdown */}
+//           <div
+//             className="dl-right-cluster"
+//             style={{
+//               display: "flex",
+//               alignItems: "center",
+//               marginLeft: "auto",
+//               flexShrink: 0,
+//             }}
+//           >
+//             <ThemeToggleButton isDark={isDark} onToggle={toggleTheme} />
+
+//             <NotificationBellSlot
+//               navigate={navigate}
+//               notifPath={notifPath}
+//               isDark={isDark}
 //             />
 
-//             {/* Right: bell + avatar */}
-//             <div
-//               className="dl-right-cluster"
-//               style={{
-//                 display: "flex",
-//                 alignItems: "center",
-//                 marginLeft: "auto",
-//                 flexShrink: 0,
-//               }}
-//             >
-//               {/* Notification bell */}
-//               <NotificationBellSlot
-//                 navigate={navigate}
-//                 notifPath={notifPath}
-//                 isDark={isDark}
-//               />
-
-//               {/* Avatar */}
-//               <button
-//                 className="dl-avatar"
-//                 onClick={() => navigate(`${base}/profile`)}
-//                 style={{
-//                   borderRadius: "50%",
-//                   background: "linear-gradient(135deg, #F97316, #EA580C)",
-//                   color: "#fff",
-//                   fontWeight: 700,
-//                   display: "flex",
-//                   alignItems: "center",
-//                   justifyContent: "center",
-//                   border: "2px solid rgba(249,115,22,0.3)",
-//                   boxShadow: "0 2px 10px rgba(249,115,22,0.35)",
-//                   cursor: "pointer",
-//                   fontFamily: "inherit",
-//                   transition: "opacity 0.2s",
-//                   flexShrink: 0,
-//                 }}
-//                 onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
-//                 onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-//               >
-//                 {userInitial}
-//               </button>
-//             </div>
+//             <ProfileMenu
+//               isDark={isDark}
+//               userName={userName}
+//               userInitial={userInitial}
+//               roleLabel={roleLabel}
+//               onProfile={() => navigate(`${base}/profile`)}
+//               onLogout={handleLogout}
+//             />
 //           </div>
-
-//           {/* ═══ MAIN ═══ */}
-//           <main
-//             className="dl-main"
-//             style={{ flex: 1, overflowY: "auto", background: t.pageBg }}
-//           >
-//             <Outlet />
-//           </main>
 //         </div>
+
+//         {/* ═══ MAIN — the ONLY scrollable region (see DashboardResponsiveStyles
+//              for the global html/body reset that makes this true) ═══ */}
+//         <main
+//           className="dl-main"
+//           style={{ flex: 1, overflowY: "auto", background: t.pageBg }}
+//         >
+//           <Outlet />
+//         </main>
 //       </div>
 
-//       {/* ✅ Moved out of the inner overflow:hidden flex column and up to
-//           the true root level — same tier as the toast stack and banner
-//           below — so the floating meeting widget (position: fixed) is
-//           never at risk of being clipped or trapped by an ancestor that
-//           might later get a transform/filter applied to it. */}
 //       <FloatingMeetingWidget />
 //       <LiveMeetingRouteSync />
 
@@ -723,6 +758,185 @@
 //         onDismiss={dismissToast}
 //         onNavigate={handleToastClick}
 //       />
+//     </div>
+//   );
+// };
+
+// // ─────────────────────────────────────────────────────────────
+// // Theme toggle button — sun/moon, same footprint as the bell
+// // ─────────────────────────────────────────────────────────────
+// const ThemeToggleButton = ({ isDark, onToggle }) => {
+//   const [hov, setHov] = useState(false);
+
+//   return (
+//     <button
+//       className="dl-bell"
+//       onClick={onToggle}
+//       onMouseEnter={() => setHov(true)}
+//       onMouseLeave={() => setHov(false)}
+//       title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+//       aria-label="Toggle theme"
+//       style={{
+//         position: "relative",
+//         borderRadius: 10,
+//         background: hov
+//           ? isDark
+//             ? "rgba(255,255,255,0.06)"
+//             : "rgba(241,245,249,0.9)"
+//           : "transparent",
+//         border: isDark
+//           ? "1px solid rgba(255,255,255,0.07)"
+//           : "1px solid rgba(226,232,240,0.8)",
+//         display: "flex",
+//         alignItems: "center",
+//         justifyContent: "center",
+//         cursor: "pointer",
+//         transition: "all 0.2s",
+//         boxShadow: hov && !isDark ? "0 1px 4px rgba(0,0,0,0.06)" : "none",
+//         flexShrink: 0,
+//       }}
+//     >
+//       {isDark ? <Sun size={17} color="#3b82f6" /> : <Moon size={17} color="#64748b" />}
+//     </button>
+//   );
+// };
+
+// // ─────────────────────────────────────────────────────────────
+// // Profile dropdown — avatar trigger, name + role header,
+// // Profile + Logout actions. Matches Super Admin's panel.
+// // ─────────────────────────────────────────────────────────────
+// const PROFILE_MENU_CSS = `
+//   .dl-profile-wrap { position: relative; flex-shrink: 0; }
+
+//   .dl-profile-dropdown {
+//     position: absolute; top: calc(100% + 10px); right: 0; z-index: 250;
+//     min-width: 210px; border-radius: 12px; padding: 6px;
+//     display: flex; flex-direction: column; gap: 2px;
+//     animation: dlProfIn .15s ease;
+//   }
+//   [data-dark="false"] .dl-profile-dropdown { background: #fff; border: 1px solid #e2e8f0; box-shadow: 0 16px 40px rgba(0,0,0,0.14); }
+//   [data-dark="true"]  .dl-profile-dropdown { background: #18181b; border: 1px solid #27272a; box-shadow: 0 16px 40px rgba(0,0,0,0.45); }
+//   @keyframes dlProfIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+//   .dl-profile-header { display: flex; align-items: center; gap: 10px; padding: 8px 8px 10px; }
+//   .dl-profile-avatar {
+//     width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+//     background: linear-gradient(135deg, #F97316, #EA580C);
+//     color: #fff; font-weight: 700; font-size: 13px;
+//     display: flex; align-items: center; justify-content: center;
+//   }
+//   .dl-profile-name {
+//     margin: 0; font-size: 13px; font-weight: 700;
+//     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+//   }
+//   [data-dark="false"] .dl-profile-name { color: #0f172a; }
+//   [data-dark="true"]  .dl-profile-name { color: #ffffff; }
+//   .dl-profile-role {
+//     margin: 2px 0 0; font-size: 9.5px; font-weight: 700; letter-spacing: 0.05em;
+//     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+//   }
+//   [data-dark="false"] .dl-profile-role { color: #94a3b8; }
+//   [data-dark="true"]  .dl-profile-role { color: #71717a; }
+
+//   .dl-profile-divider { height: 1px; margin: 2px 6px 4px; }
+//   [data-dark="false"] .dl-profile-divider { background: #e2e8f0; }
+//   [data-dark="true"]  .dl-profile-divider { background: #27272a; }
+
+//   .dl-profile-item {
+//     display: flex; align-items: center; gap: 9px;
+//     width: 100%; padding: 8px 10px; border-radius: 8px; border: none;
+//     background: transparent; cursor: pointer; text-align: left;
+//     font-size: 12.5px; font-weight: 500; font-family: inherit;
+//     transition: all .12s;
+//   }
+//   [data-dark="false"] .dl-profile-item { color: #374151; }
+//   [data-dark="true"]  .dl-profile-item { color: #d4d4d8; }
+//   [data-dark="false"] .dl-profile-item:hover { background: #f1f5f9; }
+//   [data-dark="true"]  .dl-profile-item:hover { background: rgba(255,255,255,0.06); }
+
+//   [data-dark="false"] .dl-profile-item.danger { color: #dc2626; }
+//   [data-dark="true"]  .dl-profile-item.danger { color: #f87171; }
+//   [data-dark="false"] .dl-profile-item.danger:hover { background: #fee2e2; }
+//   [data-dark="true"]  .dl-profile-item.danger:hover { background: rgba(239,68,68,0.14); }
+// `;
+
+// const ProfileMenu = ({ isDark, userName, userInitial, roleLabel, onProfile, onLogout }) => {
+//   const [open, setOpen] = useState(false);
+//   const ref = useRef(null);
+
+//   useEffect(() => {
+//     const onClick = (e) => {
+//       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+//     };
+//     document.addEventListener("mousedown", onClick);
+//     return () => document.removeEventListener("mousedown", onClick);
+//   }, []);
+
+//   return (
+//     <div className="dl-profile-wrap" ref={ref} data-dark={String(!!isDark)}>
+//       <style>{PROFILE_MENU_CSS}</style>
+
+//       <button
+//         className="dl-avatar"
+//         onClick={() => setOpen((p) => !p)}
+//         style={{
+//           borderRadius: "50%",
+//           background: "linear-gradient(135deg, #F97316, #EA580C)",
+//           color: "#fff",
+//           fontWeight: 700,
+//           display: "flex",
+//           alignItems: "center",
+//           justifyContent: "center",
+//           border: "2px solid rgba(249,115,22,0.3)",
+//           boxShadow: "0 2px 10px rgba(249,115,22,0.35)",
+//           cursor: "pointer",
+//           fontFamily: "inherit",
+//           transition: "opacity 0.2s",
+//           flexShrink: 0,
+//         }}
+//         onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
+//         onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+//       >
+//         {userInitial}
+//       </button>
+
+//       {open && (
+//         <div className="dl-profile-dropdown">
+//           <div className="dl-profile-header">
+//             <div className="dl-profile-avatar">{userInitial}</div>
+//             <div style={{ minWidth: 0 }}>
+//               <p className="dl-profile-name">{userName}</p>
+//               <p className="dl-profile-role">{roleLabel.toUpperCase()}</p>
+//             </div>
+//           </div>
+
+//           <div className="dl-profile-divider" />
+
+//           <button
+//             type="button"
+//             className="dl-profile-item"
+//             onClick={() => {
+//               setOpen(false);
+//               onProfile();
+//             }}
+//           >
+//             <User size={15} style={{ flexShrink: 0 }} />
+//             <span>Profile</span>
+//           </button>
+
+//           <button
+//             type="button"
+//             className="dl-profile-item danger"
+//             onClick={() => {
+//               setOpen(false);
+//               onLogout();
+//             }}
+//           >
+//             <LogOut size={15} style={{ flexShrink: 0 }} />
+//             <span>Logout</span>
+//           </button>
+//         </div>
+//       )}
 //     </div>
 //   );
 // };
@@ -843,30 +1057,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // for github //
 import {
   Bell,
@@ -885,6 +1075,10 @@ import {
   HelpCircle,
   Send,
   Menu,
+  Sun,
+  Moon,
+  User,
+  LogOut,
 } from "lucide-react";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate, Outlet } from "react-router-dom";
@@ -900,7 +1094,8 @@ import {
   disconnectWebSocket,
 } from "../services/notificationService";
 import userService from "../services/userService";
-
+import auth from "../auth";
+import TopNavbar from "../components/TopNavbar";
 // ── Notification type → REAL icon map (no more emoji placeholders) ──
 const TYPE_ICON = {
   NEW_VIDEO: Video,
@@ -922,6 +1117,14 @@ const TYPE_ICON = {
   DEFAULT: Bell,
 };
 const getIcon = (type) => TYPE_ICON[type] ?? TYPE_ICON.DEFAULT;
+
+// ── Role label for the profile dropdown — mirrors TopNavbar's roleConfig ──
+const ROLE_LABELS = {
+  STUDENT: "Student Portal",
+  TRAINER: "Trainer Panel",
+  ADMIN: "Manager Panel",
+  BUSINESS: "Tenant Admin Panel",
+};
 
 // ── Shared AudioContext — created once, resumed on interaction ─
 let _audioCtx = null;
@@ -987,6 +1190,20 @@ const playSound = () => {
 // ─────────────────────────────────────────────────────────────
 const DashboardResponsiveStyles = () => (
   <style>{`
+    /* FIX (Bug 2): global reset so the OUTER document never scrolls.
+       Without this, the <html>/<body> could scroll independently of
+       .dl-main, which is what produced the "extra gap below the
+       sticky header" feeling — you were effectively looking at two
+       nested scroll containers fighting each other. Now there is
+       exactly one scroll container (.dl-main); the header stays
+       visually pinned for free since it's a sibling outside it. */
+    html, body, #root {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
     .dl-root, .dl-root * { box-sizing: border-box; }
     .dl-root { overflow-x: hidden; }
     .dl-shell { min-width: 0; }
@@ -1004,12 +1221,34 @@ const DashboardResponsiveStyles = () => (
       min-width: 0;
       transition: width .28s ease, margin .28s ease, transform .28s ease;
     }
-    .dl-main { min-width: 0; }
 
+    /* FIX (Bug 2): smooth, contained scrolling on the single scroll
+       container. overscroll-behavior: contain stops scroll-chaining
+       past the top/bottom edge (another source of "janky" feeling
+       scroll), and margin/padding are pinned to 0 so no stray
+       top-margin can create a gap directly under the sticky header. */
+    .dl-main {
+      min-width: 0;
+      margin: 0;
+      padding: 0;
+      scroll-behavior: smooth;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* FIX (Bug 3 — header/content overlap): the header used to be a
+       fixed 64px (60px tablet / 56px mobile) box with TopNavbar and
+       the theme/bell/profile icons as separate flex siblings inside
+       it. TopNavbar is now a two-row component (52px logo row + 44px
+       tabs row = 96px total) with the icons rendered INSIDE its row1
+       via the rightSlot prop — so .dl-header no longer needs (or
+       wants) a fixed height. It now sizes itself naturally to
+       whatever TopNavbar renders (96px desktop/tablet, 52px on
+       mobile once the tabs row hides itself), so the tabs row can
+       never spill out of a too-short header and overlap the page
+       content below it again. */
     .dl-header {
-      height: 64px;
       padding: 0 24px;
-      gap: 12px;
     }
     .dl-topbar-slot { gap: 8px; }
     .dl-right-cluster { gap: 10px; }
@@ -1056,20 +1295,19 @@ const DashboardResponsiveStyles = () => (
 
     /* ---- Tablet / iPad / iPad Air ---- */
     @media (max-width: 1023px) {
-      .dl-header { height: 60px; padding: 0 16px; gap: 8px; }
+      .dl-header { padding: 0 16px; }
       .dl-toast-stack { top: 16px; right: 16px; max-width: min(320px, calc(100vw - 32px)); }
       .dl-banner { bottom: 16px; max-width: calc(100vw - 32px); }
     }
 
     /* ---- iPad Mini / small tablet / large phone landscape ---- */
     @media (max-width: 820px) {
-      .dl-header { gap: 6px; }
       .dl-right-cluster { gap: 8px; }
     }
 
     /* ---- Mobile: phones, iPhone SE and up ---- */
     @media (max-width: 640px) {
-      .dl-header { height: 56px; padding: 0 12px; }
+      .dl-header { padding: 0 12px; }
       .dl-avatar { width: 32px; height: 32px; font-size: 13px; }
       .dl-bell { width: 34px; height: 34px; }
       .dl-topbar-slot { flex-wrap: wrap; }
@@ -1186,7 +1424,6 @@ const NotificationBanner = () => {
           }
         }
       `}</style>
-      {/* ✅ Real icon instead of 🔔 emoji */}
       <span
         style={{
           width: 26,
@@ -1283,7 +1520,6 @@ const ToastStack = ({ toasts, onDismiss, onNavigate }) => (
             backdropFilter: "blur(12px)",
           }}
         >
-          {/* ✅ Real lucide icon instead of emoji */}
           <div
             style={{
               width: 36,
@@ -1386,25 +1622,16 @@ const DashboardLayout = ({ SidebarComponent }) => {
     return () => obs.disconnect();
   }, []);
 
-  // ── 3-step sidebar fold: "full" | "icon" | "hidden" ──────────
-  // Owned here so the header/floating restore control and the
-  // Sidebar itself always agree on the current state, and so it
-  // survives navigation between pages inside the layout.
-  const [sidebarMode, setSidebarMode] = useState(() => {
-    try {
-      return localStorage.getItem("sidebarMode") || "full";
-    } catch {
-      return "full";
-    }
-  });
+  // ✅ Theme toggle — flips the document class; the MutationObserver
+  // above picks it up and syncs isDark, so every themed bit in this
+  // header (and anywhere else watching document.documentElement)
+  // updates together, same as Sidebar.jsx's toggle used to do.
+  const toggleTheme = () => {
+    const next = !document.documentElement.classList.contains("dark");
+    document.documentElement.classList.toggle("dark", next);
+  };
 
-  useEffect(() => {
-    try { localStorage.setItem("sidebarMode", sidebarMode); } catch (_) {}
-  }, [sidebarMode]);
-
-  const restoreSidebar = () => setSidebarMode("full");
-
-  const userEmail = localStorage.getItem("email");
+const userEmail = localStorage.getItem("email");
   const userRole = location.pathname.startsWith("/student")
     ? "STUDENT"
     : location.pathname.startsWith("/trainer")
@@ -1413,9 +1640,14 @@ const DashboardLayout = ({ SidebarComponent }) => {
         ? "ADMIN"
         : "BUSINESS";
 
+  const roleLabel = ROLE_LABELS[userRole] || "Portal";
+
   const notifPath = `${base}/notifications`;
 
-  // ✅ Avatar initial — fetched fresh from API, cached in localStorage
+  // ✅ Avatar initial + full name — fetched fresh from API, cached in localStorage
+  const [userName, setUserName] = useState(
+    localStorage.getItem("userName") || "User",
+  );
   const [userInitial, setUserInitial] = useState(
     (localStorage.getItem("userName") || "U").trim().charAt(0).toUpperCase() ||
       "U",
@@ -1429,6 +1661,7 @@ const DashboardLayout = ({ SidebarComponent }) => {
         if (cancelled) return;
         const name = res.data?.displayName || res.data?.name || "User";
         localStorage.setItem("userName", name);
+        setUserName(name);
         setUserInitial(name.trim().charAt(0).toUpperCase() || "U");
       })
       .catch(() => {
@@ -1438,6 +1671,11 @@ const DashboardLayout = ({ SidebarComponent }) => {
       cancelled = true;
     };
   }, [location.pathname]);
+
+  const handleLogout = () => {
+    auth.logout();
+    navigate("/login");
+  };
 
   const addToast = useCallback((title, message, type) => {
     playSound();
@@ -1480,8 +1718,6 @@ const DashboardLayout = ({ SidebarComponent }) => {
         "New Notification";
       const body = payload.notification?.body || payload.data?.body || "";
       const type = payload.data?.type || "DEFAULT";
-      // ✅ FIX: self-notification check for FCM foreground
-      // If the FCM message is a chat type, check sender vs current user
       const sender = payload.data?.senderEmail || "";
       const current = (localStorage.getItem("email") || "").toLowerCase();
       if (type === "NEW_CHAT" && sender && sender.toLowerCase() === current) {
@@ -1492,13 +1728,9 @@ const DashboardLayout = ({ SidebarComponent }) => {
     });
   }, [addToast]);
 
-  // Layout-affecting values (height/padding/gap) now come from the
-  // .dl-header class (see DashboardResponsiveStyles) so media queries
-  // can resize them; only the isDark-dependent visuals stay inline.
   const headerStyle = {
     display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
+    alignItems: "stretch",
     background: isDark ? "rgba(10,10,10,0.92)" : "rgba(255,255,255,0.88)",
     backdropFilter: "blur(14px)",
     WebkitBackdropFilter: "blur(14px)",
@@ -1509,13 +1741,57 @@ const DashboardLayout = ({ SidebarComponent }) => {
     position: "sticky",
     top: 0,
     zIndex: 20,
+    flexShrink: 0,
   };
 
-  const restoreBtnStyle = {
-    background: isDark ? "rgba(255,255,255,0.07)" : "#f1f5f9",
-    border: isDark ? "1px solid #1a1a1a" : "1px solid #e2e8f0",
-    color: isDark ? "#93c5fd" : "#1d4ed8",
-  };
+  // FIX (Bug 3): theme toggle / bell / profile now render INSIDE
+  // TopNavbar's own row1 (via the `rightSlot` prop) instead of as
+  // separate flex siblings next to it in `.dl-header`. That's what
+  // keeps them in the exact same row as the logo — matching the
+  // SuperAdmin header — and it's also what lets `.dl-header` drop
+  // its old fixed height and simply size itself to TopNavbar's real
+  // (two-row) height, so nothing overlaps the page content below it
+  // anymore.
+  const headerRightSlot = (
+    <>
+      <div
+        id="lr-topbar-slot"
+        className="dl-topbar-slot"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          flexShrink: 0,
+          minWidth: 0,
+        }}
+      />
+
+      <div
+        className="dl-right-cluster"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          flexShrink: 0,
+        }}
+      >
+        <ThemeToggleButton isDark={isDark} onToggle={toggleTheme} />
+
+        <NotificationBellSlot
+          navigate={navigate}
+          notifPath={notifPath}
+          isDark={isDark}
+        />
+
+        <ProfileMenu
+          isDark={isDark}
+          userName={userName}
+          userInitial={userInitial}
+          roleLabel={roleLabel}
+          onProfile={() => navigate(`${base}/profile`)}
+          onLogout={handleLogout}
+        />
+      </div>
+    </>
+  );
 
   return (
     <div
@@ -1528,125 +1804,27 @@ const DashboardLayout = ({ SidebarComponent }) => {
     >
       <DashboardResponsiveStyles />
 
-      <div
+     <div
         className="dl-shell"
-        style={{ display: "flex", height: "100%", overflow: "hidden" }}
+        style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}
       >
-        {/* Sidebar — always mounted; width/visibility driven by sidebarMode */}
-        <aside className="dl-aside">
-          {SidebarComponent && (
-            <SidebarComponent
-              sidebarMode={sidebarMode}
-              setSidebarMode={setSidebarMode}
-            />
-          )}
-        </aside>
-
-        {/* Main content column */}
-        <div
-          className="dl-main-col"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            flex: 1,
-            minWidth: 0,
-          }}
-        >
-          {/* ═══ HEADER ═══ */}
-          <div className="dl-header" style={headerStyle}>
-            {/* Restore control — only shows once the sidebar is hidden.
-                Header is position:sticky (top:0) so this single button
-                stays reachable on scroll across every breakpoint —
-                no separate floating duplicate needed. */}
-            <button
-              className="dl-restore-btn"
-              data-show={sidebarMode === "hidden"}
-              onClick={restoreSidebar}
-              title="Show sidebar"
-              style={restoreBtnStyle}
-            >
-              <Menu size={17} />
-            </button>
-
-            {/* ✅ Always-present, normally-empty slot. When the user
-                is inside a live session, LiveRoom portals its
-                LIVE / session name / timer / REC / participants /
-                signal / End Session / more-menu controls in here, so
-                they sit in the same row as the existing bell + avatar
-                instead of drawing a second top bar. On every other
-                page this stays empty and the header looks exactly
-                like it did before. */}
-            <div
-              id="lr-topbar-slot"
-              className="dl-topbar-slot"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                flex: 1,
-                minWidth: 0,
-              }}
-            />
-
-            {/* Right: bell + avatar */}
-            <div
-              className="dl-right-cluster"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                marginLeft: "auto",
-                flexShrink: 0,
-              }}
-            >
-              {/* Notification bell */}
-              <NotificationBellSlot
-                navigate={navigate}
-                notifPath={notifPath}
-                isDark={isDark}
-              />
-
-              {/* Avatar */}
-              <button
-                className="dl-avatar"
-                onClick={() => navigate(`${base}/profile`)}
-                style={{
-                  borderRadius: "50%",
-                  background: "linear-gradient(135deg, #F97316, #EA580C)",
-                  color: "#fff",
-                  fontWeight: 700,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  border: "2px solid rgba(249,115,22,0.3)",
-                  boxShadow: "0 2px 10px rgba(249,115,22,0.35)",
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                  transition: "opacity 0.2s",
-                  flexShrink: 0,
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
-                onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-              >
-                {userInitial}
-              </button>
-            </div>
-          </div>
-
-          {/* ═══ MAIN ═══ */}
-          <main
-            className="dl-main"
-            style={{ flex: 1, overflowY: "auto", background: t.pageBg }}
-          >
-            <Outlet />
-          </main>
+        {/* ═══ HEADER — TopNavbar now owns the whole header: row1 is
+             logo + (theme/bell/profile via rightSlot), row2 is the
+             underline tabs — exactly like the SuperAdmin header. ═══ */}
+        <div className="dl-header" style={headerStyle}>
+          <TopNavbar isDark={isDark} rightSlot={headerRightSlot} />
         </div>
+
+        {/* ═══ MAIN — the ONLY scrollable region (see DashboardResponsiveStyles
+             for the global html/body reset that makes this true) ═══ */}
+        <main
+          className="dl-main"
+          style={{ flex: 1, overflowY: "auto", background: t.pageBg }}
+        >
+          <Outlet />
+        </main>
       </div>
 
-      {/* ✅ Moved out of the inner overflow:hidden flex column and up to
-          the true root level — same tier as the toast stack and banner
-          below — so the floating meeting widget (position: fixed) is
-          never at risk of being clipped or trapped by an ancestor that
-          might later get a transform/filter applied to it. */}
       <FloatingMeetingWidget />
       <LiveMeetingRouteSync />
 
@@ -1657,6 +1835,185 @@ const DashboardLayout = ({ SidebarComponent }) => {
         onDismiss={dismissToast}
         onNavigate={handleToastClick}
       />
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────
+// Theme toggle button — sun/moon, same footprint as the bell
+// ─────────────────────────────────────────────────────────────
+const ThemeToggleButton = ({ isDark, onToggle }) => {
+  const [hov, setHov] = useState(false);
+
+  return (
+    <button
+      className="dl-bell"
+      onClick={onToggle}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      aria-label="Toggle theme"
+      style={{
+        position: "relative",
+        borderRadius: 10,
+        background: hov
+          ? isDark
+            ? "rgba(255,255,255,0.06)"
+            : "rgba(241,245,249,0.9)"
+          : "transparent",
+        border: isDark
+          ? "1px solid rgba(255,255,255,0.07)"
+          : "1px solid rgba(226,232,240,0.8)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: "pointer",
+        transition: "all 0.2s",
+        boxShadow: hov && !isDark ? "0 1px 4px rgba(0,0,0,0.06)" : "none",
+        flexShrink: 0,
+      }}
+    >
+      {isDark ? <Sun size={17} color="#3b82f6" /> : <Moon size={17} color="#64748b" />}
+    </button>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────
+// Profile dropdown — avatar trigger, name + role header,
+// Profile + Logout actions. Matches Super Admin's panel.
+// ─────────────────────────────────────────────────────────────
+const PROFILE_MENU_CSS = `
+  .dl-profile-wrap { position: relative; flex-shrink: 0; }
+
+  .dl-profile-dropdown {
+    position: absolute; top: calc(100% + 10px); right: 0; z-index: 250;
+    min-width: 210px; border-radius: 12px; padding: 6px;
+    display: flex; flex-direction: column; gap: 2px;
+    animation: dlProfIn .15s ease;
+  }
+  [data-dark="false"] .dl-profile-dropdown { background: #fff; border: 1px solid #e2e8f0; box-shadow: 0 16px 40px rgba(0,0,0,0.14); }
+  [data-dark="true"]  .dl-profile-dropdown { background: #18181b; border: 1px solid #27272a; box-shadow: 0 16px 40px rgba(0,0,0,0.45); }
+  @keyframes dlProfIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+  .dl-profile-header { display: flex; align-items: center; gap: 10px; padding: 8px 8px 10px; }
+  .dl-profile-avatar {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, #F97316, #EA580C);
+    color: #fff; font-weight: 700; font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .dl-profile-name {
+    margin: 0; font-size: 13px; font-weight: 700;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  [data-dark="false"] .dl-profile-name { color: #0f172a; }
+  [data-dark="true"]  .dl-profile-name { color: #ffffff; }
+  .dl-profile-role {
+    margin: 2px 0 0; font-size: 9.5px; font-weight: 700; letter-spacing: 0.05em;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  [data-dark="false"] .dl-profile-role { color: #94a3b8; }
+  [data-dark="true"]  .dl-profile-role { color: #71717a; }
+
+  .dl-profile-divider { height: 1px; margin: 2px 6px 4px; }
+  [data-dark="false"] .dl-profile-divider { background: #e2e8f0; }
+  [data-dark="true"]  .dl-profile-divider { background: #27272a; }
+
+  .dl-profile-item {
+    display: flex; align-items: center; gap: 9px;
+    width: 100%; padding: 8px 10px; border-radius: 8px; border: none;
+    background: transparent; cursor: pointer; text-align: left;
+    font-size: 12.5px; font-weight: 500; font-family: inherit;
+    transition: all .12s;
+  }
+  [data-dark="false"] .dl-profile-item { color: #374151; }
+  [data-dark="true"]  .dl-profile-item { color: #d4d4d8; }
+  [data-dark="false"] .dl-profile-item:hover { background: #f1f5f9; }
+  [data-dark="true"]  .dl-profile-item:hover { background: rgba(255,255,255,0.06); }
+
+  [data-dark="false"] .dl-profile-item.danger { color: #dc2626; }
+  [data-dark="true"]  .dl-profile-item.danger { color: #f87171; }
+  [data-dark="false"] .dl-profile-item.danger:hover { background: #fee2e2; }
+  [data-dark="true"]  .dl-profile-item.danger:hover { background: rgba(239,68,68,0.14); }
+`;
+
+const ProfileMenu = ({ isDark, userName, userInitial, roleLabel, onProfile, onLogout }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const onClick = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
+  return (
+    <div className="dl-profile-wrap" ref={ref} data-dark={String(!!isDark)}>
+      <style>{PROFILE_MENU_CSS}</style>
+
+      <button
+        className="dl-avatar"
+        onClick={() => setOpen((p) => !p)}
+        style={{
+          borderRadius: "50%",
+          background: "linear-gradient(135deg, #F97316, #EA580C)",
+          color: "#fff",
+          fontWeight: 700,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          border: "2px solid rgba(249,115,22,0.3)",
+          boxShadow: "0 2px 10px rgba(249,115,22,0.35)",
+          cursor: "pointer",
+          fontFamily: "inherit",
+          transition: "opacity 0.2s",
+          flexShrink: 0,
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
+        onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+      >
+        {userInitial}
+      </button>
+
+      {open && (
+        <div className="dl-profile-dropdown">
+          <div className="dl-profile-header">
+            <div className="dl-profile-avatar">{userInitial}</div>
+            <div style={{ minWidth: 0 }}>
+              <p className="dl-profile-name">{userName}</p>
+              <p className="dl-profile-role">{roleLabel.toUpperCase()}</p>
+            </div>
+          </div>
+
+          <div className="dl-profile-divider" />
+
+          <button
+            type="button"
+            className="dl-profile-item"
+            onClick={() => {
+              setOpen(false);
+              onProfile();
+            }}
+          >
+            <User size={15} style={{ flexShrink: 0 }} />
+            <span>Profile</span>
+          </button>
+
+          <button
+            type="button"
+            className="dl-profile-item danger"
+            onClick={() => {
+              setOpen(false);
+              onLogout();
+            }}
+          >
+            <LogOut size={15} style={{ flexShrink: 0 }} />
+            <span>Logout</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };

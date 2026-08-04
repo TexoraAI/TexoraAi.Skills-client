@@ -7,8 +7,6 @@
 //   AlertCircle,
 //   TrendingUp,
 //   BarChart3,
-//   ChevronDown,
-//   Check,
 //   Sparkles,
 //   Activity,
 //   Download,
@@ -80,35 +78,6 @@
 // .sa-d3{animation:sa-blink 1.6s 0.6s ease infinite;}
 // @keyframes sa-pulse-ring{0%{box-shadow:0 0 0 0 rgba(34,211,238,0.5)}70%{box-shadow:0 0 0 8px rgba(34,211,238,0)}100%{box-shadow:0 0 0 0 rgba(34,211,238,0)}}
 // .sa-live-badge{animation:sa-pulse-ring 2.2s ease-out infinite;}
-
-// /* ── CUSTOM DROPDOWN ── */
-// .sa-month-wrap{display:flex;align-items:center;gap:10px;position:relative;}
-// .sa-month-ico{width:38px;height:38px;border-radius:11px;background:rgba(34,211,238,.10);border:1px solid rgba(34,211,238,.15);display:flex;align-items:center;justify-content:center;color:var(--c1);flex-shrink:0;}
-// .sa-dd{position:relative;min-width:185px;font-family:'Poppins',sans-serif;}
-// .sa-dd-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;height:42px;padding:0 14px;border-radius:13px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-family:'Poppins',sans-serif;font-size:13px;font-weight:600;cursor:pointer;user-select:none;box-shadow:var(--sh);transition:border-color .2s,box-shadow .2s;}
-// .sa-dd-btn:hover{border-color:rgba(34,211,238,.35);}
-// .sa-dd-btn.open{border-color:var(--c1);box-shadow:0 0 0 3px rgba(34,211,238,.12);}
-// .sa-dd-chev{flex-shrink:0;color:var(--mu);transition:transform .2s;}
-// .sa-dd-btn.open .sa-dd-chev{transform:rotate(180deg);}
-// .sa-dd-menu{
-//   position:fixed;          /* ← FIXED positioning: escapes all overflow:hidden parents */
-//   z-index:99999;
-//   background:var(--card);
-//   border:1px solid var(--bd);
-//   border-radius:14px;
-//   box-shadow:var(--shl);
-//   overflow:hidden;
-//   max-height:256px;
-//   overflow-y:auto;
-//   animation:sa-fadein .12s ease;
-//   min-width:185px;
-// }
-// @keyframes sa-fadein{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
-// .sa-dd-menu::-webkit-scrollbar{width:4px;}
-// .sa-dd-menu::-webkit-scrollbar-thumb{background:var(--bd);border-radius:4px;}
-// .sa-dd-opt{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;font-family:'Poppins',sans-serif;font-size:13px;font-weight:500;color:var(--tx);transition:background .12s;}
-// .sa-dd-opt:hover{background:rgba(34,211,238,.06);}
-// .sa-dd-opt.sel{color:var(--c1);font-weight:700;background:rgba(34,211,238,.06);}
 
 // /* ── STAT CARDS ── */
 // .sa-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:20px;}
@@ -201,21 +170,6 @@
 //   );
 // };
 
-// const monthMap = {
-//   January: 1,
-//   February: 2,
-//   March: 3,
-//   April: 4,
-//   May: 5,
-//   June: 6,
-//   July: 7,
-//   August: 8,
-//   September: 9,
-//   October: 10,
-//   November: 11,
-//   December: 12,
-// };
-
 // const STAT_GRADS = [
 //   "linear-gradient(135deg,#064e3b,#059669)",
 //   "linear-gradient(135deg,#78350f,#d97706)",
@@ -223,86 +177,15 @@
 //   "linear-gradient(135deg,#1e3a8a,#2563eb)",
 // ];
 
-// /* ─── Custom Dropdown — position:fixed menu to escape overflow:hidden ─── */
-// const MonthDropdown = ({ value, onChange, year }) => {
-//   const [open, setOpen] = useState(false);
-//   const [menuStyle, setMenuStyle] = useState({});
-//   const btnRef = useRef(null);
-//   const ref = useRef(null);
-//   const months = Object.keys(monthMap);
-
-//   // Calculate fixed position from button's screen coords
-//   const openMenu = () => {
-//     if (btnRef.current) {
-//       const rect = btnRef.current.getBoundingClientRect();
-//       setMenuStyle({
-//         top: rect.bottom + 6,
-//         left: rect.left,
-//         width: rect.width,
-//       });
-//     }
-//     setOpen((o) => !o);
-//   };
-
-//   useEffect(() => {
-//     const handler = (e) => {
-//       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
-//     };
-//     document.addEventListener("mousedown", handler);
-//     return () => document.removeEventListener("mousedown", handler);
-//   }, []);
-
-//   return (
-//     <div className="sa-dd" ref={ref}>
-//       <div
-//         ref={btnRef}
-//         className={`sa-dd-btn${open ? " open" : ""}`}
-//         onClick={openMenu}
-//       >
-//         <span>
-//           {value} {year}
-//         </span>
-//         <ChevronDown size={15} className="sa-dd-chev" />
-//       </div>
-//       {open && (
-//         <div className="sa-dd-menu" style={menuStyle}>
-//           {months.map((m) => (
-//             <div
-//               key={m}
-//               className={`sa-dd-opt${value === m ? " sel" : ""}`}
-//               onClick={() => {
-//                 onChange(m);
-//                 setOpen(false);
-//               }}
-//             >
-//               <span>
-//                 {m} {year}
-//               </span>
-//               {value === m && (
-//                 <Check
-//                   size={13}
-//                   style={{ color: "var(--c1)", flexShrink: 0 }}
-//                 />
-//               )}
-//             </div>
-//           ))}
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
 // /* ─── Main ─────────────────────────────────────────────────────────────── */
 // const StudentAttendance = () => {
-//   const [month, setMonth] = useState("February");
 //   const [attendanceData, setAttendanceData] = useState([]);
 //   const [loading, setLoading] = useState(false);
 //   const [dark, setDark] = useState(isDarkFn);
 //   const year = new Date().getFullYear();
 //   const [leftWidth, setLeftWidth] = useState(62);
 
-//   // ── NEW — History filters + Excel download (additive) ──
-//   const [useFilter, setUseFilter] = useState(false); // toggle between monthly view and filtered history
+//   // Filters — this is now the ONLY data source, defaults to current month
 //   const [filterType, setFilterType] = useState("THIS_MONTH");
 //   const [filterStartDate, setFilterStartDate] = useState("");
 //   const [filterEndDate, setFilterEndDate] = useState("");
@@ -350,43 +233,13 @@
 //     };
 //   }, [onMouseMove, onMouseUp]);
 
-//   useEffect(() => {
-//     loadAttendance();
-//   }, [month]);
-
-//   const loadAttendance = async () => {
-//     setLoading(true);
-//     try {
-//       const res = await attendanceService.getMonthlyAttendance(
-//         year,
-//         monthMap[month],
-//       );
-//       setAttendanceData(
-//         res.data.map((a) => ({
-//           rawDate: a.attendanceDate,
-//           date: formatDateDDMMYYYY(a.attendanceDate),
-//           isToday: isTodayFn(a.attendanceDate),
-//           status:
-//             a.status === "PRESENT"
-//               ? "Present"
-//               : a.status === "ABSENT"
-//                 ? "Absent"
-//                 : "Late",
-//         })),
-//       );
-//     } catch (e) {
-//       console.error(e);
-//       setAttendanceData([]);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-//   // ── NEW — fetch filtered attendance history (replaces monthly view when active) ──
+//   // Fetch filtered attendance history — the only data source for this page
 //   const loadFilteredHistory = async () => {
 //     if (filterType === "CUSTOM" && (!filterStartDate || !filterEndDate)) {
 //       setFilterError("Select both start and end date for a custom range.");
 //       return;
 //     }
+//     setLoading(true);
 //     setFilterLoading(true);
 //     setFilterError(null);
 //     try {
@@ -412,11 +265,12 @@
 //       console.error(e);
 //       setFilterError("Failed to load filtered history.");
 //     } finally {
+//       setLoading(false);
 //       setFilterLoading(false);
 //     }
 //   };
 
-//   // ── NEW — download Excel for current filter ──
+//   // Download Excel for current filter
 //   const handleDownload = async () => {
 //     if (filterType === "CUSTOM" && (!filterStartDate || !filterEndDate)) {
 //       setFilterError("Select both start and end date for a custom range.");
@@ -446,13 +300,13 @@
 //     }
 //   };
 
-//   // Switching back to monthly view (filter toggled off) reloads the monthly data
+//   // Auto-run for every filter except CUSTOM, which needs explicit Search
 //   useEffect(() => {
-//     if (!useFilter) {
-//       loadAttendance();
+//     if (filterType !== "CUSTOM") {
+//       loadFilteredHistory();
 //     }
 //     // eslint-disable-next-line react-hooks/exhaustive-deps
-//   }, [useFilter]);
+//   }, [filterType]);
 
 //   const totalDays = attendanceData.length;
 //   const presentDays = attendanceData.filter(
@@ -507,6 +361,11 @@
 //     return <XCircle size={16} style={{ color: "var(--cr)" }} />;
 //   };
 
+//   const periodLabel =
+//     filterType === "CUSTOM"
+//       ? "Custom Range"
+//       : filterType.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
 //   return (
 //     <div className={`sa${dark ? " sa-dk" : ""}`}>
 //       <div className="sa-top">
@@ -554,14 +413,6 @@
 //                 </div>
 //               </div>
 
-//               {/* Month Dropdown — fixed-position menu, never clipped */}
-//               <div className="sa-month-wrap">
-//                 <div className="sa-month-ico">
-//                   <Calendar size={16} />
-//                 </div>
-//                 <MonthDropdown value={month} onChange={setMonth} year={year} />
-//               </div>
-
 //               {/* Live badge */}
 //               <div className="sa-live-badge">
 //                 <span className="sa-live-dot" />
@@ -590,100 +441,71 @@
 //       >
 //         {/* Table */}
 //         <div className="sa-table-panel" style={{ width: `${leftWidth}%` }}>
-//           {/* <div className="sa-panel-head">
+//           <div className="sa-panel-head">
 //             <BarChart3 size={15} style={{ color: "var(--c1)" }} />
-//             <span className="sa-panel-title">
-//               Monthly Attendance — {month} {year}
-//             </span>
+//             <span className="sa-panel-title">Attendance History</span>
 //           </div>
-//           <div className="sa-table-scroll"> */}
-//           <div
-//             className="sa-panel-head"
-//             style={{ justifyContent: "space-between" }}
-//           >
-//             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-//               <BarChart3 size={15} style={{ color: "var(--c1)" }} />
-//               <span className="sa-panel-title">
-//                 {useFilter
-//                   ? "Filtered Attendance History"
-//                   : `Monthly Attendance — ${month} ${year}`}
-//               </span>
-//             </div>
+
+//           {/* Filter bar — always visible, this is the only view now */}
+//           <div className="sa-filter-bar">
+//             <select
+//               className="sa-filter-sel"
+//               value={filterType}
+//               onChange={(e) => setFilterType(e.target.value)}
+//             >
+//               <option value="TODAY">Today</option>
+//               <option value="YESTERDAY">Yesterday</option>
+//               <option value="LAST_7_DAYS">Last 7 Days</option>
+//               <option value="LAST_14_DAYS">Last 14 Days</option>
+//               <option value="LAST_30_DAYS">Last 30 Days</option>
+//               <option value="THIS_WEEK">This Week</option>
+//               <option value="THIS_MONTH">This Month</option>
+//               <option value="CUSTOM">Custom Range</option>
+//             </select>
+
+//             {filterType === "CUSTOM" && (
+//               <>
+//                 <input
+//                   type="date"
+//                   className="sa-filter-date"
+//                   value={filterStartDate}
+//                   onChange={(e) => setFilterStartDate(e.target.value)}
+//                 />
+//                 <input
+//                   type="date"
+//                   className="sa-filter-date"
+//                   value={filterEndDate}
+//                   onChange={(e) => setFilterEndDate(e.target.value)}
+//                 />
+//               </>
+//             )}
+
 //             <button
 //               className="sa-filter-btn"
-//               style={{
-//                 background: useFilter ? "var(--c1)" : "var(--bd)",
-//                 color: useFilter ? "#0a0a0a" : "var(--tx)",
-//               }}
-//               onClick={() => setUseFilter((v) => !v)}
+//               style={{ background: "var(--c1)", color: "#0a0a0a" }}
+//               disabled={filterLoading}
+//               onClick={loadFilteredHistory}
 //             >
-//               <Filter size={13} />{" "}
-//               {useFilter ? "Monthly View" : "Filter & Export"}
+//               {filterLoading ? "Loading…" : "Search"}
 //             </button>
+//             <button
+//               className="sa-filter-btn"
+//               style={{ background: "#a78bfa", color: "#0a0a0a" }}
+//               disabled={downloading}
+//               onClick={handleDownload}
+//             >
+//               <Download size={13} />{" "}
+//               {downloading ? "Downloading…" : "Download Excel"}
+//             </button>
+
+//             {filterError && (
+//               <span
+//                 style={{ color: "var(--cr)", fontSize: 11, fontWeight: 600 }}
+//               >
+//                 {filterError}
+//               </span>
+//             )}
 //           </div>
-
-//           {/* NEW — filter bar, shown only when useFilter is on */}
-//           {useFilter && (
-//             <div className="sa-filter-bar">
-//               <select
-//                 className="sa-filter-sel"
-//                 value={filterType}
-//                 onChange={(e) => setFilterType(e.target.value)}
-//               >
-//                 <option value="TODAY">Today</option>
-//                 <option value="YESTERDAY">Yesterday</option>
-//                 <option value="LAST_7_DAYS">Last 7 Days</option>
-//                 <option value="LAST_14_DAYS">Last 14 Days</option>
-//                 <option value="LAST_30_DAYS">Last 30 Days</option>
-//                 <option value="THIS_WEEK">This Week</option>
-//                 <option value="THIS_MONTH">This Month</option>
-//                 <option value="CUSTOM">Custom Range</option>
-//               </select>
-
-//               {filterType === "CUSTOM" && (
-//                 <>
-//                   <input
-//                     type="date"
-//                     className="sa-filter-date"
-//                     value={filterStartDate}
-//                     onChange={(e) => setFilterStartDate(e.target.value)}
-//                   />
-//                   <input
-//                     type="date"
-//                     className="sa-filter-date"
-//                     value={filterEndDate}
-//                     onChange={(e) => setFilterEndDate(e.target.value)}
-//                   />
-//                 </>
-//               )}
-
-//               <button
-//                 className="sa-filter-btn"
-//                 style={{ background: "var(--c1)", color: "#0a0a0a" }}
-//                 disabled={filterLoading}
-//                 onClick={loadFilteredHistory}
-//               >
-//                 {filterLoading ? "Loading…" : "Search"}
-//               </button>
-//               <button
-//                 className="sa-filter-btn"
-//                 style={{ background: "#a78bfa", color: "#0a0a0a" }}
-//                 disabled={downloading}
-//                 onClick={handleDownload}
-//               >
-//                 <Download size={13} />{" "}
-//                 {downloading ? "Downloading…" : "Download Excel"}
-//               </button>
-
-//               {filterError && (
-//                 <span
-//                   style={{ color: "var(--cr)", fontSize: 11, fontWeight: 600 }}
-//                 >
-//                   {filterError}
-//                 </span>
-//               )}
-//             </div>
-//           )}
 
 //           <div className="sa-table-scroll">
 //             <table className="sa-t">
@@ -817,9 +639,7 @@
 //                   <Calendar size={16} />
 //                 </div>
 //                 <div>
-//                   <p className="sa-period-name">
-//                     {month} {year}
-//                   </p>
+//                   <p className="sa-period-name">{periodLabel}</p>
 //                   <p className="sa-period-sub">{totalDays} records found</p>
 //                 </div>
 //               </div>
@@ -832,6 +652,51 @@
 // };
 
 // export default StudentAttendance;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //src//student//attendance.jsx--->student file
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
@@ -859,43 +724,23 @@ const STYLES = `
 .sa{font-family:'Poppins',sans-serif;min-height:100vh;background:var(--bg);color:var(--tx);}
 .sa-top{padding:24px 24px 20px;max-width:1400px;margin:0 auto;}
 
-/* ── HERO SECTION ── overflow visible so dropdown shows ── */
+/* ── HERO SECTION — no box, plain background with bottom divider ── */
 .sa-hero{
-  border-radius:24px;
-  padding:30px 36px;
-  background:var(--card);
-  border:1px solid var(--bd);
+  padding:8px 0 24px;
+  background:transparent;
+  border:none;
+  border-bottom:1px solid var(--bd);
   position:relative;
-  overflow:visible;        /* ← KEY FIX: was hidden, dropdown was clipped */
+  overflow:visible;
   margin-bottom:20px;
-  box-shadow:var(--sh);
+  box-shadow:none;
 }
-.sa-dk .sa-hero{background:#141414;border-color:rgba(255,255,255,0.07);}
+.sa-dk .sa-hero{border-bottom-color:rgba(255,255,255,0.07);}
 
-/* grid & glow clipped inside a pseudo-wrapper so border-radius still applies visually */
-.sa-hero-bg{
-  position:absolute;inset:0;
-  border-radius:24px;
-  overflow:hidden;
-  pointer-events:none;
-  z-index:0;
-}
-.sa-hero-grid{
-  position:absolute;inset:0;
-  opacity:0.025;
-  background-image:linear-gradient(rgba(0,0,0,0.12) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,0.12) 1px,transparent 1px);
-  background-size:40px 40px;
-}
-.sa-dk .sa-hero-grid{opacity:0.04;background-image:linear-gradient(rgba(255,255,255,0.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.5) 1px,transparent 1px);}
-.sa-hero-glow{
-  position:absolute;top:-30%;left:40%;
-  width:300px;height:200px;
-  background:radial-gradient(ellipse,rgba(34,211,238,0.06),transparent 70%);
-}
 .sa-hero-inner{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
 .sa-hero-eyebrow{display:flex;align-items:center;gap:7px;margin-bottom:10px;}
 .sa-hero-eyebrow-txt{font-size:9px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--mu);font-family:'Poppins',sans-serif;}
-.sa-hero-title{font-family:'Poppins',sans-serif;font-weight:700;font-size:clamp(1.5rem,3vw,2.2rem);color:#22d3ee;margin:0 0 6px;line-height:1.1;letter-spacing:-0.02em;}
+.sa-hero-title{font-family:'Poppins',sans-serif;font-weight:700;font-size:clamp(1.5rem,3vw,2.2rem);color:#3B82F6;margin:0 0 6px;line-height:1.1;letter-spacing:-0.02em;}
 .sa-hero-desc{font-size:12px;color:var(--mu);margin-top:7px;font-weight:500;font-family:'Poppins',sans-serif;}
 .sa-hero-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .sa-hero-stats{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.04);border:1px solid var(--bd);border-radius:12px;padding:8px 16px;font-size:11px;font-weight:600;font-family:'Poppins',sans-serif;color:var(--mu);}
@@ -913,14 +758,17 @@ const STYLES = `
 @keyframes sa-pulse-ring{0%{box-shadow:0 0 0 0 rgba(34,211,238,0.5)}70%{box-shadow:0 0 0 8px rgba(34,211,238,0)}100%{box-shadow:0 0 0 0 rgba(34,211,238,0)}}
 .sa-live-badge{animation:sa-pulse-ring 2.2s ease-out infinite;}
 
-/* ── STAT CARDS ── */
-.sa-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:20px;}
-.sa-stat{border-radius:var(--r);padding:18px 20px;color:#fff;position:relative;overflow:hidden;box-shadow:var(--sh);}
-.sa-stat::before{content:"";position:absolute;right:-10px;top:-10px;width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.10);}
-.sa-sico{width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;margin-bottom:8px;}
-.sa-sv{font-size:26px;font-weight:800;line-height:1;margin-bottom:3px;}
-.sa-sl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;opacity:.65;}
+/* ── STAT CARDS — solid gradient + watermark icon, full-width fill ── */
+.sa-stats{display:grid;grid-template-columns:repeat(4, 1fr);gap:14px;margin-bottom:20px;}
+.sa-stat{border-radius:var(--r);padding:20px 20px 18px;color:#fff;position:relative;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,0.14);transition:transform .25s ease, box-shadow .25s ease;}
+.sa-stat:hover{transform:translateY(-3px);box-shadow:0 14px 32px rgba(0,0,0,0.22);}
+.sa-stat-watermark{position:absolute;right:-16px;bottom:-16px;color:rgba(255,255,255,0.16);pointer-events:none;}
+.sa-sico{width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;margin-bottom:10px;position:relative;}
+.sa-sv{font-size:32px;font-weight:800;line-height:1;margin-bottom:6px;position:relative;}
+.sa-sl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;opacity:.85;position:relative;}
 
+@media (max-width: 900px){ .sa-stats{grid-template-columns:repeat(2, 1fr);} }
+@media (max-width: 480px){ .sa-stats{grid-template-columns:1fr;} }
 /* ── SPLIT PANELS ── */
 .sa-panels{display:flex;border-radius:var(--r);border:1px solid var(--bd);background:var(--card);box-shadow:var(--shl);overflow:hidden;margin:0 24px 24px;max-width:1352px;}
 .sa-table-panel{display:flex;flex-direction:column;overflow:hidden;min-width:30%;}
@@ -1005,10 +853,10 @@ const isTodayFn = (d) => {
 };
 
 const STAT_GRADS = [
-  "linear-gradient(135deg,#064e3b,#059669)",
-  "linear-gradient(135deg,#78350f,#d97706)",
-  "linear-gradient(135deg,#7f1d1d,#dc2626)",
-  "linear-gradient(135deg,#1e3a8a,#2563eb)",
+  "linear-gradient(135deg,#22c55e,#16a34a)",
+  "linear-gradient(135deg,#f97316,#ea580c)",
+  "linear-gradient(135deg,#f87171,#dc2626)",
+  "linear-gradient(135deg,#3b82f6,#2563eb)",
 ];
 
 /* ─── Main ─────────────────────────────────────────────────────────────── */
@@ -1155,25 +1003,25 @@ const StudentAttendance = () => {
 
   const statCards = [
     {
-      icon: <CheckCircle size={16} />,
+      Icon: CheckCircle,
       value: presentDays,
       label: "Present",
       grad: STAT_GRADS[0],
     },
     {
-      icon: <AlertCircle size={16} />,
+      Icon: AlertCircle,
       value: lateDays,
       label: "Late",
       grad: STAT_GRADS[1],
     },
     {
-      icon: <XCircle size={16} />,
+      Icon: XCircle,
       value: absentDays,
       label: "Absent",
       grad: STAT_GRADS[2],
     },
     {
-      icon: <BarChart3 size={16} />,
+      Icon: BarChart3,
       value: `${pct}%`,
       label: "Rate",
       grad: STAT_GRADS[3],
@@ -1203,14 +1051,8 @@ const StudentAttendance = () => {
   return (
     <div className={`sa${dark ? " sa-dk" : ""}`}>
       <div className="sa-top">
-        {/* ═══ HERO SECTION ═══ */}
+        {/* ═══ HERO SECTION (no box — plain background) ═══ */}
         <div className="sa-hero">
-          {/* BG effects in a clipped wrapper — hero card itself is overflow:visible */}
-          <div className="sa-hero-bg">
-            <div className="sa-hero-grid" />
-            <div className="sa-hero-glow" />
-          </div>
-
           <div className="sa-hero-inner">
             <div>
               <div className="sa-hero-eyebrow">
@@ -1260,7 +1102,10 @@ const StudentAttendance = () => {
         <div className="sa-stats">
           {statCards.map((s, i) => (
             <div key={i} className="sa-stat" style={{ background: s.grad }}>
-              <div className="sa-sico">{s.icon}</div>
+              <s.Icon size={90} strokeWidth={1.5} className="sa-stat-watermark" />
+              <div className="sa-sico">
+                <s.Icon size={16} color="#fff" strokeWidth={2.2} />
+              </div>
               <div className="sa-sv">{s.value}</div>
               <div className="sa-sl">{s.label}</div>
             </div>

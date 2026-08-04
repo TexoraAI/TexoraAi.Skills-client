@@ -5559,39 +5559,9 @@ const STEP_DEFS = [
   { num: 6, label: "Final Approval", Icon: BadgeCheck, desc: "Activation" },
 ];
 
-const STEP_LABELS = {
-  student: {
-    step_0: "What do you want to learn?",
-    step_1: "Current learning stage?",
-    step_2: "How do you prefer to learn?",
-    step_3: "Weekly time available?",
-    step_4: "Biggest goal?",
-    step_5: "Where to start?",
-  },
-  trainer: {
-    step_0: "What do you want to teach?",
-    step_1: "Trainer profile type?",
-    step_2: "How to deliver training?",
-    step_3: "Training experience?",
-    step_4: "Biggest trainer goal?",
-    step_5: "Where to start?",
-  },
-  business: {
-    step_0: "What do you want to manage?",
-    step_1: "What type of organization?",
-    step_2: "How many users?",
-    step_3: "What admin tools needed?",
-    step_4: "Biggest admin goal?",
-    step_5: "Where to start?",
-  },
-  admin: {
-    step_0: "What do you want to manage?",
-    step_1: "Organization type?",
-    step_2: "Team size?",
-    step_3: "Key tools needed?",
-    step_4: "Primary goal?",
-    step_5: "Where to start?",
-  },
+const ANSWER_LABELS = {
+  role: "Selected Role",
+  interest: "Area of Interest",
 };
 
 function mapRoleKey(backendRole) {
@@ -5655,19 +5625,19 @@ function timeAgo(isoStr) {
   }
 }
 
-function calculateStep(onboardingAnswers) {
-  if (!onboardingAnswers || typeof onboardingAnswers !== "object") return 1;
-  const answered = Object.keys(onboardingAnswers).filter(
-    (k) =>
-      Array.isArray(onboardingAnswers[k]) && onboardingAnswers[k].length > 0,
-  ).length;
-  return Math.max(1, Math.min(6, answered));
+// Onboarding is now a single role+interest selection, not a 6-step quiz —
+// this just reports whether it was completed.
+function isOnboardingComplete(onboardingAnswers) {
+  if (!onboardingAnswers || typeof onboardingAnswers !== "object") return false;
+  return Boolean(
+    Array.isArray(onboardingAnswers.role) && onboardingAnswers.role.length > 0,
+  );
 }
 
 function mapBackendUser(user) {
   const roleKey = mapRoleKey(user.role);
   const answers = user.onboardingAnswers || {};
-  const firstAnswer = answers["step_0"]?.[0] || "—";
+  const firstAnswer = answers["interest"]?.[0] || answers["role"]?.[0] || "—";
   return {
     id: user.id.toString(),
     name: user.name || "—",
@@ -5678,7 +5648,7 @@ function mapBackendUser(user) {
         : user.onboardingStatus === "PENDING"
           ? "Pending"
           : "In Progress",
-    step: calculateStep(answers),
+    onboardingComplete: isOnboardingComplete(answers),
     role: mapRoleLabel(user.role),
     roleKey,
     subscription: "Free",
@@ -5733,8 +5703,8 @@ const generateStepData = (user, roleKey) => ({
     amount: "Free",
   },
   step5: {
-    profileCompletion: Math.round((user.step / 6) * 100),
-    dashboardAccess: user.step >= 5,
+    profileCompletion: user.onboardingComplete ? 100 : 0,
+    dashboardAccess: user.onboardingComplete,
     permissions: ["Dashboard"],
     teamSize: "Individual",
     language: "English",
@@ -5876,7 +5846,6 @@ const SectionCard = ({ title, Icon: Ic, color, children }) => (
 
 const OnboardingAnswersCard = ({ user, color }) => {
   const answers = user.onboardingAnswers || {};
-  const stepLabels = STEP_LABELS[user.roleKey] || STEP_LABELS.student;
   const hasAnswers = Object.keys(answers).length > 0;
   return (
     <SectionCard
@@ -5913,7 +5882,7 @@ const OnboardingAnswersCard = ({ user, color }) => {
                   marginBottom: 5,
                 }}
               >
-                {stepLabels[stepKey] || stepKey}
+                {ANSWER_LABELS[stepKey] || stepKey}
               </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                 {(Array.isArray(selections) ? selections : []).map((sel, i) => (
@@ -6925,7 +6894,6 @@ const UserView = ({ user, onEdit, onDelete, onToggle }) => {
   const sd = generateStepData(user, user.roleKey);
   const cfg = ROLE_CONFIG[user.roleKey] || ROLE_CONFIG.student;
   const color = cfg.color;
-  const pct = Math.round((user.step / 6) * 100);
   const panels = [
     Step1Panel,
     Step2Panel,
@@ -7050,7 +7018,7 @@ const UserView = ({ user, onEdit, onDelete, onToggle }) => {
         <div
           style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 9 }}
         >
-          {[user.status, user.subscription, `Step ${user.step}/6`].map((t) => (
+          {[user.status, user.subscription].map((t) => (
             <span
               key={t}
               style={{
@@ -7078,42 +7046,7 @@ const UserView = ({ user, onEdit, onDelete, onToggle }) => {
             {user.role}
           </span>
         </div>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            marginBottom: 10,
-          }}
-        >
-          <div
-            style={{
-              flex: 1,
-              height: 5,
-              borderRadius: 3,
-              background: "rgba(255,255,255,0.22)",
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                height: "100%",
-                width: `${pct}%`,
-                background: "rgba(255,255,255,0.88)",
-                borderRadius: 3,
-              }}
-            />
-          </div>
-          <span
-            style={{
-              fontSize: 10,
-              fontWeight: 700,
-              color: "rgba(255,255,255,0.92)",
-            }}
-          >
-            {pct}%
-          </span>
-        </div>
+
         <div style={{ display: "flex", gap: 5 }}>
           {[
             {
@@ -7152,7 +7085,7 @@ const UserView = ({ user, onEdit, onDelete, onToggle }) => {
 
       <Stepper
         currentStep={currentStep}
-        userStep={user.step}
+        userStep={6}
         color={color}
         onStepClick={setCurrentStep}
       />
@@ -8857,7 +8790,9 @@ export default function OnboardingManagement() {
                       SUB_CONFIG[user.subscription] || SUB_CONFIG.Free;
                     const isAct = activeUser?.id === user.id && panelOpen;
                     const firstInterest =
-                      user.onboardingAnswers?.["step_0"]?.[0] || "—";
+                      user.onboardingAnswers?.["interest"]?.[0] ||
+                      user.onboardingAnswers?.["role"]?.[0] ||
+                      "—";
                     return (
                       <tr
                         key={user.id}
@@ -8962,41 +8897,22 @@ export default function OnboardingManagement() {
                           </span>
                         </td>
                         <td style={{ padding: "9px 11px" }}>
-                          <div
+                          <span
                             style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 5,
+                              fontSize: 10,
+                              fontWeight: 700,
+                              padding: "2px 8px",
+                              borderRadius: 20,
+                              background: user.onboardingComplete
+                                ? "#d1fae5"
+                                : "#f3f4f6",
+                              color: user.onboardingComplete
+                                ? "#065f46"
+                                : "#6b7280",
                             }}
                           >
-                            <div
-                              style={{
-                                height: 3,
-                                width: 48,
-                                borderRadius: 2,
-                                background: "#f1f5f9",
-                                overflow: "hidden",
-                              }}
-                            >
-                              <div
-                                style={{
-                                  height: "100%",
-                                  width: `${(user.step / 6) * 100}%`,
-                                  background: cfg.color,
-                                  borderRadius: 2,
-                                }}
-                              />
-                            </div>
-                            <span
-                              style={{
-                                fontSize: 10,
-                                color: "#6b7280",
-                                fontWeight: 600,
-                              }}
-                            >
-                              {user.step}/6
-                            </span>
-                          </div>
+                            {user.onboardingComplete ? "Done" : "Pending"}
+                          </span>
                         </td>
                         <td
                           style={{

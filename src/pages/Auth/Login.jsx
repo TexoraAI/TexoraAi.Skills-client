@@ -1,4 +1,3 @@
-
 import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { useState } from "react";
@@ -20,20 +19,8 @@ const TexoraLogin = () => {
       case "SUPER_ADMIN":
         navigate("/superadmin", { replace: true });
         break;
-      case "ADMIN":
-        navigate("/admin", { replace: true });
-        break;
-      case "TENANT_ADMIN":
-        navigate("/admin", { replace: true });
-        break; // ← NEW
-      case "BUSINESS":
-        navigate("/admin", { replace: true });
-        break; // ← keep old mapped
-      case "TRAINER":
-        navigate("/trainer", { replace: true });
-        break;
       default:
-        navigate("/student", { replace: true });
+        navigate("/ilm-demo", { replace: true });
     }
   };
   /* ─── FCM helper ─────────────────────────────────── */
@@ -57,6 +44,16 @@ const TexoraLogin = () => {
         // lms_user was never being written for email/password logins at all.
         // Seed a safe default — it self-corrects to the real backend value
         // the moment this user saves any Details tab (see B1–B5).
+        // localStorage.setItem(
+        //   "lms_user",
+        //   JSON.stringify({
+        //     email,
+        //     role: ["TENANT_ADMIN", "ADMIN", "BUSINESS"].includes(role)
+        //       ? "admin"
+        //       : role.toLowerCase(),
+        //     profileCompleted: false,
+        //   }),
+        // );
         localStorage.setItem(
           "lms_user",
           JSON.stringify({
@@ -65,6 +62,7 @@ const TexoraLogin = () => {
               ? "admin"
               : role.toLowerCase(),
             profileCompleted: false,
+            organizationId: localStorage.getItem("organizationId") || null,
           }),
         );
         tryRegisterFcm();
@@ -125,18 +123,23 @@ const TexoraLogin = () => {
       }
 
       // Falls here only if condition above failed
-      console.log("⚠️ FELL THROUGH TO COMPLETE-PROFILE — condition failed");
+      console.log(
+        "⚠️ NEW GOOGLE USER — sending to ilm-demo for role selection",
+      );
+      const googleInfo = {
+        name: dec.name,
+        email: dec.email,
+        googleCredential: res.credential,
+      };
       sessionStorage.setItem("ilmora_google_credential", res.credential);
-      navigate("/complete-profile", {
-        replace: true,
-        state: {
-          name: dec.name,
-          email: dec.email,
-          googleCredential: res.credential,
-          isGoogleUser: true,
-          fromGoogleLogin: true,
-        },
-      });
+      sessionStorage.setItem("ilmora_google_user", JSON.stringify(googleInfo));
+      // isNewUser:true is what IlmOraDemoPage checks on mount to open the
+      // Step 4 Role Selection Toast automatically.
+      localStorage.setItem(
+        "lms_user",
+        JSON.stringify({ name: dec.name, email: dec.email, isNewUser: true }),
+      );
+      navigate("/ilm-demo", { replace: true });
     } catch (err) {
       console.error("Google login error:", err);
       alert(err?.response?.data?.message || err?.message || "Login failed");
@@ -515,85 +518,3 @@ export default function Login() {
     </GoogleOAuthProvider>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

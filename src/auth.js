@@ -39,53 +39,31 @@ const auth = {
     }
   },
 
-  async googleLogin({ idToken, role }) {
+  async googleLogin({ idToken, role, onboardingAnswers }) {
     try {
-      const res = await authService.googleLogin({
-        idToken: idToken,
+      // authService.googleLogin() already resolves to `res.data` — it
+      // returns the parsed response body, NOT an axios response object.
+      // Do not unwrap `.data` again here (that was Bug 2 — it made
+      // `data` undefined and threw on destructuring, every single time).
+      const data = await authService.googleLogin({
+        idToken,
         role,
+        onboardingAnswers, // ← the actual fix: forward this through
       });
 
-      const data = res.data;
-
-      // 🔥 DEBUG LINES
-      console.log(">>> auth.js raw data:", JSON.stringify(data));
-      console.log(">>> isNewUser value:", data?.isNewUser);
-      console.log(">>> isNewUser type:", typeof data?.isNewUser);
-
-      if (data?.isNewUser === true) {
-        return { isNewUser: true };
-      }
-
-      const {
-        token,
-        email: userEmail,
-        role: userRole,
-        name: userName,
-        organizationId,
-      } = data; // ← name
-      localStorage.setItem("lms_token", token);
-      if (organizationId) {
-        localStorage.setItem("organizationId", organizationId);
-      } else {
-        localStorage.removeItem("organizationId");
-      }
-      localStorage.setItem(
-        "lms_user",
-        JSON.stringify({
-          email: userEmail,
-          role: userRole ? userRole.toLowerCase() : "student",
-          name: userName || userEmail.split("@")[0],
-        }),
-      );
-
-      return { isNewUser: false, role: userRole };
+      // Return the raw payload as-is. IlmOraDemoPage.jsx's
+      // finalizeOnboarding() is the single source of truth for writing
+      // lms_token / lms_user / organizationId to localStorage — it reads
+      // res.token, res.role, res.name, res.email, res.organizationId,
+      // res.profileCompleted directly off this return value. Doing a
+      // second, incomplete localStorage write here (as the old code did)
+      // just overwrote that with a worse object.
+      return data;
     } catch (err) {
       console.error("Google login failed:", err);
       throw err;
     }
   },
-
   logout() {
     localStorage.removeItem("lms_token");
     localStorage.removeItem("lms_user");
@@ -94,7 +72,12 @@ const auth = {
   },
 
   isAuthenticated() {
-    return !!localStorage.getItem("lms_token");
+    // Token check ke sath-sath lms_user bhi check karo — kyunki naya
+    // Google signup user (role-selection / profile-completion ke beech)
+    // ke paas token nahi hota, sirf lms_user hota hai.
+    return (
+      !!localStorage.getItem("lms_token") || !!localStorage.getItem("lms_user")
+    );
   },
 
   getCurrentUser() {

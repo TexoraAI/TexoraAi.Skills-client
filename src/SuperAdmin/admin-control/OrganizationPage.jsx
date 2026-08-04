@@ -923,12 +923,8 @@ const OrgDetailsPanel = ({
                 .sort(([a], [b]) => a.localeCompare(b))
                 .map(([stepKey, selections]) => {
                   const stepLabels = {
-                    step_0: "What do you want to manage?",
-                    step_1: "Organization type?",
-                    step_2: "Team size?",
-                    step_3: "Key tools needed?",
-                    step_4: "Primary goal?",
-                    step_5: "Where to start?",
+                    role: "Selected Role",
+                    interest: "Area of Interest",
                   };
                   return (
                     <div

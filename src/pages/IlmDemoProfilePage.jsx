@@ -1,4 +1,4 @@
-// export default ProfilePage;
+// export default IlmDemoProfilePage;
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
@@ -63,7 +63,7 @@ const syncProfileCompleted = (value) => {
       JSON.stringify({ profileCompleted: !!value }),
     );
   }
-  if (value) {
+  if (value && hasAuthToken()) {
     authService
       .markProfileCompleted()
       .catch((err) =>
@@ -71,6 +71,51 @@ const syncProfileCompleted = (value) => {
       );
   }
 };
+
+const syncProfileInfoCompleted = (value) => {
+  try {
+    const cached = JSON.parse(localStorage.getItem("lms_user") || "{}");
+    localStorage.setItem(
+      "lms_user",
+      JSON.stringify({ ...cached, profileInfoCompleted: !!value }),
+    );
+  } catch {
+    localStorage.setItem(
+      "lms_user",
+      JSON.stringify({ profileInfoCompleted: !!value }),
+    );
+  }
+};
+
+const readCompletionFlags = () => {
+  try {
+    const u = JSON.parse(localStorage.getItem("lms_user") || "{}");
+    return { info: !!u.profileInfoCompleted, details: !!u.profileCompleted };
+  } catch {
+    return { info: false, details: false };
+  }
+};
+/* ── NEW: safely read the locally-cached user (Google email/name land
+   here at login time — see LoginModal's handleGoogleSuccess in
+   IlmOraDemoPage.jsx). Used as a fallback whenever the backend profile
+   fetch is missing a field or fails outright (e.g. brand-new user whose
+   backend record doesn't exist yet → 404). ── */
+const getLocalUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem("lms_user") || "{}");
+  } catch {
+    return {};
+  }
+};
+
+/* ── Real backend JWT check ──
+   Brand-new Google demo users only get a local `lms_user` marker, no
+   real `lms_token`. Calling authenticated endpoints without a token
+   returns 401, and if a global interceptor exists that force-logs-out
+   on 401, it silently bounces the user to "/" a couple seconds later.
+   Guard every authenticated call with this check so the demo flow
+   stays 100% local until a real token exists. */
+const hasAuthToken = () => !!localStorage.getItem("lms_token");
 
 /* ══════════════════════════════════════════════════════════════
    AVATAR COMPONENT — UNCHANGED
@@ -291,6 +336,22 @@ const ROLE_CONFIG = {
   },
 };
 
+/* ── role dropdown helpers for the editable Role field ──
+   Derived from ROLE_CONFIG so the dropdown never drifts out of sync
+   with the roles this page actually supports.
+
+   NOTE: "Business" is intentionally excluded from the *selectable*
+   dropdown list (ROLE_LABELS) — it duplicates the "Admin" concept
+   (an organisation/tenant admin) and having both confused the role
+   switch flow. ROLE_KEY_BY_LABEL still includes it so any pre-existing
+   "business" role data continues to resolve correctly. */
+const ROLE_LABELS = ["Student", "Trainer", "Business & Partnership"];
+const ROLE_KEY_BY_LABEL = {
+  Student: "student",
+  Trainer: "trainer",
+  "Business & Partnership": "admin", // selecting this opens the Admin profile, NOT a separate Business profile
+};
+
 /* ══════════════════════════════════════════════════════════════
    ACCENT MAP — UNCHANGED
 ══════════════════════════════════════════════════════════════ */
@@ -361,8 +422,17 @@ const ProfileSidebarNav = ({ user, tabs, activeTab, onChange, accent }) => {
     <aside className="w-full lg:w-72 shrink-0">
       <div className="rounded-2xl bg-white dark:bg-white/[0.03] border border-gray-100 dark:border-white/10 shadow-sm overflow-hidden lg:sticky lg:top-8">
         {/* Mini profile card */}
-        <div className="flex flex-col items-center text-center gap-2 px-6 pt-8 pb-6">
-          <Avatar initials={user.avatar} size={92} shape="rounded" online />
+        <div className="flex flex-col items-center text-center gap-2 px-4 sm:px-6 pt-6 sm:pt-8 pb-5 sm:pb-6">
+          <Avatar
+            initials={user.avatar}
+            size={80}
+            shape="rounded"
+            online
+            className="sm:hidden"
+          />
+          <div className="hidden sm:block">
+            <Avatar initials={user.avatar} size={92} shape="rounded" online />
+          </div>
           <p className="text-base font-bold text-gray-900 dark:text-white mt-2">
             {user.name}
           </p>
@@ -386,18 +456,18 @@ const ProfileSidebarNav = ({ user, tabs, activeTab, onChange, accent }) => {
         </div>
 
         {/* Nav items */}
-        <div className="px-3">
+        <div className="px-2 sm:px-3">
           <p className="px-3 pb-2 text-[10px] font-bold text-gray-300 dark:text-slate-600 uppercase tracking-widest">
             Main Menu
           </p>
-          <nav className="flex flex-col gap-1 pb-3">
+          <nav className="flex flex-row lg:flex-col gap-1 pb-3 overflow-x-auto lg:overflow-visible -mx-1 px-1 lg:mx-0 lg:px-0">
             {tabs.map((tab) => {
               const active = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
                   onClick={() => onChange(tab.id)}
-                  className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-colors ${
+                  className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-colors shrink-0 lg:shrink ${
                     active
                       ? `${ac.tabActive} shadow-sm`
                       : "text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-800 dark:hover:text-white"
@@ -405,7 +475,9 @@ const ProfileSidebarNav = ({ user, tabs, activeTab, onChange, accent }) => {
                 >
                   <tab.icon className="w-4 h-4 shrink-0" />
                   <span className="flex-1 text-left">{tab.label}</span>
-                  {active && <ChevronRight className="w-3.5 h-3.5 shrink-0" />}
+                  {active && (
+                    <ChevronRight className="w-3.5 h-3.5 shrink-0 hidden lg:inline-block" />
+                  )}
                 </button>
               );
             })}
@@ -413,7 +485,7 @@ const ProfileSidebarNav = ({ user, tabs, activeTab, onChange, accent }) => {
         </div>
 
         {/* Promo card */}
-        <div className="mx-3 mb-3 p-5 rounded-2xl bg-violet-50 dark:bg-violet-500/10 border border-violet-100 dark:border-violet-500/15">
+        <div className="mx-2 sm:mx-3 mb-3 p-4 sm:p-5 rounded-2xl bg-violet-50 dark:bg-violet-500/10 border border-violet-100 dark:border-violet-500/15">
           <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center mb-3">
             <Crown className="w-4.5 h-4.5 text-amber-500" />
           </div>
@@ -437,8 +509,7 @@ const ProfileSidebarNav = ({ user, tabs, activeTab, onChange, accent }) => {
 };
 
 /* ══════════════════════════════════════════════════════════════
-   PROFILE HERO CARD — NEW, replaces the flat bordered hero.
-   Purely presentational; percent derived from the same
+   PROFILE HERO CARD — presentational; percent derived from the same
    `completionItems` array the page already builds.
 ══════════════════════════════════════════════════════════════ */
 const ProfileHeroCard = ({ user, accent, items }) => {
@@ -447,19 +518,29 @@ const ProfileHeroCard = ({ user, accent, items }) => {
     (items.filter((i) => i.done).length / items.length) * 100,
   );
   return (
-    <div className="relative overflow-hidden rounded-2xl p-6 sm:p-8 bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100/70 dark:from-orange-500/10 dark:via-amber-500/5 dark:to-orange-500/10 border border-orange-100/70 dark:border-white/10 shadow-sm">
-      <div className="relative flex flex-col lg:flex-row items-start lg:items-center gap-6">
+    <div className="relative overflow-hidden rounded-2xl p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100/70 dark:from-orange-500/10 dark:via-amber-500/5 dark:to-orange-500/10 border border-orange-100/70 dark:border-white/10 shadow-sm">
+      <div className="relative flex flex-col lg:flex-row items-start lg:items-center gap-5 sm:gap-6">
         <Avatar
           initials={user.avatar}
-          size={88}
+          size={72}
           editable
           online
           shape="rounded"
+          className="sm:hidden"
         />
+        <div className="hidden sm:block">
+          <Avatar
+            initials={user.avatar}
+            size={88}
+            editable
+            online
+            shape="rounded"
+          />
+        </div>
 
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 w-full">
           <div className="flex flex-wrap items-center gap-2 mb-1">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white tracking-tight break-words">
               {user.name}
             </h1>
             <span
@@ -468,19 +549,19 @@ const ProfileHeroCard = ({ user, accent, items }) => {
               {user.label}
             </span>
           </div>
-          <div className="flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-gray-500 dark:text-slate-400 mt-2">
+          <div className="flex flex-wrap gap-x-4 sm:gap-x-5 gap-y-1.5 text-xs text-gray-500 dark:text-slate-400 mt-2">
             <span className="flex items-center gap-1.5">
-              <IdCard className="w-3.5 h-3.5" /> {user.id}
+              <IdCard className="w-3.5 h-3.5 shrink-0" /> {user.id}
+            </span>
+            <span className="flex items-center gap-1.5 break-all">
+              <Mail className="w-3.5 h-3.5 shrink-0" /> {user.email}
             </span>
             <span className="flex items-center gap-1.5">
-              <Mail className="w-3.5 h-3.5" /> {user.email}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5" /> Joined {user.joined}
+              <Calendar className="w-3.5 h-3.5 shrink-0" /> Joined {user.joined}
             </span>
           </div>
 
-          <div className="mt-5 max-w-md">
+          <div className="mt-4 sm:mt-5 max-w-md">
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-sm font-semibold text-gray-700 dark:text-white/80">
                 Profile Completion
@@ -498,7 +579,7 @@ const ProfileHeroCard = ({ user, accent, items }) => {
           </div>
         </div>
 
-        <div className="hidden sm:flex flex-col items-center text-center bg-white/70 dark:bg-white/5 rounded-2xl px-6 py-5 shrink-0 backdrop-blur-sm">
+        <div className="hidden md:flex flex-col items-center text-center bg-white/70 dark:bg-white/5 rounded-2xl px-5 lg:px-6 py-4 lg:py-5 shrink-0 backdrop-blur-sm w-full md:w-auto">
           <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center mb-2">
             <Trophy className="w-5 h-5 text-amber-500" />
           </div>
@@ -517,10 +598,7 @@ const ProfileHeroCard = ({ user, accent, items }) => {
 };
 
 /* ══════════════════════════════════════════════════════════════
-   STAT CARD + STATS GRID — NEW, replaces the old badge-strip
-   ProfileCompletionBar with 4 individual stat cards. All values
-   derived from existing `items`/`user` props — no new data
-   fetching or state.
+   STAT CARD + STATS GRID
 ══════════════════════════════════════════════════════════════ */
 const StatCard = ({
   icon: Icon,
@@ -531,16 +609,22 @@ const StatCard = ({
   iconBg,
   iconColor,
 }) => (
-  <div className="rounded-2xl p-5 bg-white dark:bg-white/[0.03] border border-gray-100 dark:border-white/10 shadow-sm">
+  <div className="rounded-2xl p-4 sm:p-5 bg-white dark:bg-white/[0.03] border border-gray-100 dark:border-white/10 shadow-sm min-w-0">
     <div
-      className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${iconBg}`}
+      className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center mb-2.5 sm:mb-3 ${iconBg}`}
     >
-      <Icon className={`w-5 h-5 ${iconColor}`} />
+      <Icon className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
     </div>
-    <p className="text-xs text-gray-400 dark:text-slate-500 mb-1">{label}</p>
-    <p className="text-lg font-bold text-gray-900 dark:text-white">{value}</p>
+    <p className="text-xs text-gray-400 dark:text-slate-500 mb-1 truncate">
+      {label}
+    </p>
+    <p className="text-base sm:text-lg font-bold text-gray-900 dark:text-white truncate">
+      {value}
+    </p>
     {footer && (
-      <p className={`text-xs font-medium mt-1 ${footerColor}`}>{footer}</p>
+      <p className={`text-xs font-medium mt-1 ${footerColor} truncate`}>
+        {footer}
+      </p>
     )}
   </div>
 );
@@ -553,7 +637,7 @@ const ProfileStatsGrid = ({ items, user, accent }) => {
   const emailDone = !!items.find((i) => i.label === "Email Verified")?.done;
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       <StatCard
         icon={User}
         label="Profile Completion"
@@ -595,13 +679,12 @@ const ProfileStatsGrid = ({ items, user, accent }) => {
 };
 
 /* ══════════════════════════════════════════════════════════════
-   PROFILE TIPS CARD — NEW, presentational only. Reuses the same
-   `completionItems` list already computed on the page.
+   PROFILE TIPS CARD
 ══════════════════════════════════════════════════════════════ */
 const ProfileTipsCard = ({ accent, items }) => {
   const tips = [...items, { label: "Explore learning paths", done: false }];
   return (
-    <div className="rounded-2xl p-5 bg-white dark:bg-white/[0.03] border border-gray-100 dark:border-white/10 shadow-sm">
+    <div className="rounded-2xl p-4 sm:p-5 bg-white dark:bg-white/[0.03] border border-gray-100 dark:border-white/10 shadow-sm">
       <div className="flex items-center gap-2 mb-4">
         <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center">
           <Zap className="w-4 h-4 text-amber-500" />
@@ -638,12 +721,12 @@ const ProfileTipsCard = ({ accent, items }) => {
 };
 
 /* ══════════════════════════════════════════════════════════════
-   SECURITY STATUS CARD — NEW, presentational only.
+   SECURITY STATUS CARD
 ══════════════════════════════════════════════════════════════ */
 const SecurityStatusCard = ({ accent, emailVerified }) => {
   const ac = ACCENT[accent] || ACCENT.violet;
   return (
-    <div className="rounded-2xl p-5 bg-white dark:bg-white/[0.03] border border-gray-100 dark:border-white/10 shadow-sm">
+    <div className="rounded-2xl p-4 sm:p-5 bg-white dark:bg-white/[0.03] border border-gray-100 dark:border-white/10 shadow-sm">
       <div className="flex items-center gap-2 mb-4">
         <div
           className={`w-8 h-8 rounded-lg flex items-center justify-center ${ac.iconBg}`}
@@ -727,7 +810,7 @@ const Toast = ({ message, type, onClose }) => {
 
   return (
     <div
-      className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl border shadow-xl text-sm font-medium ${colors}`}
+      className={`fixed top-4 right-4 left-4 sm:left-auto sm:top-5 sm:right-5 z-50 flex items-center gap-3 px-4 sm:px-5 py-3 sm:py-3.5 rounded-2xl border shadow-xl text-sm font-medium ${colors}`}
       style={{ animation: "slideIn 0.3s ease" }}
     >
       {type === "success" ? (
@@ -735,8 +818,11 @@ const Toast = ({ message, type, onClose }) => {
       ) : (
         <X className="w-4 h-4 shrink-0" />
       )}
-      {message}
-      <button onClick={onClose} className="ml-2 opacity-60 hover:opacity-100">
+      <span className="min-w-0 flex-1">{message}</span>
+      <button
+        onClick={onClose}
+        className="ml-2 opacity-60 hover:opacity-100 shrink-0"
+      >
         <X className="w-3.5 h-3.5" />
       </button>
       <style>{`@keyframes slideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}`}</style>
@@ -772,8 +858,11 @@ const ProfileCompletedCelebration = ({ onContinue }) => (
         padding: "36px 28px",
         width: "100%",
         maxWidth: 380,
+        maxHeight: "calc(100vh - 40px)",
+        overflowY: "auto",
         textAlign: "center",
         boxShadow: "0 24px 64px rgba(0,0,0,0.25)",
+        boxSizing: "border-box",
       }}
     >
       <div
@@ -947,7 +1036,7 @@ const SearchableDropdown = ({
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setOpen((p) => !p)}
-        className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border ${borderCls} text-gray-900 dark:text-white focus:outline-none focus:ring-2 ${accentRing} transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
+        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border ${borderCls} text-gray-900 dark:text-white focus:outline-none focus:ring-2 ${accentRing} transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
       >
         <span className={value ? "" : "text-gray-400 dark:text-white/30"}>
           {value || placeholder}
@@ -962,7 +1051,7 @@ const SearchableDropdown = ({
       {/* Dropdown panel */}
       {open && (
         <div
-          className="absolute z-50 mt-1.5 w-full rounded-xl bg-white dark:bg-[#1a1a2e] border border-gray-200 dark:border-white/10 shadow-xl overflow-hidden"
+          className="absolute z-50 mt-1 w-full rounded-xl bg-white dark:bg-[#1a1a2e] border border-gray-200 dark:border-white/10 shadow-xl"
           style={{ animation: "dropIn 0.15s ease" }}
         >
           <style>{`
@@ -973,8 +1062,8 @@ const SearchableDropdown = ({
           `}</style>
 
           {/* Search */}
-          <div className="p-2 border-b border-gray-100 dark:border-white/10">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-white/10">
+          <div className="p-1.5 border-b border-gray-100 dark:border-white/10">
+            <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-gray-100 dark:bg-white/10">
               <Search className="w-3.5 h-3.5 text-gray-400 shrink-0" />
               <input
                 ref={searchRef}
@@ -993,9 +1082,9 @@ const SearchableDropdown = ({
           </div>
 
           {/* Options list */}
-          <div className="max-h-48 overflow-y-auto">
+          <div className="max-h-48 overflow-y-auto rounded-b-xl">
             {filtered.length === 0 && !addingNew && (
-              <p className="px-4 py-3 text-xs text-gray-400 dark:text-slate-500">
+              <p className="pl-4 pr-3 py-2 text-xs text-gray-400 dark:text-slate-500">
                 No results found
               </p>
             )}
@@ -1004,7 +1093,7 @@ const SearchableDropdown = ({
                 key={opt}
                 type="button"
                 onClick={() => select(opt)}
-                className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-gray-50 dark:hover:bg-white/5 flex items-center justify-between ${
+                className={`w-full text-left pl-4 pr-3 py-2 text-sm transition-colors hover:bg-gray-50 dark:hover:bg-white/5 flex items-center justify-between ${
                   value === opt
                     ? "text-gray-900 dark:text-white font-medium bg-gray-50 dark:bg-white/5"
                     : "text-gray-700 dark:text-white/80"
@@ -1019,7 +1108,7 @@ const SearchableDropdown = ({
           </div>
 
           {/* Add New */}
-          <div className="border-t border-gray-100 dark:border-white/10 p-2">
+          <div className="border-t border-gray-100 dark:border-white/10 p-1.5">
             {addingNew ? (
               <div className="flex gap-2 px-1">
                 <input
@@ -1035,12 +1124,12 @@ const SearchableDropdown = ({
                     }
                   }}
                   placeholder="Type and press Enter"
-                  className="flex-1 px-3 py-2 rounded-lg text-sm bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none"
+                  className="flex-1 px-2.5 py-1.5 rounded-lg text-sm bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none"
                 />
                 <button
                   type="button"
                   onClick={handleAddNew}
-                  className="px-3 py-2 rounded-lg text-xs font-semibold bg-gray-900 dark:bg-white/20 text-white transition-colors hover:bg-gray-700"
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 dark:bg-white/20 text-white transition-colors hover:bg-gray-700"
                 >
                   Add
                 </button>
@@ -1050,7 +1139,7 @@ const SearchableDropdown = ({
                     setAddingNew(false);
                     setNewVal("");
                   }}
-                  className="px-2 py-2 rounded-lg text-xs text-gray-400 hover:text-gray-600 dark:hover:text-white/70"
+                  className="px-2 py-1.5 rounded-lg text-xs text-gray-400 hover:text-gray-600 dark:hover:text-white/70"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -1059,7 +1148,7 @@ const SearchableDropdown = ({
               <button
                 type="button"
                 onClick={() => setAddingNew(true)}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-sm text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
                 {addNewLabel}
@@ -1156,7 +1245,7 @@ const MultiSearchableDropdown = ({
       <button
         type="button"
         onClick={() => setOpen((p) => !p)}
-        className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border ${borderCls} text-gray-900 dark:text-white focus:outline-none focus:ring-2 ${accentRing} transition-colors min-h-[42px]`}
+        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border ${borderCls} text-gray-900 dark:text-white focus:outline-none focus:ring-2 ${accentRing} transition-colors min-h-[38px]`}
       >
         <span
           className={
@@ -1194,12 +1283,12 @@ const MultiSearchableDropdown = ({
 
       {open && (
         <div
-          className="absolute z-50 mt-1.5 w-full rounded-xl bg-white dark:bg-[#1a1a2e] border border-gray-200 dark:border-white/10 shadow-xl overflow-hidden"
+          className="absolute z-50 mt-1 w-full rounded-xl bg-white dark:bg-[#1a1a2e] border border-gray-200 dark:border-white/10 shadow-xl"
           style={{ animation: "dropIn 0.15s ease" }}
         >
           <style>{`@keyframes dropIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}`}</style>
-          <div className="p-2 border-b border-gray-100 dark:border-white/10">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-white/10">
+          <div className="p-1.5 border-b border-gray-100 dark:border-white/10">
+            <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-gray-100 dark:bg-white/10">
               <Search className="w-3.5 h-3.5 text-gray-400 shrink-0" />
               <input
                 ref={searchRef}
@@ -1216,7 +1305,7 @@ const MultiSearchableDropdown = ({
               )}
             </div>
           </div>
-          <div className="max-h-48 overflow-y-auto">
+          <div className="max-h-48 overflow-y-auto rounded-b-xl">
             {filtered.map((opt) => {
               const checked = value.includes(opt);
               return (
@@ -1224,7 +1313,7 @@ const MultiSearchableDropdown = ({
                   key={opt}
                   type="button"
                   onClick={() => toggle(opt)}
-                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-gray-50 dark:hover:bg-white/5 flex items-center gap-3 ${
+                  className={`w-full text-left pl-4 pr-3 py-2 text-sm transition-colors hover:bg-gray-50 dark:hover:bg-white/5 flex items-center gap-3 ${
                     checked
                       ? "font-medium text-gray-900 dark:text-white"
                       : "text-gray-700 dark:text-white/80"
@@ -1244,12 +1333,12 @@ const MultiSearchableDropdown = ({
               );
             })}
             {filtered.length === 0 && (
-              <p className="px-4 py-3 text-xs text-gray-400 dark:text-slate-500">
+              <p className="pl-4 pr-3 py-2 text-xs text-gray-400 dark:text-slate-500">
                 No results
               </p>
             )}
           </div>
-          <div className="border-t border-gray-100 dark:border-white/10 p-2">
+          <div className="border-t border-gray-100 dark:border-white/10 p-1.5">
             {addingNew ? (
               <div className="flex gap-2 px-1">
                 <input
@@ -1261,12 +1350,12 @@ const MultiSearchableDropdown = ({
                     if (e.key === "Enter") handleAddNew();
                   }}
                   placeholder="Type and press Enter"
-                  className="flex-1 px-3 py-2 rounded-lg text-sm bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none"
+                  className="flex-1 px-2.5 py-1.5 rounded-lg text-sm bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none"
                 />
                 <button
                   type="button"
                   onClick={handleAddNew}
-                  className="px-3 py-2 rounded-lg text-xs font-semibold bg-gray-900 dark:bg-white/20 text-white"
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 dark:bg-white/20 text-white"
                 >
                   Add
                 </button>
@@ -1276,7 +1365,7 @@ const MultiSearchableDropdown = ({
                     setAddingNew(false);
                     setNewVal("");
                   }}
-                  className="px-2 py-2 rounded-lg text-xs text-gray-400"
+                  className="px-2 py-1.5 rounded-lg text-xs text-gray-400"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -1285,7 +1374,7 @@ const MultiSearchableDropdown = ({
               <button
                 type="button"
                 onClick={() => setAddingNew(true)}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-sm text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
                 {addNewLabel}
@@ -1297,17 +1386,36 @@ const MultiSearchableDropdown = ({
     </div>
   );
 };
-
 /* ══════════════════════════════════════════════════════════════
-   PROFILE INFO TAB — LOGIC UNCHANGED. Avatar block restyled to a
-   dashed upload box (matches reference); fields restyled with
-   inline leading icons. Same state, same handlers, same API call.
+   PROFILE INFO TAB — LOGIC MOSTLY UNCHANGED. Avatar block restyled
+   to a dashed upload box; fields restyled with inline leading
+   icons. Same state, same handlers, same API call — PLUS a new
+   editable Role field (dropdown replaces the old "Locked" badge).
+
+   FIX: the local role switch (setRoleKey via onRoleUpdate) now
+   applies regardless of whether the backend `updateMyProfile` call
+   succeeds. Previously, if that API call rejected (e.g. the backend
+   doesn't support updating `role` yet), the whole save silently fell
+   into the catch block and the local role/roleKey was NEVER updated —
+   so picking "Trainer" or "Admin" in this dropdown and saving looked
+   like it worked (toast said success... or errored) but the Details
+   tab kept showing the Student form because the underlying roleKey
+   state never actually changed.
 ══════════════════════════════════════════════════════════════ */
-const ProfileInfoTab = ({ user, accent, onProfileUpdate, returnTo }) => {
+const ProfileInfoTab = ({
+  user,
+  accent,
+  onProfileUpdate,
+  returnTo,
+  roleKey,
+  onRoleUpdate,
+  onProfileComplete,
+}) => {
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState(user.name);
+  const [roleLabel, setRoleLabel] = useState(user.label); // editable role
   const [toast, setToast] = useState(null);
   const [showCelebration, setShowCelebration] = useState(false); // Step 9
   const { uploadImage, removeImage, profileImage } = useAvatarContext();
@@ -1318,6 +1426,10 @@ const ProfileInfoTab = ({ user, accent, onProfileUpdate, returnTo }) => {
     if (!editing) setName(user.name);
   }, [user.name, editing]);
 
+  useEffect(() => {
+    if (!editing) setRoleLabel(user.label);
+  }, [user.label, editing]);
+
   const showToast = (message, type = "success") => setToast({ message, type });
 
   const handleSave = async () => {
@@ -1327,11 +1439,88 @@ const ProfileInfoTab = ({ user, accent, onProfileUpdate, returnTo }) => {
     }
     setSaving(true);
     try {
-      await userService.updateMyProfile({ displayName: name.trim() });
+      // Backend Role enum values, distinct from the frontend's own roleKey
+      // convention. "admin" here → TENANT_ADMIN, never ADMIN.
+      const BACKEND_ROLE_BY_KEY = {
+        student: "STUDENT",
+        trainer: "TRAINER",
+        admin: "TENANT_ADMIN",
+      };
+      const newRoleKey = ROLE_KEY_BY_LABEL[roleLabel] || roleKey;
+      const roleChanged = !!roleKey && newRoleKey !== roleKey;
+
+      // Best-effort backend sync. NOTE: swap this for your real
+      // role-update endpoint/payload once the backend supports it.
+      // Whether this call succeeds or fails should NOT block the
+      // local role switch below — the actual switch is applied via
+      // localStorage + onRoleUpdate so the demo works end-to-end even
+      // when the backend rejects/ignores the `role` field.
+
+      // if (hasAuthToken()) {
+      //   try {
+      //     await userService.updateMyProfile({
+      //       displayName: name.trim(),
+      //       role: newRoleKey,
+      //     });
+      //   } catch (apiErr) {
+      //     console.error(
+      //       "updateMyProfile failed — continuing with local role switch:",
+      //       apiErr,
+      //     );
+      //   }
+      // }
+      if (hasAuthToken()) {
+        try {
+          await userService.updateMyProfile({
+            displayName: name.trim(),
+            roles: `ROLE_${BACKEND_ROLE_BY_KEY[newRoleKey] || "STUDENT"}`,
+          });
+        } catch (apiErr) {
+          console.error(
+            "updateMyProfile failed — continuing with local role switch:",
+            apiErr,
+          );
+        }
+      }
+      if (roleChanged) {
+        localStorage.setItem("role", newRoleKey.toUpperCase());
+        try {
+          const cached = JSON.parse(localStorage.getItem("lms_user") || "{}");
+          localStorage.setItem(
+            "lms_user",
+            JSON.stringify({ ...cached, role: newRoleKey }),
+          );
+        } catch {
+          localStorage.setItem(
+            "lms_user",
+            JSON.stringify({ role: newRoleKey }),
+          );
+        }
+        if (onRoleUpdate) onRoleUpdate(newRoleKey);
+      }
+
+      const wasFullyComplete = (() => {
+        const f = readCompletionFlags();
+        return f.info && f.details;
+      })();
+      syncProfileInfoCompleted(true);
+      const isFullyCompleteNow = (() => {
+        const f = readCompletionFlags();
+        return f.info && f.details;
+      })();
+
       if (onProfileUpdate) onProfileUpdate({ name: name.trim() });
       setEditing(false);
-      showToast("Profile updated successfully");
-      if (returnTo) setShowCelebration(true);
+      showToast(
+        roleChanged
+          ? "Profile & role updated successfully"
+          : "Profile updated successfully",
+      );
+      if (returnTo) {
+        setShowCelebration(true);
+      } else if (onProfileComplete && !wasFullyComplete && isFullyCompleteNow) {
+        onProfileComplete();
+      }
     } catch (err) {
       console.error("Save failed:", err);
       showToast("Failed to update profile. Please try again.", "error");
@@ -1341,7 +1530,7 @@ const ProfileInfoTab = ({ user, accent, onProfileUpdate, returnTo }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {showCelebration && (
         <ProfileCompletedCelebration
           onContinue={() => {
@@ -1357,18 +1546,18 @@ const ProfileInfoTab = ({ user, accent, onProfileUpdate, returnTo }) => {
           onClose={() => setToast(null)}
         />
       )}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
           <div
-            className={`w-8 h-8 rounded-lg flex items-center justify-center ${ac.iconBg}`}
+            className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${ac.iconBg}`}
           >
             <User className={`w-4 h-4 ${ac.text}`} />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+            <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
               Personal Information
             </h3>
-            <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 mt-0.5">
               Manage and update your personal details
             </p>
           </div>
@@ -1379,14 +1568,14 @@ const ProfileInfoTab = ({ user, accent, onProfileUpdate, returnTo }) => {
               <button
                 onClick={() => setEditing(false)}
                 disabled={saving}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-white/70 hover:bg-gray-200 dark:hover:bg-white/20 transition-colors"
+                className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-white/70 hover:bg-gray-200 dark:hover:bg-white/20 transition-colors"
               >
                 <X className="w-3.5 h-3.5" /> Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm text-white ${ac.btn} shadow transition-colors disabled:opacity-60`}
+                className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-sm text-white ${ac.btn} shadow transition-colors disabled:opacity-60`}
               >
                 {saving ? (
                   <>
@@ -1403,7 +1592,7 @@ const ProfileInfoTab = ({ user, accent, onProfileUpdate, returnTo }) => {
           ) : (
             <button
               onClick={() => setEditing(true)}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm bg-white dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gray-700 dark:text-white/80 hover:bg-gray-50 dark:hover:bg-white/20 transition-colors"
+              className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-sm bg-white dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gray-700 dark:text-white/80 hover:bg-gray-50 dark:hover:bg-white/20 transition-colors"
             >
               <Edit3 className="w-3.5 h-3.5" /> Edit Profile
             </button>
@@ -1411,22 +1600,22 @@ const ProfileInfoTab = ({ user, accent, onProfileUpdate, returnTo }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4 sm:gap-5">
         {/* Dashed upload box — same uploadImage / removeImage handlers as before */}
         <div
           onClick={() => fileInputRef.current?.click()}
-          className="flex flex-col items-center justify-center gap-1.5 p-6 rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/15 bg-gray-50/60 dark:bg-white/[0.02] cursor-pointer hover:border-violet-300 dark:hover:border-violet-500/40 transition-colors text-center min-h-[220px]"
+          className="flex flex-col items-center justify-center gap-1.5 p-4 sm:p-5 rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/15 bg-gray-50/60 dark:bg-white/[0.02] cursor-pointer hover:border-violet-300 dark:hover:border-violet-500/40 transition-colors text-center min-h-[160px] sm:min-h-[190px]"
         >
           {profileImage ? (
             <Avatar
               initials={user.avatar}
-              size={64}
+              size={56}
               shape="rounded"
               className="mb-1"
             />
           ) : (
-            <div className="w-14 h-14 rounded-full bg-violet-100 dark:bg-violet-500/20 flex items-center justify-center mb-1">
-              <UploadCloud className="w-6 h-6 text-violet-500" />
+            <div className="w-12 h-12 rounded-full bg-violet-100 dark:bg-violet-500/20 flex items-center justify-center mb-1">
+              <UploadCloud className="w-5 h-5 text-violet-500" />
             </div>
           )}
           <p className="text-sm font-semibold text-gray-800 dark:text-white">
@@ -1441,7 +1630,7 @@ const ProfileInfoTab = ({ user, accent, onProfileUpdate, returnTo }) => {
               e.stopPropagation();
               fileInputRef.current?.click();
             }}
-            className={`mt-2 flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium text-white ${ac.btn} transition-colors`}
+            className={`mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white ${ac.btn} transition-colors`}
           >
             <Upload className="w-3 h-3" /> Upload Image
           </button>
@@ -1471,60 +1660,83 @@ const ProfileInfoTab = ({ user, accent, onProfileUpdate, returnTo }) => {
           />
         </div>
 
-        <div className="space-y-4">
-          <div className="space-y-1.5">
+        <div className="space-y-3.5 min-w-0">
+          <div className="space-y-1">
             <label className="text-xs font-semibold text-gray-500 dark:text-slate-400">
               Full Name
             </label>
             {editing ? (
               <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className={`w-full pl-10 pr-4 py-2.5 rounded-xl text-sm transition-all bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:ring-2 ${ac.ring}`}
+                  className={`w-full pl-9 pr-3 py-2 rounded-xl text-sm transition-all bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:ring-2 ${ac.ring}`}
                 />
               </div>
             ) : (
               <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <p className="pl-10 pr-4 py-2.5 rounded-xl text-sm bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-800 dark:text-white/85">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <p className="pl-9 pr-3 py-2 rounded-xl text-sm bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-800 dark:text-white/85 truncate">
                   {name || "—"}
                 </p>
               </div>
             )}
           </div>
 
-          <div className="space-y-1.5">
+          {/* ── Role — editable ──
+              In view mode this still looks like the old read-only row.
+              In edit mode it becomes a searchable dropdown (Student /
+              Trainer / Admin) instead of the old Locked pill. */}
+          <div className="space-y-1">
             <label className="text-xs font-semibold text-gray-500 dark:text-slate-400">
               Role
             </label>
-            <div className="relative">
-              <IdCard className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <p className="pl-10 pr-20 py-2.5 rounded-xl text-sm bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-500 dark:text-white/50 select-none">
-                {user.label}
-              </p>
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-white/40 border border-gray-200 dark:border-white/10">
-                <Lock className="w-2.5 h-2.5" /> Locked
-              </span>
-            </div>
-            <p className="text-xs text-gray-400 dark:text-slate-500 pl-1">
-              Role cannot be changed from this page
-            </p>
+            {editing ? (
+              <div>
+                <SearchableDropdown
+                  name="role"
+                  value={roleLabel}
+                  onChange={(e) => setRoleLabel(e.target.value)}
+                  options={ROLE_LABELS}
+                  placeholder="Select role"
+                  accentRing={ac.ring}
+                  addNewLabel="Add New Role"
+                  disabled={saving}
+                />
+                <p className="text-xs text-gray-400 dark:text-slate-500 pl-1 mt-1">
+                  Changing your role switches your dashboard & sidebar
+                  experience after saving
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="relative">
+                  <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <p className="pl-9 pr-3 py-2 rounded-xl text-sm bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-800 dark:text-white/85">
+                    {user.label}
+                  </p>
+                </div>
+                <p className="text-xs text-gray-400 dark:text-slate-500 pl-1">
+                  Click "Edit Profile" to change your role
+                </p>
+              </>
+            )}
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             <label className="text-xs font-semibold text-gray-500 dark:text-slate-400">
               Email Address
             </label>
             <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <p className="pl-10 pr-20 py-2.5 rounded-xl text-sm bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-500 dark:text-white/50 select-none">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 shrink-0" />
+              <p className="pl-9 pr-16 sm:pr-20 py-2 rounded-xl text-sm bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-500 dark:text-white/50 select-none truncate">
                 {user.email}
               </p>
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-white/40 border border-gray-200 dark:border-white/10">
-                <Lock className="w-2.5 h-2.5" /> Locked
+              <span className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-white/40 border border-gray-200 dark:border-white/10 whitespace-nowrap">
+                <Lock className="w-2.5 h-2.5 shrink-0" />{" "}
+                <span className="hidden xs:inline">Locked</span>
               </span>
             </div>
             <p className="text-xs text-gray-400 dark:text-slate-500 pl-1">
@@ -1538,7 +1750,7 @@ const ProfileInfoTab = ({ user, accent, onProfileUpdate, returnTo }) => {
         <button
           onClick={handleSave}
           disabled={saving}
-          className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm text-white ${ac.btn} shadow transition-colors disabled:opacity-60`}
+          className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm text-white ${ac.btn} shadow transition-colors disabled:opacity-60 w-full sm:w-auto justify-center sm:justify-start`}
         >
           {saving ? (
             <>
@@ -1581,16 +1793,16 @@ const COUNTRY_CODES = [
 ];
 
 /* ══════════════════════════════════════════════════════════════
-   DETAILS TAB HELPERS — UNCHANGED
+   DETAILS TAB HELPERS — compact
 ══════════════════════════════════════════════════════════════ */
 const LABEL_CLS =
-  "flex items-center gap-1.5 text-xs font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-widest mb-1.5";
+  "flex items-center gap-1.5 text-[11px] font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-wider mb-1";
 
 const STATIC_CLS =
-  "px-4 py-2.5 rounded-xl text-sm bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-800 dark:text-white/85 min-h-[42px]";
+  "px-3 py-2 rounded-xl text-sm bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-800 dark:text-white/85 min-h-[38px]";
 
 const DetailField = ({ icon: Icon, label, children }) => (
-  <div className="space-y-1.5">
+  <div className="space-y-1 min-w-0">
     <label className={LABEL_CLS}>
       {Icon && <Icon className="w-3.5 h-3.5" />}
       {label}
@@ -1599,7 +1811,9 @@ const DetailField = ({ icon: Icon, label, children }) => (
   </div>
 );
 
-const StaticVal = ({ val }) => <p className={STATIC_CLS}>{val || "—"}</p>;
+const StaticVal = ({ val }) => (
+  <p className={`${STATIC_CLS} truncate`}>{val || "—"}</p>
+);
 
 const ErrorMsg = ({ msg }) =>
   msg ? (
@@ -1887,9 +2101,20 @@ const DD_ORG_DOMAIN = [
 ];
 
 /* ══════════════════════════════════════════════════════════════
-   STUDENT DETAILS TAB — UNCHANGED (logic identical)
+   STUDENT DETAILS TAB
+   MODIFIED: added onProfileComplete prop + wasCompleted guard so
+   the auto-redirect only fires the FIRST time this role's details
+   are completed, not on every subsequent edit-save.
+
+   BUG-2 FIX: the backend `updateStudentProfile` call is now wrapped
+   in its OWN inner try/catch. Previously it lived inside the outer
+   try, so a rejected/failed API call fell straight into the outer
+   catch and skipped the success toast, `syncProfileCompleted(true)`,
+   and the returnTo/onProfileComplete redirect entirely — the save
+   looked completely broken even though the user's data was fine
+   locally. Now the local "details completed" flow always runs.
 ══════════════════════════════════════════════════════════════ */
-const StudentDetailsTab = ({ accent, returnTo }) => {
+const StudentDetailsTab = ({ accent, returnTo, onProfileComplete }) => {
   const navigate = useNavigate();
   const ac = ACCENT[accent];
   const [editing, setEditing] = useState(false);
@@ -1929,6 +2154,7 @@ const StudentDetailsTab = ({ accent, returnTo }) => {
   }, []);
 
   useEffect(() => {
+    if (!hasAuthToken()) return; // no token yet — stay on local empty form
     userService
       .getStudentProfile()
       .then((res) => {
@@ -2012,6 +2238,15 @@ const StudentDetailsTab = ({ accent, returnTo }) => {
       if (fieldRefs.current[firstKey]) fieldRefs.current[firstKey].focus?.();
       return;
     }
+    // Save se PEHLE check: profile pehle se complete tha ya nahi — isse
+    // sirf "pehli baar complete hua" par hi auto-redirect fire hoga,
+    // baad me edit karne par nahi. Sirf Details tab hi mandatory hai
+    // (Profile Info tab optional hai), isliye sirf `profileCompleted`
+    // flag check karo — `profileInfoCompleted` par depend mat karo.
+    const wasFullyComplete = (() => {
+      const f = readCompletionFlags();
+      return f.details;
+    })();
     setSaving(true);
     try {
       const payload = {
@@ -2029,13 +2264,37 @@ const StudentDetailsTab = ({ accent, returnTo }) => {
         domain: draft.domain.trim(),
         experience: draft.experience.trim(),
       };
-      await userService.updateStudentProfile(payload);
+
+      // BUG-2 FIX: best-effort backend sync. Success/failure of this call
+      // must NOT block the local "details completed" flow below — the
+      // success toast, syncProfileCompleted(true), and
+      // returnTo/onProfileComplete redirect must always fire.
+      if (hasAuthToken()) {
+        try {
+          await userService.updateStudentProfile(payload);
+        } catch (apiErr) {
+          console.error(
+            "updateStudentProfile failed — continuing with local completion:",
+            apiErr,
+          );
+        }
+      }
+
       setForm({ ...draft });
       setEditing(false);
       showToast("Details saved successfully");
       syncProfileCompleted(true);
-      if (returnTo) setShowCelebration(true);
-    } catch {
+      const isFullyCompleteNow = (() => {
+        const f = readCompletionFlags();
+        return f.details;
+      })();
+      if (returnTo) {
+        setShowCelebration(true);
+      } else if (onProfileComplete && !wasFullyComplete && isFullyCompleteNow) {
+        onProfileComplete();
+      }
+    } catch (err) {
+      console.error("Unexpected error while saving student details:", err);
       showToast("Failed to save. Try again.", "error");
     } finally {
       setSaving(false);
@@ -2043,7 +2302,7 @@ const StudentDetailsTab = ({ accent, returnTo }) => {
   };
 
   const inputCls = (f) =>
-    `w-full px-4 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border ${
+    `w-full px-3 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border ${
       errors[f]
         ? "border-red-400 focus:ring-red-400"
         : `border-gray-300 dark:border-white/20 focus:ring-2 ${ac.ring}`
@@ -2054,7 +2313,7 @@ const StudentDetailsTab = ({ accent, returnTo }) => {
     : "";
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5 sm:space-y-6">
       {showCelebration && (
         <ProfileCompletedCelebration
           onContinue={() => {
@@ -2071,12 +2330,12 @@ const StudentDetailsTab = ({ accent, returnTo }) => {
         />
       )}
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+          <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
             Profile Details
           </h3>
-          <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 mt-0.5">
             Personal, location and education details
           </p>
         </div>
@@ -2086,14 +2345,14 @@ const StudentDetailsTab = ({ accent, returnTo }) => {
               <button
                 onClick={cancelEdit}
                 disabled={saving}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-white/70 hover:bg-gray-200 dark:hover:bg-white/20 transition-colors"
+                className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-white/70 hover:bg-gray-200 dark:hover:bg-white/20 transition-colors"
               >
                 <X className="w-3.5 h-3.5" /> Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm text-white ${ac.btn} shadow transition-colors disabled:opacity-60`}
+                className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-sm text-white ${ac.btn} shadow transition-colors disabled:opacity-60`}
               >
                 {saving ? (
                   <>
@@ -2110,7 +2369,7 @@ const StudentDetailsTab = ({ accent, returnTo }) => {
           ) : (
             <button
               onClick={startEdit}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gray-700 dark:text-white/80 hover:bg-gray-200 dark:hover:bg-white/20 transition-colors"
+              className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gray-700 dark:text-white/80 hover:bg-gray-200 dark:hover:bg-white/20 transition-colors"
             >
               <Edit3 className="w-3.5 h-3.5" /> Edit Details
             </button>
@@ -2119,19 +2378,19 @@ const StudentDetailsTab = ({ accent, returnTo }) => {
       </div>
 
       <div>
-        <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+        <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
           <User className="w-3.5 h-3.5" /> Personal Info
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           <DetailField icon={Phone} label="Mobile Number">
             {editing ? (
               <div className="space-y-1">
-                <div className="flex gap-2">
+                <div className="flex flex-col xs:flex-row gap-2">
                   <select
                     name="dialCode"
                     value={draft.dialCode}
                     onChange={handleChange}
-                    className={`shrink-0 w-36 px-2 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-900 dark:text-white focus:outline-none focus:ring-2 ${ac.ring}`}
+                    className={`shrink-0 w-full xs:w-32 px-2 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-900 dark:text-white focus:outline-none focus:ring-2 ${ac.ring}`}
                   >
                     {COUNTRY_CODES.map((c) => (
                       <option key={c.code} value={c.code}>
@@ -2204,10 +2463,10 @@ const StudentDetailsTab = ({ accent, returnTo }) => {
       </div>
 
       <div>
-        <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+        <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
           <MapPin className="w-3.5 h-3.5" /> Location
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           <DetailField icon={MapPin} label="City">
             {editing ? (
               <div>
@@ -2271,10 +2530,10 @@ const StudentDetailsTab = ({ accent, returnTo }) => {
       </div>
 
       <div>
-        <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+        <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
           <GraduationCap className="w-3.5 h-3.5" /> Education & Professional
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <DetailField icon={BookOpen} label="Qualification">
             {editing ? (
               <div>
@@ -2383,9 +2642,13 @@ const StudentDetailsTab = ({ accent, returnTo }) => {
 };
 
 /* ══════════════════════════════════════════════════════════════
-   TRAINER DETAILS TAB — UNCHANGED (logic identical)
+   TRAINER DETAILS TAB
+   MODIFIED: same onProfileComplete + wasCompleted pattern as Student.
+   BUG-2 FIX: updateTrainerProfile call isolated in its own try/catch
+   so a backend failure no longer blocks the success toast +
+   syncProfileCompleted + redirect/celebration.
 ══════════════════════════════════════════════════════════════ */
-const TrainerDetailsTab = ({ accent, returnTo }) => {
+const TrainerDetailsTab = ({ accent, returnTo, onProfileComplete }) => {
   const navigate = useNavigate();
   const ac = ACCENT[accent];
   const [editing, setEditing] = useState(false);
@@ -2406,6 +2669,7 @@ const TrainerDetailsTab = ({ accent, returnTo }) => {
   const [draft, setDraft] = useState(empty);
 
   useEffect(() => {
+    if (!hasAuthToken()) return;
     userService
       .getTrainerProfile()
       .then((res) => {
@@ -2468,15 +2732,40 @@ const TrainerDetailsTab = ({ accent, returnTo }) => {
       showToast("Please fix all errors before saving", "error");
       return;
     }
+    const wasCompleted = (() => {
+      try {
+        return !!JSON.parse(localStorage.getItem("lms_user") || "{}")
+          .profileCompleted;
+      } catch {
+        return false;
+      }
+    })();
     setSaving(true);
     try {
-      await userService.updateTrainerProfile(draft);
+      // BUG-2 FIX: best-effort backend sync — isolated so a failed call
+      // never blocks the local "details completed" flow below.
+      if (hasAuthToken()) {
+        try {
+          await userService.updateTrainerProfile(draft);
+        } catch (apiErr) {
+          console.error(
+            "updateTrainerProfile failed — continuing with local completion:",
+            apiErr,
+          );
+        }
+      }
+
       setForm({ ...draft });
       setEditing(false);
       showToast("Trainer profile saved");
       syncProfileCompleted(true);
-      if (returnTo) setShowCelebration(true);
-    } catch {
+      if (returnTo) {
+        setShowCelebration(true);
+      } else if (onProfileComplete && !wasCompleted) {
+        onProfileComplete();
+      }
+    } catch (err) {
+      console.error("Unexpected error while saving trainer profile:", err);
       showToast("Failed to save. Try again.", "error");
     } finally {
       setSaving(false);
@@ -2484,12 +2773,12 @@ const TrainerDetailsTab = ({ accent, returnTo }) => {
   };
 
   const inputCls = (f) =>
-    `w-full px-4 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border ${
+    `w-full px-3 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border ${
       errors[f] ? "border-red-400" : `border-gray-300 dark:border-white/20`
     } text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:ring-2 ${ac.ring}`;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5 sm:space-y-6">
       {showCelebration && (
         <ProfileCompletedCelebration
           onContinue={() => {
@@ -2506,12 +2795,12 @@ const TrainerDetailsTab = ({ accent, returnTo }) => {
         />
       )}
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+          <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
             Trainer Profile
           </h3>
-          <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 mt-0.5">
             Your training background and platform details
           </p>
         </div>
@@ -2521,14 +2810,14 @@ const TrainerDetailsTab = ({ accent, returnTo }) => {
               <button
                 onClick={cancelEdit}
                 disabled={saving}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-white/70 hover:bg-gray-200 transition-colors"
+                className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-white/70 hover:bg-gray-200 transition-colors"
               >
                 <X className="w-3.5 h-3.5" /> Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm text-white ${ac.btn} shadow transition-colors disabled:opacity-60`}
+                className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-sm text-white ${ac.btn} shadow transition-colors disabled:opacity-60`}
               >
                 {saving ? (
                   <>
@@ -2545,7 +2834,7 @@ const TrainerDetailsTab = ({ accent, returnTo }) => {
           ) : (
             <button
               onClick={startEdit}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gray-700 dark:text-white/80 hover:bg-gray-200 transition-colors"
+              className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gray-700 dark:text-white/80 hover:bg-gray-200 transition-colors"
             >
               <Edit3 className="w-3.5 h-3.5" /> Edit Profile
             </button>
@@ -2554,10 +2843,10 @@ const TrainerDetailsTab = ({ accent, returnTo }) => {
       </div>
 
       <div>
-        <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+        <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
           <Globe className="w-3.5 h-3.5" /> Basic Info
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <DetailField icon={Globe} label="LinkedIn URL">
             {editing ? (
               <div>
@@ -2659,7 +2948,7 @@ const TrainerDetailsTab = ({ accent, returnTo }) => {
       </div>
 
       <div>
-        <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+        <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
           <TrendingUp className="w-3.5 h-3.5" /> Platforms
         </p>
         {editing ? (
@@ -2695,9 +2984,13 @@ const TrainerDetailsTab = ({ accent, returnTo }) => {
 };
 
 /* ══════════════════════════════════════════════════════════════
-   ADMIN DETAILS TAB — UNCHANGED (logic identical)
+   ADMIN DETAILS TAB
+   MODIFIED: same onProfileComplete + wasCompleted pattern.
+   BUG-2 FIX: updateAdminOrgProfile call isolated in its own
+   try/catch so a backend failure no longer blocks the success
+   toast + syncProfileCompleted + redirect/celebration.
 ══════════════════════════════════════════════════════════════ */
-const AdminDetailsTab = ({ accent, returnTo }) => {
+const AdminDetailsTab = ({ accent, returnTo, onProfileComplete }) => {
   const navigate = useNavigate();
   const ac = ACCENT[accent];
   const [editing, setEditing] = useState(false);
@@ -2734,7 +3027,7 @@ const AdminDetailsTab = ({ accent, returnTo }) => {
 
   useEffect(() => {
     const orgId = localStorage.getItem("organizationId");
-    if (!orgId) {
+    if (!orgId || !hasAuthToken()) {
       setLoading(false);
       return;
     }
@@ -2853,6 +3146,14 @@ const AdminDetailsTab = ({ accent, returnTo }) => {
       showToast("Please fix all errors before saving", "error");
       return;
     }
+    const wasCompleted = (() => {
+      try {
+        return !!JSON.parse(localStorage.getItem("lms_user") || "{}")
+          .profileCompleted;
+      } catch {
+        return false;
+      }
+    })();
     setSaving(true);
     try {
       const orgId = localStorage.getItem("organizationId");
@@ -2865,13 +3166,31 @@ const AdminDetailsTab = ({ accent, returnTo }) => {
         description: draft.description.trim(),
         mobileNumber: draft.mobileNumber.trim(),
       };
-      await authService.updateAdminOrgProfile(orgId, payload);
+
+      // BUG-2 FIX: best-effort backend sync — isolated so a failed call
+      // never blocks the local "details completed" flow below.
+      if (hasAuthToken()) {
+        try {
+          await authService.updateAdminOrgProfile(orgId, payload);
+        } catch (apiErr) {
+          console.error(
+            "updateAdminOrgProfile failed — continuing with local completion:",
+            apiErr,
+          );
+        }
+      }
+
       setForm((prev) => ({ ...prev, ...payload }));
       setEditing(false);
       showToast("Organization details saved");
       syncProfileCompleted(true);
-      if (returnTo) setShowCelebration(true);
-    } catch {
+      if (returnTo) {
+        setShowCelebration(true);
+      } else if (onProfileComplete && !wasCompleted) {
+        onProfileComplete();
+      }
+    } catch (err) {
+      console.error("Unexpected error while saving organization details:", err);
       showToast("Failed to save. Try again.", "error");
     } finally {
       setSaving(false);
@@ -2879,7 +3198,7 @@ const AdminDetailsTab = ({ accent, returnTo }) => {
   };
 
   const inputCls = (f) =>
-    `w-full px-4 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border ${
+    `w-full px-3 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border ${
       errors[f] ? "border-red-400" : `border-gray-300 dark:border-white/20`
     } text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:ring-2 ${ac.ring}`;
 
@@ -2887,7 +3206,7 @@ const AdminDetailsTab = ({ accent, returnTo }) => {
     return (
       <div className="space-y-4 animate-pulse">
         <div className="h-8 w-48 rounded-xl bg-gray-200 dark:bg-white/10" />
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[...Array(6)].map((_, i) => (
             <div
               key={i}
@@ -2900,7 +3219,7 @@ const AdminDetailsTab = ({ accent, returnTo }) => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5 sm:space-y-6">
       {showCelebration && (
         <ProfileCompletedCelebration
           onContinue={() => {
@@ -2917,12 +3236,12 @@ const AdminDetailsTab = ({ accent, returnTo }) => {
         />
       )}
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+          <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
             Organization Details
           </h3>
-          <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 mt-0.5">
             Your organization information
           </p>
         </div>
@@ -2932,14 +3251,14 @@ const AdminDetailsTab = ({ accent, returnTo }) => {
               <button
                 onClick={cancelEdit}
                 disabled={saving}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-white/70 hover:bg-gray-200 transition-colors"
+                className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-white/70 hover:bg-gray-200 transition-colors"
               >
                 <X className="w-3.5 h-3.5" /> Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm text-white ${ac.btn} shadow transition-colors disabled:opacity-60`}
+                className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-sm text-white ${ac.btn} shadow transition-colors disabled:opacity-60`}
               >
                 {saving ? (
                   <>
@@ -2956,7 +3275,7 @@ const AdminDetailsTab = ({ accent, returnTo }) => {
           ) : (
             <button
               onClick={startEdit}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gray-700 dark:text-white/80 hover:bg-gray-200 transition-colors"
+              className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gray-700 dark:text-white/80 hover:bg-gray-200 transition-colors"
             >
               <Edit3 className="w-3.5 h-3.5" /> Edit Details
             </button>
@@ -2965,10 +3284,10 @@ const AdminDetailsTab = ({ accent, returnTo }) => {
       </div>
 
       <div>
-        <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+        <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
           <Building2 className="w-3.5 h-3.5" /> Organization Info
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <DetailField icon={Building2} label="Organization Name">
             {editing ? (
               <div>
@@ -3103,13 +3422,13 @@ const AdminDetailsTab = ({ accent, returnTo }) => {
       </div>
 
       <div>
-        <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+        <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
           <Lock className="w-3.5 h-3.5" /> Plan & Limits
           <span className="ml-1 text-xs font-normal normal-case text-gray-400 dark:text-slate-500">
             — managed by SuperAdmin
           </span>
         </p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
           {[
             { icon: CreditCard, label: "Plan", val: form.plan },
             { icon: Shield, label: "Status", val: form.status },
@@ -3132,15 +3451,15 @@ const AdminDetailsTab = ({ accent, returnTo }) => {
               val: form.maxBatchesPerBranch,
             },
           ].map(({ icon: Ic, label, val }) => (
-            <div key={label} className="space-y-1.5">
+            <div key={label} className="space-y-1 min-w-0">
               <label className={LABEL_CLS}>
                 <Ic className="w-3.5 h-3.5" /> {label}
               </label>
               <div className="relative">
-                <p className="px-4 py-2.5 rounded-xl text-sm bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-500 dark:text-white/50 select-none pr-16">
+                <p className="px-3 py-2 rounded-xl text-sm bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-500 dark:text-white/50 select-none pr-14 sm:pr-16 truncate">
                   {val || "—"}
                 </p>
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs px-2 py-0.5 rounded-full bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-white/40 border border-gray-300 dark:border-white/10">
+                <span className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-white/40 border border-gray-300 dark:border-white/10">
                   Locked
                 </span>
               </div>
@@ -3148,7 +3467,7 @@ const AdminDetailsTab = ({ accent, returnTo }) => {
           ))}
         </div>
 
-        <div className="grid grid-cols-2 gap-4 mt-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-4">
           {[
             {
               icon: Users,
@@ -3176,12 +3495,12 @@ const AdminDetailsTab = ({ accent, returnTo }) => {
               val: form.currentBatches,
             },
           ].map(({ icon: Ic, label, val }) => (
-            <div key={label} className="space-y-1.5">
+            <div key={label} className="space-y-1 min-w-0">
               <label className={LABEL_CLS}>
                 <Ic className="w-3.5 h-3.5" /> {label}
               </label>
               <p
-                className={`${STATIC_CLS} text-emerald-600 dark:text-emerald-400 font-semibold`}
+                className={`${STATIC_CLS} text-emerald-600 dark:text-emerald-400 font-semibold truncate`}
               >
                 {val || "0"}
               </p>
@@ -3194,9 +3513,17 @@ const AdminDetailsTab = ({ accent, returnTo }) => {
 };
 
 /* ══════════════════════════════════════════════════════════════
-   BUSINESS DETAILS TAB — UNCHANGED
+   BUSINESS DETAILS TAB
+   MODIFIED: same onProfileComplete + wasCompleted pattern.
+   BUG-2 FIX: updateBusinessProfile call isolated in its own
+   try/catch so a backend failure no longer blocks the success
+   toast + syncProfileCompleted + redirect/celebration.
+   NOTE: "Business" is no longer selectable via the Role dropdown
+   (see ROLE_LABELS above), but this component is kept so any
+   pre-existing accounts still carrying a "business" roleKey continue
+   to render correctly.
 ══════════════════════════════════════════════════════════════ */
-const BusinessDetailsTab = ({ accent, returnTo }) => {
+const BusinessDetailsTab = ({ accent, returnTo, onProfileComplete }) => {
   const navigate = useNavigate();
   const ac = ACCENT[accent];
   const [editing, setEditing] = useState(false);
@@ -3217,6 +3544,7 @@ const BusinessDetailsTab = ({ accent, returnTo }) => {
   const [draft, setDraft] = useState(empty);
 
   useEffect(() => {
+    if (!hasAuthToken()) return;
     userService
       .getBusinessProfile()
       .then((res) => {
@@ -3252,25 +3580,50 @@ const BusinessDetailsTab = ({ accent, returnTo }) => {
   }, []);
 
   const handleSave = async () => {
+    const wasCompleted = (() => {
+      try {
+        return !!JSON.parse(localStorage.getItem("lms_user") || "{}")
+          .profileCompleted;
+      } catch {
+        return false;
+      }
+    })();
     setSaving(true);
     try {
-      await userService.updateBusinessProfile(draft);
+      // BUG-2 FIX: best-effort backend sync — isolated so a failed call
+      // never blocks the local "details completed" flow below.
+      if (hasAuthToken()) {
+        try {
+          await userService.updateBusinessProfile(draft);
+        } catch (apiErr) {
+          console.error(
+            "updateBusinessProfile failed — continuing with local completion:",
+            apiErr,
+          );
+        }
+      }
+
       setForm({ ...draft });
       setEditing(false);
       showToast("Business details saved");
       syncProfileCompleted(true);
-      if (returnTo) setShowCelebration(true);
-    } catch {
+      if (returnTo) {
+        setShowCelebration(true);
+      } else if (onProfileComplete && !wasCompleted) {
+        onProfileComplete();
+      }
+    } catch (err) {
+      console.error("Unexpected error while saving business details:", err);
       showToast("Failed to save. Try again.", "error");
     } finally {
       setSaving(false);
     }
   };
 
-  const inputCls = `w-full px-4 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:ring-2 ${ac.ring}`;
+  const inputCls = `w-full px-3 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:ring-2 ${ac.ring}`;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5 sm:space-y-6">
       {showCelebration && (
         <ProfileCompletedCelebration
           onContinue={() => {
@@ -3287,12 +3640,12 @@ const BusinessDetailsTab = ({ accent, returnTo }) => {
         />
       )}
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+          <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
             Business Details
           </h3>
-          <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 mt-0.5">
             Your company and contact information
           </p>
         </div>
@@ -3302,14 +3655,14 @@ const BusinessDetailsTab = ({ accent, returnTo }) => {
               <button
                 onClick={cancelEdit}
                 disabled={saving}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-white/70 hover:bg-gray-200 transition-colors"
+                className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-white/70 hover:bg-gray-200 transition-colors"
               >
                 <X className="w-3.5 h-3.5" /> Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm text-white ${ac.btn} shadow transition-colors disabled:opacity-60`}
+                className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-sm text-white ${ac.btn} shadow transition-colors disabled:opacity-60`}
               >
                 {saving ? (
                   <>
@@ -3326,7 +3679,7 @@ const BusinessDetailsTab = ({ accent, returnTo }) => {
           ) : (
             <button
               onClick={startEdit}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gray-700 dark:text-white/80 hover:bg-gray-200 transition-colors"
+              className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gray-700 dark:text-white/80 hover:bg-gray-200 transition-colors"
             >
               <Edit3 className="w-3.5 h-3.5" /> Edit Details
             </button>
@@ -3335,10 +3688,10 @@ const BusinessDetailsTab = ({ accent, returnTo }) => {
       </div>
 
       <div>
-        <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+        <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
           <Building2 className="w-3.5 h-3.5" /> Company Info
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <DetailField icon={Building2} label="Company Name">
             {editing ? (
               <input
@@ -3446,25 +3799,36 @@ const BusinessDetailsTab = ({ accent, returnTo }) => {
   );
 };
 
-/* ── DETAILS TAB ROUTER — UNCHANGED ── */
-// const DetailsTab = ({ accent, roleKey, returnTo }) => {
-//   if (roleKey === "trainer")
-//     return <TrainerDetailsTab accent={accent} returnTo={returnTo} />;
-//   if (roleKey === "admin")
-//     return <AdminDetailsTab accent={accent} returnTo={returnTo} />;
-//   if (roleKey === "business")
-//     return <BusinessDetailsTab accent={accent} returnTo={returnTo} />;
-//   return <StudentDetailsTab accent={accent} returnTo={returnTo} />;
-// };
-// "business" is a legacy alias only — both "admin" and "business" open the
-// same Organization Details form. BusinessDetailsTab is kept in the file,
-// unused, matching IlmDemoProfilePage.jsx's existing pattern.
-const DetailsTab = ({ accent, roleKey, returnTo }) => {
+/* ── DETAILS TAB ROUTER
+   MODIFIED: threads onProfileComplete down to whichever role tab is
+   active, so the "first-time completion" redirect works regardless
+   of which role's Details form the user is filling in. ── */
+const DetailsTab = ({ accent, roleKey, returnTo, onProfileComplete }) => {
   if (roleKey === "trainer")
-    return <TrainerDetailsTab accent={accent} returnTo={returnTo} />;
+    return (
+      <TrainerDetailsTab
+        accent={accent}
+        returnTo={returnTo}
+        onProfileComplete={onProfileComplete}
+      />
+    );
+  // "business" ab sirf legacy alias hai — dono "admin" aur "business"
+  // same Organization Details form kholte hain (BusinessDetailsTab ab use nahi hota).
   if (roleKey === "admin" || roleKey === "business")
-    return <AdminDetailsTab accent={accent} returnTo={returnTo} />;
-  return <StudentDetailsTab accent={accent} returnTo={returnTo} />;
+    return (
+      <AdminDetailsTab
+        accent={accent}
+        returnTo={returnTo}
+        onProfileComplete={onProfileComplete}
+      />
+    );
+  return (
+    <StudentDetailsTab
+      accent={accent}
+      returnTo={returnTo}
+      onProfileComplete={onProfileComplete}
+    />
+  );
 };
 
 /* ══════════════════════════════════════════════════════════════
@@ -3532,12 +3896,12 @@ const SecurityTab = ({ accent }) => {
           onClose={() => setToast(null)}
         />
       )}
-      <div className="rounded-2xl p-6 shadow-sm bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10">
+      <div className="rounded-2xl p-4 sm:p-6 shadow-sm bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10">
         <div className="mb-5">
-          <h3 className="font-bold text-gray-900 dark:text-white text-lg">
+          <h3 className="font-bold text-gray-900 dark:text-white text-base sm:text-lg">
             Change Password
           </h3>
-          <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 mt-0.5">
             Choose a strong password with at least 6 characters
           </p>
         </div>
@@ -3613,7 +3977,7 @@ const SecurityTab = ({ accent }) => {
         <button
           onClick={handlePasswordChange}
           disabled={loading}
-          className={`mt-6 flex items-center gap-2 px-6 py-2.5 rounded-xl text-white text-sm font-medium ${ac.btn} shadow transition-colors disabled:opacity-60`}
+          className={`mt-6 flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-white text-sm font-medium ${ac.btn} shadow transition-colors disabled:opacity-60 w-full sm:w-auto`}
         >
           {loading ? (
             <>
@@ -3627,7 +3991,7 @@ const SecurityTab = ({ accent }) => {
           )}
         </button>
       </div>
-      <div className="rounded-2xl p-5 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10">
+      <div className="rounded-2xl p-4 sm:p-5 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10">
         <h4 className="text-sm font-semibold text-gray-700 dark:text-white/80 mb-3">
           Password Tips
         </h4>
@@ -3686,16 +4050,16 @@ const BillingTab = ({ user, accent }) => {
 
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-2xl p-6 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-sm">
-        <div className="relative flex items-start justify-between">
-          <div>
+      <div className="relative overflow-hidden rounded-2xl p-4 sm:p-6 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-sm">
+        <div className="relative flex flex-col sm:flex-row items-start sm:justify-between gap-4">
+          <div className="min-w-0">
             <div className="flex items-center gap-2 mb-2">
               <Zap className={`w-4 h-4 ${ac.text}`} />
               <span className="text-xs font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-widest">
                 Current Plan
               </span>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
               {user.plan}
             </h3>
             <p className="text-gray-500 dark:text-slate-400 text-sm mt-1">
@@ -3709,13 +4073,13 @@ const BillingTab = ({ user, accent }) => {
             </div>
           </div>
           <button
-            className={`px-4 py-2 rounded-xl text-sm font-medium text-white ${ac.btn} transition-colors`}
+            className={`px-4 py-2 rounded-xl text-sm font-medium text-white ${ac.btn} transition-colors w-full sm:w-auto shrink-0`}
           >
             Upgrade Plan
           </button>
         </div>
       </div>
-      <div className="rounded-2xl p-6 shadow-sm bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10">
+      <div className="rounded-2xl p-4 sm:p-6 shadow-sm bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-gray-900 dark:text-white">
             Payment Method
@@ -3724,11 +4088,11 @@ const BillingTab = ({ user, accent }) => {
             Change
           </button>
         </div>
-        <div className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10">
           <div className={`p-2.5 rounded-xl ${ac.iconBg}`}>
             <CreditCard className={`w-5 h-5 ${ac.text}`} />
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="text-sm font-medium text-gray-900 dark:text-white">
               Visa ending in 4242
             </p>
@@ -3737,13 +4101,13 @@ const BillingTab = ({ user, accent }) => {
             </p>
           </div>
           <span
-            className={`ml-auto text-xs px-2 py-1 rounded-full border ${ac.badge}`}
+            className={`sm:ml-auto text-xs px-2 py-1 rounded-full border ${ac.badge}`}
           >
             Default
           </span>
         </div>
       </div>
-      <div className="rounded-2xl p-6 shadow-sm bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 space-y-4">
+      <div className="rounded-2xl p-4 sm:p-6 shadow-sm bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 space-y-4">
         <h3 className="font-semibold text-gray-900 dark:text-white">
           Payment History
         </h3>
@@ -3751,13 +4115,13 @@ const BillingTab = ({ user, accent }) => {
           {history.map((h, i) => (
             <div
               key={i}
-              className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+              className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
             >
-              <div className="flex items-center gap-3">
-                <div className="p-1.5 rounded-lg bg-gray-100 dark:bg-white/10">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="p-1.5 rounded-lg bg-gray-100 dark:bg-white/10 shrink-0">
                   <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm text-gray-800 dark:text-white/90">
                     {h.inv}
                   </p>
@@ -3766,7 +4130,7 @@ const BillingTab = ({ user, accent }) => {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 shrink-0">
                 <span className="text-sm font-semibold text-gray-900 dark:text-white">
                   {h.amount}
                 </span>
@@ -3786,17 +4150,20 @@ const BillingTab = ({ user, accent }) => {
    SKELETON — UNCHANGED
 ══════════════════════════════════════════════════════════════ */
 const Skeleton = () => (
-  <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0f] p-8 space-y-6 animate-pulse">
+  <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0f] p-4 sm:p-8 space-y-6 animate-pulse">
     <div className="h-40 rounded-2xl bg-gray-200 dark:bg-white/5" />
     <div className="h-64 rounded-2xl bg-gray-200 dark:bg-white/5" />
   </div>
 );
 
 /* ══════════════════════════════════════════════════════════════
-   PROFILE PAGE — MAIN. State/handlers/data-fetching all unchanged;
-   only the returned JSX/layout is restyled to match the reference.
+   PROFILE PAGE — MAIN.
 ══════════════════════════════════════════════════════════════ */
-const ProfilePage = ({ roleOverride, onClose } = {}) => {
+const IlmDemoProfilePage = ({
+  roleOverride,
+  onClose,
+  onProfileComplete,
+} = {}) => {
   const location = useLocation();
   const { pathname } = location;
   const navigate = useNavigate();
@@ -3808,7 +4175,7 @@ const ProfilePage = ({ roleOverride, onClose } = {}) => {
   const [showReturnBanner, setShowReturnBanner] = useState(!!returnTo);
   const { profileImage } = useAvatarContext();
 
-  const roleKey =
+  const initialRoleKey =
     roleOverride ||
     (pathname.startsWith("/trainer")
       ? "trainer"
@@ -3818,24 +4185,70 @@ const ProfilePage = ({ roleOverride, onClose } = {}) => {
           ? "business"
           : "student");
 
-  const [user, setUser] = useState({ ...ROLE_CONFIG[roleKey] });
+  // roleKey is stateful so the Role dropdown in ProfileInfoTab can switch
+  // it and have the rest of this page (hero badge, stat card, Details
+  // tab form) update without a full page reload.
+  const [roleKey, setRoleKey] = useState(initialRoleKey);
+
+  // Seed from the locally-cached lms_user (set at Google-login time) so
+  // the real name/email show immediately, even before — or if —
+  // getMyProfile() resolves.
+  const [user, setUser] = useState(() => {
+    const lu = getLocalUser();
+    const initial = (lu.name || ROLE_CONFIG[roleKey].name)
+      .charAt(0)
+      .toUpperCase();
+    return {
+      ...ROLE_CONFIG[roleKey],
+      name: lu.name || ROLE_CONFIG[roleKey].name,
+      email: lu.email || ROLE_CONFIG[roleKey].email,
+      avatar: initial,
+    };
+  });
+
+  // Fires from ProfileInfoTab after a successful role change. Updates the
+  // local roleKey + user object (label/accent/plan/etc come from
+  // ROLE_CONFIG) while keeping the person's real name/email/id/avatar.
+  const handleRoleUpdate = (newRoleKey) => {
+    if (!ROLE_CONFIG[newRoleKey]) return;
+    setRoleKey(newRoleKey);
+    setUser((prev) => ({
+      ...prev,
+      ...ROLE_CONFIG[newRoleKey],
+      name: prev.name,
+      email: prev.email,
+      id: prev.id,
+      avatar: prev.avatar,
+    }));
+  };
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
     setError("");
+
+    // No real token yet — skip the authenticated fetch entirely
+    // instead of letting it 401. Local/Google-seeded data already
+    // renders fine.
+    if (!hasAuthToken()) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
     userService
       .getMyProfile()
       .then((res) => {
         if (cancelled) return;
         const data = res.data;
+        const lu = getLocalUser();
         const roleLabel = (() => {
           if (!data?.roles) return ROLE_CONFIG[roleKey].label;
           const r = data.roles.toString().toLowerCase();
           return r.charAt(0).toUpperCase() + r.slice(1);
         })();
-        const apiName = data?.displayName || ROLE_CONFIG[roleKey].name;
-        const apiEmail = data?.email || ROLE_CONFIG[roleKey].email;
+        const apiName =
+          data?.displayName || lu.name || ROLE_CONFIG[roleKey].name;
+        const apiEmail = data?.email || lu.email || ROLE_CONFIG[roleKey].email;
         const apiId = data?.userId || ROLE_CONFIG[roleKey].id;
         const initial = apiName.charAt(0).toUpperCase();
         setUser((prev) => ({
@@ -3850,7 +4263,14 @@ const ProfilePage = ({ roleOverride, onClose } = {}) => {
       .catch((err) => {
         if (!cancelled) {
           console.error("Profile fetch failed:", err);
-          setError("Could not load profile — showing cached data.");
+          // A brand-new user (backend profile record doesn't exist yet)
+          // will 404 here — that's expected, not a real error, so don't
+          // scare them with a red banner. Local/Google-seeded data from
+          // the initial useState above stays as-is.
+          const status = err?.response?.status;
+          if (status && status !== 404) {
+            setError("Could not load profile — showing cached data.");
+          }
         }
       })
       .finally(() => {
@@ -3887,11 +4307,6 @@ const ProfilePage = ({ roleOverride, onClose } = {}) => {
 
   const tabs = [
     { id: "profile", label: "Profile Info", icon: User },
-    // {
-    //   id: "details",
-    //   label: roleKey === "admin" ? "Organization Details" : "Details",
-    //   icon: roleKey === "admin" ? Building2 : GraduationCap,
-    // },
     {
       id: "details",
       label:
@@ -3911,14 +4326,14 @@ const ProfilePage = ({ roleOverride, onClose } = {}) => {
 
   return (
     <div className="min-h-screen w-full bg-[#F8F7FA] dark:bg-[#0a0a0f] transition-colors duration-300">
-      <div className="w-full px-4 sm:px-6 lg:px-10 py-8">
+      <div className="w-full px-3 sm:px-6 lg:px-10 py-4 sm:py-8">
         {error && (
           <div className="mb-6 px-4 py-3 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 text-sm">
             {error}
           </div>
         )}
         {showReturnBanner && (
-          <div className="mb-6 px-4 py-3 rounded-2xl bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 text-orange-700 dark:text-orange-400 text-sm flex items-center justify-between gap-3">
+          <div className="mb-6 px-4 py-3 rounded-2xl bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 text-orange-700 dark:text-orange-400 text-sm flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 xs:gap-3">
             <span>
               Complete your profile below to continue to your dashboard.
             </span>
@@ -3932,7 +4347,7 @@ const ProfilePage = ({ roleOverride, onClose } = {}) => {
         )}
 
         {/* SIDEBAR + MAIN COLUMN */}
-        <div className="flex flex-col lg:flex-row gap-6 items-start">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 items-start">
           <ProfileSidebarNav
             user={user}
             tabs={tabs}
@@ -3941,7 +4356,7 @@ const ProfilePage = ({ roleOverride, onClose } = {}) => {
             accent={user.accent}
           />
 
-          <div className="flex-1 min-w-0 w-full space-y-6">
+          <div className="flex-1 min-w-0 w-full space-y-4 sm:space-y-6">
             {/* HERO */}
             <ProfileHeroCard
               user={user}
@@ -3957,15 +4372,18 @@ const ProfilePage = ({ roleOverride, onClose } = {}) => {
             />
 
             {/* MAIN CONTENT + RIGHT RAIL */}
-            <div className="flex flex-col xl:flex-row gap-6 items-start">
-              <div className="flex-1 min-w-0 w-full rounded-2xl overflow-hidden shadow-sm bg-white dark:bg-white/[0.03] border border-gray-100 dark:border-white/10">
-                <div className="p-6 lg:p-8">
+            <div className="flex flex-col xl:flex-row gap-4 sm:gap-6 items-start">
+              <div className="flex-1 min-w-0 w-full rounded-2xl shadow-sm bg-white dark:bg-white/[0.03] border border-gray-100 dark:border-white/10">
+                <div className="p-4 sm:p-5 lg:p-6">
                   {activeTab === "profile" && (
                     <ProfileInfoTab
                       user={user}
                       accent={user.accent}
                       onProfileUpdate={handleProfileUpdate}
                       returnTo={returnTo}
+                      roleKey={roleKey}
+                      onRoleUpdate={handleRoleUpdate}
+                      onProfileComplete={onProfileComplete}
                     />
                   )}
                   {activeTab === "details" && (
@@ -3973,6 +4391,7 @@ const ProfilePage = ({ roleOverride, onClose } = {}) => {
                       accent={user.accent}
                       roleKey={roleKey}
                       returnTo={returnTo}
+                      onProfileComplete={onProfileComplete}
                     />
                   )}
                   {activeTab === "security" && (
@@ -3984,7 +4403,7 @@ const ProfilePage = ({ roleOverride, onClose } = {}) => {
                 </div>
               </div>
 
-              <div className="w-full xl:w-80 shrink-0 space-y-6">
+              <div className="w-full xl:w-80 shrink-0 space-y-4 sm:space-y-6">
                 <ProfileTipsCard accent={user.accent} items={completionItems} />
                 <SecurityStatusCard
                   accent={user.accent}
@@ -3999,4 +4418,4 @@ const ProfilePage = ({ roleOverride, onClose } = {}) => {
   );
 };
 
-export default ProfilePage;
+export default IlmDemoProfilePage;

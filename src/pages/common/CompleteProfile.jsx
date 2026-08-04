@@ -355,116 +355,7 @@ const GLOBAL_CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ════════════════ SHARED BASE ════════════════ */
-.cp-overlay {
-  position: fixed; inset: 0; z-index: 1000;
-  width: 100%;
-  box-sizing: border-box;
-  background:
-    radial-gradient(circle at 8% 90%, rgba(142,68,173,0.16), transparent 45%),
-    radial-gradient(circle at 95% 92%, rgba(230,126,34,0.16), transparent 45%),
-    radial-gradient(circle at 6% 6%, rgba(52,152,219,0.16), transparent 40%),
-    radial-gradient(circle at 92% 4%, rgba(243,156,18,0.14), transparent 40%),
-    #f3f0ec;
-  display: flex; align-items: center; justify-content: center;
-  padding: 14px;
-  font-family: 'Inter', sans-serif;
-  overflow: hidden;
-  height: 100dvh;
-}
-.cp-modal {
-  width: 100%; max-width: 540px;
-  box-sizing: border-box;
-  background: #ffffff;
-  border-radius: 22px;
-  box-shadow: 0 24px 56px rgba(20,20,30,0.16);
-  display: flex; flex-direction: column;
-  height: auto;
-  max-height: calc(100dvh - 28px);
-  overflow-y: auto;
-  flex-shrink: 0;
-  animation: cpIn .22s ease both;
-  position: relative;
-}
-@keyframes cpIn { from { opacity:0; transform:scale(0.96) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
 
-.cp-hdr { padding: 14px 28px 0; flex-shrink: 0; background: #ffffff; border-radius: 22px 22px 0 0; }
-.cp-hdr-top { display: flex; align-items: center; margin-bottom: 10px; }
-.cp-logo { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.3px; line-height: 1; }
-.cp-logo-ilm { color: #27ae60; }
-.cp-logo-ora { color: #e67e22; }
-.cp-orange-line { height:3px; background:#e67e22; margin:0 -28px; flex-shrink: 0; }
-.cp-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding:20px 28px 6px; background:#ffffff; position: relative; }
-
-/* — decorative confetti dots scattered around the check icon, like reference — */
-.cp-confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
-.cp-confetti span {
-  position: absolute;
-  display: block;
-  border-radius: 2px;
-}
-.cp-dot-1  { top: 18px;  left: 36px;  width: 6px;  height: 6px;  background: #cfe9d8; border-radius: 50%; }
-.cp-dot-2  { top: 10px;  left: 78px;  width: 5px;  height: 5px;  background: #f0a93a; transform: rotate(45deg); }
-.cp-dot-3  { top: 34px;  left: 110px; width: 6px;  height: 6px;  background: #cfe9d8; border-radius: 50%; }
-.cp-dot-4  { top: 2px;   left: 168px; width: 5px;  height: 5px;  background: #cfe9d8; border-radius: 50%; }
-.cp-dot-5  { top: 26px;  right: 100px;width: 6px;  height: 6px;  background: #f0a93a; transform: rotate(45deg); }
-.cp-dot-6  { top: 6px;   right: 60px; width: 5px;  height: 5px;  background: #cfe9d8; border-radius: 50%; }
-.cp-dot-7  { top: 40px;  right: 30px; width: 6px;  height: 6px;  background: #cfe9d8; border-radius: 50%; }
-
-.gc-check-ring { width: 56px; height: 56px; border-radius: 50%; background: rgba(39,174,96,0.10); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; position: relative; z-index: 1; flex-shrink: 0; }
-.gc-title { font-size: 24px; font-weight: 800; color: #1a1a2e; text-align: center; margin-bottom: 6px; letter-spacing: -0.3px; position: relative; z-index: 1; }
-.gc-title em { font-style: italic; color: #27ae60; }
-.gc-sub { font-size: 13px; color: #9a9aa1; text-align: center; margin-bottom: 22px; line-height: 1.5; position: relative; z-index: 1; }
-.gc-card { background: #fff; border-radius: 14px; border: 1.5px solid #ece8e2; padding: 4px 18px; display: flex; flex-direction: column; margin-bottom: 16px; position: relative; z-index: 1; flex-shrink: 0; }
-.gc-card-row { display: flex; align-items: center; gap: 13px; padding: 11px 0; }
-.gc-card-row + .gc-card-row { border-top: 1px solid #f1ede6; }
-.gc-card-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.gc-card-text { flex: 1; min-width: 0; }
-.gc-card-label { font-size: 10px; color: #aaa; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 3px; }
-.gc-card-value { font-size: 14.5px; font-weight: 700; color: #1a1a2e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.gc-google-pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(39,174,96,0.08); color: #27ae60; border-radius: 20px; padding: 6px 14px; font-size: 11.5px; font-weight: 700; margin: 0 auto 4px; position: relative; z-index: 1; }
-.gc-google-row { display: flex; justify-content: center; flex-shrink: 0; }
-.gc-foot { padding: 12px 28px 18px; background: #ffffff; flex-shrink: 0; border-radius: 0 0 22px 22px; }
-.gc-foot-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 10px; }
-.gc-btn-submit { width: 100%; padding: 13px; background: #27ae60; border: none; border-radius: 11px; font-family: 'Inter',sans-serif; font-size: 14px; font-weight: 700; color: #fff; cursor: pointer; box-shadow: 0 6px 16px rgba(39,174,96,.30); transition: opacity .16s, transform .12s; display: flex; align-items: center; justify-content: center; gap: 7px; }
-.gc-btn-submit:hover:not(:disabled) { opacity: .9; transform: translateY(-1px); }
-.gc-btn-submit:disabled { opacity: .45; cursor: not-allowed; transform: none; }
-.ob-skip-link { background: none; border: none; cursor: pointer; font-family: 'Inter',sans-serif; font-size: 12px; color: #27ae60; font-weight: 600; text-decoration: none; flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; }
-.gc-step-lbl { font-size: 12px; color: #a3a3aa; font-weight: 500; }
-
-/* tablets / iPad mini */
-@media (max-width: 900px) {
-  .cp-modal { max-width: 460px; }
-}
-
-/* mobile / narrow */
-@media (max-width: 640px) {
-  .cp-overlay { padding: 8px; }
-  .cp-modal { max-width: 420px; border-radius: 18px; }
-  .cp-hdr { padding: 14px 20px 0; }
-  .cp-orange-line { margin: 0 -20px; }
-  .cp-body { padding: 22px 20px 6px; }
-  .gc-check-ring { width: 48px; height: 48px; margin-bottom: 12px; }
-  .gc-title { font-size: 20px; margin-bottom: 4px; }
-  .gc-sub { font-size: 11.5px; margin-bottom: 16px; }
-  .gc-card { padding: 2px 14px; margin-bottom: 12px; }
-  .gc-card-row { padding: 10px 0; gap: 10px; }
-  .gc-card-icon { width: 32px; height: 32px; border-radius: 8px; }
-  .gc-card-label { font-size: 9px; }
-  .gc-card-value { font-size: 13px; }
-  .gc-foot { padding: 10px 20px 18px; }
-  .gc-foot-top { margin-bottom: 10px; }
-  .gc-btn-submit { padding: 11px; font-size: 13px; }
-}
-
-/* very short viewports */
-@media (max-height: 620px) {
-  .cp-modal { max-height: calc(100dvh - 16px); }
-  .gc-sub { margin-bottom: 12px; }
-  .gc-card-row { padding: 8px 0; }
-  .gc-check-ring { width: 40px; height: 40px; margin-bottom: 8px; }
-  .gc-title { font-size: 18px; margin-bottom: 4px; }
-}
 
 /* ════════════════ ROLE STAGE ════════════════ */
 .rl-overlay {
@@ -967,7 +858,7 @@ const GLOBAL_CSS = `
   .ob2-btn-continue { padding: 10px 16px; font-size: 12px; border-radius: 10px; }
   .ob2-btn-back     { padding: 10px 13px; font-size: 11.5px; border-radius: 9px; }
 
-  .cp-modal { max-width: 460px; border-radius: 18px; }
+  
 }
 
 @media (max-width: 480px) and (max-aspect-ratio: 3/4) {
@@ -1076,13 +967,6 @@ const GLOBAL_CSS = `
   .ob2-step-lbl  { font-size: 10px; }
   .ob2-btn-continue { padding: 6px 11px; font-size: 10.5px; border-radius: 8px; }
   .ob2-btn-back     { padding: 6px 9px;  font-size: 10.5px; border-radius: 7px; }
-
-  .cp-overlay { padding: 8px; }
-  .cp-modal { max-width: 480px; max-height: calc(100dvh - 16px); }
-  .gc-sub { margin-bottom: 10px; }
-  .gc-card-row { padding: 7px 0; }
-  .gc-check-ring { width: 38px; height: 38px; margin-bottom: 6px; }
-  .gc-title { font-size: 17px; margin-bottom: 3px; }
 }
 
 /* ── extra-short viewports (heavy browser zoom, very short windows) ──
@@ -1096,7 +980,6 @@ const GLOBAL_CSS = `
   .ob2-sub, .rl-tagline, .rl-desc { display: none; }
   .ob2-opt, .rl-role { padding: 5px 8px; }
   .ob2-footer, .rl-footer { margin-top: 4px; padding-top: 4px; }
-  .gc-card-row { padding: 5px 0; }
   .rl-illo { min-height: 36px; }
   .ob2-left-img-wrap { min-height: 36px; }
 }
@@ -1191,28 +1074,12 @@ export default function CompleteProfile({
     return Array.isArray(ans) && ans.length > 0;
   };
 
-  const finishOnboarding = () => {
-    localStorage.setItem(
-      "ilmora_onboarding_answers",
-      JSON.stringify({ role, answers: onboardingAnswers })
-    );
-  
-    if (role) {
-      sessionStorage.setItem("ilmora_selected_role", role);
-    }
-  
-    // ADD THIS
-    sessionStorage.setItem("signupToast", "true");
-  
-    setProfileStage("confirm");
-  };
-
   const handleOnboardingContinue = () => {
     const configs = ONBOARDING_CONFIGS[role] || [];
     if (onboardingStep < configs.length - 1) {
       setOnboardingStep((p) => p + 1);
     } else {
-      finishOnboarding();
+      submitToBackend(onboardingAnswers);
     }
   };
 
@@ -1315,7 +1182,7 @@ export default function CompleteProfile({
     navigate("/ilm-demo", { replace: true });
   };
 
-  const handleConfirmSubmit = () => submitToBackend(onboardingAnswers);
+
 
   /* ══════════════════════════════════════════
      STAGE: role (Step 1 of 8)
@@ -1402,7 +1269,7 @@ export default function CompleteProfile({
     const config = configs[onboardingStep] || {};
     const isValid = isOnboardingStepValid();
     const displayStep = onboardingStep + 2;
-    const totalSteps = 8;
+    const totalSteps = 7;
     const visual = ONBOARDING_VISUAL[role] || ONBOARDING_VISUAL.student;
 
     return (
@@ -1513,115 +1380,9 @@ export default function CompleteProfile({
     );
   }
 
-  /* ══════════════════════════════════════════
-     STAGE: confirm (Step 8 of 8)
-  ══════════════════════════════════════════ */
-  return (
-    <>
-      <style>{GLOBAL_CSS}</style>
-      <div className="cp-overlay">
-        <div className="cp-modal">
-          <div className="cp-hdr">
-            <div className="cp-hdr-top">
-              <div className="cp-logo">
-                <span className="cp-logo-ilm">ILM</span>&nbsp;<span className="cp-logo-ora">ORA</span>
-              </div>
-            </div>
-            <div className="cp-orange-line" />
-          </div>
-
-          <div className="cp-body">
-            <div className="cp-confetti">
-              <span className="cp-dot-1" />
-              <span className="cp-dot-2" />
-              <span className="cp-dot-3" />
-              <span className="cp-dot-4" />
-              <span className="cp-dot-5" />
-              <span className="cp-dot-6" />
-              <span className="cp-dot-7" />
-            </div>
-
-            <div className="gc-check-ring">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#27ae60" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                <polyline points="22 4 12 14.01 9 11.01" />
-              </svg>
-            </div>
-            <div className="gc-title">Almost <em>done!</em></div>
-            <div className="gc-sub">Review your details below and submit to continue.</div>
-
-            <div className="gc-card">
-              <div className="gc-card-row">
-                <div className="gc-card-icon" style={{ background: "rgba(230,126,34,0.10)" }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e67e22" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                </div>
-                <div className="gc-card-text">
-                  <div className="gc-card-label">Name</div>
-                  <div className="gc-card-value">{resolvedName || "—"}</div>
-                </div>
-              </div>
-
-              <div className="gc-card-row">
-                <div className="gc-card-icon" style={{ background: "rgba(59,130,246,0.10)" }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                    <polyline points="22,6 12,13 2,6" />
-                  </svg>
-                </div>
-                <div className="gc-card-text">
-                  <div className="gc-card-label">Email</div>
-                  <div className="gc-card-value">{resolvedEmail || "—"}</div>
-                </div>
-              </div>
-
-              <div className="gc-card-row">
-                <div className="gc-card-icon" style={{ background: roleObj?.bg || "rgba(39,174,96,0.10)" }}>
-                  {roleObj?.icon || (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#27ae60" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-                      <path d="M6 12v5c3 3 9 3 12 0v-5" />
-                    </svg>
-                  )}
-                </div>
-                <div className="gc-card-text">
-                  <div className="gc-card-label">Role</div>
-                  <div className="gc-card-value">{roleDisplayLabel}</div>
-                </div>
-              </div>
-            </div>
-
-            {isGoogle && (
-              <div className="gc-google-row">
-                <div className="gc-google-pill">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                    <polyline points="22 4 12 14.01 9 11.01" />
-                  </svg>
-                  Verified via Google
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="gc-foot">
-            <div className="gc-foot-top">
-              <span className="gc-step-lbl">Step 8 of 8</span>
-              <button className="ob-skip-link" onClick={() => setProfileStage("onboarding")}>
-                ← Back
-              </button>
-            </div>
-            <button className="gc-btn-submit" onClick={handleConfirmSubmit} disabled={loading}>
-              {loading ? (<><ISpinner /> Connecting…</>) : (<><ICheck s={14} /> Submit &amp; Continue</>)}
-            </button>
-          </div>
-        </div>
-      </div>
-    </>
-  );
+  return null;
 }
+
 
 
 

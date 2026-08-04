@@ -49,24 +49,18 @@ export default function AuthModals({ showLogin, onCloseLogin, onOpenLogin }) {
   }, [showLogin, onCloseLogin]);
 
   const redirectByRole = (role) => {
+    // Kept in sync with Login.jsx and IlmOraDemoPage.jsx's LoginModal —
+    // every login entry point in the app must land the user on the same
+    // /ilm-demo preview page after signing in (SUPER_ADMIN is the only
+    // exception). This modal used to send people straight to their real
+    // dashboard route instead, which is why login felt inconsistent:
+    // where you landed depended on which "Login" button you clicked.
     switch ((role || "").toUpperCase()) {
       case "SUPER_ADMIN":
         navigate("/superadmin", { replace: true });
         break;
-      case "ADMIN":
-        navigate("/admin", { replace: true });
-        break;
-      case "TENANT_ADMIN":
-        navigate("/admin", { replace: true });
-        break;
-      case "BUSINESS":
-        navigate("/admin", { replace: true });
-        break;
-      case "TRAINER":
-        navigate("/trainer", { replace: true });
-        break;
       default:
-        navigate("/student", { replace: true });
+        navigate("/ilm-demo", { replace: true });
     }
   };
 

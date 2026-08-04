@@ -494,6 +494,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
   const [showModalPw, setShowModalPw] = useState(false);
 
   const heroImages = [heroStudent, heroStudent2, heroStudent3];
+  const heroImagePositions = ["center top", "center top", "center top"];
   const [currentSlide, setCurrentSlide] = useState(-1);
   const carouselTimerRef = useRef(null);
 
@@ -775,18 +776,27 @@ export default function LMSHomepage({ theme, toggleTheme }) {
       }
 
       // ── BRAND NEW USER ─────────────────────────────────────────
+      const googleInfo = { name: dec.name, email: dec.email, googleCredential: res.credential };
       sessionStorage.setItem("ilmora_google_credential", res.credential);
-      setShowLoginModal(false);
-      navigate("/complete-profile", {
-        replace: true,
-        state: {
+      sessionStorage.setItem("ilmora_google_user", JSON.stringify(googleInfo));
+
+      // Mark authenticated + new right away so IlmOraDemoPage's
+      // mount-time check (`user?.isNewUser === true`) opens the Step 4
+      // role-selection toast the instant the page loads — same
+      // mechanism IlmOraDemoPage's own login modal already uses.
+      localStorage.setItem(
+        "lms_user",
+        JSON.stringify({
           name: dec.name,
           email: dec.email,
-          googleCredential: res.credential,
           isGoogleUser: true,
-          fromGoogleLogin: true,
-        },
-      });
+          isNewUser: true,
+          profileCompleted: false,
+        })
+      );
+
+      setShowLoginModal(false);
+      navigate("/ilm-demo", { replace: true });
     } catch (err) {
       // Surface the real backend message — blocked user / inactive org / etc.
       const message =
@@ -1338,7 +1348,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
         setShowLoginModal={setShowLoginModal}
       />
 
-      {/* ── Hero ── */}
+      {/* ── Hero ──
       <section className="pt-32 pb-24 px-6 bg-[#F6EDE6] dark:bg-black relative overflow-hidden">
         <div className="absolute -top-32 left-[10%] w-[600px] h-[600px] bg-[#F97316]/8 dark:bg-[#F97316]/5 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute -bottom-20 right-[5%] w-[500px] h-[500px] bg-[#1E293B]/5 rounded-full blur-[120px] pointer-events-none" />
@@ -1368,11 +1378,18 @@ export default function LMSHomepage({ theme, toggleTheme }) {
               />
             </h1>
             <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-12 max-w-2xl leading-relaxed">
-              Master in-demand skills through AI-powered learning, live
-              sessions, certifications, and expert-led programs designed for
-              students, professionals, trainers, and organizations.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center lg:items-start"></div>
+  Master in-demand skills through AI-powered learning, live
+  sessions, certifications, and expert-led programs designed for
+  students, professionals, trainers, and organizations.
+</p>
+<div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center lg:items-start">
+  <button
+    onClick={() => setShowLoginModal(true)}
+    className="flex items-center gap-2 bg-[#F97316] hover:bg-[#ea580c] text-white font-bold px-8 py-3.5 rounded-xl text-base shadow-md hover:shadow-lg transition-all hover:scale-105"
+  >
+    Get Started <ArrowRight className="w-4 h-4" />
+  </button>
+</div>
           </div>
 
           <div className="flex flex-col items-center gap-4">
@@ -1448,8 +1465,113 @@ export default function LMSHomepage({ theme, toggleTheme }) {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
+      
 
+      {/* ── Hero ── */}
+<section className="relative pt-32 pb-24 px-6 min-h-[85vh] flex items-center overflow-hidden bg-[#1E293B]">
+  {/* Full-bleed background video — cover is fine for video */}
+  <video
+    src={heroVideo}
+    autoPlay
+    loop
+    muted
+    playsInline
+    className="absolute inset-0 w-full h-full object-cover"
+    style={{
+      opacity: currentSlide === -1 ? 1 : 0,
+      transition: "opacity 0.6s ease",
+      zIndex: 0,
+      pointerEvents: currentSlide === -1 ? "auto" : "none",
+    }}
+  />
+  {/* Full-bleed background images — cover fills the section, positioned per-image to keep faces in frame */}
+{heroImages.map((img, index) => (
+  <img
+    key={index}
+    src={img}
+    alt={`Hero Student ${index + 1}`}
+    className="absolute inset-0 w-full h-full object-cover"
+    style={{
+      objectPosition: heroImagePositions[index] || "center top",
+      opacity: currentSlide === index ? 1 : 0,
+      transition: "opacity 0.6s ease",
+      zIndex: 0,
+      pointerEvents: currentSlide === index ? "auto" : "none",
+    }}
+  />
+))}
+
+  {/* Dark gradient overlay so text stays readable over any image/video */}
+  <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/20 z-[1]" />
+
+  <div className="max-w-7xl mx-auto relative z-10 w-full">
+    <div className="max-w-2xl text-center lg:text-left">
+      <div className="mb-8 inline-flex">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-[#F97316] text-sm font-semibold mb-6">
+          <Sparkles className="w-4 h-4" />
+          Learn Smarter. Grow Faster. Lead the Future.
+        </div>
+      </div>
+      <h1 className="mb-6 leading-[1.1]">
+        <SplitText
+          text="Empower Your"
+          className="block text-4xl md:text-5xl lg:text-7xl font-bold text-white"
+          splitType="chars"
+          delay={60}
+          duration={0.6}
+        />
+        <SplitText
+          text="Learning Journey"
+          className="block text-4xl md:text-5xl lg:text-7xl font-bold text-[#F97316]"
+          splitType="chars"
+          delay={60}
+          duration={0.6}
+        />
+      </h1>
+      <p className="text-lg md:text-xl text-gray-200 mb-12 max-w-2xl leading-relaxed">
+        Master in-demand skills through AI-powered learning, live
+        sessions, certifications, and expert-led programs designed for
+        students, professionals, trainers, and organizations.
+      </p>
+    </div>
+  </div>
+
+  {/* Slide indicator dots — bottom center, over the background */}
+  <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2.5">
+    <button
+      onClick={() => goToSlide(-1)}
+      aria-label="Show video"
+      style={{
+        width: currentSlide === -1 ? "28px" : "10px",
+        height: "10px",
+        borderRadius: "9999px",
+        background: currentSlide === -1 ? "#22c55e" : "rgba(255,255,255,0.4)",
+        border: "none",
+        cursor: "pointer",
+        padding: 0,
+        transition: "width 0.35s ease, background 0.35s ease",
+      }}
+    />
+    {heroImages.map((_, index) => (
+      <button
+        key={index}
+        onClick={() => goToSlide(index)}
+        aria-label={`Go to slide ${index + 1}`}
+        style={{
+          width: currentSlide === index ? "28px" : "10px",
+          height: "10px",
+          borderRadius: "9999px",
+          background: currentSlide === index ? "#F97316" : "rgba(255,255,255,0.4)",
+          border: "none",
+          cursor: "pointer",
+          padding: 0,
+          transition: "width 0.35s ease, background 0.35s ease",
+        }}
+      />
+    ))}
+  </div>
+</section>
       {/* ── Courses ── */}
       <section
         id="courses"
@@ -2196,3 +2318,73 @@ export default function LMSHomepage({ theme, toggleTheme }) {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -41,7 +41,7 @@ import {
   getMeetingsCalendar,
 } from "../../services/liveSessionService"; // ← adjust path to match your project structure
 import { getMyMeetingSummaries } from "../../services/chatService"; // ⚠️ adjust path
-import { MeetingSummaryView } from "../components/MeetingSummaryView";
+import { MeetingSummaryView } from "../../components/MeetingSummaryView";
 // ⚠️ Update this import path to wherever you place the logo file in your project
 // (e.g. src/assets/texora-logo.jpeg). Using a bundler import keeps it working
 // correctly across dev/build instead of relying on a public/ path.

@@ -658,3 +658,10 @@ export const admitAllJoinRequests = (meetingId) =>
     {},
     getAuthHeader(),
   );
+/** POST /api/meetings/{id}/summary/request */
+export const requestMeetingSummary = (meetingId, messages) =>
+  axios.post(
+    `${API_BASE}/meetings/${meetingId}/summary/request`,
+    { messages },
+    getAuthHeader(),
+  );

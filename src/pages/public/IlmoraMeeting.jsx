@@ -54,6 +54,7 @@ import {
   denyJoinRequest,
   admitAllJoinRequests,
   endMeeting,
+   requestMeetingSummary,
 } from "@/services/liveSessionService";
 
 /* ════════════════════════════════════════════════════════════════
@@ -737,6 +738,7 @@ const Btn = ({
   pressed,
   ariaHasPopup,
   ariaExpanded,
+  disabled,
   S,
 }) => {
   const [hov, setHov] = useState(false);
@@ -769,7 +771,7 @@ const Btn = ({
         : "var(--im-text-soft)";
   return (
     <div style={{ position: "relative", flexShrink: 0 }}>
-      <button
+      {/* <button
         ref={btnRef}
         className="im-ctrl-btn"
         onClick={onClick}
@@ -780,6 +782,26 @@ const Btn = ({
         aria-haspopup={ariaHasPopup}
         aria-expanded={ariaExpanded}
         style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 4,
+          background: bg,
+          color: col, */}
+          <button
+        ref={btnRef}
+        className="im-ctrl-btn"
+        onClick={onClick}
+        disabled={disabled}
+        onMouseEnter={() => setHov(true)}
+        onMouseLeave={() => setHov(false)}
+        aria-label={label}
+        aria-pressed={typeof pressed === "boolean" ? pressed : undefined}
+        aria-haspopup={ariaHasPopup}
+        aria-expanded={ariaExpanded}
+        style={{
+          opacity: disabled ? 0.6 : 1,
+          cursor: disabled ? "not-allowed" : "pointer",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -1707,12 +1729,24 @@ function MeetingRoom({
         try {
           const decoded = new TextDecoder().decode(payload);
           const msg = JSON.parse(decoded);
+          // if (msg.type === "chat" && msg.text) {
+          //   setMessages((prev) => [
+          //     ...prev,
+          //     {
+          //       id: Date.now() + Math.random(),
+          //       name: participant?.name || participant?.identity || "Guest",
+          //       text: msg.text,
+          //       time: getTime(),
+          //       self: false,
+          //     },
+          //   ]);
           if (msg.type === "chat" && msg.text) {
             setMessages((prev) => [
               ...prev,
               {
                 id: Date.now() + Math.random(),
                 name: participant?.name || participant?.identity || "Guest",
+                senderIdentity: participant?.identity || null,
                 text: msg.text,
                 time: getTime(),
                 self: false,
@@ -2035,12 +2069,26 @@ function MeetingRoom({
     [spawnFloater],
   );
 
+  // const sendMsg = useCallback(() => {
+  //   const text = msgInput.trim();
+  //   if (!text) return;
+  //   setMessages((prev) => [
+  //     ...prev,
+  //     { id: Date.now(), name: "You", text, time: getTime(), self: true },
+  //   ]);
   const sendMsg = useCallback(() => {
     const text = msgInput.trim();
     if (!text) return;
     setMessages((prev) => [
       ...prev,
-      { id: Date.now(), name: "You", text, time: getTime(), self: true },
+      {
+        id: Date.now(),
+        name: "You",
+        senderIdentity: roomRef.current?.localParticipant?.identity || null,
+        text,
+        time: getTime(),
+        self: true,
+      },
     ]);
     setMsgInput("");
     try {
@@ -2118,16 +2166,26 @@ function MeetingRoom({
     onLeft();
   }, [onLeft]);
 
+ const endingRef = useRef(false);
+  const [isEnding, setIsEnding] = useState(false);
   const handleEndForAll = useCallback(async () => {
-    if (!meetingId) return;
+    // Guard against double-clicks / repeated clicks while the request is
+    // still in flight — otherwise every extra click re-runs endMeeting +
+    // requestMeetingSummary, firing a duplicate summary job per click.
+    if (!meetingId || endingRef.current) return;
+    endingRef.current = true;
+    setIsEnding(true);
     try {
       await endMeeting(meetingId); // FIX: numeric id, not joinCode
+      try {
+        await requestMeetingSummary(meetingId, messages);
+      } catch (_) {}
     } catch (_) {}
     try {
       roomRef.current?.disconnect();
     } catch (_) {}
     onLeft();
-  }, [meetingId, onLeft]);
+  }, [meetingId, onLeft, messages]);
 
   const copyLink = useCallback(() => {
     navigator.clipboard
@@ -2509,9 +2567,15 @@ function MeetingRoom({
             <SignalHigh size={14} />
           </div>
           {isHost ? (
-            <button style={S.endSessionBtn} onClick={handleEndForAll}>
+            <button
+              style={{ ...S.endSessionBtn, opacity: isEnding ? 0.6 : 1 }}
+              onClick={handleEndForAll}
+              disabled={isEnding}
+            >
               <PhoneOff size={14} />
-              <span className="im-btn-label-inline">End meeting</span>
+              <span className="im-btn-label-inline">
+                {isEnding ? "Ending…" : "End meeting"}
+              </span>
             </button>
           ) : (
             <button
@@ -3001,10 +3065,18 @@ function MeetingRoom({
           pressed={!!pipWindow}
           S={S}
         />
-        <Btn
+        {/* <Btn
           icon={<PhoneOff size={18} />}
           label={isHost ? "End" : "Leave"}
           leave
+          onClick={isHost ? handleEndForAll : handleLeave}
+          S={S}
+        /> */}
+        <Btn
+          icon={<PhoneOff size={18} />}
+          label={isHost ? (isEnding ? "Ending…" : "End") : "Leave"}
+          leave
+          disabled={isHost && isEnding}
           onClick={isHost ? handleEndForAll : handleLeave}
           S={S}
         />

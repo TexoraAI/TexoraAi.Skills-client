@@ -561,15 +561,8 @@ const OrgDetailsPanel = ({
                 gap: 8,
               }}
             >
-              {[
-                // { key: "name", label: "Org Name" },
-                // { key: "email", label: "Email" },
-                // { key: "city", label: "City" },
-                // { key: "phone", label: "Phone" },
-                // { key: "managerName", label: "Manager Name" },
-                // { key: "managerEmail", label: "Manager Email" },
-                // { key: "maxStudents", label: "Max Students" },
-                // { key: "maxTrainers", label: "Max Trainers" },
+              {/* {[
+                
                 { key: "name", label: "Org Name" },
                 { key: "email", label: "Email" },
                 { key: "city", label: "City" },
@@ -589,6 +582,13 @@ const OrgDetailsPanel = ({
                 { key: "industry", label: "Industry" },
                 { key: "description", label: "Description" },
                 { key: "mobileNumber", label: "Mobile Number" },
+              ].map(({ key, label }) => ( */}
+              {[
+                { key: "maxStudents", label: "Max Students" },
+                { key: "maxTrainers", label: "Max Trainers" },
+                { key: "maxDepartments", label: "Max Departments" },
+                { key: "maxBranchesPerDept", label: "Max Branches Per Dept" },
+                { key: "maxBatchesPerBranch", label: "Max Batches Per Branch" },
               ].map(({ key, label }) => (
                 <div key={key}>
                   <div

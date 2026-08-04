@@ -1,17 +1,7 @@
 /**
  * AdminMeetings.jsx
- * ILMORA Meetings — Admin workspace (wired to backend Meetings API)
- *
- * ── Nav integration (paste into your real files) ─────────────────────────────
- * Sidebar.jsx  (adminMenus, right after the Dashboard entry):
- *   { name: "Meetings", path: "/admin/meetings", icon: Video }
- *
- * App.jsx:
- *   const AdminMeetings = lazyLoad(() => import("./Admin/Meetings.jsx"));
- *   ...inside the /admin nested <Route> block...
- *   <Route path="meetings" element={<AdminMeetings />} />
- * ──────────────────────────────────────────────────────────────────────────────
- */
+ 
+*/
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
@@ -26,8 +16,6 @@ import {
   CalendarDays,
   CalendarClock,
   Clock,
-  Sun,
-  Moon,
   KeyRound,
   ArrowUpRight,
   CalendarPlus,
@@ -50,6 +38,12 @@ import {
   deleteMeetingApi,
   getMeetingsCalendar,
 } from "../services/liveSessionService"; // ← adjust path to match your project structure
+import { getMyMeetingSummaries } from "../services/chatService"; // ⚠️ adjust path
+import { MeetingSummaryView } from "../components/MeetingSummaryView";
+// Update this import path if you move the logo file elsewhere. Using a
+// bundler import (instead of a /public path) keeps it working correctly
+// across dev/build.
+import texoraLogo from "../assets/texora-logo-1.jpeg";
 
 const pad = (n) => (n < 10 ? "0" + n : "" + n);
 function toGCalStamp(d) {
@@ -698,12 +692,13 @@ function StatCard({ icon: Icon, label, value, delta, tone }) {
   return (
     <div className={`stat-card tone-${tone}`}>
       <div className="stat-icon">
-        <Icon size={18} />
+        <Icon size={20} />
       </div>
-      <div className="stat-value">{value}</div>
-      <div className="stat-label">{label}</div>
-      <div className="stat-underline" />
-      {delta && <div className="stat-delta">↑ {delta}</div>}
+      <div className="stat-text">
+        <div className="stat-value">{value}</div>
+        <div className="stat-label">{label}</div>
+        {delta && <div className="stat-delta">↑ {delta}</div>}
+      </div>
     </div>
   );
 }
@@ -947,7 +942,35 @@ function SessionRow({ s, onJoin, onViewDetails, onDelete }) {
 
 export default function AdminMeetings() {
   const navigate = useNavigate();
-  const [dark, setDark] = useState(false);
+  // Theme is app-wide: App.jsx toggles a "dark" class on <html> and
+  // persists the choice in localStorage("theme"). This component reads
+  // that same source of truth on load, keeps itself in sync if it
+  // changes elsewhere (MutationObserver on <html>), and its own toggle
+  // button below updates both <html> and localStorage so every other
+  // page stays in sync too.
+  const [dark, setDark] = useState(() => {
+    if (typeof document === "undefined") return false;
+    if (document.documentElement.classList.contains("dark")) return true;
+    if (document.documentElement.classList.contains("light")) return false;
+    return localStorage.getItem("theme") === "dark";
+  });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", dark);
+    localStorage.setItem("theme", dark ? "dark" : "light");
+  }, [dark]);
+
+  useEffect(() => {
+    const el = document.documentElement;
+    const observer = new MutationObserver(() => {
+      setDark(el.classList.contains("dark"));
+    });
+    observer.observe(el, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
+  const toggleTheme = () => setDark((d) => !d);
+
   const [now, setNow] = useState(new Date());
   const [showSchedule, setShowSchedule] = useState(false);
   const [joinCode, setJoinCode] = useState("");
@@ -961,6 +984,9 @@ export default function AdminMeetings() {
   );
   const [calendarData, setCalendarData] = useState({});
   const [selectedDate, setSelectedDate] = useState(null);
+  const [meetingsTab, setMeetingsTab] = useState("sessions"); // "sessions" | "summaries"
+  const [summaries, setSummaries] = useState([]);
+  const [openSummaryId, setOpenSummaryId] = useState(null);
   // ⚠️ Placeholder — replace with however your app exposes the logged-in
   // user's display name (auth context, profile store, etc.)
   const currentUserName = (() => {
@@ -973,9 +999,17 @@ export default function AdminMeetings() {
   })();
 
   useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 30000);
-    return () => clearInterval(t);
+    getMyMeetings()
+      .then((res) => setSessions(res.data.map(mapMeetingToRow)))
+      .catch((err) => console.error("Failed to load meetings", err));
   }, []);
+
+  useEffect(() => {
+    if (meetingsTab !== "summaries") return;
+    getMyMeetingSummaries()
+      .then((res) => setSummaries(res.data || []))
+      .catch((err) => console.error("Failed to load summaries", err));
+  }, [meetingsTab]);
 
   useEffect(() => {
     getMyMeetings()
@@ -1031,11 +1065,7 @@ export default function AdminMeetings() {
       setLinkMeeting({ joinCode: res.data.joinCode, status: "scheduled" });
       const refreshed = await getMyMeetings();
       setSessions(refreshed.data.map(mapMeetingToRow));
-      refreshCalendar(calendarMonth); // NEW
-      //     } catch (err) {
-      //       console.error("Failed to schedule meeting", err);
-      //     }
-      //   };
+      refreshCalendar(calendarMonth);
     } catch (err) {
       console.error("Failed to schedule meeting", err);
       alert(
@@ -1049,7 +1079,7 @@ export default function AdminMeetings() {
     try {
       await deleteMeetingApi(meetingId);
       setSessions((prev) => prev.filter((s) => s.id !== meetingId));
-      refreshCalendar(calendarMonth); // NEW
+      refreshCalendar(calendarMonth);
     } catch (err) {
       console.error("Failed to delete meeting", err);
       alert(
@@ -1079,11 +1109,6 @@ export default function AdminMeetings() {
       data-dark={dark ? "true" : undefined}
     >
       <style>{STYLES}</style>
-      <div className="mesh-bg">
-        <div className="mesh-blob mesh-blob--1" />
-        <div className="mesh-blob mesh-blob--2" />
-        <div className="mesh-blob mesh-blob--3" />
-      </div>
       <div className="page-inner">
         <header className="page-header">
           <div className="brand-lockup">
@@ -1092,8 +1117,6 @@ export default function AdminMeetings() {
             </div>
             <div>
               <div className="wordmark">
-                {/* <span className="ilm">ILM</span>
-                <span className="ora">ORA</span> */}
                 <span className="wm-suffix">Work Space</span>
               </div>
               <div className="subtitle">Admin workspace</div>
@@ -1104,6 +1127,7 @@ export default function AdminMeetings() {
               <span className="pulse-dot" /> {liveCount} live now
             </div>
             <div className="clock">{formatClock(now)}</div>
+            <img src={texoraLogo} alt="Texora AI" className="corner-logo" />
           </div>
         </header>
 
@@ -1151,8 +1175,6 @@ export default function AdminMeetings() {
           </div>
         </section>
 
-        <SpotlightCarousel />
-
         <section className="stat-grid">
           <StatCard
             icon={Video}
@@ -1181,23 +1203,67 @@ export default function AdminMeetings() {
           />
         </section>
 
+        <SpotlightCarousel />
+
         {/* Session list */}
         <div className="content-grid">
           <section className="session-list">
             <div className="session-list-head">
-              <h2>Your sessions</h2>
-              <span className="muted">{sessions.length} total</span>
+              <div className="session-list-tabs">
+                <button
+                  className={`tab-btn ${meetingsTab === "sessions" ? "is-active" : ""}`}
+                  onClick={() => setMeetingsTab("sessions")}
+                >
+                  Your sessions
+                </button>
+                <button
+                  className={`tab-btn ${meetingsTab === "summaries" ? "is-active" : ""}`}
+                  onClick={() => setMeetingsTab("summaries")}
+                >
+                  Summaries
+                </button>
+              </div>
+              <span className="muted">
+                {meetingsTab === "sessions"
+                  ? `${sessions.length} total`
+                  : `${summaries.length} total`}
+              </span>
             </div>
             <div className="session-list-body">
-              {sessions.map((s) => (
-                <SessionRow
-                  key={s.id}
-                  s={s}
-                  onJoin={(code) => code && navigate(`/workspace/${code}`)}
-                  onViewDetails={(id) => setDetailsMeetingId(id)}
-                  onDelete={handleDeleteMeeting}
-                />
-              ))}
+              {meetingsTab === "sessions" ? (
+                sessions.map((s) => (
+                  <SessionRow
+                    key={s.id}
+                    s={s}
+                    onJoin={(code) => code && navigate(`/workspace/${code}`)}
+                    onViewDetails={(id) => setDetailsMeetingId(id)}
+                    onDelete={handleDeleteMeeting}
+                  />
+                ))
+              ) : summaries.length === 0 ? (
+                <div className="muted" style={{ padding: 16 }}>
+                  No summaries yet.
+                </div>
+              ) : (
+                summaries.map((sm) => (
+                  <div key={sm.meetingId} className="summary-row">
+                    <div
+                      className="summary-row-head"
+                      onClick={() =>
+                        setOpenSummaryId((id) =>
+                          id === sm.meetingId ? null : sm.meetingId,
+                        )
+                      }
+                    >
+                      <span>{sm.title}</span>
+                      <span className="muted">{sm.status}</span>
+                    </div>
+                    {openSummaryId === sm.meetingId && (
+                      <MeetingSummaryView meetingId={sm.meetingId} />
+                    )}
+                  </div>
+                ))
+              )}
             </div>
           </section>
 
@@ -1211,10 +1277,7 @@ export default function AdminMeetings() {
           />
         </div>
       </div>
-      {/* {showSchedule && (
-        <ScheduleModal
-          onClose={() => setShowSchedule(false)}
-          onSave={handleSaveSchedule} */}
+
       {showSchedule && (
         <ScheduleModal
           onClose={() => setShowSchedule(false)}
@@ -1261,36 +1324,30 @@ const STYLES = `
 }
 .ilmora-admin-meetings[data-dark] { --bg: #000000; --card: #101319; --text: #f1f5f9; --muted: #94a3b8; --border: rgba(255,255,255,.08); }
 
-.mesh-bg { position: absolute; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
-.mesh-blob { position: absolute; border-radius: 9999px; filter: blur(90px); opacity: .32; }
-[data-dark] .mesh-blob { opacity: .16; }
-.mesh-blob--1 { width: 520px; height: 520px; top: -160px; left: -120px; background: radial-gradient(circle, var(--brand), transparent 70%); }
-.mesh-blob--2 { width: 480px; height: 480px; top: -100px; right: -160px; background: radial-gradient(circle, var(--accent-2), transparent 70%); }
-.mesh-blob--3 { width: 460px; height: 460px; bottom: -200px; left: 30%; background: radial-gradient(circle, var(--accent), transparent 70%); }
-
-.page-inner { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 28px 32px 80px; }
-.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
-.brand-lockup { display: flex; align-items: center; gap: 12px; }
-.logo-mark { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; background: linear-gradient(135deg, var(--brand), var(--brand-2)); box-shadow: 0 6px 16px rgba(37,99,235,.35); }
+.page-inner { position: relative; z-index: 1; width: 100%; max-width: 100%; margin: 0; padding: 28px clamp(16px, 4vw, 48px) 80px; box-sizing: border-box; }
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; gap: 16px; }
+.brand-lockup { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.logo-mark { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; background: linear-gradient(135deg, var(--brand), var(--brand-2)); box-shadow: 0 6px 16px rgba(37,99,235,.35); flex-shrink: 0; }
 .wordmark { font-weight: 800; font-size: 17px; letter-spacing: -0.01em; }
-.wordmark .ilm { color: #16a34a; } .wordmark .ora { color: #f97316; } .wm-suffix { color: var(--text); font-weight: 700; }
+.wm-suffix { color: var(--text); font-weight: 700; }
 .subtitle { font-size: 12.5px; color: var(--muted); margin-top: 1px; }
-.header-right { display: flex; align-items: center; gap: 12px; }
-.live-pill { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; padding: 6px 12px; border-radius: 999px; background: rgba(20,184,166,.12); color: #0f766e; }
+.header-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.live-pill { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; padding: 6px 12px; border-radius: 999px; background: rgba(20,184,166,.12); color: #0f766e; white-space: nowrap; }
 [data-dark] .live-pill { background: rgba(20,184,166,.16); color: #5eead4; }
-.pulse-dot { width: 7px; height: 7px; border-radius: 999px; background: var(--live); animation: pulse 1.8s infinite; }
+.pulse-dot { width: 7px; height: 7px; border-radius: 999px; background: var(--live); animation: pulse 1.8s infinite; flex-shrink: 0; }
 @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(20,184,166,.55);} 70% { box-shadow: 0 0 0 8px rgba(20,184,166,0);} 100% { box-shadow: 0 0 0 0 rgba(20,184,166,0);} }
-.clock { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.clock { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.corner-logo { height: 32px; width: auto; max-width: 120px; border-radius: 6px; object-fit: contain; flex-shrink: 0; display: block; }
 .icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--text); cursor: pointer; transition: transform .15s ease, background .15s ease; }
 .icon-btn:hover { transform: translateY(-1px); background: rgba(37,99,235,.08); }
 .avatar { width: 34px; height: 34px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; background: linear-gradient(135deg, var(--brand-2), var(--accent-2)); }
 
-.hero { display: flex; margin-bottom: 26px; }
-.hero-copy { max-width: 660px; }
+.hero { display: flex; margin-bottom: 26px; width: 100%; }
+.hero-copy { max-width: none; width: 100%; }
 .eyebrow { display: flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--brand); margin-bottom: 10px; }
 .eyebrow-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--brand); }
-.hero h1 { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 8px; line-height: 1.15; }
-.hero p { color: var(--muted); font-size: 14.5px; margin: 0 0 20px; }
+.hero h1 { font-size: clamp(22px, 2.6vw, 34px); font-weight: 800; letter-spacing: -0.02em; margin: 0 0 8px; line-height: 1.15; white-space: nowrap; }
+.hero p { color: var(--muted); font-size: 14.5px; margin: 0 0 20px; max-width: 660px; }
 .hero-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
 .join-by-code { display: flex; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--border); padding: 6px 8px 6px 12px; border-radius: 12px; box-shadow: 0 1px 2px rgba(15,23,42,.04); }
 .join-by-code svg { color: var(--muted); }
@@ -1308,8 +1365,8 @@ const STYLES = `
 .split-menu button:hover { background: rgba(37,99,235,.1); }
 .pill-row { font-size: 12.5px; color: var(--muted); }
 
-.carousel { position: relative; display: flex; align-items: center; gap: 10px; margin: 10px 0 32px; }
-.carousel-stage { position: relative; flex: 1; height: 360px; border-radius: 24px; overflow: hidden; background: linear-gradient(135deg, rgba(37,99,235,.06), rgba(6,182,212,.08)); border: 1px solid var(--border); }
+.carousel { position: relative; display: flex; align-items: center; gap: 10px; margin: 10px 0 32px; width: 100%; }
+.carousel-stage { position: relative; flex: 1; min-width: 0; height: clamp(260px, 32vw, 360px); border-radius: 24px; overflow: hidden; background: linear-gradient(135deg, rgba(37,99,235,.06), rgba(6,182,212,.08)); border: 1px solid var(--border); }
 .carousel-slide { position: absolute; inset: 0; display: flex; align-items: center; gap: 32px; padding: 32px 44px; opacity: 0; transition: opacity .6s ease; pointer-events: none; }
 .carousel-slide.is-active { opacity: 1; pointer-events: auto; }
 .carousel-copy { max-width: 340px; }
@@ -1340,23 +1397,26 @@ const STYLES = `
 .illo--verified .illo-badge { background: linear-gradient(135deg, var(--live), #0ea5e9); box-shadow: 0 8px 18px rgba(20,184,166,.35); }
 .illo--attendance .illo-badge { background: linear-gradient(135deg, var(--accent-2), var(--brand-2)); box-shadow: 0 8px 18px rgba(6,182,212,.3); }
 
-.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
-.stat-card { position: relative; background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 18px; box-shadow: 0 1px 2px rgba(15,23,42,.04); }
-.stat-icon { width: 34px; height: 34px; border-radius: 11px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; background: rgba(37,99,235,.12); color: var(--brand); }
-.tone-live .stat-icon { background: rgba(20,184,166,.14); color: #0d9488; }
-.tone-accent .stat-icon { background: rgba(245,158,11,.16); color: #b45309; }
-.tone-cyan .stat-icon { background: rgba(6,182,212,.16); color: #0e7490; }
-.stat-value { font-size: 26px; font-weight: 800; letter-spacing: -0.01em; }
-.stat-label { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
-.stat-underline { height: 3px; border-radius: 999px; background: linear-gradient(90deg, var(--brand), var(--brand-2)); margin-top: 12px; width: 60%; }
-.tone-live .stat-underline { background: linear-gradient(90deg, var(--live), #0ea5e9); }
-.tone-accent .stat-underline { background: linear-gradient(90deg, var(--accent), #fbbf24); }
-.tone-cyan .stat-underline { background: linear-gradient(90deg, var(--accent-2), var(--brand-2)); }
-.stat-delta { font-size: 11.5px; font-weight: 700; color: #16a34a; margin-top: 8px; }
+.stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 32px; width: 100%; }
+.stat-card { position: relative; display: flex; align-items: center; gap: 14px; border: none; border-radius: 18px; padding: 18px 20px; color: #fff; box-shadow: 0 10px 22px rgba(15,23,42,.12); overflow: hidden; }
+.stat-card.tone-brand { background: linear-gradient(135deg, #2f6df6, #3b82f6); }
+.stat-card.tone-live { background: linear-gradient(135deg, #fb923c, #f97316); }
+.stat-card.tone-accent { background: linear-gradient(135deg, #10b981, #059669); }
+.stat-card.tone-cyan { background: linear-gradient(135deg, #a855f7, #9333ea); }
+.stat-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,.22); color: #fff; flex-shrink: 0; }
+.stat-text { min-width: 0; }
+.stat-value { font-size: 24px; font-weight: 800; letter-spacing: -0.01em; line-height: 1; color: #fff; }
+.stat-label { font-size: 12px; font-weight: 600; color: rgba(255,255,255,.92); margin-top: 4px; }
+.stat-delta { font-size: 11px; font-weight: 700; color: rgba(255,255,255,.85); margin-top: 4px; }
 
 .session-list { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 8px 8px 14px; }
 .session-list-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; }
 .session-list-head h2 { font-size: 15px; margin: 0; }
+.session-list-tabs { display: flex; gap: 6px; }
+.tab-btn { border: none; background: transparent; color: var(--muted); font-size: 15px; font-weight: 700; padding: 4px 10px 4px 0; cursor: pointer; border-bottom: 2px solid transparent; }
+.tab-btn.is-active { color: var(--text); border-bottom-color: var(--brand); }
+.summary-row { border-bottom: 1px solid var(--border); }
+.summary-row-head { display: flex; justify-content: space-between; padding: 12px 16px; cursor: pointer; }
 .muted { color: var(--muted); font-size: 12.5px; }
 .session-row { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 14px; transition: background .15s ease; }
 .session-row:hover { background: rgba(37,99,235,.05); }
@@ -1385,7 +1445,7 @@ const STYLES = `
 .field-row { display: flex; gap: 10px; }
 .modal-foot { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
 
-.content-grid { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
+.content-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 320px); gap: 20px; align-items: start; width: 100%; }
 .calendar-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 16px; }
 .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .cal-month-label { font-size: 13.5px; font-weight: 700; }
@@ -1415,10 +1475,78 @@ const STYLES = `
 .cal-event-title { font-size: 12.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cal-event-time { font-size: 11px; color: var(--muted); }
 
-@media (max-width: 900px) {
-  .stat-grid { grid-template-columns: repeat(2, 1fr); }
-  .carousel-slide { flex-direction: column; text-align: center; padding: 24px; }
-  .page-inner { padding: 20px 16px 60px; }
+/* ---------- Large desktops / big monitors ---------- */
+@media (min-width: 1600px) {
+  .page-inner { padding-left: 64px; padding-right: 64px; }
+  .stat-grid { gap: 20px; }
+}
+
+/* ---------- Laptops / small desktops ---------- */
+@media (max-width: 1280px) {
+  .content-grid { grid-template-columns: minmax(0, 1fr) 260px; }
+}
+
+/* ---------- Narrow laptops / iPad landscape: keep side-by-side, just tighten ---------- */
+@media (max-width: 1024px) {
+  .content-grid { grid-template-columns: minmax(0, 1fr) 240px; gap: 14px; }
+  .stat-grid { gap: 12px; }
+}
+
+/* ---------- iPad portrait / large tablets: stat cards stay 4-up, content stacks here ---------- */
+@media (max-width: 860px) {
   .content-grid { grid-template-columns: 1fr; }
+  .calendar-card { width: 100%; }
+}
+
+/* ---------- Small tablets ---------- */
+@media (max-width: 760px) {
+  .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .carousel-slide { flex-direction: column; text-align: center; padding: 24px; gap: 20px; }
+  .carousel-copy { max-width: 100%; }
+  .page-inner { padding: 20px 20px 60px; }
+  .hero h1 { white-space: normal; }
+  .page-header { flex-wrap: wrap; row-gap: 12px; }
+  .illo { width: 100%; max-width: 300px; }
+}
+
+/* ---------- iPad mini / small tablets ---------- */
+@media (max-width: 700px) {
+  .page-inner { padding: 18px 16px 56px; }
+  .hero-actions { gap: 10px; }
+  .join-by-code input { width: 120px; }
+  .session-row { flex-wrap: wrap; row-gap: 8px; }
+  .session-actions { margin-left: auto; }
+  .corner-logo { max-width: 90px; }
+}
+
+/* ---------- Phones / iPhone / Pixel ---------- */
+@media (max-width: 600px) {
+  .page-inner { padding: 16px 14px 48px; }
+  .page-header { align-items: flex-start; }
+  .header-right { flex-wrap: wrap; row-gap: 8px; justify-content: flex-end; }
+  .hero h1 { font-size: 22px; line-height: 1.2; }
+  .hero p { font-size: 13.5px; }
+  .hero-actions { flex-direction: column; align-items: stretch; }
+  .join-by-code { width: 100%; }
+  .join-by-code input { width: 100%; flex: 1; }
+  .split-btn { width: 100%; }
+  .split-btn-main { flex: 1; justify-content: center; }
+  .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .stat-card { padding: 14px; }
+  .stat-value { font-size: 22px; }
+  .carousel-stage { border-radius: 16px; }
+  .carousel-copy h3 { font-size: 18px; }
+  .session-row { padding: 12px 10px; }
+  .session-time { display: none; }
+  .modal-card { width: calc(100vw - 32px); }
+  .wordmark { font-size: 15px; }
+}
+
+/* ---------- Very small phones ---------- */
+@media (max-width: 380px) {
+  .stat-grid { grid-template-columns: 1fr; }
+  .live-pill { font-size: 11px; padding: 5px 9px; }
+  .clock { display: none; }
+  .corner-logo { height: 24px; max-width: 76px; }
 }
 `;

@@ -226,3 +226,12 @@ export const updateIndividualChatFeatureFlags = (email, dto) =>
     `/chat-feature-flags/individual?email=${encodeURIComponent(email)}`,
     dto,
   );
+
+// ── Meeting Summaries ───────────────────────────────────────────
+
+/** GET /api/meeting-summaries/{meetingId} */
+export const getMeetingSummary = (meetingId) =>
+  API.get(`/meeting-summaries/${meetingId}`);
+
+/** GET /api/meeting-summaries/my */
+export const getMyMeetingSummaries = () => API.get("/meeting-summaries/my");

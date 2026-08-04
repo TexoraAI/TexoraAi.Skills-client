@@ -59,6 +59,8 @@ import {
   deleteMeetingApi,
   getMeetingsCalendar,
 } from "../services/liveSessionService";
+import { getMyMeetingSummaries } from "../services/chatService"; // ⚠️ adjust path
+import { MeetingSummaryView } from "../components/MeetingSummaryView";
 
 const pad = (n) => (n < 10 ? "0" + n : "" + n);
 function toGCalStamp(d) {
@@ -1078,7 +1080,10 @@ export default function TrainerMeetings() {
   const [sessions, setSessions] = useState([]);
   const [linkMeeting, setLinkMeeting] = useState(null);
   const [showInstantModal, setShowInstantModal] = useState(false);
-  const [detailsMeetingId, setDetailsMeetingId] = useState(null);
+const [detailsMeetingId, setDetailsMeetingId] = useState(null);
+  const [meetingsTab, setMeetingsTab] = useState("sessions"); // "sessions" | "summaries"
+  const [summaries, setSummaries] = useState([]);
+  const [openSummaryId, setOpenSummaryId] = useState(null);
   const [calendarMonth, setCalendarMonth] = useState(
     `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`,
   );
@@ -1096,11 +1101,18 @@ export default function TrainerMeetings() {
     const t = setInterval(() => setNow(new Date()), 30000);
     return () => clearInterval(t);
   }, []);
-  useEffect(() => {
+ useEffect(() => {
     getMyMeetings()
       .then((res) => setSessions(res.data.map(mapMeetingToRow)))
       .catch((err) => console.error("Failed to load meetings", err));
   }, []);
+
+  useEffect(() => {
+    if (meetingsTab !== "summaries") return;
+    getMyMeetingSummaries()
+      .then((res) => setSummaries(res.data || []))
+      .catch((err) => console.error("Failed to load summaries", err));
+  }, [meetingsTab]);
 
   const refreshCalendar = useCallback((month) => {
     getMeetingsCalendar(month)
@@ -1343,22 +1355,63 @@ export default function TrainerMeetings() {
         <div className="content-grid">
           <section className="session-list">
             <div className="session-list-head">
-              <h2>Your sessions</h2>
-              <span className="muted">{sessions.length} total</span>
+              <div className="session-list-tabs">
+                <button
+                  className={`tab-btn ${meetingsTab === "sessions" ? "is-active" : ""}`}
+                  onClick={() => setMeetingsTab("sessions")}
+                >
+                  Your sessions
+                </button>
+                <button
+                  className={`tab-btn ${meetingsTab === "summaries" ? "is-active" : ""}`}
+                  onClick={() => setMeetingsTab("summaries")}
+                >
+                  Summaries
+                </button>
+              </div>
+              <span className="muted">
+                {meetingsTab === "sessions"
+                  ? `${sessions.length} total`
+                  : `${summaries.length} total`}
+              </span>
             </div>
             <div className="session-list-body">
-              {sessions.map((s) => (
-                <SessionRow
-                  key={s.id}
-                  s={s}
-                  onJoin={(code) => code && navigate(`/workspace/${code}`)}
-                  onViewDetails={(id) => setDetailsMeetingId(id)}
-                  onDelete={handleDeleteMeeting}
-                />
-              ))}
+              {meetingsTab === "sessions" ? (
+                sessions.map((s) => (
+                  <SessionRow
+                    key={s.id}
+                    s={s}
+                    onJoin={(code) => code && navigate(`/workspace/${code}`)}
+                    onViewDetails={(id) => setDetailsMeetingId(id)}
+                    onDelete={handleDeleteMeeting}
+                  />
+                ))
+              ) : summaries.length === 0 ? (
+                <div className="muted" style={{ padding: 16 }}>
+                  No summaries yet.
+                </div>
+              ) : (
+                summaries.map((sm) => (
+                  <div key={sm.meetingId} className="summary-row">
+                    <div
+                      className="summary-row-head"
+                      onClick={() =>
+                        setOpenSummaryId((id) =>
+                          id === sm.meetingId ? null : sm.meetingId,
+                        )
+                      }
+                    >
+                      <span>{sm.title}</span>
+                      <span className="muted">{sm.status}</span>
+                    </div>
+                    {openSummaryId === sm.meetingId && (
+                      <MeetingSummaryView meetingId={sm.meetingId} />
+                    )}
+                  </div>
+                ))
+              )}
             </div>
           </section>
-
           <MeetingCalendar
             calendarData={calendarData}
             month={calendarMonth}
@@ -1514,6 +1567,11 @@ const STYLES = `
 .session-list { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 8px 8px 14px; }
 .session-list-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; }
 .session-list-head h2 { font-size: 15px; margin: 0; }
+.session-list-tabs { display: flex; gap: 6px; }
+.tab-btn { border: none; background: transparent; color: var(--muted); font-size: 15px; font-weight: 700; padding: 4px 10px 4px 0; cursor: pointer; border-bottom: 2px solid transparent; }
+.tab-btn.is-active { color: var(--text); border-bottom-color: var(--brand); }
+.summary-row { border-bottom: 1px solid var(--border); }
+.summary-row-head { display: flex; justify-content: space-between; padding: 12px 16px; cursor: pointer; }
 .muted { color: var(--muted); font-size: 12.5px; }
 .session-row { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 14px; transition: background .15s ease; }
 .session-row:hover { background: rgba(37,99,235,.05); }

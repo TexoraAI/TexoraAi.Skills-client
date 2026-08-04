@@ -44,6 +44,8 @@ const api = {
       {},
       authHeaders(),
     ),
+  getTranscript: (tid) =>
+    axios.get(`${API_BASE}/v1/ai-companion/transcripts/${tid}`, authHeaders()),
   getSummary: (tid) =>
     axios.post(
       `${API_BASE}/v1/ai-companion/transcripts/${tid}/summary`,
@@ -92,7 +94,13 @@ function secondsToTimestamp(sec) {
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
-export default function AiInPersonNotes({ isDark }) {
+// export default function AiInPersonNotes({ isDark }) {
+export default function AiInPersonNotes({
+  isDark,
+  initialTranscriptId,
+  initialSessionId,
+  initialSessionTitle,
+}) {
   // Theme
   const bg = isDark ? "#0d1117" : "#f0f4f8";
   const panelBg = isDark ? "#111827" : "#ffffff";
@@ -110,6 +118,7 @@ export default function AiInPersonNotes({ isDark }) {
   const [interimText, setInterimText] = useState("");
   const [transcriptId, setTranscriptId] = useState(null);
   const [startEpoch, setStartEpoch] = useState(null);
+  const [sessionTitle, setSessionTitle] = useState(initialSessionTitle || null);
   const [summary, setSummary] = useState("");
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [question, setQuestion] = useState("");
@@ -149,19 +158,44 @@ export default function AiInPersonNotes({ isDark }) {
     }
 
     // Create backend session
-    let tid;
-    try {
-      const res = await api.startTranscript({ title: "In-Person Notes" });
-      tid = res.data.id;
-      setTranscriptId(tid);
-    } catch {
-      setError("Failed to start transcript session. Check server connection.");
-      return;
+    // let tid;
+    // try {
+    //   const res = await api.startTranscript({ title: "In-Person Notes" });
+    //   tid = res.data.id;
+    //   setTranscriptId(tid);
+    // } catch {
+    //   setError("Failed to start transcript session. Check server connection.");
+    //   return;
+    // }
+
+    // const epoch = Date.now();
+    // setStartEpoch(epoch);
+    // setSegments([]);
+    // setInterimText("");
+    // Reuse an existing transcript (e.g. handed off from the Meetings tab)
+    // instead of creating a duplicate session — this is the core fix.
+    let tid = transcriptId;
+    if (!tid) {
+      try {
+        const res = await api.startTranscript({
+          liveSessionId: initialSessionId || null,
+          title: sessionTitle || "In-Person Notes",
+        });
+        tid = res.data.id;
+        setTranscriptId(tid);
+      } catch {
+        setError(
+          "Failed to start transcript session. Check server connection.",
+        );
+        return;
+      }
     }
 
     const epoch = Date.now();
     setStartEpoch(epoch);
-    setSegments([]);
+    if (!initialTranscriptId) {
+      setSegments([]);
+    }
     setInterimText("");
     setSummary("");
     setQaHistory([]);
@@ -224,10 +258,47 @@ export default function AiInPersonNotes({ isDark }) {
       }
     };
 
+    //   rec._shouldRestart = true;
+    //   rec.start();
+    // }, []);
     rec._shouldRestart = true;
     rec.start();
-  }, []);
+  }, [transcriptId, sessionTitle, initialTranscriptId, initialSessionId]);
+  // ── Hydrate from a transcript handed off by the Meetings tab ────────────────
+  useEffect(() => {
+    if (!initialTranscriptId) return;
 
+    setTranscriptId(initialTranscriptId);
+    setSessionTitle(initialSessionTitle || null);
+
+    api
+      .getTranscript(initialTranscriptId)
+      .then((res) => {
+        const existing = res?.data?.segments || [];
+        if (Array.isArray(existing) && existing.length > 0) {
+          setSegments(
+            existing.map((s, i) => ({
+              id: s.id || `hydrated-${i}`,
+              speaker: s.speakerName || "Speaker 1",
+              text: s.text,
+              time: s.createdAt || new Date().toISOString(),
+              second: s.startedAtSecond ?? 0,
+            })),
+          );
+        }
+        // Fall back to the session's own title if none was passed down
+        if (!initialSessionTitle && res?.data?.session?.title) {
+          setSessionTitle(res.data.session.title);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        // Begin live capture against the SAME transcriptId — handleStart
+        // sees transcriptId is already set and skips creating a new one.
+        handleStart();
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialTranscriptId]);
   // ── Stop recording ──────────────────────────────────────────────────────────
   const handleStop = useCallback(async () => {
     if (recRef.current) {
@@ -375,7 +446,7 @@ export default function AiInPersonNotes({ isDark }) {
             >
               In-Person Notes
             </h2>
-            <p
+            {/* <p
               style={{ fontSize: 11, color: textSecondary, margin: "1px 0 0" }}
             >
               {phase === "recording"
@@ -383,6 +454,23 @@ export default function AiInPersonNotes({ isDark }) {
                 : phase === "stopped"
                   ? "Session complete"
                   : "Transcribe and annotate sessions"}
+            </p> */}
+            <p
+              style={{ fontSize: 11, color: textSecondary, margin: "1px 0 0" }}
+            >
+              {sessionTitle
+                ? `${sessionTitle} — ${
+                    phase === "recording"
+                      ? "● Recording live…"
+                      : phase === "stopped"
+                        ? "Session complete"
+                        : "Ready to transcribe"
+                  }`
+                : phase === "recording"
+                  ? "● Recording live…"
+                  : phase === "stopped"
+                    ? "Session complete"
+                    : "Transcribe and annotate sessions"}
             </p>
           </div>
         </div>
@@ -413,12 +501,21 @@ export default function AiInPersonNotes({ isDark }) {
           )}
           {phase === "stopped" && (
             <button
+              // onClick={() => {
+              //   setPhase("idle");
+              //   setSegments([]);
+              //   setSummary("");
+              //   setQaHistory([]);
+              //   setTranscriptId(null);
+              //   setActiveTab("transcript");
+              // }}
               onClick={() => {
                 setPhase("idle");
                 setSegments([]);
                 setSummary("");
                 setQaHistory([]);
                 setTranscriptId(null);
+                setSessionTitle(null);
                 setActiveTab("transcript");
               }}
               style={{ ...btnStyle("#6b7280"), fontSize: 12 }}

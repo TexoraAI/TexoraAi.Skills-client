@@ -168,6 +168,9 @@ const SuperAdminMeetings = lazyLoad(
 const BannerStudioPage = lazyLoad(() =>
   import("./SuperAdmin/cms-management/banner-studio/pages/BannerStudioPage")
 );
+const PlatformOverview = lazyLoad(() =>
+  import("./SuperAdmin/cms-management/pages/platformoverview")
+);
 /* ================= AUTH PAGES ================= */
 const ApprovalPending = lazyLoad(() => import("./pages/Auth/ApprovalPending.jsx"));
 const Login           = lazyLoad(() => import("./pages/Auth/Login.jsx"));
@@ -218,6 +221,7 @@ const HelpCenter        = lazyLoad(() => import("./pages/Company/HelpCenter"));
 /* ================= COMMON ================= */
 const NotificationsPage = lazyLoad(() => import("./pages/NotificationsPage"));
 const ProfilePage       = lazyLoad(() => import("./pages/ProfilePage"));
+const IlmDemoProfilePage = lazyLoad(() => import("./pages/IlmDemoProfilePage"));
 const SearchPage        = lazyLoad(() => import("./pages/SearchPage"));
 const ApplyForm         = lazyLoad(() => import("./pages/common/ApplyForm"));
 const CompleteProfile   = lazyLoad(() => import("./pages/common/CompleteProfile"));
@@ -291,7 +295,9 @@ const TrainerCompilerPage   = lazyLoad(() => import("./Trainer/TrainerCompilerPa
 const TrainerStudyPlanPage  = lazyLoad (() => import("./Trainer/TrainerStudyPlanPage.jsx"),);
 const WhiteboardPanel       = lazyLoad(() => import("./Trainer/WhiteboardPanel.jsx"));
 
-const AiCompanionPage       = lazyLoad(() => import("./Trainer/AiCompanionPage.jsx"));
+const AiCompanionPanel = lazyLoad(
+  () => import("./Trainer/AiCompanionPanel.jsx"),
+);
 
 const TrainerMeetings = lazyLoad(() => import("./Trainer/TrainerMeetings.jsx"));
 /* ================= ADMIN ================= */
@@ -693,6 +699,7 @@ seedCMSData();
               <Route path="search" element={<SearchPage />} />
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="profile" element={<ProfilePage />} />
+              
               <Route path="edit-profile" element={<EditProfile />} />
               <Route path="feedback" element={<StudentFeedback />} />
               <Route path="skill-map" element={<SkillMap />} /> 
@@ -739,14 +746,15 @@ seedCMSData();
               <Route path="search" element={<SearchPage />} />
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="profile" element={<ProfilePage />} />
+              
               <Route path="edit-profile" element={<EditProfile />} />
               <Route path="feedback" element={<TrainerFeedback />} />
               <Route path="skill-analytics" element={<TrainerSkillMap />} />
               <Route path="compiler" element={<TrainerCompilerPage />} />
               <Route path="study-plan" element={<TrainerStudyPlanPage />} />
-              <Route path="ai-companion" element={<AiCompanionPage />} />
+              <Route path="ai-companion" element={<AiCompanionPanel />} />
               <Route path="whiteboard" element={<WhiteboardPanel />} />
-              {/* <Route path="ai-companion" element={<AiCompanionPanel />} /> */}
+              
               <Route path="workspace" element={<TrainerMeetings />} />
             </Route>
 
@@ -782,6 +790,7 @@ seedCMSData();
               <Route path="search" element={<SearchPage />} />
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="profile" element={<ProfilePage />} />
+              
               <Route path="edit-profile" element={<EditProfile />} />
              
               <Route path="feedback-review" element={<AdminFeedback />} />
@@ -808,6 +817,7 @@ seedCMSData();
               <Route path="search" element={<SearchPage />} />
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="profile" element={<ProfilePage />} />
+              
               <Route path="edit-profile" element={<EditProfile />} />
             </Route>
  {/* ================= SUPER ADMIN ================= */}
@@ -923,6 +933,10 @@ seedCMSData();
 <Route
   path="cms/banner-studio"
   element={<BannerStudioPage />}
+/>
+<Route
+  path="cms/platform-overview"
+  element={<PlatformOverview />}
 />
               {/* ================= COMMON ================= */}
               <Route path="search" element={<SearchPage />} />

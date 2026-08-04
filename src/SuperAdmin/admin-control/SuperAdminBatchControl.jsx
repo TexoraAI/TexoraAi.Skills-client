@@ -1,5 +1,37 @@
+// /**
+//  * SuperAdminBatchControl.jsx  — Light UI redesign
+//  *
+//  * Matches the visual language of OnboardingManagement + OrganizationPage:
+//  *  • White cards, #f8fafc page background
+//  *  • Inter / system-ui font stack
+//  *  • #6366f1 purple accent (consistent with SuperAdmin theme)
+//  *  • Compact font sizes (10–14px), same scale as sibling pages
+//  *  • Clean table layout, inline slide panel
+//  */
+
 // import {
+//   //   Activity,
+//   //   AlertCircle,
+//   //   ArrowLeft,
+//   //   Building2,
+//   //   CheckCircle2,
+//   //   ChevronRight,
+//   //   GitBranch,
+//   //   GripVertical,
+//   //   Layers,
+//   //   Loader2,
+//   //   MapPin,
+//   //   Pencil,
+//   //   Plus,
+//   //   Search,
+//   //   Trash2,
+//   //   UserCheck,
+//   //   UserMinus,
+//   //   UserPlus,
+//   //   X,
+//   Activity,
 //   AlertCircle,
+//   ArrowLeft,
 //   Building2,
 //   CheckCircle2,
 //   ChevronRight,
@@ -127,122 +159,6 @@
 // const avatarGrad = (name = "") =>
 //   AVATAR_COLORS[(name?.charCodeAt(0) ?? 0) % AVATAR_COLORS.length];
 
-// /* ─── PER-TAB VISUAL IDENTITY ───────────────────────────────────
-//    Each tab gets its own accent hue (used for the tab pill, card
-//    badge, create button, search focus ring, and panel header),
-//    while sharing the same overall design language/shape language. */
-// const TAB_META = {
-//   Departments: {
-//     hex: "#8b5cf6",
-//     dark: "#5b21b6",
-//     grad: ["#8b5cf6", "#a78bfa"],
-//     Icon: Building2,
-//   },
-//   Branches: {
-//     hex: "#14b8a6",
-//     dark: "#0f766e",
-//     grad: ["#14b8a6", "#2dd4bf"],
-//     Icon: GitBranch,
-//   },
-//   Batches: {
-//     hex: "#f59e0b",
-//     dark: "#b45309",
-//     grad: ["#f59e0b", "#fbbf24"],
-//     Icon: Layers,
-//   },
-// };
-
-// /* Page heading/subtitle changes with the active tab */
-// const PAGE_META = {
-//   Departments: {
-//     title: "Department Management",
-//     subtitle: "Manage all departments across organisations",
-//   },
-//   Branches: {
-//     title: "Branch Management",
-//     subtitle: "Manage all branches across organisations",
-//   },
-//   Batches: {
-//     title: "Batch Management",
-//     subtitle: "Manage all batches across organisations",
-//   },
-// };
-
-// /* ─── COLOR HELPERS ──────────────────────────────────────────── */
-// const hexToRgba = (hex, alpha) => {
-//   const h = hex.replace("#", "");
-//   const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
-//   const int = parseInt(full, 16);
-//   const r = (int >> 16) & 255,
-//     g = (int >> 8) & 255,
-//     b = int & 255;
-//   return `rgba(${r},${g},${b},${alpha})`;
-// };
-
-// /** Theme-aware colored "chip" (badge) — same hue reads correctly on
-//  *  both light and dark surfaces, only the tint/alpha shifts. */
-// const chipStyle = (hex, theme) => ({
-//   background: hexToRgba(hex, theme === "dark" ? 0.16 : 0.1),
-//   border: `1px solid ${hexToRgba(hex, theme === "dark" ? 0.4 : 0.22)}`,
-//   color: theme === "dark" ? hexToRgba(hex, 1) : hex,
-// });
-
-// /* ─── THEME TOKENS ───────────────────────────────────────────── */
-// const THEMES = {
-//   light: {
-//     pageBg: "#f8fafc",
-//     headerBg: "#fafafa",
-//     theadBg: "#f8fafc",
-//     cardBg: "#ffffff",
-//     dropdownBg: "#ffffff",
-//     border: "#e5e7eb",
-//     borderSub: "#f1f5f9",
-//     text: "#0f172a",
-//     textSub: "#64748b",
-//     textMuted: "#94a3b8",
-//     accent: "#6366f1",
-//     accentBg: "#eef2ff",
-//     accentLt: "#c7d2fe",
-//     inputBg: "#f1f5f9",
-//     danger: "#ef4444",
-//     dangerBg: "#fee2e2",
-//     success: "#10b981",
-//     successBg: "#d1fae5",
-//     rowHov: "#f9fafb",
-//     skeleton: "#e2e8f0",
-//     overlayIcon: "rgba(255,255,255,0.2)",
-//     overlayIconHov: "rgba(255,255,255,0.3)",
-//     shadow: "0 1px 3px rgba(0,0,0,0.06)",
-//     shadowMd: "0 4px 16px rgba(0,0,0,0.10)",
-//   },
-//   dark: {
-//     pageBg: "#0a0f1c",
-//     headerBg: "#0f1626",
-//     theadBg: "#101828",
-//     cardBg: "#131b2e",
-//     dropdownBg: "#161f34",
-//     border: "#26314a",
-//     borderSub: "#1b2338",
-//     text: "#e7ecf7",
-//     textSub: "#9aa7c2",
-//     textMuted: "#6b7794",
-//     accent: "#818cf8",
-//     accentBg: "rgba(129,140,248,0.14)",
-//     accentLt: "rgba(129,140,248,0.38)",
-//     inputBg: "#1a2338",
-//     danger: "#f87171",
-//     dangerBg: "rgba(248,113,113,0.14)",
-//     success: "#34d399",
-//     successBg: "rgba(52,211,153,0.14)",
-//     rowHov: "#17203533",
-//     skeleton: "#233049",
-//     overlayIcon: "rgba(255,255,255,0.14)",
-//     overlayIconHov: "rgba(255,255,255,0.24)",
-//     shadow: "0 1px 3px rgba(0,0,0,0.35)",
-//     shadowMd: "0 10px 28px rgba(0,0,0,0.55)",
-//   },
-// };
-
 // /* ─── DRAG LIST ──────────────────────────────────────────────── */
 // function useDragList(items, setItems) {
 //   const dragIdx = useRef(null),
@@ -283,6 +199,55 @@
 //   });
 //   return { handlers, active, over };
 // }
+
+// /* ─── SHARED STYLE TOKENS ────────────────────────────────────── */
+// const T = {
+//   pageBg: "#f8fafc",
+//   cardBg: "#ffffff",
+//   border: "#e5e7eb",
+//   borderSub: "#f1f5f9",
+//   text: "#0f172a",
+//   textSub: "#64748b",
+//   textMuted: "#94a3b8",
+//   accent: "#6366f1",
+//   accentBg: "#eef2ff",
+//   accentLt: "#c7d2fe",
+//   inputBg: "#f1f5f9",
+//   danger: "#ef4444",
+//   dangerBg: "#fee2e2",
+//   success: "#10b981",
+//   successBg: "#d1fae5",
+//   rowHov: "#f9fafb",
+//   shadow: "0 1px 3px rgba(0,0,0,0.06)",
+//   shadowMd: "0 4px 16px rgba(0,0,0,0.10)",
+// };
+
+// const inputStyle = {
+//   width: "100%",
+//   height: 36,
+//   borderRadius: 8,
+//   border: `1px solid ${T.border}`,
+//   background: "#fff",
+//   color: T.text,
+//   fontSize: 13,
+//   fontFamily: "Inter, -apple-system, sans-serif",
+//   padding: "0 11px",
+//   outline: "none",
+//   boxSizing: "border-box",
+// };
+
+// const labelStyle = {
+//   fontSize: 10,
+//   fontWeight: 700,
+//   letterSpacing: "0.07em",
+//   textTransform: "uppercase",
+//   color: T.textMuted,
+//   fontFamily: "Inter, -apple-system, sans-serif",
+//   display: "flex",
+//   alignItems: "center",
+//   gap: 5,
+//   marginBottom: 5,
+// };
 
 // /* ═══════════════════════════════════════════════════════════════
 //    MAIN COMPONENT
@@ -325,79 +290,32 @@
 //   const [availableStudentsMap, setAvailableStudentsMap] = useState({}); // { trainerEmail: [students] }
 //   const [manageError, setManageError] = useState("");
 
-//   /* ── THEME — synced with the app's real global Light/Dark toggle ──
-//      (previously this used its own independent system-preference check,
-//      which didn't match the app's actual Light Mode / Dark Mode button
-//      in the top nav. This now reads the same signal the app uses and
-//      stays in sync if it changes.) */
-//   const detectAppTheme = () => {
-//     if (typeof document === "undefined") return "light";
-//     const root = document.documentElement;
-//     if (root.classList.contains("dark")) return "dark";
-//     if (root.dataset && root.dataset.theme === "dark") return "dark";
-//     try {
-//       const stored = window.localStorage.getItem("theme");
-//       if (stored === "dark") return "dark";
-//       if (stored === "light") return "light";
-//     } catch (e) {
-//       /* localStorage may be unavailable — ignore */
-//     }
-//     if (
-//       typeof window !== "undefined" &&
-//       window.matchMedia &&
-//       window.matchMedia("(prefers-color-scheme: dark)").matches
-//     ) {
-//       return "dark";
-//     }
-//     return "light";
-//   };
-//   const [theme, setTheme] = useState(detectAppTheme);
-//   useEffect(() => {
-//     const root = document.documentElement;
-//     const sync = () => setTheme(detectAppTheme());
-//     sync();
-//     const observer = new MutationObserver(sync);
-//     observer.observe(root, {
-//       attributes: true,
-//       attributeFilter: ["class", "data-theme"],
-//     });
-//     window.addEventListener("storage", sync);
-//     return () => {
-//       observer.disconnect();
-//       window.removeEventListener("storage", sync);
-//     };
-//   }, []);
-//   const T = THEMES[theme];
-//   const accent = TAB_META[activeTab];
-
-//   const inputStyle = {
-//     width: "100%",
-//     height: 36,
-//     borderRadius: 8,
-//     border: `1px solid ${T.border}`,
-//     background: T.cardBg,
-//     color: T.text,
-//     fontSize: 13,
-//     fontFamily: "Inter, -apple-system, sans-serif",
-//     padding: "0 11px",
-//     outline: "none",
-//     boxSizing: "border-box",
-//   };
-
-//   const labelStyle = {
-//     fontSize: 10,
-//     fontWeight: 700,
-//     letterSpacing: "0.07em",
-//     textTransform: "uppercase",
-//     color: T.textMuted,
-//     fontFamily: "Inter, -apple-system, sans-serif",
-//     display: "flex",
-//     alignItems: "center",
-//     gap: 5,
-//     marginBottom: 5,
-//   };
-
 //   /* ── LOAD ── */
+//   //   const load = async () => {
+//   //     setLoading(true);
+//   //     setGlobalError(null);
+//   //     try {
+//   //       if (activeTab === "Departments") {
+//   //         const res = await getDepartments();
+//   //         setDepartments(res?.data || []);
+//   //       } else if (activeTab === "Branches") {
+//   //         const [br, dp] = await Promise.all([getBranches(), getDepartments()]);
+//   //         setBranches(br?.data?.data ?? br?.data ?? []);
+//   //         setDepartments(dp?.data || []);
+//   //       } else {
+//   //         const [bt, br] = await Promise.all([getAllBatches(), getBranches()]);
+//   //         const list = bt?.data?.data ?? bt?.data?.batches ?? bt?.data ?? [];
+//   //         setBatches(Array.isArray(list) ? list : []);
+//   //         const blist = br?.data?.data ?? br?.data ?? [];
+//   //         setBranches(Array.isArray(blist) ? blist : []);
+//   //       }
+//   //     } catch (e) {
+//   //       console.error(e);
+//   //       setGlobalError("Failed to load data. Please retry.");
+//   //     } finally {
+//   //       setLoading(false);
+//   //     }
+//   //   };
 //   const load = async () => {
 //     setLoading(true);
 //     setGlobalError(null);
@@ -708,8 +626,6 @@
 
 //   /* ═══════════════════════════════════════════════════════════
 //      PANEL FORM CONTENT
-//      NOTE: this is intentionally a plain function (not rendered as
-//      <PanelContent/>) — see the FIX note at the top of this file.
 //   ═══════════════════════════════════════════════════════════ */
 //   const PanelContent = () => {
 //     const allDeptOpts = [...DEPT_OPTIONS, ...customDeptOpts];
@@ -734,7 +650,7 @@
 //                 padding: "9px 12px",
 //                 borderRadius: 8,
 //                 background: T.dangerBg,
-//                 border: `1px solid ${hexToRgba(T.danger, 0.3)}`,
+//                 border: `1px solid ${T.danger}30`,
 //                 color: T.danger,
 //                 fontSize: 12,
 //               }}
@@ -782,7 +698,7 @@
 //                     top: "calc(100% + 4px)",
 //                     left: 0,
 //                     right: 0,
-//                     background: T.dropdownBg,
+//                     background: "#fff",
 //                     border: `1px solid ${T.border}`,
 //                     borderRadius: 10,
 //                     boxShadow: T.shadowMd,
@@ -936,7 +852,7 @@
 //                 padding: "9px 12px",
 //                 borderRadius: 8,
 //                 background: T.dangerBg,
-//                 border: `1px solid ${hexToRgba(T.danger, 0.3)}`,
+//                 border: `1px solid ${T.danger}30`,
 //                 color: T.danger,
 //                 fontSize: 12,
 //               }}
@@ -1113,7 +1029,7 @@
 //               padding: "9px 12px",
 //               borderRadius: 8,
 //               background: T.dangerBg,
-//               border: `1px solid ${hexToRgba(T.danger, 0.3)}`,
+//               border: `1px solid ${T.danger}30`,
 //               color: T.danger,
 //               fontSize: 12,
 //             }}
@@ -1229,9 +1145,9 @@
 //     );
 //   };
 
-//   /* ─── Skeleton row (rendered via function call too, same reasoning) ─── */
-//   const SkeletonRow = (key) => (
-//     <tr key={key} style={{ borderBottom: `1px solid ${T.borderSub}` }}>
+//   /* ─── Skeleton row ─── */
+//   const SkeletonRow = () => (
+//     <tr style={{ borderBottom: `1px solid ${T.borderSub}` }}>
 //       {[28, 140, 110, 90, 70].map((w, i) => (
 //         <td key={i} style={{ padding: "12px 14px" }}>
 //           <div
@@ -1239,7 +1155,7 @@
 //               height: 9,
 //               width: w,
 //               borderRadius: 5,
-//               background: T.skeleton,
+//               background: "#e2e8f0",
 //               animation: "shimmer 1.4s infinite",
 //             }}
 //           />
@@ -1262,36 +1178,11 @@
 //         .bca-row:hover { background: ${T.rowHov} !important; }
 //         .bca-row:hover .bca-grip { opacity: 1 !important; }
 //         .bca-row:hover .bca-acts { opacity: 1 !important; }
-//         .bca-row:hover .bca-rname { color: ${accent.hex} !important; }
+//         .bca-row:hover .bca-rname { color: ${T.accent} !important; }
 //         .bca-rname { transition: color 0.12s; }
-//         .bca-tab:hover { background: ${hexToRgba(accent.hex, theme === "dark" ? 0.16 : 0.08)} !important; color: ${accent.hex} !important; }
+//         .bca-tab:hover { background: ${T.accentBg} !important; color: ${T.accent} !important; }
 //         .bca-icnbtn:hover { opacity: 0.78; }
-//         .bca-search:focus-within { border-color: ${accent.hex} !important; box-shadow: 0 0 0 3px ${hexToRgba(accent.hex, 0.15)} !important; }
 //         * { box-sizing: border-box; }
-
-//         /* ── RESPONSIVE: laptops/small desktops & iPad landscape ── */
-//         @media (max-width: 1100px) {
-//           .bca-container { padding: 24px 20px 48px !important; }
-//           .bca-main-layout { flex-direction: column !important; }
-//           .bca-side-panel { width: 100% !important; max-width: 100% !important; }
-//         }
-
-//         /* ── RESPONSIVE: tablets / iPad mini / iPad portrait ── */
-//         @media (max-width: 820px) {
-//           .bca-header-row h1 { font-size: 19px !important; }
-//           .bca-actionbar { flex-direction: column !important; align-items: stretch !important; }
-//           .bca-tabstrip { width: 100% !important; }
-//           .bca-search-create { flex-direction: column !important; align-items: stretch !important; width: 100% !important; }
-//           .bca-search-input { width: 100% !important; }
-//           .bca-create-btn { width: 100% !important; }
-//         }
-
-//         /* ── RESPONSIVE: phones / iPhone / small Android ── */
-//         @media (max-width: 480px) {
-//           .bca-container { padding: 16px 12px 36px !important; }
-//           .bca-header-row h1 { font-size: 17px !important; }
-//           .bca-header-row p { font-size: 12px !important; }
-//         }
 //       `}</style>
 
 //       <div
@@ -1301,25 +1192,46 @@
 //           color: T.text,
 //           fontFamily:
 //             "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-//           transition: "background 0.3s ease, color 0.2s ease",
 //         }}
 //       >
 //         <div
-//           className="bca-container"
 //           style={{
-//             width: "100%",
+//             maxWidth: 1280,
+//             margin: "0 auto",
 //             padding: "28px 32px 60px",
-//             boxSizing: "border-box",
 //           }}
 //         >
-//           {/* ── PAGE HEADER (plain, no boxed card — sits directly on the page) ── */}
+//           {/* ── PAGE HEADER ── */}
 //           <div
-//             className="bca-header-row"
-//             style={{
-//               animation: "fadeUp 0.35s ease both",
-//               marginBottom: 24,
-//             }}
+//             style={{ animation: "fadeUp 0.35s ease both", marginBottom: 24 }}
 //           >
+//             <div
+//               style={{
+//                 display: "flex",
+//                 alignItems: "center",
+//                 gap: 10,
+//                 marginBottom: 14,
+//               }}
+//             >
+//               <button
+//                 onClick={() => navigate(-1)}
+//                 style={{
+//                   display: "flex",
+//                   alignItems: "center",
+//                   gap: 5,
+//                   padding: "5px 12px",
+//                   borderRadius: 7,
+//                   border: `1px solid ${T.border}`,
+//                   background: "#fff",
+//                   color: T.textSub,
+//                   fontSize: 12,
+//                   fontWeight: 600,
+//                   cursor: "pointer",
+//                 }}
+//               >
+//                 <ArrowLeft size={12} /> Back
+//               </button>
+//             </div>
 //             <div
 //               style={{
 //                 display: "flex",
@@ -1329,140 +1241,111 @@
 //                 gap: 16,
 //               }}
 //             >
-//               <div
-//                 style={{
-//                   display: "flex",
-//                   alignItems: "center",
-//                   gap: 14,
-//                   flexWrap: "wrap",
-//                 }}
-//               >
-//                 <div>
-//                   <h1
-//                     style={{
-//                       fontSize: 22,
-//                       fontWeight: 800,
-//                       color: T.text,
-//                       margin: "0 0 4px",
-//                       letterSpacing: "-0.3px",
-//                     }}
-//                   >
-//                     {PAGE_META[activeTab].title}
-//                   </h1>
-//                   <p
-//                     style={{
-//                       fontSize: 13,
-//                       color: T.textSub,
-//                       margin: 0,
-//                     }}
-//                   >
-//                     {PAGE_META[activeTab].subtitle}
-//                   </p>
-//                 </div>
-//               </div>
-
-//               <div
-//                 style={{
-//                   display: "flex",
-//                   alignItems: "center",
-//                   gap: 10,
-//                   flexWrap: "wrap",
-//                 }}
-//               >
-//                 {/* Stats pills */}
-//                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-//                   {[
-//                     {
-//                       label: "Departments",
-//                       val: departments.length,
-//                       hex: TAB_META.Departments.hex,
-//                       Icon: Building2,
-//                     },
-//                     {
-//                       label: "Branches",
-//                       val: branches.length,
-//                       hex: TAB_META.Branches.hex,
-//                       Icon: GitBranch,
-//                     },
-//                     {
-//                       label: "Batches",
-//                       val: batches.length,
-//                       hex: TAB_META.Batches.hex,
-//                       Icon: Layers,
-//                     },
-//                   ].map(({ label, val, hex, Icon }) => {
-//                     const c = chipStyle(hex, theme);
-//                     return (
-//                       <div
-//                         key={label}
-//                         style={{
-//                           display: "flex",
-//                           alignItems: "center",
-//                           gap: 8,
-//                           padding: "7px 14px",
-//                           borderRadius: 99,
-//                           background: c.background,
-//                           border: c.border,
-//                         }}
-//                       >
-//                         <Icon size={13} color={c.color} />
-//                         <span
-//                           style={{ fontSize: 17, fontWeight: 800, color: c.color }}
-//                         >
-//                           {val}
-//                         </span>
-//                         <span
-//                           style={{ fontSize: 11, fontWeight: 600, color: c.color }}
-//                         >
-//                           {label}
-//                         </span>
-//                       </div>
-//                     );
-//                   })}
-//                 </div>
-//               </div>
-//             </div>
-
-//             {/* ── GLOBAL ERROR ── */}
-//             {globalError && (
-//               <div
-//                 style={{
-//                   display: "flex",
-//                   alignItems: "center",
-//                   gap: 10,
-//                   padding: "11px 16px",
-//                   borderRadius: 10,
-//                   marginTop: 18,
-//                   background: T.dangerBg,
-//                   border: `1px solid ${hexToRgba(T.danger, 0.3)}`,
-//                   color: T.danger,
-//                   fontSize: 12,
-//                 }}
-//               >
-//                 <AlertCircle size={14} />
-//                 <span style={{ flex: 1 }}>{globalError}</span>
-//                 <button
-//                   onClick={load}
+//               <div>
+//                 <h1
 //                   style={{
-//                     padding: "3px 11px",
-//                     borderRadius: 7,
-//                     background: hexToRgba(T.danger, 0.12),
-//                     border: `1px solid ${hexToRgba(T.danger, 0.3)}`,
-//                     color: T.danger,
-//                     fontSize: 11,
-//                     fontWeight: 600,
-//                     cursor: "pointer",
+//                     fontSize: 22,
+//                     fontWeight: 800,
+//                     color: T.text,
+//                     margin: "0 0 4px",
+//                     letterSpacing: "-0.3px",
 //                   }}
 //                 >
-//                   Retry
-//                 </button>
+//                   Batch Management
+//                 </h1>
+//                 <p style={{ fontSize: 13, color: T.textSub, margin: 0 }}>
+//                   Manage Departments, Branches &amp; Batches across all
+//                   organisations
+//                 </p>
 //               </div>
-//             )}
+//               {/* Stats pills */}
+//               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+//                 {[
+//                   {
+//                     label: "Departments",
+//                     val: departments.length,
+//                     color: "#8b5cf6",
+//                     bg: "#ede9fe",
+//                     Icon: Building2,
+//                   },
+//                   {
+//                     label: "Branches",
+//                     val: branches.length,
+//                     color: "#14b8a6",
+//                     bg: "#f0fdfa",
+//                     Icon: GitBranch,
+//                   },
+//                   {
+//                     label: "Batches",
+//                     val: batches.length,
+//                     color: "#f59e0b",
+//                     bg: "#fffbeb",
+//                     Icon: Layers,
+//                   },
+//                 ].map(({ label, val, color, bg, Icon }) => (
+//                   <div
+//                     key={label}
+//                     style={{
+//                       display: "flex",
+//                       alignItems: "center",
+//                       gap: 8,
+//                       padding: "7px 14px",
+//                       borderRadius: 99,
+//                       background: bg,
+//                       border: `1px solid ${color}25`,
+//                     }}
+//                   >
+//                     <Icon size={13} color={color} />
+//                     <span style={{ fontSize: 17, fontWeight: 800, color }}>
+//                       {val}
+//                     </span>
+//                     <span style={{ fontSize: 11, fontWeight: 600, color }}>
+//                       {label}
+//                     </span>
+//                   </div>
+//                 ))}
+//               </div>
+//             </div>
 //           </div>
+
+//           {/* ── GLOBAL ERROR ── */}
+//           {globalError && (
+//             <div
+//               style={{
+//                 display: "flex",
+//                 alignItems: "center",
+//                 gap: 10,
+//                 padding: "11px 16px",
+//                 borderRadius: 10,
+//                 marginBottom: 18,
+//                 background: T.dangerBg,
+//                 border: `1px solid ${T.danger}30`,
+//                 color: T.danger,
+//                 fontSize: 12,
+//               }}
+//             >
+//               <AlertCircle size={14} />
+//               <span style={{ flex: 1 }}>{globalError}</span>
+//               <button
+//                 onClick={load}
+//                 style={{
+//                   padding: "3px 11px",
+//                   borderRadius: 7,
+//                   background: "rgba(239,68,68,0.12)",
+//                   border: `1px solid ${T.danger}30`,
+//                   color: T.danger,
+//                   fontSize: 11,
+//                   fontWeight: 600,
+//                   cursor: "pointer",
+//                 }}
+//               >
+//                 Retry
+//               </button>
+//             </div>
+//           )}
 
 //           {/* ── ACTION BAR ── */}
 //           <div
-//             className="bca-actionbar"
 //             style={{
 //               display: "flex",
 //               flexWrap: "wrap",
@@ -1474,21 +1357,22 @@
 //           >
 //             {/* Sub-tabs */}
 //             <div
-//               className="bca-tabstrip"
 //               style={{
 //                 display: "flex",
 //                 gap: 3,
-//                 background: T.cardBg,
+//                 background: "#fff",
 //                 border: `1px solid ${T.border}`,
 //                 borderRadius: 10,
 //                 padding: 3,
 //                 boxShadow: T.shadow,
-//                 overflowX: "auto",
-//                 maxWidth: "100%",
 //               }}
 //             >
 //               {TABS.map((tab) => {
-//                 const meta = TAB_META[tab];
+//                 const icons = {
+//                   Departments: <Building2 size={13} />,
+//                   Branches: <GitBranch size={13} />,
+//                   Batches: <Layers size={13} />,
+//                 };
 //                 const isActive = activeTab === tab;
 //                 return (
 //                   <button
@@ -1506,38 +1390,23 @@
 //                       fontFamily: "inherit",
 //                       fontSize: 12,
 //                       fontWeight: 600,
-//                       whiteSpace: "nowrap",
-//                       background: isActive
-//                         ? `linear-gradient(135deg,${meta.grad[0]},${meta.grad[1]})`
-//                         : "transparent",
+//                       background: isActive ? T.accent : "transparent",
 //                       color: isActive ? "#fff" : T.textSub,
 //                       boxShadow: isActive
-//                         ? `0 2px 8px ${hexToRgba(meta.hex, 0.35)}`
+//                         ? "0 2px 8px rgba(99,102,241,0.28)"
 //                         : "none",
 //                       transition: "all 0.18s",
 //                     }}
 //                   >
-//                     <meta.Icon size={13} /> {tab}
+//                     {icons[tab]} {tab}
 //                   </button>
 //                 );
 //               })}
 //             </div>
 
 //             {/* Search + Create */}
-//             <div
-//               className="bca-search-create"
-//               style={{ display: "flex", alignItems: "center", gap: 9 }}
-//             >
-//               <div
-//                 className="bca-search"
-//                 style={{
-//                   position: "relative",
-//                   borderRadius: 8,
-//                   border: `1px solid ${T.border}`,
-//                   transition: "border-color 0.15s ease, box-shadow 0.15s ease",
-//                   flex: "1 1 auto",
-//                 }}
-//               >
+//             <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+//               <div style={{ position: "relative" }}>
 //                 <Search
 //                   size={13}
 //                   style={{
@@ -1553,43 +1422,39 @@
 //                   placeholder={`Search ${activeTab.toLowerCase()}…`}
 //                   value={search}
 //                   onChange={(e) => setSearch(e.target.value)}
-//                   className="bca-search-input"
 //                   style={{
 //                     paddingLeft: 32,
 //                     paddingRight: 12,
 //                     height: 35,
 //                     width: 210,
 //                     borderRadius: 8,
-//                     border: "none",
-//                     background: T.cardBg,
+//                     border: `1px solid ${T.border}`,
+//                     background: "#fff",
 //                     color: T.text,
 //                     fontSize: 12,
 //                     fontFamily: "inherit",
 //                     outline: "none",
-//                     boxSizing: "border-box",
+//                     boxShadow: T.shadow,
 //                   }}
 //                 />
 //               </div>
 //               <button
 //                 onClick={openCreate}
-//                 className="bca-create-btn"
 //                 style={{
 //                   display: "flex",
 //                   alignItems: "center",
-//                   justifyContent: "center",
 //                   gap: 6,
 //                   padding: "7px 16px",
 //                   borderRadius: 8,
-//                   background: `linear-gradient(135deg,${accent.grad[0]},${accent.grad[1]})`,
+//                   background: "linear-gradient(135deg,#6366f1,#8b5cf6)",
 //                   border: "none",
 //                   color: "#fff",
 //                   fontSize: 12,
 //                   fontWeight: 700,
 //                   cursor: "pointer",
 //                   fontFamily: "inherit",
-//                   boxShadow: `0 2px 8px ${hexToRgba(accent.hex, 0.35)}`,
+//                   boxShadow: "0 2px 8px rgba(99,102,241,0.32)",
 //                   whiteSpace: "nowrap",
-//                   flexShrink: 0,
 //                 }}
 //               >
 //                 <Plus size={13} />
@@ -1603,10 +1468,7 @@
 //           </div>
 
 //           {/* ── MAIN LAYOUT ── */}
-//           <div
-//             className="bca-main-layout"
-//             style={{ display: "flex", gap: 16, alignItems: "flex-start" }}
-//           >
+//           <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
 //             {/* ── TABLE CARD ── */}
 //             <div style={{ flex: 1, minWidth: 0 }}>
 //               <div
@@ -1626,7 +1488,7 @@
 //                     justifyContent: "space-between",
 //                     padding: "14px 20px",
 //                     borderBottom: `1px solid ${T.borderSub}`,
-//                     background: T.headerBg,
+//                     background: "#fafafa",
 //                   }}
 //                 >
 //                   <div>
@@ -1661,26 +1523,21 @@
 //                       )}
 //                     </p>
 //                   </div>
-//                   {(() => {
-//                     const c = chipStyle(accent.hex, theme);
-//                     return (
-//                       <span
-//                         style={{
-//                           fontSize: 10,
-//                           fontWeight: 700,
-//                           letterSpacing: "0.08em",
-//                           textTransform: "uppercase",
-//                           padding: "3px 10px",
-//                           borderRadius: 99,
-//                           background: c.background,
-//                           color: c.color,
-//                           border: c.border,
-//                         }}
-//                       >
-//                         {activeTab}
-//                       </span>
-//                     );
-//                   })()}
+//                   <span
+//                     style={{
+//                       fontSize: 10,
+//                       fontWeight: 700,
+//                       letterSpacing: "0.08em",
+//                       textTransform: "uppercase",
+//                       padding: "3px 10px",
+//                       borderRadius: 99,
+//                       background: T.accentBg,
+//                       color: T.accent,
+//                       border: `1px solid ${T.accentLt}`,
+//                     }}
+//                   >
+//                     {activeTab}
+//                   </span>
 //                 </div>
 
 //                 {/* Table */}
@@ -1689,7 +1546,7 @@
 //                     <thead>
 //                       <tr
 //                         style={{
-//                           background: T.theadBg,
+//                           background: "#f8fafc",
 //                           borderBottom: `1px solid ${T.borderSub}`,
 //                         }}
 //                       >
@@ -1772,7 +1629,7 @@
 //                     </thead>
 //                     <tbody>
 //                       {loading &&
-//                         [1, 2, 3, 4].map((i) => SkeletonRow(i))}
+//                         [1, 2, 3, 4].map((i) => <SkeletonRow key={i} />)}
 
 //                       {/* DEPARTMENTS */}
 //                       {!loading &&
@@ -1835,7 +1692,6 @@
 //                               isOver = dOver === index && dActive !== index;
 //                             const isDeleting = deleting === dept.id;
 //                             const [c1, c2] = avatarGrad(dept.head || dept.name);
-//                             const dc = chipStyle(TAB_META.Departments.hex, theme);
 //                             return (
 //                               <tr
 //                                 key={dept.id}
@@ -1850,7 +1706,7 @@
 //                                       : "transparent",
 //                                   opacity: isDragging || isDeleting ? 0.5 : 1,
 //                                   outline: isOver
-//                                     ? `2px solid ${accent.hex}`
+//                                     ? `2px solid ${T.accent}`
 //                                     : "none",
 //                                   outlineOffset: -1,
 //                                 }}
@@ -1902,15 +1758,15 @@
 //                                         width: 32,
 //                                         height: 32,
 //                                         borderRadius: 9,
-//                                         background: dc.background,
-//                                         border: dc.border,
+//                                         background: "#ede9fe",
+//                                         border: "1px solid #c4b5fd",
 //                                         display: "flex",
 //                                         alignItems: "center",
 //                                         justifyContent: "center",
 //                                         flexShrink: 0,
 //                                       }}
 //                                     >
-//                                       <Building2 size={14} color={dc.color} />
+//                                       <Building2 size={14} color="#8b5cf6" />
 //                                     </div>
 //                                     <div>
 //                                       <span
@@ -2008,7 +1864,7 @@
 //                                         display: "flex",
 //                                         alignItems: "center",
 //                                         justifyContent: "center",
-//                                         background: T.accentBg,
+//                                         background: "#eef2ff",
 //                                         border: `1px solid ${T.accentLt}`,
 //                                         color: T.accent,
 //                                         cursor: "pointer",
@@ -2028,7 +1884,7 @@
 //                                         alignItems: "center",
 //                                         justifyContent: "center",
 //                                         background: T.dangerBg,
-//                                         border: `1px solid ${hexToRgba(T.danger, 0.3)}`,
+//                                         border: `1px solid ${T.danger}30`,
 //                                         color: T.danger,
 //                                         cursor: isDeleting
 //                                           ? "not-allowed"
@@ -2118,8 +1974,6 @@
 //                             const parentDept = departments.find(
 //                               (d) => d.id === b.departmentId,
 //                             );
-//                             const brc = chipStyle(TAB_META.Branches.hex, theme);
-//                             const dpc = chipStyle(TAB_META.Departments.hex, theme);
 //                             return (
 //                               <tr
 //                                 key={b.id}
@@ -2134,7 +1988,7 @@
 //                                       : "transparent",
 //                                   opacity: isDragging || isDeleting ? 0.5 : 1,
 //                                   outline: isOver
-//                                     ? `2px solid ${accent.hex}`
+//                                     ? `2px solid ${T.accent}`
 //                                     : "none",
 //                                   outlineOffset: -1,
 //                                 }}
@@ -2218,18 +2072,18 @@
 //                                       gap: 5,
 //                                     }}
 //                                   >
-//                                     <MapPin size={11} color={brc.color} />
+//                                     <MapPin size={11} color="#14b8a6" />
 //                                     <span
 //                                       style={{
 //                                         display: "inline-flex",
 //                                         alignItems: "center",
 //                                         padding: "2px 9px",
 //                                         borderRadius: 99,
-//                                         background: brc.background,
-//                                         border: brc.border,
+//                                         background: "#f0fdfa",
+//                                         border: "1px solid #99f6e4",
 //                                         fontSize: 11,
 //                                         fontWeight: 600,
-//                                         color: brc.color,
+//                                         color: "#14b8a6",
 //                                       }}
 //                                     >
 //                                       {b.city}
@@ -2245,11 +2099,11 @@
 //                                         gap: 4,
 //                                         padding: "2px 9px",
 //                                         borderRadius: 99,
-//                                         background: dpc.background,
-//                                         border: dpc.border,
+//                                         background: "#ede9fe",
+//                                         border: "1px solid #c4b5fd",
 //                                         fontSize: 11,
 //                                         fontWeight: 600,
-//                                         color: dpc.color,
+//                                         color: "#8b5cf6",
 //                                       }}
 //                                     >
 //                                       <Building2 size={9} /> {parentDept.name}
@@ -2291,7 +2145,7 @@
 //                                         display: "flex",
 //                                         alignItems: "center",
 //                                         justifyContent: "center",
-//                                         background: T.accentBg,
+//                                         background: "#eef2ff",
 //                                         border: `1px solid ${T.accentLt}`,
 //                                         color: T.accent,
 //                                         cursor: "pointer",
@@ -2311,7 +2165,7 @@
 //                                         alignItems: "center",
 //                                         justifyContent: "center",
 //                                         background: T.dangerBg,
-//                                         border: `1px solid ${hexToRgba(T.danger, 0.3)}`,
+//                                         border: `1px solid ${T.danger}30`,
 //                                         color: T.danger,
 //                                         cursor: isDeleting
 //                                           ? "not-allowed"
@@ -2401,8 +2255,6 @@
 //                             const branchName =
 //                               branches.find((br) => br.id === b.branchId)
 //                                 ?.name || `Branch #${b.branchId}`;
-//                             const warnc = chipStyle("#f59e0b", theme);
-//                             const okc = chipStyle(T.success, theme);
 //                             return (
 //                               <tr
 //                                 key={b.id}
@@ -2417,7 +2269,7 @@
 //                                       : "transparent",
 //                                   opacity: isDragging || isDeleting ? 0.5 : 1,
 //                                   outline: isOver
-//                                     ? `2px solid ${accent.hex}`
+//                                     ? `2px solid ${T.accent}`
 //                                     : "none",
 //                                   outlineOffset: -1,
 //                                 }}
@@ -2527,10 +2379,10 @@
 //                                         gap: 4,
 //                                         fontSize: 11,
 //                                         fontWeight: 600,
-//                                         color: okc.color,
+//                                         color: "#10b981",
 //                                       }}
 //                                     >
-//                                       <CheckCircle2 size={11} color={okc.color} />{" "}
+//                                       <CheckCircle2 size={11} color="#10b981" />{" "}
 //                                       {b.trainerEmail}
 //                                     </span>
 //                                   ) : (
@@ -2541,11 +2393,11 @@
 //                                         gap: 5,
 //                                         padding: "2px 9px",
 //                                         borderRadius: 99,
-//                                         background: warnc.background,
-//                                         border: warnc.border,
+//                                         background: "#fffbeb",
+//                                         border: "1px solid #fde68a",
 //                                         fontSize: 11,
 //                                         fontWeight: 600,
-//                                         color: warnc.color,
+//                                         color: "#ca8a04",
 //                                       }}
 //                                     >
 //                                       <span
@@ -2553,7 +2405,7 @@
 //                                           width: 5,
 //                                           height: 5,
 //                                           borderRadius: "50%",
-//                                           background: warnc.color,
+//                                           background: "#f59e0b",
 //                                           display: "inline-block",
 //                                         }}
 //                                       />{" "}
@@ -2577,6 +2429,10 @@
 //                                     }}
 //                                   >
 //                                     <button
+//                                       //   onClick={() =>
+//                                       //     navigate(
+//                                       //       `/admin/batches/${b.id}/trainers`,
+//                                       //     )
 //                                       onClick={() => openManagePanel(b)}
 //                                       style={{
 //                                         display: "flex",
@@ -2584,7 +2440,7 @@
 //                                         gap: 5,
 //                                         padding: "5px 11px",
 //                                         borderRadius: 7,
-//                                         background: T.accentBg,
+//                                         background: "#eef2ff",
 //                                         border: `1px solid ${T.accentLt}`,
 //                                         color: T.accent,
 //                                         cursor: "pointer",
@@ -2607,7 +2463,7 @@
 //                                         alignItems: "center",
 //                                         justifyContent: "center",
 //                                         background: T.dangerBg,
-//                                         border: `1px solid ${hexToRgba(T.danger, 0.3)}`,
+//                                         border: `1px solid ${T.danger}30`,
 //                                         color: T.danger,
 //                                         cursor: isDeleting
 //                                           ? "not-allowed"
@@ -2641,11 +2497,9 @@
 //             {/* ── INLINE SLIDE PANEL ── */}
 //             {panelOpen && (
 //               <div
-//                 className="bca-side-panel"
 //                 style={{
 //                   flexShrink: 0,
 //                   width: 340,
-//                   maxWidth: "100%",
 //                   opacity: panelVisible ? 1 : 0,
 //                   transform: panelVisible
 //                     ? "translateX(0)"
@@ -2667,7 +2521,7 @@
 //                   {/* Panel header */}
 //                   <div
 //                     style={{
-//                       background: `linear-gradient(135deg,${accent.grad[0]},${accent.grad[1]})`,
+//                       background: "linear-gradient(135deg,#6366f1,#8b5cf6)",
 //                       padding: "16px 18px",
 //                     }}
 //                   >
@@ -2690,7 +2544,7 @@
 //                             width: 32,
 //                             height: 32,
 //                             borderRadius: 9,
-//                             background: T.overlayIcon,
+//                             background: "rgba(255,255,255,0.2)",
 //                             display: "flex",
 //                             alignItems: "center",
 //                             justifyContent: "center",
@@ -2722,7 +2576,7 @@
 //                           <p
 //                             style={{
 //                               fontSize: 11,
-//                               color: "rgba(255,255,255,0.75)",
+//                               color: "rgba(255,255,255,0.65)",
 //                               margin: "2px 0 0",
 //                             }}
 //                           >
@@ -2736,7 +2590,7 @@
 //                           width: 26,
 //                           height: 26,
 //                           borderRadius: 7,
-//                           background: T.overlayIcon,
+//                           background: "rgba(255,255,255,0.18)",
 //                           border: "none",
 //                           cursor: "pointer",
 //                           display: "flex",
@@ -2756,8 +2610,7 @@
 //                       maxHeight: "calc(100vh - 320px)",
 //                     }}
 //                   >
-//                     {/* FIX: call as a function, NOT as <PanelContent /> */}
-//                     {PanelContent()}
+//                     <PanelContent />
 //                   </div>
 
 //                   {/* Panel footer */}
@@ -2777,7 +2630,7 @@
 //                         padding: "7px 16px",
 //                         borderRadius: 8,
 //                         border: `1px solid ${T.border}`,
-//                         background: T.cardBg,
+//                         background: "#fff",
 //                         color: T.textSub,
 //                         fontSize: 12,
 //                         fontWeight: 600,
@@ -2797,8 +2650,8 @@
 //                         padding: "7px 18px",
 //                         borderRadius: 8,
 //                         background: saving
-//                           ? T.accentLt
-//                           : `linear-gradient(135deg,${accent.grad[0]},${accent.grad[1]})`,
+//                           ? "#c7d2fe"
+//                           : "linear-gradient(135deg,#6366f1,#8b5cf6)",
 //                         border: "none",
 //                         color: "#fff",
 //                         fontSize: 12,
@@ -2807,7 +2660,7 @@
 //                         fontFamily: "inherit",
 //                         boxShadow: saving
 //                           ? "none"
-//                           : `0 2px 8px ${hexToRgba(accent.hex, 0.35)}`,
+//                           : "0 2px 8px rgba(99,102,241,0.3)",
 //                       }}
 //                     >
 //                       {saving ? (
@@ -2832,11 +2685,9 @@
 //             {/* ── MANAGE TRAINER/STUDENT PANEL ── */}
 //             {managePanelOpen && manageBatch && (
 //               <div
-//                 className="bca-side-panel"
 //                 style={{
 //                   flexShrink: 0,
 //                   width: 420,
-//                   maxWidth: "100%",
 //                   opacity: managePanelVisible ? 1 : 0,
 //                   transform: managePanelVisible
 //                     ? "translateX(0)"
@@ -2861,7 +2712,7 @@
 //                   {/* Header */}
 //                   <div
 //                     style={{
-//                       background: `linear-gradient(135deg,${TAB_META.Batches.grad[0]},${TAB_META.Batches.grad[1]})`,
+//                       background: "linear-gradient(135deg,#6366f1,#8b5cf6)",
 //                       padding: "16px 18px",
 //                       flexShrink: 0,
 //                     }}
@@ -2885,7 +2736,7 @@
 //                             width: 32,
 //                             height: 32,
 //                             borderRadius: 9,
-//                             background: T.overlayIcon,
+//                             background: "rgba(255,255,255,0.2)",
 //                             display: "flex",
 //                             alignItems: "center",
 //                             justifyContent: "center",
@@ -2907,7 +2758,7 @@
 //                           <p
 //                             style={{
 //                               fontSize: 11,
-//                               color: "rgba(255,255,255,0.75)",
+//                               color: "rgba(255,255,255,0.65)",
 //                               margin: "2px 0 0",
 //                             }}
 //                           >
@@ -2921,7 +2772,7 @@
 //                           width: 26,
 //                           height: 26,
 //                           borderRadius: 7,
-//                           background: T.overlayIcon,
+//                           background: "rgba(255,255,255,0.18)",
 //                           border: "none",
 //                           cursor: "pointer",
 //                           display: "flex",
@@ -2947,7 +2798,7 @@
 //                           padding: "9px 12px",
 //                           borderRadius: 8,
 //                           background: T.dangerBg,
-//                           border: `1px solid ${hexToRgba(T.danger, 0.3)}`,
+//                           border: `1px solid ${T.danger}30`,
 //                           color: T.danger,
 //                           fontSize: 12,
 //                           marginBottom: 12,
@@ -3069,7 +2920,7 @@
 //                                         alignItems: "center",
 //                                         justifyContent: "center",
 //                                         background: T.dangerBg,
-//                                         border: `1px solid ${hexToRgba(T.danger, 0.3)}`,
+//                                         border: `1px solid ${T.danger}30`,
 //                                         color: T.danger,
 //                                         cursor: "pointer",
 //                                       }}
@@ -3121,7 +2972,7 @@
 //                                               padding: "5px 8px",
 //                                               borderRadius: 7,
 //                                               background: T.successBg,
-//                                               border: `1px solid ${hexToRgba(T.success, 0.25)}`,
+//                                               border: "1px solid #6ee7b740",
 //                                             }}
 //                                           >
 //                                             <span
@@ -3337,7 +3188,8 @@
 //                                         gap: 5,
 //                                         padding: "5px 11px",
 //                                         borderRadius: 7,
-//                                         background: `linear-gradient(135deg,${TAB_META.Batches.grad[0]},${TAB_META.Batches.grad[1]})`,
+//                                         background:
+//                                           "linear-gradient(135deg,#6366f1,#8b5cf6)",
 //                                         border: "none",
 //                                         color: "#fff",
 //                                         fontSize: 11,
@@ -3368,36 +3220,6 @@
 // };
 
 // export default SuperAdminBatchControl;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 import {
   AlertCircle,
@@ -3572,7 +3394,13 @@ const PAGE_META = {
 /* ─── COLOR HELPERS ──────────────────────────────────────────── */
 const hexToRgba = (hex, alpha) => {
   const h = hex.replace("#", "");
-  const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
+  const full =
+    h.length === 3
+      ? h
+          .split("")
+          .map((c) => c + c)
+          .join("")
+      : h;
   const int = parseInt(full, 16);
   const r = (int >> 16) & 255,
     g = (int >> 8) & 255,
@@ -4808,12 +4636,20 @@ const SuperAdminBatchControl = () => {
                       >
                         <Icon size={13} color={c.color} />
                         <span
-                          style={{ fontSize: 17, fontWeight: 800, color: c.color }}
+                          style={{
+                            fontSize: 17,
+                            fontWeight: 800,
+                            color: c.color,
+                          }}
                         >
                           {val}
                         </span>
                         <span
-                          style={{ fontSize: 11, fontWeight: 600, color: c.color }}
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: c.color,
+                          }}
                         >
                           {label}
                         </span>
@@ -5039,7 +4875,9 @@ const SuperAdminBatchControl = () => {
                     background: T.headerBg,
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 12 }}
+                  >
                     <div
                       style={{
                         width: 36,
@@ -5053,7 +4891,10 @@ const SuperAdminBatchControl = () => {
                         border: chipStyle(accent.hex, theme).border,
                       }}
                     >
-                      <accent.Icon size={16} color={chipStyle(accent.hex, theme).color} />
+                      <accent.Icon
+                        size={16}
+                        color={chipStyle(accent.hex, theme).color}
+                      />
                     </div>
                     <div>
                       <p
@@ -5226,8 +5067,7 @@ const SuperAdminBatchControl = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {loading &&
-                        [1, 2, 3, 4].map((i) => SkeletonRow(i))}
+                      {loading && [1, 2, 3, 4].map((i) => SkeletonRow(i))}
 
                       {/* DEPARTMENTS */}
                       {!loading &&
@@ -5253,11 +5093,23 @@ const SuperAdminBatchControl = () => {
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
-                                    background: chipStyle(TAB_META.Departments.hex, theme).background,
-                                    border: chipStyle(TAB_META.Departments.hex, theme).border,
+                                    background: chipStyle(
+                                      TAB_META.Departments.hex,
+                                      theme,
+                                    ).background,
+                                    border: chipStyle(
+                                      TAB_META.Departments.hex,
+                                      theme,
+                                    ).border,
                                   }}
                                 >
-                                  <Building2 size={24} color={chipStyle(TAB_META.Departments.hex, theme).color} />
+                                  <Building2
+                                    size={24}
+                                    color={
+                                      chipStyle(TAB_META.Departments.hex, theme)
+                                        .color
+                                    }
+                                  />
                                 </div>
                                 <div style={{ textAlign: "center" }}>
                                   <p
@@ -5280,7 +5132,8 @@ const SuperAdminBatchControl = () => {
                                         margin: "4px 0 0",
                                       }}
                                     >
-                                      Create your first department to get started
+                                      Create your first department to get
+                                      started
                                     </p>
                                   )}
                                 </div>
@@ -5317,7 +5170,10 @@ const SuperAdminBatchControl = () => {
                               isOver = dOver === index && dActive !== index;
                             const isDeleting = deleting === dept.id;
                             const [c1, c2] = avatarGrad(dept.head || dept.name);
-                            const dc = chipStyle(TAB_META.Departments.hex, theme);
+                            const dc = chipStyle(
+                              TAB_META.Departments.hex,
+                              theme,
+                            );
                             return (
                               <tr
                                 key={dept.id}
@@ -5560,11 +5416,23 @@ const SuperAdminBatchControl = () => {
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
-                                    background: chipStyle(TAB_META.Branches.hex, theme).background,
-                                    border: chipStyle(TAB_META.Branches.hex, theme).border,
+                                    background: chipStyle(
+                                      TAB_META.Branches.hex,
+                                      theme,
+                                    ).background,
+                                    border: chipStyle(
+                                      TAB_META.Branches.hex,
+                                      theme,
+                                    ).border,
                                   }}
                                 >
-                                  <GitBranch size={24} color={chipStyle(TAB_META.Branches.hex, theme).color} />
+                                  <GitBranch
+                                    size={24}
+                                    color={
+                                      chipStyle(TAB_META.Branches.hex, theme)
+                                        .color
+                                    }
+                                  />
                                 </div>
                                 <div style={{ textAlign: "center" }}>
                                   <p
@@ -5628,7 +5496,10 @@ const SuperAdminBatchControl = () => {
                               (d) => d.id === b.departmentId,
                             );
                             const brc = chipStyle(TAB_META.Branches.hex, theme);
-                            const dpc = chipStyle(TAB_META.Departments.hex, theme);
+                            const dpc = chipStyle(
+                              TAB_META.Departments.hex,
+                              theme,
+                            );
                             return (
                               <tr
                                 key={b.id}
@@ -5870,11 +5741,23 @@ const SuperAdminBatchControl = () => {
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
-                                    background: chipStyle(TAB_META.Batches.hex, theme).background,
-                                    border: chipStyle(TAB_META.Batches.hex, theme).border,
+                                    background: chipStyle(
+                                      TAB_META.Batches.hex,
+                                      theme,
+                                    ).background,
+                                    border: chipStyle(
+                                      TAB_META.Batches.hex,
+                                      theme,
+                                    ).border,
                                   }}
                                 >
-                                  <Layers size={24} color={chipStyle(TAB_META.Batches.hex, theme).color} />
+                                  <Layers
+                                    size={24}
+                                    color={
+                                      chipStyle(TAB_META.Batches.hex, theme)
+                                        .color
+                                    }
+                                  />
                                 </div>
                                 <div style={{ textAlign: "center" }}>
                                   <p
@@ -6066,7 +5949,10 @@ const SuperAdminBatchControl = () => {
                                         color: okc.color,
                                       }}
                                     >
-                                      <CheckCircle2 size={11} color={okc.color} />{" "}
+                                      <CheckCircle2
+                                        size={11}
+                                        color={okc.color}
+                                      />{" "}
                                       {b.trainerEmail}
                                     </span>
                                   ) : (

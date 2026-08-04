@@ -278,6 +278,22 @@ const authService = {
   saveOnboarding({ role, onboardingAnswers }) {
     return api.patch("/auth/me/onboarding", { role, onboardingAnswers });
   },
+  // ================= ADMIN ORG PROFILE BY EMAIL =================
+  // Used by the onboarding dashboard's ProfileDetailsCard for admin/business
+  // roleKey. Resolves the admin's org via their email, then returns the same
+  // shape as getOrgCapacity(). NOT unwrapped (.data) — component reads res.data.
+  getAdminProfileByEmail(email) {
+    return api.get(`/organizations/by-admin-email`, {
+      params: { email },
+    });
+  },
+
+  // PATCH admin org profile by email (editable fields only, locked fields untouched)
+  updateAdminProfileByEmail(email, payload) {
+    return api.patch(`/organizations/by-admin-email/profile`, payload, {
+      params: { email },
+    });
+  },
 };
 
 export default authService;

@@ -6556,6 +6556,26 @@ function getFieldsForRole(roleKey) {
   }
 }
 
+// function getServiceMethodsForRole(roleKey) {
+//   switch (roleKey) {
+//     case "trainer":
+//       return {
+//         get: (e) => userService.getTrainerProfileByEmail(e),
+//         put: (e, d) => userService.updateTrainerProfileByEmail(e, d),
+//       };
+//     case "admin":
+//     case "business":
+//       return {
+//         get: (e) => userService.getAdminProfileByEmail(e),
+//         put: (e, d) => userService.updateAdminProfileByEmail(e, d),
+//       };
+//     default:
+//       return {
+//         get: (e) => userService.getStudentProfileByEmail(e),
+//         put: (e, d) => userService.updateStudentProfileByEmail(e, d),
+//       };
+//   }
+// }
 function getServiceMethodsForRole(roleKey) {
   switch (roleKey) {
     case "trainer":
@@ -6566,8 +6586,8 @@ function getServiceMethodsForRole(roleKey) {
     case "admin":
     case "business":
       return {
-        get: (e) => userService.getAdminProfileByEmail(e),
-        put: (e, d) => userService.updateAdminProfileByEmail(e, d),
+        get: (e) => authService.getAdminProfileByEmail(e),
+        put: (e, d) => authService.updateAdminProfileByEmail(e, d),
       };
     default:
       return {
@@ -6692,7 +6712,7 @@ const ProfileDetailsCard = ({ email, color, roleKey }) => {
             </span>
           )}
         </div>
-        {!editing ? (
+        {/* {!editing ? (
           <button
             onClick={() => {
               setDraft({ ...profileDetails });
@@ -6778,7 +6798,7 @@ const ProfileDetailsCard = ({ email, color, roleKey }) => {
               )}
             </button>
           </div>
-        )}
+        )} */}
       </div>
       <div style={{ padding: "10px 11px" }}>
         {profileLoading ? (
@@ -6926,7 +6946,14 @@ const UserView = ({ user, onEdit, onDelete, onToggle }) => {
 
   // Show feature controls for trainers with no org
   // const isOutsideTrainer = user.roleKey === "trainer" && !user.organizationId;
-  const isStandaloneUser = !user.organizationId;
+  // const isStandaloneUser = !user.organizationId;
+  // return (
+  // Show feature controls for trainers with no org
+  // const isOutsideTrainer = user.roleKey === "trainer" && !user.organizationId;
+  const isStandaloneUser =
+    !user.organizationId &&
+    user.roleKey !== "business" &&
+    user.roleKey !== "admin";
   return (
     <div
       style={{

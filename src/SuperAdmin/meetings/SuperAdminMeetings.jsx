@@ -45,7 +45,7 @@ import { MeetingSummaryView } from "../../components/MeetingSummaryView";
 // ⚠️ Update this import path to wherever you place the logo file in your project
 // (e.g. src/assets/texora-logo.jpeg). Using a bundler import keeps it working
 // correctly across dev/build instead of relying on a public/ path.
-import texoraLogo from "../../assets/texora-logo-1.jpeg";
+import texoraLogo from "../../assets/texora-logo-1.webp";
 
 const pad = (n) => (n < 10 ? "0" + n : "" + n);
 function toGCalStamp(d) {

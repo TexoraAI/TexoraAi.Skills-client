@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 
 // ✅ CORRECT PATH: src/pages/About/ → src/assets/pic.png
-import personImg from "../../assets/pic.png";
+import personImg from "../../assets/pic.webp";
 
 // ✅ Shared shell used by every other public page (Pricing, Careers,
 // Contact, FAQ, etc). Lives at src/pages/Landing/components/PublicLayout.

@@ -28,10 +28,10 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import heroVideo from "../../assets/hero-1.mp4";
-import heroStudent2 from "../../assets/hero-student-2.png";
-import heroStudent3 from "../../assets/hero-student-3.png";
-import heroStudent from "../../assets/hero-student.png";
-import ctaStudent from "../../assets/cta-student.png";
+import heroStudent2 from "../../assets/hero-student-2.webp";
+import heroStudent3 from "../../assets/hero-student-3.webp";
+import heroStudent from "../../assets/hero-student.webp";
+import ctaStudent from "../../assets/cta-student.webp";
 import auth from "../../auth";
 import Navbar from "./components/Navbar";
 import AnnouncementBanner from "./components/AnnouncementBanner";

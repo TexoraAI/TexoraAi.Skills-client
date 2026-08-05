@@ -2,7 +2,7 @@
 
 import { ArrowRight, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import texoraLogo from "../../../assets/texora-logo.png";
+import texoraLogo from "../../../assets/texora-logo.webp";
 import "./texora-floating-widget.css";
 
 const TEXORA_URL = "https://texora.ai/";

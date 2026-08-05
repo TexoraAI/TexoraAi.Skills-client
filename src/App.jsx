@@ -224,7 +224,7 @@ const ProfilePage       = lazyLoad(() => import("./pages/ProfilePage"));
 const IlmDemoProfilePage = lazyLoad(() => import("./pages/IlmDemoProfilePage"));
 const SearchPage        = lazyLoad(() => import("./pages/SearchPage"));
 const ApplyForm         = lazyLoad(() => import("./pages/common/ApplyForm"));
-const CompleteProfile   = lazyLoad(() => import("./pages/common/CompleteProfile"));
+
 const EditProfile       = lazyLoad(() => import("./pages/common/EditProfile"));
 const CallRoom          = lazyLoad(() => import("./components/live/CallRoom.jsx"));
 
@@ -663,7 +663,7 @@ seedCMSData();
 
             {/* ================= APPLY ================= */}
             <Route path="/apply" element={<ApplyForm />} />
-            <Route path="/complete-profile" element={<CompleteProfile />} />
+            
             <Route path="/apply-admin" element={<ApplyAdmin />} />
             <Route path="/apply-business" element={<ApplyBusiness />} />
             <Route path="/apply-trainer" element={<ApplyTrainer />} />

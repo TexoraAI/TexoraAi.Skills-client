@@ -47,10 +47,10 @@ import workspaceDemoVideo from "../../assets/workspace-demo.mp4";
 // Photo used in the final "Bring your first session into ILM ORA" CTA band —
 // sits on the left of the card, same layout idea as the "Ready to Transform
 // Your Career?" CTA banner (colored photo left, heading/copy right).
-import ctaPersonImg from "../../assets/cta-photo.avif";
+import ctaPersonImg from "../../assets/cta-photo.webp";
 // New top-of-page banner — rendered right after the navbar, replacing the
 // old text/mock "hero" header block below.
-import workspaceBannerImg from "../../assets/worksapce-banner.png";
+import workspaceBannerImg from "../../assets/worksapce-banner.webp";
 
 const GOOGLE_CLIENT_ID =
   "572421778240-akk3kkb4f60ukuv9pcfrpg2ielm09thk.apps.googleusercontent.com";

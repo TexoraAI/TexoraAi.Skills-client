@@ -29,6 +29,7 @@
 //   Check,
 //   Clock,
 //   ShieldAlert,
+//   ShieldCheck,
 //   Loader2,
 //   AlertTriangle,
 //   Copy,
@@ -912,106 +913,167 @@
 
 //   return (
 //     <div style={PJ.root}>
-//       <div style={PJ.card}>
-//         <div style={PJ.previewBox}>
-//           {camOn && previewTrack ? (
-//             <video
-//               ref={videoRef}
-//               autoPlay
-//               muted
-//               playsInline
-//               style={{
-//                 width: "100%",
-//                 height: "100%",
-//                 objectFit: "cover",
-//                 transform: "scaleX(-1)",
-//               }}
-//             />
-//           ) : (
-//             <div style={PJ.previewAvatarWrap}>
-//               <div style={PJ.previewAvatar}>
-//                 {(name || "G").trim().charAt(0).toUpperCase()}
-//               </div>
-//             </div>
-//           )}
-//           <div style={PJ.previewCtrls}>
-//             <button
-//               style={{ ...PJ.previewBtn, ...(micOn ? {} : PJ.previewBtnOff) }}
-//               onClick={() => setMicOn((v) => !v)}
-//               title={micOn ? "Mute" : "Unmute"}
-//             >
-//               {micOn ? <Mic size={18} /> : <MicOff size={18} />}
-//             </button>
-//             <button
-//               style={{ ...PJ.previewBtn, ...(camOn ? {} : PJ.previewBtnOff) }}
-//               onClick={() => setCamOn((v) => !v)}
-//               title={camOn ? "Stop camera" : "Start camera"}
-//             >
-//               {camOn ? <Video size={18} /> : <VideoOff size={18} />}
-//             </button>
+//       <div style={PJ.blobTopRight} />
+//       <div style={PJ.blobBottomLeft} />
+
+//       <div style={PJ.page}>
+//         <div style={PJ.header}>
+//           <div style={PJ.brandRow}>
+//             <img src={texoraLogo} alt="Texora AI" style={PJ.brandLogo} />
 //           </div>
+//           <h1 style={PJ.pageTitle}>
+//             Welcome to <span style={PJ.pageTitleAccent}>Workspace</span>
+//           </h1>
+//           <p style={PJ.pageSubtitle}>Join your meeting or start a new session</p>
 //         </div>
 
-//         <div style={PJ.infoCol}>
-//           {/* <h1 style={PJ.title}>{meetingInfo?.title || "Ilmora Meeting"}</h1> */}
-//           <h1 style={PJ.title}>
-//             <ColorfulTitle text={meetingInfo?.title || "Ilmorameet"} />
-//           </h1>
-//           <p style={PJ.subtitle}>
-//             Hosted by{" "}
-//             <strong>{meetingInfo?.creatorName || "the meeting host"}</strong>
-//           </p>
-//           <p style={PJ.code}>
-//             Meeting code: <span>{joinCode}</span>
-//           </p>
+//         <div style={PJ.card}>
+//           <div style={PJ.leftCol}>
+//             <div style={PJ.previewBox}>
+//               {camOn && previewTrack ? (
+//                 <video
+//                   ref={videoRef}
+//                   autoPlay
+//                   muted
+//                   playsInline
+//                   style={{
+//                     width: "100%",
+//                     height: "100%",
+//                     objectFit: "cover",
+//                     transform: "scaleX(-1)",
+//                   }}
+//                 />
+//               ) : (
+//                 <div style={PJ.previewAvatarWrap}>
+//                   <div style={PJ.previewAvatar}>
+//                     {(name || "G").trim().charAt(0).toUpperCase()}
+//                   </div>
+//                 </div>
+//               )}
 
-//           <label style={PJ.label}>Your name</label>
-//           <input
-//             style={PJ.input}
-//             value={name}
-//             onChange={(e) => setName(e.target.value)}
-//             placeholder="Enter your name"
-//             maxLength={40}
-//             onKeyDown={(e) => {
-//               if (e.key === "Enter") handleSubmit();
-//             }}
-//           />
+//               <img src={texoraLogo} alt="" style={PJ.previewWatermark} />
 
-//           <label style={PJ.label}>Your email</label>
-//           <input
-//             style={PJ.input}
-//             value={email}
-//             onChange={(e) => setEmail(e.target.value)}
-//             placeholder="you@example.com"
-//             type="email"
-//             maxLength={100}
-//             onKeyDown={(e) => {
-//               if (e.key === "Enter") handleSubmit();
-//             }}
-//           />
-//           {email.length > 0 && !emailValid && (
-//             <p style={PJ.errText}>Enter a valid email address</p>
-//           )}
+//               <div style={PJ.previewCtrls}>
+//                 <button
+//                   style={PJ.previewPillBtn}
+//                   onClick={() => setMicOn((v) => !v)}
+//                   title={micOn ? "Mute" : "Unmute"}
+//                 >
+//                   {micOn ? <Mic size={16} /> : <MicOff size={16} />}
+//                   <span>{micOn ? "Mic On" : "Mic Off"}</span>
+//                 </button>
+//                 <span style={PJ.previewCtrlsDivider} />
+//                 <button
+//                   style={PJ.previewPillBtn}
+//                   onClick={() => setCamOn((v) => !v)}
+//                   title={camOn ? "Stop camera" : "Start camera"}
+//                 >
+//                   {camOn ? <Video size={16} /> : <VideoOff size={16} />}
+//                   <span>{camOn ? "Camera On" : "Camera Off"}</span>
+//                 </button>
+//               </div>
+//             </div>
 
-//           {previewError && (
-//             <p style={PJ.warnText}>
-//               <AlertTriangle size={13} /> {previewError}
+//             <div style={PJ.secureBanner}>
+//               <span style={PJ.secureIconWrap}>
+//                 <ShieldCheck size={18} color="#f97316" />
+//               </span>
+//               <div>
+//                 <p style={PJ.secureTitle}>
+//                   Your meeting is secure and end-to-end encrypted
+//                 </p>
+//                 <p style={PJ.secureSubtitle}>
+//                   We protect your privacy and keep your data safe.
+//                 </p>
+//               </div>
+//             </div>
+//           </div>
+
+//           <div style={PJ.infoCol}>
+//             <h2 style={PJ.title}>
+//               <ColorfulTitle text={meetingInfo?.title || "Ilmorameet"} />
+//             </h2>
+//             <p style={PJ.subtitle}>
+//               Hosted by{" "}
+//               <strong>{meetingInfo?.creatorName || "the meeting host"}</strong>
 //             </p>
-//           )}
-//           {error && <p style={PJ.errText}>{error}</p>}
+//             <p style={PJ.code}>
+//               Meeting code: <span>{joinCode}</span>
+//               {joinCode && (
+//                 <button
+//                   type="button"
+//                   style={PJ.copyBtn}
+//                   title="Copy meeting code"
+//                   onClick={() => {
+//                     try {
+//                       navigator.clipboard?.writeText(joinCode);
+//                     } catch (_) {}
+//                   }}
+//                 >
+//                   <Copy size={13} />
+//                 </button>
+//               )}
+//             </p>
 
-//           <button
-//             style={{
-//               ...PJ.joinBtn,
-//               opacity: submitting || !emailValid ? 0.7 : 1,
-//             }}
-//             disabled={submitting || !emailValid}
-//             onClick={handleSubmit}
-//           >
-//             {submitting ? <Loader2 size={16} className="im-spin" /> : null}
-//             {submitting ? "Requesting to join…" : "Ask to join"}
-//           </button>
-//           <p style={PJ.hint}>Someone in the meeting will let you in soon.</p>
+//             <div style={PJ.sectionHeading}>
+//               <h3 style={PJ.sectionHeadingText}>Join the Meeting</h3>
+//               <div style={PJ.sectionHeadingDash}>
+//                 <span style={PJ.dashOrange} />
+//                 <span style={PJ.dashGreen} />
+//               </div>
+//             </div>
+
+//             <label style={PJ.label}>Your name</label>
+//             <input
+//               style={PJ.input}
+//               value={name}
+//               onChange={(e) => setName(e.target.value)}
+//               placeholder="Enter your name"
+//               maxLength={40}
+//               onKeyDown={(e) => {
+//                 if (e.key === "Enter") handleSubmit();
+//               }}
+//             />
+
+//             <label style={PJ.label}>Your email</label>
+//             <input
+//               style={PJ.input}
+//               value={email}
+//               onChange={(e) => setEmail(e.target.value)}
+//               placeholder="you@example.com"
+//               type="email"
+//               maxLength={100}
+//               onKeyDown={(e) => {
+//                 if (e.key === "Enter") handleSubmit();
+//               }}
+//             />
+//             {email.length > 0 && !emailValid && (
+//               <p style={PJ.errText}>Enter a valid email address</p>
+//             )}
+
+//             {previewError && (
+//               <p style={PJ.warnText}>
+//                 <AlertTriangle size={13} /> {previewError}
+//               </p>
+//             )}
+//             {error && <p style={PJ.errText}>{error}</p>}
+
+//             <button
+//               style={{
+//                 ...PJ.joinBtn,
+//                 opacity: submitting || !emailValid ? 0.7 : 1,
+//               }}
+//               disabled={submitting || !emailValid}
+//               onClick={handleSubmit}
+//             >
+//               {submitting ? <Loader2 size={16} className="im-spin" /> : null}
+//               {submitting ? "Requesting to join…" : "Ask to Join"}
+//             </button>
+//             <p style={PJ.hint}>
+//               <Clock size={12} />
+//               Someone in the meeting will let you in soon.
+//             </p>
+//           </div>
 //         </div>
 //       </div>
 //     </div>
@@ -3046,33 +3108,85 @@
 //   root: {
 //     position: "fixed",
 //     inset: 0,
-//     background: "#0b0d12",
-//     display: "flex",
-//     alignItems: "center",
-//     justifyContent: "center",
-//     padding: 20,
+//     background: "#fdf3e8",
+//     overflow: "auto",
 //     fontFamily: "'Inter','Segoe UI',sans-serif",
 //     zIndex: 9999,
 //   },
+//   blobTopRight: {
+//     position: "fixed",
+//     top: -80,
+//     right: -60,
+//     width: 260,
+//     height: 260,
+//     borderRadius: "50%",
+//     background:
+//       "radial-gradient(circle, rgba(251,146,60,.16) 0%, rgba(251,146,60,0) 70%)",
+//     pointerEvents: "none",
+//   },
+//   blobBottomLeft: {
+//     position: "fixed",
+//     bottom: -100,
+//     left: -80,
+//     width: 300,
+//     height: 300,
+//     borderRadius: "50%",
+//     background:
+//       "radial-gradient(circle, rgba(251,146,60,.14) 0%, rgba(251,146,60,0) 70%)",
+//     pointerEvents: "none",
+//   },
+//   page: {
+//     position: "relative",
+//     maxWidth: 1180,
+//     margin: "0 auto",
+//     padding: "36px 24px 56px",
+//   },
+//   header: {
+//     textAlign: "center",
+//     marginBottom: 34,
+//   },
+//   brandRow: {
+//     display: "flex",
+//     justifyContent: "center",
+//     marginBottom: 18,
+//   },
+//   brandLogo: { height: 30, width: "auto", objectFit: "contain" },
+//   pageTitle: {
+//     fontSize: 34,
+//     fontWeight: 800,
+//     color: "#0f172a",
+//     margin: "0 0 8px",
+//     letterSpacing: -0.5,
+//   },
+//   pageTitleAccent: { color: "#f97316" },
+//   pageSubtitle: { fontSize: 15, color: "#64748b", margin: 0 },
+
 //   card: {
 //     display: "flex",
-//     gap: 32,
-//     maxWidth: 880,
+//     gap: 28,
+//     maxWidth: 1080,
 //     width: "100%",
+//     margin: "0 auto",
 //     flexWrap: "wrap",
-//     alignItems: "center",
+//     alignItems: "flex-start",
 //     justifyContent: "center",
+//   },
+//   leftCol: {
+//     display: "flex",
+//     flexDirection: "column",
+//     gap: 16,
+//     width: 460,
+//     maxWidth: "100%",
 //   },
 //   previewBox: {
 //     position: "relative",
-//     width: 380,
-//     maxWidth: "100%",
+//     width: "100%",
 //     aspectRatio: "16/10",
-//     background: "#14161d",
+//     background: "#e9edf3",
 //     borderRadius: 20,
 //     overflow: "hidden",
-//     border: "1px solid rgba(255,255,255,.08)",
-//     boxShadow: "0 20px 50px rgba(0,0,0,.4)",
+//     border: "1px solid rgba(15,23,42,.06)",
+//     boxShadow: "0 16px 40px rgba(15,23,42,.08)",
 //   },
 //   previewAvatarWrap: {
 //     position: "absolute",
@@ -3080,12 +3194,13 @@
 //     display: "flex",
 //     alignItems: "center",
 //     justifyContent: "center",
+//     background: "#eef1f5",
 //   },
 //   previewAvatar: {
 //     width: 96,
 //     height: 96,
 //     borderRadius: "50%",
-//     background: "linear-gradient(135deg,#6d5ef7,#8b5cf6)",
+//     background: "linear-gradient(135deg,#fb923c,#f97316)",
 //     display: "flex",
 //     alignItems: "center",
 //     justifyContent: "center",
@@ -3093,49 +3208,157 @@
 //     fontWeight: 800,
 //     color: "#fff",
 //   },
+//   previewWatermark: {
+//     position: "absolute",
+//     top: 14,
+//     right: 16,
+//     height: 22,
+//     width: "auto",
+//     opacity: 0.92,
+//   },
 //   previewCtrls: {
 //     position: "absolute",
 //     bottom: 14,
 //     left: "50%",
 //     transform: "translateX(-50%)",
 //     display: "flex",
-//     gap: 10,
+//     alignItems: "center",
+//     gap: 14,
+//     background: "rgba(15,17,23,.62)",
+//     backdropFilter: "blur(6px)",
+//     borderRadius: 999,
+//     padding: "9px 20px",
 //   },
-//   previewBtn: {
-//     width: 44,
-//     height: 44,
+//   previewCtrlsDivider: {
+//     width: 1,
+//     height: 16,
+//     background: "rgba(255,255,255,.25)",
+//   },
+//   previewPillBtn: {
+//     display: "flex",
+//     alignItems: "center",
+//     gap: 7,
+//     border: "none",
+//     background: "transparent",
+//     color: "#f1f5f9",
+//     fontSize: 13,
+//     fontWeight: 600,
+//     fontFamily: "inherit",
+//     cursor: "pointer",
+//     padding: 0,
+//   },
+//   secureBanner: {
+//     display: "flex",
+//     alignItems: "flex-start",
+//     gap: 12,
+//     background: "#fffdfb",
+//     border: "1px solid rgba(15,23,42,.06)",
+//     borderRadius: 16,
+//     padding: "14px 16px",
+//     boxShadow: "0 10px 24px rgba(15,23,42,.05)",
+//   },
+//   secureIconWrap: {
+//     width: 34,
+//     height: 34,
 //     borderRadius: "50%",
-//     border: "1px solid rgba(255,255,255,.12)",
-//     background: "rgba(255,255,255,.1)",
-//     color: "#e2e8f0",
+//     background: "rgba(249,115,22,.12)",
 //     display: "flex",
 //     alignItems: "center",
 //     justifyContent: "center",
+//     flexShrink: 0,
+//   },
+//   secureTitle: {
+//     fontSize: 13.5,
+//     fontWeight: 700,
+//     color: "#0f172a",
+//     margin: "2px 0 3px",
+//   },
+//   secureSubtitle: { fontSize: 12.5, color: "#94a3b8", margin: 0 },
+
+//   infoCol: {
+//     width: 380,
+//     maxWidth: "100%",
+//     color: "#0f172a",
+//     background: "#fffdfb",
+//     border: "1px solid rgba(15,23,42,.06)",
+//     borderRadius: 20,
+//     padding: "26px 26px 22px",
+//     boxShadow: "0 16px 40px rgba(15,23,42,.08)",
+//   },
+//   title: { fontSize: 20, fontWeight: 800, margin: "0 0 8px", textAlign: "center" },
+//   subtitle: {
+//     fontSize: 13,
+//     color: "#64748b",
+//     margin: "0 0 4px",
+//     textAlign: "center",
+//   },
+//   code: {
+//     fontSize: 12.5,
+//     color: "#64748b",
+//     margin: "0 0 18px",
+//     textAlign: "center",
+//     display: "flex",
+//     alignItems: "center",
+//     justifyContent: "center",
+//     gap: 8,
+//   },
+//   copyBtn: {
+//     display: "inline-flex",
+//     alignItems: "center",
+//     justifyContent: "center",
+//     border: "none",
+//     background: "rgba(15,23,42,.06)",
+//     color: "#64748b",
+//     borderRadius: 6,
+//     width: 22,
+//     height: 22,
 //     cursor: "pointer",
 //   },
-//   previewBtnOff: {
-//     background: "#7f1d1d",
-//     color: "#fca5a5",
-//     borderColor: "rgba(239,68,68,.4)",
+//   sectionHeading: {
+//     textAlign: "center",
+//     marginBottom: 18,
+//     paddingBottom: 12,
+//     borderBottom: "1px solid rgba(15,23,42,.08)",
 //   },
-//   infoCol: { width: 340, maxWidth: "100%", color: "#e2e8f0" },
-//   title: { fontSize: 22, fontWeight: 800, margin: "0 0 6px", color: "#fff" },
-//   subtitle: { fontSize: 13, color: "#94a3b8", margin: "0 0 4px" },
-//   code: { fontSize: 12, color: "#64748b", margin: "0 0 18px" },
+//   sectionHeadingText: {
+//     fontSize: 15,
+//     fontWeight: 800,
+//     color: "#0f172a",
+//     margin: "0 0 8px",
+//   },
+//   sectionHeadingDash: {
+//     display: "flex",
+//     justifyContent: "center",
+//     gap: 6,
+//   },
+//   dashOrange: {
+//     width: 22,
+//     height: 3,
+//     borderRadius: 2,
+//     background: "#f97316",
+//     display: "inline-block",
+//   },
+//   dashGreen: {
+//     width: 22,
+//     height: 3,
+//     borderRadius: 2,
+//     background: "#22c55e",
+//     display: "inline-block",
+//   },
 //   label: {
 //     fontSize: 12,
-//     fontWeight: 600,
-//     color: "#cbd5e1",
+//     fontWeight: 700,
+//     color: "#334155",
 //     marginBottom: 6,
 //     display: "block",
 //   },
 //   input: {
 //     width: "100%",
-//     background: "#161922",
-//     border: "1px solid rgba(255,255,255,.1)",
+//     background: "#fbfaf8",
+//     border: "1px solid rgba(15,23,42,.12)",
 //     borderRadius: 12,
 //     padding: "11px 14px",
-//     color: "#fff",
+//     color: "#0f172a",
 //     fontSize: 14,
 //     marginBottom: 14,
 //     outline: "none",
@@ -3146,17 +3369,17 @@
 //     alignItems: "center",
 //     gap: 6,
 //     fontSize: 11,
-//     color: "#fbbf24",
+//     color: "#b45309",
 //     marginBottom: 10,
 //   },
-//   errText: { fontSize: 12, color: "#f87171", marginBottom: 10 },
+//   errText: { fontSize: 12, color: "#dc2626", marginBottom: 10 },
 //   joinBtn: {
 //     width: "100%",
 //     display: "flex",
 //     alignItems: "center",
 //     justifyContent: "center",
 //     gap: 8,
-//     background: "linear-gradient(135deg,#6d5ef7,#8b5cf6)",
+//     background: "linear-gradient(135deg,#fb923c,#f97316)",
 //     color: "#fff",
 //     border: "none",
 //     borderRadius: 14,
@@ -3164,8 +3387,18 @@
 //     fontSize: 14,
 //     fontWeight: 700,
 //     cursor: "pointer",
+//     boxShadow: "0 10px 24px rgba(249,115,22,.35)",
 //   },
-//   hint: { fontSize: 11, color: "#64748b", marginTop: 10, textAlign: "center" },
+//   hint: {
+//     display: "flex",
+//     alignItems: "center",
+//     justifyContent: "center",
+//     gap: 6,
+//     fontSize: 11.5,
+//     color: "#94a3b8",
+//     marginTop: 12,
+//     textAlign: "center",
+//   },
 // };
 
 // const LB = {
@@ -4230,6 +4463,13 @@
 //     flexWrap: "nowrap",
 //   },
 // };
+
+
+
+
+
+
+
 
 
 
@@ -7368,9 +7608,30 @@ function MeetingRoom({
         @media (max-width: 599px) {
           .im-topbar { flex-wrap: wrap; row-gap: 6px; }
           .im-topright { order: 3; width: 100%; justify-content: flex-start; }
-          .im-ctrlbar { padding: 8px 6px !important; gap: 3px !important; overflow-x: auto; }
+          .im-ctrlbar {
+            padding: 8px 6px !important;
+            gap: 6px !important;
+            row-gap: 8px !important;
+            overflow-x: visible !important;
+            flex-wrap: wrap !important;
+            justify-content: center !important;
+          }
           .im-btn-label, .im-btn-label-inline { display: none !important; }
           .im-ctrl-btn { padding: 10px !important; border-radius: 12px !important; }
+        }
+        /* Narrow phones (iPhone SE/12/13/14 widths etc.): a plain flex row
+           with justify-content:center + overflow-x:auto clips the FIRST
+           buttons (Mic/Camera) off-screen because the browser centers the
+           overflowing content instead of scrolling to the start. Wrapping
+           the toolbar onto two rows below guarantees every control,
+           including Mic and Camera, is always fully visible with no
+           scrolling required. */
+        @media (max-width: 430px) {
+          .im-ctrlbar {
+            gap: 5px !important;
+            row-gap: 8px !important;
+          }
+          .im-ctrl-btn { padding: 9px !important; min-width: 42px; min-height: 42px; }
         }
         @media (prefers-reduced-motion: reduce) {
           .im-root * { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }

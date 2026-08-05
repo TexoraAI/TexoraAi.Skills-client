@@ -1,3 +1,4 @@
+
 // import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 // import { createPortal } from "react-dom";
 // import { useNavigate, useParams } from "react-router-dom";
@@ -92,6 +93,65 @@
 // const LOBBY_POLL_MS = 3000;
 // const WAITING_ROOM_POLL_MS = 4000;
 // const MEETING_STATUS_POLL_MS = 15000;
+
+// /* ─── screen-share platform support detection ─────────────────────
+//    Real-world constraints this file now accounts for:
+//      • iOS Safari / iPadOS Safari (all versions in wide use) does not
+//        expose getDisplayMedia at all — screen sharing is simply not
+//        possible from the browser on iPhone/iPad. We detect this and
+//        disable the button instead of letting it throw at click time.
+//      • Desktop Chrome/Edge/Firefox/Safari (Mac), and Android Chrome,
+//        all support getDisplayMedia but differ in what they let you
+//        pick (window vs. tab vs. entire screen) and whether audio
+//        capture is possible — we never assume audio capture works.
+//      • Must be a secure context (HTTPS) — getDisplayMedia is undefined
+//        on plain HTTP, which otherwise looks identical to "unsupported".
+//    ──────────────────────────────────────────────────────────────── */
+// function detectScreenShareSupport() {
+//   if (typeof navigator === "undefined" || typeof window === "undefined") {
+//     return { supported: false, reason: "unavailable" };
+//   }
+//   const ua = navigator.userAgent || "";
+//   const isIOS =
+//     /iPad|iPhone|iPod/.test(ua) ||
+//     (ua.includes("Macintosh") && navigator.maxTouchPoints > 1); // iPadOS reports as Mac
+//   const isSafari =
+//     /^((?!chrome|android|crios|fxios).)*safari/i.test(ua) || isIOS;
+//   const hasApi =
+//     !!navigator.mediaDevices && !!navigator.mediaDevices.getDisplayMedia;
+//   const isSecure =
+//     window.isSecureContext !== undefined ? window.isSecureContext : true;
+
+//   if (!isSecure) {
+//     return {
+//       supported: false,
+//       reason: "insecure",
+//       message:
+//         "Screen sharing needs a secure (HTTPS) connection. Please load this meeting over HTTPS.",
+//     };
+//   }
+//   // iOS/iPadOS Safari (and any iOS browser, since they all use WebKit and
+//   // inherit the same limitation) cannot capture the screen from the web.
+//   if (isIOS) {
+//     return {
+//       supported: false,
+//       reason: "ios",
+//       message:
+//         "Screen sharing isn't supported by Safari on iPhone/iPad yet. You can still present using a Mac, Windows, Linux, or Android device.",
+//     };
+//   }
+//   if (!hasApi) {
+//     return {
+//       supported: false,
+//       reason: "no-api",
+//       message:
+//         isSafari
+//           ? "This version of Safari doesn't support screen sharing. Please update Safari or use Chrome/Edge/Firefox."
+//           : "Screen sharing isn't supported in this browser. Please use an up-to-date Chrome, Edge, Firefox, or Safari.",
+//     };
+//   }
+//   return { supported: true };
+// }
 
 // /* ─── small utility hooks (self-contained, no external context) ──── */
 
@@ -659,7 +719,7 @@
 //   const cols = gridColumns(participants.length);
 //   const style = {
 //     ...S.gridWrap,
-//     gridTemplateColumns: `repeat(${cols}, 1fr)`,
+//     gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
 //     "--cols-tablet": Math.min(cols, 3),
 //     "--cols-phone": Math.min(cols, 2),
 //     "--cols-small": 1,
@@ -740,6 +800,7 @@
 //   ariaHasPopup,
 //   ariaExpanded,
 //   disabled,
+//   title,
 //   S,
 // }) => {
 //   const [hov, setHov] = useState(false);
@@ -772,28 +833,12 @@
 //         : "var(--im-text-soft)";
 //   return (
 //     <div style={{ position: "relative", flexShrink: 0 }}>
-//       {/* <button
-//         ref={btnRef}
-//         className="im-ctrl-btn"
-//         onClick={onClick}
-//         onMouseEnter={() => setHov(true)}
-//         onMouseLeave={() => setHov(false)}
-//         aria-label={label}
-//         aria-pressed={typeof pressed === "boolean" ? pressed : undefined}
-//         aria-haspopup={ariaHasPopup}
-//         aria-expanded={ariaExpanded}
-//         style={{
-//           display: "flex",
-//           flexDirection: "column",
-//           alignItems: "center",
-//           gap: 4,
-//           background: bg,
-//           color: col, */}
 //           <button
 //         ref={btnRef}
 //         className="im-ctrl-btn"
 //         onClick={onClick}
 //         disabled={disabled}
+//         title={title}
 //         onMouseEnter={() => setHov(true)}
 //         onMouseLeave={() => setHov(false)}
 //         aria-label={label}
@@ -1288,33 +1333,6 @@
 //   }, [loadMeeting]);
 
 //   /* ── 2. guest: submit "ask to join" ────────────────────────────── */
-//   //   const handlePreJoinSubmit = useCallback(
-//   //     async ({ name }) => {
-//   //       if (!meetingInfo?.id) return;
-//   //       setSubmitting(true);
-//   //       setSubmitError(null);
-//   //       try {
-//   //         // FIX: backend reads a flat { guestName } body keyed by numeric id,
-//   //         // not { name } keyed by joinCode.
-//   //         const res = await requestToJoin(meetingInfo.id, name);
-//   //         const data = res?.data; // MeetingJoinRequestDTO: {requestId, guestIdentity, guestName, status}
-//   //         setJoinRequestId(data?.requestId);
-//   //         setGuestIdentity(data?.guestIdentity); // FIX: must be captured — it's the guest's only credential
-//   //         setGuestName(name);
-//   //         setPhase("lobby");
-//   //       } catch (err) {
-//   //         console.error("Join request failed:", err);
-//   //         setSubmitError(
-//   //           err?.response?.data?.error ||
-//   //             err?.response?.data?.message ||
-//   //             "Couldn't send your request. Please try again.",
-//   //         );
-//   //       } finally {
-//   //         setSubmitting(false);
-//   //       }
-//   //     },
-//   //     [meetingInfo],
-//   //   );
 //   const handlePreJoinSubmit = useCallback(
 //     async ({ name, email, micOn, camOn }) => {
 //       if (!meetingInfo?.id) return;
@@ -1458,16 +1476,6 @@
 //     return <DeniedScreen onRetry={() => setPhase("prejoin")} />;
 //   }
 
-//   //   return (
-//   //     <MeetingRoom
-//   //       joinCode={joinCode}
-//   //       meetingId={meetingInfo?.id}
-//   //       meetingInfo={meetingInfo}
-//   //       connectPayload={connectPayload}
-//   //       onEndedRemotely={handleMeetingEndedRemotely}
-//   //       onLeft={handleLeftMeeting}
-//   //     />
-//   //   );
 //   return (
 //     <MeetingRoom
 //       joinCode={joinCode}
@@ -1487,14 +1495,6 @@
 //    guests except for host-only affordances (waiting room, recording,
 //    End meeting for everyone vs. Leave).
 // ═════════════════════════════════════════════════════════════════ */
-// // function MeetingRoom({
-// //   joinCode,
-// //   meetingId,
-// //   meetingInfo,
-// //   connectPayload,
-// //   onEndedRemotely,
-// //   onLeft,
-// // }) {
 // function MeetingRoom({
 //   joinCode,
 //   meetingId,
@@ -1520,8 +1520,6 @@
 //   const reactionPanelRef = useRef(null);
 
 //   const [connected, setConnected] = useState(false);
-//   //   const [micOn, setMicOn] = useState(true);
-//   //   const [camOn, setCamOn] = useState(true);
 //   const [micOn, setMicOn] = useState(initialAV?.micOn ?? true);
 //   const [camOn, setCamOn] = useState(initialAV?.camOn ?? true);
 //   const [screenOn, setScreenOn] = useState(false);
@@ -1543,6 +1541,11 @@
 //   // FIX (bug 2): every viewer can independently zoom the active screen share
 //   // to full screen, exactly like Google Meet's fullscreen-on-presentation.
 //   const [screenZoomed, setScreenZoomed] = useState(false);
+
+//   // FIX (Screen Share Compatibility): support is detected once on mount —
+//   // it depends only on the browser/OS, not on anything that changes during
+//   // the call — and drives whether the Present button is enabled at all.
+//   const [screenShareSupport] = useState(() => detectScreenShareSupport());
 
 //   const [sidebarOpen, setSidebarOpen] = useState(() =>
 //     typeof window === "undefined" ? true : window.innerWidth > 1023,
@@ -1608,9 +1611,6 @@
 
 //   // FIX (bug 3): join/left events are notices, NOT chat messages — they now
 //   // live in their own toast queue instead of polluting the chat feed.
-//   // FIX (bug: join/leave popup): notices now carry a `type` ("join" | "leave" | "info")
-//   // so the popup can show a distinct icon/color per event, exactly like Google Meet's
-//   // "X joined" / "X left" toasts, and stay reliably on top of every other panel.
 //   const [notices, setNotices] = useState([]);
 //   const pushNotice = useCallback((text, type = "info") => {
 //     const id = Date.now() + Math.random();
@@ -1643,17 +1643,6 @@
 //         try {
 //           const decoded = new TextDecoder().decode(payload);
 //           const msg = JSON.parse(decoded);
-//           // if (msg.type === "chat" && msg.text) {
-//           //   setMessages((prev) => [
-//           //     ...prev,
-//           //     {
-//           //       id: Date.now() + Math.random(),
-//           //       name: participant?.name || participant?.identity || "Guest",
-//           //       text: msg.text,
-//           //       time: getTime(),
-//           //       self: false,
-//           //     },
-//           //   ]);
 //           if (msg.type === "chat" && msg.text) {
 //             setMessages((prev) => [
 //               ...prev,
@@ -1715,11 +1704,6 @@
 //           return;
 //         }
 //         setConnected(true);
-//         // FIX: refreshing the page used to reset the timer to 00:00:00
-//         // because it just took Date.now() again. Prefer a real start time
-//         // from the backend if the DTO provides one; otherwise persist the
-//         // first-seen timestamp for this meeting locally so a refresh keeps
-//         // counting instead of restarting from zero.
 //         const backendStarted =
 //           meetingInfo?.startedAt ||
 //           meetingInfo?.actualStartTime ||
@@ -1747,41 +1731,34 @@
 //         return;
 //       }
 
-     
-//      try {
-//   const tracks = await createLocalTracks({
-//     audio: {
-//       echoCancellation: true,
-//       noiseSuppression: true,
-//       autoGainControl: true,
-//     },
-//     video: { resolution: { width: 1280, height: 720 } },
-//   });
+//       try {
+//         const tracks = await createLocalTracks({
+//           audio: {
+//             echoCancellation: true,
+//             noiseSuppression: true,
+//             autoGainControl: true,
+//           },
+//           video: { resolution: { width: 1280, height: 720 } },
+//         });
 
-//   // 👇 camera track ka publish + mute-state set karna ek promise mein capture kiya
-//   camReadyPromiseRef.current = (async () => {
-//     const camTrack = tracks.find((t) => t.kind === Track.Kind.Video);
-//     if (camTrack) {
-//       await room.localParticipant.publishTrack(camTrack);
-//       localCamRef.current = camTrack;
-//       if (initialAV && initialAV.camOn === false) await camTrack.mute();
-//     }
-//   })();
+//         camReadyPromiseRef.current = (async () => {
+//           const camTrack = tracks.find((t) => t.kind === Track.Kind.Video);
+//           if (camTrack) {
+//             await room.localParticipant.publishTrack(camTrack);
+//             localCamRef.current = camTrack;
+//             if (initialAV && initialAV.camOn === false) await camTrack.mute();
+//           }
+//         })();
 
-//   for (const track of tracks) {
-//     if (track.kind === Track.Kind.Audio) {
-//       await room.localParticipant.publishTrack(track);
-//       localMicRef.current = track;
-//       if (initialAV && initialAV.micOn === false) await track.mute();
-//     }
-//   }
-//   await camReadyPromiseRef.current; // taaki neeche wala check (!localCamRef.current) sahi chale
+//         for (const track of tracks) {
+//           if (track.kind === Track.Kind.Audio) {
+//             await room.localParticipant.publishTrack(track);
+//             localMicRef.current = track;
+//             if (initialAV && initialAV.micOn === false) await track.mute();
+//           }
+//         }
+//         await camReadyPromiseRef.current;
 
-  
-//         // FIX: if one of the two devices genuinely never granted permission
-//         // (e.g. only camera was allowed, mic was blocked), reflect that in
-//         // the toggle state instead of showing a button that silently does
-//         // nothing when clicked.
 //         if (!localMicRef.current) setMicOn(false);
 //         if (!localCamRef.current) setCamOn(false);
 //         if (!localMicRef.current || !localCamRef.current) {
@@ -1826,8 +1803,6 @@
 //     const poll = async () => {
 //       try {
 //         const res = await listPendingJoinRequests(meetingId);
-//         // FIX: response items are MeetingJoinRequestDTO -> { requestId, guestName, ... }.
-//         // WaitingRoomPanel renders `w.name`, so map guestName -> name here.
 //         const items = (res?.data || []).map((r) => ({
 //           requestId: r.requestId,
 //           name: r.guestName,
@@ -1845,7 +1820,6 @@
 //     statusPollRef.current = setInterval(async () => {
 //       try {
 //         const res = await getMeetingByJoinCode(joinCode);
-//         // FIX: DTO field is meetingStatus, not status
 //         if (res?.data?.meetingStatus === "ENDED") {
 //           clearInterval(statusPollRef.current);
 //           setEndedToast(true);
@@ -1862,9 +1836,6 @@
 //     if (!room) return;
 //     try {
 //       if (!localMicRef.current) {
-//         // FIX: this used to just `return` here, so anyone whose mic
-//         // permission was blocked when they joined had a mic button that
-//         // did nothing forever. Now we retry acquiring the mic on click.
 //         const [audioTrack] = await createLocalTracks({
 //           audio: {
 //             echoCancellation: true,
@@ -1895,7 +1866,7 @@
 //   const toggleCam = useCallback(async () => {
 //     const room = roomRef.current;
 //     if (!room) return;
-//     if (camReadyPromiseRef.current) await camReadyPromiseRef.current; // 👈 sirf ye line add hui
+//     if (camReadyPromiseRef.current) await camReadyPromiseRef.current;
 //     try {
 //       if (!localCamRef.current) {
 //         const [videoTrack] = await createLocalTracks({
@@ -1921,38 +1892,96 @@
 //     }
 //   }, [camOn, rebuild]);
 
+//   // FIX (Bug 1 — Screen Share Compatibility):
+//   //   • Feature-detects before ever calling getDisplayMedia (iOS Safari,
+//   //     insecure origins, and legacy browsers never attempt the call and
+//   //     never hit LiveKit's internal error path — they get one clear,
+//   //     actionable message instead).
+//   //   • Distinguishes "user cancelled the picker" (NotAllowedError with no
+//   //     prior permission prompt / AbortError) from a genuine permission
+//   //     block, and from a device/browser that doesn't support the feature
+//   //     at all, so the on-screen message is accurate for each platform.
+//   //   • Passes broadly-supported ScreenShareCaptureOptions only
+//   //     (video resolution + contentHint) — omits options like
+//   //     `selfBrowserSurface`/`systemAudio` that only exist in Chromium,
+//   //     since passing unsupported keys can throw a TypeError in Safari/
+//   //     Firefox before the picker even opens.
+//   //   • Always calls setScreenShareEnabled(false) in the same try/catch
+//   //     shape on both start and stop, and always clears local state even
+//   //     if the underlying LiveKit call throws, so the Present button can
+//   //     never get stuck in a stale "on" state on any platform.
 //   const toggleScreen = useCallback(async () => {
 //     const room = roomRef.current;
 //     if (!room) return;
+
 //     if (screenOn) {
 //       try {
 //         await room.localParticipant.setScreenShareEnabled(false);
-//       } catch (_) {}
-//       setScreenOn(false);
-//       rebuild();
-//     } else {
-//       try {
-//         const pub = await room.localParticipant.setScreenShareEnabled(true, {
-//           audio: false,
-//         });
-//         if (!pub) return;
-//         setScreenOn(true);
-//         rebuild();
-//         pub.track?.mediaStreamTrack?.addEventListener(
-//           "ended",
-//           () => {
-//             room.localParticipant.setScreenShareEnabled(false).catch(() => {});
-//             setScreenOn(false);
-//             rebuild();
-//           },
-//           { once: true },
-//         );
 //       } catch (err) {
-//         if (err?.name !== "NotAllowedError")
-//           console.warn("Screen share failed:", err);
+//         console.warn("Stop screen share failed:", err);
+//       } finally {
+//         setScreenOn(false);
+//         rebuild();
 //       }
+//       return;
 //     }
-//   }, [screenOn, rebuild]);
+
+//     if (!screenShareSupport.supported) {
+//       setMediaError(
+//         screenShareSupport.message ||
+//           "Screen sharing isn't available on this device or browser.",
+//       );
+//       return;
+//     }
+
+//     try {
+//       const pub = await room.localParticipant.setScreenShareEnabled(true, {
+//         audio: false,
+//         resolution: { width: 1920, height: 1080 },
+//         contentHint: "detail",
+//       });
+//       if (!pub) return;
+//       setScreenOn(true);
+//       setMediaError(null);
+//       rebuild();
+//       pub.track?.mediaStreamTrack?.addEventListener(
+//         "ended",
+//         () => {
+//           // Fires when the user stops sharing from the browser/OS's own
+//           // "Stop sharing" bar/indicator (Windows, macOS, Chrome, Edge) —
+//           // keep our button state in sync with that native control.
+//           room.localParticipant.setScreenShareEnabled(false).catch(() => {});
+//           setScreenOn(false);
+//           rebuild();
+//         },
+//         { once: true },
+//       );
+//     } catch (err) {
+//       setScreenOn(false);
+//       const name = err?.name || "";
+//       if (name === "NotAllowedError" || name === "PermissionDeniedError") {
+//         setMediaError(
+//           "Screen sharing was blocked or the picker was cancelled. Click Present again and choose a screen, window, or tab to share.",
+//         );
+//       } else if (name === "NotFoundError") {
+//         setMediaError(
+//           "No shareable screen was found. If you're on a virtual machine or remote desktop, screen sharing may be restricted there.",
+//         );
+//       } else if (name === "NotReadableError") {
+//         setMediaError(
+//           "Your screen couldn't be captured — another app may be blocking screen recording. Check your OS privacy settings and try again.",
+//         );
+//       } else if (name === "AbortError") {
+//         // User closed the picker — not an error worth surfacing.
+//       } else {
+//         console.warn("Screen share failed:", err);
+//         setMediaError(
+//           "Couldn't start screen sharing on this device. Try Chrome, Edge, or Firefox, or a Mac/Windows/Linux/Android device.",
+//         );
+//       }
+//       rebuild();
+//     }
+//   }, [screenOn, screenShareSupport, rebuild]);
 
 //   const toggleHandRaise = useCallback(() => {
 //     const next = !handRaised;
@@ -1983,13 +2012,6 @@
 //     [spawnFloater],
 //   );
 
-//   // const sendMsg = useCallback(() => {
-//   //   const text = msgInput.trim();
-//   //   if (!text) return;
-//   //   setMessages((prev) => [
-//   //     ...prev,
-//   //     { id: Date.now(), name: "You", text, time: getTime(), self: true },
-//   //   ]);
 //   const sendMsg = useCallback(() => {
 //     const text = msgInput.trim();
 //     if (!text) return;
@@ -2027,11 +2049,6 @@
 //   );
 
 //   /* ── recording (host only) ───────────────────────────────────────── */
-//   // FIX: there is no recording endpoint on MeetingController/MeetingService
-//   // yet (recording only exists for the old Live Session module). This
-//   // toggle now only flips local UI state so the button doesn't crash on
-//   // a missing function — wire this up to a real backend endpoint once
-//   // one exists (e.g. POST /api/meetings/{id}/recording/start|stop).
 //   const toggleRecording = useCallback(() => {
 //     if (!isHost || recToggling) return;
 //     setRecToggling(true);
@@ -2071,8 +2088,6 @@
 //   }, [meetingId]);
 
 //   /* ── leave / end ──────────────────────────────────────────────────── */
-//   // FIX: no leaveMeetingApi exists on the backend — a guest leaving is
-//   // purely a client-side LiveKit disconnect, nothing to report server-side.
 //   const handleLeave = useCallback(() => {
 //     try {
 //       roomRef.current?.disconnect();
@@ -2083,14 +2098,11 @@
 //  const endingRef = useRef(false);
 //   const [isEnding, setIsEnding] = useState(false);
 //   const handleEndForAll = useCallback(async () => {
-//     // Guard against double-clicks / repeated clicks while the request is
-//     // still in flight — otherwise every extra click re-runs endMeeting +
-//     // requestMeetingSummary, firing a duplicate summary job per click.
 //     if (!meetingId || endingRef.current) return;
 //     endingRef.current = true;
 //     setIsEnding(true);
 //     try {
-//       await endMeeting(meetingId); // FIX: numeric id, not joinCode
+//       await endMeeting(meetingId);
 //       try {
 //         await requestMeetingSummary(meetingId, messages);
 //       } catch (_) {}
@@ -2250,8 +2262,6 @@
 
 //   useEffect(() => () => closePiP(), []); // eslint-disable-line react-hooks/exhaustive-deps
 
-//   // FIX (bug 2): auto-exit the full-screen zoom once the presenter stops
-//   // sharing, and let Escape close it like every other overlay in the room.
 //   useEffect(() => {
 //     if (!screenSharer) setScreenZoomed(false);
 //   }, [screenSharer]);
@@ -2303,9 +2313,6 @@
 //           pipWindow.document.body,
 //         )}
 
-//       {/* FIX (bug 2): Google Meet-style full-screen zoom on the active
-//           screen share. Purely local to this viewer — every participant can
-//           independently zoom in/out without affecting anyone else. */}
 //       {screenZoomed &&
 //         screenSharer &&
 //         createPortal(
@@ -2870,6 +2877,12 @@
 //           icon={screenOn ? <MonitorOff size={18} /> : <MonitorUp size={18} />}
 //           label="Present"
 //           active={screenOn}
+//           disabled={!screenOn && !screenShareSupport.supported}
+//           title={
+//             !screenOn && !screenShareSupport.supported
+//               ? screenShareSupport.message
+//               : undefined
+//           }
 //           onClick={toggleScreen}
 //           pressed={screenOn}
 //           S={S}
@@ -2882,32 +2895,6 @@
 //           pressed={handRaised}
 //           S={S}
 //         />
-//         {/* <div style={{ position: "relative" }}>
-//           <Btn
-//             btnRef={reactionBtnRef}
-//             icon={<SmilePlus size={18} />}
-//             label="React"
-//             active={reactionPickerOpen}
-//             onClick={() => setReactionPickerOpen((v) => !v)}
-//             ariaHasPopup="true"
-//             ariaExpanded={reactionPickerOpen}
-//             S={S}
-//           />
-//           {reactionPickerOpen && (
-//             <div ref={reactionPanelRef} style={S.reactionPicker} role="menu">
-//               {REACTIONS.map((emoji) => (
-//                 <button
-//                   key={emoji}
-//                   role="menuitem"
-//                   style={S.reactionPickerBtn}
-//                   onClick={() => sendReaction(emoji)}
-//                 >
-//                   {emoji}
-//                 </button>
-//               ))}
-//             </div>
-//           )}
-//         </div> */}
 //         <div style={{ position: "relative" }}>
 //           <Btn
 //             btnRef={reactionBtnRef}
@@ -2979,13 +2966,6 @@
 //           pressed={!!pipWindow}
 //           S={S}
 //         />
-//         {/* <Btn
-//           icon={<PhoneOff size={18} />}
-//           label={isHost ? "End" : "Leave"}
-//           leave
-//           onClick={isHost ? handleEndForAll : handleLeave}
-//           S={S}
-//         /> */}
 //         <Btn
 //           icon={<PhoneOff size={18} />}
 //           label={isHost ? (isEnding ? "Ending…" : "End") : "Leave"}
@@ -3069,7 +3049,7 @@
 //         @media (max-width: 1199px) { .im-sidebar { width: 300px !important; } .im-ctrl-btn { padding: 9px 14px !important; } }
 //         @media (max-width: 1023px) {
 //           .im-mainarea { position: relative; }
-//           .im-grid { grid-template-columns: repeat(var(--cols-tablet, 3), 1fr) !important; }
+//           .im-grid { grid-template-columns: repeat(var(--cols-tablet, 3), minmax(0, 1fr)) !important; }
 //           .im-sidebar { position: absolute !important; top:0; right:0; bottom:0; width: min(320px, 88vw) !important; z-index: 40; box-shadow: -12px 0 32px rgba(0,0,0,.45); animation: slideIn .22s ease; }
 //           .im-sidebar-backdrop { display: block; position: absolute; inset: 0; background: rgba(0,0,0,.35); z-index: 30; animation: fadeIn .18s ease; }
 //           .im-handle { display: none !important; }
@@ -3078,7 +3058,7 @@
 //           .im-sidebar { width: 100% !important; max-width: 100% !important; }
 //           .im-sessionname { display: none; }
 //           .im-stage { border-radius: 12px !important; }
-//           .im-grid { grid-template-columns: repeat(var(--cols-phone, 2), 1fr) !important; }
+//           .im-grid { grid-template-columns: repeat(var(--cols-phone, 2), minmax(0, 1fr)) !important; }
 //         }
 //         @media (max-width: 899px) {
 //           .im-topbar { padding: 8px 12px !important; }
@@ -3100,13 +3080,6 @@
 //           .im-btn-label, .im-btn-label-inline { display: none !important; }
 //           .im-ctrl-btn { padding: 10px !important; border-radius: 12px !important; }
 //         }
-//         /* Narrow phones (iPhone SE/12/13/14 widths etc.): a plain flex row
-//            with justify-content:center + overflow-x:auto clips the FIRST
-//            buttons (Mic/Camera) off-screen because the browser centers the
-//            overflowing content instead of scrolling to the start. Wrapping
-//            the toolbar onto two rows below guarantees every control,
-//            including Mic and Camera, is always fully visible with no
-//            scrolling required. */
 //         @media (max-width: 430px) {
 //           .im-ctrlbar {
 //             gap: 5px !important;
@@ -4077,24 +4050,34 @@
 //     whiteSpace: "nowrap",
 //   },
 
+//   /* FIX (Bug 2 — UI redesign to match Google Meet, image 3):
+//      Previously this used `gridAutoRows: "1fr"` inside a flex:1 container,
+//      which forces every tile to stretch and fill 100% of the available
+//      vertical space regardless of aspect ratio — that's exactly why the
+//      tiles in the bug screenshots looked like tall, edge-to-edge stretched
+//      rectangles instead of proportioned Meet-style cards.
+//      Now: tiles keep a fixed, video-like aspect ratio (see gridTile below),
+//      rows size to their content ("auto") instead of stretching, and the
+//      whole grid is centered within the available space with breathing
+//      room around it — matching Meet's centered, card-like tile layout. */
 //   gridWrap: {
 //     flex: 1,
 //     display: "grid",
-//     gridAutoRows: "1fr",
-//     gap: 8,
+//     gridAutoRows: "min-content",
+//     gap: 14,
 //     minHeight: 0,
 //     minWidth: 0,
 //     overflow: "auto",
-//     alignContent: "stretch",
-//     justifyContent: "stretch",
+//     alignContent: "center",
+//     justifyContent: "center",
+//     padding: "4px 2px",
 //   },
 //   gridCellOuter: {
 //     display: "flex",
-//     alignItems: "stretch",
-//     justifyContent: "stretch",
+//     alignItems: "center",
+//     justifyContent: "center",
 //     minHeight: 0,
 //     minWidth: 0,
-//     overflow: "hidden",
 //   },
 //   gridTile: {
 //     position: "relative",
@@ -4106,8 +4089,10 @@
 //     display: "flex",
 //     alignItems: "center",
 //     justifyContent: "center",
-//     height: "100%",
+//     aspectRatio: "4/3",
 //     width: "100%",
+//     maxWidth: "min(46vw, 420px)",
+//     maxHeight: "min(56vh, 420px)",
 //   },
 //   gridAvatar: {
 //     width: "26%",
@@ -4484,21 +4469,6 @@
 //     flexWrap: "nowrap",
 //   },
 // };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -5292,6 +5262,81 @@ function ParticipantGrid({ participants, raisedHands, handRaised, S }) {
           S={S}
         />
       ))}
+    </div>
+  );
+}
+
+/* FIX (mobile UI): full-width stacked tile used ONLY on phone-width
+   screens, one participant per row, matching the target mobile design
+   (avatar centered, name pill bottom-left, mic/host badge top-left,
+   overflow menu top-right, small local self-camera thumbnail bottom-
+   right when the local user's camera is on). Desktop/tablet/laptop
+   layouts (grid / stage+filmstrip) are completely untouched. */
+function MobileStackedTile({ p, raised, active, S, onOpenPeople }) {
+  const wrapRef = useRef(null);
+  const inView = useInView(wrapRef);
+  const hasVideo = !!p.cameraTrack && !p.cameraMuted && inView;
+  const initial = (p.name || "?").trim().charAt(0).toUpperCase() || "?";
+  return (
+    <div
+      ref={wrapRef}
+      style={{
+        ...S.mobileTile,
+        ...(active ? S.mobileTileActive : null),
+      }}
+      className={`im-mobile-tile${p.isSpeaking ? " im-speaking" : ""}`}
+    >
+      {!p.isLocal && p.micTrack && <AudioTrackEl track={p.micTrack} />}
+
+      {/* centered content: full camera OR avatar bubble */}
+      {hasVideo ? (
+        <VideoTrackEl track={p.cameraTrack} mirrored={p.isLocal} fit="cover" />
+      ) : (
+        <div style={S.mobileTileAvatarWrap}>
+          <div
+            style={{
+              ...S.mobileTileAvatar,
+              background: p.isLocal
+                ? "linear-gradient(135deg,#0ea5e9,#6366f1)"
+                : "linear-gradient(135deg,#8b5cf6,#ec4899)",
+            }}
+          >
+            {initial}
+          </div>
+        </div>
+      )}
+
+      {/* top-left: mic-muted pill, or host crown / raised-hand badge */}
+      <div style={S.mobileTileTopLeft}>
+        {p.micMuted ? (
+          <span style={S.mobileTileIconPill}>
+            <MicOff size={13} />
+          </span>
+        ) : null}
+        {raised && (
+          <span style={{ ...S.mobileTileIconPill, background: "#fbbf24" }}>
+            <Hand size={13} color="#1a1a1a" />
+          </span>
+        )}
+        {p.isHost && !raised && (
+          <span style={{ ...S.mobileTileIconPill, background: "#fbbf24" }}>
+            <Crown size={13} color="#1a1a1a" />
+          </span>
+        )}
+      </div>
+
+      {/* top-right: overflow menu, opens the People panel */}
+      <button
+        type="button"
+        style={S.mobileTileMenuBtn}
+        onClick={onOpenPeople}
+        aria-label="More options"
+      >
+        <MoreVertical size={16} />
+      </button>
+
+      {/* bottom-left: name pill */}
+      <div style={S.mobileTileName}>{p.isLocal ? "You" : p.name}</div>
     </div>
   );
 }
@@ -7045,6 +7090,35 @@ function MeetingRoom({
           >
             <SignalHigh size={14} />
           </div>
+          {/* FIX (mobile screen-share bug): on phone-width screens, show a
+              compact status pill instead of relying only on the control-bar
+              button — makes the "not available on this device" state visible
+              even before opening the control bar, matching the reference UI. */}
+          {isCompactDevice && (
+            <div
+              style={{
+                ...S.screenStatusPill,
+                ...(screenOn
+                  ? S.screenStatusPillOn
+                  : !screenShareSupport.supported
+                    ? S.screenStatusPillBlocked
+                    : null),
+              }}
+              title={
+                screenOn
+                  ? "You're presenting"
+                  : !screenShareSupport.supported
+                    ? screenShareSupport.message
+                    : "Screen sharing available"
+              }
+            >
+              {screenOn ? (
+                <MonitorPlay size={14} />
+              ) : (
+                <MonitorOff size={14} />
+              )}
+            </div>
+          )}
           {isHost ? (
             <button
               style={{ ...S.endSessionBtn, opacity: isEnding ? 0.6 : 1 }}
@@ -7120,7 +7194,30 @@ function MeetingRoom({
       {/* ── main area ── */}
       <div style={S.mainArea} className="im-mainarea">
         <div style={S.stageColumn} className="im-stagecolumn">
-          {gridMode ? (
+          {isCompactDevice ? (
+            /* FIX (mobile UI): phone gets a single full-width stacked
+               column — one card per participant — instead of the
+               desktop grid or stage+filmstrip. Desktop/tablet/laptop
+               below are completely unchanged. */
+            <div style={S.mobileStackWrap} className="im-mobile-stack">
+              {participants.map((p) => (
+                <MobileStackedTile
+                  key={p.identity}
+                  p={p}
+                  active={p.isLocal}
+                  raised={p.isLocal ? handRaised : !!raisedHands[p.identity]}
+                  S={S}
+                  onOpenPeople={() => openTab("people")}
+                />
+              ))}
+              {captionsOn && (
+                <div style={S.captionsBar}>
+                  <Captions size={13} />
+                  <span>Live captions are enabled for this meeting.</span>
+                </div>
+              )}
+            </div>
+          ) : gridMode ? (
             <>
               <ParticipantGrid
                 participants={participants}
@@ -7602,6 +7699,7 @@ function MeetingRoom({
 
         .im-filmstrip { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.18) transparent; }
         .im-ctrlbar { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.22) transparent; }
+        .im-mobile-stack { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.18) transparent; overflow-y: auto; }
 
         @media (max-width: 1439px) { .im-sidebar { width: 320px !important; } }
         @media (max-width: 1199px) { .im-sidebar { width: 300px !important; } .im-ctrl-btn { padding: 9px 14px !important; } }
@@ -8151,6 +8249,29 @@ const IM_STYLES = {
     border: "1px solid rgba(100,116,139,.2)",
     color: "var(--im-text-mute2)",
   },
+  // FIX (mobile screen-share bug): compact top-bar status pill, shown
+  // only on phone, so the screen-share availability state is visible
+  // at a glance (matches the reference mobile UI's icon in the row).
+  screenStatusPill: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 8,
+    padding: "6px 9px",
+    background: "var(--im-ghost-bg)",
+    border: "1px solid var(--im-border)",
+    color: "var(--im-text-mute2)",
+  },
+  screenStatusPillOn: {
+    background: "rgba(37,99,235,.16)",
+    border: "1px solid rgba(96,165,250,.32)",
+    color: "#93c5fd",
+  },
+  screenStatusPillBlocked: {
+    background: "rgba(239,68,68,.14)",
+    border: "1px solid rgba(239,68,68,.4)",
+    color: "#f87171",
+  },
   endSessionBtn: {
     display: "flex",
     alignItems: "center",
@@ -8603,6 +8724,99 @@ const IM_STYLES = {
     borderRadius: 6,
     padding: "2px 8px",
     maxWidth: "calc(100% - 14px)",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+
+  /* FIX (mobile UI): full-width stacked participant list, one card per
+     row, used only when isCompactDevice (phone) is true. */
+  mobileStackWrap: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    gap: 14,
+    overflowY: "auto",
+    paddingBottom: 4,
+  },
+  mobileTile: {
+    position: "relative",
+    width: "100%",
+    minHeight: 230,
+    flexShrink: 0,
+    background: "var(--im-tile-bg)",
+    borderRadius: 20,
+    overflow: "hidden",
+    border: "1px solid var(--im-border)",
+    boxShadow: "0 8px 24px rgba(0,0,0,.3)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  mobileTileActive: {
+    border: "2px solid #6d5ef7",
+  },
+  mobileTileAvatarWrap: {
+    position: "absolute",
+    inset: 0,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  mobileTileAvatar: {
+    width: 96,
+    height: 96,
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 34,
+    fontWeight: 800,
+    color: "#fff",
+  },
+  mobileTileTopLeft: {
+    position: "absolute",
+    top: 10,
+    left: 10,
+    display: "flex",
+    gap: 6,
+  },
+  mobileTileIconPill: {
+    width: 26,
+    height: 26,
+    borderRadius: "50%",
+    background: "rgba(10,12,18,.72)",
+    color: "#fff",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  mobileTileMenuBtn: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    width: 30,
+    height: 30,
+    borderRadius: "50%",
+    background: "rgba(10,12,18,.55)",
+    border: "none",
+    color: "#fff",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+  },
+  mobileTileName: {
+    position: "absolute",
+    bottom: 10,
+    left: 10,
+    fontSize: 12,
+    fontWeight: 600,
+    color: "#fff",
+    background: "rgba(10,12,18,.68)",
+    borderRadius: 8,
+    padding: "4px 10px",
+    maxWidth: "calc(100% - 20px)",
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",

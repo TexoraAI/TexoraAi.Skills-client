@@ -5001,6 +5001,20 @@ function PiPPanel({
   );
 }
 
+/* ─── reaction badge ─────────────────────────────────────────────── */
+function ReactionBadge({ emoji, style }) {
+  if (!emoji) return null;
+
+  return (
+    <div
+      style={style}
+      className="im-reaction-badge"
+      aria-hidden="true"
+    >
+      {emoji}
+    </div>
+  );
+}
 /* ─── reaction floaters ──────────────────────────────────────────── */
 function EmojiFloaters({ floaters, S }) {
   return (
@@ -5023,7 +5037,7 @@ function EmojiFloaters({ floaters, S }) {
 }
 
 /* ─── video tiles: strip / grid / stage ─────────────────────────── */
-function StripTile({ p, active, raised, S }) {
+function StripTile({ p, active, raised, reaction, S }) {
   const wrapRef = useRef(null);
   const inView = useInView(wrapRef);
   const hasVideo = !!p.cameraTrack && !p.cameraMuted && inView;
@@ -5074,6 +5088,7 @@ function StripTile({ p, active, raised, S }) {
         )}
       </div>
       <div style={S.stripName}>{p.isLocal ? "You" : p.name}</div>
+      <ReactionBadge emoji={reaction} style={S.stripReactionBadge} />
     </div>
   );
 }
@@ -5100,7 +5115,7 @@ function StripOverflow({ count, S, onClick }) {
   );
 }
 
-function StageTile({ p, raised, S, onMaximize }) {
+function StageTile({ p, raised, reaction, S, onMaximize }) {
   if (!p) {
     return (
       <div style={S.stageOuter}>
@@ -5173,6 +5188,7 @@ function StageTile({ p, raised, S, onMaximize }) {
             <span>Hand raised</span>
           </div>
         )}
+        <ReactionBadge emoji={reaction} style={S.stageReactionBadge} />
       </div>
     </div>
   );
@@ -5186,7 +5202,7 @@ function gridColumns(n) {
   return Math.min(Math.ceil(Math.sqrt(n)), 5);
 }
 
-function GridTile({ p, raised, S }) {
+function GridTile({ p, raised, reaction, S }) {
   const wrapRef = useRef(null);
   const inView = useInView(wrapRef);
   const hasVideo = !!p.cameraTrack && !p.cameraMuted && inView;
@@ -5238,12 +5254,13 @@ function GridTile({ p, raised, S }) {
             <Hand size={12} color="#1a1a1a" />
           </div>
         )}
+        <ReactionBadge emoji={reaction} style={S.gridReactionBadge} />
       </div>
     </div>
   );
 }
 
-function ParticipantGrid({ participants, raisedHands, handRaised, S }) {
+function ParticipantGrid({ participants, raisedHands, handRaised, reactions, S }) {
   const cols = gridColumns(participants.length);
   const style = {
     ...S.gridWrap,
@@ -5259,6 +5276,7 @@ function ParticipantGrid({ participants, raisedHands, handRaised, S }) {
           key={p.identity}
           p={p}
           raised={p.isLocal ? handRaised : !!raisedHands[p.identity]}
+          reaction={reactions[p.identity]}
           S={S}
         />
       ))}
@@ -5272,7 +5290,7 @@ function ParticipantGrid({ participants, raisedHands, handRaised, S }) {
    overflow menu top-right, small local self-camera thumbnail bottom-
    right when the local user's camera is on). Desktop/tablet/laptop
    layouts (grid / stage+filmstrip) are completely untouched. */
-function MobileStackedTile({ p, raised, active, S, onOpenPeople }) {
+function MobileStackedTile({ p, raised, reaction, active, S, onOpenPeople }) {
   const wrapRef = useRef(null);
   const inView = useInView(wrapRef);
   const hasVideo = !!p.cameraTrack && !p.cameraMuted && inView;
@@ -5337,6 +5355,7 @@ function MobileStackedTile({ p, raised, active, S, onOpenPeople }) {
 
       {/* bottom-left: name pill */}
       <div style={S.mobileTileName}>{p.isLocal ? "You" : p.name}</div>
+      <ReactionBadge emoji={reaction} style={S.mobileTileReactionBadge} />
     </div>
   );
 }
@@ -6119,6 +6138,7 @@ function MeetingRoom({
   const menuPanelRef = useRef(null);
   const speakingSetRef = useRef(new Set());
   const sidebarRef = useRef(null);
+  const screenSharePickerActiveRef = useRef(false);
   const reactionBtnRef = useRef(null);
   const reactionPanelRef = useRef(null);
 
@@ -6138,6 +6158,8 @@ function MeetingRoom({
   const [msgInput, setMsgInput] = useState("");
   const [raisedHands, setRaisedHands] = useState({});
   const [floaters, setFloaters] = useState([]);
+  const [reactions, setReactions] = useState({}); // identity -> emoji, tile-anchored (same pattern as raisedHands)
+  const reactionTimeoutsRef = useRef({});
   const [joinedAt, setJoinedAt] = useState(null);
   const [mediaError, setMediaError] = useState(null);
   const [pinnedId, setPinnedId] = useState(null);
@@ -6232,6 +6254,24 @@ function MeetingRoom({
     );
   }, []);
 
+  // FIX (bug 3 / emoji reactions): shows the emoji on the sender's own
+  // tile/avatar, exactly like raisedHands is keyed by identity — every
+  // participant sees the reaction on the correct user's tile.
+  const showReaction = useCallback((identity, emoji) => {
+    if (!identity) return;
+    setReactions((prev) => ({ ...prev, [identity]: emoji }));
+    if (reactionTimeoutsRef.current[identity]) {
+      clearTimeout(reactionTimeoutsRef.current[identity]);
+    }
+    reactionTimeoutsRef.current[identity] = setTimeout(() => {
+      setReactions((prev) => {
+        const next = { ...prev };
+        delete next[identity];
+        return next;
+      });
+    }, 3000);
+  }, []);
+
   /* ── connect to LiveKit once we have a token ─────────────────────── */
   useEffect(() => {
     if (!connectPayload?.token) return undefined;
@@ -6259,10 +6299,7 @@ function MeetingRoom({
               },
             ]);
           } else if (msg.type === "reaction" && msg.emoji) {
-            spawnFloater(
-              msg.emoji,
-              participant?.name || participant?.identity || "Someone",
-            );
+            showReaction(participant?.identity, msg.emoji);
           } else if (msg.type === "hand") {
             setRaisedHands((prev) => ({
               ...prev,
@@ -6537,6 +6574,7 @@ function MeetingRoom({
       return;
     }
 
+    screenSharePickerActiveRef.current = true;
     try {
       const pub = await room.localParticipant.setScreenShareEnabled(true, {
         audio: false,
@@ -6583,6 +6621,8 @@ function MeetingRoom({
         );
       }
       rebuild();
+    } finally {
+      screenSharePickerActiveRef.current = false;
     }
   }, [screenOn, screenShareSupport, rebuild]);
 
@@ -6601,7 +6641,8 @@ function MeetingRoom({
 
   const sendReaction = useCallback(
     (emoji) => {
-      spawnFloater(emoji, "You");
+      const localIdentity = roomRef.current?.localParticipant?.identity;
+      showReaction(localIdentity, emoji);
       try {
         const payload = new TextEncoder().encode(
           JSON.stringify({ type: "reaction", emoji }),
@@ -6612,7 +6653,7 @@ function MeetingRoom({
       } catch (_) {}
       setReactionPickerOpen(false);
     },
-    [spawnFloater],
+    [showReaction],
   );
 
   const sendMsg = useCallback(() => {
@@ -6856,6 +6897,7 @@ function MeetingRoom({
   useEffect(() => {
     if (!connected) return undefined;
     const onVisibility = () => {
+      if (screenSharePickerActiveRef.current) return;
       if (document.hidden) openPiP();
       else closePiP();
     };
@@ -7206,6 +7248,7 @@ function MeetingRoom({
                   p={p}
                   active={p.isLocal}
                   raised={p.isLocal ? handRaised : !!raisedHands[p.identity]}
+                  reaction={reactions[p.identity]}
                   S={S}
                   onOpenPeople={() => openTab("people")}
                 />
@@ -7223,6 +7266,7 @@ function MeetingRoom({
                 participants={participants}
                 raisedHands={raisedHands}
                 handRaised={handRaised}
+                reactions={reactions}
                 S={S}
               />
               {captionsOn && (
@@ -7243,6 +7287,7 @@ function MeetingRoom({
                       : !!raisedHands[featured.identity]
                     : false
                 }
+                reaction={featured ? reactions[featured.identity] : null}
                 S={S}
                 onMaximize={
                   featured?.screenTrack
@@ -7270,6 +7315,7 @@ function MeetingRoom({
                       raised={
                         p.isLocal ? handRaised : !!raisedHands[p.identity]
                       }
+                      reaction={reactions[p.identity]}
                       S={S}
                     />
                   ))}
@@ -7690,6 +7736,7 @@ function MeetingRoom({
         .im-ctrl-btn:active { transform: scale(.94); }
         .im-sidebar { animation: slideIn .22s ease; }
         .im-stage { animation: fadeScaleIn .25s ease; }
+        .im-reaction-badge { animation: fadeScaleIn .2s ease; }
         .im-sidebar-backdrop { display: none; }
         .im-btn-label { display: inline; }
         .im-btn-label-inline { display: inline; }
@@ -8475,6 +8522,15 @@ const IM_STYLES = {
     boxShadow: "0 4px 14px rgba(251,191,36,.4)",
     animation: "recBlink 1.4s infinite",
   },
+  stageReactionBadge: {
+    position: "absolute",
+    bottom: 16,
+    right: 16,
+    fontSize: 30,
+    lineHeight: 1,
+    filter: "drop-shadow(0 4px 10px rgba(0,0,0,.4))",
+    pointerEvents: "none",
+  },
   screenLabel: {
     position: "absolute",
     top: 16,
@@ -8728,6 +8784,15 @@ const IM_STYLES = {
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
   },
+  stripReactionBadge: {
+    position: "absolute",
+    bottom: 6,
+    right: 8,
+    fontSize: 18,
+    lineHeight: 1,
+    filter: "drop-shadow(0 2px 6px rgba(0,0,0,.4))",
+    pointerEvents: "none",
+  },
 
   /* FIX (mobile UI): full-width stacked participant list, one card per
      row, used only when isCompactDevice (phone) is true. */
@@ -8740,19 +8805,19 @@ const IM_STYLES = {
     paddingBottom: 4,
   },
   mobileTile: {
-    position: "relative",
-    width: "100%",
-    minHeight: 230,
-    flexShrink: 0,
-    background: "var(--im-tile-bg)",
-    borderRadius: 20,
-    overflow: "hidden",
-    border: "1px solid var(--im-border)",
-    boxShadow: "0 8px 24px rgba(0,0,0,.3)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  position: "relative",
+  width: "100%",
+  aspectRatio: "16/9",     // ✅ fixed, deterministic height
+  flexShrink: 0,
+  background: "var(--im-tile-bg)",
+  borderRadius: 20,
+  overflow: "hidden",
+  border: "1px solid var(--im-border)",
+  boxShadow: "0 8px 24px rgba(0,0,0,.3)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+},
   mobileTileActive: {
     border: "2px solid #6d5ef7",
   },
@@ -8820,6 +8885,15 @@ const IM_STYLES = {
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
+  },
+  mobileTileReactionBadge: {
+    position: "absolute",
+    bottom: 10,
+    right: 46,
+    fontSize: 26,
+    lineHeight: 1,
+    filter: "drop-shadow(0 3px 8px rgba(0,0,0,.4))",
+    pointerEvents: "none",
   },
 
   /* FIX (Bug 2 — UI redesign to match Google Meet, image 3):
@@ -8918,6 +8992,15 @@ const IM_STYLES = {
     justifyContent: "center",
     background: "#fbbf24",
     borderRadius: "50%",
+  },
+  gridReactionBadge: {
+    position: "absolute",
+    bottom: 10,
+    right: 10,
+    fontSize: 22,
+    lineHeight: 1,
+    filter: "drop-shadow(0 3px 8px rgba(0,0,0,.4))",
+    pointerEvents: "none",
   },
 
   handle: {

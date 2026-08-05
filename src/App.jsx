@@ -568,6 +568,10 @@ seedCMSData();
               path="/workspace/:joinCode"
               element={<IlmoraMeetingPage />}
             />
+            <Route
+  path="/ilmorameet/:joinCode"
+  element={<IlmoraMeetingPage />}
+/>
             
          
             {/* ================= COMPANY ================= */}

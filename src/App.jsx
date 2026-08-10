@@ -1,6 +1,6 @@
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Suspense, useEffect, useState } from "react";
-import SEO from "./components/SEO";
+// import SEO from "./components/SEO";
 import { Navigate, Route, Routes } from "react-router-dom";
 import ErrorBoundary from "./components/ui/ErrorBoundary";
 import LoadingSpinner from "./components/ui/LoadingSpinner";
@@ -405,7 +405,7 @@ seedCMSData();
 }, []);
   return (
     <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
-      <SEO />
+      {/* <SEO /> */}
       <ErrorBoundary>
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>

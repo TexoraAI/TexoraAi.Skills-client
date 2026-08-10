@@ -54,6 +54,14 @@ export default function CourseDetailsPage() {
   const [shareCopied, setShareCopied] = useState(false);
   const [relatedCourses, setRelatedCourses] = useState([]);
   const [relatedLoading, setRelatedLoading] = useState(true);
+  // TODO: replace with a real enrollment check once enrollment-service is
+  // wired up on the frontend (no existing pattern found in this codebase —
+  // no isEnrolled prop, context, or hook currently tracks purchases).
+  // Defaulting to `true` so "Start Course" is reachable for now.
+  const isEnrolled = true;
+  const hasProgress = false; // TODO: wire real progress once available
+  const startCourseLabel = hasProgress ? "Continue Learning" : "Start Course";
+  const goToProgramPlayer = () => navigate(`/program-player/${courseData.id}`);
 
   // Ref used to smoothly scroll to the in-page Course Syllabus section
   // instead of navigating to a separate route.
@@ -888,12 +896,22 @@ export default function CourseDetailsPage() {
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => setShowEnrollModal(true)}
-                    className="w-full bg-gradient-to-r from-[#F97316] to-[#ea580c] hover:brightness-105 text-white py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base shadow-md hover:shadow-lg transition-all mb-2.5 sm:mb-3"
-                  >
-                    Enroll Now
-                  </button>
+                  {isEnrolled ? (
+                    <button
+                      onClick={goToProgramPlayer}
+                      className="w-full bg-gradient-to-r from-[#F97316] to-[#ea580c] hover:brightness-105 text-white py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base shadow-md hover:shadow-lg transition-all mb-2.5 sm:mb-3 flex items-center justify-center gap-2"
+                    >
+                      <PlayCircle size={18} />
+                      {startCourseLabel}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setShowEnrollModal(true)}
+                      className="w-full bg-gradient-to-r from-[#F97316] to-[#ea580c] hover:brightness-105 text-white py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base shadow-md hover:shadow-lg transition-all mb-2.5 sm:mb-3"
+                    >
+                      Enroll Now
+                    </button>
+                  )}
 
                   <button
                     onClick={scrollToSyllabus}
@@ -1030,10 +1048,12 @@ export default function CourseDetailsPage() {
           </p>
         </div>
         <button
-          onClick={() => setShowEnrollModal(true)}
+          onClick={
+            isEnrolled ? goToProgramPlayer : () => setShowEnrollModal(true)
+          }
           className="bg-gradient-to-r from-[#F97316] to-[#ea580c] text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md flex items-center gap-1.5 flex-shrink-0"
         >
-          Enroll Now
+          {isEnrolled ? startCourseLabel : "Enroll Now"}
         </button>
       </div>
 

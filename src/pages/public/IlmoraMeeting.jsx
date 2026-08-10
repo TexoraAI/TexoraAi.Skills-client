@@ -5379,36 +5379,7 @@ const PersonRow = ({ name, isHost, self, handRaised, S }) => (
     {self && <span style={S.youTag}>You</span>}
   </div>
 );
-const LETTER_COLORS = [
-  "#f43f5e",
-  "#f59e0b",
-  "#22c55e",
-  "#0ea5e9",
-  "#6366f1",
-  "#a855f7",
-  "#ec4899",
-  "#14b8a6",
-  "#eab308",
-  "#ef4444",
-];
 
-function ColorfulTitle({ text, style, className }) {
-  return (
-    <span style={style} className={className}>
-      {text
-        .toUpperCase()
-        .split("")
-        .map((ch, i) => (
-          <span
-            key={i}
-            style={{ color: LETTER_COLORS[i % LETTER_COLORS.length] }}
-          >
-            {ch === " " ? "\u00A0" : ch}
-          </span>
-        ))}
-    </span>
-  );
-}
 
 const Btn = ({
   icon,
@@ -5659,8 +5630,8 @@ function PreJoinScreen({ meetingInfo, joinCode, onSubmit, submitting, error }) {
 
           <div style={PJ.infoCol}>
             <h2 style={PJ.title}>
-              <ColorfulTitle text={meetingInfo?.title || "Ilmorameet"} />
-            </h2>
+  {meetingInfo?.title || "Ilmorameet"}
+</h2>
             <p style={PJ.subtitle}>
               Hosted by{" "}
               <strong>{meetingInfo?.creatorName || "the meeting host"}</strong>
@@ -5684,12 +5655,11 @@ function PreJoinScreen({ meetingInfo, joinCode, onSubmit, submitting, error }) {
             </p>
 
             <div style={PJ.sectionHeading}>
-              <h3 style={PJ.sectionHeadingText}>Join the Meeting</h3>
-              <div style={PJ.sectionHeadingDash}>
-                <span style={PJ.dashOrange} />
-                <span style={PJ.dashGreen} />
-              </div>
-            </div>
+  <h3 style={PJ.sectionHeadingText}>Join the Meeting</h3>
+  <div style={PJ.sectionHeadingDash}>
+    <span style={PJ.dashOrange} />
+  </div>
+</div>
 
             <label style={PJ.label}>Your name</label>
             <input
@@ -8013,36 +7983,29 @@ const PJ = {
     cursor: "pointer",
   },
   sectionHeading: {
-    textAlign: "center",
-    marginBottom: 18,
-    paddingBottom: 12,
-    borderBottom: "1px solid rgba(15,23,42,.08)",
-  },
-  sectionHeadingText: {
-    fontSize: 15,
-    fontWeight: 800,
-    color: "#0f172a",
-    margin: "0 0 8px",
-  },
-  sectionHeadingDash: {
-    display: "flex",
-    justifyContent: "center",
-    gap: 6,
-  },
-  dashOrange: {
-    width: 22,
-    height: 3,
-    borderRadius: 2,
-    background: "#f97316",
-    display: "inline-block",
-  },
-  dashGreen: {
-    width: 22,
-    height: 3,
-    borderRadius: 2,
-    background: "#22c55e",
-    display: "inline-block",
-  },
+  textAlign: "center",
+  marginBottom: 18,
+  paddingBottom: 12,
+  borderBottom: "1px solid rgba(15,23,42,.08)",
+},
+sectionHeadingText: {
+  fontSize: 15,
+  fontWeight: 800,
+  color: "#0f172a",
+  margin: "0 0 8px",
+},
+sectionHeadingDash: {
+  display: "flex",
+  justifyContent: "center",
+  gap: 6,
+},
+dashOrange: {
+  width: 36,
+  height: 3,
+  borderRadius: 2,
+  background: "#f97316",
+  display: "inline-block",
+},
   label: {
     fontSize: 12,
     fontWeight: 700,

@@ -1,8 +1,9 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import SyllabusZipUpload from "./SyllabusZipUpload";
 import ToggleSwitch from "./ToggleSwitch";
 import { courseService } from "../../../services/courseService";
-
+import videoService from "../../../services/videoService";
+import fileService from "../../../services/fileService";
 const DISPLAY_FLAGS = [
   { key: "showOnHomepage", label: "Show on Homepage", icon: "🏠" },
   { key: "isFeatured", label: "Featured Course", icon: "⭐" },
@@ -14,11 +15,42 @@ const DISPLAY_FLAGS = [
 ];
 const SESSION_TYPES = ["Video", "Live", "Assignment", "Quiz", "Reading"];
 
+// Turns a raw seconds count from videoDurationSeconds into a friendly
+// "m:ss" label (e.g. 294 -> "4:54"), matching how the player displays it.
+// Falls back to nothing if the value isn't a usable number yet (video
+// still processing, or type doesn't carry a real duration).
+function formatDurationLabel(seconds) {
+  if (!Number.isFinite(seconds) || seconds < 0) return "";
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60)
+    .toString()
+    .padStart(2, "0");
+  return `${m}:${s}`;
+}
+
+// Monotonically-increasing counter for generating unique client-side ids
+// for weeks/modules/sessions that only exist locally (not yet saved to
+// the backend). `Date.now()` alone returns the SAME value for every item
+// created within the same millisecond — which is exactly what happens
+// when the PDF-extract "Apply to Syllabus" flow (see handleGenerate
+// below) builds many weeks/modules/sessions in a single synchronous
+// loop. The counter guarantees uniqueness no matter how fast items are
+// created; the Date.now() prefix just keeps ids roughly sortable/
+// debuggable. Module-scoped so it's shared across every generation pass
+// and every component in this file (ManualSyllabusBuilder, SyllabusUpload).
+let clientIdCounter = 0;
+const makeClientId = (prefix) =>
+  `${prefix}-${Date.now()}-${(clientIdCounter += 1)}`;
+
 const ManualSyllabusBuilder = ({ weeks, onChange }) => {
   const addWeek = () => {
     onChange([
       ...weeks,
-      { id: Date.now(), title: `Week ${weeks.length + 1}`, modules: [] },
+      {
+        id: makeClientId("week"),
+        title: `Week ${weeks.length + 1}`,
+        modules: [],
+      },
     ]);
   };
 
@@ -39,9 +71,10 @@ const ManualSyllabusBuilder = ({ weeks, onChange }) => {
               modules: [
                 ...w.modules,
                 {
-                  id: Date.now(),
+                  id: makeClientId("module"),
                   title: `Module ${w.modules.length + 1}`,
                   sessions: [],
+                  isPersisted: false,
                 },
               ],
             }
@@ -88,10 +121,12 @@ const ManualSyllabusBuilder = ({ weeks, onChange }) => {
                       sessions: [
                         ...m.sessions,
                         {
-                          id: Date.now(),
+                          id: makeClientId("session"),
                           title: `Session ${m.sessions.length + 1}`,
                           type: "Video",
                           duration: "",
+                          isPersisted: false,
+                          videoStatus: "NONE",
                         },
                       ],
                     }
@@ -144,7 +179,601 @@ const ManualSyllabusBuilder = ({ weeks, onChange }) => {
       ),
     );
   };
+  const fileInputRefs = useRef({});
+  const [videoState, setVideoState] = useState({}); // sessionId -> {uploading, progress, polling, timedOut}
+  // sessionId -> { open, title, description, thumbnailFile, thumbnailPreview, pendingFile }
+  const [videoMetaForm, setVideoMetaForm] = useState({});
+  const fileInputRefsFile = useRef({});
+  const [fileState, setFileState] = useState({});
 
+  const openVideoMetaForm = (sessId, file, existing = {}) => {
+    setVideoMetaForm((prev) => ({
+      ...prev,
+      [sessId]: {
+        open: true,
+        title: existing.title || "",
+        description: existing.description || "",
+        thumbnailFile: null,
+        thumbnailPreview: existing.videoThumbnailUrl || null,
+        pendingFile: file || null, // null when editing an existing video, not replacing it
+      },
+    }));
+  };
+
+  const closeVideoMetaForm = (sessId) => {
+    setVideoMetaForm((prev) => {
+      const next = { ...prev };
+      delete next[sessId];
+      return next;
+    });
+  };
+
+  const updateVideoMetaField = (sessId, field, val) => {
+    setVideoMetaForm((prev) => ({
+      ...prev,
+      [sessId]: { ...prev[sessId], [field]: val },
+    }));
+  };
+
+  const handleThumbnailPick = (sessId, file) => {
+    if (!file) return;
+    const preview = URL.createObjectURL(file);
+    setVideoMetaForm((prev) => ({
+      ...prev,
+      [sessId]: {
+        ...prev[sessId],
+        thumbnailFile: file,
+        thumbnailPreview: preview,
+      },
+    }));
+  };
+
+  const setSessionVideoField = (weekId, modId, sessId, patch) => {
+    onChange(
+      weeks.map((w) =>
+        w.id === weekId
+          ? {
+              ...w,
+              modules: w.modules.map((m) =>
+                m.id === modId
+                  ? {
+                      ...m,
+                      sessions: m.sessions.map((s) =>
+                        s.id === sessId ? { ...s, ...patch } : s,
+                      ),
+                    }
+                  : m,
+              ),
+            }
+          : w,
+      ),
+    );
+  };
+  const setSessionFileField = (weekId, modId, sessId, patch) => {
+    onChange(
+      weeks.map((w) =>
+        w.id === weekId
+          ? {
+              ...w,
+              modules: w.modules.map((m) =>
+                m.id === modId
+                  ? {
+                      ...m,
+                      sessions: m.sessions.map((s) =>
+                        s.id === sessId ? { ...s, ...patch } : s,
+                      ),
+                    }
+                  : m,
+              ),
+            }
+          : w,
+      ),
+    );
+  };
+
+  const pollVideoStatus = (weekId, modId, sess) => {
+    let attempts = 0;
+    const sessId = sess.id;
+    const interval = setInterval(async () => {
+      attempts += 1;
+      try {
+        const { data } = await courseService.getSessionVideoStatus(sessId);
+        if (data?.videoStatus === "READY" || data?.videoStatus === "FAILED") {
+          clearInterval(interval);
+          setSessionVideoField(weekId, modId, sessId, {
+            videoStatus: data.videoStatus,
+            videoUrl: data.videoUrl || sess.videoUrl,
+            videoDurationSeconds:
+              data.videoDurationSeconds ?? sess.videoDurationSeconds,
+            videoThumbnailUrl: data.videoThumbnailUrl || sess.videoThumbnailUrl,
+          });
+          setVideoState((prev) => ({
+            ...prev,
+            [sessId]: { ...prev[sessId], uploading: false, polling: false },
+          }));
+        } else if (attempts >= 20) {
+          clearInterval(interval);
+          setVideoState((prev) => ({
+            ...prev,
+            [sessId]: { ...prev[sessId], polling: false, timedOut: true },
+          }));
+        }
+      } catch {
+        if (attempts >= 20) {
+          clearInterval(interval);
+          setVideoState((prev) => ({
+            ...prev,
+            [sessId]: { ...prev[sessId], polling: false, timedOut: true },
+          }));
+        }
+      }
+    }, 3000);
+  };
+
+  const pollFileStatus = (weekId, modId, sess) => {
+    let attempts = 0;
+    const sessId = sess.id;
+    const interval = setInterval(async () => {
+      attempts += 1;
+      try {
+        const { data } = await courseService.getSessionFileStatus(sessId);
+        if (data?.fileStatus === "READY" || data?.fileStatus === "FAILED") {
+          clearInterval(interval);
+          setSessionFileField(weekId, modId, sessId, {
+            fileStatus: data.fileStatus,
+            fileUrl: data.fileUrl || sess.fileUrl,
+            fileName: data.fileName || sess.fileName,
+          });
+          setFileState((prev) => ({
+            ...prev,
+            [sessId]: { ...prev[sessId], uploading: false, polling: false },
+          }));
+        } else if (attempts >= 20) {
+          clearInterval(interval);
+          setFileState((prev) => ({
+            ...prev,
+            [sessId]: { ...prev[sessId], polling: false, timedOut: true },
+          }));
+        }
+      } catch {
+        if (attempts >= 20) {
+          clearInterval(interval);
+          setFileState((prev) => ({
+            ...prev,
+            [sessId]: { ...prev[sessId], polling: false, timedOut: true },
+          }));
+        }
+      }
+    }, 3000);
+  };
+
+  // File picked → just open the metadata form. The actual upload now
+  // happens from handleConfirmUpload once title/description/thumbnail
+  // (all optional) are filled in and the admin clicks "Upload".
+  const handleVideoFileSelect = (weekId, modId, sess, file) => {
+    if (!file) return;
+    openVideoMetaForm(sess.id, file, sess);
+  };
+
+  const handleConfirmUpload = async (weekId, modId, sess) => {
+    const form = videoMetaForm[sess.id];
+    if (!form?.pendingFile) return;
+    const sessId = sess.id;
+    setVideoState((prev) => ({
+      ...prev,
+      [sessId]: {
+        uploading: true,
+        progress: 0,
+        polling: false,
+        timedOut: false,
+      },
+    }));
+    setSessionVideoField(weekId, modId, sessId, { videoStatus: "PROCESSING" });
+    closeVideoMetaForm(sessId);
+    try {
+      courseService.startSessionVideoUpload(sessId).catch(() => {});
+      const { data } = await videoService.uploadFeaturedSessionVideo(
+        sessId,
+        form.pendingFile,
+        {
+          title: form.title,
+          description: form.description,
+          thumbnail: form.thumbnailFile,
+        },
+        (pct) => {
+          setVideoState((prev) => ({
+            ...prev,
+            [sessId]: { ...prev[sessId], progress: pct },
+          }));
+        },
+      );
+      setSessionVideoField(weekId, modId, sessId, {
+        videoId: data.id, // the FeaturedSessionVideo row id — needed for edit/delete
+        title: data.title,
+        description: data.description,
+        videoThumbnailUrl: data.thumbnailUrl,
+      });
+      setVideoState((prev) => ({
+        ...prev,
+        [sessId]: { ...prev[sessId], uploading: false, polling: true },
+      }));
+      pollVideoStatus(weekId, modId, { ...sess, videoStatus: "PROCESSING" });
+    } catch {
+      setVideoState((prev) => ({
+        ...prev,
+        [sessId]: { ...prev[sessId], uploading: false, polling: false },
+      }));
+      setSessionVideoField(weekId, modId, sessId, { videoStatus: "FAILED" });
+    }
+  };
+
+  const handleConfirmEdit = async (weekId, modId, sess) => {
+    const form = videoMetaForm[sess.id];
+    if (!form) return;
+    if (!sess.videoId) {
+      alert("No video exists for this session yet — upload one first.");
+      closeVideoMetaForm(sess.id);
+      return;
+    }
+    try {
+      const { data } = await videoService.updateFeaturedSessionVideo(
+        sess.videoId,
+        {
+          title: form.title,
+          description: form.description,
+          thumbnail: form.thumbnailFile || undefined,
+        },
+      );
+      setSessionVideoField(weekId, modId, sess.id, {
+        title: data.title,
+        description: data.description,
+        videoThumbnailUrl: data.thumbnailUrl,
+      });
+      closeVideoMetaForm(sess.id);
+    } catch (err) {
+      alert(
+        "Failed to save changes: " +
+          (err?.response?.data?.message || err.message),
+      );
+    }
+  };
+
+  const handleDeleteVideo = async (weekId, modId, sess) => {
+    if (!window.confirm("Delete this video?")) return;
+    try {
+      await courseService.deleteSessionVideo(sess.id);
+      setSessionVideoField(weekId, modId, sess.id, {
+        videoStatus: "NONE",
+        videoUrl: "",
+        videoId: null,
+        title: "",
+        description: "",
+        videoDurationSeconds: null,
+        videoThumbnailUrl: "",
+      });
+      closeVideoMetaForm(sess.id); // clear any stale edit/upload form for this session
+    } catch (err) {
+      alert(
+        "Failed to delete video: " +
+          (err?.response?.data?.message || err.message),
+      );
+    }
+  };
+
+  const handleFileFileSelect = async (weekId, modId, sess, file) => {
+    if (!file) return;
+    const sessId = sess.id;
+    setFileState((prev) => ({
+      ...prev,
+      [sessId]: {
+        uploading: true,
+        progress: 0,
+        polling: false,
+        timedOut: false,
+      },
+    }));
+    setSessionFileField(weekId, modId, sessId, { fileStatus: "PROCESSING" });
+    try {
+      courseService.startSessionFileUpload(sessId).catch(() => {});
+      const { data } = await fileService.uploadFeaturedSessionFile(
+        sessId,
+        file,
+        (pct) => {
+          setFileState((prev) => ({
+            ...prev,
+            [sessId]: { ...prev[sessId], progress: pct },
+          }));
+        },
+      );
+      setSessionFileField(weekId, modId, sessId, {
+        fileId: data.id,
+        fileName: data.fileName,
+        fileUrl: data.url,
+      });
+      setFileState((prev) => ({
+        ...prev,
+        [sessId]: { ...prev[sessId], uploading: false, polling: true },
+      }));
+      pollFileStatus(weekId, modId, { ...sess, fileStatus: "PROCESSING" });
+    } catch {
+      setFileState((prev) => ({
+        ...prev,
+        [sessId]: { ...prev[sessId], uploading: false, polling: false },
+      }));
+      setSessionFileField(weekId, modId, sessId, { fileStatus: "FAILED" });
+    }
+  };
+
+  const handleDeleteFile = async (weekId, modId, sess) => {
+    if (!window.confirm("Delete this file?")) return;
+    try {
+      await courseService.deleteSessionFile(sess.id);
+      setSessionFileField(weekId, modId, sess.id, {
+        fileStatus: "NONE",
+        fileUrl: "",
+        fileId: null,
+        fileName: "",
+      });
+    } catch (err) {
+      alert(
+        "Failed to delete file: " +
+          (err?.response?.data?.message || err.message),
+      );
+    }
+  };
+
+  // resume polling for sessions still PROCESSING when the page (re)opens
+  useEffect(() => {
+    weeks.forEach((w) =>
+      (w.modules || []).forEach((m) =>
+        (m.sessions || []).forEach((s) => {
+          if (
+            s.type === "Video" &&
+            s.videoStatus === "PROCESSING" &&
+            s.isPersisted
+          ) {
+            setVideoState((prev) => ({
+              ...prev,
+              [s.id]: { ...prev[s.id], polling: true },
+            }));
+            pollVideoStatus(w.id, m.id, s);
+          }
+          if (
+            s.type === "Reading" &&
+            s.fileStatus === "PROCESSING" &&
+            s.isPersisted
+          ) {
+            setFileState((prev) => ({
+              ...prev,
+              [s.id]: { ...prev[s.id], polling: true },
+            }));
+            pollFileStatus(w.id, m.id, s);
+          }
+        }),
+      ),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const renderVideoRow = (week, mod, sess) => {
+    const vs = videoState[sess.id] || {};
+    const fileInput = (
+      <input
+        type="file"
+        accept="video/*"
+        ref={(el) => (fileInputRefs.current[sess.id] = el)}
+        onChange={(e) => {
+          const file = e.target.files[0];
+          e.target.value = "";
+          handleVideoFileSelect(week.id, mod.id, sess, file);
+        }}
+        className="hidden"
+      />
+    );
+
+    if (!sess.isPersisted) {
+      return (
+        <p className="text-xs text-gray-400 italic pl-1">
+          Save syllabus first to enable video upload
+        </p>
+      );
+    }
+    if (vs.uploading) {
+      return (
+        <div className="flex items-center gap-2 text-xs text-indigo-600 pl-1">
+          {fileInput}
+          <i className="ti ti-loader-2 animate-spin" aria-hidden="true" />
+          Uploading… {vs.progress ?? 0}%
+        </div>
+      );
+    }
+    if (vs.polling || sess.videoStatus === "PROCESSING") {
+      return (
+        <div className="flex items-center gap-2 text-xs text-amber-600 pl-1">
+          {fileInput}
+          <i className="ti ti-loader-2 animate-spin" aria-hidden="true" />
+          {vs.timedOut ? "Still processing, refresh later" : "Processing…"}
+        </div>
+      );
+    }
+    if (sess.videoStatus === "READY") {
+      const durationLabel = formatDurationLabel(sess.videoDurationSeconds);
+      return (
+        <div className="flex items-center gap-2.5 pl-1">
+          {/* Real, backend-generated thumbnail preview — this is the
+              piece that was missing: the field (videoThumbnailUrl) was
+              already coming back from the API, it just was never
+              rendered anywhere in this form. */}
+          {sess.videoThumbnailUrl ? (
+            <img
+              src={sess.videoThumbnailUrl}
+              alt=""
+              className="w-14 h-9 rounded-md object-cover border border-gray-200 flex-shrink-0"
+            />
+          ) : (
+            <div className="w-14 h-9 rounded-md bg-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0">
+              <i
+                className="ti ti-photo text-gray-300 text-sm"
+                aria-hidden="true"
+              />
+            </div>
+          )}
+          <div className="flex items-center gap-2 text-xs text-emerald-600 flex-wrap">
+            {fileInput}
+            <span className="inline-flex items-center gap-1">
+              <i className="ti ti-circle-check" aria-hidden="true" />
+              Ready
+            </span>
+            {durationLabel && (
+              <span className="text-gray-500">{durationLabel}</span>
+            )}
+            <button
+              onClick={() => fileInputRefs.current[sess.id]?.click()}
+              className="text-indigo-600 hover:text-indigo-800 underline"
+            >
+              Replace Video
+            </button>
+            <button
+              onClick={() => openVideoMetaForm(sess.id, null, sess)}
+              className="text-indigo-600 hover:text-indigo-800 underline"
+            >
+              Edit Details
+            </button>
+            <button
+              onClick={() => handleDeleteVideo(week.id, mod.id, sess)}
+              className="text-red-600 hover:text-red-800 underline font-medium"
+            >
+              Delete Video
+            </button>
+          </div>
+        </div>
+      );
+    }
+    if (sess.videoStatus === "FAILED") {
+      return (
+        <div className="flex items-center gap-2 text-xs pl-1">
+          {fileInput}
+          <button
+            onClick={() => fileInputRefs.current[sess.id]?.click()}
+            className="text-red-600 hover:text-red-800 font-medium"
+          >
+            Upload failed, retry
+          </button>
+        </div>
+      );
+    }
+    return (
+      <div className="flex items-center gap-2 text-xs pl-1">
+        {fileInput}
+        <button
+          onClick={() => fileInputRefs.current[sess.id]?.click()}
+          className="text-indigo-600 hover:text-indigo-800 font-medium"
+        >
+          Upload Video
+        </button>
+      </div>
+    );
+  };
+  const renderFileRow = (week, mod, sess) => {
+    const fs = fileState[sess.id] || {};
+    const fileInputEl = (
+      <input
+        type="file"
+        accept=".pdf,.doc,.docx,.ppt,.pptx"
+        ref={(el) => (fileInputRefsFile.current[sess.id] = el)}
+        onChange={(e) => {
+          const file = e.target.files[0];
+          e.target.value = "";
+          handleFileFileSelect(week.id, mod.id, sess, file);
+        }}
+        className="hidden"
+      />
+    );
+
+    if (!sess.isPersisted) {
+      return (
+        <p className="text-xs text-gray-400 italic pl-1">
+          Save syllabus first to enable file upload
+        </p>
+      );
+    }
+    if (fs.uploading) {
+      return (
+        <div className="flex items-center gap-2 text-xs text-indigo-600 pl-1">
+          {fileInputEl}
+          <i className="ti ti-loader-2 animate-spin" aria-hidden="true" />
+          Uploading… {fs.progress ?? 0}%
+        </div>
+      );
+    }
+    if (fs.polling || sess.fileStatus === "PROCESSING") {
+      return (
+        <div className="flex items-center gap-2 text-xs text-amber-600 pl-1">
+          {fileInputEl}
+          <i className="ti ti-loader-2 animate-spin" aria-hidden="true" />
+          {fs.timedOut ? "Still processing, refresh later" : "Processing…"}
+        </div>
+      );
+    }
+    if (sess.fileStatus === "READY") {
+      const ext = (sess.fileName || "").split(".").pop()?.toLowerCase();
+      const iconClass =
+        ext === "pdf"
+          ? "ti-file-type-pdf"
+          : ext === "doc" || ext === "docx"
+            ? "ti-file-type-doc"
+            : ext === "ppt" || ext === "pptx"
+              ? "ti-presentation"
+              : "ti-file";
+      return (
+        <div className="flex items-center gap-2 text-xs text-emerald-600 pl-1 flex-wrap">
+          {fileInputEl}
+          <i className={`ti ${iconClass} text-sm`} aria-hidden="true" />
+          <span className="text-gray-700">{sess.fileName}</span>
+          <span className="inline-flex items-center gap-1">
+            <i className="ti ti-circle-check" aria-hidden="true" />
+            Ready
+          </span>
+          <button
+            onClick={() => fileInputRefsFile.current[sess.id]?.click()}
+            className="text-indigo-600 hover:text-indigo-800 underline"
+          >
+            Replace File
+          </button>
+          <button
+            onClick={() => handleDeleteFile(week.id, mod.id, sess)}
+            className="text-red-600 hover:text-red-800 underline font-medium"
+          >
+            Delete File
+          </button>
+        </div>
+      );
+    }
+    if (sess.fileStatus === "FAILED") {
+      return (
+        <div className="flex items-center gap-2 text-xs pl-1">
+          {fileInputEl}
+          <button
+            onClick={() => fileInputRefsFile.current[sess.id]?.click()}
+            className="text-red-600 hover:text-red-800 font-medium"
+          >
+            Upload failed, retry
+          </button>
+        </div>
+      );
+    }
+    return (
+      <div className="flex items-center gap-2 text-xs pl-1">
+        {fileInputEl}
+        <button
+          onClick={() => fileInputRefsFile.current[sess.id]?.click()}
+          className="text-indigo-600 hover:text-indigo-800 font-medium"
+        >
+          Upload File
+        </button>
+      </div>
+    );
+  };
   const typeColors = {
     Video: "bg-blue-100 text-blue-700",
     Live: "bg-emerald-100 text-emerald-700",
@@ -262,69 +891,172 @@ const ManualSyllabusBuilder = ({ weeks, onChange }) => {
                     </p>
                   )}
                   {mod.sessions.map((sess, sIdx) => (
-                    <div
-                      key={sess.id}
-                      className="flex items-center gap-2 bg-white border border-gray-100 rounded-lg px-2 py-1.5"
-                    >
-                      <span className="text-xs text-gray-400 w-4 text-center">
-                        {sIdx + 1}
-                      </span>
-                      <input
-                        type="text"
-                        value={sess.title}
-                        onChange={(e) =>
-                          updateSession(
-                            week.id,
-                            mod.id,
-                            sess.id,
-                            "title",
-                            e.target.value,
-                          )
-                        }
-                        className="flex-1 text-xs text-gray-700 border-none outline-none bg-transparent"
-                        placeholder="Session title..."
-                      />
-                      <select
-                        value={sess.type}
-                        onChange={(e) =>
-                          updateSession(
-                            week.id,
-                            mod.id,
-                            sess.id,
-                            "type",
-                            e.target.value,
-                          )
-                        }
-                        className={`text-xs px-1.5 py-0.5 rounded-full font-medium border-none outline-none ${typeColors[sess.type] || "bg-gray-100 text-gray-600"}`}
-                      >
-                        {SESSION_TYPES.map((t) => (
-                          <option key={t} value={t}>
-                            {t}
-                          </option>
-                        ))}
-                      </select>
-                      <input
-                        type="text"
-                        value={sess.duration}
-                        onChange={(e) =>
-                          updateSession(
-                            week.id,
-                            mod.id,
-                            sess.id,
-                            "duration",
-                            e.target.value,
-                          )
-                        }
-                        className="w-14 text-xs text-gray-500 border border-gray-100 rounded px-1.5 py-0.5 outline-none text-center"
-                        placeholder="20 min"
-                      />
-                      <button
-                        onClick={() => deleteSession(week.id, mod.id, sess.id)}
-                        className="text-red-200 hover:text-red-400"
-                        aria-label="Delete session"
-                      >
-                        <i className="ti ti-x text-xs" aria-hidden="true" />
-                      </button>
+                    // <div
+                    //   key={sess.id}
+                    //   className="flex items-center gap-2 bg-white border border-gray-100 rounded-lg px-2 py-1.5"
+                    // >
+                    <div key={sess.id} className="space-y-1">
+                      <div className="flex items-center gap-2 bg-white border border-gray-100 rounded-lg px-2 py-1.5">
+                        <span className="text-xs text-gray-400 w-4 text-center">
+                          {sIdx + 1}
+                        </span>
+                        <input
+                          type="text"
+                          value={sess.title}
+                          onChange={(e) =>
+                            updateSession(
+                              week.id,
+                              mod.id,
+                              sess.id,
+                              "title",
+                              e.target.value,
+                            )
+                          }
+                          className="flex-1 text-xs text-gray-700 border-none outline-none bg-transparent"
+                          placeholder="Session title..."
+                        />
+                        <select
+                          value={sess.type}
+                          onChange={(e) =>
+                            updateSession(
+                              week.id,
+                              mod.id,
+                              sess.id,
+                              "type",
+                              e.target.value,
+                            )
+                          }
+                          className={`text-xs px-1.5 py-0.5 rounded-full font-medium border-none outline-none ${typeColors[sess.type] || "bg-gray-100 text-gray-600"}`}
+                        >
+                          {SESSION_TYPES.map((t) => (
+                            <option key={t} value={t}>
+                              {t}
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          type="text"
+                          value={sess.duration}
+                          onChange={(e) =>
+                            updateSession(
+                              week.id,
+                              mod.id,
+                              sess.id,
+                              "duration",
+                              e.target.value,
+                            )
+                          }
+                          className="w-14 text-xs text-gray-500 border border-gray-100 rounded px-1.5 py-0.5 outline-none text-center"
+                          placeholder="20 min"
+                          title={
+                            sess.type === "Video"
+                              ? "Only used as a fallback label until the uploaded video finishes processing — the real duration below always wins once it's Ready."
+                              : undefined
+                          }
+                        />
+                        <button
+                          onClick={() =>
+                            deleteSession(week.id, mod.id, sess.id)
+                          }
+                          className="text-red-200 hover:text-red-400"
+                          aria-label="Delete session"
+                        >
+                          <i className="ti ti-x text-xs" aria-hidden="true" />
+                        </button>
+                      </div>
+
+                      {sess.type === "Video" && (
+                        <div className="pl-6 space-y-2">
+                          {renderVideoRow(week, mod, sess)}
+                          {videoMetaForm[sess.id]?.open && (
+                            <div className="border border-indigo-100 rounded-lg bg-indigo-50/50 p-3 space-y-2">
+                              <input
+                                type="text"
+                                value={videoMetaForm[sess.id].title}
+                                onChange={(e) =>
+                                  updateVideoMetaField(
+                                    sess.id,
+                                    "title",
+                                    e.target.value,
+                                  )
+                                }
+                                placeholder="Video title (optional)"
+                                className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 outline-none"
+                              />
+                              <textarea
+                                value={videoMetaForm[sess.id].description}
+                                onChange={(e) =>
+                                  updateVideoMetaField(
+                                    sess.id,
+                                    "description",
+                                    e.target.value,
+                                  )
+                                }
+                                placeholder="Description (optional)"
+                                rows={2}
+                                className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 outline-none resize-none"
+                              />
+                              <div className="flex items-center gap-3">
+                                {videoMetaForm[sess.id].thumbnailPreview && (
+                                  <img
+                                    src={
+                                      videoMetaForm[sess.id].thumbnailPreview
+                                    }
+                                    alt=""
+                                    className="w-16 h-10 rounded-md object-cover border border-gray-200"
+                                  />
+                                )}
+                                <label className="text-xs text-indigo-600 hover:text-indigo-800 underline cursor-pointer">
+                                  {videoMetaForm[sess.id].thumbnailPreview
+                                    ? "Change thumbnail"
+                                    : "Add thumbnail"}
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) =>
+                                      handleThumbnailPick(
+                                        sess.id,
+                                        e.target.files[0],
+                                      )
+                                    }
+                                  />
+                                </label>
+                              </div>
+                              <div className="flex items-center gap-2 pt-1">
+                                <button
+                                  onClick={() =>
+                                    videoMetaForm[sess.id].pendingFile
+                                      ? handleConfirmUpload(
+                                          week.id,
+                                          mod.id,
+                                          sess,
+                                        )
+                                      : handleConfirmEdit(week.id, mod.id, sess)
+                                  }
+                                  className="text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-lg"
+                                >
+                                  {videoMetaForm[sess.id].pendingFile
+                                    ? "Upload Video"
+                                    : "Save Changes"}
+                                </button>
+                                <button
+                                  onClick={() => closeVideoMetaForm(sess.id)}
+                                  className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1.5"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {/* ── NEW: sibling condition, not nested inside Video's ── */}
+                      {sess.type === "Reading" && (
+                        <div className="pl-6 space-y-2">
+                          {renderFileRow(week, mod, sess)}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -381,17 +1113,30 @@ const SyllabusUpload = ({ uploadedFile, onUpload, onGenerate }) => {
       const { data } = await courseService.extractSyllabusFromFile(
         uploadedFile.rawFile,
       );
+      // Every week/module/session created here comes from a single
+      // synchronous loop, so plain Date.now() (or Date.now() + a small
+      // integer offset) reliably collides across items — the arithmetic
+      // offset trick doesn't fully prevent it either, since it's easy for
+      // a session's offset to land on the exact value another module or
+      // session ends up with. makeClientId() guarantees a unique value
+      // per call regardless of timing. These are freshly generated,
+      // never-saved rows, so isPersisted is explicitly false — only
+      // loadFromDTO (hydrating from a real backend response) may set it
+      // to true.
       const weeks = (data || []).map((w, wIdx) => ({
-        id: Date.now() + wIdx,
+        id: makeClientId("week"),
         title: w.title || `Week ${wIdx + 1}`,
         modules: (w.modules || []).map((m, mIdx) => ({
-          id: Date.now() + wIdx * 1000 + mIdx,
+          id: makeClientId("module"),
           title: m.title || `Module ${mIdx + 1}`,
+          isPersisted: false,
           sessions: (m.sessions || []).map((s, sIdx) => ({
-            id: Date.now() + wIdx * 100000 + mIdx * 1000 + sIdx,
+            id: makeClientId("session"),
             title: s.title || `Session ${sIdx + 1}`,
             type: s.type || "Reading",
             duration: s.duration || "",
+            isPersisted: false,
+            videoStatus: "NONE",
           })),
         })),
       }));
@@ -571,9 +1316,16 @@ const SyllabusPreview = ({ generatedData }) => {
 };
 
 // ─── MAIN SyllabusManager ─────────────────────────────────────────────────────
-export default function SyllabusManager({ syllabusData, onChange, displaySettings, onDisplaySettingsChange }) {
+export default function SyllabusManager({
+  syllabusData,
+  onChange,
+  displaySettings,
+  onDisplaySettingsChange,
+}) {
   const flags = displaySettings || {};
-  const setFlag = (key, val) => onDisplaySettingsChange && onDisplaySettingsChange({ ...flags, [key]: val });
+  const setFlag = (key, val) =>
+    onDisplaySettingsChange &&
+    onDisplaySettingsChange({ ...flags, [key]: val });
   const data = syllabusData || {
     mode: "manual",
     weeks: [],
@@ -694,41 +1446,6 @@ export default function SyllabusManager({ syllabusData, onChange, displaySetting
         />
       )}
 
-      {/* Upload Mode
-      {data.mode === "upload" && (
-        <div className="space-y-4">
-          <SyllabusUpload
-            uploadedFile={data.uploadedFile}
-            onUpload={(file) =>
-              emit({ uploadedFile: file, generatedPreview: null })
-            }
-            onGenerate={(preview) => emit({ generatedPreview: preview })}
-          />
-          {data.generatedPreview && (
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <p className="text-sm font-semibold text-gray-800">
-                    Generated Structure
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Auto-detected from your file
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowPreview((v) => !v)}
-                  className="text-xs text-indigo-600 hover:text-indigo-700 font-medium bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1.5 rounded-lg transition-colors"
-                >
-                  {showPreview ? "Hide Preview" : "Show Preview"}
-                </button>
-              </div>
-              {showPreview && (
-                <SyllabusPreview generatedData={data.generatedPreview} />
-              )}
-            </div>
-          )}
-        </div>
-      )} */}
       {data.mode === "upload" && (
         <div className="space-y-4">
           <SyllabusUpload
@@ -846,8 +1563,12 @@ export default function SyllabusManager({ syllabusData, onChange, displaySetting
 
       {/* Display Settings */}
       <div className="pt-3 border-t border-gray-100">
-        <h3 className="text-sm font-bold text-gray-800 mb-1">Display Settings</h3>
-        <p className="text-xs text-gray-500 mb-3">Control where and how this program is surfaced across the site</p>
+        <h3 className="text-sm font-bold text-gray-800 mb-1">
+          Display Settings
+        </h3>
+        <p className="text-xs text-gray-500 mb-3">
+          Control where and how this program is surfaced across the site
+        </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {DISPLAY_FLAGS.map(({ key, label, icon }) => (
             <ToggleSwitch

@@ -295,97 +295,6 @@ const videoService = {
     });
   },
 
-  //   // ═════════════════════════════════════════════════════════════════
-  //   //  WATCH NOW  (replaces uploadAdminCourse / getAllAdminCourses /
-  //   //              deleteAdminCourse)
-  //   //
-  //   //  Base URL: /api/v1/watch-now
-  //   //  Auth:     SUPER_ADMIN only (writes); public (reads)
-  //   // ═════════════════════════════════════════════════════════════════
-
-  //   /**
-  //    * Create a new WatchNow entry (SUPER_ADMIN only).
-  //    * @param {FormData} formData  – must include "video" file + DTO fields
-  //    * @param {Function} onProgress – optional upload progress callback (0–100)
-  //    */
-  //   uploadWatchNow(formData, onProgress) {
-  //     return axios.post(`${API_GATEWAY}/v1/watch-now/upload`, formData, {
-  //       headers: { ...getAuthHeaders(), "Content-Type": "multipart/form-data" },
-  //       onUploadProgress: onProgress
-  //         ? (e) => {
-  //             if (e.total) onProgress(Math.round((e.loaded * 100) / e.total));
-  //           }
-  //         : undefined,
-  //     });
-  //   },
-
-  //   /**
-  //    * Update an existing WatchNow entry (SUPER_ADMIN only).
-  //    * @param {number|string} id
-  //    * @param {FormData} formData  – "video" and "thumbnail" are optional
-  //    * @param {Function} onProgress
-  //    */
-  //   updateWatchNow(id, formData, onProgress) {
-  //     return axios.put(`${API_GATEWAY}/v1/watch-now/${id}`, formData, {
-  //       headers: { ...getAuthHeaders(), "Content-Type": "multipart/form-data" },
-  //       onUploadProgress: onProgress
-  //         ? (e) => {
-  //             if (e.total) onProgress(Math.round((e.loaded * 100) / e.total));
-  //           }
-  //         : undefined,
-  //     });
-  //   },
-
-  //   /**
-  //    * Get all WatchNow entries (public – no auth required).
-  //    */
-  //   getAllWatchNow() {
-  //     return axios.get(`${API_GATEWAY}/v1/watch-now/all`);
-  //   },
-
-  //   /**
-  //    * Get a single WatchNow entry by id (public – no auth required).
-  //    */
-  //   getWatchNowById(id) {
-  //     return axios.get(`${API_GATEWAY}/v1/watch-now/${id}`);
-  //   },
-
-  //   /**
-  //    * Build the stream URL for a WatchNow video or thumbnail filename.
-  //    * Used directly in <video src={...}> or <img src={...}>.
-  //    */
-  //   getWatchNowStreamUrl(fileName) {
-  //     return `${API_GATEWAY}/v1/watch-now/stream/${encodeURIComponent(fileName)}`;
-  //   },
-
-  //   /**
-  //    * Delete a WatchNow entry by primary key (SUPER_ADMIN only).
-  //    */
-  //   deleteWatchNow(id) {
-  //     return axios.delete(`${API_GATEWAY}/v1/watch-now/${id}`, {
-  //       headers: getAuthHeaders(),
-  //     });
-  //   },
-
-  //   /**
-  //    * Delete all WatchNow entries for a courseId (SUPER_ADMIN only).
-  //    */
-  //   deleteWatchNowByCourse(courseId) {
-  //     return axios.delete(`${API_GATEWAY}/v1/watch-now/by-course/${courseId}`, {
-  //       headers: getAuthHeaders(),
-  //     });
-  //   },
-  //   getWatchNowStats() {
-  //     return axios.get(`${API_GATEWAY}/v1/watch-now/stats`);
-  //   },
-  // };
-  // ═════════════════════════════════════════════════════════════════
-  //  WATCH NOW
-  //
-  //  Base URL: /api/v1/watch-now
-  //  Auth:     SUPER_ADMIN only (writes); public (reads)
-  // ═════════════════════════════════════════════════════════════════
-
   /**
    * Get all WatchNow entries, any status (SUPER_ADMIN – admin list view).
    */
@@ -485,6 +394,100 @@ const videoService = {
    */
   getWatchNowStreamUrl(fileName) {
     return `${API_GATEWAY}/v1/watch-now/stream/${encodeURIComponent(fileName)}`;
+  },
+
+  // ─────────────────────────────────────────────────────────────────
+  //  FEATURED COURSE SESSION VIDEOS (direct-to-video-service, not proxied)
+  // ─────────────────────────────────────────────────────────────────
+
+  /**
+   * @param {number|string} sessionId
+   * @param {File} file
+   * @param {{title?: string, description?: string, thumbnail?: File}} meta
+   * @param {Function} onProgress optional (0-100)
+   */
+  uploadFeaturedSessionVideo(sessionId, file, meta = {}, onProgress) {
+    const formData = new FormData();
+    formData.append("sessionId", sessionId);
+    formData.append("file", file);
+    if (meta.title) formData.append("title", meta.title);
+    if (meta.description) formData.append("description", meta.description);
+    if (meta.thumbnail) formData.append("thumbnail", meta.thumbnail);
+    return axios.post(`${API_GATEWAY}/video/v1/featured/session`, formData, {
+      headers: { ...getAuthHeaders(), "Content-Type": "multipart/form-data" },
+      onUploadProgress: onProgress
+        ? (e) => {
+            if (e.total) onProgress(Math.round((e.loaded * 100) / e.total));
+          }
+        : undefined,
+    });
+  },
+
+  /**
+   * Fetch the featured video record for a session (title, description,
+   * thumbnail, duration, status).
+   */
+  getFeaturedSessionVideoBySession(sessionId) {
+    return axios.get(
+      `${API_GATEWAY}/video/v1/featured/session/session/${sessionId}`,
+      { headers: getAuthHeaders() },
+    );
+  },
+
+  /**
+   * Edit metadata and/or replace the video file / thumbnail for an
+   * existing featured session video. `updates` fields are all optional —
+   * only send what changed.
+   * @param {number|string} videoRecordId - the FeaturedSessionVideo.id (NOT sessionId)
+   * @param {{title?: string, description?: string, thumbnail?: File, newVideo?: File}} updates
+   * @param {Function} onProgress optional (0-100)
+   */
+  updateFeaturedSessionVideo(videoRecordId, updates = {}, onProgress) {
+    const formData = new FormData();
+    if (updates.title !== undefined) formData.append("title", updates.title);
+    if (updates.description !== undefined)
+      formData.append("description", updates.description);
+    if (updates.thumbnail) formData.append("thumbnail", updates.thumbnail);
+    if (updates.newVideo) formData.append("newVideo", updates.newVideo);
+    return axios.patch(
+      `${API_GATEWAY}/video/v1/featured/session/${videoRecordId}`,
+      formData,
+      {
+        headers: {
+          ...getAuthHeaders(),
+          "Content-Type": "multipart/form-data",
+        },
+        onUploadProgress: onProgress
+          ? (e) => {
+              if (e.total) onProgress(Math.round((e.loaded * 100) / e.total));
+            }
+          : undefined,
+      },
+    );
+  },
+
+  /**
+   * Delete a featured session video (removes DB record + file on disk).
+   * @param {number|string} videoRecordId - the FeaturedSessionVideo.id
+   */
+  deleteFeaturedSessionVideo(videoRecordId) {
+    return axios.delete(
+      `${API_GATEWAY}/video/v1/featured/session/${videoRecordId}`,
+      { headers: getAuthHeaders() },
+    );
+  },
+
+  /**
+   * Fetch the transcript for a Featured Session video (auto-generated by
+   * video-service via FFmpeg + Whisper, fully decoupled from upload).
+   * Returns { status, language, segments: [{startSeconds, endSeconds, text}] }
+   * or { status: "FAILED", errorMessage } / { status: "NONE" | "PROCESSING" }.
+   */
+  getFeaturedSessionVideoTranscript(sessionId) {
+    return axios.get(
+      `${API_GATEWAY}/video/v1/featured/session/${sessionId}/transcript`,
+      { headers: getAuthHeaders() },
+    );
   },
 };
 

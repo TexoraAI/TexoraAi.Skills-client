@@ -210,6 +210,37 @@ const fileService = {
       headers: authHeader(),
     });
   },
-};
 
+  // 🔥 FEATURED COURSE SESSION FILES (direct-to-file-service, mirrors
+  // videoService.js's "FEATURED COURSE SESSION VIDEOS" section)
+  // ==========================================
+
+  /**
+   * @param {number|string} sessionId
+   * @param {File} file
+   * @param {Function} onProgress optional (0-100)
+   */
+  uploadFeaturedSessionFile(sessionId, file, onProgress) {
+    const formData = new FormData();
+    formData.append("sessionId", sessionId);
+    formData.append("file", file);
+    return axios.post(`${API_GATEWAY}/featured-files/upload`, formData, {
+      headers: { ...authHeader(), "Content-Type": "multipart/form-data" },
+      onUploadProgress: onProgress
+        ? (e) => {
+            if (e.total) onProgress(Math.round((e.loaded * 100) / e.total));
+          }
+        : undefined,
+    });
+  },
+
+  /**
+   * Build the download URL for a featured session file. Requires auth per
+   * FeaturedSessionFileController — verify header/cookie handling before
+   * using this raw in an <a href> or <iframe src> in ProgramPlayer.jsx.
+   */
+  getFeaturedSessionFileDownloadUrl(fileName) {
+    return `${API_GATEWAY}/featured-files/download/${encodeURIComponent(fileName)}`;
+  },
+};
 export default fileService;

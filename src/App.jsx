@@ -1,5 +1,6 @@
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Suspense, useEffect, useState } from "react";
+import SEO from "./components/SEO";
 import { Navigate, Route, Routes } from "react-router-dom";
 import ErrorBoundary from "./components/ui/ErrorBoundary";
 import LoadingSpinner from "./components/ui/LoadingSpinner";
@@ -187,6 +188,7 @@ const IlmoraMeetingPage = lazyLoad(
   () => import("./pages/public/IlmoraMeeting.jsx"),
 );
 /* ================= LANDING ================= */
+const ProgramPlayer = lazyLoad(() => import("./pages/Landing/ProgramPlayer"));
 const CoursePreview        = lazyLoad(() => import("./pages/CoursePreview"));
 const CourseDetail         = lazyLoad(() => import("./pages/Landing/CourseDetailsPage"));
 const LMSHomepage          = lazyLoad(() => import("./pages/Landing/LMSHomepage"));
@@ -235,7 +237,7 @@ const AttemptQuiz           = lazyLoad(() => import("./Student/AttemptQuiz.jsx")
 const Attendance            = lazyLoad(() => import("./Student/Attendance.jsx"));
 const DashboardPage         = lazyLoad(() => import("./Student/DashboardPage.jsx"));
 const Documents             = lazyLoad(() => import("./Student/Documents.jsx"));
-const Doubts                = lazyLoad(() => import("./Student/Doubts.jsx"));
+// const Doubts                = lazyLoad(() => import("./Student/Doubts.jsx"));
 const LiveClasses           = lazyLoad(() => import("./Student/LiveClasses.jsx"));
 const MyCourses             = lazyLoad(() => import("./Student/MyCourses.jsx"));
 const MyQuizHistory         = lazyLoad(() => import("./Student/MyQuizHistory"));
@@ -403,6 +405,7 @@ seedCMSData();
 }, []);
   return (
     <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
+      <SEO />
       <ErrorBoundary>
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>
@@ -431,6 +434,10 @@ seedCMSData();
   }
 />
             <Route path="/course-details/:id" element={<CourseDetail />} />
+            <Route
+              path="/program-player/:programId"
+              element={<ProgramPlayer />}
+            />
             <Route path="/syllabus/:id" element={<SyllabusPage />} />
             <Route
               path="/school-class"
@@ -692,7 +699,7 @@ seedCMSData();
               <Route path="quiz/:quizId" element={<AttemptQuiz />} />
               <Route path="my-quizzes" element={<MyQuizHistory />} />
               <Route path="attendance" element={<Attendance />} />
-              <Route path="doubts" element={<Doubts />} />
+              {/* <Route path="doubts" element={<Doubts />} /> */}
               <Route path="certificates" element={<Certificates />} />
               <Route path="overview" element={<Overview />} />
               <Route path="settings">

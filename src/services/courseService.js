@@ -646,4 +646,57 @@ export const courseService = {
       params: { status: "active" },
     });
   },
+
+  //for featured course section
+
+  // POST /api/course/v1/featurecourse/superadmin/session/{sessionId}/video (ping only, no file)
+  startSessionVideoUpload(sessionId) {
+    return axios.post(
+      `${API}/course/v1/featurecourse/superadmin/session/${sessionId}/video`,
+      null,
+      { headers: authHeader() },
+    );
+  },
+
+  // DELETE /api/course/v1/featurecourse/superadmin/session/{sessionId}/video
+  deleteSessionVideo(sessionId) {
+    return axios.delete(
+      `${API}/course/v1/featurecourse/superadmin/session/${sessionId}/video`,
+      { headers: authHeader() },
+    );
+  },
+
+  // GET /api/course/v1/featurecourse/superadmin/session/{sessionId}/video-status
+  getSessionVideoStatus(sessionId) {
+    return axios.get(
+      `${API}/course/v1/featurecourse/superadmin/session/${sessionId}/video-status`,
+      { headers: authHeader() },
+    );
+  },
+
+  // ── NEW: Reading-session file equivalents of the three video methods above ──
+  // POST /api/course/v1/featurecourse/superadmin/session/{sessionId}/file (ping only, no file)
+  startSessionFileUpload(sessionId) {
+    return axios.post(
+      `${API}/course/v1/featurecourse/superadmin/session/${sessionId}/file`,
+      null,
+      { headers: authHeader() },
+    );
+  },
+
+  // DELETE /api/course/v1/featurecourse/superadmin/session/{sessionId}/file
+  deleteSessionFile(sessionId) {
+    return axios.delete(
+      `${API}/course/v1/featurecourse/superadmin/session/${sessionId}/file`,
+      { headers: authHeader() },
+    );
+  },
+
+  // GET /api/course/v1/featurecourse/superadmin/session/{sessionId}/file-status
+  getSessionFileStatus(sessionId) {
+    return axios.get(
+      `${API}/course/v1/featurecourse/superadmin/session/${sessionId}/file-status`,
+      { headers: authHeader() },
+    );
+  },
 };

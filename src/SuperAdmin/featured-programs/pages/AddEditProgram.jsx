@@ -1,3 +1,5 @@
+// }
+
 import React, { useState, useCallback } from "react";
 import {
   X,
@@ -249,6 +251,25 @@ function buildRequestDTO(fd, categories = []) {
     })),
 
     // ✅ MUST be List<SyllabusWeekDto>
+    // syllabusWeeks: (Array.isArray(fd.syllabus?.weeks)
+    //   ? fd.syllabus.weeks
+    //   : []
+    // ).map((w, wIdx) => ({
+    //   weekNumber: wIdx + 1,
+    //   title: String(w?.title || ""),
+    //   dateRange: [w?.startDate, w?.endDate].filter(Boolean).join(" – "),
+    //   // ✅ items MUST be List<String>
+    //   items:
+    //     Array.isArray(w?.modules) && w.modules.length > 0
+    //       ? w.modules.flatMap((m) =>
+    //           (m?.sessions || []).map(
+    //             (s) => `${m.title}: ${s.title} (${s.type}, ${s.duration})`,
+    //           ),
+    //         )
+    //       : Array.isArray(w?._flatItems)
+    //         ? w._flatItems
+    //         : [],
+    // })),
     syllabusWeeks: (Array.isArray(fd.syllabus?.weeks)
       ? fd.syllabus.weeks
       : []
@@ -256,7 +277,7 @@ function buildRequestDTO(fd, categories = []) {
       weekNumber: wIdx + 1,
       title: String(w?.title || ""),
       dateRange: [w?.startDate, w?.endDate].filter(Boolean).join(" – "),
-      // ✅ items MUST be List<String>
+      // ✅ items MUST be List<String> (kept for backward compat)
       items:
         Array.isArray(w?.modules) && w.modules.length > 0
           ? w.modules.flatMap((m) =>
@@ -267,6 +288,26 @@ function buildRequestDTO(fd, categories = []) {
           : Array.isArray(w?._flatItems)
             ? w._flatItems
             : [],
+      // ✅ NEW — structured modules, video fields intentionally omitted (server/Kafka-owned)
+      // Only send an `id` for rows we know are real, backend-persisted
+      // rows (isPersisted === true). Client-only rows (manually added, or
+      // freshly bulk-generated from a PDF extract) never have a real id,
+      // so omitting it here tells the backend to insert a new row rather
+      // than mistakenly matching/overwriting an existing one.
+      modules: (Array.isArray(w?.modules) ? w.modules : []).map((m, mIdx) => ({
+        ...(m?.isPersisted && m?.id != null ? { id: m.id } : {}),
+        title: String(m?.title || ""),
+        orderIndex: mIdx,
+        sessions: (Array.isArray(m?.sessions) ? m.sessions : []).map(
+          (s, sIdx) => ({
+            ...(s?.isPersisted && s?.id != null ? { id: s.id } : {}),
+            title: String(s?.title || ""),
+            type: String(s?.type || ""),
+            duration: String(s?.duration || ""),
+            orderIndex: sIdx,
+          }),
+        ),
+      })),
     })),
   };
 }
@@ -383,14 +424,51 @@ function loadFromDTO(dto) {
 
     syllabus: {
       mode: "manual",
-      weeks: (dto.syllabusWeeks || dto.syllabus?.weeks || []).map((w, i) => ({
-        id: w.id ?? i,
-        title: w.title || "",
-        startDate: "",
-        endDate: "",
-        modules: [],
-        _flatItems: Array.isArray(w.items) ? w.items : [],
-      })),
+      weeks: (dto.syllabusWeeks || dto.syllabus?.weeks || []).map((w, i) => {
+        const hasModules = Array.isArray(w.modules) && w.modules.length > 0;
+        return {
+          id: w.id ?? i,
+          title: w.title || "",
+          startDate: "",
+          endDate: "",
+          modules: hasModules
+            ? w.modules.map((m, mIdx) => ({
+                id: m.id ?? `${i}-${mIdx}`,
+                // isPersisted is the single source of truth for "does this
+                // row exist in the backend" — it is ONLY ever set true
+                // here, from a real DTO returned by the server. Nothing
+                // client-created (addModule/addSession/handleGenerate)
+                // ever sets it, and the video-upload row state in
+                // SyllabusManager checks this flag, not the id's type.
+                isPersisted: m.id != null,
+                title: m.title || "",
+                sessions: (Array.isArray(m.sessions) ? m.sessions : []).map(
+                  (s, sIdx) => ({
+                    id: s.id ?? `${i}-${mIdx}-${sIdx}`,
+                    isPersisted: s.id != null,
+                    title: s.title || "",
+                    // type: s.type || "Video",
+                    type: normalizeSessionType(s.type),
+                    duration: s.duration || "",
+                    videoUrl: s.videoUrl || "",
+                    videoStatus: s.videoStatus || "NONE",
+                    videoThumbnailUrl: s.videoThumbnailUrl || "",
+                    videoDurationSeconds: s.videoDurationSeconds ?? null,
+                    // ── NEW: Reading-session file fields, same round-trip
+                    // pattern as video — this was the missing piece.
+                    fileId: s.fileId || null,
+                    fileUrl: s.fileUrl || "",
+                    fileName: s.fileName || "",
+                    fileStatus: s.fileStatus || "NONE",
+                    locked: !!s.locked,
+                  }),
+                ),
+              }))
+            : [],
+          // fallback only for weeks with items but no modules (pre-feature data)
+          _flatItems: !hasModules && Array.isArray(w.items) ? w.items : [],
+        };
+      }),
       uploadedFile: null,
       generatedPreview: null,
     },
@@ -412,6 +490,18 @@ const generateSlug = (title) =>
     .replace(/[^a-z0-9\s-]/g, "")
     .trim()
     .replace(/\s+/g, "-");
+
+const SESSION_TYPE_FROM_BACKEND = {
+  VIDEO: "Video",
+  LIVE: "Live",
+  ASSIGNMENT: "Assignment",
+  QUIZ: "Quiz",
+  READING: "Reading",
+};
+const normalizeSessionType = (type) =>
+  SESSION_TYPE_FROM_BACKEND[String(type || "").toUpperCase()] ||
+  type ||
+  "Video";
 
 // ─── VIEW MODE CONTENT ─────────────────────────────────────────────────────────
 const ViewProgramContent = ({ program, categories, onEdit }) => {
@@ -713,26 +803,71 @@ export default function AddEditProgram({
         : { ...formData, publishStatus: "Draft" };
       const dto = buildRequestDTO(dataToSave, categories);
       console.log("DTO being sent:", JSON.stringify(dto, null, 2));
+      console.log(
+        "syllabusWeeks only:",
+        JSON.stringify(dto.syllabusWeeks, null, 2),
+      );
 
       let savedId = program?.id;
+      // Capture whatever program DTO the backend hands back from each
+      // call. This is the source of truth for real, persisted
+      // week/module/session ids — previously this response was thrown
+      // away and `onSave` was called with the local `formData` instead,
+      // so any module/session created in this same save (e.g. via the
+      // bulk PDF "Apply to Syllabus" flow) kept its client-only id and
+      // isPersisted stayed false forever, even though the row really was
+      // saved. That's what made "Save syllabus first to enable video
+      // upload" keep showing on already-saved/Published sessions.
+      let savedProgramDTO = null;
+
       if (isEdit) {
-        await courseService.updateFeaturedProgram(program.id, dto);
+        const { data } = await courseService.updateFeaturedProgram(
+          program.id,
+          dto,
+        );
+        savedProgramDTO = data || null;
       } else {
         const { data } = await courseService.createFeaturedProgram(dto);
         savedId = data?.id;
+        savedProgramDTO = data || null;
       }
 
       if (publishAfter && dto.publishStatus !== "Published" && savedId) {
-        await courseService.publishFeaturedProgram(savedId);
+        const { data } = await courseService.publishFeaturedProgram(savedId);
+        // The publish response is the freshest state (now reflects
+        // Published + persisted ids) — prefer it when available.
+        savedProgramDTO = data || savedProgramDTO;
       }
 
+      // Rehydrate through loadFromDTO so ids/isPersisted come from the
+      // real backend response, not from what the client happened to have
+      // before saving. Only fall back to patching local formData if the
+      // backend genuinely didn't hand back a usable syllabus payload.
+      // const hasSyllabusPayload =
+      //   savedProgramDTO &&
+      //   (Array.isArray(savedProgramDTO.syllabusWeeks) ||
+      //     Array.isArray(savedProgramDTO.syllabus?.weeks));
+      // Require weeks AND, if any exist, at least one to structurally carry a modules
+      // array — guards against silently rehydrating from a backend response that has
+      // weeks but dropped modules (the exact bug this fix addresses).
+      const weeksArr =
+        savedProgramDTO?.syllabusWeeks || savedProgramDTO?.syllabus?.weeks;
+      const hasSyllabusPayload =
+        Array.isArray(weeksArr) &&
+        (weeksArr.length === 0 ||
+          weeksArr.some((w) => Array.isArray(w.modules)));
+      const nextFormData = hasSyllabusPayload
+        ? loadFromDTO(savedProgramDTO)
+        : {
+            ...formData,
+            publishStatus: publishAfter ? "Published" : "Draft",
+          };
+
+      setFormData(nextFormData);
       setSaving(false);
       setSaveStatus("saved");
       setTimeout(() => {
-        onSave({
-          ...formData,
-          publishStatus: publishAfter ? "Published" : "Draft",
-        });
+        onSave(nextFormData);
         setSaveStatus(null);
       }, 400);
     } catch (err) {

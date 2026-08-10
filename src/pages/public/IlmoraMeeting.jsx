@@ -677,7 +677,14 @@ function gridColumns(n) {
 function GridTile({ p, raised, reaction, S }) {
   const wrapRef = useRef(null);
   const inView = useInView(wrapRef);
-  const hasVideo = !!p.cameraTrack && !p.cameraMuted && inView;
+
+  // FIX (screen-share visibility bug): grid tiles never checked for
+  // an active screen-share track — only camera. If grid layout is
+  // active while someone is presenting, their share silently dropped.
+  const isScreen = !!p.screenTrack;
+  const track = isScreen ? p.screenTrack : p.cameraTrack;
+  const hasVideo = !!track && (isScreen || (!p.cameraMuted && inView));
+
   const initial = (p.name || "?").trim().charAt(0).toUpperCase() || "?";
   return (
     <div ref={wrapRef} style={S.gridCellOuter}>
@@ -686,12 +693,13 @@ function GridTile({ p, raised, reaction, S }) {
         className={`im-grid-tile${p.isSpeaking ? " im-speaking" : ""}`}
       >
         {hasVideo ? (
-          <VideoTrackEl
-            track={p.cameraTrack}
-            mirrored={p.isLocal}
-            fit="cover"
-          />
-        ) : (
+  <VideoTrackEl
+    track={track}
+    mirrored={!isScreen && p.isLocal}
+    fit={isScreen ? "contain" : "cover"}
+  />
+) : (
+          
           <div style={S.stageAvatarWrap}>
             <div
               style={{
@@ -1752,11 +1760,15 @@ function MeetingRoom({
       };
 
       room.on(RoomEvent.TrackSubscribed, rebuild);
-      room.on(RoomEvent.TrackUnsubscribed, rebuild);
-      room.on(RoomEvent.TrackMuted, rebuild);
-      room.on(RoomEvent.TrackUnmuted, rebuild);
-      room.on(RoomEvent.LocalTrackPublished, rebuild);
-      room.on(RoomEvent.LocalTrackUnpublished, rebuild);
+room.on(RoomEvent.TrackUnsubscribed, rebuild);
+room.on(RoomEvent.TrackMuted, rebuild);
+room.on(RoomEvent.TrackUnmuted, rebuild);
+room.on(RoomEvent.LocalTrackPublished, rebuild);
+room.on(RoomEvent.LocalTrackUnpublished, rebuild);
+
+// FIX: publish-level events — refresh before subscribe round-trip.
+room.on(RoomEvent.TrackPublished, rebuild);
+room.on(RoomEvent.TrackUnpublished, rebuild);
       room.on(RoomEvent.ParticipantConnected, (p) => {
         rebuild();
         pushNotice(`${p.name || p.identity} joined the meeting`, "join");

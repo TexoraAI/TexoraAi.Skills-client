@@ -512,7 +512,9 @@ function EmojiFloaters({ floaters, S }) {
 function StripTile({ p, active, raised, reaction, S }) {
   const wrapRef = useRef(null);
   const inView = useInView(wrapRef);
-  const hasVideo = !!p.cameraTrack && !p.cameraMuted && inView;
+  const isScreen = !!p.screenTrack;
+  const track = isScreen ? p.screenTrack : p.cameraTrack;
+  const hasVideo = !!track && (isScreen || (!p.cameraMuted && inView));
   const initial = (p.name || "?").trim().charAt(0).toUpperCase() || "?";
   return (
     <div
@@ -521,7 +523,11 @@ function StripTile({ p, active, raised, reaction, S }) {
       style={S.stripTile}
     >
       {hasVideo ? (
-        <VideoTrackEl track={p.cameraTrack} mirrored={p.isLocal} fit="cover" />
+        <VideoTrackEl
+          track={track}
+          mirrored={!isScreen && p.isLocal}
+          fit={isScreen ? "contain" : "cover"}
+        />
       ) : (
         <div style={S.stripAvatarWrap}>
           <div

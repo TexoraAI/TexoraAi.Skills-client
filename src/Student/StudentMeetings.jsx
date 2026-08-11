@@ -149,43 +149,7 @@ function getCurrentUserName() {
 /* ---------------------------------------------------------------------------
  * Map backend MeetingResponseDTO -> this page's session row shape
  * ------------------------------------------------------------------------- */
-// function mapMeetingToRow(m) {
-//   return {
-//     id: m.id,
-//     joinCode: m.joinCode,
-//     title: m.title,
-//     // trainer: m.creatorName || m.creatorId,
-//     trainer: m.creatorName || "—",
-//     creatorEmail: m.creatorId || "—",
-//     batch: "—",
-//     time:
-//       m.meetingStatus === "SCHEDULED" && m.scheduledTimeUtc
-//         ? new Date(m.scheduledTimeUtc).toLocaleString()
-//         : "Now",
-//     // status:
-//     //   m.meetingStatus === "ACTIVE"
-//     //     ? "live"
-//     //     : m.meetingStatus === "SCHEDULED"
-//     //       ? "scheduled"
-//     //       : "upcoming",
-//     status:
-//       m.meetingStatus === "ACTIVE"
-//         ? "live"
-//         : m.meetingStatus === "SCHEDULED"
-//           ? "scheduled"
-//           : m.meetingStatus === "ENDED"
-//             ? "completed"
-//             : "upcoming",
-//   };
-// }
-// Guards against browsers rejecting Java's default LocalDateTime
-// serialization (e.g. nanosecond fractions) — shows a clean fallback
-// instead of "Invalid Date" if the value can't be parsed.
-// function formatDateTime(value) {
-//   if (!value) return null;
-//   const d = new Date(value);
-//   return isNaN(d.getTime()) ? null : d.toLocaleString();
-// }
+
 function parseUtcDate(value) {
   if (!value) return null;
   // Backend sends an unmarked "yyyy-MM-dd'T'HH:mm:ss" string that is
@@ -439,13 +403,31 @@ function NewMeetingSplit({ onStartInstant, onSchedule, onAddToCalendar }) {
 /* ---------------------------------------------------------------------------
  * Schedule modal (lightweight, mock — client-side only)
  * ------------------------------------------------------------------------- */
+
 function ScheduleModal({ onClose, onSave }) {
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
-  const [batch, setBatch] = useState("");
+  const [participantEmails, setParticipantEmails] = useState(""); // was batch
+  const [emailError, setEmailError] = useState("");
 
   const canSave = title && date && time;
+
+  const handleSave = () => {
+    const emails = participantEmails
+      .split(",")
+      .map((e) => e.trim())
+      .filter(Boolean);
+
+    const invalid = emails.find((e) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e));
+    if (invalid) {
+      setEmailError(`"${invalid}" is not a valid email`);
+      return;
+    }
+    setEmailError("");
+    onSave({ title, date, time, participantEmails: emails });
+    onClose();
+  };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -484,13 +466,16 @@ function ScheduleModal({ onClose, onSave }) {
             </label>
           </div>
           <label className="field">
-            <span>Batch / participants</span>
+            <span>Please enter participant email(s)</span>
             <input
-              value={batch}
-              onChange={(e) => setBatch(e.target.value)}
-              placeholder="e.g. FSD-Batch 12"
+              value={participantEmails}
+              onChange={(e) => setParticipantEmails(e.target.value)}
+              placeholder="e.g. student@gmail.com, trainer@texora.ai"
             />
           </label>
+          {emailError && (
+            <div style={{ color: "#dc2626", fontSize: 12 }}>{emailError}</div>
+          )}
         </div>
         <div className="modal-foot">
           <button className="btn-ghost" onClick={onClose}>
@@ -499,10 +484,7 @@ function ScheduleModal({ onClose, onSave }) {
           <button
             className="btn-primary"
             disabled={!canSave}
-            onClick={() => {
-              onSave({ title, date, time, batch });
-              onClose();
-            }}
+            onClick={handleSave}
           >
             <Check size={16} /> Save session
           </button>
@@ -511,7 +493,6 @@ function ScheduleModal({ onClose, onSave }) {
     </div>
   );
 }
-
 /* ---------------------------------------------------------------------------
  * Meeting link modal — shown right after a meeting is created, so the
  * host can copy/share the link before anyone actually joins the room.
@@ -579,122 +560,6 @@ function MeetingLinkModal({ meeting, onClose, onJoinNow }) {
     </div>
   );
 }
-// function MeetingCalendar({
-//   calendarData,
-//   month,
-//   onMonthChange,
-//   selectedDate,
-//   onSelectDate,
-// }) {
-//   const [year, mon] = month.split("-").map(Number);
-//   const firstOfMonth = new Date(year, mon - 1, 1);
-//   const startWeekday = firstOfMonth.getDay(); // 0 = Sun
-//   const daysInMonth = new Date(year, mon, 0).getDate();
-//   const todayKey = new Date().toISOString().slice(0, 10);
-
-//   const cells = [];
-//   for (let i = 0; i < startWeekday; i++) cells.push(null);
-//   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
-
-//   const shiftMonth = (delta) => {
-//     const next = new Date(year, mon - 1 + delta, 1);
-//     onMonthChange(
-//       `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}`,
-//     );
-//   };
-
-//   const monthLabel = firstOfMonth.toLocaleDateString(undefined, {
-//     month: "long",
-//     year: "numeric",
-//   });
-
-//   const selectedList = selectedDate ? calendarData[selectedDate] || [] : [];
-
-//   return (
-//     <aside className="calendar-card">
-//       <div className="cal-head">
-//         <button
-//           className="icon-btn"
-//           onClick={() => shiftMonth(-1)}
-//           aria-label="Previous month"
-//         >
-//           <ChevronLeft size={15} />
-//         </button>
-//         <span className="cal-month-label">{monthLabel}</span>
-//         <button
-//           className="icon-btn"
-//           onClick={() => shiftMonth(1)}
-//           aria-label="Next month"
-//         >
-//           <ChevronRight size={15} />
-//         </button>
-//       </div>
-//       <div className="cal-weekdays">
-//         {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-//           <span key={i}>{d}</span>
-//         ))}
-//       </div>
-//       <div className="cal-grid">
-//         {cells.map((d, i) => {
-//           if (d === null)
-//             return <span key={i} className="cal-cell cal-cell--empty" />;
-//           const key = `${year}-${String(mon).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-//           const hasEvents = !!calendarData[key]?.length;
-//           const isToday = key === todayKey;
-//           const isSelected = key === selectedDate;
-//           return (
-//             <button
-//               key={i}
-//               className={`cal-cell ${isToday ? "is-today" : ""} ${isSelected ? "is-selected" : ""} ${hasEvents ? "has-events" : ""}`}
-//               onClick={() => onSelectDate(key)}
-//             >
-//               {d}
-//               {hasEvents && <span className="cal-dot" />}
-//             </button>
-//           );
-//         })}
-//       </div>
-
-//       <div className="cal-day-panel">
-//         <div className="cal-day-panel-head">
-//           {selectedDate
-//             ? new Date(selectedDate + "T00:00:00").toLocaleDateString(
-//                 undefined,
-//                 {
-//                   weekday: "short",
-//                   month: "short",
-//                   day: "numeric",
-//                 },
-//               )
-//             : "Select a date"}
-//         </div>
-//         {selectedDate && selectedList.length === 0 && (
-//           <p className="muted" style={{ padding: "0 4px" }}>
-//             No sessions on this day.
-//           </p>
-//         )}
-//         {selectedList.map((m) => (
-//           <div key={m.id} className="cal-event">
-//             <span
-//               className={`cal-event-dot ${m.meetingStatus?.toLowerCase()}`}
-//             />
-//             <div style={{ minWidth: 0 }}>
-//               <div className="cal-event-title">{m.title}</div>
-//               <div className="cal-event-time">
-//                 {m.scheduledTimeUtc
-//                   ? new Date(m.scheduledTimeUtc + "Z").toLocaleTimeString([], {
-//                       hour: "2-digit",
-//                       minute: "2-digit",
-//                     })
-//                   : m.meetingStatus}
-//               </div>
-//             </div>
-//           </div>
-//         ))}
-//       </div>
-//     </aside>
-//   );
-// }
 function parseCalendarUtc(value) {
   if (!value) return null;
   // Backend sends an unmarked UTC string with no zone — appending "Z"
@@ -1270,7 +1135,37 @@ export default function StudentMeetings() {
 
   const handleAddToCalendar = () => setShowSchedule(true);
 
-  const handleSaveSchedule = async ({ title, date, time }) => {
+  // const handleSaveSchedule = async ({ title, date, time }) => {
+  //   try {
+  //     const res = await createScheduledMeeting({
+  //       title: title || "Untitled session",
+  //       date,
+  //       time,
+  //       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  //       creatorName: currentUserName,
+  //     });
+  //     setLinkMeeting({ joinCode: res.data.joinCode, status: "scheduled" });
+  //     const refreshed = await getMyMeetings();
+  //     setSessions(refreshed.data.map(mapMeetingToRow));
+  //     refreshCalendar(calendarMonth);
+  //     //     } catch (err) {
+  //     //       console.error("Failed to schedule meeting", err);
+  //     //     }
+  //     //   };
+  //   } catch (err) {
+  //     console.error("Failed to schedule meeting", err);
+  //     alert(
+  //       err?.response?.data?.error ||
+  //         "Couldn't schedule this meeting. Try again.",
+  //     );
+  //   }
+  // };
+  const handleSaveSchedule = async ({
+    title,
+    date,
+    time,
+    participantEmails,
+  }) => {
     try {
       const res = await createScheduledMeeting({
         title: title || "Untitled session",
@@ -1278,15 +1173,12 @@ export default function StudentMeetings() {
         time,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         creatorName: currentUserName,
+        participantEmails, // NEW
       });
       setLinkMeeting({ joinCode: res.data.joinCode, status: "scheduled" });
       const refreshed = await getMyMeetings();
       setSessions(refreshed.data.map(mapMeetingToRow));
       refreshCalendar(calendarMonth);
-      //     } catch (err) {
-      //       console.error("Failed to schedule meeting", err);
-      //     }
-      //   };
     } catch (err) {
       console.error("Failed to schedule meeting", err);
       alert(
@@ -1441,28 +1333,9 @@ export default function StudentMeetings() {
           />
         </section>
 
-        {/* Session list */}
-        {/* <section className="session-list">
-          <div className="session-list-head">
-            <h2>Your sessions</h2>
-            <span className="muted">{sessions.length} total</span>
-          </div>
-          <div className="session-list-body">
-            {sessions.map((s) => (
-              <SessionRow
-                key={s.id}
-                s={s}
-                onJoin={(code) => code && navigate(`/ilmorameet/${code}`)}
-                onViewDetails={(id) => setDetailsMeetingId(id)}
-                onDelete={handleDeleteMeeting}
-              />
-            ))}
-          </div>
-        </section> */}
-        {/* Session list */}
         <div className="content-grid">
           <section className="session-list">
-           <div className="session-list-head">
+            <div className="session-list-head">
               <div className="session-list-tabs">
                 <button
                   className={`tab-btn ${meetingsTab === "sessions" ? "is-active" : ""}`}

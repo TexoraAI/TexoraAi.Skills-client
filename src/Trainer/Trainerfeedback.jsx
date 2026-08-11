@@ -11,9 +11,6 @@
 //   Filter, Eye, GraduationCap, Brain, Zap, ClipboardList,
 // } from "lucide-react";
 
-// /* ═══════════════════════════════════════════════
-//    THEME TOKEN MAP (mirrors DashboardPage)
-// ═══════════════════════════════════════════════ */
 // const T = {
 //   dark: {
 //     pageBg: "#0a0a0a", cardBg: "#111111", cardBgHov: "#161616",
@@ -65,7 +62,6 @@
 //   return ((f.clarity + f.doubt + f.energy + f.depth) / 4).toFixed(1);
 // }
 
-// /* ── Count-up hook ── */
 // function useCountUp(target, duration = 1000) {
 //   const [val, setVal] = useState(0);
 //   useEffect(() => {
@@ -83,7 +79,6 @@
 //   return val;
 // }
 
-// /* ── Star Display ── */
 // function StarDisplay({ val, size = 14, t }) {
 //   return (
 //     <div style={{ display: "flex", gap: 3 }}>
@@ -99,7 +94,6 @@
 //   );
 // }
 
-// /* ── Stat Card ── */
 // function StatCard({ label, value, sub, fill, color, icon: Icon, index, t }) {
 //   const [hov, setHov] = useState(false);
 //   return (
@@ -114,14 +108,10 @@
 //         cursor: "default", transition: "all 0.25s ease",
 //         position: "relative", overflow: "hidden",
 //         boxShadow: hov ? `${t.shadowHov}, 0 0 40px ${color}12` : t.shadow,
-//         animationDelay: `${index * 80}ms`,
 //       }}
 //     >
-//       {/* Glow blob */}
 //       <div style={{ position: "absolute", top: -20, right: -20, width: 90, height: 90, borderRadius: "50%", background: color, filter: "blur(40px)", opacity: hov ? 0.15 : 0.04, transition: "opacity 0.4s", pointerEvents: "none" }} />
-//       {/* Top accent bar */}
 //       <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, borderRadius: "20px 20px 0 0", background: color, opacity: 0.75 }} />
-
 //       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 4 }}>
 //         <div style={{ width: 42, height: 42, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", background: `${color}18`, border: `1px solid ${color}30` }}>
 //           <Icon size={19} color={color} strokeWidth={2} />
@@ -133,7 +123,7 @@
 //         </div>
 //       </div>
 //       <div>
-//         <p style={{ fontSize: 40, fontWeight: 800, lineHeight: 1, fontFamily: "'Poppins',sans-serif", color: t.text, margin: 0 }}>{value}</p>
+//         <p style={{ fontSize: "clamp(28px,5vw,40px)", fontWeight: 800, lineHeight: 1, fontFamily: "'Poppins',sans-serif", color: t.text, margin: 0 }}>{value}</p>
 //         <p style={{ fontSize: 10, marginTop: 6, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: t.textMuted, fontFamily: "'Poppins',sans-serif", margin: "6px 0 0" }}>{label}</p>
 //       </div>
 //       <div style={{ height: 2, background: t.barBg, borderRadius: 99, overflow: "hidden" }}>
@@ -144,9 +134,6 @@
 //   );
 // }
 
-// /* ════════════════════════════════════════════════════════════════
-//    MAIN COMPONENT
-// ════════════════════════════════════════════════════════════════ */
 // export default function TrainerFeedback() {
 //   const [dark, setDark] = useState(isDarkFn);
 //   const t = dark ? T.dark : T.light;
@@ -208,7 +195,6 @@
 //     setSelected(null);
 //   }
 
-//   /* Computed */
 //   const statAvg = feedbackList.length
 //     ? (feedbackList.reduce((s, f) => s + parseFloat(avg(f)), 0) / feedbackList.length).toFixed(1) : "—";
 //   const anonymousCount = feedbackList.filter(f => f.student === "Anonymous").length;
@@ -246,6 +232,7 @@
 //     <>
 //       <style>{`
 //         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
+//         * { box-sizing: border-box; }
 //         @keyframes tfFadeUp { from { opacity:0; transform:translateY(14px) } to { opacity:1; transform:translateY(0) } }
 //         @keyframes tfPulseRing { 0%{box-shadow:0 0 0 0 rgba(124,58,237,0.5)} 70%{box-shadow:0 0 0 8px rgba(124,58,237,0)} 100%{box-shadow:0 0 0 0 rgba(124,58,237,0)} }
 //         @keyframes tfPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
@@ -263,43 +250,129 @@
 //         .tf-rating-bar-track { transition: width 0.7s ease; }
 //         .tf-modal-overlay-inner::-webkit-scrollbar { width: 4px; }
 //         .tf-modal-overlay-inner::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+//         /* ── RESPONSIVE ── */
+//         .tf-hero-row {
+//           display: flex; align-items: center;
+//           justify-content: space-between;
+//           flex-wrap: wrap; gap: 16px;
+//         }
+//         .tf-hero-right {
+//           display: flex; align-items: center;
+//           gap: 10px; flex-wrap: wrap;
+//         }
+//         .tf-mid-grid {
+//           display: grid;
+//           grid-template-columns: 1fr 1fr;
+//           gap: 14px; margin-bottom: 20px;
+//         }
+//         .tf-stat-grid {
+//           display: grid;
+//           grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+//           gap: 14px; margin-bottom: 20px;
+//         }
+//         .tf-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+//         .tf-table-head-row th { white-space: nowrap; }
+//         .tf-tag-pill { white-space: nowrap; }
+//         .tf-stats-pill { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+//         .tf-stats-pill-sep { width: 1px; height: 14px; background: ${t.actBorder}; }
+
+//         @media (max-width: 900px) {
+//           .tf-mid-grid { grid-template-columns: 1fr; }
+//         }
+//         @media (max-width: 640px) {
+//           .tf-hero-right { width: 100%; }
+//           .tf-stats-pill { gap: 8px; font-size: 10px !important; }
+//           .tf-table-header-wrap {
+//             flex-direction: column !important;
+//             align-items: flex-start !important;
+//           }
+//           .tf-filter-row { flex-wrap: wrap; gap: 6px; }
+//           .tf-batch-selector { width: 100%; }
+//         }
+//         @media (max-width: 420px) {
+//           .tf-live { display: none; }
+//           .tf-activity-bars { display: none; }
+//         }
 //       `}</style>
 
 //       <div style={{ fontFamily: "'Poppins',sans-serif", minHeight: "100vh", background: t.pageBg, color: t.text, transition: "background 0.3s, color 0.3s" }}>
-//         <div style={{ maxWidth: 1300, margin: "0 auto", padding: "28px 28px 60px" }}>
+//         <div style={{ maxWidth: 1300, margin: "0 auto", padding: "clamp(14px,3vw,28px) clamp(12px,3vw,28px) 60px" }}>
 
 //           {/* ═══ HERO ═══ */}
-//           <div className="tf-fade" style={{ ...card, padding: "26px 30px", marginBottom: 20 }}>
-//             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+//           <div className="tf-fade" style={{ ...card, padding: "clamp(16px,3vw,26px) clamp(16px,4vw,30px)", marginBottom: 20 }}>
+//             <div className="tf-hero-row">
 
 //               {/* Left */}
-//               <div>
+//               <div style={{ minWidth: 0 }}>
 //                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-//                   <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(124,58,237,0.12)", border: "1px solid rgba(124,58,237,0.22)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+//                   <div style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 10, background: "rgba(124,58,237,0.12)", border: "1px solid rgba(124,58,237,0.22)", display: "flex", alignItems: "center", justifyContent: "center" }}>
 //                     <ClipboardList size={16} color="#7c3aed" />
 //                   </div>
 //                   <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-//                     <div className="tf-d1" style={{ width: 6, height: 6, borderRadius: "50%", background: "#7c3aed" }} />
+//                     <div className="tf-d1" style={{ width: 6, height: 6, borderRadius: "50%", background: "#7c3aed", flexShrink: 0 }} />
 //                     <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: t.textSub }}>Trainer Portal</span>
 //                   </div>
 //                 </div>
-//                 <h1 style={{ fontSize: "clamp(1.3rem,2.5vw,1.9rem)", fontWeight: 900, color: t.text, margin: "0 0 5px", letterSpacing: "-0.02em" }}>Feedback Dashboard</h1>
-//                 <p style={{ fontSize: 12, color: t.textSub, margin: 0, fontWeight: 500 }}>Aggregated student feedback for your sessions</p>
+
+//                 {/* ── UPDATED HERO TITLE ── */}
+//                 <h1
+//                 style={{
+//                 fontSize: "clamp(1.3rem,3vw,1.9rem)",
+//                 fontWeight: 700,
+//                 margin: "0 0 5px",
+//                 letterSpacing: "-0.02em",
+//               lineHeight: 1.15,
+//               }}
+//               >
+//               {/* Dark Text */}
+//               <span
+//   style={{
+//     color: t.text,
+//   }}
+// >
+//   Feedback
+// </span>{" "}
+            
+
+//              {/* Blue Gradient Text */}
+//              <span
+//              style={{
+//              background: "linear-gradient(135deg,#7c83ff,#60a5fa)",
+//              WebkitBackgroundClip: "text",
+//              WebkitTextFillColor: "transparent",
+//              backgroundClip: "text",
+//              }}
+//              >
+//             Dashboard
+//             </span>
+// </h1>
+
+// <p
+//   style={{
+//     fontSize: "clamp(11px,1.8vw,12px)",
+//     color: t.textSub,
+//     margin: 0,
+//     fontWeight: 500,
+//   }}
+// >
+//   Aggregated student feedback for your sessions
+// </p>
 //               </div>
 
 //               {/* Right */}
-//               <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+//               <div className="tf-hero-right">
 //                 {/* Stats pill */}
-//                 <div style={{ display: "flex", alignItems: "center", gap: 12, background: t.actBg, border: `1px solid ${t.actBorder}`, borderRadius: 12, padding: "8px 16px", fontSize: 11, fontWeight: 600, fontFamily: "'Poppins',sans-serif", color: t.textSub }}>
+//                 <div className="tf-stats-pill" style={{ background: t.actBg, border: `1px solid ${t.actBorder}`, borderRadius: 12, padding: "8px 16px", fontSize: 11, fontWeight: 600, fontFamily: "'Poppins',sans-serif", color: t.textSub }}>
 //                   <span>{feedbackList.length} responses</span>
-//                   <span style={{ width: 1, height: 14, background: t.actBorder }} />
+//                   <span className="tf-stats-pill-sep" />
 //                   <span>{feedbackList.filter(f => f.status === "REVIEWED").length} reviewed</span>
-//                   <span style={{ width: 1, height: 14, background: t.actBorder }} />
+//                   <span className="tf-stats-pill-sep" />
 //                   <span style={{ color: "#34d399", fontWeight: 700 }}>⭐ {statAvg}/5</span>
 //                 </div>
 
 //                 {/* Activity bars */}
-//                 <div style={{ display: "flex", alignItems: "center", gap: 8, background: t.actBg, border: `1px solid ${t.actBorder}`, borderRadius: 10, padding: "8px 12px" }}>
+//                 <div className="tf-activity-bars" style={{ display: "flex", alignItems: "center", gap: 8, background: t.actBg, border: `1px solid ${t.actBorder}`, borderRadius: 10, padding: "8px 12px" }}>
 //                   <Activity size={12} color={t.textMuted} />
 //                   <div style={{ display: "flex", gap: 3, alignItems: "flex-end", height: 14 }}>
 //                     <span className="tf-d1" style={{ width: 3, height: 10, borderRadius: 2, background: t.textMuted, display: "block", opacity: 0.5 }} />
@@ -309,23 +382,23 @@
 //                 </div>
 
 //                 {/* Batch selector */}
-//                 <div style={{ display: "flex", alignItems: "center", gap: 8, background: t.actBg, border: `1px solid ${t.actBorder}`, borderRadius: 12, padding: "8px 14px", cursor: "pointer" }}>
-//                   <GraduationCap size={14} color="#7c3aed" />
+//                 <div className="tf-batch-selector" style={{ display: "flex", alignItems: "center", gap: 8, background: t.actBg, border: `1px solid ${t.actBorder}`, borderRadius: 12, padding: "8px 14px", cursor: "pointer" }}>
+//                   <GraduationCap size={14} color="#7c3aed" style={{ flexShrink: 0 }} />
 //                   <select
 //                     className="tf-select"
 //                     value={selectedBatchId ?? ""}
 //                     onChange={e => setSelectedBatchId(Number(e.target.value))}
-//                     style={{ background: "transparent", border: "none", color: t.text, fontFamily: "'Poppins',sans-serif", fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none" }}
+//                     style={{ background: "transparent", border: "none", color: t.text, fontFamily: "'Poppins',sans-serif", fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none", minWidth: 0, flex: 1 }}
 //                   >
 //                     {batches.length === 0 && <option value="">No batches assigned</option>}
 //                     {batches.map(b => <option key={b.id} value={b.id}>{b.name || `Batch #${b.id}`}</option>)}
 //                   </select>
-//                   <ChevronDown size={12} color={t.textMuted} />
+//                   <ChevronDown size={12} color={t.textMuted} style={{ flexShrink: 0 }} />
 //                 </div>
 
 //                 {/* Live badge */}
-//                 <div className="tf-live" style={{ display: "flex", alignItems: "center", gap: 7, background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.28)", borderRadius: 999, padding: "7px 16px", color: "#7c3aed", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em" }}>
-//                   <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#7c3aed", display: "inline-block" }} />LIVE
+//                 <div className="tf-live" style={{ display: "flex", alignItems: "center", gap: 7, background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.28)", borderRadius: 999, padding: "7px 16px", color: "#7c3aed", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", whiteSpace: "nowrap" }}>
+//                   <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#7c3aed", display: "inline-block", flexShrink: 0 }} />LIVE
 //                 </div>
 //               </div>
 //             </div>
@@ -339,17 +412,17 @@
 //           ) : (
 //             <>
 //               {/* ═══ STAT CARDS ═══ */}
-//               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 14, marginBottom: 20 }}>
+//               <div className="tf-stat-grid">
 //                 {stats.map((s, i) => <StatCard key={i} {...s} index={i} t={t} />)}
 //               </div>
 
 //               {/* ═══ MID PANELS ═══ */}
-//               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 20 }}>
+//               <div className="tf-mid-grid">
 
 //                 {/* Rating Breakdown */}
-//                 <div style={{ ...card, padding: "22px" }}>
+//                 <div style={{ ...card, padding: "clamp(14px,2.5vw,22px)" }}>
 //                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-//                     <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(52,211,153,0.10)", border: "1px solid rgba(52,211,153,0.20)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+//                     <div style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 10, background: "rgba(52,211,153,0.10)", border: "1px solid rgba(52,211,153,0.20)", display: "flex", alignItems: "center", justifyContent: "center" }}>
 //                       <BarChart2 size={15} color="#34d399" />
 //                     </div>
 //                     <span style={{ fontSize: 13, fontWeight: 700, color: t.text }}>Rating Breakdown</span>
@@ -376,9 +449,9 @@
 //                 </div>
 
 //                 {/* Mood Distribution */}
-//                 <div style={{ ...card, padding: "22px" }}>
+//                 <div style={{ ...card, padding: "clamp(14px,2.5vw,22px)" }}>
 //                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-//                     <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(251,191,36,0.10)", border: "1px solid rgba(251,191,36,0.20)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+//                     <div style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 10, background: "rgba(251,191,36,0.10)", border: "1px solid rgba(251,191,36,0.20)", display: "flex", alignItems: "center", justifyContent: "center" }}>
 //                       <Smile size={15} color="#fbbf24" />
 //                     </div>
 //                     <span style={{ fontSize: 13, fontWeight: 700, color: t.text }}>Mood Distribution</span>
@@ -405,21 +478,21 @@
 //               {/* ═══ FEEDBACK TABLE ═══ */}
 //               <div style={{ ...card, overflow: "hidden" }}>
 //                 {/* Table Header */}
-//                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", borderBottom: `1px solid ${t.border}`, flexWrap: "wrap", gap: 12 }}>
+//                 <div className="tf-table-header-wrap" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "clamp(12px,2vw,18px) clamp(14px,3vw,24px)", borderBottom: `1px solid ${t.border}`, flexWrap: "wrap", gap: 12 }}>
 //                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-//                     <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(124,58,237,0.10)", border: "1px solid rgba(124,58,237,0.20)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+//                     <div style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 10, background: "rgba(124,58,237,0.10)", border: "1px solid rgba(124,58,237,0.20)", display: "flex", alignItems: "center", justifyContent: "center" }}>
 //                       <MessageSquare size={15} color="#7c3aed" />
 //                     </div>
 //                     <span style={{ fontSize: 13, fontWeight: 700, color: t.text }}>Recent Feedback</span>
-//                     <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 999, background: "rgba(124,58,237,0.10)", color: "#7c3aed", border: "1px solid rgba(124,58,237,0.20)" }}>
+//                     <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 999, background: "rgba(124,58,237,0.10)", color: "#7c3aed", border: "1px solid rgba(124,58,237,0.20)", whiteSpace: "nowrap" }}>
 //                       {filtered.length} entries
 //                     </span>
 //                   </div>
 //                   {/* Filter buttons */}
-//                   <div style={{ display: "flex", gap: 6 }}>
+//                   <div className="tf-filter-row" style={{ display: "flex", gap: 6, alignItems: "center" }}>
 //                     <div style={{ display: "flex", alignItems: "center", gap: 6, marginRight: 4 }}>
 //                       <Filter size={12} color={t.textMuted} />
-//                       <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: t.textLabel }}>Filter</span>
+//                       <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: t.textLabel, whiteSpace: "nowrap" }}>Filter</span>
 //                     </div>
 //                     {[["all", "All"], ["positive", "Positive"], ["negative", "Needs Attention"]].map(([v, l]) => (
 //                       <button
@@ -431,6 +504,7 @@
 //                           fontFamily: "'Poppins',sans-serif", border: `1px solid ${filter === v ? "rgba(124,58,237,0.40)" : t.actBorder}`,
 //                           background: filter === v ? "rgba(124,58,237,0.10)" : "transparent",
 //                           color: filter === v ? "#7c3aed" : t.textMuted,
+//                           whiteSpace: "nowrap",
 //                         }}
 //                       >
 //                         {l}
@@ -440,12 +514,12 @@
 //                 </div>
 
 //                 {/* Table */}
-//                 <div style={{ overflowX: "auto" }}>
-//                   <table style={{ width: "100%", borderCollapse: "collapse" }}>
+//                 <div className="tf-table-wrap">
+//                   <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
 //                     <thead>
-//                       <tr>
+//                       <tr className="tf-table-head-row">
 //                         {["Mood", "Student", "Trainer Rating", "Tags", "Status", "Date", ""].map(h => (
-//                           <th key={h} style={{ padding: "12px 20px", fontSize: 9, fontWeight: 700, color: t.textLabel, textTransform: "uppercase", letterSpacing: "0.08em", textAlign: "left", borderBottom: `1px solid ${t.border}`, fontFamily: "'Poppins',sans-serif", whiteSpace: "nowrap" }}>
+//                           <th key={h} style={{ padding: "12px clamp(10px,2vw,20px)", fontSize: 9, fontWeight: 700, color: t.textLabel, textTransform: "uppercase", letterSpacing: "0.08em", textAlign: "left", borderBottom: `1px solid ${t.border}`, fontFamily: "'Poppins',sans-serif", whiteSpace: "nowrap" }}>
 //                             {h}
 //                           </th>
 //                         ))}
@@ -454,41 +528,41 @@
 //                     <tbody>
 //                       {filtered.map(f => (
 //                         <tr key={f.id} className="tf-table-row" style={{ cursor: "pointer" }}>
-//                           <td style={{ padding: "14px 20px", borderBottom: `1px solid ${t.border}`, fontSize: 22, transition: "background 0.15s" }}>{f.mood}</td>
-//                           <td style={{ padding: "14px 20px", borderBottom: `1px solid ${t.border}`, transition: "background 0.15s" }}>
+//                           <td style={{ padding: "14px clamp(10px,2vw,20px)", borderBottom: `1px solid ${t.border}`, fontSize: 22, transition: "background 0.15s" }}>{f.mood}</td>
+//                           <td style={{ padding: "14px clamp(10px,2vw,20px)", borderBottom: `1px solid ${t.border}`, transition: "background 0.15s" }}>
 //                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-//                               <div style={{ width: 30, height: 30, borderRadius: 9, background: f.student === "Anonymous" ? t.actBg : "rgba(124,58,237,0.10)", border: `1px solid ${f.student === "Anonymous" ? t.actBorder : "rgba(124,58,237,0.20)"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+//                               <div style={{ width: 30, height: 30, flexShrink: 0, borderRadius: 9, background: f.student === "Anonymous" ? t.actBg : "rgba(124,58,237,0.10)", border: `1px solid ${f.student === "Anonymous" ? t.actBorder : "rgba(124,58,237,0.20)"}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
 //                                 <span style={{ fontSize: 11, fontWeight: 700, color: f.student === "Anonymous" ? t.textMuted : "#7c3aed" }}>{f.student === "Anonymous" ? "🔒" : f.student.charAt(0).toUpperCase()}</span>
 //                               </div>
-//                               <span style={{ fontSize: 12, fontWeight: 600, color: t.text, fontFamily: "'Poppins',sans-serif" }}>{f.student}</span>
+//                               <span style={{ fontSize: 12, fontWeight: 600, color: t.text, fontFamily: "'Poppins',sans-serif", whiteSpace: "nowrap" }}>{f.student}</span>
 //                             </div>
 //                           </td>
-//                           <td style={{ padding: "14px 20px", borderBottom: `1px solid ${t.border}`, transition: "background 0.15s" }}>
+//                           <td style={{ padding: "14px clamp(10px,2vw,20px)", borderBottom: `1px solid ${t.border}`, transition: "background 0.15s" }}>
 //                             <StarDisplay val={Math.round(parseFloat(avg(f)))} size={14} t={t} />
 //                           </td>
-//                           <td style={{ padding: "14px 20px", borderBottom: `1px solid ${t.border}`, transition: "background 0.15s" }}>
+//                           <td style={{ padding: "14px clamp(10px,2vw,20px)", borderBottom: `1px solid ${t.border}`, transition: "background 0.15s" }}>
 //                             <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
 //                               {f.tags.slice(0, 2).map(tag => (
-//                                 <span key={tag} style={{ fontSize: 9, fontWeight: 700, padding: "3px 8px", borderRadius: 999, background: "rgba(124,58,237,0.10)", color: "#7c3aed", border: "1px solid rgba(124,58,237,0.20)", fontFamily: "'Poppins',sans-serif", whiteSpace: "nowrap" }}>{tag}</span>
+//                                 <span key={tag} className="tf-tag-pill" style={{ fontSize: 9, fontWeight: 700, padding: "3px 8px", borderRadius: 999, background: "rgba(124,58,237,0.10)", color: "#7c3aed", border: "1px solid rgba(124,58,237,0.20)", fontFamily: "'Poppins',sans-serif" }}>{tag}</span>
 //                               ))}
 //                               {f.tags.length > 2 && <span style={{ fontSize: 9, fontWeight: 700, padding: "3px 8px", borderRadius: 999, background: t.actBg, color: t.textMuted, border: `1px solid ${t.actBorder}`, fontFamily: "'Poppins',sans-serif" }}>+{f.tags.length - 2}</span>}
 //                             </div>
 //                           </td>
-//                           <td style={{ padding: "14px 20px", borderBottom: `1px solid ${t.border}`, transition: "background 0.15s" }}>
+//                           <td style={{ padding: "14px clamp(10px,2vw,20px)", borderBottom: `1px solid ${t.border}`, transition: "background 0.15s" }}>
 //                             <span style={{
 //                               fontSize: 10, fontWeight: 700, padding: "4px 10px", borderRadius: 999,
 //                               background: f.status === "REVIEWED" ? "rgba(52,211,153,0.10)" : "rgba(124,58,237,0.10)",
 //                               color: f.status === "REVIEWED" ? "#34d399" : "#7c3aed",
 //                               border: `1px solid ${f.status === "REVIEWED" ? "rgba(52,211,153,0.20)" : "rgba(124,58,237,0.20)"}`,
-//                               fontFamily: "'Poppins',sans-serif",
+//                               fontFamily: "'Poppins',sans-serif", whiteSpace: "nowrap",
 //                             }}>
 //                               {f.status === "REVIEWED" ? "✓ Reviewed" : "● New"}
 //                             </span>
 //                           </td>
-//                           <td style={{ padding: "14px 20px", borderBottom: `1px solid ${t.border}`, transition: "background 0.15s" }}>
-//                             <span style={{ fontSize: 11, color: t.textMuted, fontFamily: "'Poppins',sans-serif", fontWeight: 500 }}>{f.date}</span>
+//                           <td style={{ padding: "14px clamp(10px,2vw,20px)", borderBottom: `1px solid ${t.border}`, transition: "background 0.15s" }}>
+//                             <span style={{ fontSize: 11, color: t.textMuted, fontFamily: "'Poppins',sans-serif", fontWeight: 500, whiteSpace: "nowrap" }}>{f.date}</span>
 //                           </td>
-//                           <td style={{ padding: "14px 20px", borderBottom: `1px solid ${t.border}`, transition: "background 0.15s" }}>
+//                           <td style={{ padding: "14px clamp(10px,2vw,20px)", borderBottom: `1px solid ${t.border}`, transition: "background 0.15s" }}>
 //                             <button
 //                               className="tf-view-btn"
 //                               onClick={() => setSelected(f)}
@@ -497,7 +571,7 @@
 //                                 padding: "6px 14px", borderRadius: 10, fontSize: 11, fontWeight: 600,
 //                                 border: `1px solid ${t.actBorder}`, background: "transparent",
 //                                 color: t.textMuted, cursor: "pointer", fontFamily: "'Poppins',sans-serif",
-//                                 transition: "all 0.2s",
+//                                 transition: "all 0.2s", whiteSpace: "nowrap",
 //                               }}
 //                             >
 //                               <Eye size={12} /> View
@@ -526,28 +600,28 @@
 //       {selected && (
 //         <div
 //           onClick={() => setSelected(null)}
-//           style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", background: t.overlayBg, backdropFilter: "blur(8px)" }}
+//           style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", background: t.overlayBg, backdropFilter: "blur(8px)", padding: "16px" }}
 //         >
 //           <div
 //             onClick={e => e.stopPropagation()}
 //             className="tf-modal-overlay-inner"
-//             style={{ width: "90%", maxWidth: 540, borderRadius: 24, padding: "28px", background: t.cardBg, border: `1px solid ${t.border}`, boxShadow: t.shadowHov, maxHeight: "88vh", overflowY: "auto", animation: "tfFadeUp 0.35s cubic-bezier(0.34,1.56,0.64,1)" }}
+//             style={{ width: "100%", maxWidth: 540, borderRadius: 24, padding: "clamp(18px,4vw,28px)", background: t.cardBg, border: `1px solid ${t.border}`, boxShadow: t.shadowHov, maxHeight: "90vh", overflowY: "auto", animation: "tfFadeUp 0.35s cubic-bezier(0.34,1.56,0.64,1)" }}
 //           >
 //             {/* Modal Header */}
 //             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-//               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-//                 <div style={{ width: 40, height: 40, borderRadius: 12, background: "rgba(124,58,237,0.10)", border: "1px solid rgba(124,58,237,0.20)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+//               <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+//                 <div style={{ width: 40, height: 40, flexShrink: 0, borderRadius: 12, background: "rgba(124,58,237,0.10)", border: "1px solid rgba(124,58,237,0.20)", display: "flex", alignItems: "center", justifyContent: "center" }}>
 //                   <span style={{ fontSize: 18 }}>{selected.mood}</span>
 //                 </div>
-//                 <div>
-//                   <p style={{ fontSize: 14, fontWeight: 800, color: t.text, margin: 0, fontFamily: "'Poppins',sans-serif" }}>Feedback from {selected.student}</p>
+//                 <div style={{ minWidth: 0 }}>
+//                   <p style={{ fontSize: 14, fontWeight: 800, color: t.text, margin: 0, fontFamily: "'Poppins',sans-serif", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>Feedback from {selected.student}</p>
 //                   <p style={{ fontSize: 10, color: t.textMuted, margin: 0, fontFamily: "'Poppins',sans-serif" }}>{selected.date}</p>
 //                 </div>
 //               </div>
 //               <button
 //                 className="tf-close-btn"
 //                 onClick={() => setSelected(null)}
-//                 style={{ width: 34, height: 34, borderRadius: 10, background: t.actBg, border: `1px solid ${t.actBorder}`, color: t.textMuted, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s" }}
+//                 style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 10, background: t.actBg, border: `1px solid ${t.actBorder}`, color: t.textMuted, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s" }}
 //               >
 //                 <X size={15} />
 //               </button>
@@ -574,10 +648,10 @@
 //               ["Technical depth", selected.depth, "#a78bfa", BarChart2],
 //             ].map(([label, val, color, Icon]) => (
 //               <div key={label} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, padding: "10px 12px", borderRadius: 12, background: t.actBg, border: `1px solid ${t.actBorder}` }}>
-//                 <div style={{ width: 28, height: 28, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", background: `${color}18`, border: `1px solid ${color}30`, flexShrink: 0 }}>
+//                 <div style={{ width: 28, height: 28, flexShrink: 0, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", background: `${color}18`, border: `1px solid ${color}30` }}>
 //                   <Icon size={12} color={color} />
 //                 </div>
-//                 <span style={{ fontSize: 11, color: t.textSub, flex: 1, fontFamily: "'Poppins',sans-serif", fontWeight: 500 }}>{label}</span>
+//                 <span style={{ fontSize: 11, color: t.textSub, flex: 1, fontFamily: "'Poppins',sans-serif", fontWeight: 500, minWidth: 0 }}>{label}</span>
 //                 <StarDisplay val={val} size={16} t={t} />
 //                 <span style={{ fontSize: 11, fontWeight: 800, color: t.text, fontFamily: "'Poppins',sans-serif", minWidth: 20, textAlign: "right" }}>{val}</span>
 //               </div>
@@ -606,16 +680,16 @@
 //             )}
 
 //             {/* Actions */}
-//             <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+//             <div style={{ display: "flex", gap: 10, marginTop: 4, flexWrap: "wrap" }}>
 //               <button
 //                 onClick={() => handleMarkReviewed(selected)}
-//                 style={{ flex: 1, padding: "12px", borderRadius: 12, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'Poppins',sans-serif", border: "1px solid rgba(52,211,153,0.30)", background: "rgba(52,211,153,0.08)", color: "#34d399", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, transition: "all 0.2s" }}
+//                 style={{ flex: 1, minWidth: 140, padding: "12px", borderRadius: 12, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'Poppins',sans-serif", border: "1px solid rgba(52,211,153,0.30)", background: "rgba(52,211,153,0.08)", color: "#34d399", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, transition: "all 0.2s" }}
 //               >
 //                 <CheckCircle size={14} /> Mark as Reviewed
 //               </button>
 //               <button
 //                 onClick={() => setSelected(null)}
-//                 style={{ flex: 1, padding: "12px", borderRadius: 12, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'Poppins',sans-serif", border: `1px solid ${t.actBorder}`, background: "transparent", color: t.textMuted, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, transition: "all 0.2s" }}
+//                 style={{ flex: 1, minWidth: 140, padding: "12px", borderRadius: 12, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'Poppins',sans-serif", border: `1px solid ${t.actBorder}`, background: "transparent", color: t.textMuted, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, transition: "all 0.2s" }}
 //               >
 //                 <Archive size={14} /> Archive
 //               </button>
@@ -647,6 +721,22 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { useState, useEffect } from "react";
 import {
   getMyTrainerFeedbackByBatch,
@@ -655,42 +745,26 @@ import {
 } from "../services/chatService";
 import { getTrainerBatches } from "../services/batchService";
 import {
-  MessageSquare, Star, TrendingUp, Users, ChevronDown,
-  X, CheckCircle, Archive, BarChart2, Smile, Activity,
+  MessageSquare, Star, Users, ChevronDown,
+  X, CheckCircle, Archive, BarChart2, Smile,
   Filter, Eye, GraduationCap, Brain, Zap, ClipboardList,
 } from "lucide-react";
 
-const T = {
-  dark: {
-    pageBg: "#0a0a0a", cardBg: "#111111", cardBgHov: "#161616",
-    border: "rgba(255,255,255,0.06)", borderHov: "rgba(255,255,255,0.14)",
-    text: "#ffffff", textSub: "rgba(255,255,255,0.3)", textMuted: "rgba(255,255,255,0.2)",
-    textLabel: "rgba(255,255,255,0.22)",
-    pillBg: "rgba(255,255,255,0.04)", pillBorder: "rgba(255,255,255,0.07)", pillText: "rgba(255,255,255,0.25)",
-    emptyBorder: "rgba(255,255,255,0.07)", emptyBg: "rgba(255,255,255,0.02)", emptyIcon: "rgba(255,255,255,0.12)",
-    barBg: "rgba(255,255,255,0.05)",
-    actBg: "rgba(255,255,255,0.04)", actBorder: "rgba(255,255,255,0.07)",
-    recentItemBg: "rgba(255,255,255,0.03)", recentItemBorder: "rgba(255,255,255,0.05)",
-    recentItemBgHov: "rgba(255,255,255,0.06)",
-    shadow: "0 4px 20px rgba(0,0,0,0.4)", shadowHov: "0 20px 60px rgba(0,0,0,0.6)",
-    overlayBg: "rgba(0,0,0,0.75)",
-    starEmpty: "rgba(255,255,255,0.1)",
-  },
-  light: {
-    pageBg: "#f1f5f9", cardBg: "#ffffff", cardBgHov: "#f8fafc",
-    border: "#e2e8f0", borderHov: "#cbd5e1",
-    text: "#0f172a", textSub: "#64748b", textMuted: "#94a3b8", textLabel: "#94a3b8",
-    pillBg: "#f1f5f9", pillBorder: "#e2e8f0", pillText: "#94a3b8",
-    emptyBorder: "#e2e8f0", emptyBg: "#f8fafc", emptyIcon: "#cbd5e1",
-    barBg: "#f1f5f9",
-    actBg: "#f8fafc", actBorder: "#e2e8f0",
-    recentItemBg: "#f8fafc", recentItemBorder: "#e2e8f0",
-    recentItemBgHov: "#f1f5f9",
-    shadow: "0 1px 8px rgba(0,0,0,0.07)", shadowHov: "0 8px 32px rgba(0,0,0,0.10)",
-    overlayBg: "rgba(0,0,0,0.45)",
-    starEmpty: "#e2e8f0",
-  },
-};
+// ── Global Design System (Golden Reference: Attendance.jsx) ──
+import {
+  T,
+  FONT_FAMILY,
+  FONT_WEIGHT,
+  FONT_SIZE,
+  LINE_HEIGHT,
+  LETTER_SPACING,
+  RADIUS,
+  CARD_PADDING,
+  ACCENT_PURPLE,
+  PageContainer,
+  Hero,
+  StatCard,
+} from "@/design-system";
 
 const MOCK = [
   { id: 1, mood: "🤩", moodLabel: "AMAZING", student: "Anonymous", clarity: 5, doubt: 4, energy: 5, depth: 4, tags: ["Just right", "Great demos"], comment: "Best session so far! Loved the Spring Boot deep dive.", status: "SUBMITTED", date: "Apr 15" },
@@ -707,26 +781,7 @@ const isDarkFn = () =>
    document.documentElement.getAttribute("data-theme") === "dark" ||
    window.matchMedia("(prefers-color-scheme: dark)").matches);
 
-function avg(f) {
-  return ((f.clarity + f.doubt + f.energy + f.depth) / 4).toFixed(1);
-}
-
-function useCountUp(target, duration = 1000) {
-  const [val, setVal] = useState(0);
-  useEffect(() => {
-    if (!target || isNaN(target)) { setVal(target); return; }
-    let start = null;
-    const num = parseFloat(target);
-    const step = (ts) => {
-      if (!start) start = ts;
-      const p = Math.min((ts - start) / duration, 1);
-      setVal(Number((p * num).toFixed(1)));
-      if (p < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }, [target]);
-  return val;
-}
+function avg(f) { return ((f.clarity + f.doubt + f.energy + f.depth) / 4).toFixed(1); }
 
 function StarDisplay({ val, size = 14, t }) {
   return (
@@ -734,7 +789,7 @@ function StarDisplay({ val, size = 14, t }) {
       {[1, 2, 3, 4, 5].map(i => (
         <svg key={i} width={size} height={size} viewBox="0 0 24 24"
           fill={i <= val ? "#f59e0b" : "none"}
-          stroke={i <= val ? "#f59e0b" : t?.starEmpty || "#e2e8f0"}
+          stroke={i <= val ? "#f59e0b" : t.pillBorder}
           strokeWidth="1.5">
           <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
         </svg>
@@ -743,43 +798,53 @@ function StarDisplay({ val, size = 14, t }) {
   );
 }
 
-function StatCard({ label, value, sub, fill, color, icon: Icon, index, t }) {
-  const [hov, setHov] = useState(false);
+/* ─── Page-local helpers, token-driven, mirrors Attendance.jsx ─── */
+function IconBadge({ icon: Icon, color, size = 34, iconSize = 15 }) {
   return (
-    <div
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      style={{
-        background: hov ? t.cardBgHov : t.cardBg,
-        border: `1px solid ${hov ? t.borderHov : t.border}`,
-        borderRadius: 20, padding: "22px 22px 20px",
-        display: "flex", flexDirection: "column", gap: 14,
-        cursor: "default", transition: "all 0.25s ease",
-        position: "relative", overflow: "hidden",
-        boxShadow: hov ? `${t.shadowHov}, 0 0 40px ${color}12` : t.shadow,
-      }}
-    >
-      <div style={{ position: "absolute", top: -20, right: -20, width: 90, height: 90, borderRadius: "50%", background: color, filter: "blur(40px)", opacity: hov ? 0.15 : 0.04, transition: "opacity 0.4s", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, borderRadius: "20px 20px 0 0", background: color, opacity: 0.75 }} />
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 4 }}>
-        <div style={{ width: 42, height: 42, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", background: `${color}18`, border: `1px solid ${color}30` }}>
-          <Icon size={19} color={color} strokeWidth={2} />
-        </div>
-        <div style={{ display: "flex", gap: 3, alignItems: "flex-end", height: 14, opacity: hov ? 0.7 : 0.3, transition: "opacity 0.2s" }}>
-          <span style={{ width: 3, height: 8, borderRadius: 2, background: color, display: "block" }} />
-          <span style={{ width: 3, height: 14, borderRadius: 2, background: color, display: "block" }} />
-          <span style={{ width: 3, height: 6, borderRadius: 2, background: color, display: "block" }} />
-        </div>
-      </div>
-      <div>
-        <p style={{ fontSize: "clamp(28px,5vw,40px)", fontWeight: 800, lineHeight: 1, fontFamily: "'Poppins',sans-serif", color: t.text, margin: 0 }}>{value}</p>
-        <p style={{ fontSize: 10, marginTop: 6, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: t.textMuted, fontFamily: "'Poppins',sans-serif", margin: "6px 0 0" }}>{label}</p>
-      </div>
-      <div style={{ height: 2, background: t.barBg, borderRadius: 99, overflow: "hidden" }}>
-        <div style={{ height: "100%", borderRadius: 99, background: color, width: hov ? fill : "20%", transition: "width 0.65s ease", opacity: 0.85 }} />
-      </div>
-      <p style={{ fontSize: 11, color: t.textMuted, fontFamily: "'Poppins',sans-serif", margin: 0 }}>{sub}</p>
+    <div style={{ width: size, height: size, borderRadius: RADIUS.chip, display: "flex", alignItems: "center", justifyContent: "center", background: `${color}18`, border: `1px solid ${color}30`, flexShrink: 0 }}>
+      <Icon size={iconSize} color={color} />
     </div>
+  );
+}
+function SectionCard({ t, children, style }) {
+  return (
+    <div style={{ background: t.cardBg, border: `1px solid ${t.border}`, borderRadius: RADIUS.standardCard, padding: CARD_PADDING.standardCard, boxShadow: t.shadow, ...style }}>
+      {children}
+    </div>
+  );
+}
+function SectionHeader({ t, icon: Icon, color, title, sub }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+      <IconBadge icon={Icon} color={color} />
+      <div>
+        <div style={{ fontFamily: FONT_FAMILY, fontWeight: FONT_WEIGHT.bold, fontSize: 13, color: t.text }}>{title}</div>
+        {sub && <div style={{ fontSize: 11, color: t.textMuted, fontFamily: FONT_FAMILY, marginTop: 2 }}>{sub}</div>}
+      </div>
+    </div>
+  );
+}
+function EmptyBlock({ t, icon: Icon, title, sub }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 20px", gap: 12, textAlign: "center" }}>
+      <div style={{ width: 52, height: 52, borderRadius: 15, display: "flex", alignItems: "center", justifyContent: "center", border: `1.5px dashed ${t.emptyBorder}`, background: t.emptyBg }}>
+        <Icon size={22} color={t.emptyIcon} />
+      </div>
+      <p style={{ fontSize: 12, color: t.textMuted, fontFamily: FONT_FAMILY, margin: 0 }}>{title}</p>
+      {sub && <p style={{ fontSize: 11, color: t.textMuted, maxWidth: 280, lineHeight: 1.6, margin: 0, fontFamily: FONT_FAMILY }}>{sub}</p>}
+    </div>
+  );
+}
+function PillButton({ active, color, onClick, children, t }) {
+  return (
+    <button onClick={onClick} style={{
+      padding: "6px 14px", borderRadius: RADIUS.pill, fontSize: 11, fontWeight: 600, cursor: "pointer",
+      fontFamily: FONT_FAMILY, border: `1px solid ${active ? `${color}66` : t.pillBorder}`,
+      background: active ? `${color}18` : "transparent",
+      color: active ? color : t.textMuted, whiteSpace: "nowrap",
+    }}>
+      {children}
+    </button>
   );
 }
 
@@ -844,8 +909,11 @@ export default function TrainerFeedback() {
     setSelected(null);
   }
 
-  const statAvg = feedbackList.length
-    ? (feedbackList.reduce((s, f) => s + parseFloat(avg(f)), 0) / feedbackList.length).toFixed(1) : "—";
+  // ── stat source numbers (unchanged business logic) ──
+  const statAvgNum = feedbackList.length
+    ? feedbackList.reduce((s, f) => s + parseFloat(avg(f)), 0) / feedbackList.length
+    : 0;
+  const statAvg = feedbackList.length ? statAvgNum.toFixed(1) : "—";
   const anonymousCount = feedbackList.filter(f => f.student === "Anonymous").length;
   const anonPct = feedbackList.length ? Math.round((anonymousCount / feedbackList.length) * 100) : 0;
   const clarityAvg = feedbackList.length ? (feedbackList.reduce((s, f) => s + f.clarity, 0) / feedbackList.length).toFixed(1) : 0;
@@ -868,415 +936,283 @@ export default function TrainerFeedback() {
     { label: "Technical depth", val: parseFloat(depthAvg), color: "#a78bfa", icon: BarChart2 },
   ];
 
-  const stats = [
-    { label: "Total Feedback", value: feedbackList.length, sub: `${filtered.length} visible`, fill: "80%", color: "#22d3ee", icon: MessageSquare },
-    { label: "Overall Rating", value: statAvg, sub: "Out of 5.0", fill: `${(parseFloat(statAvg) / 5) * 100}%`, color: "#34d399", icon: Star },
-    { label: "Avg Mood Score", value: "3.9", sub: "🤩 38% Amazing", fill: "78%", color: "#fbbf24", icon: Smile },
-    { label: "Anonymous Rate", value: `${anonPct}%`, sub: `${anonymousCount} anonymous`, fill: `${anonPct}%`, color: "#a78bfa", icon: Users },
+  // ── stat cards — rendered through the shared design-system <StatCard>.
+  // numericValue is always a plain Number here (never a pre-formatted
+  // "NN%" or "—" string) — passing a formatted string caused StatCard to
+  // render NaN on PerformanceAnalysis.jsx, so these three cards are fixed
+  // the same way: raw number + a separate `suffix`, with the "—" empty
+  // state moved into `change` instead of `numericValue`.
+  const statCards = [
+    { label: "Total Feedback", numericValue: feedbackList.length, change: `${filtered.length} visible`, icon: MessageSquare, colorKey: "blue" },
+    {
+      label: "Overall Rating",
+      numericValue: feedbackList.length ? statAvgNum : 0,
+      suffix: "/5",
+      change: feedbackList.length ? "Out of 5.0" : "No feedback yet",
+      icon: Star,
+      colorKey: "green",
+    },
+    { label: "Avg Mood Score", numericValue: 3.9, suffix: "/5", change: "🤩 38% Amazing", icon: Smile, colorKey: "orange" },
+    { label: "Anonymous Rate", numericValue: anonPct, suffix: "%", change: `${anonymousCount} anonymous`, icon: Users, colorKey: "purple" },
   ];
 
-  const card = { background: t.cardBg, border: `1px solid ${t.border}`, borderRadius: 20, boxShadow: t.shadow };
+  const selectedBatch = batches.find((b) => b.id === selectedBatchId);
 
   return (
-    <>
+    <PageContainer mode={dark ? "dark" : "light"} pageBg={t.pageBg} textColor={t.text}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
         * { box-sizing: border-box; }
-        @keyframes tfFadeUp { from { opacity:0; transform:translateY(14px) } to { opacity:1; transform:translateY(0) } }
-        @keyframes tfPulseRing { 0%{box-shadow:0 0 0 0 rgba(124,58,237,0.5)} 70%{box-shadow:0 0 0 8px rgba(124,58,237,0)} 100%{box-shadow:0 0 0 0 rgba(124,58,237,0)} }
         @keyframes tfPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-        @keyframes tfBlink { 0%,100%{opacity:1} 50%{opacity:0.15} }
-        .tf-fade { animation: tfFadeUp 0.45s ease both; }
-        .tf-live { animation: tfPulseRing 2.2s ease-out infinite; }
-        .tf-d1 { animation: tfBlink 1.6s ease infinite; }
-        .tf-d2 { animation: tfBlink 1.6s 0.3s ease infinite; }
-        .tf-d3 { animation: tfBlink 1.6s 0.6s ease infinite; }
-        .tf-table-row:hover td { background: ${t.recentItemBgHov}; }
-        .tf-view-btn:hover { border-color: rgba(124,58,237,0.4) !important; color: #a78bfa !important; transform: translateY(-1px); }
-        .tf-filter-btn { transition: all 0.2s; }
-        .tf-close-btn:hover { background: ${t.borderHov} !important; }
+        .tf-table-row:hover td { background: ${t.actBg}; }
+        .tf-view-btn:hover { border-color: ${ACCENT_PURPLE.base}66 !important; color: ${ACCENT_PURPLE.base} !important; }
+        .tf-close-btn:hover { background: ${t.pillBorder} !important; }
         .tf-select:focus { outline: none; }
-        .tf-rating-bar-track { transition: width 0.7s ease; }
         .tf-modal-overlay-inner::-webkit-scrollbar { width: 4px; }
-        .tf-modal-overlay-inner::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+        .tf-modal-overlay-inner::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.3); border-radius: 4px; }
 
-        /* ── RESPONSIVE ── */
-        .tf-hero-row {
-          display: flex; align-items: center;
-          justify-content: space-between;
-          flex-wrap: wrap; gap: 16px;
-        }
-        .tf-hero-right {
-          display: flex; align-items: center;
-          gap: 10px; flex-wrap: wrap;
-        }
-        .tf-mid-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 14px; margin-bottom: 20px;
-        }
-        .tf-stat-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-          gap: 14px; margin-bottom: 20px;
-        }
+        .tf-mid-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
         .tf-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .tf-table-head-row th { white-space: nowrap; }
         .tf-tag-pill { white-space: nowrap; }
-        .tf-stats-pill { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-        .tf-stats-pill-sep { width: 1px; height: 14px; background: ${t.actBorder}; }
+        .tf-hero-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
-        @media (max-width: 900px) {
-          .tf-mid-grid { grid-template-columns: 1fr; }
-        }
+        @media (max-width: 900px) { .tf-mid-grid { grid-template-columns: 1fr; } }
         @media (max-width: 640px) {
           .tf-hero-right { width: 100%; }
-          .tf-stats-pill { gap: 8px; font-size: 10px !important; }
-          .tf-table-header-wrap {
-            flex-direction: column !important;
-            align-items: flex-start !important;
-          }
+          .tf-table-header-wrap { flex-direction: column !important; align-items: flex-start !important; }
           .tf-filter-row { flex-wrap: wrap; gap: 6px; }
           .tf-batch-selector { width: 100%; }
         }
-        @media (max-width: 420px) {
-          .tf-live { display: none; }
-          .tf-activity-bars { display: none; }
-        }
       `}</style>
 
-      <div style={{ fontFamily: "'Poppins',sans-serif", minHeight: "100vh", background: t.pageBg, color: t.text, transition: "background 0.3s, color 0.3s" }}>
-        <div style={{ maxWidth: 1300, margin: "0 auto", padding: "clamp(14px,3vw,28px) clamp(12px,3vw,28px) 60px" }}>
-
-          {/* ═══ HERO ═══ */}
-          <div className="tf-fade" style={{ ...card, padding: "clamp(16px,3vw,26px) clamp(16px,4vw,30px)", marginBottom: 20 }}>
-            <div className="tf-hero-row">
-
-              {/* Left */}
-              <div style={{ minWidth: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                  <div style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 10, background: "rgba(124,58,237,0.12)", border: "1px solid rgba(124,58,237,0.22)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <ClipboardList size={16} color="#7c3aed" />
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <div className="tf-d1" style={{ width: 6, height: 6, borderRadius: "50%", background: "#7c3aed", flexShrink: 0 }} />
-                    <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: t.textSub }}>Trainer Portal</span>
-                  </div>
-                </div>
-
-                {/* ── UPDATED HERO TITLE ── */}
-                <h1
-                style={{
-                fontSize: "clamp(1.3rem,3vw,1.9rem)",
-                fontWeight: 700,
-                margin: "0 0 5px",
-                letterSpacing: "-0.02em",
-              lineHeight: 1.15,
-              }}
-              >
-              {/* Dark Text */}
-              <span
-  style={{
-    color: t.text,
-  }}
->
-  Feedback
-</span>{" "}
-            
-
-             {/* Blue Gradient Text */}
-             <span
-             style={{
-             background: "linear-gradient(135deg,#7c83ff,#60a5fa)",
-             WebkitBackgroundClip: "text",
-             WebkitTextFillColor: "transparent",
-             backgroundClip: "text",
-             }}
-             >
-            Dashboard
+      {/* ═══ HERO ═══ */}
+      <Hero borderHero={t.borderHero}>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: ACCENT_PURPLE.base }} />
+            <span style={{ fontSize: FONT_SIZE.eyebrow, fontWeight: FONT_WEIGHT.bold, letterSpacing: LETTER_SPACING.eyebrowWide, textTransform: "uppercase", color: t.textSub, fontFamily: FONT_FAMILY }}>
+              Trainer Portal
             </span>
-</h1>
+          </div>
+          <h1 style={{ fontFamily: FONT_FAMILY, fontWeight: FONT_WEIGHT.heroTitle, fontSize: FONT_SIZE.heroTitle, color: ACCENT_PURPLE.base, margin: "0 0 6px", lineHeight: LINE_HEIGHT.heroTitle, letterSpacing: LETTER_SPACING.heroTitle }}>
+            Feedback Dashboard
+          </h1>
+          <p style={{ fontSize: FONT_SIZE.bodySmall, color: t.textSub, margin: 0, fontWeight: FONT_WEIGHT.medium, fontFamily: FONT_FAMILY }}>
+            Aggregated student feedback for your sessions
+          </p>
+        </div>
 
-<p
-  style={{
-    fontSize: "clamp(11px,1.8vw,12px)",
-    color: t.textSub,
-    margin: 0,
-    fontWeight: 500,
-  }}
->
-  Aggregated student feedback for your sessions
-</p>
-              </div>
-
-              {/* Right */}
-              <div className="tf-hero-right">
-                {/* Stats pill */}
-                <div className="tf-stats-pill" style={{ background: t.actBg, border: `1px solid ${t.actBorder}`, borderRadius: 12, padding: "8px 16px", fontSize: 11, fontWeight: 600, fontFamily: "'Poppins',sans-serif", color: t.textSub }}>
-                  <span>{feedbackList.length} responses</span>
-                  <span className="tf-stats-pill-sep" />
-                  <span>{feedbackList.filter(f => f.status === "REVIEWED").length} reviewed</span>
-                  <span className="tf-stats-pill-sep" />
-                  <span style={{ color: "#34d399", fontWeight: 700 }}>⭐ {statAvg}/5</span>
-                </div>
-
-                {/* Activity bars */}
-                <div className="tf-activity-bars" style={{ display: "flex", alignItems: "center", gap: 8, background: t.actBg, border: `1px solid ${t.actBorder}`, borderRadius: 10, padding: "8px 12px" }}>
-                  <Activity size={12} color={t.textMuted} />
-                  <div style={{ display: "flex", gap: 3, alignItems: "flex-end", height: 14 }}>
-                    <span className="tf-d1" style={{ width: 3, height: 10, borderRadius: 2, background: t.textMuted, display: "block", opacity: 0.5 }} />
-                    <span className="tf-d2" style={{ width: 3, height: 14, borderRadius: 2, background: t.textMuted, display: "block", opacity: 0.5 }} />
-                    <span className="tf-d3" style={{ width: 3, height: 7, borderRadius: 2, background: t.textMuted, display: "block", opacity: 0.5 }} />
-                  </div>
-                </div>
-
-                {/* Batch selector */}
-                <div className="tf-batch-selector" style={{ display: "flex", alignItems: "center", gap: 8, background: t.actBg, border: `1px solid ${t.actBorder}`, borderRadius: 12, padding: "8px 14px", cursor: "pointer" }}>
-                  <GraduationCap size={14} color="#7c3aed" style={{ flexShrink: 0 }} />
-                  <select
-                    className="tf-select"
-                    value={selectedBatchId ?? ""}
-                    onChange={e => setSelectedBatchId(Number(e.target.value))}
-                    style={{ background: "transparent", border: "none", color: t.text, fontFamily: "'Poppins',sans-serif", fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none", minWidth: 0, flex: 1 }}
-                  >
-                    {batches.length === 0 && <option value="">No batches assigned</option>}
-                    {batches.map(b => <option key={b.id} value={b.id}>{b.name || `Batch #${b.id}`}</option>)}
-                  </select>
-                  <ChevronDown size={12} color={t.textMuted} style={{ flexShrink: 0 }} />
-                </div>
-
-                {/* Live badge */}
-                <div className="tf-live" style={{ display: "flex", alignItems: "center", gap: 7, background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.28)", borderRadius: 999, padding: "7px 16px", color: "#7c3aed", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", whiteSpace: "nowrap" }}>
-                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#7c3aed", display: "inline-block", flexShrink: 0 }} />LIVE
-                </div>
-              </div>
-            </div>
+        <div className="tf-hero-right">
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", background: t.actBg, border: `1px solid ${t.actBorder}`, borderRadius: RADIUS.chip, padding: "8px 16px", fontSize: 11, fontWeight: 600, fontFamily: FONT_FAMILY, color: t.textSub }}>
+            <span>{feedbackList.length} responses</span>
+            <span style={{ width: 1, height: 14, background: t.actBorder }} />
+            <span>{feedbackList.filter(f => f.status === "REVIEWED").length} reviewed</span>
+            <span style={{ width: 1, height: 14, background: t.actBorder }} />
+            <span style={{ color: "#34d399", fontWeight: 700 }}>⭐ {statAvg}/5</span>
           </div>
 
-          {loadingFeedback ? (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: 260, gap: 16 }}>
-              <div style={{ fontSize: 36, animation: "tfPulse 2s infinite" }}>⏳</div>
-              <p style={{ fontSize: 13, color: t.textMuted, fontFamily: "'Poppins',sans-serif" }}>Loading feedback…</p>
-            </div>
-          ) : (
-            <>
-              {/* ═══ STAT CARDS ═══ */}
-              <div className="tf-stat-grid">
-                {stats.map((s, i) => <StatCard key={i} {...s} index={i} t={t} />)}
-              </div>
+          <div className="tf-batch-selector" style={{ display: "flex", alignItems: "center", gap: 8, background: t.actBg, border: `1px solid ${t.actBorder}`, borderRadius: RADIUS.chip, padding: "8px 14px", cursor: "pointer" }}>
+            <GraduationCap size={14} color={ACCENT_PURPLE.base} style={{ flexShrink: 0 }} />
+            <select
+              className="tf-select"
+              value={selectedBatchId ?? ""}
+              onChange={e => setSelectedBatchId(Number(e.target.value))}
+              style={{ background: "transparent", border: "none", color: t.text, fontFamily: FONT_FAMILY, fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none", minWidth: 0, flex: 1 }}
+            >
+              {batches.length === 0 && <option value="">No batches assigned</option>}
+              {batches.map(b => <option key={b.id} value={b.id}>{b.name || `Batch #${b.id}`}</option>)}
+            </select>
+            <ChevronDown size={12} color={t.textMuted} style={{ flexShrink: 0 }} />
+          </div>
 
-              {/* ═══ MID PANELS ═══ */}
-              <div className="tf-mid-grid">
-
-                {/* Rating Breakdown */}
-                <div style={{ ...card, padding: "clamp(14px,2.5vw,22px)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-                    <div style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 10, background: "rgba(52,211,153,0.10)", border: "1px solid rgba(52,211,153,0.20)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <BarChart2 size={15} color="#34d399" />
-                    </div>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: t.text }}>Rating Breakdown</span>
-                  </div>
-                  {ratingRows.map((r, i) => {
-                    const Icon = r.icon;
-                    return (
-                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14, padding: "10px 12px", borderRadius: 12, background: t.actBg, border: `1px solid ${t.actBorder}` }}>
-                        <div style={{ width: 30, height: 30, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", background: `${r.color}18`, border: `1px solid ${r.color}30`, flexShrink: 0 }}>
-                          <Icon size={13} color={r.color} />
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{ fontSize: 10, color: t.textMuted, margin: "0 0 5px", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.label}</p>
-                          <div style={{ height: 5, background: t.barBg, borderRadius: 99, overflow: "hidden" }}>
-                            <div className="tf-rating-bar-track" style={{ height: "100%", borderRadius: 99, background: r.color, width: `${(r.val / 5) * 100}%` }} />
-                          </div>
-                        </div>
-                        <div style={{ width: 36, height: 28, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", background: `${r.color}18`, border: `1px solid ${r.color}30`, flexShrink: 0 }}>
-                          <span style={{ fontSize: 11, fontWeight: 800, color: r.color }}>{r.val}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Mood Distribution */}
-                <div style={{ ...card, padding: "clamp(14px,2.5vw,22px)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-                    <div style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 10, background: "rgba(251,191,36,0.10)", border: "1px solid rgba(251,191,36,0.20)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <Smile size={15} color="#fbbf24" />
-                    </div>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: t.text }}>Mood Distribution</span>
-                  </div>
-                  {moodCounts.map((m, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12, padding: "8px 12px", borderRadius: 12, background: t.actBg, border: `1px solid ${t.actBorder}` }}>
-                      <span style={{ fontSize: 20, width: 28, textAlign: "center", flexShrink: 0 }}>{m.icon}</span>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-                          <span style={{ fontSize: 10, color: t.textMuted, fontWeight: 600 }}>{m.label}</span>
-                        </div>
-                        <div style={{ height: 5, background: t.barBg, borderRadius: 99, overflow: "hidden" }}>
-                          <div className="tf-rating-bar-track" style={{ height: "100%", borderRadius: 99, background: m.color, width: `${(m.count / m.max) * 100}%` }} />
-                        </div>
-                      </div>
-                      <div style={{ width: 28, height: 28, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", background: `${m.color}18`, border: `1px solid ${m.color}30`, flexShrink: 0 }}>
-                        <span style={{ fontSize: 11, fontWeight: 800, color: m.color }}>{m.count}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* ═══ FEEDBACK TABLE ═══ */}
-              <div style={{ ...card, overflow: "hidden" }}>
-                {/* Table Header */}
-                <div className="tf-table-header-wrap" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "clamp(12px,2vw,18px) clamp(14px,3vw,24px)", borderBottom: `1px solid ${t.border}`, flexWrap: "wrap", gap: 12 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 10, background: "rgba(124,58,237,0.10)", border: "1px solid rgba(124,58,237,0.20)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <MessageSquare size={15} color="#7c3aed" />
-                    </div>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: t.text }}>Recent Feedback</span>
-                    <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 999, background: "rgba(124,58,237,0.10)", color: "#7c3aed", border: "1px solid rgba(124,58,237,0.20)", whiteSpace: "nowrap" }}>
-                      {filtered.length} entries
-                    </span>
-                  </div>
-                  {/* Filter buttons */}
-                  <div className="tf-filter-row" style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginRight: 4 }}>
-                      <Filter size={12} color={t.textMuted} />
-                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: t.textLabel, whiteSpace: "nowrap" }}>Filter</span>
-                    </div>
-                    {[["all", "All"], ["positive", "Positive"], ["negative", "Needs Attention"]].map(([v, l]) => (
-                      <button
-                        key={v}
-                        className="tf-filter-btn"
-                        onClick={() => setFilter(v)}
-                        style={{
-                          padding: "6px 14px", borderRadius: 10, fontSize: 11, fontWeight: 600, cursor: "pointer",
-                          fontFamily: "'Poppins',sans-serif", border: `1px solid ${filter === v ? "rgba(124,58,237,0.40)" : t.actBorder}`,
-                          background: filter === v ? "rgba(124,58,237,0.10)" : "transparent",
-                          color: filter === v ? "#7c3aed" : t.textMuted,
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {l}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Table */}
-                <div className="tf-table-wrap">
-                  <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
-                    <thead>
-                      <tr className="tf-table-head-row">
-                        {["Mood", "Student", "Trainer Rating", "Tags", "Status", "Date", ""].map(h => (
-                          <th key={h} style={{ padding: "12px clamp(10px,2vw,20px)", fontSize: 9, fontWeight: 700, color: t.textLabel, textTransform: "uppercase", letterSpacing: "0.08em", textAlign: "left", borderBottom: `1px solid ${t.border}`, fontFamily: "'Poppins',sans-serif", whiteSpace: "nowrap" }}>
-                            {h}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filtered.map(f => (
-                        <tr key={f.id} className="tf-table-row" style={{ cursor: "pointer" }}>
-                          <td style={{ padding: "14px clamp(10px,2vw,20px)", borderBottom: `1px solid ${t.border}`, fontSize: 22, transition: "background 0.15s" }}>{f.mood}</td>
-                          <td style={{ padding: "14px clamp(10px,2vw,20px)", borderBottom: `1px solid ${t.border}`, transition: "background 0.15s" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              <div style={{ width: 30, height: 30, flexShrink: 0, borderRadius: 9, background: f.student === "Anonymous" ? t.actBg : "rgba(124,58,237,0.10)", border: `1px solid ${f.student === "Anonymous" ? t.actBorder : "rgba(124,58,237,0.20)"}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                <span style={{ fontSize: 11, fontWeight: 700, color: f.student === "Anonymous" ? t.textMuted : "#7c3aed" }}>{f.student === "Anonymous" ? "🔒" : f.student.charAt(0).toUpperCase()}</span>
-                              </div>
-                              <span style={{ fontSize: 12, fontWeight: 600, color: t.text, fontFamily: "'Poppins',sans-serif", whiteSpace: "nowrap" }}>{f.student}</span>
-                            </div>
-                          </td>
-                          <td style={{ padding: "14px clamp(10px,2vw,20px)", borderBottom: `1px solid ${t.border}`, transition: "background 0.15s" }}>
-                            <StarDisplay val={Math.round(parseFloat(avg(f)))} size={14} t={t} />
-                          </td>
-                          <td style={{ padding: "14px clamp(10px,2vw,20px)", borderBottom: `1px solid ${t.border}`, transition: "background 0.15s" }}>
-                            <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-                              {f.tags.slice(0, 2).map(tag => (
-                                <span key={tag} className="tf-tag-pill" style={{ fontSize: 9, fontWeight: 700, padding: "3px 8px", borderRadius: 999, background: "rgba(124,58,237,0.10)", color: "#7c3aed", border: "1px solid rgba(124,58,237,0.20)", fontFamily: "'Poppins',sans-serif" }}>{tag}</span>
-                              ))}
-                              {f.tags.length > 2 && <span style={{ fontSize: 9, fontWeight: 700, padding: "3px 8px", borderRadius: 999, background: t.actBg, color: t.textMuted, border: `1px solid ${t.actBorder}`, fontFamily: "'Poppins',sans-serif" }}>+{f.tags.length - 2}</span>}
-                            </div>
-                          </td>
-                          <td style={{ padding: "14px clamp(10px,2vw,20px)", borderBottom: `1px solid ${t.border}`, transition: "background 0.15s" }}>
-                            <span style={{
-                              fontSize: 10, fontWeight: 700, padding: "4px 10px", borderRadius: 999,
-                              background: f.status === "REVIEWED" ? "rgba(52,211,153,0.10)" : "rgba(124,58,237,0.10)",
-                              color: f.status === "REVIEWED" ? "#34d399" : "#7c3aed",
-                              border: `1px solid ${f.status === "REVIEWED" ? "rgba(52,211,153,0.20)" : "rgba(124,58,237,0.20)"}`,
-                              fontFamily: "'Poppins',sans-serif", whiteSpace: "nowrap",
-                            }}>
-                              {f.status === "REVIEWED" ? "✓ Reviewed" : "● New"}
-                            </span>
-                          </td>
-                          <td style={{ padding: "14px clamp(10px,2vw,20px)", borderBottom: `1px solid ${t.border}`, transition: "background 0.15s" }}>
-                            <span style={{ fontSize: 11, color: t.textMuted, fontFamily: "'Poppins',sans-serif", fontWeight: 500, whiteSpace: "nowrap" }}>{f.date}</span>
-                          </td>
-                          <td style={{ padding: "14px clamp(10px,2vw,20px)", borderBottom: `1px solid ${t.border}`, transition: "background 0.15s" }}>
-                            <button
-                              className="tf-view-btn"
-                              onClick={() => setSelected(f)}
-                              style={{
-                                display: "flex", alignItems: "center", gap: 5,
-                                padding: "6px 14px", borderRadius: 10, fontSize: 11, fontWeight: 600,
-                                border: `1px solid ${t.actBorder}`, background: "transparent",
-                                color: t.textMuted, cursor: "pointer", fontFamily: "'Poppins',sans-serif",
-                                transition: "all 0.2s", whiteSpace: "nowrap",
-                              }}
-                            >
-                              <Eye size={12} /> View
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {filtered.length === 0 && (
-                    <div style={{ padding: "48px 24px", textAlign: "center" }}>
-                      <div style={{ width: 52, height: 52, borderRadius: 14, border: `1.5px dashed ${t.emptyBorder}`, background: t.emptyBg, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
-                        <MessageSquare size={22} color={t.emptyIcon} />
-                      </div>
-                      <p style={{ fontSize: 12, color: t.textMuted, fontFamily: "'Poppins',sans-serif", margin: 0 }}>No feedback found for the selected filter.</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </>
-          )}
+          <div style={{ display: "flex", alignItems: "center", gap: 7, background: `${ACCENT_PURPLE.base}14`, border: `1px solid ${ACCENT_PURPLE.base}45`, borderRadius: RADIUS.pill, padding: "7px 16px", color: ACCENT_PURPLE.base, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", whiteSpace: "nowrap" }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: ACCENT_PURPLE.base, display: "inline-block", flexShrink: 0 }} />LIVE
+          </div>
         </div>
-      </div>
+      </Hero>
+
+      {loadingFeedback ? (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: 260, gap: 16 }}>
+          <div style={{ fontSize: 36, animation: "tfPulse 2s infinite" }}>⏳</div>
+          <p style={{ fontSize: 13, color: t.textMuted, fontFamily: FONT_FAMILY }}>Loading feedback…</p>
+        </div>
+      ) : (
+        <>
+          {/* ═══ STAT CARDS — shared component, matches Golden Reference ═══ */}
+          <div className="stat-grid" style={{ marginBottom: 20 }}>
+            {statCards.map((s, i) => <StatCard key={i} stat={s} index={i} loading={false} />)}
+          </div>
+
+          {/* ═══ MID PANELS ═══ */}
+          <div className="tf-mid-grid">
+            <SectionCard t={t}>
+              <SectionHeader t={t} icon={BarChart2} color="#34d399" title="Rating Breakdown" />
+              {ratingRows.map((r, i) => {
+                const Icon = r.icon;
+                return (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14, padding: "10px 12px", borderRadius: RADIUS.chip, background: t.actBg, border: `1px solid ${t.actBorder}` }}>
+                    <IconBadge icon={Icon} color={r.color} size={30} iconSize={13} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 10, color: t.textMuted, margin: "0 0 5px", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: FONT_FAMILY }}>{r.label}</p>
+                      <div style={{ height: 5, background: t.barBg, borderRadius: 99, overflow: "hidden" }}>
+                        <div style={{ height: "100%", borderRadius: 99, background: r.color, width: `${(r.val / 5) * 100}%`, transition: "width .7s ease" }} />
+                      </div>
+                    </div>
+                    <div style={{ width: 36, height: 28, borderRadius: RADIUS.chip, display: "flex", alignItems: "center", justifyContent: "center", background: `${r.color}18`, border: `1px solid ${r.color}30`, flexShrink: 0 }}>
+                      <span style={{ fontSize: 11, fontWeight: 800, color: r.color, fontFamily: FONT_FAMILY }}>{r.val}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </SectionCard>
+
+            <SectionCard t={t}>
+              <SectionHeader t={t} icon={Smile} color="#fbbf24" title="Mood Distribution" />
+              {moodCounts.map((m, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12, padding: "8px 12px", borderRadius: RADIUS.chip, background: t.actBg, border: `1px solid ${t.actBorder}` }}>
+                  <span style={{ fontSize: 20, width: 28, textAlign: "center", flexShrink: 0 }}>{m.icon}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                      <span style={{ fontSize: 10, color: t.textMuted, fontWeight: 600, fontFamily: FONT_FAMILY }}>{m.label}</span>
+                    </div>
+                    <div style={{ height: 5, background: t.barBg, borderRadius: 99, overflow: "hidden" }}>
+                      <div style={{ height: "100%", borderRadius: 99, background: m.color, width: `${(m.count / m.max) * 100}%`, transition: "width .7s ease" }} />
+                    </div>
+                  </div>
+                  <div style={{ width: 28, height: 28, borderRadius: RADIUS.chip, display: "flex", alignItems: "center", justifyContent: "center", background: `${m.color}18`, border: `1px solid ${m.color}30`, flexShrink: 0 }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: m.color, fontFamily: FONT_FAMILY }}>{m.count}</span>
+                  </div>
+                </div>
+              ))}
+            </SectionCard>
+          </div>
+
+          {/* ═══ FEEDBACK TABLE ═══ */}
+          <div style={{ background: t.cardBg, border: `1px solid ${t.border}`, borderRadius: RADIUS.standardCard, boxShadow: t.shadow, overflow: "hidden" }}>
+            <div className="tf-table-header-wrap" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "clamp(12px,2vw,18px) clamp(14px,3vw,24px)", borderBottom: `1px solid ${t.border}`, flexWrap: "wrap", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <IconBadge icon={MessageSquare} color={ACCENT_PURPLE.base} />
+                <span style={{ fontSize: 13, fontWeight: 700, color: t.text, fontFamily: FONT_FAMILY }}>Recent Feedback</span>
+                <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: RADIUS.pill, background: `${ACCENT_PURPLE.base}18`, color: ACCENT_PURPLE.base, border: `1px solid ${ACCENT_PURPLE.base}30`, whiteSpace: "nowrap", fontFamily: FONT_FAMILY }}>
+                  {filtered.length} entries
+                </span>
+              </div>
+              <div className="tf-filter-row" style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginRight: 4 }}>
+                  <Filter size={12} color={t.textMuted} />
+                  <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: t.textMuted, whiteSpace: "nowrap", fontFamily: FONT_FAMILY }}>Filter</span>
+                </div>
+                {[["all", "All"], ["positive", "Positive"], ["negative", "Needs Attention"]].map(([v, l]) => (
+                  <PillButton key={v} t={t} active={filter === v} color={ACCENT_PURPLE.base} onClick={() => setFilter(v)}>{l}</PillButton>
+                ))}
+              </div>
+            </div>
+
+            <div className="tf-table-wrap">
+              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
+                <thead>
+                  <tr className="tf-table-head-row">
+                    {["Mood", "Student", "Trainer Rating", "Tags", "Status", "Date", ""].map(h => (
+                      <th key={h} style={{ padding: "12px clamp(10px,2vw,20px)", fontSize: 9, fontWeight: 700, color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", textAlign: "left", borderBottom: `1px solid ${t.border}`, fontFamily: FONT_FAMILY, whiteSpace: "nowrap" }}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(f => (
+                    <tr key={f.id} className="tf-table-row" style={{ cursor: "pointer" }}>
+                      <td style={{ padding: "14px clamp(10px,2vw,20px)", borderBottom: `1px solid ${t.border}`, fontSize: 22, transition: "background 0.15s" }}>{f.mood}</td>
+                      <td style={{ padding: "14px clamp(10px,2vw,20px)", borderBottom: `1px solid ${t.border}`, transition: "background 0.15s" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <div style={{ width: 30, height: 30, flexShrink: 0, borderRadius: RADIUS.chip, background: f.student === "Anonymous" ? t.actBg : `${ACCENT_PURPLE.base}18`, border: `1px solid ${f.student === "Anonymous" ? t.actBorder : `${ACCENT_PURPLE.base}30`}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: f.student === "Anonymous" ? t.textMuted : ACCENT_PURPLE.base }}>{f.student === "Anonymous" ? "🔒" : f.student.charAt(0).toUpperCase()}</span>
+                          </div>
+                          <span style={{ fontSize: 12, fontWeight: 600, color: t.text, fontFamily: FONT_FAMILY, whiteSpace: "nowrap" }}>{f.student}</span>
+                        </div>
+                      </td>
+                      <td style={{ padding: "14px clamp(10px,2vw,20px)", borderBottom: `1px solid ${t.border}`, transition: "background 0.15s" }}>
+                        <StarDisplay val={Math.round(parseFloat(avg(f)))} size={14} t={t} />
+                      </td>
+                      <td style={{ padding: "14px clamp(10px,2vw,20px)", borderBottom: `1px solid ${t.border}`, transition: "background 0.15s" }}>
+                        <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                          {f.tags.slice(0, 2).map(tag => (
+                            <span key={tag} className="tf-tag-pill" style={{ fontSize: 9, fontWeight: 700, padding: "3px 8px", borderRadius: RADIUS.pill, background: `${ACCENT_PURPLE.base}18`, color: ACCENT_PURPLE.base, border: `1px solid ${ACCENT_PURPLE.base}30`, fontFamily: FONT_FAMILY }}>{tag}</span>
+                          ))}
+                          {f.tags.length > 2 && <span style={{ fontSize: 9, fontWeight: 700, padding: "3px 8px", borderRadius: RADIUS.pill, background: t.actBg, color: t.textMuted, border: `1px solid ${t.actBorder}`, fontFamily: FONT_FAMILY }}>+{f.tags.length - 2}</span>}
+                        </div>
+                      </td>
+                      <td style={{ padding: "14px clamp(10px,2vw,20px)", borderBottom: `1px solid ${t.border}`, transition: "background 0.15s" }}>
+                        <span style={{
+                          fontSize: 10, fontWeight: 700, padding: "4px 10px", borderRadius: RADIUS.pill,
+                          background: f.status === "REVIEWED" ? "rgba(52,211,153,0.14)" : `${ACCENT_PURPLE.base}18`,
+                          color: f.status === "REVIEWED" ? "#34d399" : ACCENT_PURPLE.base,
+                          border: `1px solid ${f.status === "REVIEWED" ? "rgba(52,211,153,0.3)" : `${ACCENT_PURPLE.base}30`}`,
+                          fontFamily: FONT_FAMILY, whiteSpace: "nowrap",
+                        }}>
+                          {f.status === "REVIEWED" ? "✓ Reviewed" : "● New"}
+                        </span>
+                      </td>
+                      <td style={{ padding: "14px clamp(10px,2vw,20px)", borderBottom: `1px solid ${t.border}`, transition: "background 0.15s" }}>
+                        <span style={{ fontSize: 11, color: t.textMuted, fontFamily: FONT_FAMILY, fontWeight: 500, whiteSpace: "nowrap" }}>{f.date}</span>
+                      </td>
+                      <td style={{ padding: "14px clamp(10px,2vw,20px)", borderBottom: `1px solid ${t.border}`, transition: "background 0.15s" }}>
+                        <button
+                          className="tf-view-btn"
+                          onClick={() => setSelected(f)}
+                          style={{
+                            display: "flex", alignItems: "center", gap: 5,
+                            padding: "6px 14px", borderRadius: RADIUS.chip, fontSize: 11, fontWeight: 600,
+                            border: `1px solid ${t.actBorder}`, background: "transparent",
+                            color: t.textMuted, cursor: "pointer", fontFamily: FONT_FAMILY,
+                            transition: "all 0.2s", whiteSpace: "nowrap",
+                          }}
+                        >
+                          <Eye size={12} /> View
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {filtered.length === 0 && (
+                <EmptyBlock t={t} icon={MessageSquare} title="No feedback found for the selected filter." />
+              )}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* ═══ DETAIL MODAL ═══ */}
       {selected && (
         <div
           onClick={() => setSelected(null)}
-          style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", background: t.overlayBg, backdropFilter: "blur(8px)", padding: "16px" }}
+          style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)", padding: "16px" }}
         >
           <div
             onClick={e => e.stopPropagation()}
             className="tf-modal-overlay-inner"
-            style={{ width: "100%", maxWidth: 540, borderRadius: 24, padding: "clamp(18px,4vw,28px)", background: t.cardBg, border: `1px solid ${t.border}`, boxShadow: t.shadowHov, maxHeight: "90vh", overflowY: "auto", animation: "tfFadeUp 0.35s cubic-bezier(0.34,1.56,0.64,1)" }}
+            style={{ width: "100%", maxWidth: 540, borderRadius: RADIUS.standardCard, padding: "clamp(18px,4vw,28px)", background: t.cardBg, border: `1px solid ${t.border}`, boxShadow: t.shadow, maxHeight: "90vh", overflowY: "auto" }}
           >
-            {/* Modal Header */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-                <div style={{ width: 40, height: 40, flexShrink: 0, borderRadius: 12, background: "rgba(124,58,237,0.10)", border: "1px solid rgba(124,58,237,0.20)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ width: 40, height: 40, flexShrink: 0, borderRadius: RADIUS.chip, background: `${ACCENT_PURPLE.base}18`, border: `1px solid ${ACCENT_PURPLE.base}30`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <span style={{ fontSize: 18 }}>{selected.mood}</span>
                 </div>
                 <div style={{ minWidth: 0 }}>
-                  <p style={{ fontSize: 14, fontWeight: 800, color: t.text, margin: 0, fontFamily: "'Poppins',sans-serif", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>Feedback from {selected.student}</p>
-                  <p style={{ fontSize: 10, color: t.textMuted, margin: 0, fontFamily: "'Poppins',sans-serif" }}>{selected.date}</p>
+                  <p style={{ fontSize: 14, fontWeight: 800, color: t.text, margin: 0, fontFamily: FONT_FAMILY, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>Feedback from {selected.student}</p>
+                  <p style={{ fontSize: 10, color: t.textMuted, margin: 0, fontFamily: FONT_FAMILY }}>{selected.date}</p>
                 </div>
               </div>
               <button
                 className="tf-close-btn"
                 onClick={() => setSelected(null)}
-                style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 10, background: t.actBg, border: `1px solid ${t.actBorder}`, color: t.textMuted, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s" }}
+                style={{ width: 34, height: 34, flexShrink: 0, borderRadius: RADIUS.chip, background: t.actBg, border: `1px solid ${t.actBorder}`, color: t.textMuted, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s" }}
               >
                 <X size={15} />
               </button>
             </div>
 
-            {/* Meta chips */}
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 22 }}>
               {[
                 `${selected.mood} ${selected.moodLabel}`,
@@ -1284,61 +1220,55 @@ export default function TrainerFeedback() {
                 ...(selected.student === "Anonymous" ? ["🔒 Anonymous"] : []),
                 `⭐ ${avg(selected)}/5`,
               ].map(chip => (
-                <span key={chip} style={{ padding: "5px 12px", borderRadius: 999, fontSize: 10, fontWeight: 600, background: t.actBg, border: `1px solid ${t.actBorder}`, color: t.textSub, fontFamily: "'Poppins',sans-serif" }}>{chip}</span>
+                <span key={chip} style={{ padding: "5px 12px", borderRadius: RADIUS.pill, fontSize: 10, fontWeight: 600, background: t.actBg, border: `1px solid ${t.actBorder}`, color: t.textSub, fontFamily: FONT_FAMILY }}>{chip}</span>
               ))}
             </div>
 
-            {/* Ratings */}
-            <p style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: t.textLabel, margin: "0 0 12px" }}>Trainer Ratings</p>
+            <p style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: t.textMuted, margin: "0 0 12px", fontFamily: FONT_FAMILY }}>Trainer Ratings</p>
             {[
               ["Clarity of explanation", selected.clarity, "#34d399", Brain],
               ["Doubt clearing", selected.doubt, "#22d3ee", MessageSquare],
               ["Energy & engagement", selected.energy, "#fbbf24", Zap],
               ["Technical depth", selected.depth, "#a78bfa", BarChart2],
             ].map(([label, val, color, Icon]) => (
-              <div key={label} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, padding: "10px 12px", borderRadius: 12, background: t.actBg, border: `1px solid ${t.actBorder}` }}>
-                <div style={{ width: 28, height: 28, flexShrink: 0, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", background: `${color}18`, border: `1px solid ${color}30` }}>
-                  <Icon size={12} color={color} />
-                </div>
-                <span style={{ fontSize: 11, color: t.textSub, flex: 1, fontFamily: "'Poppins',sans-serif", fontWeight: 500, minWidth: 0 }}>{label}</span>
+              <div key={label} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, padding: "10px 12px", borderRadius: RADIUS.chip, background: t.actBg, border: `1px solid ${t.actBorder}` }}>
+                <IconBadge icon={Icon} color={color} size={28} iconSize={12} />
+                <span style={{ fontSize: 11, color: t.textSub, flex: 1, fontFamily: FONT_FAMILY, fontWeight: 500, minWidth: 0 }}>{label}</span>
                 <StarDisplay val={val} size={16} t={t} />
-                <span style={{ fontSize: 11, fontWeight: 800, color: t.text, fontFamily: "'Poppins',sans-serif", minWidth: 20, textAlign: "right" }}>{val}</span>
+                <span style={{ fontSize: 11, fontWeight: 800, color: t.text, fontFamily: FONT_FAMILY, minWidth: 20, textAlign: "right" }}>{val}</span>
               </div>
             ))}
 
-            {/* Tags */}
             {selected.tags.length > 0 && (
               <>
-                <p style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: t.textLabel, margin: "18px 0 10px" }}>Content Tags</p>
+                <p style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: t.textMuted, margin: "18px 0 10px", fontFamily: FONT_FAMILY }}>Content Tags</p>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 18 }}>
                   {selected.tags.map(tag => (
-                    <span key={tag} style={{ padding: "6px 14px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: "rgba(124,58,237,0.10)", color: "#7c3aed", border: "1px solid rgba(124,58,237,0.22)", fontFamily: "'Poppins',sans-serif" }}>{tag}</span>
+                    <span key={tag} style={{ padding: "6px 14px", borderRadius: RADIUS.pill, fontSize: 11, fontWeight: 600, background: `${ACCENT_PURPLE.base}18`, color: ACCENT_PURPLE.base, border: `1px solid ${ACCENT_PURPLE.base}30`, fontFamily: FONT_FAMILY }}>{tag}</span>
                   ))}
                 </div>
               </>
             )}
 
-            {/* Comment */}
             {selected.comment && (
               <>
-                <p style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: t.textLabel, margin: "0 0 10px" }}>Comment</p>
-                <div style={{ padding: "14px 16px", borderRadius: 14, background: t.actBg, border: `1px solid ${t.actBorder}`, fontSize: 12, color: t.textSub, lineHeight: 1.7, fontStyle: "italic", marginBottom: 20, fontFamily: "'Poppins',sans-serif" }}>
+                <p style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: t.textMuted, margin: "0 0 10px", fontFamily: FONT_FAMILY }}>Comment</p>
+                <div style={{ padding: "14px 16px", borderRadius: RADIUS.chip, background: t.actBg, border: `1px solid ${t.actBorder}`, fontSize: 12, color: t.textSub, lineHeight: 1.7, fontStyle: "italic", marginBottom: 20, fontFamily: FONT_FAMILY }}>
                   "{selected.comment}"
                 </div>
               </>
             )}
 
-            {/* Actions */}
             <div style={{ display: "flex", gap: 10, marginTop: 4, flexWrap: "wrap" }}>
               <button
                 onClick={() => handleMarkReviewed(selected)}
-                style={{ flex: 1, minWidth: 140, padding: "12px", borderRadius: 12, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'Poppins',sans-serif", border: "1px solid rgba(52,211,153,0.30)", background: "rgba(52,211,153,0.08)", color: "#34d399", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, transition: "all 0.2s" }}
+                style={{ flex: 1, minWidth: 140, padding: "12px", borderRadius: RADIUS.button, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: FONT_FAMILY, border: "1px solid rgba(52,211,153,0.35)", background: "rgba(52,211,153,0.10)", color: "#34d399", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
               >
                 <CheckCircle size={14} /> Mark as Reviewed
               </button>
               <button
                 onClick={() => setSelected(null)}
-                style={{ flex: 1, minWidth: 140, padding: "12px", borderRadius: 12, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'Poppins',sans-serif", border: `1px solid ${t.actBorder}`, background: "transparent", color: t.textMuted, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, transition: "all 0.2s" }}
+                style={{ flex: 1, minWidth: 140, padding: "12px", borderRadius: RADIUS.button, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: FONT_FAMILY, border: `1px solid ${t.actBorder}`, background: "transparent", color: t.textMuted, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
               >
                 <Archive size={14} /> Archive
               </button>
@@ -1346,6 +1276,6 @@ export default function TrainerFeedback() {
           </div>
         </div>
       )}
-    </>
+    </PageContainer>
   );
 }

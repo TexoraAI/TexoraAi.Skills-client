@@ -2,130 +2,301 @@ import React, { useEffect, useState } from "react";
 import { Play, Pause, Trash2, Video, HardDrive, Film } from "lucide-react";
 import videoService from "../services/videoService";
 
-/* ─── Styles (matches AdminVideos design system) ─────────────────── */
-const STYLES = `
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
-:root{--bg:#f1f5f9;--card:#ffffff;--tx:#0f172a;--mu:#64748b;--bd:#e2e8f0;
-  --c1:#22d3ee;--c2:#fb923c;--c3:#34d399;--c4:#a78bfa;--cr:#f87171;
-  --sh:0 4px 24px rgba(0,0,0,0.06);--shl:0 8px 40px rgba(0,0,0,0.10);--r:16px;
-  --grad:linear-gradient(120deg,#22d3ee 0%,#38bdf8 45%,#a78bfa 100%);}
-.avl-dk{--bg:#0a0a0a;--card:#111111;--tx:#ffffff;--mu:#94a3b8;--bd:rgba(255,255,255,0.06);
-  --sh:0 4px 24px rgba(0,0,0,0.40);--shl:0 8px 40px rgba(0,0,0,0.60);}
+// ─── Global Design System — single source of truth for colors, type,
+// spacing, radius, StatCard, PageContainer and Hero. This page must not
+// redeclare tokens or components that already live there (see
+// AdminDashboard.jsx, the Golden Reference, which this page now visually
+// matches).
+import {
+  T,
+  FONT_FAMILY,
+  FONT_WEIGHT,
+  FONT_SIZE,
+  LINE_HEIGHT,
+  LETTER_SPACING,
+  RADIUS,
+  CARD_PADDING,
+  ACCENT_PURPLE,
+  PageContainer,
+  Hero,
+  StatCard,
+} from "@/design-system";
 
-.avl{font-family:'Poppins',sans-serif;min-height:100%;background:var(--bg);color:var(--tx);padding:16px;box-sizing:border-box;}
-.avl-inner{max-width:1300px;margin:0 auto;display:flex;flex-direction:column;gap:14px;}
-
-/* header */
-.avl-hdr{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;}
-.avl-hdr-grad{background:var(--grad);padding:14px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-.avl-hdr-ico{width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.20);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;}
-.avl-bdg{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:50px;background:rgba(255,255,255,.22);color:#fff;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;}
-.avl-h1{font-size:17px;font-weight:800;color:#fff;margin:0 0 1px;}
-.avl-sub{font-size:11.5px;color:rgba(255,255,255,.85);margin:0;}
-.avl-hdr-body{padding:14px 18px;box-sizing:border-box;}
-.avl-chips{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
-.avl-chip{position:relative;overflow:hidden;display:flex;flex-direction:column;gap:2px;padding:14px 16px;border-radius:14px;color:#fff;min-height:78px;box-shadow:0 6px 16px rgba(0,0,0,.10);}
-.avl-chip::after{content:"";position:absolute;top:-16px;right:-16px;width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.14);}
-.avl-chip-1{background:linear-gradient(135deg,#22d3ee,#0891b2);}
-.avl-chip-2{background:linear-gradient(135deg,#a78bfa,#7c3aed);}
-.avl-chip-ico{width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;margin-bottom:2px;}
-.avl-chip-num{font-size:20px;font-weight:800;line-height:1;}
-.avl-chip-lbl{font-size:11px;font-weight:600;color:rgba(255,255,255,.90);}
-
-/* list card */
-.avl-tcard{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;}
-.avl-thead-row{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px solid var(--bd);background:var(--bg);}
-.avl-thead-title{font-size:12px;font-weight:700;color:var(--tx);margin:0 0 1px;}
-.avl-thead-sub{font-size:10.5px;color:var(--mu);margin:0;}
-
-/* empty */
-.avl-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 20px;gap:10px;text-align:center;}
-.avl-empty-ico{width:46px;height:46px;border-radius:14px;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.15);display:flex;align-items:center;justify-content:center;color:var(--c1);}
-.avl-empty-t{font-size:13px;font-weight:700;color:var(--tx);margin:0 0 3px;}
-.avl-empty-s{font-size:11px;color:var(--mu);margin:0;}
-
-/* row */
-.avl-row{border-bottom:1px solid var(--bd);transition:background .15s;}
-.avl-row:last-child{border-bottom:none;}
-.avl-row:hover{background:rgba(34,211,238,.025);}
-.avl-row-main{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;flex-wrap:wrap;}
-.avl-video-cell{display:flex;align-items:center;gap:10px;min-width:0;flex:1 1 auto;}
-.avl-video-av{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.avl-video-text{min-width:0;}
-.avl-video-name{font-size:12px;font-weight:700;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:320px;}
-.avl-row:hover .avl-video-name{color:var(--c1);}
-.avl-video-sub{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--mu);margin-top:1px;}
-.avl-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;}
-.avl-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 11px;border-radius:9px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-family:'Poppins',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;}
-.avl-btn-play{background:var(--c1);border-color:var(--c1);color:#0a0a0a;}
-.avl-btn-play:hover{background:#0891b2;border-color:#0891b2;color:#fff;}
-.avl-btn-icon{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;border:1px solid var(--bd);background:var(--bg);color:var(--cr);cursor:pointer;transition:all .15s;flex-shrink:0;}
-.avl-btn-icon:hover{background:rgba(248,113,113,.10);border-color:rgba(248,113,113,.30);}
-.avl-player-wrap{padding:0 16px 12px;}
-.avl-player{width:100%;border-radius:12px;border:1px solid var(--bd);display:block;max-height:360px;background:#000;}
-
-/* ── responsive ── */
-@media (max-width:900px){
-  .avl{padding:12px;}
-  .avl-inner{gap:12px;}
-}
-@media (max-width:640px){
-  .avl-hdr-grad{padding:12px 14px;}
-  .avl-hdr-body{padding:10px 14px;}
-  .avl-h1{font-size:15px;}
-  .avl-sub{display:none;}
-  .avl-chips{grid-template-columns:repeat(2,1fr);gap:8px;}
-  .avl-chip{padding:10px 10px;min-height:66px;border-radius:12px;}
-  .avl-chip-num{font-size:16px;}
-  .avl-chip-lbl{font-size:9.5px;}
-  .avl-chip-ico{width:22px;height:22px;}
-  .avl-row-main{padding:9px 14px;}
-  .avl-video-name{max-width:150px;}
-  .avl-btn span{display:none;}
-  .avl-btn{padding:6px 9px;}
-}
-@media (max-width:380px){
-  .avl-chip-lbl{display:none;}
-  .avl-chip{min-height:52px;}
-  .avl-video-name{max-width:110px;}
-}
-`;
-
-if (!document.getElementById("avl-st")) {
-  const t = document.createElement("style");
-  t.id = "avl-st";
-  t.textContent = STYLES;
-  document.head.appendChild(t);
-}
+/* ─────────────────────────────────────────────────────────────────────────
+   Page-local layout helpers only — no color/spacing/radius values are
+   invented here, everything is sourced from the theme token object (t)
+   or the shared FONT_FAMILY / FONT_WEIGHT / RADIUS / CARD_PADDING tokens,
+   exactly the same way AdminDashboard.jsx's SectionCard / SectionHeader /
+   EmptyBlock are page-local but token-driven.
+───────────────────────────────────────────────────────────────────────── */
 
 const isDark = () =>
   document.documentElement.classList.contains("dark") ||
-  document.body.classList.contains("dark") ||
-  window.matchMedia("(prefers-color-scheme: dark)").matches;
+  document.documentElement.getAttribute("data-theme") === "dark";
 
-const GRAD_BG = [
-  "linear-gradient(135deg,#6d28d9,#4338ca)",
-  "linear-gradient(135deg,#0891b2,#0e7490)",
-  "linear-gradient(135deg,#be123c,#9f1239)",
-  "linear-gradient(135deg,#b45309,#92400e)",
-  "linear-gradient(135deg,#047857,#065f46)",
-  "linear-gradient(135deg,#1d4ed8,#1e40af)",
-];
-const gradBg = (val) =>
-  GRAD_BG[(String(val)?.charCodeAt(0) ?? 0) % GRAD_BG.length];
+function IconBadge({ icon: Icon, color, size = 34, iconSize = 15 }) {
+  return (
+    <div
+      style={{
+        width: size,
+        height: size,
+        borderRadius: RADIUS.chip,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: `${color}18`,
+        border: `1px solid ${color}30`,
+        flexShrink: 0,
+      }}
+    >
+      <Icon size={iconSize} color={color} />
+    </div>
+  );
+}
 
+function SectionCard({ t, children, style }) {
+  return (
+    <div
+      style={{
+        background: t.cardBg,
+        border: `1px solid ${t.border}`,
+        borderRadius: RADIUS.standardCard,
+        padding: CARD_PADDING.standardCard,
+        boxShadow: t.shadow,
+        ...style,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function SectionHeader({ t, icon: Icon, color, title, sub, right }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: 16,
+        flexWrap: "wrap",
+        gap: 10,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <IconBadge icon={Icon} color={color} />
+        <div>
+          <div
+            style={{
+              fontFamily: FONT_FAMILY,
+              fontWeight: FONT_WEIGHT.bold,
+              fontSize: 13,
+              color: t.text,
+            }}
+          >
+            {title}
+          </div>
+          {sub && (
+            <div
+              style={{
+                fontSize: 11,
+                color: t.textMuted,
+                fontFamily: FONT_FAMILY,
+                marginTop: 2,
+              }}
+            >
+              {sub}
+            </div>
+          )}
+        </div>
+      </div>
+      {right}
+    </div>
+  );
+}
+
+function EmptyBlock({ t, icon: Icon, title, sub }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "36px 16px",
+        gap: 12,
+        textAlign: "center",
+      }}
+    >
+      <div
+        style={{
+          width: 48,
+          height: 48,
+          borderRadius: 14,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          border: `1.5px dashed ${t.emptyBorder}`,
+          background: t.emptyBg,
+        }}
+      >
+        <Icon size={20} color={t.emptyIcon} />
+      </div>
+      <div>
+        <p
+          style={{
+            fontSize: 13,
+            color: t.text,
+            fontWeight: FONT_WEIGHT.bold,
+            fontFamily: FONT_FAMILY,
+            margin: 0,
+          }}
+        >
+          {title}
+        </p>
+        {sub && (
+          <p
+            style={{
+              fontSize: 11.5,
+              color: t.textMuted,
+              fontFamily: FONT_FAMILY,
+              margin: "4px 0 0",
+            }}
+          >
+            {sub}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const PALETTE = ["#3b82f6", ACCENT_PURPLE.base, "#f59e0b", "#16a34a", "#ef4444"];
+const paletteColor = (val) => PALETTE[(String(val ?? "")?.charCodeAt(0) ?? 0) % PALETTE.length];
+
+/* single uploaded-video row, with inline play/pause + delete + player */
+function VideoListRow({ t, video, isPlaying, videoUrl, onPlay, onDelete }) {
+  const sizeMB = Math.round((video.size || 0) / 1024 / 1024);
+
+  return (
+    <div
+      style={{
+        borderRadius: RADIUS.chip,
+        background: t.recentItemBg,
+        border: `1px solid ${t.recentItemBorder}`,
+        overflow: "hidden",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", flexWrap: "wrap" }}>
+        <IconBadge icon={Film} color={paletteColor(video.originalFileName)} size={34} iconSize={15} />
+
+        <div style={{ flex: "1 1 200px", minWidth: 0 }}>
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: FONT_WEIGHT.semibold,
+              color: t.text,
+              fontFamily: FONT_FAMILY,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {video.originalFileName}
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              fontSize: 11,
+              color: t.textMuted,
+              fontFamily: FONT_FAMILY,
+              marginTop: 2,
+            }}
+          >
+            <HardDrive size={10} /> {sizeMB} MB
+          </div>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+          <button
+            onClick={() => onPlay(video)}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "8px 14px",
+              borderRadius: RADIUS.chip,
+              border: "1px solid transparent",
+              background: ACCENT_PURPLE.base,
+              color: "#ffffff",
+              fontFamily: FONT_FAMILY,
+              fontSize: 11.5,
+              fontWeight: FONT_WEIGHT.bold,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {isPlaying ? <Pause size={13} /> : <Play size={13} />}
+            {isPlaying ? "Playing" : "Play"}
+          </button>
+          <button
+            onClick={() => onDelete(video.id)}
+            title="Delete"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 34,
+              height: 34,
+              borderRadius: RADIUS.chip,
+              border: `1px solid ${t.recentItemBorder}`,
+              background: t.cardBg,
+              color: "#ef4444",
+              cursor: "pointer",
+              flexShrink: 0,
+            }}
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
+      </div>
+
+      {isPlaying && videoUrl && (
+        <div style={{ padding: "0 14px 14px" }}>
+          <video
+            controls
+            src={videoUrl}
+            style={{
+              width: "100%",
+              maxHeight: 360,
+              borderRadius: RADIUS.chip,
+              border: `1px solid ${t.recentItemBorder}`,
+              display: "block",
+              background: "#000",
+            }}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ══ MAIN ══ */
 const AdminVideoList = () => {
   const [dark, setDark] = useState(isDark);
+  useEffect(() => {
+    setDark(isDark());
+    const obs = new MutationObserver(() => setDark(isDark()));
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-theme"] });
+    return () => obs.disconnect();
+  }, []);
+  const t = dark ? T.dark : T.light;
+
   const [videos, setVideos] = useState([]);
   const [videoUrls, setVideoUrls] = useState({});
   const [playingId, setPlayingId] = useState(null);
-
-  useEffect(() => {
-    const o = new MutationObserver(() => setDark(isDark()));
-    o.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    o.observe(document.body, { attributes: true, attributeFilter: ["class"] });
-    return () => o.disconnect();
-  }, []);
 
   /* ================= LOAD VIDEOS ================= */
   useEffect(() => {
@@ -167,128 +338,131 @@ const AdminVideoList = () => {
     }
   };
 
-  const totalSizeMB = Math.round(
-    videos.reduce((sum, v) => sum + (v.size || 0), 0) / 1024 / 1024
-  );
+  const totalSizeMB = Math.round(videos.reduce((sum, v) => sum + (v.size || 0), 0) / 1024 / 1024);
+
+  const stats = [
+    { label: "Total Videos", numericValue: videos.length, icon: Film, colorKey: "blue", change: "Files uploaded by you" },
+    { label: "Total Size", numericValue: totalSizeMB, icon: HardDrive, colorKey: "purple", change: "Storage used, in MB" },
+  ];
 
   return (
-    <div className={`avl${dark ? " avl-dk" : ""}`}>
-      <div className="avl-inner">
-        {/* ── Header ── */}
-        <div className="avl-hdr">
-          <div className="avl-hdr-grad">
-            <div className="avl-hdr-ico">
-              <Video size={18} />
-            </div>
-            <div>
-              <div className="avl-bdg">
-                <Video size={9} /> Video Management
-              </div>
-              <h1 className="avl-h1">Uploaded Videos</h1>
-              <p className="avl-sub">
-                Preview and manage your uploaded video files
-              </p>
-            </div>
+    <PageContainer mode={dark ? "dark" : "light"} pageBg={t.pageBg} textColor={t.text}>
+      {/* ═══ HERO — shared <Hero> component, matches Admin Dashboard exactly ═══ */}
+      <Hero borderHero={t.borderHero}>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: ACCENT_PURPLE.base }} />
+            <span
+              style={{
+                fontSize: FONT_SIZE.eyebrow,
+                fontWeight: FONT_WEIGHT.bold,
+                letterSpacing: LETTER_SPACING.eyebrowWide,
+                textTransform: "uppercase",
+                color: t.textSub,
+                fontFamily: FONT_FAMILY,
+              }}
+            >
+              Video Management
+            </span>
           </div>
-          <div className="avl-hdr-body">
-            <div className="avl-chips">
-              <div className="avl-chip avl-chip-1">
-                <div className="avl-chip-ico">
-                  <Film size={14} />
-                </div>
-                <span className="avl-chip-num">{videos.length}</span>
-                <span className="avl-chip-lbl">Videos</span>
-              </div>
-              <div className="avl-chip avl-chip-2">
-                <div className="avl-chip-ico">
-                  <HardDrive size={14} />
-                </div>
-                <span className="avl-chip-num">{totalSizeMB} MB</span>
-                <span className="avl-chip-lbl">Total Size</span>
-              </div>
-            </div>
-          </div>
+          <h1
+            style={{
+              fontFamily: FONT_FAMILY,
+              fontWeight: FONT_WEIGHT.heroTitle,
+              fontSize: FONT_SIZE.heroTitle,
+              color: ACCENT_PURPLE.base,
+              margin: "0 0 6px",
+              lineHeight: LINE_HEIGHT.heroTitle,
+              letterSpacing: LETTER_SPACING.heroTitle,
+            }}
+          >
+            Uploaded Videos
+          </h1>
+          <p style={{ fontSize: FONT_SIZE.bodySmall, color: t.textSub, margin: 0, fontWeight: FONT_WEIGHT.medium, fontFamily: FONT_FAMILY }}>
+            Preview and manage your uploaded video files
+          </p>
         </div>
 
-        {/* ── List card ── */}
-        <div className="avl-tcard">
-          <div className="avl-thead-row">
-            <div>
-              <p className="avl-thead-title">Video List</p>
-              <p className="avl-thead-sub">
-                {videos.length} video{videos.length !== 1 && "s"} found
-              </p>
-            </div>
+        <div className="hero-badges">
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              background: t.actBg,
+              border: `1px solid ${t.actBorder}`,
+              borderRadius: RADIUS.chip,
+              padding: "8px 16px",
+              fontSize: 11,
+              fontWeight: FONT_WEIGHT.semibold,
+              fontFamily: FONT_FAMILY,
+              color: t.textSub,
+              flexWrap: "wrap",
+            }}
+          >
+            <span>{videos.length} videos</span>
+            <span style={{ width: 1, height: 14, background: t.actBorder }} />
+            <span>{totalSizeMB} MB used</span>
           </div>
 
-          {videos.length === 0 && (
-            <div className="avl-empty">
-              <div className="avl-empty-ico">
-                <Video size={22} />
-              </div>
-              <p className="avl-empty-t">No videos uploaded yet</p>
-              <p className="avl-empty-s">
-                Videos you upload will appear here
-              </p>
-            </div>
-          )}
-
-          {videos.map((v) => {
-            const isPlaying = playingId === v.id;
-            const sizeMB = Math.round((v.size || 0) / 1024 / 1024);
-            return (
-              <div key={v.id} className="avl-row">
-                <div className="avl-row-main">
-                  <div className="avl-video-cell">
-                    <div
-                      className="avl-video-av"
-                      style={{ background: gradBg(v.originalFileName) }}
-                    >
-                      <Film size={14} color="white" />
-                    </div>
-                    <div className="avl-video-text">
-                      <div className="avl-video-name">
-                        {v.originalFileName}
-                      </div>
-                      <div className="avl-video-sub">
-                        <HardDrive size={9} /> {sizeMB} MB
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="avl-actions">
-                    <button
-                      className="avl-btn avl-btn-play"
-                      onClick={() => playVideo(v)}
-                    >
-                      {isPlaying ? <Pause size={12} /> : <Play size={12} />}
-                      <span>{isPlaying ? "Playing" : "Play"}</span>
-                    </button>
-                    <button
-                      className="avl-btn-icon"
-                      onClick={() => deleteVideo(v.id)}
-                      title="Delete"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
-                </div>
-
-                {isPlaying && videoUrls[v.id] && (
-                  <div className="avl-player-wrap">
-                    <video
-                      className="avl-player"
-                      controls
-                      src={videoUrls[v.id]}
-                    />
-                  </div>
-                )}
-              </div>
-            );
-          })}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 7,
+              background: "rgba(124,58,237,0.08)",
+              border: "1px solid rgba(124,58,237,0.3)",
+              borderRadius: RADIUS.pill,
+              padding: "8px 18px",
+              color: ACCENT_PURPLE.base,
+              fontSize: 11,
+              fontWeight: FONT_WEIGHT.bold,
+              letterSpacing: LETTER_SPACING.eyebrowWide,
+              fontFamily: FONT_FAMILY,
+            }}
+          >
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: ACCENT_PURPLE.base, display: "inline-block" }} />
+            LIVE
+          </div>
         </div>
+      </Hero>
+
+      {/* ═══ STAT CARDS — shared <StatCard>, via the shared .stat-grid class ═══ */}
+      <div className="stat-grid" style={{ marginBottom: 20 }}>
+        {stats.map((s, i) => (
+          <StatCard key={i} stat={s} index={i} loading={false} mode={dark ? "dark" : "light"} />
+        ))}
       </div>
-    </div>
+
+      {/* ═══ VIDEO LIST ═══ */}
+      <SectionCard t={t}>
+        <SectionHeader
+          t={t}
+          icon={Video}
+          color={ACCENT_PURPLE.base}
+          title="Video List"
+          sub={`${videos.length} video${videos.length !== 1 ? "s" : ""} found`}
+        />
+
+        {videos.length === 0 ? (
+          <EmptyBlock t={t} icon={Video} title="No videos uploaded yet" sub="Videos you upload will appear here" />
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {videos.map((v) => (
+              <VideoListRow
+                key={v.id}
+                t={t}
+                video={v}
+                isPlaying={playingId === v.id}
+                videoUrl={videoUrls[v.id]}
+                onPlay={playVideo}
+                onDelete={deleteVideo}
+              />
+            ))}
+          </div>
+        )}
+      </SectionCard>
+    </PageContainer>
   );
 };
 

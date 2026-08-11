@@ -1084,6 +1084,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate, Outlet } from "react-router-dom";
 import LiveMeetingRouteSync from "@/components/live/LiveMeetingRouteSync";
 import FloatingMeetingWidget from "@/components/live/FloatingMeetingWidget";
+import ChatWidgetButton from "../Student/ChatWidgetButton";
 import {
   onForegroundMessage,
   registerFcmToken,
@@ -1827,7 +1828,7 @@ const userEmail = localStorage.getItem("email");
 
       <FloatingMeetingWidget />
       <LiveMeetingRouteSync />
-
+      {userRole === "STUDENT" && <ChatWidgetButton />}   {/* ← add ye line */}
       <NotificationBanner />
 
       <ToastStack

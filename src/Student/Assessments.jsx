@@ -1,7 +1,7 @@
 // import {
 //   Award, Calendar, Clock, FileText,
 //   ChevronRight, ChevronDown, Sparkles, Activity,
-//   ArrowUpRight, Zap, CheckCircle2,
+//   Zap, CheckCircle2,
 // } from "lucide-react";
 // import { useEffect, useState } from "react";
 // import { useNavigate } from "react-router-dom";
@@ -19,19 +19,19 @@
 // const T = {
 //   dark: {
 //     pageBg:"#0a0a0a", cardBg:"#111111", cardBgHov:"#161616", heroBg:"#141414",
-//     border:"rgba(255,255,255,0.06)", borderHov:"rgba(255,255,255,0.14)",
-//     borderHero:"rgba(255,255,255,0.07)", text:"#ffffff",
-//     textSub:"rgba(255,255,255,0.3)", textMuted:"rgba(255,255,255,0.2)",
-//     textLabel:"rgba(255,255,255,0.22)", pillBg:"rgba(255,255,255,0.04)",
-//     pillBorder:"rgba(255,255,255,0.07)", pillText:"rgba(255,255,255,0.25)",
-//     iconBg:"rgba(255,255,255,0.05)", iconBorder:"rgba(255,255,255,0.08)",
-//     gridLine:"rgba(255,255,255,0.5)", barBg:"rgba(255,255,255,0.05)",
-//     actBar:"rgba(255,255,255,0.5)", actIcon:"rgba(255,255,255,0.3)",
-//     actBg:"rgba(255,255,255,0.04)", actBorder:"rgba(255,255,255,0.07)",
-//     shadow:"0 4px 20px rgba(0,0,0,0.4)", shadowHov:"0 20px 60px rgba(0,0,0,0.6)",
-//     emptyBorder:"rgba(255,255,255,0.07)", emptyBg:"rgba(255,255,255,0.02)",
-//     emptyIcon:"rgba(255,255,255,0.12)", recentItemBg:"rgba(255,255,255,0.03)",
-//     recentItemBorder:"rgba(255,255,255,0.05)", recentItemBgHov:"rgba(255,255,255,0.06)",
+//     border:"rgba(255,255,255,0.08)", borderHov:"rgba(255,255,255,0.18)",
+//     borderHero:"rgba(255,255,255,0.09)", text:"#ffffff",
+//     textSub:"rgba(255,255,255,0.55)", textMuted:"rgba(255,255,255,0.42)",
+//     textLabel:"rgba(255,255,255,0.45)", pillBg:"rgba(255,255,255,0.05)",
+//     pillBorder:"rgba(255,255,255,0.09)", pillText:"rgba(255,255,255,0.5)",
+//     iconBg:"rgba(255,255,255,0.06)", iconBorder:"rgba(255,255,255,0.1)",
+//     gridLine:"rgba(255,255,255,0.5)", barBg:"rgba(255,255,255,0.07)",
+//     actBar:"rgba(255,255,255,0.55)", actIcon:"rgba(255,255,255,0.45)",
+//     actBg:"rgba(255,255,255,0.05)", actBorder:"rgba(255,255,255,0.09)",
+//     shadow:"0 2px 12px rgba(0,0,0,0.35)", shadowHov:"0 14px 36px rgba(0,0,0,0.5)",
+//     emptyBorder:"rgba(255,255,255,0.09)", emptyBg:"rgba(255,255,255,0.03)",
+//     emptyIcon:"rgba(255,255,255,0.2)", recentItemBg:"rgba(255,255,255,0.04)",
+//     recentItemBorder:"rgba(255,255,255,0.07)", recentItemBgHov:"rgba(255,255,255,0.07)",
 //     rowHov:"rgba(255,255,255,0.04)", collapseHdr:"rgba(255,255,255,0.03)",
 //   },
 //   light: {
@@ -67,32 +67,32 @@
 //   return idx === -1 ? 999 : idx;
 // };
 
-// /* ── Stat Card ── */
-// const StatCard = ({ icon: Icon, value, label, color, t, extra }) => {
+// /* ── Stat Card (solid gradient, watermark icon — matches reference) ── */
+// const StatCard = ({ icon: Icon, value, label, gradient }) => {
 //   const [hov, setHov] = useState(false);
 //   return (
-//     <div onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
-//       style={{ background: hov?t.cardBgHov:t.cardBg, border:`1px solid ${hov?t.borderHov:t.border}`, boxShadow: hov?`${t.shadowHov},0 0 40px ${color}12`:t.shadow, borderRadius:20, padding:"22px 22px 20px", display:"flex", flexDirection:"column", gap:14, transition:"all 0.25s ease", position:"relative", overflow:"hidden", cursor:"default" }}>
-//       <div style={{ position:"absolute", top:-20, right:-20, width:90, height:90, borderRadius:"50%", background:color, filter:"blur(40px)", opacity: hov?0.15:0.04, transition:"opacity 0.4s", pointerEvents:"none" }}/>
-//       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-//         <div style={{ width:42, height:42, borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", background:`${color}18`, border:`1px solid ${color}30` }}>
-//           <Icon size={19} color={color} strokeWidth={2}/>
-//         </div>
-//         <ArrowUpRight size={13} style={{ color, opacity: hov?0.7:0, transition:"opacity 0.2s" }}/>
+//     <div
+//       onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+//       style={{
+//         background: gradient, borderRadius:20, padding:"22px 22px 20px",
+//         display:"flex", flexDirection:"column", gap:14, position:"relative",
+//         overflow:"hidden", cursor:"default",
+//         boxShadow: hov ? "0 14px 32px rgba(0,0,0,0.22)" : "0 6px 18px rgba(0,0,0,0.14)",
+//         transform: hov ? "translateY(-3px)" : "translateY(0)",
+//         transition:"transform 0.25s ease, box-shadow 0.25s ease",
+//       }}
+//     >
+//       {/* watermark icon */}
+//       <Icon size={92} strokeWidth={1.5} style={{ position:"absolute", right:-18, bottom:-18, color:"rgba(255,255,255,0.16)", pointerEvents:"none" }}/>
+
+//       <div style={{ width:38, height:38, borderRadius:11, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(255,255,255,0.22)", position:"relative" }}>
+//         <Icon size={18} color="#fff" strokeWidth={2.2}/>
 //       </div>
-//       <div>
-//         <p style={{ fontSize:40, fontWeight:800, lineHeight:1, fontFamily:"'Poppins',sans-serif", color:t.text, margin:0 }}>{value}</p>
-//         <p style={{ fontSize:10, marginTop:6, fontWeight:600, letterSpacing:"0.1em", textTransform:"uppercase", color:t.textMuted, fontFamily:"'Poppins',sans-serif", margin:"6px 0 0" }}>{label}</p>
-//         {extra !== undefined && (
-//           <div style={{ marginTop:8, width:"80px", background:t.barBg, borderRadius:99, height:4, overflow:"hidden" }}>
-//             <div style={{ height:"100%", borderRadius:99, background:color, width:`${extra}%`, transition:"width 0.65s ease" }}/>
-//           </div>
-//         )}
+
+//       <div style={{ position:"relative" }}>
+//         <p style={{ fontSize:38, fontWeight:800, lineHeight:1, fontFamily:"'Poppins',sans-serif", color:"#fff", margin:0 }}>{value}</p>
+//         <p style={{ fontSize:10, marginTop:8, fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase", color:"rgba(255,255,255,0.85)", fontFamily:"'Poppins',sans-serif", margin:"8px 0 0" }}>{label}</p>
 //       </div>
-//       <div style={{ height:2, background:t.barBg, borderRadius:99, overflow:"hidden" }}>
-//         <div style={{ height:"100%", borderRadius:99, background:color, width: hov?"65%":"20%", transition:"width 0.65s ease", opacity:0.85 }}/>
-//       </div>
-//       <div style={{ position:"absolute", bottom:0, left:0, width: hov?"60%":"30%", height:1, background:`linear-gradient(90deg,${color},transparent)`, transition:"width 0.5s ease", opacity:0.5 }}/>
 //     </div>
 //   );
 // };
@@ -279,6 +279,14 @@
 //     <>
 //       <style>{`
 //         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
+
+//         /* ══════ Crisp / HD rendering ══════ */
+//         * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
+//         .assess-shell p, .assess-shell span, .assess-shell h1, .assess-shell button {
+//           -webkit-font-smoothing: antialiased;
+//           letter-spacing: 0.01em;
+//         }
+
 //         @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 //         .dfade{animation:fadeUp 0.45s ease both}
 //         .quiz-row-anim{animation:fadeUp 0.45s ease both}
@@ -288,35 +296,46 @@
 //         .d3{animation:blink 1.6s 0.6s ease infinite}
 //         @keyframes pulse-ring{0%{box-shadow:0 0 0 0 rgba(251,146,60,0.5)}70%{box-shadow:0 0 0 8px rgba(251,146,60,0)}100%{box-shadow:0 0 0 0 rgba(251,146,60,0)}}
 //         .livebadge{animation:pulse-ring 2.2s ease-out infinite}
+
+//         /* ══════ Responsive layout ══════ */
+//         .assess-shell { padding: 24px 32px; width: 100%; margin: 0; padding-bottom: 52px; box-sizing: border-box; }
+//         .assess-stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+//         .assess-hero-flex { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+//         .assess-hero-badges { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+//         @media (max-width: 1280px) { .assess-shell { padding: 20px; } }
+//         @media (max-width: 1024px) { .assess-stat-grid { grid-template-columns: repeat(2, 1fr); } }
+//         @media (max-width: 834px)  { .assess-shell { padding: 18px; } }
+//         @media (max-width: 640px)  { .assess-stat-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; } }
+//         @media (max-width: 480px)  { .assess-shell { padding: 12px; } .assess-stat-grid { grid-template-columns: 1fr 1fr; gap: 8px; } }
+//         @media (max-width: 380px)  { .assess-stat-grid { grid-template-columns: 1fr; } }
 //       `}</style>
 
 //       <div style={{ minHeight:"100vh", background:t.pageBg, color:t.text, fontFamily:"'Poppins',sans-serif", transition:"background 0.3s,color 0.3s" }}>
-//         <div style={{ padding:24, maxWidth:1300, margin:"0 auto", paddingBottom:52 }}>
+//         <div className="assess-shell">
 
-//           {/* ═══ HERO ═══ */}
-//           <div className="dfade" style={{ borderRadius:24, padding:"30px 36px", background:t.heroBg, border:`1px solid ${t.borderHero}`, position:"relative", overflow:"hidden", marginBottom:20, boxShadow:t.shadow }}>
-//             <div style={{ position:"absolute", inset:0, pointerEvents:"none", opacity: isDark?0.04:0.025, backgroundImage:`linear-gradient(${t.gridLine} 1px,transparent 1px),linear-gradient(90deg,${t.gridLine} 1px,transparent 1px)`, backgroundSize:"40px 40px" }}/>
-//             <div style={{ position:"absolute", top:"-30%", left:"40%", width:300, height:200, background:"radial-gradient(ellipse,rgba(251,146,60,0.06),transparent 70%)", pointerEvents:"none" }}/>
-//             <div style={{ position:"relative", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:16 }}>
+//           {/* ═══ HERO (no box — full width, plain background) ═══ */}
+//           <div className="dfade" style={{ padding:"8px 0 24px", background:"transparent", border:"none", borderBottom:`1px solid ${t.borderHero}`, marginBottom:20, boxShadow:"none" }}>
+//             <div className="assess-hero-flex">
 //               <div>
 //                 <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:10 }}>
 //                   <Sparkles size={11} color={t.textSub}/>
 //                   <span style={{ fontSize:9, fontWeight:700, letterSpacing:"0.22em", textTransform:"uppercase", color:t.textSub, fontFamily:"'Poppins',sans-serif" }}>Assessment Portal</span>
 //                 </div>
 //                 <h1 style={{
-//   fontFamily: "'Poppins',sans-serif",
-//   fontWeight: 700,
-//   fontSize: "clamp(1.5rem,3vw,2.2rem)",
-//   color: "#3B82F6", // 🔵 Blue text
-//   margin: "0 0 6px",
-//   lineHeight: 1.1,
-//   letterSpacing: "-0.02em"
-// }}>
-//   Your Assessments
-// </h1>
+//                   fontFamily: "'Poppins',sans-serif",
+//                   fontWeight: 700,
+//                   fontSize: "clamp(1.5rem,3vw,2.2rem)",
+//                   color: "#3B82F6",
+//                   margin: "0 0 6px",
+//                   lineHeight: 1.1,
+//                   letterSpacing: "-0.02em"
+//                 }}>
+//                   Your Assessments
+//                 </h1>
 //                 <p style={{ fontSize:12, color:t.textSub, marginTop:7, fontWeight:500, fontFamily:"'Poppins',sans-serif" }}>Track your progress and attempt quizzes</p>
 //               </div>
-//               <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+//               <div className="assess-hero-badges">
 //                 <div style={{ display:"flex", alignItems:"center", gap:12, background:t.actBg, border:`1px solid ${t.actBorder}`, borderRadius:12, padding:"8px 16px", fontSize:11, fontWeight:600, fontFamily:"'Poppins',sans-serif", color:t.textSub }}>
 //                   <span>{assessments.length} total</span>
 //                   <span style={{ width:1, height:14, background:t.actBorder }}/>
@@ -347,11 +366,11 @@
 //           </div>
 
 //           {/* ═══ STAT CARDS ═══ */}
-//           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(185px,1fr))", gap:14, marginBottom:20 }}>
-//             <StatCard icon={FileText}    value={assessments.length} label="Total Assessments" color="#22d3ee" t={t}/>
-//             <StatCard icon={Clock}       value={pendingCount}        label="Pending"            color="#fb923c" t={t}/>
-//             <StatCard icon={CheckCircle2}value={submittedCount}      label="Submitted"          color="#34d399" t={t} extra={quizPercentage}/>
-//             <StatCard icon={Calendar}    value="—"                   label="Due This Week"      color="#a78bfa" t={t}/>
+//           <div className="assess-stat-grid" style={{ marginBottom:20 }}>
+//             <StatCard icon={FileText}     value={assessments.length} label="Total Assessments" gradient="linear-gradient(135deg,#3b82f6,#2563eb)"/>
+//             <StatCard icon={Clock}        value={pendingCount}        label="Pending"           gradient="linear-gradient(135deg,#f97316,#ea580c)"/>
+//             <StatCard icon={CheckCircle2} value={submittedCount}      label="Submitted"         gradient="linear-gradient(135deg,#22c55e,#16a34a)"/>
+//             <StatCard icon={Calendar}     value="—"                   label="Due This Week"     gradient="linear-gradient(135deg,#8b5cf6,#7c3aed)"/>
 //           </div>
 
 //           {/* ═══ QUIZ LIST ═══ */}
@@ -497,6 +516,467 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import {
+//   Award, Calendar, Clock, FileText,
+//   ChevronRight, ChevronDown, Sparkles, Activity,
+//   Zap, CheckCircle2,
+// } from "lucide-react";
+// import { useEffect, useState } from "react";
+// import { useNavigate } from "react-router-dom";
+// import assessmentService from "../services/assessmentService";
+// import { progressService } from "../services/progressService";
+
+// // ── Golden Reference design system — same tokens, StatCard, and
+// // PageContainer shell as the Dashboard. This page previously carried
+// // its own duplicate `T` token object, its own StatCard component, and
+// // its own injected stylesheet (fadeUp/blink/pulse-ring keyframes +
+// // .assess-shell/.assess-stat-grid/.assess-hero-flex layout classes).
+// // All of that is gone — PageContainer already defines the equivalent
+// // .dfade / .hero-flex / .hero-badges / .stat-grid / .d1-d3 / .livebadge
+// // classes and keyframes for the Dashboard hero, so this page reuses
+// // them directly instead of shipping a parallel copy.
+// import { T, StatCard, PageContainer } from "@/design-system";
+
+// const getEmailFromToken = () => {
+//   try {
+//     const token = localStorage.getItem("lms_token");
+//     if (!token) return null;
+//     return JSON.parse(atob(token.split(".")[1])).sub;
+//   } catch { return null; }
+// };
+
+// /* ── Difficulty ordering ── */
+// const DIFFICULTY_ORDER = ["Easy", "Medium", "Hard", "Expert"];
+
+// // Color per difficulty tab (domain-specific, not part of the shared token set)
+// const DIFF_COLORS = {
+//   All:    { color: "#fb923c", bg: "rgba(251,146,60,0.12)",  border: "rgba(251,146,60,0.3)"  },
+//   Easy:   { color: "#34d399", bg: "rgba(52,211,153,0.12)",  border: "rgba(52,211,153,0.3)"  },
+//   Medium: { color: "#fbbf24", bg: "rgba(251,191,36,0.12)",  border: "rgba(251,191,36,0.3)"  },
+//   Hard:   { color: "#f87171", bg: "rgba(248,113,113,0.12)", border: "rgba(248,113,113,0.3)" },
+//   Expert: { color: "#c084fc", bg: "rgba(192,132,252,0.12)", border: "rgba(192,132,252,0.3)" },
+// };
+
+// const getDifficultyRank = (quiz) => {
+//   const d   = (quiz.difficulty || "").trim();
+//   const idx = DIFFICULTY_ORDER.findIndex(x => x.toLowerCase() === d.toLowerCase());
+//   return idx === -1 ? 999 : idx;
+// };
+
+// /* ── Quiz Row (page-specific accordion — not a Dashboard pattern, so it
+//    stays custom, but reads every color/spacing value from `t`) ── */
+// const QuizRow = ({ item, index, t, navigate, isSubmitted, isLocked, prevDifficulty }) => {
+//   const [open, setOpen] = useState(false);
+//   const [hov,  setHov]  = useState(false);
+
+//   const accentColor = isLocked ? "#64748b" : isSubmitted ? "#34d399" : "#fb923c";
+//   const gradientEnd = isLocked ? "#475569" : isSubmitted ? "#059669" : "#ef4444";
+
+//   return (
+//     <div
+//       className="dfade"
+//       style={{ borderRadius:16, border:`1px solid ${open ? accentColor+"40" : hov ? t.borderHov : t.border}`, overflow:"hidden", boxShadow: open?`0 0 24px ${accentColor}10`:t.shadow, transition:"all 0.25s ease", background:t.cardBg, opacity: isLocked?0.6:1 }}
+//       onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+//     >
+//       {/* Header */}
+//       <div onClick={() => !isLocked && setOpen(p => !p)}
+//         style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 20px", cursor: isLocked?"not-allowed":"pointer", background: open?`${accentColor}08`:hov?t.cardBgHov:t.cardBg, transition:"background 0.2s", userSelect:"none" }}>
+//         <div style={{ width:34, height:34, borderRadius:10, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", background: open?`${accentColor}20`:t.iconBg, border:`1px solid ${open?accentColor+"40":t.iconBorder}`, fontFamily:"'Poppins',sans-serif", fontWeight:800, fontSize:12, color: open?accentColor:t.textMuted, transition:"all 0.2s" }}>
+//           {isLocked ? "🔒" : String(index+1).padStart(2,"0")}
+//         </div>
+//         <div style={{ flex:1, minWidth:0 }}>
+//           <p style={{ margin:0, fontSize:13, fontWeight:700, color: open?accentColor:t.text, fontFamily:"'Poppins',sans-serif", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", transition:"color 0.2s" }}>
+//             {item.title}
+//           </p>
+//           <p style={{ margin:"2px 0 0", fontSize:10, color:t.textMuted, fontFamily:"'Poppins',sans-serif", display:"flex", alignItems:"center", gap:6 }}>
+//             Quiz ID: {item.id}
+//             {item.difficulty && (
+//               <span style={{ padding:"1px 7px", borderRadius:999, background:`${accentColor}18`, color:accentColor, fontSize:9, fontWeight:700, border:`1px solid ${accentColor}30` }}>
+//                 {item.difficulty}
+//               </span>
+//             )}
+//             {item.timeLimit && (
+//               <span style={{ padding:"1px 7px", borderRadius:999, background:"rgba(34,211,238,0.1)", color:"#22d3ee", fontSize:9, fontWeight:700, border:"1px solid rgba(34,211,238,0.25)" }}>
+//                 ⏱ {item.timeLimit} min
+//               </span>
+//             )}
+//           </p>
+//         </div>
+//         <span style={{ fontSize:9, fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase", padding:"4px 12px", borderRadius:999, background: isLocked?"rgba(100,116,139,0.12)":isSubmitted?"rgba(52,211,153,0.12)":"rgba(251,146,60,0.12)", color:accentColor, border:`1px solid ${accentColor}4D`, fontFamily:"'Poppins',sans-serif", flexShrink:0, display:"flex", alignItems:"center", gap:5 }}>
+//           {isLocked ? "🔒 Locked" : isSubmitted ? <><CheckCircle2 size={9}/> Submitted</> : "Pending"}
+//         </span>
+//         {!isLocked && (
+//           <div style={{ width:28, height:28, borderRadius:8, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", background: open?`${accentColor}18`:t.actBg, border:`1px solid ${open?accentColor+"30":t.actBorder}`, transition:"all 0.2s" }}>
+//             <ChevronDown size={14} color={open?accentColor:t.textMuted} style={{ transition:"transform 0.3s", transform: open?"rotate(180deg)":"rotate(0deg)" }}/>
+//           </div>
+//         )}
+//       </div>
+
+//       {/* Body */}
+//       {!isLocked && (
+//         <div style={{ maxHeight: open?400:0, overflow:"hidden", transition:"max-height 0.35s cubic-bezier(0.4,0,0.2,1)" }}>
+//           <div style={{ borderTop:`1px solid ${accentColor}20`, padding:"20px", background: open?`${accentColor}04`:"transparent" }}>
+//             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:18 }}>
+//               {[
+//                 { label:"Quiz ID",     value:item.id,                                    icon:FileText,   color:"#22d3ee" },
+//                 { label:"Status",      value:isSubmitted?"Submitted":"Pending Attempt",  icon:isSubmitted?CheckCircle2:Clock, color:accentColor },
+//                 { label:"Difficulty",  value:item.difficulty||"—",                       icon:Award,      color:"#a78bfa" },
+//                 { label:"Time Limit",  value:item.timeLimit?`${item.timeLimit} min`:"—", icon:Clock,      color:"#34d399" },
+//                 { label:"Category",    value:item.category||"—",                         icon:Award,      color:"#fb923c" },
+//                 { label:"Total Marks", value:item.totalMarks||"—",                       icon:Calendar,   color:"#22d3ee" },
+//               ].map((det,i) => (
+//                 <div key={i} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 14px", borderRadius:12, background:t.recentItemBg, border:`1px solid ${t.recentItemBorder}` }}>
+//                   <div style={{ width:30, height:30, borderRadius:8, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", background:`${det.color}18`, border:`1px solid ${det.color}30` }}>
+//                     <det.icon size={13} color={det.color}/>
+//                   </div>
+//                   <div>
+//                     <p style={{ margin:0, fontSize:9, color:t.textMuted, fontFamily:"'Poppins',sans-serif", letterSpacing:"0.08em", textTransform:"uppercase", fontWeight:600 }}>{det.label}</p>
+//                     <p style={{ margin:"2px 0 0", fontSize:12, fontWeight:700, color:t.text, fontFamily:"'Poppins',sans-serif" }}>{det.value}</p>
+//                   </div>
+//                 </div>
+//               ))}
+//             </div>
+//             <button
+//               onClick={(e) => { e.stopPropagation(); navigate(`/student/quiz/${item.id}`); }}
+//               style={{ width:"100%", padding:"12px", borderRadius:12, background:`linear-gradient(135deg,${accentColor},${gradientEnd})`, border:"none", cursor:"pointer", color:"#fff", fontSize:12, fontWeight:700, fontFamily:"'Poppins',sans-serif", letterSpacing:"0.05em", display:"flex", alignItems:"center", justifyContent:"center", gap:8, boxShadow:`0 4px 20px ${accentColor}30`, transition:"transform 0.15s,box-shadow 0.15s" }}
+//               onMouseEnter={(e) => { e.currentTarget.style.transform="translateY(-1px)"; e.currentTarget.style.boxShadow=`0 8px 28px ${accentColor}40`; }}
+//               onMouseLeave={(e) => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow=`0 4px 20px ${accentColor}30`; }}
+//             >
+//               {isSubmitted
+//                 ? <><CheckCircle2 size={14}/> View Result <ChevronRight size={14}/></>
+//                 : <><Zap size={14}/> Start Assessment <ChevronRight size={14}/></>}
+//             </button>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* Locked message */}
+//       {isLocked && (
+//         <div style={{ padding:"12px 20px", borderTop:`1px solid ${t.border}`, background:t.recentItemBg }}>
+//           <p style={{ margin:0, fontSize:11, color:t.textMuted, fontFamily:"'Poppins',sans-serif", textAlign:"center" }}>
+//             🔒 Complete all <strong style={{ color:"#fb923c" }}>{prevDifficulty}</strong> quizzes first to unlock this
+//           </p>
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
+
+// /* ════════════════════════════════════════════
+//    MAIN ASSESSMENTS PAGE
+// ════════════════════════════════════════════ */
+// const Assessments = () => {
+//   const [assessments,      setAssessments]      = useState([]);
+//   const [completedQuizIds, setCompletedQuizIds] = useState([]);
+//   const [quizPercentage,   setQuizPercentage]   = useState(0);
+//   const [selectedDiff,     setSelectedDiff]     = useState("All");
+//   const navigate     = useNavigate();
+//   const studentEmail = getEmailFromToken();
+
+//   // Same dark-mode detection pattern as the Dashboard golden reference
+//   const [isDark, setIsDark] = useState(
+//     () => typeof document !== "undefined" &&
+//       (document.documentElement.classList.contains("dark") ||
+//        document.documentElement.getAttribute("data-theme") === "dark")
+//   );
+//   useEffect(() => {
+//     const obs = new MutationObserver(() => setIsDark(
+//       document.documentElement.classList.contains("dark") ||
+//       document.documentElement.getAttribute("data-theme") === "dark"
+//     ));
+//     obs.observe(document.documentElement, { attributes:true, attributeFilter:["class","data-theme"] });
+//     return () => obs.disconnect();
+//   }, []);
+//   const t = isDark ? T.dark : T.light;
+
+//   useEffect(() => {
+//     const loadQuizzes = async () => {
+//       try {
+//         const res  = await assessmentService.getStudentQuizzes();
+//         const data = res.data || [];
+//         setAssessments(data);
+//         if (data.length > 0 && studentEmail) {
+//           const batchId = data[0]?.batchId;
+//           if (batchId) {
+//             try {
+//               const prog = await progressService.getQuizProgress(studentEmail, batchId);
+//               setCompletedQuizIds(prog.data.completedQuizIds || []);
+//               setQuizPercentage(prog.data.percentage || 0);
+//             } catch { setCompletedQuizIds([]); setQuizPercentage(0); }
+//           }
+//         }
+//       } catch (err) { console.error("Failed to load quizzes", err); }
+//     };
+//     loadQuizzes();
+//   }, []);
+
+//   const submittedCount = completedQuizIds.length;
+//   const pendingCount   = assessments.length - submittedCount;
+
+//   /* sort */
+//   const sorted = [...assessments].sort((a, b) => {
+//     const dr = getDifficultyRank(a) - getDifficultyRank(b);
+//     return dr !== 0 ? dr : a.id - b.id;
+//   });
+
+//   const existingDifficulties = [...new Set(sorted.map(q => q.difficulty || ""))].filter(Boolean);
+
+//   const isQuizLocked = (quiz) => {
+//     const myRank = getDifficultyRank(quiz);
+//     const lowerRankQuizzes = sorted.filter(q => getDifficultyRank(q) < myRank);
+//     return lowerRankQuizzes.some(q => !completedQuizIds.includes(q.id));
+//   };
+
+//   const getPrevDifficulty = (quiz) => {
+//     const myRank = getDifficultyRank(quiz);
+//     const lowerDiffs = DIFFICULTY_ORDER.filter((_, i) => i < myRank && existingDifficulties.some(d => d.toLowerCase() === DIFFICULTY_ORDER[i].toLowerCase()));
+//     return lowerDiffs[lowerDiffs.length - 1] || "previous";
+//   };
+
+//   // Only show tabs for difficulties that exist in data
+//   const tabs = ["All", ...DIFFICULTY_ORDER.filter(d =>
+//     existingDifficulties.some(e => e.toLowerCase() === d.toLowerCase())
+//   )];
+
+//   // Filter list based on selected tab
+//   const filtered = selectedDiff === "All"
+//     ? sorted
+//     : sorted.filter(q => (q.difficulty || "").trim().toLowerCase() === selectedDiff.toLowerCase());
+
+//   // Same `stat` shape the Dashboard/AssignmentDetail hand to <StatCard />
+//   const stats = [
+//     { label: "Total Assessments", numericValue: assessments.length, change: `${assessments.length} available`, trend: "up", icon: FileText, colorKey: "blue" },
+//     { label: "Pending", numericValue: pendingCount, change: pendingCount > 0 ? "awaiting attempt" : "none left", trend: pendingCount > 0 ? "down" : "up", icon: Clock, colorKey: "orange" },
+//     { label: "Submitted", numericValue: submittedCount, change: `${quizPercentage.toFixed(0)}% complete`, trend: "up", icon: CheckCircle2, colorKey: "green" },
+//     { label: "Due This Week", numericValue: "—", change: "no due dates set", trend: "up", icon: Calendar, colorKey: "purple" },
+//   ];
+
+//   return (
+//     <PageContainer mode={isDark ? "dark" : "light"} pageBg={t.pageBg} textColor={t.text}>
+
+//       {/* ═══ HERO — same markup/classes as the Dashboard hero ═══ */}
+//       <div className="dfade" style={{ padding:"8px 0 24px", background:"transparent", border:"none", borderBottom:`1px solid ${t.borderHero}`, marginBottom:20, boxShadow:"none" }}>
+//         <div className="hero-flex">
+//           <div>
+//             <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:10 }}>
+//               <Sparkles size={11} color={t.textSub}/>
+//               <span style={{ fontSize:9, fontWeight:700, letterSpacing:"0.22em", textTransform:"uppercase", color:t.textSub, fontFamily:"'Poppins',sans-serif" }}>Assessment Portal</span>
+//             </div>
+//             <h1 style={{
+//               fontFamily: "'Poppins',sans-serif",
+//               fontWeight: 700,
+//               fontSize: "clamp(1.5rem,3vw,2.2rem)",
+//               color: "#3B82F6",
+//               margin: "0 0 6px",
+//               lineHeight: 1.1,
+//               letterSpacing: "-0.02em"
+//             }}>
+//               Your Assessments
+//             </h1>
+//             <p style={{ fontSize:12, color:t.textSub, marginTop:7, fontWeight:500, fontFamily:"'Poppins',sans-serif" }}>Track your progress and attempt quizzes</p>
+//           </div>
+//           <div className="hero-badges">
+//             <div style={{ display:"flex", alignItems:"center", gap:12, background:t.actBg, border:`1px solid ${t.actBorder}`, borderRadius:12, padding:"8px 16px", fontSize:11, fontWeight:600, fontFamily:"'Poppins',sans-serif", color:t.textSub }}>
+//               <span>{assessments.length} total</span>
+//               <span style={{ width:1, height:14, background:t.actBorder }}/>
+//               <span style={{ color:"#34d399", fontWeight:700 }}>
+//                 <span style={{ width:6, height:6, borderRadius:"50%", background:"#34d399", display:"inline-block", marginRight:5 }}/>
+//                 {submittedCount} submitted
+//               </span>
+//               <span style={{ width:1, height:14, background:t.actBorder }}/>
+//               <span style={{ color:"#fb923c", fontWeight:700 }}>
+//                 <span style={{ width:6, height:6, borderRadius:"50%", background:"#fb923c", display:"inline-block", marginRight:5 }}/>
+//                 {pendingCount} pending
+//               </span>
+//             </div>
+//             <div style={{ display:"flex", alignItems:"center", gap:8, background:t.actBg, border:`1px solid ${t.actBorder}`, borderRadius:10, padding:"8px 14px" }}>
+//               <Activity size={12} color={t.actIcon}/>
+//               <div style={{ display:"flex", gap:3, alignItems:"flex-end", height:14 }}>
+//                 <span className="d1" style={{ width:3, height:10, borderRadius:2, background:t.actBar, display:"block" }}/>
+//                 <span className="d2" style={{ width:3, height:14, borderRadius:2, background:t.actBar, display:"block" }}/>
+//                 <span className="d3" style={{ width:3, height:7,  borderRadius:2, background:t.actBar, display:"block" }}/>
+//               </div>
+//             </div>
+//             <div className="livebadge" style={{ display:"flex", alignItems:"center", gap:7, background:"rgba(251,146,60,0.08)", border:"1px solid rgba(251,146,60,0.3)", borderRadius:999, padding:"8px 18px", color:"#fb923c", fontSize:11, fontWeight:700, letterSpacing:"0.1em", fontFamily:"'Poppins',sans-serif" }}>
+//               <span style={{ width:6, height:6, borderRadius:"50%", background:"#fb923c", display:"inline-block" }}/>
+//               LIVE
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* ═══ STAT CARDS — shared <StatCard/>, same stat-grid layout ═══ */}
+//       <div className="stat-grid" style={{ marginBottom:20 }}>
+//         {stats.map((s, i) => <StatCard key={i} stat={s} index={i} loading={false} />)}
+//       </div>
+
+//       {/* ═══ QUIZ LIST ═══ */}
+//       <div className="dfade" style={{ background:t.cardBg, border:`1px solid ${t.border}`, borderRadius:24, overflow:"hidden", boxShadow:t.shadow }}>
+
+//         {/* ── header ── */}
+//         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"20px 24px 0" }}>
+//           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+//             <div style={{ width:34, height:34, borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(251,146,60,0.1)", border:"1px solid rgba(251,146,60,0.2)" }}>
+//               <FileText size={15} color="#fb923c"/>
+//             </div>
+//             <div>
+//               <span style={{ fontFamily:"'Poppins',sans-serif", fontWeight:700, fontSize:13, color:t.text, display:"block" }}>All Assessments</span>
+//               <span style={{ fontFamily:"'Poppins',sans-serif", fontSize:10, color:t.textMuted }}>
+//                 {existingDifficulties.length > 0
+//                   ? `Unlocked in order: ${existingDifficulties.join(" → ")}`
+//                   : "Click any row to expand details"}
+//               </span>
+//             </div>
+//           </div>
+//           <span style={{ fontSize:9, fontWeight:700, letterSpacing:"0.1em", padding:"4px 12px", borderRadius:999, textTransform:"uppercase", background:t.pillBg, border:`1px solid ${t.pillBorder}`, color:t.pillText, fontFamily:"'Poppins',sans-serif" }}>
+//             {filtered.length} items
+//           </span>
+//         </div>
+
+//         {/* Difficulty filter tabs */}
+//         <div style={{ display:"flex", gap:8, padding:"12px 24px 0", overflowX:"auto", scrollbarWidth:"none" }}>
+//           {tabs.map((tab) => {
+//             const cfg    = DIFF_COLORS[tab] || DIFF_COLORS.All;
+//             const active = selectedDiff === tab;
+//             const count  = tab === "All"
+//               ? sorted.length
+//               : sorted.filter(q => (q.difficulty||"").trim().toLowerCase() === tab.toLowerCase()).length;
+//             return (
+//               <button
+//                 key={tab}
+//                 onClick={() => setSelectedDiff(tab)}
+//                 style={{
+//                   display:"flex", alignItems:"center", gap:7,
+//                   padding:"7px 16px", borderRadius:999,
+//                   cursor:"pointer", outline:"none", flexShrink:0,
+//                   border:`1px solid ${active ? cfg.border : t.border}`,
+//                   background: active ? cfg.bg : t.pillBg,
+//                   fontFamily:"'Poppins',sans-serif", fontSize:11,
+//                   fontWeight:700,
+//                   color: active ? cfg.color : t.textMuted,
+//                   transition:"all 0.18s ease",
+//                   boxShadow: active ? `0 0 14px ${cfg.color}30` : "none",
+//                   marginBottom:12,
+//                 }}
+//               >
+//                 {tab}
+//                 <span style={{
+//                   fontSize:9, fontWeight:800, padding:"1px 7px",
+//                   borderRadius:999,
+//                   background: active ? `${cfg.color}22` : t.border,
+//                   color: active ? cfg.color : t.textMuted,
+//                 }}>
+//                   {count}
+//                 </span>
+//               </button>
+//             );
+//           })}
+//         </div>
+
+//         {/* ── divider ── */}
+//         <div style={{ height:1, background:t.border, margin:"0 24px" }}/>
+
+//         {/* ── quiz rows ── */}
+//         <div style={{ padding:"16px", display:"flex", flexDirection:"column", gap:10 }}>
+//           {filtered.map((item, idx) => {
+//             const submitted = completedQuizIds.includes(item.id);
+//             const locked    = isQuizLocked(item);
+//             const prevDiff  = getPrevDifficulty(item);
+//             return (
+//               <QuizRow
+//                 key={item.id} item={item} index={idx} t={t}
+//                 navigate={navigate} isSubmitted={submitted}
+//                 isLocked={locked} prevDifficulty={prevDiff}
+//               />
+//             );
+//           })}
+
+//           {filtered.length === 0 && assessments.length > 0 && (
+//             <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"60px 0", gap:14 }}>
+//               <div style={{ width:64, height:64, borderRadius:18, display:"flex", alignItems:"center", justifyContent:"center", border:`1.5px dashed ${t.emptyBorder}`, background:t.emptyBg }}>
+//                 <Award size={26} color={t.emptyIcon}/>
+//               </div>
+//               <div style={{ textAlign:"center" }}>
+//                 <p style={{ fontSize:14, fontWeight:700, color:t.text, margin:0, fontFamily:"'Poppins',sans-serif" }}>No {selectedDiff} assessments</p>
+//                 <p style={{ fontSize:11, color:t.textMuted, margin:"4px 0 0", fontFamily:"'Poppins',sans-serif" }}>Try a different difficulty tab</p>
+//               </div>
+//             </div>
+//           )}
+
+//           {assessments.length === 0 && (
+//             <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"60px 0", gap:14 }}>
+//               <div style={{ width:64, height:64, borderRadius:18, display:"flex", alignItems:"center", justifyContent:"center", border:`1.5px dashed ${t.emptyBorder}`, background:t.emptyBg }}>
+//                 <Award size={26} color={t.emptyIcon}/>
+//               </div>
+//               <div style={{ textAlign:"center" }}>
+//                 <p style={{ fontSize:14, fontWeight:700, color:t.text, margin:0, fontFamily:"'Poppins',sans-serif" }}>All caught up!</p>
+//                 <p style={{ fontSize:11, color:t.textMuted, margin:"4px 0 0", fontFamily:"'Poppins',sans-serif" }}>No assessments available at the moment 🎉</p>
+//               </div>
+//             </div>
+//           )}
+//         </div>
+//       </div>
+//     </PageContainer>
+//   );
+// };
+
+// export default Assessments;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import {
   Award, Calendar, Clock, FileText,
   ChevronRight, ChevronDown, Sparkles, Activity,
@@ -507,6 +987,22 @@ import { useNavigate } from "react-router-dom";
 import assessmentService from "../services/assessmentService";
 import { progressService } from "../services/progressService";
 
+// ── Golden Reference design system — same tokens, StatCard, and
+// PageContainer shell as the Dashboard. Typography (font family, weight,
+// size, line-height, letter-spacing) is now sourced from the shared
+// design-system tokens instead of hardcoded 'Poppins' strings and raw
+// numeric font-weights, matching AllCourses.jsx / AllUsers.jsx.
+import {
+  T,
+  FONT_FAMILY,
+  FONT_WEIGHT,
+  FONT_SIZE,
+  LINE_HEIGHT,
+  LETTER_SPACING,
+  StatCard,
+  PageContainer,
+} from "@/design-system";
+
 const getEmailFromToken = () => {
   try {
     const token = localStorage.getItem("lms_token");
@@ -515,43 +1011,10 @@ const getEmailFromToken = () => {
   } catch { return null; }
 };
 
-const T = {
-  dark: {
-    pageBg:"#0a0a0a", cardBg:"#111111", cardBgHov:"#161616", heroBg:"#141414",
-    border:"rgba(255,255,255,0.08)", borderHov:"rgba(255,255,255,0.18)",
-    borderHero:"rgba(255,255,255,0.09)", text:"#ffffff",
-    textSub:"rgba(255,255,255,0.55)", textMuted:"rgba(255,255,255,0.42)",
-    textLabel:"rgba(255,255,255,0.45)", pillBg:"rgba(255,255,255,0.05)",
-    pillBorder:"rgba(255,255,255,0.09)", pillText:"rgba(255,255,255,0.5)",
-    iconBg:"rgba(255,255,255,0.06)", iconBorder:"rgba(255,255,255,0.1)",
-    gridLine:"rgba(255,255,255,0.5)", barBg:"rgba(255,255,255,0.07)",
-    actBar:"rgba(255,255,255,0.55)", actIcon:"rgba(255,255,255,0.45)",
-    actBg:"rgba(255,255,255,0.05)", actBorder:"rgba(255,255,255,0.09)",
-    shadow:"0 2px 12px rgba(0,0,0,0.35)", shadowHov:"0 14px 36px rgba(0,0,0,0.5)",
-    emptyBorder:"rgba(255,255,255,0.09)", emptyBg:"rgba(255,255,255,0.03)",
-    emptyIcon:"rgba(255,255,255,0.2)", recentItemBg:"rgba(255,255,255,0.04)",
-    recentItemBorder:"rgba(255,255,255,0.07)", recentItemBgHov:"rgba(255,255,255,0.07)",
-    rowHov:"rgba(255,255,255,0.04)", collapseHdr:"rgba(255,255,255,0.03)",
-  },
-  light: {
-    pageBg:"#f1f5f9", cardBg:"#ffffff", cardBgHov:"#f8fafc", heroBg:"#ffffff",
-    border:"#e2e8f0", borderHov:"#cbd5e1", borderHero:"#e2e8f0",
-    text:"#0f172a", textSub:"#64748b", textMuted:"#94a3b8", textLabel:"#94a3b8",
-    pillBg:"#f1f5f9", pillBorder:"#e2e8f0", pillText:"#94a3b8",
-    iconBg:"#f8fafc", iconBorder:"#e2e8f0", gridLine:"rgba(0,0,0,0.12)",
-    barBg:"#f1f5f9", actBar:"#94a3b8", actIcon:"#94a3b8",
-    actBg:"#f8fafc", actBorder:"#e2e8f0",
-    shadow:"0 1px 8px rgba(0,0,0,0.07)", shadowHov:"0 8px 32px rgba(0,0,0,0.10)",
-    emptyBorder:"#e2e8f0", emptyBg:"#f8fafc", emptyIcon:"#cbd5e1",
-    recentItemBg:"#f8fafc", recentItemBorder:"#e2e8f0",
-    recentItemBgHov:"#f1f5f9", rowHov:"#f8fafc", collapseHdr:"#f8fafc",
-  },
-};
-
 /* ── Difficulty ordering ── */
 const DIFFICULTY_ORDER = ["Easy", "Medium", "Hard", "Expert"];
 
-// ✅ Color per difficulty tab
+// Color per difficulty tab (domain-specific, not part of the shared token set)
 const DIFF_COLORS = {
   All:    { color: "#fb923c", bg: "rgba(251,146,60,0.12)",  border: "rgba(251,146,60,0.3)"  },
   Easy:   { color: "#34d399", bg: "rgba(52,211,153,0.12)",  border: "rgba(52,211,153,0.3)"  },
@@ -566,37 +1029,8 @@ const getDifficultyRank = (quiz) => {
   return idx === -1 ? 999 : idx;
 };
 
-/* ── Stat Card (solid gradient, watermark icon — matches reference) ── */
-const StatCard = ({ icon: Icon, value, label, gradient }) => {
-  const [hov, setHov] = useState(false);
-  return (
-    <div
-      onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
-      style={{
-        background: gradient, borderRadius:20, padding:"22px 22px 20px",
-        display:"flex", flexDirection:"column", gap:14, position:"relative",
-        overflow:"hidden", cursor:"default",
-        boxShadow: hov ? "0 14px 32px rgba(0,0,0,0.22)" : "0 6px 18px rgba(0,0,0,0.14)",
-        transform: hov ? "translateY(-3px)" : "translateY(0)",
-        transition:"transform 0.25s ease, box-shadow 0.25s ease",
-      }}
-    >
-      {/* watermark icon */}
-      <Icon size={92} strokeWidth={1.5} style={{ position:"absolute", right:-18, bottom:-18, color:"rgba(255,255,255,0.16)", pointerEvents:"none" }}/>
-
-      <div style={{ width:38, height:38, borderRadius:11, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(255,255,255,0.22)", position:"relative" }}>
-        <Icon size={18} color="#fff" strokeWidth={2.2}/>
-      </div>
-
-      <div style={{ position:"relative" }}>
-        <p style={{ fontSize:38, fontWeight:800, lineHeight:1, fontFamily:"'Poppins',sans-serif", color:"#fff", margin:0 }}>{value}</p>
-        <p style={{ fontSize:10, marginTop:8, fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase", color:"rgba(255,255,255,0.85)", fontFamily:"'Poppins',sans-serif", margin:"8px 0 0" }}>{label}</p>
-      </div>
-    </div>
-  );
-};
-
-/* ── Quiz Row ── */
+/* ── Quiz Row (page-specific accordion — not a Dashboard pattern, so it
+   stays custom, but reads every color/spacing value from `t`) ── */
 const QuizRow = ({ item, index, t, navigate, isSubmitted, isLocked, prevDifficulty }) => {
   const [open, setOpen] = useState(false);
   const [hov,  setHov]  = useState(false);
@@ -606,35 +1040,35 @@ const QuizRow = ({ item, index, t, navigate, isSubmitted, isLocked, prevDifficul
 
   return (
     <div
+      className="dfade"
       style={{ borderRadius:16, border:`1px solid ${open ? accentColor+"40" : hov ? t.borderHov : t.border}`, overflow:"hidden", boxShadow: open?`0 0 24px ${accentColor}10`:t.shadow, transition:"all 0.25s ease", background:t.cardBg, opacity: isLocked?0.6:1 }}
-      className="quiz-row-anim"
       onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
     >
       {/* Header */}
       <div onClick={() => !isLocked && setOpen(p => !p)}
         style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 20px", cursor: isLocked?"not-allowed":"pointer", background: open?`${accentColor}08`:hov?t.cardBgHov:t.cardBg, transition:"background 0.2s", userSelect:"none" }}>
-        <div style={{ width:34, height:34, borderRadius:10, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", background: open?`${accentColor}20`:t.iconBg, border:`1px solid ${open?accentColor+"40":t.iconBorder}`, fontFamily:"'Poppins',sans-serif", fontWeight:800, fontSize:12, color: open?accentColor:t.textMuted, transition:"all 0.2s" }}>
+        <div style={{ width:34, height:34, borderRadius:10, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", background: open?`${accentColor}20`:t.iconBg, border:`1px solid ${open?accentColor+"40":t.iconBorder}`, fontFamily:FONT_FAMILY, fontWeight:FONT_WEIGHT.bold, fontSize:12, color: open?accentColor:t.textMuted, transition:"all 0.2s" }}>
           {isLocked ? "🔒" : String(index+1).padStart(2,"0")}
         </div>
         <div style={{ flex:1, minWidth:0 }}>
-          <p style={{ margin:0, fontSize:13, fontWeight:700, color: open?accentColor:t.text, fontFamily:"'Poppins',sans-serif", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", transition:"color 0.2s" }}>
+          <p style={{ margin:0, fontSize:13, fontWeight:FONT_WEIGHT.bold, color: open?accentColor:t.text, fontFamily:FONT_FAMILY, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", transition:"color 0.2s" }}>
             {item.title}
           </p>
-          <p style={{ margin:"2px 0 0", fontSize:10, color:t.textMuted, fontFamily:"'Poppins',sans-serif", display:"flex", alignItems:"center", gap:6 }}>
+          <p style={{ margin:"2px 0 0", fontSize:10, color:t.textMuted, fontFamily:FONT_FAMILY, display:"flex", alignItems:"center", gap:6 }}>
             Quiz ID: {item.id}
             {item.difficulty && (
-              <span style={{ padding:"1px 7px", borderRadius:999, background:`${accentColor}18`, color:accentColor, fontSize:9, fontWeight:700, border:`1px solid ${accentColor}30` }}>
+              <span style={{ padding:"1px 7px", borderRadius:999, background:`${accentColor}18`, color:accentColor, fontSize:9, fontWeight:FONT_WEIGHT.bold, border:`1px solid ${accentColor}30` }}>
                 {item.difficulty}
               </span>
             )}
             {item.timeLimit && (
-              <span style={{ padding:"1px 7px", borderRadius:999, background:"rgba(34,211,238,0.1)", color:"#22d3ee", fontSize:9, fontWeight:700, border:"1px solid rgba(34,211,238,0.25)" }}>
+              <span style={{ padding:"1px 7px", borderRadius:999, background:"rgba(34,211,238,0.1)", color:"#22d3ee", fontSize:9, fontWeight:FONT_WEIGHT.bold, border:"1px solid rgba(34,211,238,0.25)" }}>
                 ⏱ {item.timeLimit} min
               </span>
             )}
           </p>
         </div>
-        <span style={{ fontSize:9, fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase", padding:"4px 12px", borderRadius:999, background: isLocked?"rgba(100,116,139,0.12)":isSubmitted?"rgba(52,211,153,0.12)":"rgba(251,146,60,0.12)", color:accentColor, border:`1px solid ${accentColor}4D`, fontFamily:"'Poppins',sans-serif", flexShrink:0, display:"flex", alignItems:"center", gap:5 }}>
+        <span style={{ fontSize:9, fontWeight:FONT_WEIGHT.bold, letterSpacing:"0.1em", textTransform:"uppercase", padding:"4px 12px", borderRadius:999, background: isLocked?"rgba(100,116,139,0.12)":isSubmitted?"rgba(52,211,153,0.12)":"rgba(251,146,60,0.12)", color:accentColor, border:`1px solid ${accentColor}4D`, fontFamily:FONT_FAMILY, flexShrink:0, display:"flex", alignItems:"center", gap:5 }}>
           {isLocked ? "🔒 Locked" : isSubmitted ? <><CheckCircle2 size={9}/> Submitted</> : "Pending"}
         </span>
         {!isLocked && (
@@ -662,15 +1096,15 @@ const QuizRow = ({ item, index, t, navigate, isSubmitted, isLocked, prevDifficul
                     <det.icon size={13} color={det.color}/>
                   </div>
                   <div>
-                    <p style={{ margin:0, fontSize:9, color:t.textMuted, fontFamily:"'Poppins',sans-serif", letterSpacing:"0.08em", textTransform:"uppercase", fontWeight:600 }}>{det.label}</p>
-                    <p style={{ margin:"2px 0 0", fontSize:12, fontWeight:700, color:t.text, fontFamily:"'Poppins',sans-serif" }}>{det.value}</p>
+                    <p style={{ margin:0, fontSize:9, color:t.textMuted, fontFamily:FONT_FAMILY, letterSpacing:"0.08em", textTransform:"uppercase", fontWeight:FONT_WEIGHT.semibold }}>{det.label}</p>
+                    <p style={{ margin:"2px 0 0", fontSize:12, fontWeight:FONT_WEIGHT.bold, color:t.text, fontFamily:FONT_FAMILY }}>{det.value}</p>
                   </div>
                 </div>
               ))}
             </div>
             <button
               onClick={(e) => { e.stopPropagation(); navigate(`/student/quiz/${item.id}`); }}
-              style={{ width:"100%", padding:"12px", borderRadius:12, background:`linear-gradient(135deg,${accentColor},${gradientEnd})`, border:"none", cursor:"pointer", color:"#fff", fontSize:12, fontWeight:700, fontFamily:"'Poppins',sans-serif", letterSpacing:"0.05em", display:"flex", alignItems:"center", justifyContent:"center", gap:8, boxShadow:`0 4px 20px ${accentColor}30`, transition:"transform 0.15s,box-shadow 0.15s" }}
+              style={{ width:"100%", padding:"12px", borderRadius:12, background:`linear-gradient(135deg,${accentColor},${gradientEnd})`, border:"none", cursor:"pointer", color:"#fff", fontSize:12, fontWeight:FONT_WEIGHT.bold, fontFamily:FONT_FAMILY, letterSpacing:"0.05em", display:"flex", alignItems:"center", justifyContent:"center", gap:8, boxShadow:`0 4px 20px ${accentColor}30`, transition:"transform 0.15s,box-shadow 0.15s" }}
               onMouseEnter={(e) => { e.currentTarget.style.transform="translateY(-1px)"; e.currentTarget.style.boxShadow=`0 8px 28px ${accentColor}40`; }}
               onMouseLeave={(e) => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow=`0 4px 20px ${accentColor}30`; }}
             >
@@ -685,7 +1119,7 @@ const QuizRow = ({ item, index, t, navigate, isSubmitted, isLocked, prevDifficul
       {/* Locked message */}
       {isLocked && (
         <div style={{ padding:"12px 20px", borderTop:`1px solid ${t.border}`, background:t.recentItemBg }}>
-          <p style={{ margin:0, fontSize:11, color:t.textMuted, fontFamily:"'Poppins',sans-serif", textAlign:"center" }}>
+          <p style={{ margin:0, fontSize:11, color:t.textMuted, fontFamily:FONT_FAMILY, textAlign:"center" }}>
             🔒 Complete all <strong style={{ color:"#fb923c" }}>{prevDifficulty}</strong> quizzes first to unlock this
           </p>
         </div>
@@ -701,10 +1135,11 @@ const Assessments = () => {
   const [assessments,      setAssessments]      = useState([]);
   const [completedQuizIds, setCompletedQuizIds] = useState([]);
   const [quizPercentage,   setQuizPercentage]   = useState(0);
-  const [selectedDiff,     setSelectedDiff]     = useState("All"); // ✅ NEW
+  const [selectedDiff,     setSelectedDiff]     = useState("All");
   const navigate     = useNavigate();
   const studentEmail = getEmailFromToken();
 
+  // Same dark-mode detection pattern as the Dashboard golden reference
   const [isDark, setIsDark] = useState(
     () => typeof document !== "undefined" &&
       (document.documentElement.classList.contains("dark") ||
@@ -764,223 +1199,190 @@ const Assessments = () => {
     return lowerDiffs[lowerDiffs.length - 1] || "previous";
   };
 
-  // ✅ Only show tabs for difficulties that exist in data
+  // Only show tabs for difficulties that exist in data
   const tabs = ["All", ...DIFFICULTY_ORDER.filter(d =>
     existingDifficulties.some(e => e.toLowerCase() === d.toLowerCase())
   )];
 
-  // ✅ Filter list based on selected tab
+  // Filter list based on selected tab
   const filtered = selectedDiff === "All"
     ? sorted
     : sorted.filter(q => (q.difficulty || "").trim().toLowerCase() === selectedDiff.toLowerCase());
 
+  // Same `stat` shape the Dashboard/AssignmentDetail hand to <StatCard />
+  const stats = [
+    { label: "Total Assessments", numericValue: assessments.length, change: `${assessments.length} available`, trend: "up", icon: FileText, colorKey: "blue" },
+    { label: "Pending", numericValue: pendingCount, change: pendingCount > 0 ? "awaiting attempt" : "none left", trend: pendingCount > 0 ? "down" : "up", icon: Clock, colorKey: "orange" },
+    { label: "Submitted", numericValue: submittedCount, change: `${quizPercentage.toFixed(0)}% complete`, trend: "up", icon: CheckCircle2, colorKey: "green" },
+    { label: "Due This Week", numericValue: 0, change: "no due dates set", trend: "up", icon: Calendar, colorKey: "purple" },
+  ];
+
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
+    <PageContainer mode={isDark ? "dark" : "light"} pageBg={t.pageBg} textColor={t.text}>
 
-        /* ══════ Crisp / HD rendering ══════ */
-        * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
-        .assess-shell p, .assess-shell span, .assess-shell h1, .assess-shell button {
-          -webkit-font-smoothing: antialiased;
-          letter-spacing: 0.01em;
-        }
-
-        @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-        .dfade{animation:fadeUp 0.45s ease both}
-        .quiz-row-anim{animation:fadeUp 0.45s ease both}
-        @keyframes blink{0%,100%{opacity:1}50%{opacity:0.15}}
-        .d1{animation:blink 1.6s ease infinite}
-        .d2{animation:blink 1.6s 0.3s ease infinite}
-        .d3{animation:blink 1.6s 0.6s ease infinite}
-        @keyframes pulse-ring{0%{box-shadow:0 0 0 0 rgba(251,146,60,0.5)}70%{box-shadow:0 0 0 8px rgba(251,146,60,0)}100%{box-shadow:0 0 0 0 rgba(251,146,60,0)}}
-        .livebadge{animation:pulse-ring 2.2s ease-out infinite}
-
-        /* ══════ Responsive layout ══════ */
-        .assess-shell { padding: 24px 32px; width: 100%; margin: 0; padding-bottom: 52px; box-sizing: border-box; }
-        .assess-stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-        .assess-hero-flex { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
-        .assess-hero-badges { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-
-        @media (max-width: 1280px) { .assess-shell { padding: 20px; } }
-        @media (max-width: 1024px) { .assess-stat-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 834px)  { .assess-shell { padding: 18px; } }
-        @media (max-width: 640px)  { .assess-stat-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; } }
-        @media (max-width: 480px)  { .assess-shell { padding: 12px; } .assess-stat-grid { grid-template-columns: 1fr 1fr; gap: 8px; } }
-        @media (max-width: 380px)  { .assess-stat-grid { grid-template-columns: 1fr; } }
-      `}</style>
-
-      <div style={{ minHeight:"100vh", background:t.pageBg, color:t.text, fontFamily:"'Poppins',sans-serif", transition:"background 0.3s,color 0.3s" }}>
-        <div className="assess-shell">
-
-          {/* ═══ HERO (no box — full width, plain background) ═══ */}
-          <div className="dfade" style={{ padding:"8px 0 24px", background:"transparent", border:"none", borderBottom:`1px solid ${t.borderHero}`, marginBottom:20, boxShadow:"none" }}>
-            <div className="assess-hero-flex">
-              <div>
-                <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:10 }}>
-                  <Sparkles size={11} color={t.textSub}/>
-                  <span style={{ fontSize:9, fontWeight:700, letterSpacing:"0.22em", textTransform:"uppercase", color:t.textSub, fontFamily:"'Poppins',sans-serif" }}>Assessment Portal</span>
-                </div>
-                <h1 style={{
-                  fontFamily: "'Poppins',sans-serif",
-                  fontWeight: 700,
-                  fontSize: "clamp(1.5rem,3vw,2.2rem)",
-                  color: "#3B82F6",
-                  margin: "0 0 6px",
-                  lineHeight: 1.1,
-                  letterSpacing: "-0.02em"
-                }}>
-                  Your Assessments
-                </h1>
-                <p style={{ fontSize:12, color:t.textSub, marginTop:7, fontWeight:500, fontFamily:"'Poppins',sans-serif" }}>Track your progress and attempt quizzes</p>
-              </div>
-              <div className="assess-hero-badges">
-                <div style={{ display:"flex", alignItems:"center", gap:12, background:t.actBg, border:`1px solid ${t.actBorder}`, borderRadius:12, padding:"8px 16px", fontSize:11, fontWeight:600, fontFamily:"'Poppins',sans-serif", color:t.textSub }}>
-                  <span>{assessments.length} total</span>
-                  <span style={{ width:1, height:14, background:t.actBorder }}/>
-                  <span style={{ color:"#34d399", fontWeight:700 }}>
-                    <span style={{ width:6, height:6, borderRadius:"50%", background:"#34d399", display:"inline-block", marginRight:5 }}/>
-                    {submittedCount} submitted
-                  </span>
-                  <span style={{ width:1, height:14, background:t.actBorder }}/>
-                  <span style={{ color:"#fb923c", fontWeight:700 }}>
-                    <span style={{ width:6, height:6, borderRadius:"50%", background:"#fb923c", display:"inline-block", marginRight:5 }}/>
-                    {pendingCount} pending
-                  </span>
-                </div>
-                <div style={{ display:"flex", alignItems:"center", gap:8, background:t.actBg, border:`1px solid ${t.actBorder}`, borderRadius:10, padding:"8px 14px" }}>
-                  <Activity size={12} color={t.actIcon}/>
-                  <div style={{ display:"flex", gap:3, alignItems:"flex-end", height:14 }}>
-                    <span className="d1" style={{ width:3, height:10, borderRadius:2, background:t.actBar, display:"block" }}/>
-                    <span className="d2" style={{ width:3, height:14, borderRadius:2, background:t.actBar, display:"block" }}/>
-                    <span className="d3" style={{ width:3, height:7,  borderRadius:2, background:t.actBar, display:"block" }}/>
-                  </div>
-                </div>
-                <div className="livebadge" style={{ display:"flex", alignItems:"center", gap:7, background:"rgba(251,146,60,0.08)", border:"1px solid rgba(251,146,60,0.3)", borderRadius:999, padding:"8px 18px", color:"#fb923c", fontSize:11, fontWeight:700, letterSpacing:"0.1em", fontFamily:"'Poppins',sans-serif" }}>
-                  <span style={{ width:6, height:6, borderRadius:"50%", background:"#fb923c", display:"inline-block" }}/>
-                  LIVE
-                </div>
-              </div>
+      {/* ═══ HERO — same markup/classes as the Dashboard hero ═══ */}
+      <div className="dfade" style={{ padding:"8px 0 24px", background:"transparent", border:"none", borderBottom:`1px solid ${t.borderHero}`, marginBottom:20, boxShadow:"none" }}>
+        <div className="hero-flex">
+          <div>
+            <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:10 }}>
+              <Sparkles size={11} color={t.textSub}/>
+              <span style={{ fontSize:FONT_SIZE.eyebrow, fontWeight:FONT_WEIGHT.bold, letterSpacing:LETTER_SPACING.eyebrowWide, textTransform:"uppercase", color:t.textSub, fontFamily:FONT_FAMILY }}>Assessment Portal</span>
             </div>
+            <h1 style={{
+              fontFamily: FONT_FAMILY,
+              fontWeight: FONT_WEIGHT.heroTitle,
+              fontSize: FONT_SIZE.heroTitle,
+              color: "#3B82F6",
+              margin: "0 0 6px",
+              lineHeight: LINE_HEIGHT.heroTitle,
+              letterSpacing: LETTER_SPACING.heroTitle
+            }}>
+              Your Assessments
+            </h1>
+            <p style={{ fontSize:FONT_SIZE.bodySmall, color:t.textSub, marginTop:7, fontWeight:FONT_WEIGHT.medium, fontFamily:FONT_FAMILY }}>Track your progress and attempt quizzes</p>
           </div>
-
-          {/* ═══ STAT CARDS ═══ */}
-          <div className="assess-stat-grid" style={{ marginBottom:20 }}>
-            <StatCard icon={FileText}     value={assessments.length} label="Total Assessments" gradient="linear-gradient(135deg,#3b82f6,#2563eb)"/>
-            <StatCard icon={Clock}        value={pendingCount}        label="Pending"           gradient="linear-gradient(135deg,#f97316,#ea580c)"/>
-            <StatCard icon={CheckCircle2} value={submittedCount}      label="Submitted"         gradient="linear-gradient(135deg,#22c55e,#16a34a)"/>
-            <StatCard icon={Calendar}     value="—"                   label="Due This Week"     gradient="linear-gradient(135deg,#8b5cf6,#7c3aed)"/>
-          </div>
-
-          {/* ═══ QUIZ LIST ═══ */}
-          <div className="dfade" style={{ background:t.cardBg, border:`1px solid ${t.border}`, borderRadius:24, overflow:"hidden", boxShadow:t.shadow }}>
-
-            {/* ── header ── */}
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"20px 24px 0" }}>
-              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                <div style={{ width:34, height:34, borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(251,146,60,0.1)", border:"1px solid rgba(251,146,60,0.2)" }}>
-                  <FileText size={15} color="#fb923c"/>
-                </div>
-                <div>
-                  <span style={{ fontFamily:"'Poppins',sans-serif", fontWeight:700, fontSize:13, color:t.text, display:"block" }}>All Assessments</span>
-                  <span style={{ fontFamily:"'Poppins',sans-serif", fontSize:10, color:t.textMuted }}>
-                    {existingDifficulties.length > 0
-                      ? `Unlocked in order: ${existingDifficulties.join(" → ")}`
-                      : "Click any row to expand details"}
-                  </span>
-                </div>
-              </div>
-              <span style={{ fontSize:9, fontWeight:700, letterSpacing:"0.1em", padding:"4px 12px", borderRadius:999, textTransform:"uppercase", background:t.pillBg, border:`1px solid ${t.pillBorder}`, color:t.pillText, fontFamily:"'Poppins',sans-serif" }}>
-                {filtered.length} items
+          <div className="hero-badges">
+            <div style={{ display:"flex", alignItems:"center", gap:12, background:t.actBg, border:`1px solid ${t.actBorder}`, borderRadius:12, padding:"8px 16px", fontSize:11, fontWeight:FONT_WEIGHT.semibold, fontFamily:FONT_FAMILY, color:t.textSub }}>
+              <span>{assessments.length} total</span>
+              <span style={{ width:1, height:14, background:t.actBorder }}/>
+              <span style={{ color:"#34d399", fontWeight:FONT_WEIGHT.bold }}>
+                <span style={{ width:6, height:6, borderRadius:"50%", background:"#34d399", display:"inline-block", marginRight:5 }}/>
+                {submittedCount} submitted
+              </span>
+              <span style={{ width:1, height:14, background:t.actBorder }}/>
+              <span style={{ color:"#fb923c", fontWeight:FONT_WEIGHT.bold }}>
+                <span style={{ width:6, height:6, borderRadius:"50%", background:"#fb923c", display:"inline-block", marginRight:5 }}/>
+                {pendingCount} pending
               </span>
             </div>
-
-            {/* ✅ DIFFICULTY FILTER TABS */}
-            <div style={{ display:"flex", gap:8, padding:"12px 24px 0", overflowX:"auto", scrollbarWidth:"none" }}>
-              {tabs.map((tab) => {
-                const cfg    = DIFF_COLORS[tab] || DIFF_COLORS.All;
-                const active = selectedDiff === tab;
-                const count  = tab === "All"
-                  ? sorted.length
-                  : sorted.filter(q => (q.difficulty||"").trim().toLowerCase() === tab.toLowerCase()).length;
-                return (
-                  <button
-                    key={tab}
-                    onClick={() => setSelectedDiff(tab)}
-                    style={{
-                      display:"flex", alignItems:"center", gap:7,
-                      padding:"7px 16px", borderRadius:999,
-                      cursor:"pointer", outline:"none", flexShrink:0,
-                      border:`1px solid ${active ? cfg.border : t.border}`,
-                      background: active ? cfg.bg : t.pillBg,
-                      fontFamily:"'Poppins',sans-serif", fontSize:11,
-                      fontWeight:700,
-                      color: active ? cfg.color : t.textMuted,
-                      transition:"all 0.18s ease",
-                      boxShadow: active ? `0 0 14px ${cfg.color}30` : "none",
-                      marginBottom:12,
-                    }}
-                  >
-                    {tab}
-                    <span style={{
-                      fontSize:9, fontWeight:800, padding:"1px 7px",
-                      borderRadius:999,
-                      background: active ? `${cfg.color}22` : t.border,
-                      color: active ? cfg.color : t.textMuted,
-                    }}>
-                      {count}
-                    </span>
-                  </button>
-                );
-              })}
+            <div style={{ display:"flex", alignItems:"center", gap:8, background:t.actBg, border:`1px solid ${t.actBorder}`, borderRadius:10, padding:"8px 14px" }}>
+              <Activity size={12} color={t.actIcon}/>
+              <div style={{ display:"flex", gap:3, alignItems:"flex-end", height:14 }}>
+                <span className="d1" style={{ width:3, height:10, borderRadius:2, background:t.actBar, display:"block" }}/>
+                <span className="d2" style={{ width:3, height:14, borderRadius:2, background:t.actBar, display:"block" }}/>
+                <span className="d3" style={{ width:3, height:7,  borderRadius:2, background:t.actBar, display:"block" }}/>
+              </div>
             </div>
-
-            {/* ── divider ── */}
-            <div style={{ height:1, background:t.border, margin:"0 24px" }}/>
-
-            {/* ── quiz rows ── */}
-            <div style={{ padding:"16px", display:"flex", flexDirection:"column", gap:10 }}>
-              {filtered.map((item, idx) => {
-                const submitted = completedQuizIds.includes(item.id);
-                const locked    = isQuizLocked(item);
-                const prevDiff  = getPrevDifficulty(item);
-                return (
-                  <QuizRow
-                    key={item.id} item={item} index={idx} t={t}
-                    navigate={navigate} isSubmitted={submitted}
-                    isLocked={locked} prevDifficulty={prevDiff}
-                  />
-                );
-              })}
-
-              {filtered.length === 0 && assessments.length > 0 && (
-                <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"60px 0", gap:14 }}>
-                  <div style={{ width:64, height:64, borderRadius:18, display:"flex", alignItems:"center", justifyContent:"center", border:`1.5px dashed ${t.emptyBorder}`, background:t.emptyBg }}>
-                    <Award size={26} color={t.emptyIcon}/>
-                  </div>
-                  <div style={{ textAlign:"center" }}>
-                    <p style={{ fontSize:14, fontWeight:700, color:t.text, margin:0, fontFamily:"'Poppins',sans-serif" }}>No {selectedDiff} assessments</p>
-                    <p style={{ fontSize:11, color:t.textMuted, margin:"4px 0 0", fontFamily:"'Poppins',sans-serif" }}>Try a different difficulty tab</p>
-                  </div>
-                </div>
-              )}
-
-              {assessments.length === 0 && (
-                <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"60px 0", gap:14 }}>
-                  <div style={{ width:64, height:64, borderRadius:18, display:"flex", alignItems:"center", justifyContent:"center", border:`1.5px dashed ${t.emptyBorder}`, background:t.emptyBg }}>
-                    <Award size={26} color={t.emptyIcon}/>
-                  </div>
-                  <div style={{ textAlign:"center" }}>
-                    <p style={{ fontSize:14, fontWeight:700, color:t.text, margin:0, fontFamily:"'Poppins',sans-serif" }}>All caught up!</p>
-                    <p style={{ fontSize:11, color:t.textMuted, margin:"4px 0 0", fontFamily:"'Poppins',sans-serif" }}>No assessments available at the moment 🎉</p>
-                  </div>
-                </div>
-              )}
+            <div className="livebadge" style={{ display:"flex", alignItems:"center", gap:7, background:"rgba(251,146,60,0.08)", border:"1px solid rgba(251,146,60,0.3)", borderRadius:999, padding:"8px 18px", color:"#fb923c", fontSize:11, fontWeight:FONT_WEIGHT.bold, letterSpacing:"0.1em", fontFamily:FONT_FAMILY }}>
+              <span style={{ width:6, height:6, borderRadius:"50%", background:"#fb923c", display:"inline-block" }}/>
+              LIVE
             </div>
           </div>
         </div>
       </div>
-    </>
+
+      {/* ═══ STAT CARDS — shared <StatCard/>, same stat-grid layout ═══ */}
+      <div className="stat-grid" style={{ marginBottom:20 }}>
+        {stats.map((s, i) => <StatCard key={i} stat={s} index={i} loading={false} />)}
+      </div>
+
+      {/* ═══ QUIZ LIST ═══ */}
+      <div className="dfade" style={{ background:t.cardBg, border:`1px solid ${t.border}`, borderRadius:24, overflow:"hidden", boxShadow:t.shadow }}>
+
+        {/* ── header ── */}
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"20px 24px 0" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <div style={{ width:34, height:34, borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(251,146,60,0.1)", border:"1px solid rgba(251,146,60,0.2)" }}>
+              <FileText size={15} color="#fb923c"/>
+            </div>
+            <div>
+              <span style={{ fontFamily:FONT_FAMILY, fontWeight:FONT_WEIGHT.bold, fontSize:13, color:t.text, display:"block" }}>All Assessments</span>
+              <span style={{ fontFamily:FONT_FAMILY, fontSize:10, color:t.textMuted }}>
+                {existingDifficulties.length > 0
+                  ? `Unlocked in order: ${existingDifficulties.join(" → ")}`
+                  : "Click any row to expand details"}
+              </span>
+            </div>
+          </div>
+          <span style={{ fontSize:9, fontWeight:FONT_WEIGHT.bold, letterSpacing:"0.1em", padding:"4px 12px", borderRadius:999, textTransform:"uppercase", background:t.pillBg, border:`1px solid ${t.pillBorder}`, color:t.pillText, fontFamily:FONT_FAMILY }}>
+            {filtered.length} items
+          </span>
+        </div>
+
+        {/* Difficulty filter tabs */}
+        <div style={{ display:"flex", gap:8, padding:"12px 24px 0", overflowX:"auto", scrollbarWidth:"none" }}>
+          {tabs.map((tab) => {
+            const cfg    = DIFF_COLORS[tab] || DIFF_COLORS.All;
+            const active = selectedDiff === tab;
+            const count  = tab === "All"
+              ? sorted.length
+              : sorted.filter(q => (q.difficulty||"").trim().toLowerCase() === tab.toLowerCase()).length;
+            return (
+              <button
+                key={tab}
+                onClick={() => setSelectedDiff(tab)}
+                style={{
+                  display:"flex", alignItems:"center", gap:7,
+                  padding:"7px 16px", borderRadius:999,
+                  cursor:"pointer", outline:"none", flexShrink:0,
+                  border:`1px solid ${active ? cfg.border : t.border}`,
+                  background: active ? cfg.bg : t.pillBg,
+                  fontFamily:FONT_FAMILY, fontSize:11,
+                  fontWeight:FONT_WEIGHT.bold,
+                  color: active ? cfg.color : t.textMuted,
+                  transition:"all 0.18s ease",
+                  boxShadow: active ? `0 0 14px ${cfg.color}30` : "none",
+                  marginBottom:12,
+                }}
+              >
+                {tab}
+                <span style={{
+                  fontSize:9, fontWeight:FONT_WEIGHT.bold, padding:"1px 7px",
+                  borderRadius:999,
+                  background: active ? `${cfg.color}22` : t.border,
+                  color: active ? cfg.color : t.textMuted,
+                }}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ── divider ── */}
+        <div style={{ height:1, background:t.border, margin:"0 24px" }}/>
+
+        {/* ── quiz rows ── */}
+        <div style={{ padding:"16px", display:"flex", flexDirection:"column", gap:10 }}>
+          {filtered.map((item, idx) => {
+            const submitted = completedQuizIds.includes(item.id);
+            const locked    = isQuizLocked(item);
+            const prevDiff  = getPrevDifficulty(item);
+            return (
+              <QuizRow
+                key={item.id} item={item} index={idx} t={t}
+                navigate={navigate} isSubmitted={submitted}
+                isLocked={locked} prevDifficulty={prevDiff}
+              />
+            );
+          })}
+
+          {filtered.length === 0 && assessments.length > 0 && (
+            <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"60px 0", gap:14 }}>
+              <div style={{ width:64, height:64, borderRadius:18, display:"flex", alignItems:"center", justifyContent:"center", border:`1.5px dashed ${t.emptyBorder}`, background:t.emptyBg }}>
+                <Award size={26} color={t.emptyIcon}/>
+              </div>
+              <div style={{ textAlign:"center" }}>
+                <p style={{ fontSize:14, fontWeight:FONT_WEIGHT.bold, color:t.text, margin:0, fontFamily:FONT_FAMILY }}>No {selectedDiff} assessments</p>
+                <p style={{ fontSize:11, color:t.textMuted, margin:"4px 0 0", fontFamily:FONT_FAMILY }}>Try a different difficulty tab</p>
+              </div>
+            </div>
+          )}
+
+          {assessments.length === 0 && (
+            <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"60px 0", gap:14 }}>
+              <div style={{ width:64, height:64, borderRadius:18, display:"flex", alignItems:"center", justifyContent:"center", border:`1.5px dashed ${t.emptyBorder}`, background:t.emptyBg }}>
+                <Award size={26} color={t.emptyIcon}/>
+              </div>
+              <div style={{ textAlign:"center" }}>
+                <p style={{ fontSize:14, fontWeight:FONT_WEIGHT.bold, color:t.text, margin:0, fontFamily:FONT_FAMILY }}>All caught up!</p>
+                <p style={{ fontSize:11, color:t.textMuted, margin:"4px 0 0", fontFamily:FONT_FAMILY }}>No assessments available at the moment 🎉</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </PageContainer>
   );
 };
 

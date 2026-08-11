@@ -252,7 +252,7 @@ const Certificates          = lazyLoad(() => import("./Student/certificates.jsx"
 const Overview              = lazyLoad(() => import("./Student/overview.jsx"));
 const VideoLectures         = lazyLoad(() => import("./Student/videolecctures.jsx"));
 const StudentNotebook       = lazyLoad(() => import("./Student/StudentNotebook.jsx"));
-const CallTrainer           = lazyLoad(() => import("./Student/CallTrainer.jsx"));
+
 const StudentFeedback       = lazyLoad(() => import("./Student/Studentfeedback.jsx"));
 const SkillMap              = lazyLoad(() => import("./Student/SkillMap.jsx"));
 const StudentCompilerPage   = lazyLoad(() => import("./Student/StudentCompilerPage.jsx"),);
@@ -290,7 +290,6 @@ const RecordedClassList     = lazyLoad(() => import("./Trainer/RecordedClassList
 const StartLiveSession      = lazyLoad(() => import("./Trainer/StartLiveSession"));
 const TrainerLiveClasses    = lazyLoad(() => import("./Trainer/TrainerLiveClasses"));
 const UploadRecordedVideo   = lazyLoad(() => import("./Trainer/UploadRecordedVideo"));
-const TrainerJoinCall       = lazyLoad(() => import("./Trainer/TrainerJoinCall"));
 const TrainerFeedback       = lazyLoad(() => import("./Trainer/Trainerfeedback.jsx"));
 const TrainerSkillMap       = lazyLoad(() => import("./Trainer/TrainerSkillMap.jsx"));
 const TrainerCompilerPage   = lazyLoad(() => import("./Trainer/TrainerCompilerPage.jsx"),);
@@ -323,9 +322,7 @@ const AdminVideos = lazyLoad(() => import("./Admin/AdminVideos"));
 
 const OrgReports                = lazyLoad(() => import("./Admin/OrgReports"));
 const OrgSettings               = lazyLoad(() => import("./Admin/OrgSettings"));
-const PendingUsers              = lazyLoad(() => import("./Admin/PendingUsers.jsx"));
-const StudentsAdmin             = lazyLoad(() => import("./Admin/StudentsAdmin"));
-const TrainersAdmin             = lazyLoad(() => import("./Admin/TrainersAdmin"));
+
 const UsageAnalytics            = lazyLoad(() => import("./Admin/UsageAnalytics"));
 const AdminFeedback             = lazyLoad(() => import("./Admin/Adminfeedback.jsx"));
 const AdminSkillDashboard       = lazyLoad(() => import("./Admin/AdminSkillDashboard.jsx"));
@@ -688,7 +685,7 @@ seedCMSData();
               <Route path="notebook" element={<StudentNotebook />} /> 
               <Route path="documents" element={<Documents />} />
               <Route path="live-classes" element={<LiveClasses />} />
-              <Route path="call-trainer" element={<CallTrainer />} />
+              
               <Route path="recorded-classes" element={<RecordedClasses />} />
               <Route path="call-room" element={<CallRoom />} />
               <Route path="courses" element={<MyCourses />} />
@@ -748,7 +745,7 @@ seedCMSData();
               <Route path="live-controls/:id" element={<LiveSessionControls />} />
               <Route path="live-history" element={<LiveSessionHistory />} />
               <Route path="live-attendance" element={<LiveAttendanceReport />} />
-              <Route path="join-call" element={<TrainerJoinCall />} />
+              
               <Route path="call-room" element={<CallRoom role="trainer" />} />
               <Route path="upload-recorded" element={<UploadRecordedVideo />} />
               <Route path="recorded-list" element={<RecordedClassList />} />
@@ -780,9 +777,9 @@ seedCMSData();
               <Route path="batches/:batchId/students/:trainerEmail" element={<BatchStudentsPage />} />
               <Route path="batches/:batchId/trainers" element={<BatchTrainerOverviewPage />} />
               <Route path="users" element={<AllUsers />} />
-              <Route path="students" element={<StudentsAdmin />} />
-              <Route path="trainers" element={<TrainersAdmin />} />
-              <Route path="pending-users" element={<PendingUsers />} />
+           
+             
+             
               <Route path="courses" element={<AllCourses />} />
               <Route path="categories" element={<Categories />} />
               <Route path="videos" element={<AdminVideos />} />

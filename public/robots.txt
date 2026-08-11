@@ -1,0 +1,25 @@
+User-agent: *
+Allow: /
+
+Disallow: /student
+Disallow: /trainer
+Disallow: /admin
+Disallow: /business
+Disallow: /superadmin
+
+Disallow: /login
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /approval-pending
+Disallow: /apply-admin
+Disallow: /ilm-demo
+
+Disallow: /workspace/
+Disallow: /ilmorameet/
+Disallow: /public/book-session
+Disallow: /public/join-session
+Disallow: /public/booking-confirmation
+Disallow: /public/session-complete
+Disallow: /public/sessions
+
+Sitemap: https://ilmora.texora.ai/sitemap.xml

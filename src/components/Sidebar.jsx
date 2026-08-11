@@ -7,9 +7,8 @@ import {
   Brain,
   Briefcase,
   Building2,
-  GitBranch, 
+  GitBranch,
   CalendarDays,
-  ChevronDown,
   ChevronRight,
   ClipboardCheck,
   ClipboardEdit,
@@ -23,46 +22,50 @@ import {
   Layers,
   LayoutDashboard,
   LineChart,
-  LogOut,
   Menu,
   MessageCircleQuestion,
   MessageSquare,
-  Moon,
   NotebookPen,
   PanelTop,
   PlayCircle,
   Radio,
   Receipt,
   Settings,
-  // ✅ AI Tools Icons
   Sparkles,
-  Sun,
   Target,
   TrendingUp,
   Upload,
   Users,
-  Video
+  Video,
+  Headphones,
 } from "lucide-react";
 import React from "react";
- 
 import { Phone } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import auth from "../auth";
 import userService from "../services/userService";
-// ✅ Shared AvatarContext se import
 import { useAvatarContext } from "../context/AvatarContext";
- 
+
 /* ================================================================
-   SIDEBAR MODES  (3-step folding: full -> icon -> hidden -> full)
+   ILM DEMO SIDEBAR — used ONLY by IlmOraDemoPage.jsx.
+
+   Visual style rebuilt to match the reference screenshot exactly:
+     - plain white sidebar, no dark-mode variant
+     - logo block with "<ROLE> PORTAL" subtitle under ILM ORA
+     - flat nav items, bold dark label + icon, chevron-right for groups
+     - active item = light peach background + orange text/icon
+     - no footer (no theme toggle, no user card, no logout) — the
+       screenshot's dark-mode toggle / avatar live in the top navbar,
+       not in this sidebar
 ================================================================ */
 const SIDEBAR_WIDTHS = {
   full: 280,
   icon: 72,
   hidden: 0,
 };
- 
+
 /* ================================================================
-   MENUS
+   MENUS — identical to Sidebar.jsx
 ================================================================ */
 const studentMenus = [
   {
@@ -70,74 +73,89 @@ const studentMenus = [
     path: "/student",
     icon: LayoutDashboard,
   },
+
   {
-    name: "WorkSpace",
+    name: "Workspace",
     path: "/student/workspace",
     icon: Video,
   },
+
+  // ================= Learning =================
   {
-    name: "Learning & Classes",
-    icon: Radio,
-    children: [
-      { name: "Live Classes",     path: "/student/live-classes",     icon: Radio      },
-      { name: "Recorded Classes", path: "/student/recorded-classes", icon: PlayCircle },
-      { name: "Call Trainer",     path: "/student/call-trainer",     icon: Phone      },
-    ],
-  },
-  {
-    name: "Learning Materials",
+    name: "Learning",
     icon: GraduationCap,
     children: [
-      { name: "Video Lectures", path: "/student/videos",    icon: Video    },
-      { name: "Documents",      path: "/student/documents", icon: FileText },
+      {
+        name: "My Courses",
+        path: "/student/courses",
+        icon: BookOpen,
+      },
+      {
+        name: "Video Lectures",
+        path: "/student/videos",
+        icon: Video,
+      },
+      {
+        name: "Documents",
+        path: "/student/documents",
+        icon: FileText,
+      },
+      {
+        name: "Assignments",
+        path: "/student/assignments",
+        icon: ClipboardEdit,
+      },
+      {
+        name: "Assessments",
+        path: "/student/assessments",
+        icon: ClipboardCheck,
+      },
+      {
+        name: "Quiz History",
+        path: "/student/my-quizzes",
+        icon: History,
+      },
+      {
+        name: "Attendance",
+        path: "/student/attendance",
+        icon: CalendarDays,
+      },
     ],
   },
+
+  // ================= Meetings =================
   {
-    name: "My Learning",
-    icon: BookOpen,
+    name: "Meetings",
+    icon: Radio,
     children: [
-      { name: "My Courses",      path: "/student/courses",      icon: BookOpen       },
-      { name: "Assessments",     path: "/student/assessments",  icon: ClipboardCheck },
-      { name: "Assignments",     path: "/student/assignments",  icon: ClipboardEdit  },
-      { name: "My Quiz History", path: "/student/my-quizzes",   icon: History        },
-      { name: "Attendance",      path: "/student/attendance",   icon: CalendarDays   },
+      {
+        name: "Live Classes",
+        path: "/student/live-classes",
+        icon: Radio,
+      },
+      {
+        name: "Recorded Classes",
+        path: "/student/recorded-classes",
+        icon: PlayCircle,
+      },
     ],
   },
+
+  // ================= Skill Growth =================
   {
     name: "Skill & Growth",
     icon: TrendingUp,
     children: [
-      { name: "Skill Map",    path: "/student/skill-map",    icon: Brain },
-      { name: "Certificates", path: "/student/certificates", icon: Award },
-    ],
-  },
- 
-  // ── ✅ NEW: AI Tools ──────────────────────────────────────────
-  {
-    name: "AI Tools",
-    icon: Sparkles,
-    children: [
       {
-        name: "Notebook AI",
-        path: "/student/notebook",   // same path as before
-        icon: NotebookPen,
+        name: "Skill Map",
+        path: "/student/skill-map",
+        icon: Brain,
       },
       {
-        name: "Resume Builder",
-        path: "/student/resume-builder",
-        icon: FileCode2,
+        name: "Certificates",
+        path: "/student/certificates",
+        icon: Award,
       },
-    ],
-  },
-  // ─────────────────────────────────────────────────────────────
- 
-  {
-    name: "Support",
-    icon: MessageCircleQuestion,
-    children: [
-      { name: "Doubts",     path: "/student/doubts",    icon: MessageCircleQuestion },
-      { name: "Feedback",   path: "/student/feedback",  icon: MessageSquare         },
-      { name: "Coding Lab", path: "/student/compiler",  icon: FileText              },
       {
         name: "Study Plan",
         path: "/student/study-plan",
@@ -145,69 +163,122 @@ const studentMenus = [
       },
     ],
   },
+
+  // ================= AI =================
+  {
+    name: "AI Tools",
+    icon: Sparkles,
+    children: [
+      {
+        name: "Notebook AI",
+        path: "/student/notebook",
+        icon: NotebookPen,
+      },
+      {
+        name: "Resume Builder",
+        path: "/student/resume-builder",
+        icon: FileCode2,
+      },
+      {
+        name: "Coding Lab",
+        path: "/student/compiler",
+        icon: FileText,
+      },
+    ],
+  },
+
+  // ================= Support =================
+  {
+    name: "Support",
+    icon: MessageCircleQuestion,
+    children: [
+      {
+        name: "Ask Doubts",
+        path: "/student/doubts",
+        icon: MessageCircleQuestion,
+      },
+      {
+        name: "Feedback",
+        path: "/student/feedback",
+        icon: MessageSquare,
+      },
+    ],
+  },
 ];
- 
+
 const trainerMenus = [
-  { name: "Dashboard",        path: "/trainer",         icon: LayoutDashboard },
+  { name: "Dashboard", path: "/trainer", icon: LayoutDashboard },
   { name: "Batch Management", path: "/trainer/batches", icon: Layers },
+  { name: "WorkSpace", path: "/trainer/workspace", icon: Video },
   {
-    name: "WorkSpace",
-    path: "/trainer/workspace",
-    icon: Video,
-  },
-  {
-    name: "Content Management", icon: FileText,
+    name: "Content Management",
+    icon: FileText,
     children: [
-      { name: "Upload Videos",      path: "/trainer/upload-videos",      icon: Video },
-      { name: "Course Management",  path: "/trainer/course-management",  icon: BookOpen },
-      { name: "Assessments",        path: "/trainer/assessments",        icon: ClipboardCheck },
-      { name: "Attendance",         path: "/trainer/attendance",         icon: CalendarDays },
-      { name: "Doubts Management",  path: "/trainer/doubts-management",  icon: MessageCircleQuestion },
-      { name: "Feedback",           path: "/trainer/feedback",           icon: MessageCircleQuestion },
-    ],
-  },
-  {
-    name: "Live Classes", icon: Video,
-    children: [
-      { name: "Live Dashboard", path: "/trainer/live", icon: LayoutDashboard },
+      { name: "Upload Videos", path: "/trainer/upload-videos", icon: Video },
       {
-        name: "Whiteboard",
-        path: "/trainer/whiteboard",
-        icon: PanelTop,
-      },
-      {
-        name: "AI Companion",
-        path: "/trainer/ai-companion",
-        icon: Bot,
-      },
-    ],
-  },
-  {
-    name: "Reports & Analytics", icon: BarChart3,
-    children: [
-      { name: "Student Reports",      path: "/trainer/student-reports", icon: FileSearch },
-      { name: "Batch Reports",        path: "/trainer/batch-reports",   icon: FileText },
-      { name: "Performance Analysis", path: "/trainer/performance",     icon: TrendingUp },
-      { name: "Skill Analytics",      path: "/trainer/skill-analytics", icon: Brain },
-      { name: "Coding Lab",           path: "/trainer/compiler",        icon: FileText },
-      {
-        name: "Study Plan",
-        path: "/trainer/study-plan",
+        name: "Course Management",
+        path: "/trainer/course-management",
         icon: BookOpen,
       },
+      {
+        name: "Assessments",
+        path: "/trainer/assessments",
+        icon: ClipboardCheck,
+      },
+      { name: "Attendance", path: "/trainer/attendance", icon: CalendarDays },
+      {
+        name: "Doubts Management",
+        path: "/trainer/doubts-management",
+        icon: MessageCircleQuestion,
+      },
+      {
+        name: "Feedback",
+        path: "/trainer/feedback",
+        icon: MessageCircleQuestion,
+      },
+    ],
+  },
+  {
+    name: "Live Classes",
+    icon: Video,
+    children: [
+      { name: "Live Dashboard", path: "/trainer/live", icon: LayoutDashboard },
+      { name: "Whiteboard", path: "/trainer/whiteboard", icon: PanelTop },
+      { name: "AI Companion", path: "/trainer/ai-companion", icon: Bot },
+    ],
+  },
+  {
+    name: "Reports & Analytics",
+    icon: BarChart3,
+    children: [
+      {
+        name: "Student Reports",
+        path: "/trainer/student-reports",
+        icon: FileSearch,
+      },
+      { name: "Batch Reports", path: "/trainer/batch-reports", icon: FileText },
+      {
+        name: "Performance Analysis",
+        path: "/trainer/performance",
+        icon: TrendingUp,
+      },
+      {
+        name: "Skill Analytics",
+        path: "/trainer/skill-analytics",
+        icon: Brain,
+      },
+      { name: "Coding Lab", path: "/trainer/compiler", icon: FileText },
+      { name: "Study Plan", path: "/trainer/study-plan", icon: BookOpen },
     ],
   },
 ];
- 
+
 const adminMenus = [
   { name: "Dashboard", path: "/admin", icon: LayoutDashboard },
+  { name: "WorkSpace", path: "/admin/workspace", icon: Video },
   {
-    name: "WorkSpace",
-    path: "/admin/workspace",
-    icon: Video,
-  },
-  {
-    name: "Organisation Manager", icon: Building2,
+    name: "Organisation Manager",
+    icon: Building2,
     path: "/admin/organisation-overview",
   },
   {
@@ -216,152 +287,245 @@ const adminMenus = [
     path: "/admin/assessment-system",
   },
   {
-    name: "Course Management", icon: BookOpen,
-    children: [
-      { name: "All Courses", path: "/admin/courses", icon: BookOpen },
-    ],
+    name: "Course Management",
+    icon: BookOpen,
+    children: [{ name: "All Courses", path: "/admin/courses", icon: BookOpen }],
   },
   {
     name: "Video Management",
     icon: Video,
-    children: [
-      {
-        name: "Admin Videos",
-        path: "/admin/videos",
-        icon: Video,
-      },
- 
-    ],
- 
+    children: [{ name: "Admin Videos", path: "/admin/videos", icon: Video }],
   },
   {
     name: "File Management",
     icon: FileText,
+    children: [{ name: "Admin Files", path: "/admin/files", icon: FileText }],
+  },
+  {
+    name: "Live & Recorded Control",
+    icon: Video,
     children: [
       {
-        name: "Admin Files",
-        path: "/admin/files",
-        icon: FileText,
+        name: "Admin Live Sessions",
+        path: "/admin/live-sessions",
+        icon: Radio,
       },
     ],
   },
   {
-    name: "Live & Recorded Control", icon: Video,
-    children: [
-      { name: "Admin Live Sessions", path: "/admin/live-sessions", icon: Radio },
-    ],
-  },
-  {
-    name: "Document Generator", icon: FileText,
+    name: "Document Generator",
+    icon: FileText,
     children: [
       { name: "Certificates", path: "/admin/certificates", icon: Award },
-      { name: "Reports",      path: "/admin/reports",      icon: FileText },
+      { name: "Reports", path: "/admin/reports", icon: FileText },
     ],
   },
   {
-    name: "Insight Review", icon: BarChart3,
+    name: "Insight Review",
+    icon: BarChart3,
     children: [
-      { name: "Usage Analytics",  path: "/admin/usage",            icon: LineChart },
-      { name: "Skill Analytics",  path: "/admin/skill-analytics",  icon: Brain },
-      { name: "Feedback Review",  path: "/admin/feedback-review",  icon: MessageCircleQuestion },
+      { name: "Usage Analytics", path: "/admin/usage", icon: LineChart },
+      { name: "Skill Analytics", path: "/admin/skill-analytics", icon: Brain },
       {
-        name: "Attendance",
-        path: "/admin/attendance",
-        icon: CalendarDays,
+        name: "Feedback Review",
+        path: "/admin/feedback-review",
+        icon: MessageCircleQuestion,
       },
-      { name: "Settings",         path: "/admin/settings",         icon: Settings },
- 
+      { name: "Attendance", path: "/admin/attendance", icon: CalendarDays },
+      { name: "Settings", path: "/admin/settings", icon: Settings },
     ],
   },
 ];
- 
+
 const businessMenus = [
   { name: "Dashboard", path: "/business", icon: LayoutDashboard },
   {
-    name: "Hiring Manager", icon: Briefcase,
+    name: "Hiring Manager",
+    icon: Briefcase,
     children: [
-      { name: "Job Openings", path: "/business/jobs",         icon: Briefcase },
-      { name: "Applications", path: "/business/applications", icon: ClipboardCheck },
+      { name: "Job Openings", path: "/business/jobs", icon: Briefcase },
+      {
+        name: "Applications",
+        path: "/business/applications",
+        icon: ClipboardCheck,
+      },
     ],
   },
   {
-    name: "Lead Management", icon: Target,
+    name: "Lead Management",
+    icon: Target,
     children: [
-      { name: "All Leads",  path: "/business/leads",     icon: Users },
+      { name: "All Leads", path: "/business/leads", icon: Users },
       { name: "Follow Ups", path: "/business/followups", icon: TrendingUp },
     ],
   },
   {
-    name: "Enrollments", icon: BookOpen,
+    name: "Enrollments",
+    icon: BookOpen,
     children: [
-      { name: "New Enrollments", path: "/business/enrollments", icon: BookOpen },
-      { name: "Renewals",        path: "/business/renewals",    icon: BookOpen },
+      {
+        name: "New Enrollments",
+        path: "/business/enrollments",
+        icon: BookOpen,
+      },
+      { name: "Renewals", path: "/business/renewals", icon: BookOpen },
     ],
   },
   {
-    name: "Financial", icon: DollarSign,
+    name: "Financial",
+    icon: DollarSign,
     children: [
       { name: "Invoices", path: "/business/invoices", icon: Receipt },
       { name: "Payments", path: "/business/payments", icon: DollarSign },
     ],
   },
   {
-    name: "Marketing", icon: BarChart3,
+    name: "Marketing",
+    icon: BarChart3,
     children: [
       { name: "Campaigns", path: "/business/campaigns", icon: Activity },
-      { name: "Sources",   path: "/business/sources",   icon: FolderOpen },
+      { name: "Sources", path: "/business/sources", icon: FolderOpen },
     ],
   },
   {
-    name: "Team Targets", icon: Target,
+    name: "Team Targets",
+    icon: Target,
     children: [
-      { name: "Targets",     path: "/business/targets",     icon: Target },
+      { name: "Targets", path: "/business/targets", icon: Target },
       { name: "Performance", path: "/business/performance", icon: TrendingUp },
     ],
   },
 ];
- 
+
 const roleConfig = {
-  student:    { label: "Student"      },
-  trainer:    { label: "Trainer"      },
-  admin:      { label: "Manager"      },
-  business:   { label: "Tenant Admin" },
-  superAdmin: { label: "Super Admin"  },
+  student: { label: "Student" },
+  trainer: { label: "Trainer" },
+  admin: { label: "Admin" },
+  business: { label: "Admin" },
+  superAdmin: { label: "Super Admin" },
 };
- 
+
+// The "Dashboard" item's path for each role — clicking it (or calling
+// goToFeature with it) clears the ?section= param and goes back to the
+// ILM ORA demo landing/overview instead of showing a section page.
+const ROLE_HOME_PATH = {
+  student: "/student",
+  trainer: "/trainer",
+  admin: "/admin",
+  business: "/business",
+  superAdmin: "/admin",
+};
+
+// Flat path -> { name, icon, roleKey, parent? } lookup built from every
+// menu set above. IlmOraDemoPage uses this to label whatever section is
+// currently selected (via ?section=<path>) without needing its own copy
+// of every menu's name/icon.
+const ALL_MENUS_BY_ROLE = {
+  student: studentMenus,
+  trainer: trainerMenus,
+  admin: adminMenus,
+  business: businessMenus,
+  superAdmin: adminMenus,
+};
+
+function buildSectionIndex() {
+  const index = {};
+  Object.entries(ALL_MENUS_BY_ROLE).forEach(([roleKey, menus]) => {
+    menus.forEach((item) => {
+      if (item.path && !index[item.path]) {
+        index[item.path] = { name: item.name, icon: item.icon, roleKey };
+      }
+      if (item.children) {
+        item.children.forEach((child) => {
+          if (!index[child.path]) {
+            index[child.path] = {
+              name: child.name,
+              icon: child.icon,
+              roleKey,
+              parent: item.name,
+            };
+          }
+        });
+      }
+    });
+  });
+  return index;
+}
+
+const SECTION_INDEX = buildSectionIndex();
+
 /* ================================================================
    SIDEBAR
-   Accepts optional controlled props (sidebarMode / setSidebarMode)
-   from DashboardLayout. Falls back to internal state so the
-   component still works if rendered standalone anywhere else.
 ================================================================ */
-const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeProp } = {}) => {
+const IlmDemoSidebar = ({
+  sidebarMode: sidebarModeProp,
+  setSidebarMode: setSidebarModeProp,
+  roleOverride,
+  onNavigate, // Steps 7-10 gate from IlmOraDemoPage: checks profileCompleted before navigating
+  activeSection = null, // NEW: which "path" is currently shown in IlmOraDemoPage's content
+  // area (via ?section=). We no longer do a real router navigate() when
+  // onNavigate is supplied, so we can't rely on location.pathname to know
+  // which item is active anymore — the parent tells us via this prop.
+  theme = "light", // "light" | "dark" — passed down from IlmOraDemoPage so the sidebar stays in sync with the navbar toggle
+} = {}) => {
   const location = useNavigate ? useLocation() : { pathname: "/" };
-  const navigate  = useNavigate();
- 
-  // ✅ Global avatar state
+  const navigate = useNavigate();
+  // Step 7: every tab click in this sidebar goes through the gate (if given).
+  const go = onNavigate || navigate;
+  // When we're being driven by IlmOraDemoPage (onNavigate is set), active
+  // highlighting is based on activeSection, not the real browser URL —
+  // clicking a menu item never changes location.pathname anymore.
+  const currentPath = onNavigate
+    ? activeSection || ROLE_HOME_PATH[roleOverride] || "/student"
+    : location.pathname;
+
   const { profileImage } = useAvatarContext();
- 
-  const isTrainer    = location.pathname.startsWith("/trainer");
+
+  const isTrainer = location.pathname.startsWith("/trainer");
   const isAdminRoute = location.pathname.startsWith("/admin");
-  const isBusiness   = location.pathname.startsWith("/business");
+  const isBusiness = location.pathname.startsWith("/business");
   const isSuperAdmin = location.pathname.startsWith("/super-admin");
- 
-  let menus   = studentMenus;
+
+  let menus = studentMenus;
   let roleKey = "student";
-  if (isSuperAdmin)      { menus = superAdminMenus; roleKey = "superAdmin"; }
-  else if (isTrainer)    { menus = trainerMenus;    roleKey = "trainer";    }
-  else if (isAdminRoute) { menus = adminMenus;      roleKey = "admin";      }
-  else if (isBusiness)   { menus = businessMenus;   roleKey = "business";   }
- 
-  const role = roleConfig[roleKey];
- 
-  // ── 3-step fold state: "full" | "icon" | "hidden" ──────────────
-  // Persisted per-role so collapsing/hiding the sidebar while on one
-  // role's pages (e.g. Student) never leaks into another role's pages
-  // (e.g. Trainer) through a shared localStorage key — that cross-role
-  // bleed is what was making the Trainer sidebar come up hidden.
-  const sidebarStorageKey = `sidebarMode:${roleKey}`;
+
+  if (roleOverride) {
+    roleKey = roleOverride;
+    if (roleOverride === "trainer") {
+      menus = trainerMenus;
+    } else if (roleOverride === "admin") {
+      menus = adminMenus;
+    }
+    // "Business & Partnership" is really the tenant-admin experience —
+    // it should reuse the admin sidebar (Organisation Manager, Assessment
+    // System, etc.), not the unrelated `businessMenus` set (which was for
+    // a different hiring/CRM-style role and doesn't match the
+    // ROLE_CONFIG.business features on IlmOraDemoPage — those already use
+    // /admin/... routes).
+    else if (roleOverride === "business") {
+      menus = adminMenus;
+    } else {
+      menus = studentMenus;
+      roleKey = "student";
+    }
+  } else if (isSuperAdmin) {
+    menus = adminMenus;
+    roleKey = "superAdmin";
+  } else if (isTrainer) {
+    menus = trainerMenus;
+    roleKey = "trainer";
+  } else if (isAdminRoute) {
+    menus = adminMenus;
+    roleKey = "admin";
+  } else if (isBusiness) {
+    menus = businessMenus;
+    roleKey = "business";
+  }
+
+  const role = roleConfig[roleKey] || roleConfig.student;
+  const portalLabel = `${role.label.toUpperCase()} PORTAL`;
+
+  const sidebarStorageKey = `sidebarMode:ilmdemo:${roleKey}`;
   const [internalMode, setInternalMode] = React.useState(() => {
     try {
       return localStorage.getItem(sidebarStorageKey) || "full";
@@ -369,15 +533,11 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
       return "full";
     }
   });
-  const sidebarMode    = sidebarModeProp    ?? internalMode;
+  const sidebarMode = sidebarModeProp ?? internalMode;
   const setSidebarMode = setSidebarModeProp ?? setInternalMode;
- 
-  // If the role changes (e.g. navigating from /student to /trainer)
-  // while this component stays mounted, re-sync internal mode from
-  // that role's own stored preference instead of carrying over
-  // whatever mode the previous role was left in.
+
   React.useEffect(() => {
-    if (sidebarModeProp !== undefined) return; // parent is in control
+    if (sidebarModeProp !== undefined) return;
     try {
       setInternalMode(localStorage.getItem(sidebarStorageKey) || "full");
     } catch {
@@ -385,82 +545,59 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roleKey]);
- 
+
   React.useEffect(() => {
-    try { localStorage.setItem(sidebarStorageKey, sidebarMode); } catch (_) {}
+    try {
+      localStorage.setItem(sidebarStorageKey, sidebarMode);
+    } catch (_) {}
   }, [sidebarMode, sidebarStorageKey]);
- 
+
+  // --- FIX: guard against an invalid/unexpected sidebarMode value ---
+  // Previously, if sidebarMode was ever anything other than exactly
+  // "full" / "icon" / "hidden" (e.g. stale/corrupt localStorage value,
+  // undefined during a race, etc.), BOTH `collapsed` and `hidden`
+  // evaluated to false, which made the header render condition
+  // (`!collapsed && !hidden` for full header, `collapsed && !hidden`
+  // for the icon-only logo) behave inconsistently and the logo/
+  // "STUDENT PORTAL" block could disappear entirely (as seen in the
+  // cut-off screenshot). We now clamp to a known-good mode first.
+  const safeMode = SIDEBAR_WIDTHS.hasOwnProperty(sidebarMode)
+    ? sidebarMode
+    : "full";
+  const collapsed = safeMode === "icon";
+  const hidden = safeMode === "hidden";
+  const sidebarWidth = SIDEBAR_WIDTHS[safeMode];
+
+  // 3-step fold toggle: full -> icon -> hidden -> full (same flow as Sidebar.jsx)
   const toggleSidebar = () => {
-    setSidebarMode(prev =>
-      prev === "full" ? "icon" : prev === "icon" ? "hidden" : "full"
+    setSidebarMode((prev) =>
+      prev === "full" ? "icon" : prev === "icon" ? "hidden" : "full",
     );
   };
- 
-  const collapsed = sidebarMode === "icon";   // icon-only rail
-  const hidden    = sidebarMode === "hidden"; // fully hidden
-  const sidebarWidth = SIDEBAR_WIDTHS[sidebarMode];
- 
+
   const [openGroups, setOpenGroups] = React.useState({});
-  const [flyoutGroup, setFlyoutGroup] = React.useState(null); // hover/click flyout in icon mode
+  const [flyoutGroup, setFlyoutGroup] = React.useState(null);
   const flyoutCloseTimer = React.useRef(null);
- 
-  const [dark,       setDark]       = React.useState(
-    document.documentElement.classList.contains("dark")
-  );
- 
-  const toggleTheme = () => {
-    setDark(prev => {
-      const next = !prev;
-      document.documentElement.classList.toggle("dark", next);
-      return next;
-    });
-  };
- 
-  const currentRole      = localStorage.getItem("role");
-  const showRoleDropdown = currentRole === "ADMIN";
-  const currentRolePath  = isSuperAdmin  ? "/super-admin/dashboard"
-    : isAdminRoute ? "/admin"
-    : isTrainer    ? "/trainer"
-    : isBusiness   ? "/business"
-    : "/student";
- 
-  // const userName = localStorage.getItem("userName") || "User";
-  // const initials  = userName.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
-   const [userName, setUserName] = React.useState(
+
+  const currentRole = localStorage.getItem("role");
+  const showRoleDropdown = false;
+  const currentRolePath = "/ilm-demo";
+
+  const [userName, setUserName] = React.useState(
     localStorage.getItem("userName") || "User",
   );
- 
+
   React.useEffect(() => {
     userService
       .getMyProfile()
       .then((res) => {
         const name = res.data?.displayName || res.data?.name || "User";
         setUserName(name);
-        localStorage.setItem("userName", name); // cache for instant load next time
+        localStorage.setItem("userName", name);
       })
-      .catch(() => {
-        // keep whatever was cached in localStorage if the call fails
-      });
+      .catch(() => {});
   }, []);
- 
-  const initials =
-    userName
-      .trim()
-      .split(" ")
-      .filter(Boolean)
-      .map((w) => w[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase() || "U";
- 
- 
- 
-  const handleLogout = () => {
-    auth.logout();
-    navigate("/login");
-  };
- 
-  // ── Flyout helpers (icon mode only) ────────────────────────────
+
   const openFlyout = (name) => {
     if (flyoutCloseTimer.current) clearTimeout(flyoutCloseTimer.current);
     setFlyoutGroup(name);
@@ -469,404 +606,260 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
     if (flyoutCloseTimer.current) clearTimeout(flyoutCloseTimer.current);
     flyoutCloseTimer.current = setTimeout(() => setFlyoutGroup(null), 150);
   };
- 
+
   return (
     <>
       <style>{`
-        .sidebar-root[data-dark="true"]  { background: #000000; border-right: 1px solid #1a1a1a; }
-        .sidebar-root[data-dark="false"] { background: #ffffff; border-right: 1px solid #e2e8f0; }
-        .sidebar-root {
-          position: relative;
-          transition: width .28s ease, margin .28s ease, transform .28s ease;
-           z-index: 40;
+        .ilm-sb-root[data-theme="light"] {
+          --sb-bg: #ffffff;
+          --sb-border: #edf1f5;
+          --sb-logo-bg: #eaf2fe;
+          --sb-logo-border: #dbe9fd;
+          --sb-text-muted: #94a3b8;
+          --sb-text: #1e293b;
+          --sb-item-hover-bg: #f8fafc;
+          --sb-active-bg: #fef1e6;
+          --sb-active-color: #ea580c;
+          --sb-child-color: #64748b;
+          --sb-child-hover-bg: #fff7f0;
+          --sb-connector-border: #f1f5f9;
+          --sb-flyout-bg: #ffffff;
+          --sb-flyout-border: #edf1f5;
+          --sb-flyout-shadow: 0 12px 32px rgba(15,23,42,0.14);
+          --sb-chevron: #cbd5e1;
+          --sb-scrollbar-thumb: rgba(148,163,184,0.35);
+          --sb-ai-color: #a855f7;
         }
-        .sidebar-root[data-mode="hidden"] {
+        .ilm-sb-root[data-theme="dark"] {
+          --sb-bg: #0f172a;
+          --sb-border: #1e293b;
+          --sb-logo-bg: #1e293b;
+          --sb-logo-border: #334155;
+          --sb-text-muted: #94a3b8;
+          --sb-text: #f1f5f9;
+          --sb-item-hover-bg: #1e293b;
+          --sb-active-bg: rgba(251,146,60,0.12);
+          --sb-active-color: #fb923c;
+          --sb-child-color: #94a3b8;
+          --sb-child-hover-bg: rgba(251,146,60,0.08);
+          --sb-connector-border: #334155;
+          --sb-flyout-bg: #1e293b;
+          --sb-flyout-border: #334155;
+          --sb-flyout-shadow: 0 12px 32px rgba(0,0,0,0.45);
+          --sb-chevron: #475569;
+          --sb-scrollbar-thumb: rgba(100,116,139,0.5);
+          --sb-ai-color: #c084fc;
+        }
+
+        .ilm-sb-root {
+          position: fixed; top: 68px; left: 0;
+          background: var(--sb-bg);
+          border-right: 1px solid var(--sb-border);
+          transition: width .28s ease, margin .28s ease, transform .28s ease, background .3s, border-color .3s;
+          z-index: 90;
+        }
+        .ilm-sb-root[data-mode="hidden"] {
           border-right-width: 0;
           pointer-events: none;
         }
- 
-        .sidebar-nav::-webkit-scrollbar { width: 3px; }
-        .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
-        [data-dark="true"]  .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.3); border-radius:10px; }
-        [data-dark="false"] .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.2); border-radius:10px; }
- 
-        .nav-item {
+
+        .ilm-sb-nav::-webkit-scrollbar { width: 3px; }
+        .ilm-sb-nav::-webkit-scrollbar-track { background: transparent; }
+        .ilm-sb-nav::-webkit-scrollbar-thumb { background: var(--sb-scrollbar-thumb); border-radius: 10px; }
+
+        .ilm-sb-header { padding: 18px 18px 14px; }
+
+        .ilm-sb-collapse-btn {
+          padding: 6px; border-radius: 8px; cursor: pointer;
+          display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+          border: 1px solid var(--sb-border); background: var(--sb-item-hover-bg);
+          color: var(--sb-text-muted); transition: all 0.15s;
+        }
+        .ilm-sb-collapse-btn:hover {
+          color: var(--sb-active-color); border-color: var(--sb-active-color);
+        }
+
+        .ilm-sb-logo-icon-box {
+          width: 40px; height: 40px; border-radius: 11px;
+          background: var(--sb-logo-bg); border: 1px solid var(--sb-logo-border);
+          display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .ilm-sb-logo-sub {
+          font-size: 10.5px; font-weight: 700; color: var(--sb-text-muted);
+          letter-spacing: 0.08em; margin: 2px 0 0;
+        }
+
+        .ilm-sb-nav-item {
           width: 100%; display: flex; align-items: center;
-          padding: 7px 10px; border-radius: 9px; font-size: 13px;
-          font-weight: 500; transition: all 0.15s ease; cursor: pointer;
-          border: none; background: transparent; text-align: left; gap: 0;
-          position: relative;
+          padding: 11px 12px; border-radius: 10px; font-size: 14.5px;
+          font-weight: 700; transition: all 0.15s ease; cursor: pointer;
+          border: none; background: transparent; text-align: left; gap: 11px;
+          position: relative; color: var(--sb-text);
         }
-        [data-dark="false"] .nav-item              { color: #374151; }
-        [data-dark="false"] .nav-item:hover        { color: #1d4ed8; background: #eff6ff; }
-        [data-dark="false"] .nav-item.active       { color: #ffffff; background: #2563eb; font-weight: 600; box-shadow: 0 2px 8px rgba(37,99,235,0.25); }
-        [data-dark="false"] .nav-item.group-active { color: #1d4ed8; font-weight: 600; }
-        [data-dark="true"]  .nav-item              { color: #a1a1aa; }
-        [data-dark="true"]  .nav-item:hover        { color: #ffffff; background: rgba(255,255,255,0.07); }
-        [data-dark="true"]  .nav-item.active       { color: #ffffff; background: #2563eb; font-weight: 600; box-shadow: 0 2px 8px rgba(37,99,235,0.4); }
-        [data-dark="true"]  .nav-item.group-active { color: #60a5fa; font-weight: 600; }
- 
-        /* ✅ AI Tools group — subtle purple tint to stand out */
-        [data-dark="false"] .nav-item.ai-group              { color: #7c3aed; }
-        [data-dark="false"] .nav-item.ai-group:hover        { color: #6d28d9; background: #f5f3ff; }
-        [data-dark="false"] .nav-item.ai-group.group-active { color: #6d28d9; background: #ede9fe; }
-        [data-dark="true"]  .nav-item.ai-group              { color: #a78bfa; }
-        [data-dark="true"]  .nav-item.ai-group:hover        { color: #c4b5fd; background: rgba(139,92,246,0.10); }
-        [data-dark="true"]  .nav-item.ai-group.group-active { color: #c4b5fd; background: rgba(139,92,246,0.14); }
- 
-        [data-dark="false"] .nav-item.ai-group .icon-box              { background: #ede9fe; color: #7c3aed; }
-        [data-dark="false"] .nav-item.ai-group:hover .icon-box        { background: #ddd6fe; color: #6d28d9; }
-        [data-dark="false"] .nav-item.ai-group.group-active .icon-box { background: #ddd6fe; color: #6d28d9; }
-        [data-dark="true"]  .nav-item.ai-group .icon-box              { background: rgba(139,92,246,0.12); color: #a78bfa; }
-        [data-dark="true"]  .nav-item.ai-group:hover .icon-box        { background: rgba(139,92,246,0.18); color: #c4b5fd; }
-        [data-dark="true"]  .nav-item.ai-group.group-active .icon-box { background: rgba(139,92,246,0.20); color: #c4b5fd; }
- 
-        /* ✅ AI child items — purple accent */
-        [data-dark="false"] .ai-child-item        { color: #7c3aed; }
-        [data-dark="false"] .ai-child-item:hover  { color: #6d28d9; background: #f5f3ff; }
-        [data-dark="false"] .ai-child-item.active { color: #ffffff; background: #7c3aed; font-weight: 600; box-shadow: 0 1px 6px rgba(124,58,237,0.25); }
-        [data-dark="true"]  .ai-child-item        { color: #a78bfa; }
-        [data-dark="true"]  .ai-child-item:hover  { color: #c4b5fd; background: rgba(139,92,246,0.09); }
-        [data-dark="true"]  .ai-child-item.active { color: #ffffff; background: #7c3aed; font-weight: 600; box-shadow: 0 1px 6px rgba(139,92,246,0.35); }
- 
-        [data-dark="false"] .ai-connector { border-left: 2px solid #ddd6fe; }
-        [data-dark="true"]  .ai-connector { border-left: 2px solid rgba(139,92,246,0.25); }
- 
-        /* ✅ NEW badge pill next to AI Tools label */
-        .ai-badge {
-          font-size: 9px; font-weight: 700; letter-spacing: 0.05em;
-          padding: 1px 5px; border-radius: 20px; flex-shrink: 0;
-          margin-left: 4px; line-height: 1.6;
+        .ilm-sb-nav-item svg { flex-shrink: 0; color: var(--sb-text-muted); }
+        .ilm-sb-nav-item:hover { background: var(--sb-item-hover-bg); }
+        .ilm-sb-nav-item.active {
+          background: var(--sb-active-bg); color: var(--sb-active-color);
         }
-        [data-dark="false"] .ai-badge { background: #ede9fe; color: #7c3aed; border: 1px solid #ddd6fe; }
-        [data-dark="true"]  .ai-badge { background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.25); }
- 
-        .icon-box {
-          width: 28px; height: 28px; display: flex; align-items: center;
-          justify-content: center; border-radius: 7px; flex-shrink: 0; transition: background 0.15s;
-        }
-        [data-dark="false"] .icon-box                  { background: #f1f5f9; color: #64748b; }
-        [data-dark="false"] .nav-item:hover .icon-box  { background: #dbeafe; color: #1d4ed8; }
-        [data-dark="false"] .nav-item.active .icon-box { background: rgba(255,255,255,0.20); color: #ffffff; }
-        [data-dark="true"]  .icon-box                  { background: rgba(255,255,255,0.08); color: #71717a; }
-        [data-dark="true"]  .nav-item:hover .icon-box  { background: rgba(255,255,255,0.12); color: #93c5fd; }
-        [data-dark="true"]  .nav-item.active .icon-box { background: rgba(255,255,255,0.20); color: #ffffff; }
- 
-        .child-item {
+        .ilm-sb-nav-item.active svg { color: var(--sb-active-color); }
+        .ilm-sb-nav-item.group-active { color: var(--sb-active-color); }
+        .ilm-sb-nav-item.group-active svg { color: var(--sb-active-color); }
+
+        .ilm-sb-nav-item.ai-group svg { color: var(--sb-ai-color); }
+
+        .ilm-sb-child-item {
           width: 100%; display: flex; align-items: center;
-          gap: 7px; padding: 6px 10px; border-radius: 7px;
-          font-size: 12px; font-weight: 500; transition: all 0.14s ease;
+          gap: 9px; padding: 9px 12px; border-radius: 9px;
+          font-size: 13.5px; font-weight: 600; transition: all 0.14s ease;
           cursor: pointer; border: none; background: transparent; text-align: left;
+          color: var(--sb-child-color);
         }
-        [data-dark="false"] .child-item        { color: #6b7280; }
-        [data-dark="false"] .child-item:hover  { color: #1d4ed8; background: #eff6ff; }
-        [data-dark="false"] .child-item.active { color: #ffffff; background: #2563eb; font-weight: 600; box-shadow: 0 1px 6px rgba(37,99,235,0.2); }
-        [data-dark="true"]  .child-item        { color: #71717a; }
-        [data-dark="true"]  .child-item:hover  { color: #e4e4e7; background: rgba(255,255,255,0.06); }
-        [data-dark="true"]  .child-item.active { color: #ffffff; background: #2563eb; font-weight: 600; box-shadow: 0 1px 6px rgba(37,99,235,0.4); }
- 
-        [data-dark="false"] .child-connector { border-left: 2px solid #dbeafe; }
-        [data-dark="true"]  .child-connector { border-left: 2px solid rgba(59,130,246,0.20); }
-        .child-connector {
-          margin-left: 20px; padding-left: 8px;
-          margin-top: 2px; margin-bottom: 2px;
+        .ilm-sb-child-item svg { flex-shrink: 0; color: var(--sb-text-muted); }
+        .ilm-sb-child-item:hover  { color: var(--sb-active-color); background: var(--sb-child-hover-bg); }
+        .ilm-sb-child-item.active { color: var(--sb-active-color); background: var(--sb-active-bg); }
+        .ilm-sb-child-item.active svg { color: var(--sb-active-color); }
+
+        .ilm-sb-connector {
+          margin-left: 22px; padding-left: 10px;
+          margin-top: 3px; margin-bottom: 4px;
+          border-left: 2px solid var(--sb-connector-border);
           display: flex; flex-direction: column; gap: 1px;
         }
-        .ai-connector {
-          margin-left: 20px; padding-left: 8px;
-          margin-top: 2px; margin-bottom: 2px;
+
+        .ilm-sb-flyout {
+          position: absolute; left: calc(100% + 8px); top: -4px;
+          min-width: 208px; border-radius: 12px; padding: 6px; z-index: 95;
           display: flex; flex-direction: column; gap: 1px;
+          background: var(--sb-flyout-bg); border: 1px solid var(--sb-flyout-border);
+          box-shadow: var(--sb-flyout-shadow);
+          animation: ilmSbFlyoutIn 0.14s ease;
         }
- 
-        /* ── Flyout submenu (icon mode: hover / click beside the rail) ── */
-        .flyout-menu {
-          position: absolute;
-          left: calc(100% + 8px);
-          top: -4px;
-          min-width: 208px;
-          border-radius: 12px;
-          padding: 6px;
-          z-index: 60;
-          display: flex;
-          flex-direction: column;
-          gap: 1px;
-          animation: flyoutIn 0.14s ease;
-        }
-        @keyframes flyoutIn {
+        @keyframes ilmSbFlyoutIn {
           from { opacity: 0; transform: translateX(-6px); }
           to   { opacity: 1; transform: translateX(0); }
         }
-        [data-dark="false"] .flyout-menu { background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 12px 32px rgba(15,23,42,0.14); }
-        [data-dark="true"]  .flyout-menu { background: #0a0a0a; border: 1px solid #1a1a1a; box-shadow: 0 12px 32px rgba(0,0,0,0.55); }
-        .flyout-title {
+        .ilm-sb-flyout-title {
           font-size: 11px; font-weight: 700; text-transform: uppercase;
-          letter-spacing: 0.04em; padding: 6px 8px 4px;
+          letter-spacing: 0.04em; padding: 6px 8px 4px; color: var(--sb-text-muted);
         }
-        [data-dark="false"] .flyout-title { color: #94a3b8; }
-        [data-dark="true"]  .flyout-title { color: #52525b; }
- 
-        .role-badge {
-          display: inline-flex; align-items: center; gap: 5px;
-          padding: 3px 10px; border-radius: 20px;
-          font-size: 10px; font-weight: 700; letter-spacing: 0.05em;
-        }
-        [data-dark="false"] .role-badge { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
-        [data-dark="true"]  .role-badge { background: rgba(59,130,246,0.12); color: #60a5fa; border: 1px solid rgba(59,130,246,0.22); }
- 
-        .role-dot {
-          width: 5px; height: 5px; border-radius: 50%;
-          background: #22c55e; box-shadow: 0 0 5px #22c55e;
-          animation: pulse-dot 2s infinite;
-        }
-        @keyframes pulse-dot {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50%       { opacity: 0.5; transform: scale(0.75); }
-        }
- 
-        [data-dark="false"] .sidebar-header { border-bottom: 1px solid #e2e8f0; }
-        [data-dark="true"]  .sidebar-header { border-bottom: 1px solid #1a1a1a; }
-        [data-dark="false"] .sidebar-footer { border-top: 1px solid #e2e8f0; }
-        [data-dark="true"]  .sidebar-footer { border-top: 1px solid #1a1a1a; }
-        .sidebar-header { padding: 12px 10px; }
-        .sidebar-footer { padding: 8px; }
- 
-        .collapse-btn {
-          padding: 6px; border-radius: 8px; cursor: pointer;
-          display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-          border: none; transition: all 0.15s;
-        }
-        [data-dark="false"] .collapse-btn       { background: #f1f5f9; border: 1px solid #e2e8f0; color: #64748b; }
-        [data-dark="false"] .collapse-btn:hover { background: #dbeafe; color: #1d4ed8; border-color: #bfdbfe; }
-        [data-dark="true"]  .collapse-btn       { background: rgba(255,255,255,0.07); border: 1px solid #1a1a1a; color: #71717a; }
-        [data-dark="true"]  .collapse-btn:hover { background: rgba(255,255,255,0.12); color: #60a5fa; border-color: rgba(59,130,246,0.3); }
- 
-        [data-dark="false"] .logo-sub { color: #111827; }
-        [data-dark="true"]  .logo-sub { color: #ffffff; }
-        [data-dark="false"] .logo-icon-box { background: #dbeafe; border: 1px solid #bfdbfe; }
-        [data-dark="true"]  .logo-icon-box { background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.22); }
- 
-        .user-card {
-          display: flex; align-items: center; gap: 8px;
-          padding: 7px 8px; border-radius: 10px;
-        }
-        [data-dark="false"] .user-card { background: #f8fafc; border: 1px solid #e2e8f0; }
-        [data-dark="true"]  .user-card { background: rgba(255,255,255,0.05); border: 1px solid #1a1a1a; }
- 
-        .user-avatar {
-          width: 30px; height: 30px; border-radius: 8px;
-          display: flex; align-items: center; justify-content: center;
-          font-size: 11px; font-weight: 800; color: #fff; flex-shrink: 0;
-          background: linear-gradient(135deg, #2563eb, #6366f1);
-          overflow: hidden;
-        }
-        .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
- 
-        [data-dark="false"] .user-name       { color: #0f172a; }
-        [data-dark="true"]  .user-name       { color: #ffffff; }
-        [data-dark="false"] .user-role-label { color: #94a3b8; }
-        [data-dark="true"]  .user-role-label { color: #52525b; }
- 
-        .logout-btn {
-          padding: 5px; border-radius: 7px; border: none;
-          cursor: pointer; display: flex; align-items: center;
-          justify-content: center; flex-shrink: 0; margin-left: auto;
-          background: transparent; transition: all 0.15s;
-        }
-        [data-dark="false"] .logout-btn       { color: #94a3b8; }
-        [data-dark="false"] .logout-btn:hover { background: #fee2e2; color: #ef4444; }
-        [data-dark="true"]  .logout-btn       { color: #52525b; }
-        [data-dark="true"]  .logout-btn:hover { background: rgba(239,68,68,0.15); color: #f87171; }
- 
-        .theme-btn {
-          width: 100%; display: flex; align-items: center; gap: 8px;
-          padding: 6px 8px; border-radius: 8px; font-size: 12px; font-weight: 500;
-          background: transparent; border: none; cursor: pointer;
-          transition: all 0.15s; margin-bottom: 4px;
-        }
-        [data-dark="false"] .theme-btn       { color: #64748b; }
-        [data-dark="false"] .theme-btn:hover { background: #f1f5f9; color: #1e293b; }
-        [data-dark="true"]  .theme-btn       { color: #52525b; }
-        [data-dark="true"]  .theme-btn:hover { background: rgba(255,255,255,0.06); color: #ffffff; }
- 
-        .theme-icon-box {
-          width: 26px; height: 26px; border-radius: 7px;
-          display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-        }
-        [data-dark="false"] .theme-icon-box { background: #f1f5f9; border: 1px solid #e2e8f0; }
-        [data-dark="true"]  .theme-icon-box { background: rgba(255,255,255,0.07); border: 1px solid #1a1a1a; }
- 
-        [data-dark="false"] .chevron                          { color: #cbd5e1; }
-        [data-dark="true"]  .chevron                          { color: #3f3f46; }
-        [data-dark="false"] .nav-item.group-active .chevron   { color: #2563eb; }
-        [data-dark="true"]  .nav-item.group-active .chevron   { color: #60a5fa; }
-        [data-dark="false"] .nav-item.ai-group .chevron              { color: #c4b5fd; }
-        [data-dark="false"] .nav-item.ai-group.group-active .chevron { color: #7c3aed; }
-        [data-dark="true"]  .nav-item.ai-group .chevron              { color: rgba(139,92,246,0.35); }
-        [data-dark="true"]  .nav-item.ai-group.group-active .chevron { color: #a78bfa; }
- 
-        .role-select {
-          width: 100%; font-size: 11px; border-radius: 8px;
-          padding: 5px 8px; outline: none; cursor: pointer; font-weight: 500;
-        }
-        [data-dark="false"] .role-select        { border: 1px solid #bfdbfe; background: #eff6ff; color: #1d4ed8; }
-        [data-dark="false"] .role-select option { background: #ffffff; color: #374151; }
-        [data-dark="true"]  .role-select        { border: 1px solid rgba(59,130,246,0.2); background: rgba(255,255,255,0.05); color: #93c5fd; }
-        [data-dark="true"]  .role-select option { background: #000000; color: #e4e4e7; }
- 
-        .nav-label {
+
+        .ilm-sb-chevron { color: var(--sb-chevron); transition: transform 0.2s; flex-shrink: 0; margin-left: auto; }
+        .ilm-sb-nav-item.group-active .ilm-sb-chevron { color: var(--sb-active-color); }
+
+        .ilm-sb-nav-label {
           flex: 1; text-align: left;
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-          margin-left: 9px;
         }
- 
-        /* ── Icon-mode centering fix ──
-           When only the icon-box renders (label hidden), the button's
-           default flex-start alignment left-shoves it against the
-           padding instead of centering it in the 72px rail. This was
-           the "icon layout broken" bug — center everything explicitly. */
-        .sidebar-root[data-mode="icon"] .nav-item {
-          justify-content: center;
-          padding: 9px 0;
-        }
-        .sidebar-root[data-mode="icon"] .sidebar-nav {
-          padding-left: 0;
-          padding-right: 0;
-          align-items: center;
-        }
-        .sidebar-root[data-mode="icon"] .sidebar-nav > div {
-          width: 100%;
-          display: flex;
-          justify-content: center;
-        }
-        .sidebar-root[data-mode="icon"] .theme-btn {
-          justify-content: center;
-          padding: 6px 0;
-        }
-        .sidebar-root[data-mode="icon"] .user-card {
-          justify-content: center;
-          padding: 7px 0;
-        }
-        .sidebar-root[data-mode="icon"] .sidebar-footer {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-        }
- 
-        /* ── Mobile/tablet: only "full" mode becomes a fixed overlay
-               (280px is too wide to push content on a phone/iPad).
-               "icon" mode (72px) behaves EXACTLY like desktop — it
-               just pushes the content column — so the fold concept
-               (full → icon → hidden) feels identical on every device. ── */
-        .sidebar-backdrop { display: none; }
+
+        .ilm-sb-root[data-mode="icon"] .ilm-sb-nav-item { justify-content: center; padding: 11px 0; }
+        .ilm-sb-root[data-mode="icon"] .ilm-sb-nav { padding-left: 0; padding-right: 0; align-items: center; }
+        .ilm-sb-root[data-mode="icon"] .ilm-sb-nav > div { width: 100%; display: flex; justify-content: center; }
+
+        .ilm-sb-backdrop { display: none; }
         @media (max-width: 768px) {
-          .sidebar-root[data-mode="full"] {
-            position: fixed;
-            top: 0; left: 0;
-            height: 100vh;
-            z-index: 70;
-            box-shadow: 8px 0 32px rgba(0,0,0,0.25);
-          }
-          .sidebar-backdrop[data-show="true"] {
-            display: block;
-            position: fixed;
-            inset: 0;
-            background: rgba(15,23,42,0.45);
-            z-index: 65;
-            animation: flyoutIn 0.2s ease;
+          .ilm-sb-root[data-mode="full"] { z-index: 170; box-shadow: 8px 0 32px rgba(0,0,0,0.25); }
+          .ilm-sb-backdrop[data-show="true"] {
+            display: block; position: fixed; inset: 0;
+            background: rgba(15,23,42,0.45); z-index: 165;
+            animation: ilmSbFlyoutIn 0.2s ease;
           }
         }
       `}</style>
- 
-      {/* Mobile-only dim backdrop — shown only behind "full" mode.
-          "icon" mode never dims the screen, same as on desktop. */}
+
       <div
-        className="sidebar-backdrop"
-        data-show={sidebarMode === "full"}
+        className="ilm-sb-backdrop"
+        data-show={safeMode === "full"}
         onClick={() => setSidebarMode("hidden")}
       />
- 
+
       <aside
-        className="sidebar-root"
-        data-dark={String(dark)}
-        data-mode={sidebarMode}
+        className="ilm-sb-root"
+        data-mode={safeMode}
+        data-theme={theme}
         aria-hidden={hidden}
         style={{
           width: sidebarWidth,
           flexShrink: 0,
           display: "flex",
           flexDirection: "column",
-          height: "100vh",
+          height: "calc(100vh - 68px)",
           overflow: "hidden",
-          
           opacity: hidden ? 0 : 1,
         }}
       >
-        {/* ── HEADER ── */}
-        <div className="sidebar-header" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div
+          className="ilm-sb-header"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            flexDirection: collapsed ? "column" : "row",
+          }}
+        >
           {!collapsed && !hidden && (
-            <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: "9px" }}>
-              <div className="logo-icon-box" style={{
-                width: 33, height: 33, borderRadius: 9,
-                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-              }}>
-                <GraduationCap size={16} color="#2563eb" />
+            <div
+              style={{
+                flex: 1,
+                minWidth: 0,
+                display: "flex",
+                alignItems: "center",
+                gap: "11px",
+              }}
+            >
+              <div className="ilm-sb-logo-icon-box">
+                <GraduationCap size={19} color="#2563eb" />
               </div>
               <div style={{ minWidth: 0 }}>
-                <p className="text-[16px] font-extrabold font-serif leading-none whitespace-nowrap">
+                <p
+                  className="text-[18px] font-extrabold font-serif leading-none whitespace-nowrap"
+                  style={{ margin: 0 }}
+                >
                   <span className="text-green-600">ILM</span>
                   <span className="text-orange-500 ml-1">ORA</span>
                 </p>
-                <p className="logo-sub" style={{ fontSize: 8, marginTop: 2, letterSpacing: "0.05em", margin: 0 }}>
-                  Intelligent Learning Management
-                </p>
+                <p className="ilm-sb-logo-sub">{portalLabel}</p>
               </div>
+            </div>
+          )}
+          {collapsed && !hidden && (
+            <div className="ilm-sb-logo-icon-box" style={{ margin: "0 auto" }}>
+              <GraduationCap size={19} color="#2563eb" />
             </div>
           )}
           {!hidden && (
             <button
-              className="collapse-btn"
+              className="ilm-sb-collapse-btn"
               onClick={toggleSidebar}
               title={collapsed ? "Expand" : "Collapse"}
-              style={collapsed ? { margin: "0 auto" } : {}}
+              style={collapsed ? { marginTop: "6px" } : { marginLeft: "auto" }}
             >
               <Menu size={15} />
             </button>
           )}
         </div>
- 
-        {/* ── ROLE BADGE ── */}
-        {!collapsed && !hidden && (
-          <div style={{ padding: "7px 10px 3px" }}>
-            <span className="role-badge">
-              <span className="role-dot" />
-              {role.label}
-            </span>
-          </div>
-        )}
- 
-        {/* ── ROLE SWITCHER ── */}
-        {showRoleDropdown && !collapsed && !hidden && (
-          <div style={{ padding: "4px 10px 6px" }}>
-            <select className="role-select" value={currentRolePath} onChange={e => navigate(e.target.value)}>
-              <option value="/student">Student</option>
-              <option value="/trainer">Trainer</option>
-              <option value="/admin">Manager</option>
-              <option value="/business">Tenant Admin</option>
-              <option value="/superadmin">Super Admin</option>
-            </select>
-          </div>
-        )}
- 
-        {/* ── NAV ── */}
-        <nav className="sidebar-nav" style={{ flex: 1, overflowY: "auto", overflowX: "visible", padding: "6px 7px", display: "flex", flexDirection: "column", gap: "2px" }}>
+
+        <nav
+          className="ilm-sb-nav"
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            overflowX: "visible",
+            padding: "8px 12px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "3px",
+          }}
+        >
           {menus.map((item) => {
-            const Icon    = item.icon;
-            const isOpen  = openGroups[item.name] ?? false;
-            const isAI    = item.name === "AI Tools"; // ✅ flag for AI group
+            const Icon = item.icon;
+            const isOpen = openGroups[item.name] ?? false;
+            const isAI = item.name === "AI Tools";
             const isFlyoutOpen = collapsed && flyoutGroup === item.name;
- 
+
             if (item.children) {
-              const isGroupActive = item.children.some(c => location.pathname === c.path);
+              const isGroupActive = item.children.some(
+                (c) => currentPath === c.path,
+              );
               return (
                 <div
                   key={item.name}
@@ -875,51 +868,54 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
                   onMouseLeave={() => collapsed && scheduleCloseFlyout()}
                 >
                   <button
-                    className={`nav-item ${isGroupActive ? "group-active" : ""} ${isAI ? "ai-group" : ""}`}
+                    className={`ilm-sb-nav-item ${isGroupActive ? "group-active" : ""} ${isAI ? "ai-group" : ""}`}
                     onClick={() => {
                       if (collapsed) {
-                        // icon mode → toggle flyout instead of expanding the rail
-                        setFlyoutGroup(prev => (prev === item.name ? null : item.name));
+                        setFlyoutGroup((prev) =>
+                          prev === item.name ? null : item.name,
+                        );
                       } else {
-                        setOpenGroups(p => ({ ...p, [item.name]: !isOpen }));
+                        setOpenGroups((p) => ({ ...p, [item.name]: !isOpen }));
                       }
                     }}
                     title={collapsed ? item.name : undefined}
                   >
-                    <span className="icon-box"><Icon size={14} /></span>
+                    <Icon size={19} />
                     {!collapsed && !hidden && (
                       <>
-                        <span className="nav-label">{item.name}</span>
-                        {/* ✅ NEW badge only for AI Tools */}
-                        {isAI && <span className="ai-badge">NEW</span>}
-                        <ChevronDown
-                          size={13}
-                          className="chevron"
+                        <span className="ilm-sb-nav-label">{item.name}</span>
+                        <ChevronRight
+                          size={16}
+                          className="ilm-sb-chevron"
                           style={{
-                            flexShrink: 0,
-                            transition: "transform 0.2s",
-                            transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
-                            marginLeft: isAI ? 4 : 0,
+                            transform: isOpen
+                              ? "rotate(90deg)"
+                              : "rotate(0deg)",
                           }}
                         />
                       </>
                     )}
                   </button>
- 
-                  {/* Full mode: inline accordion connector (unchanged) */}
+
                   {!collapsed && !hidden && isOpen && (
-                    <div className={isAI ? "ai-connector" : "child-connector"}>
-                      {item.children.map(child => {
-                        const active    = location.pathname === child.path;
+                    <div className="ilm-sb-connector">
+                      {item.children.map((child) => {
+                        const active = currentPath === child.path;
                         const ChildIcon = child.icon;
                         return (
                           <button
                             key={child.name}
-                            className={`${isAI ? "child-item ai-child-item" : "child-item"} ${active ? "active" : ""}`}
-                            onClick={() => navigate(child.path)}
+                            className={`ilm-sb-child-item ${active ? "active" : ""}`}
+                            onClick={() => go(child.path)}
                           >
-                            <ChildIcon size={12} style={{ flexShrink: 0 }} />
-                            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            <ChildIcon size={14} />
+                            <span
+                              style={{
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
                               {child.name}
                             </span>
                           </button>
@@ -927,29 +923,34 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
                       })}
                     </div>
                   )}
- 
-                  {/* Icon mode: flyout submenu beside the rail (hover or click) */}
+
                   {isFlyoutOpen && (
                     <div
-                      className="flyout-menu"
+                      className="ilm-sb-flyout"
                       onMouseEnter={() => openFlyout(item.name)}
                       onMouseLeave={() => scheduleCloseFlyout()}
                     >
-                      <div className="flyout-title">{item.name}</div>
-                      {item.children.map(child => {
-                        const active    = location.pathname === child.path;
+                      <div className="ilm-sb-flyout-title">{item.name}</div>
+                      {item.children.map((child) => {
+                        const active = currentPath === child.path;
                         const ChildIcon = child.icon;
                         return (
                           <button
                             key={child.name}
-                            className={`${isAI ? "child-item ai-child-item" : "child-item"} ${active ? "active" : ""}`}
+                            className={`ilm-sb-child-item ${active ? "active" : ""}`}
                             onClick={() => {
-                              navigate(child.path);
+                              go(child.path);
                               setFlyoutGroup(null);
                             }}
                           >
-                            <ChildIcon size={13} style={{ flexShrink: 0 }} />
-                            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            <ChildIcon size={15} />
+                            <span
+                              style={{
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
                               {child.name}
                             </span>
                           </button>
@@ -960,139 +961,27 @@ const Sidebar = ({ sidebarMode: sidebarModeProp, setSidebarMode: setSidebarModeP
                 </div>
               );
             }
- 
-            const active = location.pathname === item.path;
+
+            const active = currentPath === item.path;
             return (
               <button
                 key={item.name}
-                className={`nav-item ${active ? "active" : ""}`}
-                onClick={() => navigate(item.path)}
+                className={`ilm-sb-nav-item ${active ? "active" : ""}`}
+                onClick={() => go(item.path)}
                 title={collapsed ? item.name : undefined}
               >
-                <span className="icon-box"><Icon size={14} /></span>
-                {!collapsed && !hidden && <span className="nav-label">{item.name}</span>}
+                <Icon size={19} />
+                {!collapsed && !hidden && (
+                  <span className="ilm-sb-nav-label">{item.name}</span>
+                )}
               </button>
             );
           })}
         </nav>
- 
-        {/* ── FOOTER ── */}
-        <div className="sidebar-footer">
-          <button className="theme-btn" onClick={toggleTheme} title={collapsed ? (dark ? "Light Mode" : "Dark Mode") : undefined}>
-            <span className="theme-icon-box">
-              {dark ? <Sun size={13} color="#3b82f6" /> : <Moon size={13} color="#64748b" />}
-            </span>
-            {!collapsed && !hidden && <span>{dark ? "Light Mode" : "Dark Mode"}</span>}
-          </button>
- 
-          {/* ✅ User card — profileImage hai toh photo, nahi toh initials */}
-          <div className="user-card" title={collapsed ? userName : undefined}>
-            <div className="user-avatar">
-              {profileImage
-                ? <img src={profileImage} alt="Profile" />
-                : initials
-              }
-            </div>
-            {!collapsed && !hidden && (
-              <>
-                <div style={{ flex: 1, overflow: "hidden" }}>
-                  <p className="user-name" style={{ fontSize: 12, fontWeight: 600, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", lineHeight: 1.3 }}>
-                    {userName}
-                  </p>
-                  <p className="user-role-label" style={{ fontSize: 10, margin: 0, lineHeight: 1.3 }}>
-                    {role.label}
-                  </p>
-                </div>
-                <button className="logout-btn" onClick={handleLogout} title="Logout">
-                  <LogOut size={13} />
-                </button>
-              </>
-            )}
-          </div>
-        </div>
       </aside>
     </>
   );
 };
- 
-export default Sidebar;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+export default IlmDemoSidebar;
+export { SIDEBAR_WIDTHS, SECTION_INDEX, ROLE_HOME_PATH };

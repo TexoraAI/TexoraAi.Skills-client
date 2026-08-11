@@ -213,6 +213,12 @@ const videoService = {
     });
   },
 
+  getVideoTranscript(videoId) {
+    return axios.get(`${API_GATEWAY}/video/${videoId}/transcript`, {
+      headers: getAuthHeaders(),
+    });
+  },
+
   // ─────────────────────────────────────────────────────────────────
   //  COURSE MODULE VIDEOS (unchanged)
   // ─────────────────────────────────────────────────────────────────
@@ -257,7 +263,18 @@ const videoService = {
       headers: getAuthHeaders(),
     });
   },
+  getCourseVideoTranscript(id) {
+    return axios.get(`${API_GATEWAY}/course-videos/${id}/transcript`, {
+      headers: getAuthHeaders(),
+    });
+  },
 
+  getCourseVideoTranscriptByUrl(url) {
+    return axios.get(`${API_GATEWAY}/course-videos/transcript-by-url`, {
+      headers: getAuthHeaders(),
+      params: { url },
+    });
+  },
   // ─────────────────────────────────────────────────────────────────
   //  VIDEO FEATURE FLAGS (unchanged)
   // ─────────────────────────────────────────────────────────────────

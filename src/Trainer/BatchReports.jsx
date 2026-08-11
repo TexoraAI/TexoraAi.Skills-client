@@ -1,92 +1,24 @@
 import { useState, useEffect } from "react";
-import {
-  Users,
-  BookOpen,
-  Video,
-  FileText,
-  ClipboardList,
-  BarChart3,
-  TrendingUp,
-  ChevronRight,
-} from "lucide-react";
+import { Users, BarChart3 } from "lucide-react";
 import { progressService } from "../services/progressService";
 import { getTrainerBatches } from "../services/batchService";
 
-/* ─── Theme tokens (identical to Dashboard) ─────────────────────────────── */
-const T = {
-  dark: {
-    pageBg: "#0a0a0a",
-    cardBg: "#111111",
-    cardBgHov: "#161616",
-    heroBg: "#141414",
-    border: "rgba(255,255,255,0.06)",
-    borderHov: "rgba(255,255,255,0.14)",
-    borderHero: "rgba(255,255,255,0.07)",
-    text: "#ffffff",
-    textSub: "rgba(255,255,255,0.3)",
-    textMuted: "rgba(255,255,255,0.2)",
-    textLabel: "rgba(255,255,255,0.22)",
-    pillBg: "rgba(255,255,255,0.04)",
-    pillBorder: "rgba(255,255,255,0.07)",
-    pillText: "rgba(255,255,255,0.25)",
-    iconBg: "rgba(255,255,255,0.05)",
-    iconBorder: "rgba(255,255,255,0.08)",
-    barBg: "rgba(255,255,255,0.05)",
-    actBg: "rgba(255,255,255,0.04)",
-    actBorder: "rgba(255,255,255,0.07)",
-    shadow: "0 4px 20px rgba(0,0,0,0.4)",
-    shadowHov: "0 20px 60px rgba(0,0,0,0.6)",
-    recentItemBg: "rgba(255,255,255,0.03)",
-    recentItemBorder: "rgba(255,255,255,0.05)",
-    recentItemBgHov: "rgba(255,255,255,0.06)",
-    emptyBorder: "rgba(255,255,255,0.07)",
-    emptyBg: "rgba(255,255,255,0.02)",
-    emptyIcon: "rgba(255,255,255,0.12)",
-    scrollbar: "rgba(255,255,255,0.08)",
-    activeRowBg: "rgba(34,211,238,0.06)",
-    activeRowBorder: "rgba(34,211,238,0.2)",
-    tableTh: "rgba(255,255,255,0.2)",
-    tableThBg: "rgba(0,0,0,0.3)",
-    gridLine: "rgba(255,255,255,0.5)",
-    tableRowHov: "rgba(255,255,255,0.03)",
-  },
-  light: {
-    pageBg: "#f1f5f9",
-    cardBg: "#ffffff",
-    cardBgHov: "#f8fafc",
-    heroBg: "#ffffff",
-    border: "#e2e8f0",
-    borderHov: "#cbd5e1",
-    borderHero: "#e2e8f0",
-    text: "#0f172a",
-    textSub: "#64748b",
-    textMuted: "#94a3b8",
-    textLabel: "#94a3b8",
-    pillBg: "#f1f5f9",
-    pillBorder: "#e2e8f0",
-    pillText: "#94a3b8",
-    iconBg: "#f8fafc",
-    iconBorder: "#e2e8f0",
-    barBg: "#f1f5f9",
-    actBg: "#f8fafc",
-    actBorder: "#e2e8f0",
-    shadow: "0 1px 8px rgba(0,0,0,0.07)",
-    shadowHov: "0 8px 32px rgba(0,0,0,0.10)",
-    recentItemBg: "#f8fafc",
-    recentItemBorder: "#e2e8f0",
-    recentItemBgHov: "#f1f5f9",
-    emptyBorder: "#e2e8f0",
-    emptyBg: "#f8fafc",
-    emptyIcon: "#cbd5e1",
-    scrollbar: "#e2e8f0",
-    activeRowBg: "rgba(8,145,178,0.05)",
-    activeRowBorder: "rgba(8,145,178,0.2)",
-    tableTh: "#94a3b8",
-    tableThBg: "#f8fafc",
-    gridLine: "rgba(0,0,0,0.12)",
-    tableRowHov: "#f8fafc",
-  },
-};
+// ── Global Design System — same tokens/components as the Trainer
+// Dashboard / Attendance page (Golden Reference). Nothing here should
+// diverge from what's exported below.
+import {
+  T,
+  FONT_FAMILY,
+  FONT_WEIGHT,
+  FONT_SIZE,
+  LINE_HEIGHT,
+  LETTER_SPACING,
+  RADIUS,
+  CARD_PADDING,
+  ACCENT_PURPLE,
+  PageContainer,
+  Hero,
+} from "@/design-system";
 
 /* ─── Constants ──────────────────────────────────────────────────────────── */
 const METRIC_COLORS = {
@@ -121,16 +53,64 @@ function progColor(v) {
   return v >= 75 ? METRIC_COLORS.overall : v >= 50 ? METRIC_COLORS.assignment : "#ef4444";
 }
 
-/* ─── Donut Ring (identical to Dashboard) ───────────────────────────────── */
+/* ─── Page-local layout helpers (token-driven, mirrors Attendance.jsx) ──── */
+function IconBadge({ icon: Icon, color, size = 34, iconSize = 15 }) {
+  return (
+    <div style={{ width: size, height: size, borderRadius: RADIUS.chip, display: "flex", alignItems: "center", justifyContent: "center", background: `${color}18`, border: `1px solid ${color}30`, flexShrink: 0 }}>
+      <Icon size={iconSize} color={color} />
+    </div>
+  );
+}
+function SectionCard({ t, children, style }) {
+  return (
+    <div style={{ background: t.cardBg, border: `1px solid ${t.border}`, borderRadius: RADIUS.standardCard, boxShadow: t.shadow, overflow: "hidden", position: "relative", ...style }}>
+      {children}
+    </div>
+  );
+}
+function SectionHeader({ t, icon: Icon, color, title, sub, right }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: `1px solid ${t.border}`, flexWrap: "wrap", gap: 10 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <IconBadge icon={Icon} color={color} />
+        <div>
+          <div style={{ fontFamily: FONT_FAMILY, fontWeight: FONT_WEIGHT.bold, fontSize: 13, color: t.text }}>{title}</div>
+          {sub && <div style={{ fontSize: 11, color: t.textMuted, fontFamily: FONT_FAMILY, marginTop: 2 }}>{sub}</div>}
+        </div>
+      </div>
+      {right}
+    </div>
+  );
+}
+function EmptyBlock({ t, icon: Icon, title, sub }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "56px 20px", gap: 12, textAlign: "center" }}>
+      <div style={{ width: 52, height: 52, borderRadius: 15, display: "flex", alignItems: "center", justifyContent: "center", border: `1.5px dashed ${t.emptyBorder}`, background: t.emptyBg }}>
+        <Icon size={22} color={t.emptyIcon} />
+      </div>
+      <p style={{ fontSize: 13, fontWeight: 700, color: t.text, margin: 0, fontFamily: FONT_FAMILY }}>{title}</p>
+      {sub && <p style={{ fontSize: 12, color: t.textMuted, maxWidth: 280, lineHeight: 1.6, margin: 0, fontFamily: FONT_FAMILY }}>{sub}</p>}
+    </div>
+  );
+}
+function Loader({ t, text }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 12, color: t.textMuted, fontSize: 13, fontFamily: FONT_FAMILY }}>
+      <span style={{ width: 20, height: 20, borderRadius: "50%", border: `2px solid ${ACCENT_PURPLE.base}33`, borderTopColor: ACCENT_PURPLE.base, display: "inline-block", animation: "brspin .8s linear infinite" }} />
+      <span>{text}</span>
+    </div>
+  );
+}
+
+/* ─── Donut Ring ─────────────────────────────────────────────────────────── */
 function DonutRing({ value, color, size = 56, strokeW = 5 }) {
   const r = (size - strokeW * 2) / 2;
   const circ = 2 * Math.PI * r;
   const progress = (value / 100) * circ;
   const cx = size / 2, cy = size / 2;
   return (
-    <svg width={size} height={size}
-      style={{ transform: "rotate(-90deg)", filter: `drop-shadow(0 0 8px ${color}60)` }}>
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={strokeW} />
+    <svg width={size} height={size} style={{ transform: "rotate(-90deg)", filter: `drop-shadow(0 0 8px ${color}60)` }}>
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(128,128,128,0.15)" strokeWidth={strokeW} />
       <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth={strokeW}
         strokeLinecap="round" strokeDasharray={`${progress} ${circ}`}
         style={{ transition: "stroke-dasharray 1.2s cubic-bezier(0.4,0,0.2,1)" }} />
@@ -161,8 +141,7 @@ function RadarChart({ data, isDark }) {
   return (
     <svg viewBox="0 0 260 240" style={{ width: "100%", maxWidth: 200 }}>
       {[20, 40, 60, 80, 100].map((ring) => (
-        <polygon key={ring} points={axes.map((_, i) => pt(i, ring).join(",")).join(" ")}
-          fill="none" stroke={ringStroke} strokeWidth="1" />
+        <polygon key={ring} points={axes.map((_, i) => pt(i, ring).join(",")).join(" ")} fill="none" stroke={ringStroke} strokeWidth="1" />
       ))}
       {axes.map((_, i) => {
         const [x2, y2] = pt(i, 100);
@@ -171,14 +150,12 @@ function RadarChart({ data, isDark }) {
       <polygon points={poly} fill={radarFill} stroke={radarStroke} strokeWidth="1.5" />
       {axes.map((a, i) => {
         const [x, y] = pt(i, a.val);
-        return <circle key={i} cx={x} cy={y} r={3} fill={radarStroke}
-          style={{ filter: `drop-shadow(0 0 4px ${radarStroke})` }} />;
+        return <circle key={i} cx={x} cy={y} r={3} fill={radarStroke} style={{ filter: `drop-shadow(0 0 4px ${radarStroke})` }} />;
       })}
       {axes.map((a, i) => {
         const [x, y] = pt(i, 115);
         return (
-          <text key={i} x={x} y={y} textAnchor="middle" dominantBaseline="middle"
-            fontSize="10" fill={labelColor} fontFamily="'Poppins',sans-serif">
+          <text key={i} x={x} y={y} textAnchor="middle" dominantBaseline="middle" fontSize="10" fill={labelColor} fontFamily={FONT_FAMILY}>
             {a.label}
           </text>
         );
@@ -245,25 +222,15 @@ export default function BatchReports() {
 
   const students = report?.studentReports || [];
 
-  const card = {
-    background: t.cardBg,
-    border: `1px solid ${t.border}`,
-    borderRadius: 20,
-    boxShadow: t.shadow,
-    overflow: "hidden",
-    position: "relative",
-  };
-
   if (batchesLoading) return (
-    <>
-      <style>{styles(t)}</style>
-      <div style={{ minHeight: "100vh", background: t.pageBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <PageContainer mode={isDark ? "dark" : "light"} pageBg={t.pageBg} textColor={t.text}>
+      <style>{styles()}</style>
+      <div style={{ minHeight: "70vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <Loader t={t} text="Loading..." />
       </div>
-    </>
+    </PageContainer>
   );
 
-  /* Stat cards config */
   const statCards = report ? [
     { label: "Total Students", val: report.totalStudents, raw: true, color: t.text },
     { label: "Avg Overall", val: report.avgOverallProgressPercentage, color: progColor(report.avgOverallProgressPercentage) },
@@ -274,235 +241,184 @@ export default function BatchReports() {
   ] : [];
 
   return (
-    <>
-      <style>{styles(t)}</style>
-      <div style={{ minHeight: "100vh", background: t.pageBg, color: t.text, fontFamily: "'Poppins',sans-serif", padding: 24 }}>
-        <div style={{ maxWidth: 1300, margin: "0 auto", paddingBottom: 52 }}>
+    <PageContainer mode={isDark ? "dark" : "light"} pageBg={t.pageBg} textColor={t.text}>
+      <style>{styles()}</style>
 
-          {/* ═══ HERO HEADER ═══ */}
-          <div className="br-fade" style={{
-            borderRadius: 24, padding: "28px 32px",
-            background: t.heroBg, border: `1px solid ${t.borderHero}`,
-            position: "relative", overflow: "hidden", marginBottom: 20, boxShadow: t.shadow,
-          }}>
-            <div style={{
-              position: "absolute", inset: 0, pointerEvents: "none", opacity: isDark ? 0.04 : 0.025,
-              backgroundImage: `linear-gradient(${t.gridLine} 1px,transparent 1px),linear-gradient(90deg,${t.gridLine} 1px,transparent 1px)`,
-              backgroundSize: "40px 40px",
-            }} />
-            <div style={{
-              position: "absolute", top: "-30%", right: "10%",
-              width: 260, height: 180,
-              background: "radial-gradient(ellipse,rgba(167,139,250,0.07),transparent 70%)",
-              pointerEvents: "none",
-            }} />
-            <div style={{ position: "relative", display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
-                  <BarChart3 size={11} color={t.textSub} />
-                  <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: t.textSub }}>
-                    Batch Analytics
-                  </span>
-                </div>
-                <h1 style={{ fontFamily: "'Poppins',sans-serif", fontWeight: 900, fontSize: "clamp(1.4rem,2.5vw,2rem)", color: t.text, margin: 0, lineHeight: 1.1, letterSpacing: "-0.02em" }}>
-                  Batch Progress Report
-                </h1>
-                <p style={{ fontSize: 12, color: t.textSub, marginTop: 7, fontWeight: 500 }}>
-                  Monitor cohort performance and individual learner progress
-                </p>
-              </div>
-              {/* Batch selector */}
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                {batches.map((b) => {
-                  const active = selectedBatchId === b.id;
+      {/* ═══ HERO — shared component, matches Golden Reference exactly ═══ */}
+      <Hero borderHero={t.borderHero}>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: ACCENT_PURPLE.base }} />
+            <span style={{ fontSize: FONT_SIZE.eyebrow, fontWeight: FONT_WEIGHT.bold, letterSpacing: LETTER_SPACING.eyebrowWide, textTransform: "uppercase", color: t.textSub, fontFamily: FONT_FAMILY }}>
+              Batch Analytics
+            </span>
+          </div>
+          <h1 style={{ fontFamily: FONT_FAMILY, fontWeight: FONT_WEIGHT.heroTitle, fontSize: FONT_SIZE.heroTitle, color: ACCENT_PURPLE.base, margin: "0 0 6px", lineHeight: LINE_HEIGHT.heroTitle, letterSpacing: LETTER_SPACING.heroTitle }}>
+            Batch Progress Report
+          </h1>
+          <p style={{ fontSize: FONT_SIZE.bodySmall, color: t.textSub, margin: 0, fontWeight: FONT_WEIGHT.medium, fontFamily: FONT_FAMILY }}>
+            Monitor cohort performance and individual learner progress
+          </p>
+        </div>
+
+        <div className="hero-badges" style={{ flexWrap: "wrap" }}>
+          {batches.map((b) => {
+            const active = selectedBatchId === b.id;
+            return (
+              <button key={b.id} onClick={() => setSelectedBatchId(b.id)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 6,
+                  padding: "8px 18px", borderRadius: RADIUS.pill, fontSize: 12, fontWeight: 600,
+                  cursor: "pointer", fontFamily: FONT_FAMILY, transition: "all .2s",
+                  border: `1px solid ${active ? `${ACCENT_PURPLE.base}66` : t.pillBorder}`,
+                  background: active ? `${ACCENT_PURPLE.base}18` : t.pillBg,
+                  color: active ? ACCENT_PURPLE.base : t.textMuted,
+                }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "currentColor" }} />
+                Batch {b.id}
+              </button>
+            );
+          })}
+        </div>
+      </Hero>
+
+      {reportLoading && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 200 }}>
+          <Loader t={t} text="Loading batch data…" />
+        </div>
+      )}
+      {reportError && (
+        <SectionCard t={t} style={{ marginBottom: 20 }}>
+          <div style={{ padding: 20, textAlign: "center", fontSize: 13, color: "#ef4444", fontFamily: FONT_FAMILY }}>{reportError}</div>
+        </SectionCard>
+      )}
+
+      {!reportLoading && !reportError && report && (
+        <>
+          {/* ═══ STAT CARDS ROW ═══ */}
+          <div className="stat-grid br-stats-grid" style={{ marginBottom: 20 }}>
+            {statCards.map((m) => (
+              <MetricCard key={m.label} m={m} t={t} />
+            ))}
+          </div>
+
+          {/* ═══ MAIN TWO-COLUMN GRID ═══ */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "start" }} className="br-main-grid">
+
+            {/* LEFT: student list */}
+            <SectionCard t={t}>
+              <div style={{ display: "flex", alignItems: "center", padding: "0 16px", borderBottom: `1px solid ${t.border}` }}>
+                {["table", "bars"].map((tabKey) => {
+                  const active = tab === tabKey;
                   return (
-                    <button key={b.id} onClick={() => setSelectedBatchId(b.id)}
+                    <button key={tabKey} onClick={() => setTab(tabKey)}
                       style={{
-                        display: "flex", alignItems: "center", gap: 6,
-                        padding: "8px 18px", borderRadius: 10, fontSize: 12, fontWeight: 600,
-                        cursor: "pointer", fontFamily: "'Poppins',sans-serif", transition: "all .2s",
-                        border: `1px solid ${active ? "rgba(167,139,250,0.4)" : t.border}`,
-                        background: active ? "rgba(167,139,250,0.1)" : t.pillBg,
-                        color: active ? "#a78bfa" : t.textMuted,
-                        boxShadow: active ? "0 0 16px rgba(167,139,250,0.15)" : "none",
+                        padding: "14px 16px", fontSize: 12, fontWeight: 600, cursor: "pointer",
+                        color: active ? ACCENT_PURPLE.base : t.textMuted,
+                        border: "none", borderBottom: `2px solid ${active ? ACCENT_PURPLE.base : "transparent"}`,
+                        marginBottom: -1, background: "none",
+                        fontFamily: FONT_FAMILY, transition: "all .15s", letterSpacing: "0.03em",
                       }}>
-                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: "currentColor" }} />
-                      Batch {b.id}
+                      {tabKey === "table" ? "↗ Table" : "▦ Bars"}
                     </button>
                   );
                 })}
-              </div>
-            </div>
-          </div>
-
-          {/* Loading / Error */}
-          {reportLoading && (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 200 }}>
-              <Loader t={t} text="Loading batch data…" />
-            </div>
-          )}
-          {reportError && (
-            <div style={{ padding: 20, textAlign: "center", fontSize: 13, color: "#ef4444" }}>{reportError}</div>
-          )}
-
-          {!reportLoading && !reportError && report && (
-            <>
-              {/* ═══ STAT CARDS ROW ═══ */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 12, marginBottom: 20 }} className="br-stats-grid">
-                {statCards.map((m, i) => (
-                  <StatCard key={m.label} m={m} t={t} isDark={isDark} />
-                ))}
+                <span style={{ marginLeft: "auto", fontSize: 11, color: t.textMuted, fontFamily: FONT_FAMILY }}>
+                  {students.length} students
+                </span>
               </div>
 
-              {/* ═══ MAIN TWO-COLUMN GRID ═══ */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "start" }} className="br-main-grid">
+              {students.length === 0 && (
+                <EmptyBlock t={t} icon={Users} title="No students in this batch" />
+              )}
 
-                {/* LEFT: student list */}
-                <div style={{ ...card }}>
-                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: "linear-gradient(90deg,transparent,rgba(34,211,238,0.35),transparent)" }} />
-
-                  {/* Tabs */}
-                  <div style={{ display: "flex", alignItems: "center", padding: "0 16px", borderBottom: `1px solid ${t.border}` }}>
-                    {["table", "bars"].map((tabKey) => {
-                      const active = tab === tabKey;
-                      return (
-                        <button key={tabKey} onClick={() => setTab(tabKey)}
-                          style={{
-                            padding: "14px 16px", fontSize: 12, fontWeight: 600, cursor: "pointer",
-                            color: active ? "#22d3ee" : t.textMuted,
-                            border: "none", borderBottom: `2px solid ${active ? "#22d3ee" : "transparent"}`,
-                            marginBottom: -1, background: "none",
-                            fontFamily: "'Poppins',sans-serif", transition: "all .15s", letterSpacing: "0.03em",
+              {tab === "table" && students.length > 0 && (
+                <div style={{ overflowX: "auto", maxHeight: 520, overflowY: "auto" }} className="br-scroll">
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead>
+                      <tr>
+                        {["Student", "Videos", "Files", "Quizzes", "Assign.", "Overall"].map((th) => (
+                          <th key={th} style={{
+                            fontSize: 10, fontWeight: 700, color: t.textMuted, fontFamily: FONT_FAMILY,
+                            textTransform: "uppercase", letterSpacing: "0.08em",
+                            padding: "12px 14px", textAlign: "left",
+                            borderBottom: `1px solid ${t.border}`,
+                            background: t.actBg,
+                            position: "sticky", top: 0, whiteSpace: "nowrap",
                           }}>
-                          {tabKey === "table" ? "↗ Table" : "▦ Bars"}
-                        </button>
-                      );
-                    })}
-                    <span style={{ marginLeft: "auto", fontSize: 11, color: t.textLabel }}>
-                      {students.length} students
-                    </span>
-                  </div>
-
-                  {/* Empty */}
-                  {students.length === 0 && (
-                    <div style={{ padding: "3rem", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
-                      <div style={{ width: 48, height: 48, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", border: `1.5px dashed ${t.emptyBorder}`, background: t.emptyBg }}>
-                        <Users size={20} color={t.emptyIcon} />
-                      </div>
-                      <p style={{ fontSize: 11, color: t.textMuted, margin: 0, fontWeight: 500 }}>No students in this batch</p>
-                    </div>
-                  )}
-
-                  {/* TABLE TAB */}
-                  {tab === "table" && students.length > 0 && (
-                    <div style={{ overflowX: "auto", maxHeight: 520, overflowY: "auto" }} className="br-scroll">
-                      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                        <thead>
-                          <tr>
-                            {["Student", "Videos", "Files", "Quizzes", "Assign.", "Overall"].map((th) => (
-                              <th key={th} style={{
-                                fontSize: 10, fontWeight: 700, color: t.tableTh,
-                                textTransform: "uppercase", letterSpacing: "0.08em",
-                                padding: "12px 14px", textAlign: "left",
-                                borderBottom: `1px solid ${t.border}`,
-                                background: t.tableThBg,
-                                position: "sticky", top: 0, whiteSpace: "nowrap",
-                              }}>
-                                {th}
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {students.map((s, i) => {
-                            const pal = AV_PALETTES[i % 5];
-                            const isActive = selectedStudent?.studentEmail === s.studentEmail;
-                            const oc = progColor(s.overallProgressPercentage);
-                            return (
-                              <TableRow key={s.studentEmail} s={s} pal={pal} isActive={isActive} t={t} oc={oc}
-                                onClick={() => setSelectedStudent(isActive ? null : s)} />
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-
-                  {/* BARS TAB */}
-                  {tab === "bars" && students.length > 0 && (
-                    <div style={{ padding: 12, maxHeight: 520, overflowY: "auto" }} className="br-scroll">
+                            {th}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
                       {students.map((s, i) => {
                         const pal = AV_PALETTES[i % 5];
                         const isActive = selectedStudent?.studentEmail === s.studentEmail;
                         const oc = progColor(s.overallProgressPercentage);
                         return (
-                          <BarRow key={s.studentEmail} s={s} pal={pal} isActive={isActive} t={t} oc={oc}
+                          <TableRow key={s.studentEmail} s={s} pal={pal} isActive={isActive} t={t} oc={oc}
                             onClick={() => setSelectedStudent(isActive ? null : s)} />
                         );
                       })}
-                    </div>
-                  )}
+                    </tbody>
+                  </table>
                 </div>
+              )}
 
-                {/* RIGHT: Detail panel */}
-                <div style={{ ...card, minHeight: 400 }}>
-                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: "linear-gradient(90deg,transparent,rgba(167,139,250,0.35),transparent)" }} />
-
-                  {!selectedStudent && (
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: 400, gap: 16 }}>
-                      <div style={{ position: "absolute", width: 200, height: 200, borderRadius: "50%", background: "radial-gradient(circle,rgba(167,139,250,0.04) 0%,transparent 70%)", pointerEvents: "none" }} />
-                      <div style={{ width: 72, height: 72, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: t.emptyBg, border: `1.5px dashed ${t.emptyBorder}` }}>
-                        <Users size={28} color={t.emptyIcon} />
-                      </div>
-                      <p style={{ fontSize: 13, color: t.textMuted, fontWeight: 500, textAlign: "center", lineHeight: 1.6 }}>
-                        Click a student to see<br />their detailed report
-                      </p>
-                    </div>
-                  )}
-
-                  {selectedStudent && (
-                    <StudentDetail student={selectedStudent} selectedBatchId={selectedBatchId} t={t} isDark={isDark} />
-                  )}
+              {tab === "bars" && students.length > 0 && (
+                <div style={{ padding: 12, maxHeight: 520, overflowY: "auto" }} className="br-scroll">
+                  {students.map((s, i) => {
+                    const pal = AV_PALETTES[i % 5];
+                    const isActive = selectedStudent?.studentEmail === s.studentEmail;
+                    const oc = progColor(s.overallProgressPercentage);
+                    return (
+                      <BarRow key={s.studentEmail} s={s} pal={pal} isActive={isActive} t={t} oc={oc}
+                        onClick={() => setSelectedStudent(isActive ? null : s)} />
+                    );
+                  })}
                 </div>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    </>
+              )}
+            </SectionCard>
+
+            {/* RIGHT: Detail panel */}
+            <SectionCard t={t} style={{ minHeight: 400 }}>
+              {!selectedStudent && (
+                <EmptyBlock t={t} icon={Users} title="No student selected" sub="Click a student to see their detailed report" />
+              )}
+              {selectedStudent && (
+                <StudentDetail student={selectedStudent} selectedBatchId={selectedBatchId} t={t} isDark={isDark} />
+              )}
+            </SectionCard>
+          </div>
+        </>
+      )}
+    </PageContainer>
   );
 }
 
-/* ─── Stat Card ──────────────────────────────────────────────────────────── */
-function StatCard({ m, t, isDark }) {
-  const [hov, setHov] = useState(false);
+/* ─── Metric Card (donut-based average stat) ─── */
+function MetricCard({ m, t }) {
   return (
-    <div
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      style={{
-        background: hov ? t.cardBgHov : t.cardBg,
-        border: `1px solid ${hov ? t.borderHov : t.border}`,
-        borderRadius: 20, padding: "16px 14px", textAlign: "center",
-        display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
-        transition: "all .2s", transform: hov ? "translateY(-3px)" : "none",
-        boxShadow: hov ? t.shadowHov : t.shadow,
-        position: "relative", overflow: "hidden",
-      }}>
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: `${m.color}08`, borderRadius: 20, pointerEvents: "none" }} />
+    <div style={{
+      background: t.cardBg, border: `1px solid ${t.border}`, boxShadow: t.shadow,
+      borderRadius: RADIUS.standardCard, padding: "16px 14px", textAlign: "center",
+      display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+      position: "relative", overflow: "hidden",
+    }}>
       {m.raw ? (
-        <p style={{ fontFamily: "'Poppins',sans-serif", fontSize: 30, fontWeight: 800, lineHeight: 1, color: t.text, margin: "6px 0 2px" }}>
+        <p style={{ fontFamily: FONT_FAMILY, fontSize: 30, fontWeight: 800, lineHeight: 1, color: t.text, margin: "6px 0 2px" }}>
           {m.val}
         </p>
       ) : (
         <>
           <DonutRing value={m.val || 0} color={m.color} size={52} strokeW={5} />
-          <p style={{ fontSize: 11, fontWeight: 700, color: m.color, margin: 0 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: m.color, margin: 0, fontFamily: FONT_FAMILY }}>
             {fmt(m.val)}%
           </p>
         </>
       )}
-      <p style={{ fontSize: 10, fontWeight: 600, color: t.textMuted, margin: 0, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+      <p style={{ fontSize: 10, fontWeight: 600, color: t.textMuted, margin: 0, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: FONT_FAMILY }}>
         {m.label}
       </p>
     </div>
@@ -511,16 +427,15 @@ function StatCard({ m, t, isDark }) {
 
 /* ─── Table Row ──────────────────────────────────────────────────────────── */
 function TableRow({ s, pal, isActive, t, oc, onClick }) {
-  const [hov, setHov] = useState(false);
   const tdStyle = {
     padding: "10px 14px",
     borderBottom: `1px solid ${t.border}`,
     fontSize: 12, color: t.textSub, verticalAlign: "middle", cursor: "pointer",
-    background: isActive ? t.activeRowBg : hov ? t.tableRowHov : "transparent",
-    transition: "background .15s",
+    background: isActive ? `${ACCENT_PURPLE.base}0d` : "transparent",
+    fontFamily: FONT_FAMILY,
   };
   return (
-    <tr onClick={onClick} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}>
+    <tr onClick={onClick}>
       <td style={tdStyle}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <div style={{ width: 28, height: 28, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, background: pal.bg, color: pal.text, flexShrink: 0 }}>
@@ -536,12 +451,7 @@ function TableRow({ s, pal, isActive, t, oc, onClick }) {
       <td style={tdStyle}><span style={{ fontSize: 12, fontWeight: 600, color: METRIC_COLORS.quiz }}>{fmt(s.quizCompletionPercentage)}%</span></td>
       <td style={tdStyle}><span style={{ fontSize: 12, fontWeight: 600, color: METRIC_COLORS.assignment }}>{fmt(s.assignmentCompletionPercentage)}%</span></td>
       <td style={tdStyle}>
-        <span style={{
-          fontSize: 11, fontWeight: 700, border: `1px solid ${oc}44`,
-          borderRadius: 999, padding: "3px 9px", color: oc,
-          boxShadow: isActive ? `0 0 8px ${oc}40` : "none",
-          display: "inline-block",
-        }}>
+        <span style={{ fontSize: 11, fontWeight: 700, border: `1px solid ${oc}44`, borderRadius: RADIUS.pill, padding: "3px 9px", color: oc, display: "inline-block" }}>
           {fmt(s.overallProgressPercentage)}%
         </span>
       </td>
@@ -551,31 +461,26 @@ function TableRow({ s, pal, isActive, t, oc, onClick }) {
 
 /* ─── Bar Row ────────────────────────────────────────────────────────────── */
 function BarRow({ s, pal, isActive, t, oc, onClick }) {
-  const [hov, setHov] = useState(false);
   return (
-    <div
-      onClick={onClick}
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      style={{
-        display: "flex", alignItems: "center", gap: 10,
-        padding: "10px 10px", borderRadius: 12, cursor: "pointer",
-        transition: "all .15s", marginBottom: 6,
-        border: `1px solid ${isActive ? "rgba(34,211,238,0.25)" : hov ? t.borderHov : "transparent"}`,
-        background: isActive ? t.activeRowBg : hov ? t.recentItemBgHov : "transparent",
-      }}>
+    <div onClick={onClick} style={{
+      display: "flex", alignItems: "center", gap: 10,
+      padding: "10px 10px", borderRadius: RADIUS.chip, cursor: "pointer",
+      marginBottom: 6,
+      border: `1px solid ${isActive ? `${ACCENT_PURPLE.base}40` : "transparent"}`,
+      background: isActive ? `${ACCENT_PURPLE.base}0d` : "transparent",
+    }}>
       <div style={{ width: 28, height: 28, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, background: pal.bg, color: pal.text, flexShrink: 0 }}>
         {initials(s.studentEmail)}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: 12, fontWeight: 600, color: t.text, margin: "0 0 5px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+        <p style={{ fontSize: 12, fontWeight: 600, color: t.text, margin: "0 0 5px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontFamily: FONT_FAMILY }}>
           {s.studentEmail}
         </p>
         <div style={{ height: 5, background: t.barBg, borderRadius: 3, overflow: "hidden" }}>
-          <div style={{ height: 5, width: `${Math.min(s.overallProgressPercentage || 0, 100)}%`, background: oc, borderRadius: 3, boxShadow: `0 0 6px ${oc}80`, transition: "width .8s cubic-bezier(0.4,0,0.2,1)" }} />
+          <div style={{ height: 5, width: `${Math.min(s.overallProgressPercentage || 0, 100)}%`, background: oc, borderRadius: 3, transition: "width .8s cubic-bezier(0.4,0,0.2,1)" }} />
         </div>
       </div>
-      <span style={{ fontSize: 12, fontWeight: 700, color: oc, flexShrink: 0, width: 38, textAlign: "right" }}>
+      <span style={{ fontSize: 12, fontWeight: 700, color: oc, flexShrink: 0, width: 38, textAlign: "right", fontFamily: FONT_FAMILY }}>
         {fmt(s.overallProgressPercentage)}%
       </span>
     </div>
@@ -594,50 +499,42 @@ function StudentDetail({ student, selectedBatchId, t, isDark }) {
   ];
   return (
     <div style={{ padding: 22 }}>
-      {/* Top banner */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18, paddingBottom: 16, borderBottom: `1px solid ${t.border}`, flexWrap: "wrap" }}>
         <div style={{ width: 44, height: 44, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 700, background: AV_PALETTES[0].bg, color: AV_PALETTES[0].text, flexShrink: 0 }}>
           {initials(student.studentEmail)}
         </div>
         <div style={{ flex: 1 }}>
-          <h3 style={{ fontFamily: "'Poppins',sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 4px", color: t.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <h3 style={{ fontFamily: FONT_FAMILY, fontSize: 14, fontWeight: 700, margin: "0 0 4px", color: t.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {student.studentEmail}
           </h3>
-          <span style={{ fontSize: 10, background: t.pillBg, border: `1px solid ${t.pillBorder}`, padding: "2px 10px", borderRadius: 999, color: t.textMuted }}>
+          <span style={{ fontSize: 10, background: t.pillBg, border: `1px solid ${t.pillBorder}`, padding: "2px 10px", borderRadius: RADIUS.pill, color: t.textMuted, fontFamily: FONT_FAMILY }}>
             Batch {student.batchId || selectedBatchId}
           </span>
         </div>
-        {/* Overall donut */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, marginLeft: "auto" }}>
           <div style={{ position: "relative", width: 72, height: 72 }}>
             <DonutRing value={student.overallProgressPercentage || 0} color={oc} size={72} strokeW={6} />
-            <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", fontSize: 13, fontWeight: 700, color: oc, fontFamily: "'Poppins',sans-serif" }}>
+            <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", fontSize: 13, fontWeight: 700, color: oc, fontFamily: FONT_FAMILY }}>
               {fmt(student.overallProgressPercentage)}%
             </div>
           </div>
-          <span style={{ fontSize: 9, color: t.textMuted, letterSpacing: "0.1em", textTransform: "uppercase" }}>overall</span>
+          <span style={{ fontSize: 9, color: t.textMuted, letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: FONT_FAMILY }}>overall</span>
         </div>
       </div>
 
-      {/* Metric cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 8, marginBottom: 16 }} className="br-metrics-grid">
-        {metrics.map((m) => (
-          <MetricMini key={m.label} m={m} t={t} />
-        ))}
+        {metrics.map((m) => <MetricMini key={m.label} m={m} t={t} />)}
       </div>
 
-      {/* Lower: breakdown + radar */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 14 }} className="br-lower-grid">
-        <div style={{ background: t.recentItemBg, border: `1px solid ${t.border}`, borderRadius: 14, padding: 16 }}>
-          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: t.textLabel, margin: "0 0 12px" }}>
+        <div style={{ background: t.actBg, border: `1px solid ${t.border}`, borderRadius: RADIUS.standardCard, padding: 16 }}>
+          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: t.textMuted, margin: "0 0 12px", fontFamily: FONT_FAMILY }}>
             Breakdown
           </p>
-          {metrics.map((m) => (
-            <ProgressRow key={m.label} label={m.label} val={m.val} color={m.color} t={t} />
-          ))}
+          {metrics.map((m) => <ProgressRow key={m.label} label={m.label} val={m.val} color={m.color} t={t} />)}
         </div>
-        <div style={{ background: t.recentItemBg, border: `1px solid ${t.border}`, borderRadius: 14, padding: 16, display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: t.textLabel, margin: "0 0 8px", alignSelf: "flex-start" }}>
+        <div style={{ background: t.actBg, border: `1px solid ${t.border}`, borderRadius: RADIUS.standardCard, padding: 16, display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: t.textMuted, margin: "0 0 8px", alignSelf: "flex-start", fontFamily: FONT_FAMILY }}>
             Skill Radar
           </p>
           <RadarChart data={student} isDark={isDark} />
@@ -647,64 +544,37 @@ function StudentDetail({ student, selectedBatchId, t, isDark }) {
   );
 }
 
-/* ─── Metric Mini Card ───────────────────────────────────────────────────── */
 function MetricMini({ m, t }) {
-  const [hov, setHov] = useState(false);
   return (
-    <div
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      style={{
-        background: hov ? t.recentItemBgHov : t.recentItemBg,
-        border: `1px solid ${hov ? t.borderHov : t.border}`,
-        borderRadius: 12, padding: "10px 6px 8px", textAlign: "center",
-        transition: "all .2s", transform: hov ? "translateY(-2px)" : "none",
-      }}>
-      <p style={{ fontFamily: "'Poppins',sans-serif", fontSize: 18, fontWeight: 700, color: m.color, margin: "0 0 3px" }}>
-        {fmt(m.val)}%
-      </p>
-      <p style={{ fontSize: 10, fontWeight: 700, color: t.textMuted, margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-        {m.label}
-      </p>
-      <p style={{ fontSize: 10, color: t.textLabel, margin: 0 }}>{m.sub}</p>
+    <div style={{ background: t.actBg, border: `1px solid ${t.border}`, borderRadius: RADIUS.chip, padding: "10px 6px 8px", textAlign: "center" }}>
+      <p style={{ fontFamily: FONT_FAMILY, fontSize: 18, fontWeight: 700, color: m.color, margin: "0 0 3px" }}>{fmt(m.val)}%</p>
+      <p style={{ fontSize: 10, fontWeight: 700, color: t.textMuted, margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.06em", fontFamily: FONT_FAMILY }}>{m.label}</p>
+      <p style={{ fontSize: 10, color: t.textMuted, margin: 0, fontFamily: FONT_FAMILY }}>{m.sub}</p>
     </div>
   );
 }
 
-/* ─── Progress Row ───────────────────────────────────────────────────────── */
 function ProgressRow({ label, val, color, t }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-      <span style={{ fontSize: 11, color: t.textSub, width: 95, flexShrink: 0 }}>{label}</span>
+      <span style={{ fontSize: 11, color: t.textSub, width: 95, flexShrink: 0, fontFamily: FONT_FAMILY }}>{label}</span>
       <div style={{ flex: 1, height: 5, background: t.barBg, borderRadius: 3, overflow: "hidden" }}>
-        <div style={{ height: 5, width: `${Math.min(val || 0, 100)}%`, background: color, borderRadius: 3, boxShadow: `0 0 6px ${color}80`, transition: "width .8s cubic-bezier(0.4,0,0.2,1)" }} />
+        <div style={{ height: 5, width: `${Math.min(val || 0, 100)}%`, background: color, borderRadius: 3, transition: "width .8s cubic-bezier(0.4,0,0.2,1)" }} />
       </div>
-      <span style={{ fontSize: 12, fontWeight: 700, color, width: 38, textAlign: "right" }}>{fmt(val)}%</span>
+      <span style={{ fontSize: 12, fontWeight: 700, color, width: 38, textAlign: "right", fontFamily: FONT_FAMILY }}>{fmt(val)}%</span>
     </div>
   );
 }
 
-/* ─── Loader ─────────────────────────────────────────────────────────────── */
-function Loader({ t, text }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 12, color: t.textMuted, fontSize: 13 }}>
-      <div style={{ width: 20, height: 20, borderRadius: "50%", border: "2px solid rgba(167,139,250,0.2)", borderTopColor: "#a78bfa", animation: "brspin .8s linear infinite" }} />
-      <span>{text}</span>
-    </div>
-  );
-}
-
-/* ─── Styles ─────────────────────────────────────────────────────────────── */
-function styles(t) {
+/* ─── Local page styles (layout/animation only — colors come from T) ─── */
+function styles() {
   return `
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
-    @keyframes br-fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-    .br-fade{animation:br-fade .4s ease both}
     @keyframes brspin{to{transform:rotate(360deg)}}
     * { box-sizing: border-box; }
     .br-scroll::-webkit-scrollbar { width: 3px; height: 3px; }
     .br-scroll::-webkit-scrollbar-track { background: transparent; }
-    .br-scroll::-webkit-scrollbar-thumb { background: ${t.scrollbar}; border-radius: 3px; }
+    .br-scroll::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.3); border-radius: 3px; }
+    .br-stats-grid { grid-template-columns: repeat(6,1fr) !important; }
     @media(max-width:1100px){ .br-stats-grid{ grid-template-columns: repeat(3,1fr) !important; } }
     @media(max-width:700px){ .br-stats-grid{ grid-template-columns: repeat(2,1fr) !important; } }
     @media(max-width:900px){ .br-main-grid{ grid-template-columns: 1fr !important; } }

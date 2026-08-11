@@ -11,6 +11,7 @@ import { PLAN_SETS } from "../Company/Pricing";
 import CompleteProfile from "../common/CompleteProfile";
 import IlmDemoSidebar, { SIDEBAR_WIDTHS } from "../../components/IlmDemoSidebar";
 import Footer from "../Landing/components/Footer";
+import NotificationBell from "../../components/NotificationBell";
 import {
   BookOpen,
   FileText,
@@ -1173,13 +1174,24 @@ const userEmail =
                 Success Stories
               </button>
             </div>
+            
+           <div className="d-nav-right">
 
-            <div className="d-nav-right">
-              <button className="d-theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
-                {isDark ? <Sun size={18} /> : <Moon size={18} />}
-              </button>
+  {/* Notification Bell */}
+  {isLoggedIn && (
+    <NotificationBell roleOverride={featureRoleKey} />
+  )}
 
-              {isLoggedIn ? (
+  {/* Theme Toggle */}
+  <button
+    className="d-theme-toggle"
+    onClick={toggleTheme}
+    aria-label="Toggle theme"
+  >
+    {isDark ? <Sun size={18} /> : <Moon size={18} />}
+  </button>
+
+  {isLoggedIn ? (
                 <div className="d-user-menu-wrap" ref={userMenuRef}>
                   <div className="d-user-trigger" onClick={() => setUserMenuOpen((o) => !o)}>
                     <div className="d-user-avatar">{userInitial}</div>

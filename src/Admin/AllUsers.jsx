@@ -1,7 +1,9 @@
+
 // import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 // import {
 //   Activity,
 //   ArrowLeft,
+//   ChevronRight,
 //   Eye,
 //   EyeOff,
 //   GripVertical,
@@ -628,6 +630,21 @@
 //                       }}
 //                     >
 //                       Admin Portal
+//                     </span>
+//                     <ChevronRight size={10} color={t.textSub} />
+//                     <span
+//                       onClick={() => navigate("/admin/organisation-overview")}
+//                       style={{
+//                         fontSize: 9,
+//                         fontWeight: 700,
+//                         letterSpacing: "0.22em",
+//                         textTransform: "uppercase",
+//                         color: t.textSub,
+//                         fontFamily: "'Poppins',sans-serif",
+//                         cursor: "pointer",
+//                       }}
+//                     >
+//                       Organisation Manager
 //                     </span>
 //                   </div>
 //                 </div>
@@ -2247,11 +2264,12 @@
 
 
 
+
+
+
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import {
-  Activity,
   ArrowLeft,
-  ChevronRight,
   Eye,
   EyeOff,
   GripVertical,
@@ -2259,94 +2277,39 @@ import {
   Pencil,
   Plus,
   Search,
-  Sparkles,
   Trash2,
   Users,
+  UserCheck,
+  GraduationCap,
+  ShieldCheck,
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import userService from "../services/userService";
 import authService from "../services/authService";
-/* ─── theme token map ─── */
-const T = {
-  dark: {
-    pageBg: "#0a0a0a",
-    cardBg: "#111111",
-    cardBgHov: "#161616",
-    heroBg: "#141414",
-    border: "rgba(255,255,255,0.06)",
-    borderHov: "rgba(255,255,255,0.14)",
-    borderHero: "rgba(255,255,255,0.07)",
-    text: "#ffffff",
-    textSub: "rgba(255,255,255,0.3)",
-    textMuted: "rgba(255,255,255,0.2)",
-    textLabel: "rgba(255,255,255,0.22)",
-    pillBg: "rgba(255,255,255,0.04)",
-    pillBorder: "rgba(255,255,255,0.07)",
-    pillText: "rgba(255,255,255,0.25)",
-    actBg: "rgba(255,255,255,0.04)",
-    actBorder: "rgba(255,255,255,0.07)",
-    actIcon: "rgba(255,255,255,0.3)",
-    actBar: "rgba(255,255,255,0.5)",
-    gridLine: "rgba(255,255,255,0.5)",
-    shadow: "0 4px 20px rgba(0,0,0,0.4)",
-    shadowHov: "0 20px 60px rgba(0,0,0,0.6)",
-    emptyBorder: "rgba(255,255,255,0.07)",
-    emptyBg: "rgba(255,255,255,0.02)",
-    emptyIcon: "rgba(255,255,255,0.12)",
-    recentItemBg: "rgba(255,255,255,0.03)",
-    recentItemBorder: "rgba(255,255,255,0.05)",
-    recentItemBgHov: "rgba(255,255,255,0.06)",
-    liveColor: "#34d399",
-    liveText: "#34d399",
-    barBg: "rgba(255,255,255,0.05)",
-    inputBg: "rgba(255,255,255,0.05)",
-    inputBorder: "rgba(255,255,255,0.1)",
-    inputText: "#ffffff",
-    skeletonBg: "rgba(255,255,255,0.07)",
-    theadBg: "rgba(255,255,255,0.03)",
-    dropdownBg: "#1a1a1a",
-  },
-  light: {
-    pageBg: "#f1f5f9",
-    cardBg: "#ffffff",
-    cardBgHov: "#f8fafc",
-    heroBg: "#ffffff",
-    border: "#e2e8f0",
-    borderHov: "#cbd5e1",
-    borderHero: "#e2e8f0",
-    text: "#0f172a",
-    textSub: "#64748b",
-    textMuted: "#94a3b8",
-    textLabel: "#94a3b8",
-    pillBg: "#f1f5f9",
-    pillBorder: "#e2e8f0",
-    pillText: "#94a3b8",
-    actBg: "#f8fafc",
-    actBorder: "#e2e8f0",
-    actIcon: "#94a3b8",
-    actBar: "#94a3b8",
-    gridLine: "rgba(0,0,0,0.12)",
-    shadow: "0 1px 8px rgba(0,0,0,0.07)",
-    shadowHov: "0 8px 32px rgba(0,0,0,0.10)",
-    emptyBorder: "#e2e8f0",
-    emptyBg: "#f8fafc",
-    emptyIcon: "#cbd5e1",
-    recentItemBg: "#f8fafc",
-    recentItemBorder: "#e2e8f0",
-    recentItemBgHov: "#f1f5f9",
-    liveColor: "#16a34a",
-    liveText: "#16a34a",
-    barBg: "#f1f5f9",
-    inputBg: "#f8fafc",
-    inputBorder: "#e2e8f0",
-    inputText: "#0f172a",
-    skeletonBg: "#e2e8f0",
-    theadBg: "rgba(0,0,0,0.02)",
-    dropdownBg: "#ffffff",
-  },
-};
+
+// ─── Global Design System — single source of truth for colors, type,
+// spacing, radius, StatCard, PageContainer and Hero. This page must not
+// redeclare tokens or components that already live there (see
+// AdminDashboard.jsx / AllCourses.jsx, the Golden Reference, which this
+// page now visually matches). The page's previous bespoke inline theme
+// token map and hardcoded Google-Fonts family have been removed in favor
+// of the shared tokens below.
+import {
+  T,
+  FONT_FAMILY,
+  FONT_WEIGHT,
+  FONT_SIZE,
+  LINE_HEIGHT,
+  LETTER_SPACING,
+  RADIUS,
+  CARD_PADDING,
+  ACCENT_PURPLE,
+  PageContainer,
+  Hero,
+  StatCard,
+} from "@/design-system";
 
 const GRAD_COLORS = [
   ["#a78bfa", "#7c3aed"],
@@ -2667,17 +2630,17 @@ const AllUsers = () => {
     background: t.pillBg,
     border: `1px solid ${t.pillBorder}`,
     color: t.pillText,
-    fontFamily: "'Poppins',sans-serif",
+    fontFamily: FONT_FAMILY,
   };
   const inputStyle = {
     width: "100%",
     height: 38,
     borderRadius: 10,
-    border: `1px solid ${t.inputBorder}`,
-    background: t.inputBg,
-    color: t.inputText,
+    border: `1px solid ${t.border}`,
+    background: t.recentItemBg,
+    color: t.text,
     fontSize: 12,
-    fontFamily: "'Poppins',sans-serif",
+    fontFamily: FONT_FAMILY,
     padding: "0 12px",
     outline: "none",
     boxSizing: "border-box",
@@ -2688,27 +2651,20 @@ const AllUsers = () => {
     letterSpacing: "0.1em",
     textTransform: "uppercase",
     color: t.textMuted,
-    fontFamily: "'Poppins',sans-serif",
+    fontFamily: FONT_FAMILY,
     display: "block",
     marginBottom: 6,
   };
 
   if (loading)
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          background: t.pageBg,
-          padding: 24,
-          fontFamily: "'Poppins',sans-serif",
-        }}
-      >
+      <PageContainer mode={isDark ? "dark" : "light"} pageBg={t.pageBg} textColor={t.text}>
         {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
             style={{
               height: 64,
-              borderRadius: 16,
+              borderRadius: RADIUS.standardCard,
               background: t.recentItemBg,
               border: `1px solid ${t.border}`,
               marginBottom: 10,
@@ -2716,333 +2672,184 @@ const AllUsers = () => {
             }}
           />
         ))}
-      </div>
+      </PageContainer>
     );
 
   if (error)
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          background: t.pageBg,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <p
+      <PageContainer mode={isDark ? "dark" : "light"} pageBg={t.pageBg} textColor={t.text}>
+        <div
           style={{
-            color: "#f43f5e",
-            fontSize: 13,
-            fontFamily: "'Poppins',sans-serif",
+            minHeight: "60vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
-          {error}
-        </p>
-      </div>
+          <p
+            style={{
+              color: "#f43f5e",
+              fontSize: 13,
+              fontFamily: FONT_FAMILY,
+            }}
+          >
+            {error}
+          </p>
+        </div>
+      </PageContainer>
     );
 
+  // ── stat cards — same shared design-system <StatCard> used on
+  // AdminDashboard.jsx / AllCourses.jsx, counts derived from the users
+  // already loaded (no new API calls / logic added).
+  const adminCount = users.filter((u) => u.roles === "ROLE_ADMIN").length;
+  const trainerCount = users.filter((u) => u.roles === "ROLE_TRAINER").length;
+  const studentCount = users.filter((u) => u.roles === "ROLE_STUDENT").length;
+
+  const userStats = [
+    { label: "Total Users", numericValue: users.length, icon: Users, colorKey: "blue", change: "All registered accounts" },
+    { label: "Trainers", numericValue: trainerCount, icon: UserCheck, colorKey: "green", change: "Active on platform" },
+    { label: "Students", numericValue: studentCount, icon: GraduationCap, colorKey: "purple", change: "Enrolled learners" },
+    { label: "Admins", numericValue: adminCount, icon: ShieldCheck, colorKey: "amber", change: "Platform administrators" },
+  ];
+
   return (
-    <>
+    <PageContainer mode={isDark ? "dark" : "light"} pageBg={t.pageBg} textColor={t.text}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
-        @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-        .ufade{animation:fadeUp 0.45s ease both}
-        @keyframes blink{0%,100%{opacity:1}50%{opacity:0.15}}
-        .d1{animation:blink 1.6s ease infinite}.d2{animation:blink 1.6s 0.3s ease infinite}.d3{animation:blink 1.6s 0.6s ease infinite}
-        @keyframes pulse-ring{0%{box-shadow:0 0 0 0 rgba(52,211,153,0.5)}70%{box-shadow:0 0 0 8px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
-        .livebadge{animation:pulse-ring 2.2s ease-out infinite}
-        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
         @keyframes shimmer{0%,100%{opacity:1}50%{opacity:0.4}}
         @keyframes spin{to{transform:rotate(360deg)}}
         .user-row .row-actions{opacity:0;transition:opacity 0.2s}.user-row:hover .row-actions{opacity:1}
         .user-row:hover .uname{color:#22d3ee}
         .uname{transition:color 0.15s}
+        @media (max-width:560px){
+          .au-hero-badges{width:100%;}
+        }
       `}</style>
 
-      <div
-        style={{
-          minHeight: "100vh",
-          background: t.pageBg,
-          color: t.text,
-          fontFamily: "'Poppins',sans-serif",
-          transition: "background 0.3s,color 0.3s",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 1300,
-            margin: "0 auto",
-            padding: 24,
-            paddingBottom: 52,
-          }}
-        >
-          {/* HERO */}
-          <div
-            className="ufade"
-            style={{
-              borderRadius: 24,
-              padding: "30px 36px",
-              background: t.heroBg,
-              border: `1px solid ${t.borderHero}`,
-              position: "relative",
-              overflow: "hidden",
-              marginBottom: 20,
-              boxShadow: t.shadow,
-            }}
-          >
-            <div
+      {/* ═══ HERO — shared <Hero> component, matches Admin Dashboard / All Courses exactly ═══ */}
+      <Hero borderHero={t.borderHero}>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
+            <button
+              onClick={() => navigate(-1)}
               style={{
-                position: "absolute",
-                inset: 0,
-                pointerEvents: "none",
-                opacity: isDark ? 0.04 : 0.025,
-                backgroundImage: `linear-gradient(${t.gridLine} 1px,transparent 1px),linear-gradient(90deg,${t.gridLine} 1px,transparent 1px)`,
-                backgroundSize: "40px 40px",
-              }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                top: "-30%",
-                left: "40%",
-                width: 300,
-                height: 200,
-                background:
-                  "radial-gradient(ellipse,rgba(34,211,238,0.06),transparent 70%)",
-                pointerEvents: "none",
-              }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                bottom: "-40%",
-                right: "10%",
-                width: 250,
-                height: 200,
-                background:
-                  "radial-gradient(ellipse,rgba(167,139,250,0.06),transparent 70%)",
-                pointerEvents: "none",
-              }}
-            />
-            <div
-              style={{
-                position: "relative",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "space-between",
-                flexWrap: "wrap",
-                gap: 16,
+                gap: 6,
+                padding: "4px 12px",
+                borderRadius: RADIUS.pill,
+                border: `1px solid ${t.borderHov}`,
+                background: t.actBg,
+                color: t.textSub,
+                fontSize: 10.5,
+                fontWeight: FONT_WEIGHT.semibold,
+                cursor: "pointer",
+                fontFamily: FONT_FAMILY,
               }}
             >
-              <div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                    marginBottom: 10,
-                  }}
-                >
-                  <button
-                    onClick={() => navigate(-1)}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
-                      padding: "6px 14px",
-                      borderRadius: 10,
-                      border: `1px solid ${t.borderHov}`,
-                      background: t.actBg,
-                      color: t.textSub,
-                      fontSize: 11,
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      fontFamily: "'Poppins',sans-serif",
-                    }}
-                  >
-                    <ArrowLeft size={13} /> Back
-                  </button>
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 7 }}
-                  >
-                    <Sparkles size={11} color={t.textSub} />
-                    <span
-                      style={{
-                        fontSize: 9,
-                        fontWeight: 700,
-                        letterSpacing: "0.22em",
-                        textTransform: "uppercase",
-                        color: t.textSub,
-                        fontFamily: "'Poppins',sans-serif",
-                      }}
-                    >
-                      Admin Portal
-                    </span>
-                    <ChevronRight size={10} color={t.textSub} />
-                    <span
-                      onClick={() => navigate("/admin/organisation-overview")}
-                      style={{
-                        fontSize: 9,
-                        fontWeight: 700,
-                        letterSpacing: "0.22em",
-                        textTransform: "uppercase",
-                        color: t.textSub,
-                        fontFamily: "'Poppins',sans-serif",
-                        cursor: "pointer",
-                      }}
-                    >
-                      Organisation Manager
-                    </span>
-                  </div>
-                </div>
-                <h1
-                  style={{
-                    fontFamily: "'Poppins',sans-serif",
-                    fontWeight: 900,
-                    fontSize: "clamp(1.6rem,3vw,2.4rem)",
-                    color: t.text,
-                    margin: 0,
-                    lineHeight: 1.1,
-                    letterSpacing: "-0.02em",
-                  }}
-                >
-                  Users
-                </h1>
-                <p
-                  style={{
-                    fontSize: 12,
-                    color: t.textSub,
-                    marginTop: 7,
-                    fontWeight: 500,
-                    fontFamily: "'Poppins',sans-serif",
-                  }}
-                >
-                  Manage platform users and roles
-                </p>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                    background: t.actBg,
-                    border: `1px solid ${t.actBorder}`,
-                    borderRadius: 12,
-                    padding: "8px 16px",
-                    fontSize: 11,
-                    fontWeight: 600,
-                    fontFamily: "'Poppins',sans-serif",
-                    color: t.textSub,
-                  }}
-                >
-                  <Users size={13} color="#22d3ee" />
-                  <span style={{ color: t.text, fontWeight: 700 }}>
-                    {users.length}
-                  </span>
-                  <span>Users</span>
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    background: t.actBg,
-                    border: `1px solid ${t.actBorder}`,
-                    borderRadius: 10,
-                    padding: "8px 14px",
-                  }}
-                >
-                  <Activity size={12} color={t.actIcon} />
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 3,
-                      alignItems: "flex-end",
-                      height: 14,
-                    }}
-                  >
-                    <span
-                      className="d1"
-                      style={{
-                        width: 3,
-                        height: 10,
-                        borderRadius: 2,
-                        background: t.actBar,
-                        display: "block",
-                      }}
-                    />
-                    <span
-                      className="d2"
-                      style={{
-                        width: 3,
-                        height: 14,
-                        borderRadius: 2,
-                        background: t.actBar,
-                        display: "block",
-                      }}
-                    />
-                    <span
-                      className="d3"
-                      style={{
-                        width: 3,
-                        height: 7,
-                        borderRadius: 2,
-                        background: t.actBar,
-                        display: "block",
-                      }}
-                    />
-                  </div>
-                </div>
-                <div
-                  className="livebadge"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 7,
-                    background: isDark
-                      ? "rgba(52,211,153,0.08)"
-                      : "rgba(22,163,74,0.08)",
-                    border: isDark
-                      ? "1px solid rgba(52,211,153,0.3)"
-                      : "1px solid rgba(22,163,74,0.3)",
-                    borderRadius: 999,
-                    padding: "8px 18px",
-                    color: t.liveText,
-                    fontSize: 11,
-                    fontWeight: 700,
-                    letterSpacing: "0.1em",
-                    fontFamily: "'Poppins',sans-serif",
-                  }}
-                >
-                  <span
-                    style={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: "50%",
-                      background: t.liveColor,
-                      display: "inline-block",
-                    }}
-                  />{" "}
-                  LIVE
-                </div>
-              </div>
-            </div>
+              <ArrowLeft size={12} /> Back
+            </button>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: ACCENT_PURPLE.base }} />
+            <span
+              style={{
+                fontSize: FONT_SIZE.eyebrow,
+                fontWeight: FONT_WEIGHT.bold,
+                letterSpacing: LETTER_SPACING.eyebrowWide,
+                textTransform: "uppercase",
+                color: t.textSub,
+                fontFamily: FONT_FAMILY,
+              }}
+            >
+              Organisation Manager
+            </span>
           </div>
-
-          {/* ACTION BAR */}
-          <div
-            className="ufade"
+          <h1
             style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 12,
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: 20,
+              fontFamily: FONT_FAMILY,
+              fontWeight: FONT_WEIGHT.heroTitle,
+              fontSize: FONT_SIZE.heroTitle,
+              color: ACCENT_PURPLE.base,
+              margin: "0 0 6px",
+              lineHeight: LINE_HEIGHT.heroTitle,
+              letterSpacing: LETTER_SPACING.heroTitle,
             }}
           >
+            All Users
+          </h1>
+          <p style={{ fontSize: FONT_SIZE.bodySmall, color: t.textSub, margin: 0, fontWeight: FONT_WEIGHT.medium, fontFamily: FONT_FAMILY }}>
+            Manage platform users and roles across your organisation
+          </p>
+        </div>
+
+        <div className="hero-badges au-hero-badges">
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              background: t.actBg,
+              border: `1px solid ${t.actBorder}`,
+              borderRadius: RADIUS.chip,
+              padding: "8px 16px",
+              fontSize: 11,
+              fontWeight: FONT_WEIGHT.semibold,
+              fontFamily: FONT_FAMILY,
+              color: t.textSub,
+              flexWrap: "wrap",
+            }}
+          >
+            <span>{users.length} users</span>
+            <span style={{ width: 1, height: 14, background: t.actBorder }} />
+            <span>{trainerCount} trainers</span>
+            <span style={{ width: 1, height: 14, background: t.actBorder }} />
+            <span>{studentCount} students</span>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 7,
+              background: "rgba(124,58,237,0.08)",
+              border: "1px solid rgba(124,58,237,0.3)",
+              borderRadius: RADIUS.pill,
+              padding: "8px 18px",
+              color: ACCENT_PURPLE.base,
+              fontSize: 11,
+              fontWeight: FONT_WEIGHT.bold,
+              letterSpacing: LETTER_SPACING.eyebrowWide,
+              fontFamily: FONT_FAMILY,
+            }}
+          >
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: ACCENT_PURPLE.base, display: "inline-block" }} />
+            LIVE
+          </div>
+        </div>
+      </Hero>
+
+      {/* ═══ STAT CARDS — shared <StatCard> ═══ */}
+      <div className="stat-grid" style={{ marginBottom: 20 }}>
+        {userStats.map((s, i) => (
+          <StatCard key={s.label} stat={s} index={i} loading={loading} mode={isDark ? "dark" : "light"} />
+        ))}
+      </div>
+
+      {/* ═══ TOOLBAR — search + actions ═══ */}
+      <div
+        style={{
+          background: t.cardBg,
+          border: `1px solid ${t.border}`,
+          borderRadius: RADIUS.standardCard,
+          boxShadow: t.shadow,
+          padding: "12px 16px",
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+          marginBottom: 14,
+        }}
+      >
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <div style={{ position: "relative" }}>
                 <Search
@@ -3065,14 +2872,14 @@ const AllUsers = () => {
                     paddingRight: 14,
                     height: 36,
                     width: 220,
-                    borderRadius: 10,
+                    boxSizing: "border-box",
+                    borderRadius: RADIUS.chip,
                     border: `1px solid ${t.border}`,
-                    background: t.cardBg,
+                    background: t.recentItemBg,
                     color: t.text,
-                    fontSize: 11,
-                    fontFamily: "'Poppins',sans-serif",
+                    fontSize: 12.5,
+                    fontFamily: FONT_FAMILY,
                     outline: "none",
-                    boxShadow: t.shadow,
                   }}
                 />
               </div>
@@ -3092,16 +2899,16 @@ const AllUsers = () => {
                   display: "flex",
                   alignItems: "center",
                   gap: 7,
-                  padding: "8px 18px",
-                  borderRadius: 10,
-                  background: "linear-gradient(135deg,#3b82f6,#22d3ee)",
+                  padding: "9px 18px",
+                  borderRadius: RADIUS.button,
+                  background: `linear-gradient(135deg, ${ACCENT_PURPLE.base}, #4f46e5)`,
                   border: "none",
-                  color: "#fff",
-                  fontSize: 11,
-                  fontWeight: 700,
+                  color: "#ffffff",
+                  fontSize: 12,
+                  fontWeight: FONT_WEIGHT.bold,
                   cursor: "pointer",
-                  fontFamily: "'Poppins',sans-serif",
-                  boxShadow: "0 4px 14px rgba(34,211,238,0.35)",
+                  fontFamily: FONT_FAMILY,
+                  boxShadow: "0 6px 18px rgba(79,70,229,0.3)",
                   transition: "all 0.2s",
                   whiteSpace: "nowrap",
                 }}
@@ -3143,7 +2950,7 @@ const AllUsers = () => {
                         fontWeight: 700,
                         color: t.text,
                         margin: 0,
-                        fontFamily: "'Poppins',sans-serif",
+                        fontFamily: FONT_FAMILY,
                       }}
                     >
                       All Users
@@ -3153,7 +2960,7 @@ const AllUsers = () => {
                         fontSize: 10,
                         color: t.textMuted,
                         margin: "3px 0 0",
-                        fontFamily: "'Poppins',sans-serif",
+                        fontFamily: FONT_FAMILY,
                       }}
                     >
                       {filteredUsers.length} user
@@ -3194,7 +3001,7 @@ const AllUsers = () => {
                           fontSize: 12,
                           color: t.textMuted,
                           fontWeight: 500,
-                          fontFamily: "'Poppins',sans-serif",
+                          fontFamily: FONT_FAMILY,
                           margin: 0,
                         }}
                       >
@@ -3293,7 +3100,7 @@ const AllUsers = () => {
                                             color: "#fff",
                                             fontWeight: 800,
                                             fontSize: 15,
-                                            fontFamily: "'Poppins',sans-serif",
+                                            fontFamily: FONT_FAMILY,
                                             boxShadow: `0 3px 10px ${c1}44`,
                                             flexShrink: 0,
                                           }}
@@ -3311,7 +3118,7 @@ const AllUsers = () => {
                                               color: t.text,
                                               margin: 0,
                                               fontFamily:
-                                                "'Poppins',sans-serif",
+                                                FONT_FAMILY,
                                             }}
                                           >
                                             {u.displayName}
@@ -3333,7 +3140,7 @@ const AllUsers = () => {
                                                 fontSize: 10,
                                                 color: t.textMuted,
                                                 fontFamily:
-                                                  "'Poppins',sans-serif",
+                                                  FONT_FAMILY,
                                               }}
                                             >
                                               {u.email}
@@ -3360,7 +3167,7 @@ const AllUsers = () => {
                                             fontSize: 10,
                                             fontWeight: 700,
                                             color: role.color,
-                                            fontFamily: "'Poppins',sans-serif",
+                                            fontFamily: FONT_FAMILY,
                                           }}
                                         >
                                           {role.label}
@@ -3510,7 +3317,7 @@ const AllUsers = () => {
                             fontWeight: 700,
                             color: "#fff",
                             margin: 0,
-                            fontFamily: "'Poppins',sans-serif",
+                            fontFamily: FONT_FAMILY,
                           }}
                         >
                           {editingUser ? "Edit User" : "New User"}
@@ -3520,7 +3327,7 @@ const AllUsers = () => {
                             fontSize: 10,
                             color: "rgba(255,255,255,0.6)",
                             margin: "2px 0 0",
-                            fontFamily: "'Poppins',sans-serif",
+                            fontFamily: FONT_FAMILY,
                           }}
                         >
                           {editingUser
@@ -3561,7 +3368,7 @@ const AllUsers = () => {
                           color: i === 0 ? "#fff" : "rgba(255,255,255,0.4)",
                           fontSize: 10,
                           fontWeight: 600,
-                          fontFamily: "'Poppins',sans-serif",
+                          fontFamily: FONT_FAMILY,
                         }}
                       >
                         <div
@@ -3656,7 +3463,7 @@ const AllUsers = () => {
                               fontSize: 9,
                               fontWeight: 700,
                               color: pwStrength.color,
-                              fontFamily: "'Poppins',sans-serif",
+                              fontFamily: FONT_FAMILY,
                               letterSpacing: "0.05em",
                             }}
                           >
@@ -3715,7 +3522,7 @@ const AllUsers = () => {
                                 background:
                                   i <= pwStrength.score
                                     ? pwStrength.color
-                                    : t.inputBorder,
+                                    : t.border,
                                 transition: "background 0.25s",
                               }}
                             />
@@ -3726,7 +3533,7 @@ const AllUsers = () => {
                         style={{
                           fontSize: 9,
                           color: t.textMuted,
-                          fontFamily: "'Poppins',sans-serif",
+                          fontFamily: FONT_FAMILY,
                           margin: "5px 0 0",
                           lineHeight: 1.5,
                         }}
@@ -3763,7 +3570,7 @@ const AllUsers = () => {
                             top: "calc(100% + 4px)",
                             left: 0,
                             right: 0,
-                            background: t.dropdownBg,
+                            background: t.cardBg,
                             border: `1px solid ${t.border}`,
                             borderRadius: 12,
                             boxShadow: t.shadowHov,
@@ -3783,7 +3590,7 @@ const AllUsers = () => {
                                   fontSize: 12,
                                   cursor: "pointer",
                                   color: t.text,
-                                  fontFamily: "'Poppins',sans-serif",
+                                  fontFamily: FONT_FAMILY,
                                   background:
                                     formData.roles === r
                                       ? isDark
@@ -3854,7 +3661,7 @@ const AllUsers = () => {
                               top: "calc(100% + 4px)",
                               left: 0,
                               right: 0,
-                              background: t.dropdownBg,
+                              background: t.cardBg,
                               border: `1px solid ${t.border}`,
                               borderRadius: 12,
                               boxShadow: t.shadowHov,
@@ -3874,7 +3681,7 @@ const AllUsers = () => {
                                   fontSize: 12,
                                   cursor: "pointer",
                                   color: t.text,
-                                  fontFamily: "'Poppins',sans-serif",
+                                  fontFamily: FONT_FAMILY,
                                   background:
                                     formData.roles === r
                                       ? isDark
@@ -3912,7 +3719,7 @@ const AllUsers = () => {
                         fontSize: 11,
                         fontWeight: 600,
                         cursor: "pointer",
-                        fontFamily: "'Poppins',sans-serif",
+                        fontFamily: FONT_FAMILY,
                       }}
                     >
                       Cancel
@@ -3928,7 +3735,7 @@ const AllUsers = () => {
                         fontSize: 11,
                         fontWeight: 700,
                         cursor: "pointer",
-                        fontFamily: "'Poppins',sans-serif",
+                        fontFamily: FONT_FAMILY,
                         boxShadow: "0 4px 14px rgba(34,211,238,0.35)",
                       }}
                     >
@@ -3996,7 +3803,7 @@ const AllUsers = () => {
                               color: "#fff",
                               fontWeight: 800,
                               fontSize: 15,
-                              fontFamily: "'Poppins',sans-serif",
+                              fontFamily: FONT_FAMILY,
                             }}
                           >
                             {profilePanelUser.displayName
@@ -4012,7 +3819,7 @@ const AllUsers = () => {
                           fontWeight: 700,
                           color: "#fff",
                           margin: 0,
-                          fontFamily: "'Poppins',sans-serif",
+                          fontFamily: FONT_FAMILY,
                         }}
                       >
                         {profilePanelUser?.displayName}
@@ -4022,7 +3829,7 @@ const AllUsers = () => {
                           fontSize: 10,
                           color: "rgba(255,255,255,0.65)",
                           margin: "2px 0 0",
-                          fontFamily: "'Poppins',sans-serif",
+                          fontFamily: FONT_FAMILY,
                         }}
                       >
                         {ROLE_CFG[profilePanelUser?.roles]?.label ?? "User"}{" "}
@@ -4065,7 +3872,7 @@ const AllUsers = () => {
                         letterSpacing: "0.12em",
                         textTransform: "uppercase",
                         color: t.textMuted,
-                        fontFamily: "'Poppins',sans-serif",
+                        fontFamily: FONT_FAMILY,
                         margin: "0 0 10px",
                       }}
                     >
@@ -4092,7 +3899,7 @@ const AllUsers = () => {
                           style={{
                             fontSize: 11,
                             color: t.textMuted,
-                            fontFamily: "'Poppins',sans-serif",
+                            fontFamily: FONT_FAMILY,
                           }}
                         >
                           {label}
@@ -4102,7 +3909,7 @@ const AllUsers = () => {
                             fontSize: 11,
                             fontWeight: 600,
                             color: t.text,
-                            fontFamily: "'Poppins',sans-serif",
+                            fontFamily: FONT_FAMILY,
                             maxWidth: 200,
                             textAlign: "right",
                             wordBreak: "break-all",
@@ -4143,7 +3950,7 @@ const AllUsers = () => {
                         fontSize: 12,
                         color: "#f43f5e",
                         textAlign: "center",
-                        fontFamily: "'Poppins',sans-serif",
+                        fontFamily: FONT_FAMILY,
                       }}
                     >
                       {profileError}
@@ -4163,7 +3970,7 @@ const AllUsers = () => {
                             letterSpacing: "0.12em",
                             textTransform: "uppercase",
                             color: t.textMuted,
-                            fontFamily: "'Poppins',sans-serif",
+                            fontFamily: FONT_FAMILY,
                             margin: "0 0 10px",
                           }}
                         >
@@ -4214,7 +4021,7 @@ const AllUsers = () => {
                               style={{
                                 fontSize: 11,
                                 color: t.textMuted,
-                                fontFamily: "'Poppins',sans-serif",
+                                fontFamily: FONT_FAMILY,
                               }}
                             >
                               {label}
@@ -4224,7 +4031,7 @@ const AllUsers = () => {
                                 fontSize: 11,
                                 fontWeight: 600,
                                 color: t.text,
-                                fontFamily: "'Poppins',sans-serif",
+                                fontFamily: FONT_FAMILY,
                                 maxWidth: 180,
                                 textAlign: "right",
                               }}
@@ -4249,7 +4056,7 @@ const AllUsers = () => {
                             letterSpacing: "0.12em",
                             textTransform: "uppercase",
                             color: t.textMuted,
-                            fontFamily: "'Poppins',sans-serif",
+                            fontFamily: FONT_FAMILY,
                             margin: "0 0 10px",
                           }}
                         >
@@ -4294,7 +4101,7 @@ const AllUsers = () => {
                               style={{
                                 fontSize: 11,
                                 color: t.textMuted,
-                                fontFamily: "'Poppins',sans-serif",
+                                fontFamily: FONT_FAMILY,
                               }}
                             >
                               {label}
@@ -4304,7 +4111,7 @@ const AllUsers = () => {
                                 fontSize: 11,
                                 fontWeight: 600,
                                 color: t.text,
-                                fontFamily: "'Poppins',sans-serif",
+                                fontFamily: FONT_FAMILY,
                                 maxWidth: 180,
                                 textAlign: "right",
                                 wordBreak: "break-all",
@@ -4327,7 +4134,7 @@ const AllUsers = () => {
                           fontSize: 12,
                           color: t.textMuted,
                           textAlign: "center",
-                          fontFamily: "'Poppins',sans-serif",
+                          fontFamily: FONT_FAMILY,
                           paddingTop: 8,
                         }}
                       >
@@ -4339,8 +4146,6 @@ const AllUsers = () => {
             </div>
             {/* ── END PROFILE DETAIL PANEL ─────────────────────────────────── */}
           </div>
-        </div>
-      </div>
 
       {/* LIMIT ERROR MODAL */}
       {limitError && (
@@ -4390,7 +4195,7 @@ const AllUsers = () => {
                 fontSize: 16,
                 fontWeight: 800,
                 color: t.text,
-                fontFamily: "'Poppins',sans-serif",
+                fontFamily: FONT_FAMILY,
                 margin: "0 0 8px",
               }}
             >
@@ -4401,7 +4206,7 @@ const AllUsers = () => {
               style={{
                 fontSize: 12,
                 color: t.textSub,
-                fontFamily: "'Poppins',sans-serif",
+                fontFamily: FONT_FAMILY,
                 margin: "0 0 20px",
                 lineHeight: 1.6,
               }}
@@ -4422,7 +4227,7 @@ const AllUsers = () => {
                   fontSize: 12,
                   fontWeight: 600,
                   cursor: "pointer",
-                  fontFamily: "'Poppins',sans-serif",
+                  fontFamily: FONT_FAMILY,
                 }}
               >
                 Close
@@ -4441,7 +4246,7 @@ const AllUsers = () => {
                   fontSize: 12,
                   fontWeight: 700,
                   cursor: "pointer",
-                  fontFamily: "'Poppins',sans-serif",
+                  fontFamily: FONT_FAMILY,
                   boxShadow: "0 4px 14px rgba(244,63,94,0.35)",
                 }}
               >
@@ -4451,7 +4256,7 @@ const AllUsers = () => {
           </div>
         </div>
       )}
-    </>
+    </PageContainer>
   );
 };
 

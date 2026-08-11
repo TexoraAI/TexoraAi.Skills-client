@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <url><loc>https://ilmora.texora.ai/</loc><priority>1.0</priority></url>
+  <url><loc>https://ilmora.texora.ai/all-courses</loc><priority>0.9</priority></url>
+
+  <url><loc>https://ilmora.texora.ai/student-hub</loc><priority>0.8</priority></url>
+  <url><loc>https://ilmora.texora.ai/trainer-hub</loc><priority>0.8</priority></url>
+  <url><loc>https://ilmora.texora.ai/manager-hub</loc><priority>0.8</priority></url>
+  <url><loc>https://ilmora.texora.ai/resume-builder</loc><priority>0.8</priority></url>
+
+  <url><loc>https://ilmora.texora.ai/study-abroad</loc><priority>0.7</priority></url>
+  <url><loc>https://ilmora.texora.ai/ilm-ora-gulf</loc><priority>0.7</priority></url>
+  <url><loc>https://ilmora.texora.ai/ilm-ora-meet</loc><priority>0.7</priority></url>
+  <url><loc>https://ilmora.texora.ai/ilm-ora-talk</loc><priority>0.6</priority></url>
+  <url><loc>https://ilmora.texora.ai/platforms</loc><priority>0.6</priority></url>
+  <url><loc>https://ilmora.texora.ai/fde-academy</loc><priority>0.6</priority></url>
+  <url><loc>https://ilmora.texora.ai/workspace</loc><priority>0.6</priority></url>
+
+  <url><loc>https://ilmora.texora.ai/school-class</loc><priority>0.6</priority></url>
+  <url><loc>https://ilmora.texora.ai/school-class/9</loc><priority>0.6</priority></url>
+  <url><loc>https://ilmora.texora.ai/school-class/9/math</loc><priority>0.6</priority></url>
+  <url><loc>https://ilmora.texora.ai/school-class/9/ai</loc><priority>0.6</priority></url>
+
+  <url><loc>https://ilmora.texora.ai/about</loc><priority>0.6</priority></url>
+  <url><loc>https://ilmora.texora.ai/pricing</loc><priority>0.6</priority></url>
+  <url><loc>https://ilmora.texora.ai/careers</loc><priority>0.5</priority></url>
+  <url><loc>https://ilmora.texora.ai/contact</loc><priority>0.5</priority></url>
+  <url><loc>https://ilmora.texora.ai/faq</loc><priority>0.5</priority></url>
+  <url><loc>https://ilmora.texora.ai/help-center</loc><priority>0.5</priority></url>
+
+  <url><loc>https://ilmora.texora.ai/apply</loc><priority>0.5</priority></url>
+  <url><loc>https://ilmora.texora.ai/apply-trainer</loc><priority>0.5</priority></url>
+  <url><loc>https://ilmora.texora.ai/apply-business</loc><priority>0.5</priority></url>
+  <url><loc>https://ilmora.texora.ai/apply-student</loc><priority>0.5</priority></url>
+
+  <url><loc>https://ilmora.texora.ai/privacy-policy</loc><priority>0.3</priority></url>
+  <url><loc>https://ilmora.texora.ai/terms-of-service</loc><priority>0.3</priority></url>
+
+</urlset>

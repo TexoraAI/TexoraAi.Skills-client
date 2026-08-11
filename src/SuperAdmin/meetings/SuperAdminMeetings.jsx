@@ -338,8 +338,25 @@ function ScheduleModal({ onClose, onSave }) {
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
-  const [org, setOrg] = useState("");
+  const [participantEmails, setParticipantEmails] = useState("");
+  const [emailError, setEmailError] = useState("");
   const canSave = title && date && time;
+
+  const handleSave = () => {
+    const emails = participantEmails
+      .split(",")
+      .map((e) => e.trim())
+      .filter(Boolean);
+
+    const invalid = emails.find((e) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e));
+    if (invalid) {
+      setEmailError(`"${invalid}" is not a valid email`);
+      return;
+    }
+    setEmailError("");
+    onSave({ title, date, time, participantEmails: emails });
+    onClose();
+  };
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
@@ -376,26 +393,24 @@ function ScheduleModal({ onClose, onSave }) {
               />
             </label>
           </div>
-          <label className="field">
-            <span>Organization / participants</span>
+         <label className="field">
+            <span>Please enter participant email(s)</span>
             <input
-              value={org}
-              onChange={(e) => setOrg(e.target.value)}
-              placeholder="e.g. All organizations"
+              value={participantEmails}
+              onChange={(e) => setParticipantEmails(e.target.value)}
+              placeholder="e.g. admin@gmail.com, org@texora.ai"
             />
           </label>
+          {emailError && <div style={{ color: "#dc2626", fontSize: 12 }}>{emailError}</div>}
         </div>
         <div className="modal-foot">
           <button className="btn-ghost" onClick={onClose}>
             Cancel
           </button>
-          <button
+         <button
             className="btn-primary"
             disabled={!canSave}
-            onClick={() => {
-              onSave({ title, date, time, org });
-              onClose();
-            }}
+            onClick={handleSave}
           >
             <Check size={16} /> Save session
           </button>
@@ -1024,7 +1039,8 @@ export default function SuperAdminMeetings() {
       console.error("Failed to start instant meeting", err);
     }
   };
-  const handleSaveSchedule = async ({ title, date, time }) => {
+  // const handleSaveSchedule = async ({ title, date, time }) => {
+ const handleSaveSchedule = async ({ title, date, time, participantEmails }) => {
     try {
       const res = await createScheduledMeeting({
         title: title || "Untitled session",
@@ -1032,6 +1048,7 @@ export default function SuperAdminMeetings() {
         time,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         creatorName: currentUserName,
+        participantEmails,
       });
       setLinkMeeting({ joinCode: res.data.joinCode, status: "scheduled" });
       const refreshed = await getMyMeetings();

@@ -1,16 +1,37 @@
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import { useEffect, useState, useRef, useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useState, useRef, useCallback, useMemo, Suspense } from "react";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import auth from "../../auth";
+import ChatWidgetButton from "../../Student/ChatWidgetButton";
 import IlmDemoSidebar, {
   SIDEBAR_WIDTHS,
+  SECTION_INDEX,
+  ROLE_HOME_PATH,
 } from "../../components/IlmDemoSidebar";
 import Footer from "../Landing/components/Footer";
 import IlmDemoProfilePage from "../IlmDemoProfilePage";
+import NotificationBell from "../../components/NotificationBell";
+// ═══ REAL PRODUCTION CONTENT (no dummy/placeholder pages) ═══
+// getRoleHomeComponent()/getSectionComponent() return the SAME
+// lazy-loaded Student/Trainer/Admin components App.jsx already routes
+// to at /student, /trainer, /admin — rendered here instead, inside
+// this page's own header/sidebar, so we never leave /ilm-demo.
+import {
+  getRoleHomeComponent,
+  getSectionComponent,
+} from "./ilmDemoContentRegistry";
+// NOTE: this page used to install a global axios write-guard
+// (../../demo/ilmDemoWriteGuard.js) that blocked POST/PUT/PATCH/DELETE
+// while /ilm-demo was mounted, with a "This is a Live Demo" modal shown
+// on every blocked click. That two-tier demo/production split has been
+// removed — /ilm-demo is now the single real dashboard, reached only
+// after a user has actually authenticated (onboarding or email/password
+// login/registration), so every write goes straight through to the real
+// backend exactly like it does anywhere else in the app.
 import {
   BookOpen,
   FileText,
@@ -61,7 +82,6 @@ import {
   Crown,
   CheckCircle,
   Clock,
-  Lock,
   ChevronRight,
   X,
   Check,
@@ -210,6 +230,133 @@ function ToastContainer({ toasts }) {
   );
 }
 
+/* ─── Fallback while a real page is being fetched/rendered ───────────── */
+function IlmDemoContentLoading() {
+  return (
+    <div
+      style={{
+        padding: "60px 32px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "#94a3b8",
+        gap: 10,
+      }}
+    >
+      <span
+        style={{
+          width: 16,
+          height: 16,
+          borderRadius: "50%",
+          border: "2px solid #e2e8f0",
+          borderTopColor: "#F97316",
+          animation: "ilmSpin 0.7s linear infinite",
+        }}
+      />
+      Loading…
+      <style>{`@keyframes ilmSpin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+}
+
+/* ─── SECTION CONTENT (fallback ONLY, e.g. a section not yet migrated) ───
+   Every real sidebar item now renders its actual production page (see
+   ilmDemoContentRegistry.js). This card only ever shows if a path in
+   SECTION_INDEX has no registered real component behind it yet — it is
+   NOT the normal path for any live sidebar item. */
+function IlmDemoSectionContent({ section, onBack }) {
+  const meta = SECTION_INDEX[section] || {
+    name: "Overview",
+    icon: DashboardIcon,
+  };
+  const Icon = meta.icon || DashboardIcon;
+  return (
+    <div style={{ padding: "28px 32px 60px", maxWidth: 1100, margin: "0 auto" }}>
+      <button
+        onClick={onBack}
+        style={{
+          padding: "8px 16px",
+          borderRadius: 10,
+          border: "1px solid #e2e8f0",
+          background: "#fff",
+          cursor: "pointer",
+          fontWeight: 600,
+          fontSize: "0.85rem",
+          color: "#334155",
+        }}
+      >
+        ← Back to Dashboard
+      </button>
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          margin: "24px 0 8px",
+        }}
+      >
+        <div
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: 12,
+            background: "#fff7ed",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#F97316",
+            flexShrink: 0,
+          }}
+        >
+          <Icon size={22} />
+        </div>
+        <div>
+          <div style={{ fontSize: "1.4rem", fontWeight: 800, color: "#1e293b" }}>
+            {meta.name}
+          </div>
+          {meta.parent && (
+            <div style={{ fontSize: "0.8rem", color: "#94a3b8" }}>
+              {meta.parent}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <p style={{ color: "#64748b", maxWidth: 560, marginBottom: 28 }}>
+        {meta.name} isn't wired into the live demo yet. Every other sidebar
+        item shows the real ILM ORA production page — this one's still on
+        the list.
+      </p>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: 16,
+        }}
+      >
+        {["No data yet", "No data yet", "No data yet"].map((label, i) => (
+          <div
+            key={i}
+            style={{
+              background: "#fff",
+              border: "1px solid #e2e8f0",
+              borderRadius: 14,
+              padding: 24,
+              textAlign: "center",
+              color: "#94a3b8",
+            }}
+          >
+            <Icon size={20} style={{ marginBottom: 8, opacity: 0.5 }} />
+            <div>{label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ─── POPUP 1: Profile Incomplete ───────────────────────────────────────── */
 function ProfileIncompleteModal({ onClose, onCompleteProfile }) {
   return (
@@ -327,7 +474,7 @@ function SuccessModal({ onClose, onGoToDashboard }) {
   );
 }
 /* ─── LOGIN MODAL ────────────────────────────────────────────────────────── */
-function LoginModal({ onClose, onGoogleSuccess }) {
+function LoginModal({ onClose, onGoogleSuccess, onAuthenticated }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -366,6 +513,7 @@ function LoginModal({ onClose, onGoogleSuccess }) {
             isGoogleUser: false,
           }),
         );
+        onAuthenticated && onAuthenticated(); // ✅ real token exists now
         redirectByRole(role);
       } else {
         alert("Login failed! Check your credentials.");
@@ -404,6 +552,7 @@ function LoginModal({ onClose, onGoogleSuccess }) {
             organizationId: check.organizationId || null,
           }),
         );
+        onAuthenticated && onAuthenticated(); // ✅ real token exists now
         onClose();
         redirectByRole(role);
         return;
@@ -1178,9 +1327,33 @@ const ICON_COLORS = [
 export default function IlmOraDemoPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  // Which sidebar section is shown in the content area, e.g.
+  // "/student/workspace". Stored in the URL (?section=...) so it's
+  // shareable/refreshable, but it never triggers a real route change —
+  // we stay on /ilm-demo and just swap what renders below the sidebar.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeSection = searchParams.get("section") || null;
   const [showLogin, setShowLogin] = useState(false);
   const [showRolePopup, setShowRolePopup] = useState(false);
   const [showInterestPopup, setShowInterestPopup] = useState(false);
+
+  // Real backend session check. /ilm-demo is now the single real
+  // dashboard route — it's only ever reached after actual authentication
+  // (onboarding completion, or email/password register/login), so there
+  // is no separate "read-only sandbox" state to toggle here anymore.
+  // `hasRealSession` is kept only as a simple helper for UI that needs to
+  // know whether a real backend token exists (e.g. showing the avatar vs.
+  // "Get Started" in the navbar) — it no longer drives any write-blocking.
+  const hasRealBackendToken = () => !!localStorage.getItem("lms_token");
+  const [hasRealSession, setHasRealSession] = useState(hasRealBackendToken);
+
+  // Keep it in sync if the token changes in another tab (e.g. logging out
+  // of a real account elsewhere while /ilm-demo is open here).
+  useEffect(() => {
+    const syncFromStorage = () => setHasRealSession(hasRealBackendToken());
+    window.addEventListener("storage", syncFromStorage);
+    return () => window.removeEventListener("storage", syncFromStorage);
+  }, []);
   // ── Bug 1 fix helpers ────────────────────────────────────────────────
   // Safely read the cached user object.
   const readSavedUserSafe = () => {
@@ -1238,6 +1411,18 @@ export default function IlmOraDemoPage() {
   );
   useEffect(() => {
     localStorage.setItem("ilmora-theme", theme);
+    // App.jsx (the normal /student, /trainer, /admin routing) toggles this
+    // same "dark" class on <html> whenever ITS OWN theme state changes —
+    // that's what nested dashboard pages (DashboardPage.jsx etc., via the
+    // MutationObserver-based getT(theme)/ThemeCtx pattern) actually read to
+    // pick T.light vs T.dark. This page keeps its own separate theme state
+    // (so the /ilm-demo hero/nav/sidebar can toggle independently of the
+    // rest of the app), but it never mirrored that class toggle — so any
+    // real dashboard rendered inside <ContentComponent /> below never
+    // learned the theme changed and stayed stuck in light mode. Mirroring
+    // it here fixes that without touching how any dashboard page itself
+    // decides light vs dark.
+    document.documentElement.classList.toggle("dark", theme === "dark");
   }, [theme]);
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
@@ -1362,6 +1547,54 @@ export default function IlmOraDemoPage() {
       : userRole === "trainer"
         ? "trainer"
         : "student";
+
+  // ── Sidebar toggle ↔ content width sync ─────────────────────────────
+  // IlmDemoSidebar supports being a CONTROLLED component (it reads
+  // sidebarMode/setSidebarMode props when given, falling back to its own
+  // internal state only when they're not passed). Previously they were
+  // never passed here, so this page had no idea whether the sidebar was
+  // "full" (280px) or "icon" (72px) — the content wrapper below and the
+  // Footer wrapper both hardcoded `marginLeft: SIDEBAR_WIDTHS.full`
+  // regardless of the sidebar's actual on-screen width. Clicking the
+  // hamburger visually shrank the sidebar to an icon rail but left a
+  // permanent 280px-wide gap reserved for it, so the dashboard content
+  // never expanded into the freed-up space.
+  // Fix: lift the mode up here, pass it down as a controlled prop, and
+  // drive both margins from SIDEBAR_WIDTHS[sidebarMode] so the content
+  // area compresses/expands in sync with the sidebar every time the
+  // toggle is clicked.
+  const readStoredSidebarMode = (roleKey) => {
+    try {
+      const stored = localStorage.getItem(`sidebarMode:ilmdemo:${roleKey}`);
+      return stored && stored !== "hidden" ? stored : "full";
+    } catch {
+      return "full";
+    }
+  };
+  const [sidebarMode, setSidebarMode] = useState(() =>
+    readStoredSidebarMode(featureRoleKey),
+  );
+  useEffect(() => {
+    setSidebarMode(readStoredSidebarMode(featureRoleKey));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [featureRoleKey]);
+  const contentOffset =
+    SIDEBAR_WIDTHS[sidebarMode] ?? SIDEBAR_WIDTHS.full;
+
+  // ═══ REAL CONTENT RESOLUTION ═══
+  // activeSection (?section=/student/live-classes, etc.) picks a specific
+  // sidebar item's real page; with no section selected, the role's real
+  // dashboard (DashboardPage / Trainer Dashboard / AdminDashboard) renders
+  // — replacing what used to be the marketing hero shown post-login.
+  // "Business & Partnership" always resolves to featureRoleKey "admin"
+  // above, so it already lands on the real Admin dashboard/pages — there
+  // is no separate Business panel in this app, by design.
+  const ContentComponent = useMemo(() => {
+    if (activeSection) {
+      return getSectionComponent(featureRoleKey, activeSection) || null;
+    }
+    return getRoleHomeComponent(featureRoleKey);
+  }, [activeSection, featureRoleKey]);
 
   // Setup state
   const profileCompleted = !!getSavedUser()?.profileCompleted;
@@ -1551,10 +1784,12 @@ export default function IlmOraDemoPage() {
         );
         sessionStorage.removeItem("ilmora_google_credential");
         sessionStorage.removeItem("ilmora_google_user");
+        setHasRealSession(true); // real token now exists
       } catch (err) {
         console.error("Failed to finalize onboarding with backend:", err);
         // Don't block the UX on a network hiccup — keep the local-only
-        // fallback so the demo still works; nothing destructive happened.
+        // fallback so nothing destructive happens; the user's role/profile
+        // still gets saved on their next successful save.
         localStorage.setItem(
           "lms_user",
           JSON.stringify({ ...user, interest: interestKey }),
@@ -1593,6 +1828,7 @@ export default function IlmOraDemoPage() {
     sessionStorage.removeItem("ilmora_google_credential");
     sessionStorage.removeItem("ilmora_profile_return_path"); // Bug 1: clear persisted return path too
     setUserMenuOpen(false);
+    setHasRealSession(false); // real token is gone
     addToast({
       type: "info",
       title: "Signed out",
@@ -1633,7 +1869,46 @@ export default function IlmOraDemoPage() {
     // later, add a check here for that feature's route (e.g. a plan or
     // subscription flag) before navigating, instead of blocking access
     // to the whole dashboard.
+    //
+    // This is used by top-navbar links (All Courses, Mentors) that are
+    // meant to leave the demo and go to their real public pages — unlike
+    // the LEFT SIDEBAR, whose clicks go through goToSection() below and
+    // stay inside /ilm-demo.
     navigate(path);
+  };
+
+  // Used ONLY by the ILM ORA demo's left sidebar (IlmDemoSidebar's
+  // onNavigate). Sidebar items used to go through goToFeature() above,
+  // which called navigate(path) straight to the REAL app route (e.g.
+  // /student/workspace) — a totally different page/layout outside the
+  // demo. Instead, every sidebar click now stays on /ilm-demo and just
+  // records which section to show via ?section=, so the demo's own
+  // sidebar + header never unmount.
+  const goToSection = (path) => {
+    const user = getSavedUser();
+    if (!user?.role) {
+      addToast({
+        type: "warning",
+        title: "Select Your Role",
+        desc: "Please choose your role first to continue.",
+      });
+      setShowRolePopup(true);
+      return;
+    }
+    const role = normalizeAppRole(user.role) || "student";
+    const homePath = ROLE_HOME_PATH[role] || "/student";
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (!path || path === homePath) {
+          next.delete("section"); // "Dashboard" → back to the demo overview
+        } else {
+          next.set("section", path);
+        }
+        return next;
+      },
+      { replace: false },
+    );
   };
 
   // Navigate to the REAL profile route for this role instead of mounting
@@ -2290,6 +2565,7 @@ export default function IlmOraDemoPage() {
           <LoginModal
             onClose={() => setShowLogin(false)}
             onGoogleSuccess={handleGoogleNewUser}
+            onAuthenticated={() => setHasRealSession(true)}
           />
         )}
 
@@ -2375,22 +2651,27 @@ export default function IlmOraDemoPage() {
             </button>
           </div>
 
-          <div className="d-nav-right">
-            <button
-              className="d-nav-hamburger"
-              onClick={() => setMobileNavOpen((o) => !o)}
-              aria-label="Toggle navigation menu"
-            >
-              {mobileNavOpen ? <X size={18} /> : <Menu size={18} />}
-            </button>
+         <div className="d-nav-right">
+  <button
+    className="d-nav-hamburger"
+    onClick={() => setMobileNavOpen((o) => !o)}
+    aria-label="Toggle navigation menu"
+  >
+    {mobileNavOpen ? <X size={18} /> : <Menu size={18} />}
+  </button>
 
-            <button
-              className="d-theme-toggle"
-              onClick={toggleTheme}
-              aria-label="Toggle theme"
-            >
-              {isDark ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
+  {/* Notification Bell */}
+  {isLoggedIn && (
+    <NotificationBell roleOverride={featureRoleKey} />
+  )}
+
+  <button
+    className="d-theme-toggle"
+    onClick={toggleTheme}
+    aria-label="Toggle theme"
+  >
+    {isDark ? <Sun size={18} /> : <Moon size={18} />}
+  </button>
 
             {isLoggedIn ? (
               <div className="d-user-menu-wrap" ref={userMenuRef}>
@@ -2515,8 +2796,11 @@ export default function IlmOraDemoPage() {
           hasRole && (
             <IlmDemoSidebar
               roleOverride={featureRoleKey}
-              onNavigate={goToFeature}
+              onNavigate={goToSection}
+              activeSection={activeSection}
               theme={theme}
+              sidebarMode={sidebarMode}
+              setSidebarMode={setSidebarMode}
             />
           )}
         {showInterestPopup ? (
@@ -2580,15 +2864,35 @@ export default function IlmOraDemoPage() {
               onProfileComplete={handleProfileCompleted}
             />
           </div>
-        ) : (
+        ) : isLoggedIn && hasRole ? (
+          // ═══ REAL PRODUCTION CONTENT ═══
+          // Whatever ContentComponent resolved to above — the role's real
+          // dashboard with no section selected, or the real page behind
+          // whichever sidebar item was clicked — renders right here, inside
+          // this page's own header/sidebar. We never navigate to
+          // /student/*, /trainer/*, or /admin/*; the URL stays /ilm-demo.
           <div
             className="d-reset-scope d-sidebar-offset"
-            style={
-              isLoggedIn && !showRolePopup && hasRole
-                ? { marginLeft: SIDEBAR_WIDTHS.full }
-                : undefined
-            }
+            style={{
+              marginLeft: contentOffset,
+              transition: "margin-left 0.28s ease",
+            }}
           >
+            <Suspense fallback={<IlmDemoContentLoading />}>
+              {ContentComponent ? (
+                <ContentComponent theme={theme} toggleTheme={toggleTheme} />
+              ) : (
+                <IlmDemoSectionContent
+                  section={activeSection}
+                  onBack={() =>
+                    goToSection(ROLE_HOME_PATH[featureRoleKey] || "/student")
+                  }
+                />
+              )}
+            </Suspense>
+          </div>
+        ) : (
+          <div className="d-reset-scope d-sidebar-offset">
             {/* ═══ HERO ═══ */}
 
             {/* ═══ HERO ═══ */}
@@ -2777,21 +3081,6 @@ export default function IlmOraDemoPage() {
                   </div>
                 </section>
 
-                {/* ═══ CTA ═══
-    <div ref={ctaRef}>
-      <div className="d-cta">
-        <div className="d-cta-title">Ready to Transform Your Career?</div>
-        <p className="d-cta-sub">Be among the first to learn with ILM ORA — join our growing community</p>
-        <div className="d-cta-btns">
-          {!isLoggedIn && (
-            <button className="d-cta-primary" onClick={() => setShowLogin(true)}>Get Started</button>
-          )}
-        </div>
-      </div>
-    </div>
-
-  </div>
-)} */}
                 {/* ═══ CTA ═══ */}
                 <div ref={ctaRef}>
                   <div className="d-cta">
@@ -2818,24 +3107,6 @@ export default function IlmOraDemoPage() {
             )}
           </div>
         )}
-        {/* <div
-  className="d-sidebar-offset"
-  style={
-    isLoggedIn && !showProfile
-      ? { marginLeft: SIDEBAR_WIDTHS.full }
-      : undefined
-  }
->
-  <Footer scrollToSection={(id) => scrollToId(id)} />
-</div> */}
-        {/* <div
-  className="d-sidebar-offset"
-  style={
-    isLoggedIn && !showProfile && !showRolePopup
-      ? { marginLeft: SIDEBAR_WIDTHS.full }
-      : undefined
-  }
-> */}
         <div
           className="d-sidebar-offset"
           style={
@@ -2844,7 +3115,7 @@ export default function IlmOraDemoPage() {
             !showRolePopup &&
             !showInterestPopup &&
             hasRole
-              ? { marginLeft: SIDEBAR_WIDTHS.full }
+              ? { marginLeft: contentOffset, transition: "margin-left 0.28s ease" }
               : undefined
           }
         >
@@ -2853,6 +3124,12 @@ export default function IlmOraDemoPage() {
 
         {/* ═══ MULTI-TOAST ═══ */}
         <ToastContainer toasts={toasts} />
+
+        {isLoggedIn &&
+  hasRole &&
+  !showRolePopup &&
+  !showInterestPopup &&
+  featureRoleKey === "student" && <ChatWidgetButton />}
       </div>
     </>
   );

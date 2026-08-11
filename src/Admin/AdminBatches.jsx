@@ -393,6 +393,21 @@
 //                     >
 //                       Admin Portal
 //                     </span>
+//                     <ChevronRight size={10} color={t.textSub} />
+//                     <span
+//                       onClick={() => navigate("/admin/organisation-overview")}
+//                       style={{
+//                         fontSize: 9,
+//                         fontWeight: 700,
+//                         letterSpacing: "0.22em",
+//                         textTransform: "uppercase",
+//                         color: t.textSub,
+//                         fontFamily: "'Poppins',sans-serif",
+//                         cursor: "pointer",
+//                       }}
+//                     >
+//                       Organisation Manager
+//                     </span>
 //                   </div>
 //                 </div>
 
@@ -1350,11 +1365,7 @@
 //   );
 // };
 
-// export default AdminBatches;
-
-
-
-
+// export default AdminBatches;old
 
 
 
@@ -1502,6 +1513,27 @@ const T = {
   },
 };
 
+Object.assign(T.dark, {
+  pageBg: DS_T.dark.pageBg, cardBg: DS_T.dark.cardBg, heroBg: DS_T.dark.heroBg,
+  border: DS_T.dark.border, borderHero: DS_T.dark.borderHero, text: DS_T.dark.text,
+  textSub: DS_T.dark.textSub, textMuted: DS_T.dark.textMuted, pillBg: DS_T.dark.pillBg,
+  pillBorder: DS_T.dark.pillBorder, actBg: DS_T.dark.actBg, actBorder: DS_T.dark.actBorder,
+  shadow: DS_T.dark.shadow, shadowHov: DS_T.dark.shadowHov, emptyBorder: DS_T.dark.emptyBorder,
+  emptyBg: DS_T.dark.emptyBg, emptyIcon: DS_T.dark.emptyIcon,
+  recentItemBg: DS_T.dark.recentItemBg, recentItemBorder: DS_T.dark.recentItemBorder,
+  recentItemBgHov: DS_T.dark.recentItemBgHov, liveColor: DS_T.dark.liveColor, liveText: DS_T.dark.liveText,
+});
+Object.assign(T.light, {
+  pageBg: DS_T.light.pageBg, cardBg: DS_T.light.cardBg, heroBg: DS_T.light.heroBg,
+  border: DS_T.light.border, borderHero: DS_T.light.borderHero, text: DS_T.light.text,
+  textSub: DS_T.light.textSub, textMuted: DS_T.light.textMuted, pillBg: DS_T.light.pillBg,
+  pillBorder: DS_T.light.pillBorder, actBg: DS_T.light.actBg, actBorder: DS_T.light.actBorder,
+  shadow: DS_T.light.shadow, shadowHov: DS_T.light.shadowHov, emptyBorder: DS_T.light.emptyBorder,
+  emptyBg: DS_T.light.emptyBg, emptyIcon: DS_T.light.emptyIcon,
+  recentItemBg: DS_T.light.recentItemBg, recentItemBorder: DS_T.light.recentItemBorder,
+  recentItemBgHov: DS_T.light.recentItemBgHov, liveColor: DS_T.light.liveColor, liveText: DS_T.light.liveText,
+});
+
 /* ── gradient pool ── */
 const GRAD_COLORS = [
   ["#a78bfa", "#7c3aed"],
@@ -1648,7 +1680,7 @@ const AdminBatches = () => {
     background: t.pillBg,
     border: `1px solid ${t.pillBorder}`,
     color: t.pillText,
-    fontFamily: "'Poppins',sans-serif",
+    fontFamily: FONT_FAMILY,
   };
 
   /* ══════════ RENDER ══════════ */
@@ -1674,7 +1706,7 @@ const AdminBatches = () => {
           minHeight: "100vh",
           background: t.pageBg,
           color: t.text,
-          fontFamily: "'Poppins',sans-serif",
+          fontFamily: FONT_FAMILY,
           transition: "background 0.3s,color 0.3s",
         }}
       >
@@ -1771,7 +1803,7 @@ const AdminBatches = () => {
                       fontSize: 11,
                       fontWeight: 600,
                       cursor: "pointer",
-                      fontFamily: "'Poppins',sans-serif",
+                      fontFamily: FONT_FAMILY,
                     }}
                   >
                     <ArrowLeft size={13} /> Back
@@ -1787,7 +1819,7 @@ const AdminBatches = () => {
                         letterSpacing: "0.22em",
                         textTransform: "uppercase",
                         color: t.textSub,
-                        fontFamily: "'Poppins',sans-serif",
+                        fontFamily: FONT_FAMILY,
                       }}
                     >
                       Admin Portal
@@ -1801,7 +1833,7 @@ const AdminBatches = () => {
                         letterSpacing: "0.22em",
                         textTransform: "uppercase",
                         color: t.textSub,
-                        fontFamily: "'Poppins',sans-serif",
+                        fontFamily: FONT_FAMILY,
                         cursor: "pointer",
                       }}
                     >
@@ -1812,7 +1844,7 @@ const AdminBatches = () => {
 
                 <h1
                   style={{
-                    fontFamily: "'Poppins',sans-serif",
+                    fontFamily: FONT_FAMILY,
                     fontWeight: 900,
                     fontSize: "clamp(1.6rem,3vw,2.4rem)",
                     color: t.text,
@@ -1829,7 +1861,7 @@ const AdminBatches = () => {
                     color: t.textSub,
                     marginTop: 7,
                     fontWeight: 500,
-                    fontFamily: "'Poppins',sans-serif",
+                    fontFamily: FONT_FAMILY,
                   }}
                 >
                   Create batches and assign trainers &amp; students
@@ -1849,7 +1881,7 @@ const AdminBatches = () => {
                     padding: "8px 16px",
                     fontSize: 11,
                     fontWeight: 600,
-                    fontFamily: "'Poppins',sans-serif",
+                    fontFamily: FONT_FAMILY,
                     color: t.textSub,
                   }}
                 >
@@ -1931,7 +1963,7 @@ const AdminBatches = () => {
                     fontSize: 11,
                     fontWeight: 700,
                     letterSpacing: "0.1em",
-                    fontFamily: "'Poppins',sans-serif",
+                    fontFamily: FONT_FAMILY,
                   }}
                 >
                   <span
@@ -1988,7 +2020,7 @@ const AdminBatches = () => {
                       borderRadius: 10,
                       border: "none",
                       cursor: "pointer",
-                      fontFamily: "'Poppins',sans-serif",
+                      fontFamily: FONT_FAMILY,
                       fontSize: 11,
                       fontWeight: 600,
                       background: isActive
@@ -2035,7 +2067,7 @@ const AdminBatches = () => {
                     background: t.cardBg,
                     color: t.text,
                     fontSize: 11,
-                    fontFamily: "'Poppins',sans-serif",
+                    fontFamily: FONT_FAMILY,
                     outline: "none",
                     boxShadow: t.shadow,
                   }}
@@ -2055,7 +2087,7 @@ const AdminBatches = () => {
                   fontSize: 11,
                   fontWeight: 700,
                   cursor: "pointer",
-                  fontFamily: "'Poppins',sans-serif",
+                  fontFamily: FONT_FAMILY,
                   boxShadow: "0 4px 14px rgba(34,211,238,0.35)",
                   transition: "all 0.2s",
                   whiteSpace: "nowrap",
@@ -2093,7 +2125,7 @@ const AdminBatches = () => {
                   letterSpacing: "0.1em",
                   textTransform: "uppercase",
                   color: t.textLabel,
-                  fontFamily: "'Poppins',sans-serif",
+                  fontFamily: FONT_FAMILY,
                 }}
               >
                 How it works
@@ -2139,7 +2171,7 @@ const AdminBatches = () => {
                           textTransform: "uppercase",
                           color: "#22d3ee",
                           margin: 0,
-                          fontFamily: "'Poppins',sans-serif",
+                          fontFamily: FONT_FAMILY,
                         }}
                       >
                         Step {i + 1}
@@ -2150,7 +2182,7 @@ const AdminBatches = () => {
                           fontWeight: 600,
                           color: t.text,
                           margin: "3px 0 0",
-                          fontFamily: "'Poppins',sans-serif",
+                          fontFamily: FONT_FAMILY,
                         }}
                       >
                         {label}
@@ -2208,7 +2240,7 @@ const AdminBatches = () => {
                         fontWeight: 700,
                         color: t.text,
                         margin: 0,
-                        fontFamily: "'Poppins',sans-serif",
+                        fontFamily: FONT_FAMILY,
                       }}
                     >
                       Existing Batches
@@ -2218,7 +2250,7 @@ const AdminBatches = () => {
                         fontSize: 10,
                         color: t.textMuted,
                         margin: "3px 0 0",
-                        fontFamily: "'Poppins',sans-serif",
+                        fontFamily: FONT_FAMILY,
                       }}
                     >
                       {filteredBatches.length} record
@@ -2272,7 +2304,7 @@ const AdminBatches = () => {
                           fontSize: 12,
                           color: t.textMuted,
                           fontWeight: 500,
-                          fontFamily: "'Poppins',sans-serif",
+                          fontFamily: FONT_FAMILY,
                           margin: 0,
                         }}
                       >
@@ -2282,7 +2314,7 @@ const AdminBatches = () => {
                         style={{
                           fontSize: 10,
                           color: t.textLabel,
-                          fontFamily: "'Poppins',sans-serif",
+                          fontFamily: FONT_FAMILY,
                           margin: 0,
                         }}
                       >
@@ -2373,7 +2405,7 @@ const AdminBatches = () => {
                                 color: "#fff",
                                 fontWeight: 800,
                                 fontSize: 15,
-                                fontFamily: "'Poppins',sans-serif",
+                                fontFamily: FONT_FAMILY,
                                 boxShadow: `0 4px 12px ${c1}44`,
                                 flexShrink: 0,
                               }}
@@ -2394,7 +2426,7 @@ const AdminBatches = () => {
                                   fontWeight: 700,
                                   color: t.text,
                                   margin: 0,
-                                  fontFamily: "'Poppins',sans-serif",
+                                  fontFamily: FONT_FAMILY,
                                 }}
                               >
                                 {b.batchName}
@@ -2413,7 +2445,7 @@ const AdminBatches = () => {
                                     gap: 4,
                                     fontSize: 10,
                                     color: t.textMuted,
-                                    fontFamily: "'Poppins',sans-serif",
+                                    fontFamily: FONT_FAMILY,
                                   }}
                                 >
                                   <span
@@ -2435,7 +2467,7 @@ const AdminBatches = () => {
                                     gap: 4,
                                     fontSize: 10,
                                     color: t.textMuted,
-                                    fontFamily: "'Poppins',sans-serif",
+                                    fontFamily: FONT_FAMILY,
                                   }}
                                 >
                                   <GitBranch size={10} /> Branch: {b.branchId}
@@ -2450,7 +2482,7 @@ const AdminBatches = () => {
                                     fontSize: 10,
                                     fontWeight: 600,
                                     color: isDark ? "#34d399" : "#16a34a",
-                                    fontFamily: "'Poppins',sans-serif",
+                                    fontFamily: FONT_FAMILY,
                                   }}
                                 >
                                   <CheckCircle2
@@ -2468,7 +2500,7 @@ const AdminBatches = () => {
                                     fontSize: 10,
                                     fontWeight: 600,
                                     color: "#f59e0b",
-                                    fontFamily: "'Poppins',sans-serif",
+                                    fontFamily: FONT_FAMILY,
                                   }}
                                 >
                                   <span
@@ -2500,7 +2532,7 @@ const AdminBatches = () => {
                                 background: "rgba(34,211,238,0.08)",
                                 color: isDark ? "#22d3ee" : "#0891b2",
                                 fontSize: 11, fontWeight: 600, cursor: "pointer",
-                                fontFamily: "'Poppins',sans-serif", transition: "all 0.15s",
+                                fontFamily: FONT_FAMILY, transition: "all 0.15s",
                               }}
                             >
                               <UserCheck size={13} />
@@ -2526,7 +2558,7 @@ const AdminBatches = () => {
                                 fontSize: 11,
                                 fontWeight: 600,
                                 cursor: "pointer",
-                                fontFamily: "'Poppins',sans-serif",
+                                fontFamily: FONT_FAMILY,
                                 transition: "all 0.15s",
                               }}
                             >
@@ -2551,7 +2583,7 @@ const AdminBatches = () => {
                                 fontSize: 11,
                                 fontWeight: 600,
                                 cursor: "pointer",
-                                fontFamily: "'Poppins',sans-serif",
+                                fontFamily: FONT_FAMILY,
                                 transition: "all 0.15s",
                               }}
                             >
@@ -2656,7 +2688,7 @@ const AdminBatches = () => {
                             fontWeight: 700,
                             color: "#fff",
                             margin: 0,
-                            fontFamily: "'Poppins',sans-serif",
+                            fontFamily: FONT_FAMILY,
                           }}
                         >
                           New Batch
@@ -2666,7 +2698,7 @@ const AdminBatches = () => {
                             fontSize: 10,
                             color: "rgba(255,255,255,0.6)",
                             margin: "2px 0 0",
-                            fontFamily: "'Poppins',sans-serif",
+                            fontFamily: FONT_FAMILY,
                           }}
                         >
                           Fill in the batch details
@@ -2709,7 +2741,7 @@ const AdminBatches = () => {
                             color: i === 0 ? "#fff" : "rgba(255,255,255,0.4)",
                             fontSize: 10,
                             fontWeight: 600,
-                            fontFamily: "'Poppins',sans-serif",
+                            fontFamily: FONT_FAMILY,
                           }}
                         >
                           <div
@@ -2765,3 +2797,54 @@ const AdminBatches = () => {
 };
 
 export default AdminBatches;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

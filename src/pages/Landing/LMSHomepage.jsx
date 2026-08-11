@@ -682,26 +682,43 @@ export default function LMSHomepage({ theme, toggleTheme }) {
     }
   };
 
-  /* ── Role-based redirect (full role map, incl. SUPER_ADMIN / TENANT_ADMIN) ── */
+  // /* ── Role-based redirect (full role map, incl. SUPER_ADMIN / TENANT_ADMIN) ── */
+  // const redirectByRole = (role) => {
+  //   switch ((role || "").toUpperCase()) {
+  //     case "SUPER_ADMIN":
+  //       navigate("/superadmin", { replace: true });
+  //       break;
+  //     case "ADMIN":
+  //       navigate("/admin", { replace: true });
+  //       break;
+  //     case "TENANT_ADMIN":
+  //       navigate("/admin", { replace: true });
+  //       break;
+  //     case "BUSINESS":
+  //       navigate("/admin", { replace: true });
+  //       break;
+  //     case "TRAINER":
+  //       navigate("/trainer", { replace: true });
+  //       break;
+  //     default:
+  //       navigate("/student", { replace: true });
+  //   }
+  // };
+
+  /* ── Role-based redirect ──────────────────────────────────────────────────
+     Kept in sync with Login.jsx, AuthModals.jsx, and IlmOraDemoPage.jsx's
+     LoginModal — every login entry point in the app must land the user on
+     the same /ilm-demo page after signing in (SUPER_ADMIN is the only
+     exception). This used to send existing users straight to their real
+     dashboard route (/student, /trainer, /admin), which is why Google
+     sign-in on the homepage felt inconsistent with email/password login. */
   const redirectByRole = (role) => {
     switch ((role || "").toUpperCase()) {
       case "SUPER_ADMIN":
         navigate("/superadmin", { replace: true });
         break;
-      case "ADMIN":
-        navigate("/admin", { replace: true });
-        break;
-      case "TENANT_ADMIN":
-        navigate("/admin", { replace: true });
-        break;
-      case "BUSINESS":
-        navigate("/admin", { replace: true });
-        break;
-      case "TRAINER":
-        navigate("/trainer", { replace: true });
-        break;
       default:
-        navigate("/student", { replace: true });
+        navigate("/ilm-demo", { replace: true });
     }
   };
 

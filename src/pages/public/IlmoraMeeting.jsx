@@ -1,4 +1,3 @@
-
 // import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 // import { createPortal } from "react-dom";
 // import { useNavigate, useParams } from "react-router-dom";
@@ -779,7 +778,9 @@
 // function MobileStackedTile({ p, raised, reaction, active, S, onOpenPeople }) {
 //   const wrapRef = useRef(null);
 //   const inView = useInView(wrapRef);
-//   const hasVideo = !!p.cameraTrack && !p.cameraMuted && inView;
+//   const isScreen = !!p.screenTrack;
+//   const track = isScreen ? p.screenTrack : p.cameraTrack;
+//   const hasVideo = !!track && (isScreen || (!p.cameraMuted && inView));
 //   const initial = (p.name || "?").trim().charAt(0).toUpperCase() || "?";
 //   return (
 //     <div
@@ -794,7 +795,11 @@
 
 //       {/* centered content: full camera OR avatar bubble */}
 //       {hasVideo ? (
-//         <VideoTrackEl track={p.cameraTrack} mirrored={p.isLocal} fit="cover" />
+//         <VideoTrackEl
+//           track={track}
+//           mirrored={!isScreen && p.isLocal}
+//           fit={isScreen ? "contain" : "cover"}
+//         />
 //       ) : (
 //         <div style={S.mobileTileAvatarWrap}>
 //           <div
@@ -4869,15 +4874,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
@@ -4920,6 +4916,8 @@ import {
   UserMinus,
   Maximize2,
   Minimize2,
+  LayoutGrid,
+  User,
 } from "lucide-react";
 
 // FIX: there is no meetingService.js — everything lives as named exports
@@ -4935,7 +4933,7 @@ import {
   denyJoinRequest,
   admitAllJoinRequests,
   endMeeting,
-   requestMeetingSummary,
+  requestMeetingSummary,
 } from "@/services/liveSessionService";
 
 /* ════════════════════════════════════════════════════════════════
@@ -4986,6 +4984,12 @@ const MEETING_STATUS_POLL_MS = 15000;
      • Must be a secure context (HTTPS) — getDisplayMedia is undefined
        on plain HTTP, which otherwise looks identical to "unsupported".
    ──────────────────────────────────────────────────────────────── */
+function detectSpeechRecognitionSupport() {
+  if (typeof window === "undefined") return { supported: false };
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  return SR ? { supported: true, SR } : { supported: false };
+}
+
 function detectScreenShareSupport() {
   if (typeof navigator === "undefined" || typeof window === "undefined") {
     return { supported: false, reason: "unavailable" };
@@ -5023,10 +5027,9 @@ function detectScreenShareSupport() {
     return {
       supported: false,
       reason: "no-api",
-      message:
-        isSafari
-          ? "This version of Safari doesn't support screen sharing. Please update Safari or use Chrome/Edge/Firefox."
-          : "Screen sharing isn't supported in this browser. Please use an up-to-date Chrome, Edge, Firefox, or Safari.",
+      message: isSafari
+        ? "This version of Safari doesn't support screen sharing. Please update Safari or use Chrome/Edge/Firefox."
+        : "Screen sharing isn't supported in this browser. Please use an up-to-date Chrome, Edge, Firefox, or Safari.",
     };
   }
   return { supported: true };
@@ -5131,13 +5134,13 @@ function buildParticipantList(room, raisedHands, speakingSet) {
     );
     const micPub = audioPubs.find((p) => p.source === Track.Source.Microphone);
     const identity = isLocal ? participant.identity : participant.identity;
+
     list.push({
       identity,
-      name: isLocal
-        ? "You"
-        : participant.name || participant.identity || "Guest",
+      name: participant.name || participant.identity || "Guest",
       isLocal,
       isHost: !!participant.metadata && safeParse(participant.metadata)?.isHost,
+      avatarSeed: safeParse(participant.metadata)?.avatarSeed || null,
       cameraTrack: camPub?.track || null,
       cameraMuted: !camPub || !!camPub.isMuted || !camPub.track,
       screenTrack: screenPub?.track || null,
@@ -5146,14 +5149,12 @@ function buildParticipantList(room, raisedHands, speakingSet) {
       isSpeaking: speakingSet?.has(identity) || false,
     });
   };
+
   addOne(room.localParticipant, true);
   room.remoteParticipants.forEach((p) => addOne(p, false));
-  // FIX (bug 5): whoever is actively speaking should surface first so
-  // people notice who's talking, instead of staying buried in the grid.
-  list.sort((a, b) => {
-    if (a.isSpeaking !== b.isSpeaking) return a.isSpeaking ? -1 : 1;
-    return 0;
-  });
+  // Layout must stay stable — tiles never reorder based on who's
+  // speaking. Active speaker is indicated only visually (im-speaking
+  // glow class on the tile), never by moving its position.
   return list;
 }
 
@@ -5163,6 +5164,39 @@ function safeParse(json) {
   } catch (_) {
     return null;
   }
+}
+
+/* ─── deterministic abstract avatar (not a photo, not just a letter) ─
+   Seeded off the person's stable name/identity so the same person
+   always gets the same look across tiles/panels in a session.
+   Google Meet uses flat, solid avatar colors (no gradients) — this
+   palette mirrors that: one solid fill per person, chosen from a
+   small rotating set of Meet-like hues. */
+const AVATAR_PALETTES = [
+  "#2d6a4f", // muted teal-green
+  "#1f4e79", // muted navy
+  "#8a4a2f", // muted terracotta
+  "#4a5568", // muted slate
+  "#5c4a72", // muted plum
+  "#3c6e71", // muted teal
+  "#7a5c1e", // muted olive/amber
+  "#6b3f3f", // muted brick
+  "#2f4f3f", // muted forest
+  "#4a3f6b", // muted indigo
+];
+function hashSeed(str) {
+  let h = 0;
+  const s = String(str || "?");
+  for (let i = 0; i < s.length; i++) {
+    h = (h << 5) - h + s.charCodeAt(i);
+    h |= 0;
+  }
+  return Math.abs(h);
+}
+
+function getAvatarStyle(seed) {
+  const h = hashSeed(seed);
+  return AVATAR_PALETTES[h % AVATAR_PALETTES.length];
 }
 
 /* ─── media element wrappers ─────────────────────────────────────── */
@@ -5247,7 +5281,7 @@ function PiPPanel({
         background: "#000",
         display: "flex",
         flexDirection: "column",
-        fontFamily: "system-ui, sans-serif",
+        fontFamily: "'Google Sans','Roboto',system-ui,sans-serif",
       }}
     >
       <div style={{ flex: 1, minHeight: 0, position: "relative" }}>
@@ -5261,7 +5295,7 @@ function PiPPanel({
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: "#94a3b8",
+              color: "#9aa0a6",
               fontSize: 13,
             }}
           >
@@ -5303,7 +5337,7 @@ function PiPPanel({
           display: "flex",
           gap: 6,
           padding: 6,
-          background: "#0d1117",
+          background: "#202124",
         }}
       >
         <button
@@ -5317,8 +5351,8 @@ function PiPPanel({
             padding: "6px 8px",
             borderRadius: 8,
             border: "none",
-            background: micOn ? "rgba(255,255,255,.12)" : "#7f1d1d",
-            color: micOn ? "#e2e8f0" : "#fca5a5",
+            background: micOn ? "rgba(255,255,255,.12)" : "#5c2b29",
+            color: micOn ? "#e8eaed" : "#f6aea9",
             fontSize: 11,
             fontWeight: 600,
             cursor: "pointer",
@@ -5338,8 +5372,8 @@ function PiPPanel({
             padding: "6px 8px",
             borderRadius: 8,
             border: "none",
-            background: "rgba(34,211,238,.18)",
-            color: "#67e8f9",
+            background: "rgba(138,180,248,.18)",
+            color: "#8ab4f8",
             fontSize: 11,
             fontWeight: 700,
             cursor: "pointer",
@@ -5357,11 +5391,7 @@ function ReactionBadge({ emoji, style }) {
   if (!emoji) return null;
 
   return (
-    <div
-      style={style}
-      className="im-reaction-badge"
-      aria-hidden="true"
-    >
+    <div style={style} className="im-reaction-badge" aria-hidden="true">
       {emoji}
     </div>
   );
@@ -5395,11 +5425,14 @@ function StripTile({ p, active, raised, reaction, S }) {
   const track = isScreen ? p.screenTrack : p.cameraTrack;
   const hasVideo = !!track && (isScreen || (!p.cameraMuted && inView));
   const initial = (p.name || "?").trim().charAt(0).toUpperCase() || "?";
+  const tileColor = getAvatarStyle(
+    p.isLocal ? "you" : p.avatarSeed || p.identity || p.name,
+  );
   return (
     <div
       ref={wrapRef}
       className={`im-strip-tile${active ? " im-strip-tile-active" : ""}${p.isSpeaking ? " im-speaking" : ""}`}
-      style={S.stripTile}
+      style={{ ...S.stripTile, background: tileColor }}
     >
       {hasVideo ? (
         <VideoTrackEl
@@ -5412,9 +5445,7 @@ function StripTile({ p, active, raised, reaction, S }) {
           <div
             style={{
               ...S.stripAvatar,
-              background: p.isLocal
-                ? "linear-gradient(135deg,#0ea5e9,#6366f1)"
-                : "linear-gradient(135deg,#8b5cf6,#ec4899)",
+              background: "rgba(255,255,255,0.28)",
             }}
           >
             {initial}
@@ -5425,9 +5456,9 @@ function StripTile({ p, active, raised, reaction, S }) {
       {(raised || p.isHost) && (
         <div style={S.stripBadgeTopLeft}>
           {raised ? (
-            <Hand size={11} color="#1a1a1a" />
+            <Hand size={11} color="#202124" />
           ) : (
-            <Crown size={11} color="#1a1a1a" />
+            <Crown size={11} color="#202124" />
           )}
         </div>
       )}
@@ -5444,7 +5475,10 @@ function StripTile({ p, active, raised, reaction, S }) {
           <Mic size={10} />
         )}
       </div>
-      <div style={S.stripName}>{p.isLocal ? "You" : p.name}</div>
+      <div style={S.stripName}>
+        {p.name}
+        {p.isLocal ? " (You)" : ""}
+      </div>
       <ReactionBadge emoji={reaction} style={S.stripReactionBadge} />
     </div>
   );
@@ -5472,7 +5506,7 @@ function StripOverflow({ count, S, onClick }) {
   );
 }
 
-function StageTile({ p, raised, reaction, S, onMaximize }) {
+function StageTile({ p, raised, reaction, S, onMaximize, presenterCam }) {
   if (!p) {
     return (
       <div style={S.stageOuter}>
@@ -5488,10 +5522,16 @@ function StageTile({ p, raised, reaction, S, onMaximize }) {
   const initial = (p.name || "?").trim().charAt(0).toUpperCase() || "?";
   const speaking = !isScreen && !!p.isSpeaking;
   const canZoom = isScreen && hasVideo && !!onMaximize;
+  const tileColor = getAvatarStyle(
+    p.isLocal ? "you" : p.avatarSeed || p.identity || p.name,
+  );
   return (
     <div style={S.stageOuter}>
       <div
-        style={S.stage}
+        style={{
+          ...S.stage,
+          background: isScreen ? S.stage.background : tileColor,
+        }}
         className={`im-stage${speaking ? " im-speaking" : ""}`}
         onDoubleClick={canZoom ? onMaximize : undefined}
       >
@@ -5503,14 +5543,35 @@ function StageTile({ p, raised, reaction, S, onMaximize }) {
           />
         ) : (
           <div style={S.stageAvatarWrap}>
-            <div style={S.stageAvatar}>{initial}</div>
+            <div
+              style={{
+                ...S.stageAvatar,
+                background: "rgba(255,255,255,0.28)",
+              }}
+            >
+              {initial}
+            </div>
           </div>
         )}
         {!p.isLocal && p.micTrack && <AudioTrackEl track={p.micTrack} />}
+
         {isScreen && !p.isLocal && (
           <div style={S.screenLabel}>
             <MonitorPlay size={13} />
             {`${p.name} is presenting`}
+          </div>
+        )}
+        {isScreen && presenterCam?.track && !presenterCam.cameraMuted && (
+          <div style={S.presenterCamBubble}>
+            <VideoTrackEl
+              track={presenterCam.track}
+              mirrored={presenterCam.isLocal}
+              fit="cover"
+            />
+            <span style={S.presenterCamName}>
+              {presenterCam.name}
+              {presenterCam.isLocal ? " (You)" : ""}
+            </span>
           </div>
         )}
         {canZoom && (
@@ -5536,12 +5597,15 @@ function StageTile({ p, raised, reaction, S, onMaximize }) {
           ) : (
             <Mic size={13} />
           )}
-          <span>{p.isLocal ? "You" : p.name}</span>
+          <span style={S.nameEllipsis}>
+            {p.name}
+            {p.isLocal ? " (You)" : ""}
+          </span>
         </div>
         {p.isHost && <span style={S.stageHostTag}>Host</span>}
         {raised && (
           <div style={S.stageHandBadge}>
-            <Hand size={14} color="#1a1a1a" />
+            <Hand size={14} color="#202124" />
             <span>Hand raised</span>
           </div>
         )}
@@ -5551,15 +5615,15 @@ function StageTile({ p, raised, reaction, S, onMaximize }) {
   );
 }
 
-function gridColumns(n) {
+function gridColumns(n, maxCols = 5) {
   if (n <= 1) return 1;
   if (n === 2) return 2;
   if (n <= 4) return 2;
-  if (n <= 9) return 3;
-  return Math.min(Math.ceil(Math.sqrt(n)), 5);
+  if (n <= 9) return Math.min(3, maxCols);
+  return Math.min(Math.ceil(Math.sqrt(n)), maxCols);
 }
 
-function GridTile({ p, raised, reaction, S }) {
+function GridTile({ p, raised, reaction, S, basisPercent }) {
   const wrapRef = useRef(null);
   const inView = useInView(wrapRef);
 
@@ -5569,29 +5633,32 @@ function GridTile({ p, raised, reaction, S }) {
   const isScreen = !!p.screenTrack;
   const track = isScreen ? p.screenTrack : p.cameraTrack;
   const hasVideo = !!track && (isScreen || (!p.cameraMuted && inView));
+  const tileColor = getAvatarStyle(
+    p.isLocal ? "you" : p.avatarSeed || p.identity || p.name,
+  );
 
   const initial = (p.name || "?").trim().charAt(0).toUpperCase() || "?";
   return (
-    <div ref={wrapRef} style={S.gridCellOuter}>
+    <div
+      ref={wrapRef}
+      style={{ ...S.gridCellOuter, flex: `1 1 ${basisPercent}%` }}
+    >
       <div
-        style={S.gridTile}
+        style={{ ...S.gridTile, background: tileColor }}
         className={`im-grid-tile${p.isSpeaking ? " im-speaking" : ""}`}
       >
         {hasVideo ? (
-  <VideoTrackEl
-    track={track}
-    mirrored={!isScreen && p.isLocal}
-    fit={isScreen ? "contain" : "cover"}
-  />
-) : (
-          
+          <VideoTrackEl
+            track={track}
+            mirrored={!isScreen && p.isLocal}
+            fit={isScreen ? "contain" : "cover"}
+          />
+        ) : (
           <div style={S.stageAvatarWrap}>
             <div
               style={{
                 ...S.gridAvatar,
-                background: p.isLocal
-                  ? "linear-gradient(135deg,#0ea5e9,#6366f1)"
-                  : "linear-gradient(135deg,#8b5cf6,#ec4899)",
+                background: "rgba(255,255,255,0.28)",
               }}
             >
               {initial}
@@ -5611,12 +5678,15 @@ function GridTile({ p, raised, reaction, S }) {
           ) : (
             <Mic size={12} />
           )}
-          <span>{p.isLocal ? "You" : p.name}</span>
+          <span style={S.nameEllipsis}>
+            {p.name}
+            {p.isLocal ? " (You)" : ""}
+          </span>
         </div>
         {p.isHost && <span style={S.gridHostTag}>Host</span>}
         {raised && (
           <div style={S.gridHandBadge}>
-            <Hand size={12} color="#1a1a1a" />
+            <Hand size={12} color="#202124" />
           </div>
         )}
         <ReactionBadge emoji={reaction} style={S.gridReactionBadge} />
@@ -5625,17 +5695,18 @@ function GridTile({ p, raised, reaction, S }) {
   );
 }
 
-function ParticipantGrid({ participants, raisedHands, handRaised, reactions, S }) {
-  const cols = gridColumns(participants.length);
-  const style = {
-    ...S.gridWrap,
-    gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-    "--cols-tablet": Math.min(cols, 3),
-    "--cols-phone": Math.min(cols, 2),
-    "--cols-small": 1,
-  };
+function ParticipantGrid({
+  participants,
+  raisedHands,
+  handRaised,
+  reactions,
+  S,
+  device,
+}) {
+  const maxCols = device === "phone" ? 2 : device === "tablet" ? 3 : 5;
+  const cols = gridColumns(participants.length, maxCols);
   return (
-    <div style={style} className="im-grid">
+    <div style={S.gridWrap} className="im-grid">
       {participants.map((p) => (
         <GridTile
           key={p.identity}
@@ -5643,6 +5714,7 @@ function ParticipantGrid({ participants, raisedHands, handRaised, reactions, S }
           raised={p.isLocal ? handRaised : !!raisedHands[p.identity]}
           reaction={reactions[p.identity]}
           S={S}
+          basisPercent={100 / cols}
         />
       ))}
     </div>
@@ -5685,9 +5757,9 @@ function MobileStackedTile({ p, raised, reaction, active, S, onOpenPeople }) {
           <div
             style={{
               ...S.mobileTileAvatar,
-              background: p.isLocal
-                ? "linear-gradient(135deg,#0ea5e9,#6366f1)"
-                : "linear-gradient(135deg,#8b5cf6,#ec4899)",
+              background: getAvatarStyle(
+                p.isLocal ? "you" : p.avatarSeed || p.identity || p.name,
+              ),
             }}
           >
             {initial}
@@ -5703,13 +5775,13 @@ function MobileStackedTile({ p, raised, reaction, active, S, onOpenPeople }) {
           </span>
         ) : null}
         {raised && (
-          <span style={{ ...S.mobileTileIconPill, background: "#fbbf24" }}>
-            <Hand size={13} color="#1a1a1a" />
+          <span style={{ ...S.mobileTileIconPill, background: "#fdd663" }}>
+            <Hand size={13} color="#202124" />
           </span>
         )}
         {p.isHost && !raised && (
-          <span style={{ ...S.mobileTileIconPill, background: "#fbbf24" }}>
-            <Crown size={13} color="#1a1a1a" />
+          <span style={{ ...S.mobileTileIconPill, background: "#fdd663" }}>
+            <Crown size={13} color="#202124" />
           </span>
         )}
       </div>
@@ -5725,7 +5797,10 @@ function MobileStackedTile({ p, raised, reaction, active, S, onOpenPeople }) {
       </button>
 
       {/* bottom-left: name pill */}
-      <div style={S.mobileTileName}>{p.isLocal ? "You" : p.name}</div>
+      <div style={S.mobileTileName}>
+        {p.name}
+        {p.isLocal ? " (You)" : ""}
+      </div>
       <ReactionBadge emoji={reaction} style={S.mobileTileReactionBadge} />
     </div>
   );
@@ -5736,20 +5811,17 @@ const PersonRow = ({ name, isHost, self, handRaised, S }) => (
     <div
       style={{
         ...S.pAv,
-        background: self
-          ? "linear-gradient(135deg,#0ea5e9,#6366f1)"
-          : "linear-gradient(135deg,#8b5cf6,#ec4899)",
+        background: getAvatarStyle(self ? "you" : name),
       }}
     >
       {(name || "?")[0]}
     </div>
     <span style={S.pName}>{name}</span>
-    {handRaised && <Hand size={13} color="#fbbf24" />}
+    {handRaised && <Hand size={13} color="#fdd663" />}
     {isHost && <span style={S.hostTag}>Host</span>}
     {self && <span style={S.youTag}>You</span>}
   </div>
 );
-
 
 const Btn = ({
   icon,
@@ -5775,29 +5847,29 @@ const Btn = ({
   // rest of the room UI already uses, so icons stay visible in both themes.
   const bg = leave
     ? hov
-      ? "#dc2626"
-      : "#ef4444"
+      ? "#c5221f"
+      : "#ea4335"
     : danger
       ? hov
-        ? "#991b1b"
-        : "#7f1d1d"
+        ? "#8c2b27"
+        : "#5c2b29"
       : active
         ? hov
-          ? "rgba(109,94,247,.34)"
-          : "rgba(109,94,247,.20)"
+          ? "rgba(138,180,248,.30)"
+          : "rgba(138,180,248,.18)"
         : hov
           ? "var(--im-ghost-bg)"
           : "var(--im-ghost-bg-soft)";
   const col = leave
     ? "#fff"
     : danger
-      ? "#fca5a5"
+      ? "#f6aea9"
       : active
-        ? "#c4b8ff"
+        ? "#8ab4f8"
         : "var(--im-text-soft)";
   return (
     <div style={{ position: "relative", flexShrink: 0 }}>
-          <button
+      <button
         ref={btnRef}
         className="im-ctrl-btn"
         onClick={onClick}
@@ -5819,21 +5891,19 @@ const Btn = ({
           background: bg,
           color: col,
           border: danger
-            ? "1px solid rgba(239,68,68,.3)"
+            ? "1px solid rgba(242,139,130,.3)"
             : active
-              ? "1px solid rgba(109,94,247,.45)"
+              ? "1px solid rgba(138,180,248,.45)"
               : "1px solid var(--im-border-soft)",
           borderRadius: 14,
           padding: "10px 16px",
-          
+
           fontSize: 10,
           fontWeight: 600,
           fontFamily: "inherit",
           letterSpacing: 0.2,
           flexShrink: 0,
-          boxShadow: active
-            ? "0 0 0 1px rgba(109,94,247,.25), 0 6px 16px -4px rgba(109,94,247,.35)"
-            : "none",
+          boxShadow: "none",
         }}
       >
         {icon}
@@ -5843,7 +5913,6 @@ const Btn = ({
     </div>
   );
 };
-
 
 function PreJoinScreen({ meetingInfo, joinCode, onSubmit, submitting, error }) {
   const [name, setName] = useState(() => {
@@ -5922,9 +5991,6 @@ function PreJoinScreen({ meetingInfo, joinCode, onSubmit, submitting, error }) {
 
   return (
     <div style={PJ.root}>
-      <div style={PJ.blobTopRight} />
-      <div style={PJ.blobBottomLeft} />
-
       <div style={PJ.page}>
         <div style={PJ.header}>
           <div style={PJ.brandRow}>
@@ -5933,7 +5999,9 @@ function PreJoinScreen({ meetingInfo, joinCode, onSubmit, submitting, error }) {
           <h1 style={PJ.pageTitle}>
             Welcome to <span style={PJ.pageTitleAccent}>Workspace</span>
           </h1>
-          <p style={PJ.pageSubtitle}>Join your meeting or start a new session</p>
+          <p style={PJ.pageSubtitle}>
+            Join your meeting or start a new session
+          </p>
         </div>
 
         <div style={PJ.card}>
@@ -5954,7 +6022,12 @@ function PreJoinScreen({ meetingInfo, joinCode, onSubmit, submitting, error }) {
                 />
               ) : (
                 <div style={PJ.previewAvatarWrap}>
-                  <div style={PJ.previewAvatar}>
+                  <div
+                    style={{
+                      ...PJ.previewAvatar,
+                      background: getAvatarStyle(name || email || "guest"),
+                    }}
+                  >
                     {(name || "G").trim().charAt(0).toUpperCase()}
                   </div>
                 </div>
@@ -5985,7 +6058,7 @@ function PreJoinScreen({ meetingInfo, joinCode, onSubmit, submitting, error }) {
 
             <div style={PJ.secureBanner}>
               <span style={PJ.secureIconWrap}>
-                <ShieldCheck size={18} color="#f97316" />
+                <ShieldCheck size={18} color="#1a73e8" />
               </span>
               <div>
                 <p style={PJ.secureTitle}>
@@ -5999,9 +6072,7 @@ function PreJoinScreen({ meetingInfo, joinCode, onSubmit, submitting, error }) {
           </div>
 
           <div style={PJ.infoCol}>
-            <h2 style={PJ.title}>
-  {meetingInfo?.title || "Ilmorameet"}
-</h2>
+            <h2 style={PJ.title}>{meetingInfo?.title || "Ilmorameet"}</h2>
             <p style={PJ.subtitle}>
               Hosted by{" "}
               <strong>{meetingInfo?.creatorName || "the meeting host"}</strong>
@@ -6025,11 +6096,11 @@ function PreJoinScreen({ meetingInfo, joinCode, onSubmit, submitting, error }) {
             </p>
 
             <div style={PJ.sectionHeading}>
-  <h3 style={PJ.sectionHeadingText}>Join the Meeting</h3>
-  <div style={PJ.sectionHeadingDash}>
-    <span style={PJ.dashOrange} />
-  </div>
-</div>
+              <h3 style={PJ.sectionHeadingText}>Join the Meeting</h3>
+              <div style={PJ.sectionHeadingDash}>
+                <span style={PJ.dashOrange} />
+              </div>
+            </div>
 
             <label style={PJ.label}>Your name</label>
             <input
@@ -6087,6 +6158,137 @@ function PreJoinScreen({ meetingInfo, joinCode, onSubmit, submitting, error }) {
     </div>
   );
 }
+function MobileMoreSheet({
+  open,
+  onClose,
+  handRaised,
+  onToggleHand,
+  screenOn,
+  screenShareSupport,
+  onToggleScreen,
+  captionsOn,
+  onToggleCaptions,
+  pipOn,
+  onTogglePip,
+  onOpenPeople,
+  onOpenChat,
+  isHost,
+  waitingCount,
+  onOpenWaiting,
+  recording,
+  onToggleRecording,
+  onOpenSettings,
+  gridView,
+  onToggleLayout,
+  onLeave,
+  isEnding,
+  S,
+}) {
+  if (!open) return null;
+  return createPortal(
+    <>
+      <div style={S.mobileSheetBackdrop} onClick={onClose} />
+      <div style={S.mobileSheet} role="dialog" aria-label="More options">
+        <div style={S.mobileSheetHandle} />
+
+        <button
+          style={{
+            ...S.mobileSheetPillWide,
+            ...(handRaised ? S.mobileSheetPillActive : null),
+          }}
+          onClick={onToggleHand}
+        >
+          <Hand size={17} />
+          {handRaised ? "Lower hand" : "Raise hand"}
+        </button>
+
+        <div style={S.mobileSheetIconRow}>
+          <button
+            style={{
+              ...S.mobileSheetIconBtn,
+              ...(screenOn ? S.mobileSheetIconBtnActive : null),
+              opacity: !screenOn && !screenShareSupport.supported ? 0.5 : 1,
+            }}
+            onClick={onToggleScreen}
+            disabled={!screenOn && !screenShareSupport.supported}
+          >
+            {screenOn ? <MonitorOff size={19} /> : <MonitorUp size={19} />}
+            <span>Present</span>
+          </button>
+          <button
+            style={{
+              ...S.mobileSheetIconBtn,
+              ...(captionsOn ? S.mobileSheetIconBtnActive : null),
+            }}
+            onClick={onToggleCaptions}
+          >
+            <Captions size={19} />
+            <span>Captions</span>
+          </button>
+          <button
+            style={{
+              ...S.mobileSheetIconBtn,
+              ...(pipOn ? S.mobileSheetIconBtnActive : null),
+            }}
+            onClick={onTogglePip}
+          >
+            <PictureInPicture2 size={19} />
+            <span>Pop out</span>
+          </button>
+          <button style={S.mobileSheetIconBtn} onClick={onToggleLayout}>
+            {gridView ? <User size={19} /> : <LayoutGrid size={19} />}
+            <span>{gridView ? "Speaker" : "Grid"}</span>
+          </button>
+        </div>
+
+        <div style={S.mobileSheetRow2}>
+          <button style={S.mobileSheetPillHalf} onClick={onOpenPeople}>
+            <Users size={16} />
+            People
+          </button>
+          <button style={S.mobileSheetPillHalf} onClick={onOpenChat}>
+            <MessageSquare size={16} />
+            Chat
+          </button>
+        </div>
+
+        {isHost && (
+          <div style={S.mobileSheetRow2}>
+            <button style={S.mobileSheetPillHalf} onClick={onOpenWaiting}>
+              <Clock size={16} />
+              Waiting{waitingCount > 0 ? ` (${waitingCount})` : ""}
+            </button>
+            <button
+              style={{
+                ...S.mobileSheetPillHalf,
+                ...(recording ? S.mobileSheetPillActive : null),
+              }}
+              onClick={onToggleRecording}
+            >
+              <Disc2 size={16} />
+              {recording ? "Stop rec" : "Record"}
+            </button>
+          </div>
+        )}
+
+        <button style={S.mobileSheetPillWide} onClick={onOpenSettings}>
+          <Settings size={16} />
+          Settings
+        </button>
+
+        <button
+          style={{ ...S.mobileSheetPillWide, ...S.mobileSheetLeaveBtn }}
+          onClick={onLeave}
+          disabled={isHost && isEnding}
+        >
+          <PhoneOff size={16} />
+          {isHost ? (isEnding ? "Ending…" : "End meeting") : "Leave meeting"}
+        </button>
+      </div>
+    </>,
+    document.body,
+  );
+}
 /* ═════════════════════════════════════════════════════════════════
    LOBBY SCREEN — guest waiting for host to admit
 ═════════════════════════════════════════════════════════════════ */
@@ -6096,7 +6298,7 @@ function LobbyScreen({ meetingInfo, onCancel }) {
       <div style={LB.card}>
         <div style={LB.pulseWrap}>
           <div style={LB.pulseDot} />
-          <Clock size={30} color="#93c5fd" />
+          <Clock size={30} color="#8ab4f8" />
         </div>
         <h2 style={LB.title}>Asking to join…</h2>
         <p style={LB.subtitle}>
@@ -6115,7 +6317,7 @@ function DeniedScreen({ onRetry }) {
   return (
     <div style={PJ.root}>
       <div style={LB.card}>
-        <ShieldAlert size={38} color="#f87171" />
+        <ShieldAlert size={38} color="#f28b82" />
         <h2 style={LB.title}>Your request was declined</h2>
         <p style={LB.subtitle}>The host didn't let you into this meeting.</p>
         <button style={LB.cancelBtn} onClick={onRetry}>
@@ -6162,15 +6364,15 @@ function WaitingRoomPanel({ waiting, onAdmit, onDeny, onAdmitAll, S }) {
           padding: "0 4px",
         }}
       >
-        <span style={{ fontSize: 12, fontWeight: 700, color: "#fbbf24" }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "#fdd663" }}>
           {waiting.length} waiting to join
         </span>
         <button
           onClick={onAdmitAll}
           style={{
-            background: "rgba(109,94,247,.18)",
-            border: "1px solid rgba(109,94,247,.35)",
-            color: "#c4b8ff",
+            background: "rgba(138,180,248,.18)",
+            border: "1px solid rgba(138,180,248,.35)",
+            color: "#8ab4f8",
             borderRadius: 8,
             padding: "5px 10px",
             fontSize: 11,
@@ -6186,7 +6388,7 @@ function WaitingRoomPanel({ waiting, onAdmit, onDeny, onAdmitAll, S }) {
           <div
             style={{
               ...S.pAv,
-              background: "linear-gradient(135deg,#f59e0b,#ea7c0e)",
+              background: "#e37400",
             }}
           >
             {(w.name || "?")[0]}
@@ -6196,9 +6398,9 @@ function WaitingRoomPanel({ waiting, onAdmit, onDeny, onAdmitAll, S }) {
             onClick={() => onDeny(w.requestId)}
             title="Deny"
             style={{
-              background: "rgba(239,68,68,.14)",
-              border: "1px solid rgba(239,68,68,.3)",
-              color: "#fca5a5",
+              background: "rgba(242,139,130,.14)",
+              border: "1px solid rgba(242,139,130,.3)",
+              color: "#f28b82",
               borderRadius: 8,
               width: 30,
               height: 30,
@@ -6214,9 +6416,9 @@ function WaitingRoomPanel({ waiting, onAdmit, onDeny, onAdmitAll, S }) {
             onClick={() => onAdmit(w.requestId)}
             title="Admit"
             style={{
-              background: "rgba(34,197,94,.16)",
-              border: "1px solid rgba(34,197,94,.35)",
-              color: "#86efac",
+              background: "rgba(129,201,149,.16)",
+              border: "1px solid rgba(129,201,149,.35)",
+              color: "#81c995",
               borderRadius: 8,
               width: 30,
               height: 30,
@@ -6301,6 +6503,7 @@ export default function IlmoraMeeting() {
       if (!meetingInfo?.id) return;
       setSubmitting(true);
       setSubmitError(null);
+
       try {
         const res = await requestToJoin(meetingInfo.id, name, email);
         const data = res?.data;
@@ -6308,7 +6511,23 @@ export default function IlmoraMeeting() {
         setGuestIdentity(data?.guestIdentity);
         setGuestName(name);
         setInitialAV({ micOn, camOn });
-        setPhase("lobby");
+
+        // FIX (returning participant): backend may auto-admit a
+        // recognized guest instead of leaving them PENDING — skip the
+        // lobby entirely and fetch the token right away, same as a
+        // normal admit.
+        if (data?.status === "ADMITTED") {
+          const tokenRes = await getGuestToken(
+            meetingInfo.id,
+            data.requestId,
+            data.guestIdentity,
+            name,
+          );
+          setConnectPayload({ ...tokenRes.data, isHost: false });
+          setPhase("in-meeting");
+        } else {
+          setPhase("lobby");
+        }
       } catch (err) {
         console.error("Join request failed:", err);
         setSubmitError(
@@ -6396,7 +6615,7 @@ export default function IlmoraMeeting() {
   if (phase === "loading") {
     return (
       <StatusScreen
-        icon={<Loader2 size={34} color="#93c5fd" className="im-spin" />}
+        icon={<Loader2 size={34} color="#8ab4f8" className="im-spin" />}
         title="Loading meeting…"
       />
     );
@@ -6404,7 +6623,7 @@ export default function IlmoraMeeting() {
   if (phase === "error") {
     return (
       <StatusScreen
-        icon={<AlertTriangle size={36} color="#f87171" />}
+        icon={<AlertTriangle size={36} color="#f28b82" />}
         title="Can't open this meeting"
         subtitle={loadError}
       />
@@ -6413,7 +6632,7 @@ export default function IlmoraMeeting() {
   if (phase === "ended") {
     return (
       <StatusScreen
-        icon={<PhoneOff size={34} color="#94a3b8" />}
+        icon={<PhoneOff size={34} color="#9aa0a6" />}
         title="This meeting has ended"
         subtitle="Thanks for joining. You can close this tab."
       />
@@ -6513,9 +6732,9 @@ function MeetingRoom({
   // the call — and drives whether the Present button is enabled at all.
   const [screenShareSupport] = useState(() => detectScreenShareSupport());
 
-  const [sidebarOpen, setSidebarOpen] = useState(() =>
-    typeof window === "undefined" ? true : window.innerWidth > 1023,
-  );
+  // Match Google Meet: no side panel open by default — the grid uses
+  // the full width until the user taps Chat/People themselves.
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarTab, setSidebarTab] = useState("chat"); // chat | people | waiting
   // FIX (bug 4): the sidebar can now be dragged wider/narrower instead of
   // only toggled open/closed.
@@ -6554,6 +6773,11 @@ function MeetingRoom({
   const [reactionPos, setReactionPos] = useState(null);
 
   const [waiting, setWaiting] = useState([]);
+  const [liveCaptions, setLiveCaptions] = useState([]);
+  const recognitionRef = useRef(null);
+  const [captionSupport] = useState(() => detectSpeechRecognitionSupport());
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+  const [mobileGridView, setMobileGridView] = useState(true);
 
   const isHost = !!connectPayload?.isHost;
   const device = useResponsiveDevice();
@@ -6646,20 +6870,35 @@ function MeetingRoom({
               ...prev,
               [participant?.identity]: !!msg.raised,
             }));
+          } else if (msg.type === "caption" && msg.text) {
+            const speakerName =
+              participant?.name || participant?.identity || "Someone";
+            setLiveCaptions((prev) => {
+              const next = prev.filter(
+                (c) => c.identity !== participant?.identity,
+              );
+              next.push({
+                identity: participant?.identity,
+                name: speakerName,
+                text: msg.text,
+                ts: Date.now(),
+              });
+              return next.slice(-3);
+            });
           }
         } catch (_) {}
       };
 
       room.on(RoomEvent.TrackSubscribed, rebuild);
-room.on(RoomEvent.TrackUnsubscribed, rebuild);
-room.on(RoomEvent.TrackMuted, rebuild);
-room.on(RoomEvent.TrackUnmuted, rebuild);
-room.on(RoomEvent.LocalTrackPublished, rebuild);
-room.on(RoomEvent.LocalTrackUnpublished, rebuild);
+      room.on(RoomEvent.TrackUnsubscribed, rebuild);
+      room.on(RoomEvent.TrackMuted, rebuild);
+      room.on(RoomEvent.TrackUnmuted, rebuild);
+      room.on(RoomEvent.LocalTrackPublished, rebuild);
+      room.on(RoomEvent.LocalTrackUnpublished, rebuild);
 
-// FIX: publish-level events — refresh before subscribe round-trip.
-room.on(RoomEvent.TrackPublished, rebuild);
-room.on(RoomEvent.TrackUnpublished, rebuild);
+      // FIX: publish-level events — refresh before subscribe round-trip.
+      room.on(RoomEvent.TrackPublished, rebuild);
+      room.on(RoomEvent.TrackUnpublished, rebuild);
       room.on(RoomEvent.ParticipantConnected, (p) => {
         rebuild();
         pushNotice(`${p.name || p.identity} joined the meeting`, "join");
@@ -6799,7 +7038,92 @@ room.on(RoomEvent.TrackUnpublished, rebuild);
     waitingPollRef.current = setInterval(poll, WAITING_ROOM_POLL_MS);
     return () => clearInterval(waitingPollRef.current);
   }, [isHost, meetingId]);
+  /* ── live captions (client-side Web Speech API) ─────────────────────
+     No transcription backend exists yet, so each browser recognizes
+     only its OWN mic locally and broadcasts the text over the same
+     data channel already used for chat/reactions. Chrome/Edge only. */
+  useEffect(() => {
+    if (!connected || !captionSupport.supported) {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (_) {}
+        recognitionRef.current = null;
+      }
+      return undefined;
+    }
 
+    const SR = captionSupport.SR;
+    const recognition = new SR();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
+
+    recognition.onresult = (event) => {
+      let text = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        text += event.results[i][0].transcript;
+      }
+      text = text.trim();
+      if (!text) return;
+
+      const localIdentity = roomRef.current?.localParticipant?.identity;
+      setLiveCaptions((prev) => {
+        const next = prev.filter((c) => c.identity !== localIdentity);
+        next.push({
+          identity: localIdentity,
+          name: "You",
+          text,
+          ts: Date.now(),
+        });
+        return next.slice(-3);
+      });
+
+      try {
+        const payload = new TextEncoder().encode(
+          JSON.stringify({ type: "caption", text }),
+        );
+        roomRef.current?.localParticipant?.publishData(payload, {
+          reliable: false,
+        });
+      } catch (_) {}
+    };
+
+    recognition.onerror = (e) => {
+      if (e?.error === "not-allowed" || e?.error === "service-not-allowed") {
+        setMediaError(
+          "Captions need microphone permission. Allow mic access in your browser's site settings and try again.",
+        );
+      }
+    };
+    recognition.onend = () => {
+      try {
+        recognition.start();
+      } catch (_) {}
+    };
+
+    try {
+      recognition.start();
+    } catch (_) {}
+    recognitionRef.current = recognition;
+
+    return () => {
+      try {
+        recognition.stop();
+      } catch (_) {}
+      recognitionRef.current = null;
+    };
+  }, [connected, captionSupport]);
+
+  useEffect(() => {
+    if (!liveCaptions.length) return undefined;
+    const id = setInterval(() => {
+      setLiveCaptions((prev) => prev.filter((c) => Date.now() - c.ts < 5000));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [liveCaptions.length]);
+
+  /* ── everyone: poll meeting status so guests learn the host ended it ── */
   /* ── everyone: poll meeting status so guests learn the host ended it ── */
   useEffect(() => {
     statusPollRef.current = setInterval(async () => {
@@ -6820,25 +7144,18 @@ room.on(RoomEvent.TrackUnpublished, rebuild);
     const room = roomRef.current;
     if (!room) return;
     try {
-      if (!localMicRef.current) {
-        const [audioTrack] = await createLocalTracks({
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
-          },
-        });
-        await room.localParticipant.publishTrack(audioTrack);
-        localMicRef.current = audioTrack;
-        setMicOn(true);
-        setMediaError(null);
-        rebuild();
-        return;
-      }
-      const track = localMicRef.current;
-      if (micOn) await track.mute();
-      else await track.unmute();
-      setMicOn((v) => !v);
+      const nextEnabled = !micOn;
+      const pub = await room.localParticipant.setMicrophoneEnabled(
+        nextEnabled,
+        {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      );
+      localMicRef.current = pub?.track || null;
+      setMicOn(nextEnabled);
+      setMediaError(null);
       rebuild();
     } catch (err) {
       console.error("Mic toggle failed:", err);
@@ -6854,9 +7171,18 @@ room.on(RoomEvent.TrackUnpublished, rebuild);
     if (camReadyPromiseRef.current) await camReadyPromiseRef.current;
     try {
       if (!localCamRef.current) {
-        const [videoTrack] = await createLocalTracks({
+        // FIX (camera-while-presenting bug): omitting `audio` here let
+        // createLocalTracks grab a second microphone track too, and the
+        // blind [videoTrack] destructure could pick that mic track
+        // instead of the camera track — so turning the camera back on
+        // while screen sharing silently failed (or duplicated the mic).
+        // Request video only, and select it explicitly by kind.
+        const tracks = await createLocalTracks({
+          audio: false,
           video: { resolution: { width: 1280, height: 720 } },
         });
+        const videoTrack = tracks.find((t) => t.kind === Track.Kind.Video);
+        if (!videoTrack) throw new Error("No camera track returned");
         await room.localParticipant.publishTrack(videoTrack);
         localCamRef.current = videoTrack;
         setCamOn(true);
@@ -6877,24 +7203,6 @@ room.on(RoomEvent.TrackUnpublished, rebuild);
     }
   }, [camOn, rebuild]);
 
-  // FIX (Bug 1 — Screen Share Compatibility):
-  //   • Feature-detects before ever calling getDisplayMedia (iOS Safari,
-  //     insecure origins, and legacy browsers never attempt the call and
-  //     never hit LiveKit's internal error path — they get one clear,
-  //     actionable message instead).
-  //   • Distinguishes "user cancelled the picker" (NotAllowedError with no
-  //     prior permission prompt / AbortError) from a genuine permission
-  //     block, and from a device/browser that doesn't support the feature
-  //     at all, so the on-screen message is accurate for each platform.
-  //   • Passes broadly-supported ScreenShareCaptureOptions only
-  //     (video resolution + contentHint) — omits options like
-  //     `selfBrowserSurface`/`systemAudio` that only exist in Chromium,
-  //     since passing unsupported keys can throw a TypeError in Safari/
-  //     Firefox before the picker even opens.
-  //   • Always calls setScreenShareEnabled(false) in the same try/catch
-  //     shape on both start and stop, and always clears local state even
-  //     if the underlying LiveKit call throws, so the Present button can
-  //     never get stuck in a stale "on" state on any platform.
   const toggleScreen = useCallback(async () => {
     const room = roomRef.current;
     if (!room) return;
@@ -7084,7 +7392,7 @@ room.on(RoomEvent.TrackUnpublished, rebuild);
     onLeft();
   }, [onLeft]);
 
- const endingRef = useRef(false);
+  const endingRef = useRef(false);
   const [isEnding, setIsEnding] = useState(false);
   const handleEndForAll = useCallback(async () => {
     if (!meetingId || endingRef.current) return;
@@ -7167,6 +7475,14 @@ room.on(RoomEvent.TrackUnpublished, rebuild);
     stripParticipants.length - MAX_STRIP_VISIBLE,
   );
   const gridMode = !screenSharer && participants.length > 1;
+  // Phone gets a manual grid/speaker toggle (see mobileGridView, set from
+  // the bottom sheet); desktop/tablet keep the automatic rule. A screen
+  // share always forces speaker view on every device.
+  const effectiveGridMode = screenSharer
+    ? false
+    : isCompactDevice
+      ? mobileGridView
+      : gridMode;
 
   const pipTrack =
     screenSharer?.screenTrack ||
@@ -7175,9 +7491,7 @@ room.on(RoomEvent.TrackUnpublished, rebuild);
     null;
   const pipIsScreen = !!screenSharer?.screenTrack;
   const pipLabel = screenSharer
-    ? screenSharer.isLocal
-      ? "You are presenting"
-      : `${screenSharer.name} is presenting`
+    ? `${screenSharer.name}${screenSharer.isLocal ? " (You)" : ""} is presenting`
     : "Live meeting";
   const pipSupported =
     typeof window !== "undefined" && "documentPictureInPicture" in window;
@@ -7306,14 +7620,16 @@ room.on(RoomEvent.TrackUnpublished, rebuild);
       {screenZoomed &&
         screenSharer &&
         createPortal(
-          <div style={S.zoomOverlay} role="dialog" aria-label="Screen share full screen">
+          <div
+            style={S.zoomOverlay}
+            role="dialog"
+            aria-label="Screen share full screen"
+          >
             <VideoTrackEl track={screenSharer.screenTrack} fit="contain" />
             <div style={S.zoomOverlayBar}>
               <span style={S.zoomOverlayLabel}>
                 <MonitorPlay size={14} />
-                {screenSharer.isLocal
-                  ? "You are presenting"
-                  : `${screenSharer.name} is presenting`}
+                {`${screenSharer.name}${screenSharer.isLocal ? " (You)" : ""} is presenting`}
               </span>
               <button
                 type="button"
@@ -7376,7 +7692,7 @@ room.on(RoomEvent.TrackUnpublished, rebuild);
         <div
           style={{
             ...S.toast,
-            background: "linear-gradient(135deg,#16a34a,#22c55e)",
+            background: "#1e8e3e",
           }}
         >
           <Copy size={16} />
@@ -7399,9 +7715,9 @@ room.on(RoomEvent.TrackUnpublished, rebuild);
               }}
             >
               {n.type === "join" ? (
-                <UserPlus size={14} color="#34d399" />
+                <UserPlus size={14} color="#81c995" />
               ) : n.type === "leave" ? (
-                <UserMinus size={14} color="#f87171" />
+                <UserMinus size={14} color="#f28b82" />
               ) : (
                 <Users size={13} />
               )}
@@ -7499,11 +7815,7 @@ room.on(RoomEvent.TrackUnpublished, rebuild);
                     : "Screen sharing available"
               }
             >
-              {screenOn ? (
-                <MonitorPlay size={14} />
-              ) : (
-                <MonitorOff size={14} />
-              )}
+              {screenOn ? <MonitorPlay size={14} /> : <MonitorOff size={14} />}
             </div>
           )}
           {isHost ? (
@@ -7519,7 +7831,7 @@ room.on(RoomEvent.TrackUnpublished, rebuild);
             </button>
           ) : (
             <button
-              style={{ ...S.endSessionBtn, background: "#334155" }}
+              style={{ ...S.endSessionBtn, background: "#5f6368" }}
               onClick={handleLeave}
             >
               <PhoneOff size={14} />
@@ -7581,31 +7893,7 @@ room.on(RoomEvent.TrackUnpublished, rebuild);
       {/* ── main area ── */}
       <div style={S.mainArea} className="im-mainarea">
         <div style={S.stageColumn} className="im-stagecolumn">
-          {isCompactDevice ? (
-            /* FIX (mobile UI): phone gets a single full-width stacked
-               column — one card per participant — instead of the
-               desktop grid or stage+filmstrip. Desktop/tablet/laptop
-               below are completely unchanged. */
-            <div style={S.mobileStackWrap} className="im-mobile-stack">
-              {participants.map((p) => (
-                <MobileStackedTile
-                  key={p.identity}
-                  p={p}
-                  active={p.isLocal}
-                  raised={p.isLocal ? handRaised : !!raisedHands[p.identity]}
-                  reaction={reactions[p.identity]}
-                  S={S}
-                  onOpenPeople={() => openTab("people")}
-                />
-              ))}
-              {captionsOn && (
-                <div style={S.captionsBar}>
-                  <Captions size={13} />
-                  <span>Live captions are enabled for this meeting.</span>
-                </div>
-              )}
-            </div>
-          ) : gridMode ? (
+          {effectiveGridMode ? (
             <>
               <ParticipantGrid
                 participants={participants}
@@ -7613,11 +7901,25 @@ room.on(RoomEvent.TrackUnpublished, rebuild);
                 handRaised={handRaised}
                 reactions={reactions}
                 S={S}
+                device={device}
               />
               {captionsOn && (
                 <div style={S.captionsBar}>
-                  <Captions size={13} />
-                  <span>Live captions are enabled for this meeting.</span>
+                  {liveCaptions.length > 0 ? (
+                    liveCaptions.map((c) => (
+                      <div key={c.identity} style={S.captionLine}>
+                        <span style={S.captionSpeakerName}>{c.name}:</span>
+                        <span>{c.text}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div style={S.captionLine}>
+                      <Captions size={14} />
+                      {captionSupport.supported
+                        ? "Captions will appear here when someone speaks…"
+                        : "Captions aren't supported in this browser — try Chrome or Edge."}
+                    </div>
+                  )}
                 </div>
               )}
             </>
@@ -7639,11 +7941,33 @@ room.on(RoomEvent.TrackUnpublished, rebuild);
                     ? () => setScreenZoomed(true)
                     : undefined
                 }
+                presenterCam={
+                  screenSharer
+                    ? {
+                        track: screenSharer.cameraTrack,
+                        cameraMuted: screenSharer.cameraMuted,
+                        isLocal: screenSharer.isLocal,
+                        name: screenSharer.name,
+                      }
+                    : null
+                }
               />
               {captionsOn && (
                 <div style={S.captionsBar}>
                   <Captions size={13} />
-                  <span>Live captions are enabled for this meeting.</span>
+                  {liveCaptions.length > 0 ? (
+                    <span>
+                      {liveCaptions
+                        .map((c) => `${c.name}: ${c.text}`)
+                        .join("   •   ")}
+                    </span>
+                  ) : (
+                    <span>
+                      {captionSupport.supported
+                        ? "Listening for speech…"
+                        : "Captions aren't supported in this browser — try Chrome or Edge."}
+                    </span>
+                  )}
                 </div>
               )}
               {(visibleStrip.length > 0 || overflowCount > 0) && (
@@ -7677,18 +8001,6 @@ room.on(RoomEvent.TrackUnpublished, rebuild);
           )}
           <EmojiFloaters floaters={floaters} S={S} />
         </div>
-
-        {sidebarOpen && (
-          <div
-            role="separator"
-            aria-orientation="vertical"
-            aria-label="Resize sidebar"
-            style={S.handle}
-            className={`im-handle im-resize-handle${isResizing ? " im-resizing" : ""}`}
-            onMouseDown={startResize}
-            onTouchStart={startResize}
-          />
-        )}
 
         {sidebarOpen && (
           <div
@@ -7734,8 +8046,8 @@ room.on(RoomEvent.TrackUnpublished, rebuild);
                     <span
                       style={{
                         ...S.cnt,
-                        background: "rgba(251,191,36,.22)",
-                        color: "#fbbf24",
+                        background: "rgba(253,214,99,.22)",
+                        color: "#fdd663",
                       }}
                     >
                       {waiting.length}
@@ -7808,7 +8120,7 @@ room.on(RoomEvent.TrackUnpublished, rebuild);
                 {participants.map((p) => (
                   <PersonRow
                     key={p.identity}
-                    name={p.isLocal ? "You (Me)" : p.name}
+                    name={p.name}
                     isHost={p.isHost}
                     self={p.isLocal}
                     handRaised={
@@ -7903,157 +8215,274 @@ room.on(RoomEvent.TrackUnpublished, rebuild);
         role="toolbar"
         aria-label="Meeting controls"
       >
-        <Btn
-          icon={micOn ? <Mic size={18} /> : <MicOff size={18} />}
-          label="Mic"
-          danger={!micOn}
-          onClick={toggleMic}
-          pressed={micOn}
-          S={S}
-        />
-        <Btn
-          icon={camOn ? <Video size={18} /> : <VideoOff size={18} />}
-          label="Camera"
-          danger={!camOn}
-          onClick={toggleCam}
-          pressed={camOn}
-          S={S}
-        />
-        <Btn
-          icon={screenOn ? <MonitorOff size={18} /> : <MonitorUp size={18} />}
-          label="Present"
-          active={screenOn}
-          disabled={!screenOn && !screenShareSupport.supported}
-          title={
-            !screenOn && !screenShareSupport.supported
-              ? screenShareSupport.message
-              : undefined
-          }
-          onClick={toggleScreen}
-          pressed={screenOn}
-          S={S}
-        />
-        <Btn
-          icon={<Hand size={18} />}
-          label="Raise Hand"
-          active={handRaised}
-          onClick={toggleHandRaise}
-          pressed={handRaised}
-          S={S}
-        />
-        <div style={{ position: "relative" }}>
-          <Btn
-            btnRef={reactionBtnRef}
-            icon={<SmilePlus size={18} />}
-            label="React"
-            active={reactionPickerOpen}
-            onClick={() => {
-              const rect = reactionBtnRef.current?.getBoundingClientRect();
-              if (rect) {
-                setReactionPos({
-                  left: rect.left + rect.width / 2,
-                  top: rect.top - 10,
-                });
+        {isCompactDevice ? (
+          <>
+            <Btn
+              icon={camOn ? <Video size={18} /> : <VideoOff size={18} />}
+              label="Camera"
+              danger={!camOn}
+              onClick={toggleCam}
+              pressed={camOn}
+              S={S}
+            />
+            <Btn
+              icon={micOn ? <Mic size={18} /> : <MicOff size={18} />}
+              label="Mic"
+              danger={!micOn}
+              onClick={toggleMic}
+              pressed={micOn}
+              S={S}
+            />
+            <div style={{ position: "relative" }}>
+              <Btn
+                btnRef={reactionBtnRef}
+                icon={<SmilePlus size={18} />}
+                label="React"
+                active={reactionPickerOpen}
+                onClick={() => {
+                  const rect = reactionBtnRef.current?.getBoundingClientRect();
+                  if (rect) {
+                    setReactionPos({
+                      left: rect.left + rect.width / 2,
+                      top: rect.top - 10,
+                    });
+                  }
+                  setReactionPickerOpen((v) => !v);
+                }}
+                ariaHasPopup="true"
+                ariaExpanded={reactionPickerOpen}
+                S={S}
+              />
+            </div>
+            <Btn
+              icon={<MoreVertical size={18} />}
+              label="More"
+              active={mobileSheetOpen}
+              onClick={() => setMobileSheetOpen(true)}
+              ariaHasPopup="true"
+              ariaExpanded={mobileSheetOpen}
+              S={S}
+            />
+            <Btn
+              icon={<PhoneOff size={18} />}
+              label={isHost ? (isEnding ? "Ending…" : "End") : "Leave"}
+              leave
+              disabled={isHost && isEnding}
+              onClick={isHost ? handleEndForAll : handleLeave}
+              S={S}
+            />
+          </>
+        ) : (
+          <>
+            <Btn
+              icon={micOn ? <Mic size={18} /> : <MicOff size={18} />}
+              label="Mic"
+              danger={!micOn}
+              onClick={toggleMic}
+              pressed={micOn}
+              S={S}
+            />
+            <Btn
+              icon={camOn ? <Video size={18} /> : <VideoOff size={18} />}
+              label="Camera"
+              danger={!camOn}
+              onClick={toggleCam}
+              pressed={camOn}
+              S={S}
+            />
+            <Btn
+              icon={
+                screenOn ? <MonitorOff size={18} /> : <MonitorUp size={18} />
               }
-              setReactionPickerOpen((v) => !v);
-            }}
-            ariaHasPopup="true"
-            ariaExpanded={reactionPickerOpen}
-            S={S}
-          />
-        </div>
-        <Btn
-          icon={<MessageSquare size={18} />}
-          label="Chat"
-          active={sidebarOpen && sidebarTab === "chat"}
-          onClick={() => openTab("chat")}
-          S={S}
-        />
-        <Btn
-          icon={<Users size={18} />}
-          label="People"
-          badge={participants.length || 1}
-          active={sidebarOpen && sidebarTab === "people"}
-          onClick={() => openTab("people")}
-          S={S}
-        />
-        {isHost && (
-          <Btn
-            icon={<Clock size={18} />}
-            label="Waiting"
-            badge={waiting.length || undefined}
-            active={sidebarOpen && sidebarTab === "waiting"}
-            onClick={() => openTab("waiting")}
-            S={S}
-          />
+              label="Present"
+              active={screenOn}
+              disabled={!screenOn && !screenShareSupport.supported}
+              title={
+                !screenOn && !screenShareSupport.supported
+                  ? screenShareSupport.message
+                  : undefined
+              }
+              onClick={toggleScreen}
+              pressed={screenOn}
+              S={S}
+            />
+            <Btn
+              icon={<Hand size={18} />}
+              label="Raise Hand"
+              active={handRaised}
+              onClick={toggleHandRaise}
+              pressed={handRaised}
+              S={S}
+            />
+            <div style={{ position: "relative" }}>
+              <Btn
+                btnRef={reactionBtnRef}
+                icon={<SmilePlus size={18} />}
+                label="React"
+                active={reactionPickerOpen}
+                onClick={() => {
+                  const rect = reactionBtnRef.current?.getBoundingClientRect();
+                  if (rect) {
+                    setReactionPos({
+                      left: rect.left + rect.width / 2,
+                      top: rect.top - 10,
+                    });
+                  }
+                  setReactionPickerOpen((v) => !v);
+                }}
+                ariaHasPopup="true"
+                ariaExpanded={reactionPickerOpen}
+                S={S}
+              />
+            </div>
+            <Btn
+              icon={<MessageSquare size={18} />}
+              label="Chat"
+              active={sidebarOpen && sidebarTab === "chat"}
+              onClick={() => openTab("chat")}
+              S={S}
+            />
+            <Btn
+              icon={<Users size={18} />}
+              label="People"
+              badge={participants.length || 1}
+              active={sidebarOpen && sidebarTab === "people"}
+              onClick={() => openTab("people")}
+              S={S}
+            />
+            {isHost && (
+              <Btn
+                icon={<Clock size={18} />}
+                label="Waiting"
+                badge={waiting.length || undefined}
+                active={sidebarOpen && sidebarTab === "waiting"}
+                onClick={() => openTab("waiting")}
+                S={S}
+              />
+            )}
+            <Btn
+              icon={<Settings size={18} />}
+              label="Settings"
+              active={settingsOpen}
+              onClick={() => setSettingsOpen((v) => !v)}
+              S={S}
+            />
+            {isHost && (
+              <Btn
+                icon={<Disc2 size={18} />}
+                label={recToggling ? "Wait…" : "Record"}
+                active={recording}
+                onClick={toggleRecording}
+                pressed={recording}
+                S={S}
+              />
+            )}
+            <Btn
+              icon={<PictureInPicture2 size={18} />}
+              label="PiP"
+              active={!!pipWindow}
+              onClick={togglePiP}
+              pressed={!!pipWindow}
+              S={S}
+            />
+            <Btn
+              icon={<PhoneOff size={18} />}
+              label={isHost ? (isEnding ? "Ending…" : "End") : "Leave"}
+              leave
+              disabled={isHost && isEnding}
+              onClick={isHost ? handleEndForAll : handleLeave}
+              S={S}
+            />
+          </>
         )}
-        <Btn
-          icon={<Settings size={18} />}
-          label="Settings"
-          active={settingsOpen}
-          onClick={() => setSettingsOpen((v) => !v)}
-          S={S}
-        />
-        {isHost && (
-          <Btn
-            icon={<Disc2 size={18} />}
-            label={recToggling ? "Wait…" : "Record"}
-            active={recording}
-            onClick={toggleRecording}
-            pressed={recording}
-            S={S}
-          />
-        )}
-        <Btn
-          icon={<PictureInPicture2 size={18} />}
-          label="PiP"
-          active={!!pipWindow}
-          onClick={togglePiP}
-          pressed={!!pipWindow}
-          S={S}
-        />
-        <Btn
-          icon={<PhoneOff size={18} />}
-          label={isHost ? (isEnding ? "Ending…" : "End") : "Leave"}
-          leave
-          disabled={isHost && isEnding}
-          onClick={isHost ? handleEndForAll : handleLeave}
-          S={S}
-        />
       </div>
+
+      {isCompactDevice && (
+        <MobileMoreSheet
+          open={mobileSheetOpen}
+          onClose={() => setMobileSheetOpen(false)}
+          handRaised={handRaised}
+          onToggleHand={toggleHandRaise}
+          screenOn={screenOn}
+          screenShareSupport={screenShareSupport}
+          onToggleScreen={() => {
+            toggleScreen();
+            setMobileSheetOpen(false);
+          }}
+          captionsOn={captionsOn}
+          onToggleCaptions={() => setCaptionsOn((v) => !v)}
+          pipOn={!!pipWindow}
+          onTogglePip={() => {
+            togglePiP();
+            setMobileSheetOpen(false);
+          }}
+          onOpenPeople={() => {
+            openTab("people");
+            setMobileSheetOpen(false);
+          }}
+          onOpenChat={() => {
+            openTab("chat");
+            setMobileSheetOpen(false);
+          }}
+          isHost={isHost}
+          waitingCount={waiting.length}
+          onOpenWaiting={() => {
+            openTab("waiting");
+            setMobileSheetOpen(false);
+          }}
+          recording={recording}
+          onToggleRecording={toggleRecording}
+          onOpenSettings={() => {
+            setSettingsOpen(true);
+            setMobileSheetOpen(false);
+          }}
+          gridView={mobileGridView}
+          onToggleLayout={() => {
+            setMobileGridView((v) => !v);
+            setMobileSheetOpen(false);
+          }}
+          onLeave={() => {
+            setMobileSheetOpen(false);
+            if (isHost) handleEndForAll();
+            else handleLeave();
+          }}
+          isEnding={isEnding}
+          S={S}
+        />
+      )}
 
       <style>{`
         [data-theme="dark"] {
-          --im-page:#050608; --im-panel:#0b0d12; --im-panel-elevated:#161b26;
-          --im-tile-bg:#12141a; --im-input-bg:#161922;
-          --im-surface3:#1c1f28;
+          --im-page:#202124; --im-panel:#202124; --im-panel-elevated:#292a2d;
+          --im-tile-bg:#3c4043; --im-input-bg:#3c4043;
+          --im-surface3:#3c4043;
           --im-border:rgba(255,255,255,.08); --im-border-soft:rgba(255,255,255,.06);
-          --im-ghost-bg:rgba(255,255,255,.06); --im-ghost-bg-soft:rgba(255,255,255,.03);
-          --im-text:#f8fafc; --im-text-soft:#cbd5e1; --im-text-mute:#64748b; --im-text-mute2:#94a3b8;
+          --im-ghost-bg:rgba(255,255,255,.08); --im-ghost-bg-soft:rgba(255,255,255,.04);
+          --im-text:#e8eaed; --im-text-soft:#e8eaed; --im-text-mute:#9aa0a6; --im-text-mute2:#9aa0a6;
           --im-scrollbar: rgba(255,255,255,.2);
         }
         [data-theme="light"] {
-          --im-page:#eef1f6; --im-panel:#ffffff; --im-panel-elevated:#ffffff;
-          --im-tile-bg:#e4e8f0; --im-input-bg:#f1f3f8;
-          --im-surface3:#eef0f5;
-          --im-border:rgba(15,23,42,.12); --im-border-soft:rgba(15,23,42,.08);
-          --im-ghost-bg:rgba(15,23,42,.05); --im-ghost-bg-soft:rgba(15,23,42,.035);
-          --im-text:#0f172a; --im-text-soft:#334155; --im-text-mute:#94a3b8; --im-text-mute2:#64748b;
-          --im-scrollbar: rgba(15,23,42,.22);
+          --im-page:#f1f3f4; --im-panel:#ffffff; --im-panel-elevated:#ffffff;
+          --im-tile-bg:#e8eaed; --im-input-bg:#f1f3f4;
+          --im-surface3:#f1f3f4;
+          --im-border:rgba(32,33,36,.12); --im-border-soft:rgba(32,33,36,.08);
+          --im-ghost-bg:rgba(32,33,36,.05); --im-ghost-bg-soft:rgba(32,33,36,.035);
+          --im-text:#202124; --im-text-soft:#3c4043; --im-text-mute:#5f6368; --im-text-mute2:#5f6368;
+          --im-scrollbar: rgba(32,33,36,.22);
         }
         .im-root[data-theme="light"] .im-stage,
         .im-root[data-theme="light"] .im-grid-tile,
-        .im-root[data-theme="light"] .im-strip-tile { box-shadow: 0 4px 18px rgba(15,23,42,.10); }
-        .im-root[data-theme="light"] input::placeholder { color: #94a3b8; }
+        .im-root[data-theme="light"] .im-strip-tile { box-shadow: 0 1px 4px rgba(32,33,36,.16); }
+        .im-root[data-theme="light"] input::placeholder { color: #9aa0a6; }
 
         @keyframes soundWave { 0%,100%{ height:3px } 50%{ height:11px } }
         .im-wave { display:flex; align-items:flex-end; gap:2px; height:12px; }
-        .im-wave span { width:2.5px; border-radius:2px; background:#34d399; display:block; animation: soundWave .7s ease-in-out infinite; }
+        .im-wave span { width:2.5px; border-radius:2px; background:#81c995; display:block; animation: soundWave .7s ease-in-out infinite; }
         .im-wave span:nth-child(2) { animation-delay:.12s }
         .im-wave span:nth-child(3) { animation-delay:.24s }
 
         .im-resize-handle { cursor: col-resize; }
-        .im-resize-handle:hover, .im-resize-handle.im-resizing { background: rgba(109,94,247,.35) !important; }
+        .im-resize-handle:hover, .im-resize-handle.im-resizing { background: rgba(138,180,248,.35) !important; }
         .im-toast-stack { position: fixed; top: 70px; right: 16px; z-index: 9998; display:flex; flex-direction:column; gap:8px; pointer-events:none; max-width: calc(100vw - 32px); }
         @media (max-width: 640px) {
           .im-toast-stack { left: 16px; right: 16px; align-items: center; }
@@ -8067,16 +8496,16 @@ room.on(RoomEvent.TrackUnpublished, rebuild);
         @keyframes toastIn   { from{opacity:0;transform:translateX(-50%) translateY(-12px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
         @keyframes fadeScaleIn { from{opacity:0;transform:scale(0.96)} to{opacity:1;transform:scale(1)} }
         @keyframes floatUp { 0%{opacity:0;transform:translateY(0) scale(0.6)} 15%{opacity:1;transform:translateY(-20px) scale(1)} 100%{opacity:0;transform:translateY(-160px) scale(1.1)} }
-        @keyframes speakGlow { 0%,100%{ box-shadow: 0 0 0 2px rgba(52,211,153,.55), 0 0 22px 2px rgba(52,211,153,.28); } 50%{ box-shadow: 0 0 0 2px rgba(52,211,153,.85), 0 0 32px 6px rgba(52,211,153,.4); } }
+        @keyframes speakGlow { 0%,100%{ box-shadow: 0 0 0 2px rgba(129,201,149,.55), 0 0 18px 1px rgba(129,201,149,.22); } 50%{ box-shadow: 0 0 0 2px rgba(129,201,149,.85), 0 0 24px 3px rgba(129,201,149,.3); } }
         @keyframes imspin { to { transform: rotate(360deg); } }
         .im-spin { animation: imspin 1s linear infinite; }
 
         .im-root, .im-root * { box-sizing: border-box; }
         .im-root { max-width: 100vw; }
         .im-strip-tile, .im-stage, .im-grid-tile { transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
-        .im-strip-tile:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,.35); }
-        .im-strip-tile-active { border: 2px solid #6d5ef7 !important; }
-        .im-speaking { animation: speakGlow 1.6s ease-in-out infinite; border-color: rgba(52,211,153,.6) !important; }
+        .im-strip-tile:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,.3); }
+        .im-strip-tile-active { border: 2px solid #8ab4f8 !important; }
+        .im-speaking { animation: speakGlow 1.6s ease-in-out infinite; border-color: rgba(129,201,149,.6) !important; }
         .im-ctrl-btn { transition: all .16s ease; min-width: 48px; min-height: 48px; }
         .im-ctrl-btn:active { transform: scale(.94); }
         .im-sidebar { animation: slideIn .22s ease; }
@@ -8087,7 +8516,7 @@ room.on(RoomEvent.TrackUnpublished, rebuild);
         .im-btn-label-inline { display: inline; }
 
         .im-root button:focus { outline: none; }
-        .im-root button:focus-visible, .im-root input:focus-visible { outline: 2px solid #8b7dfb; outline-offset: 2px; border-radius: 6px; }
+        .im-root button:focus-visible, .im-root input:focus-visible { outline: 2px solid #8ab4f8; outline-offset: 2px; border-radius: 6px; }
 
         .im-filmstrip { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.18) transparent; }
         .im-ctrlbar { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.22) transparent; }
@@ -8098,7 +8527,7 @@ room.on(RoomEvent.TrackUnpublished, rebuild);
         @media (max-width: 1023px) {
           .im-mainarea { position: relative; }
           .im-grid { grid-template-columns: repeat(var(--cols-tablet, 3), minmax(0, 1fr)) !important; }
-          .im-sidebar { position: absolute !important; top:0; right:0; bottom:0; width: min(320px, 88vw) !important; z-index: 40; box-shadow: -12px 0 32px rgba(0,0,0,.45); animation: slideIn .22s ease; }
+          .im-sidebar { position: absolute !important; top:0; right:0; bottom:0; width: min(320px, 88vw) !important; z-index: 40; box-shadow: -8px 0 24px rgba(0,0,0,.4); animation: slideIn .22s ease; }
           .im-sidebar-backdrop { display: block; position: absolute; inset: 0; background: rgba(0,0,0,.35); z-index: 30; animation: fadeIn .18s ease; }
           .im-handle { display: none !important; }
         }
@@ -8144,39 +8573,18 @@ room.on(RoomEvent.TrackUnpublished, rebuild);
 }
 
 /* ═════════════════════════════════════════════════════════════════
-   PRE-JOIN / LOBBY STYLES
+   PRE-JOIN / LOBBY STYLES — Google Meet light UI: white/gray surfaces,
+   blue accent (#1a73e8), no orange/peach tones.
 ═════════════════════════════════════════════════════════════════ */
 const PJ = {
   root: {
     position: "fixed",
     inset: 0,
-    background: "#fdf3e8",
+    background: "#f1f3f4",
     overflowY: "auto",
     overflowX: "hidden",
-    fontFamily: "'Inter','Segoe UI',sans-serif",
+    fontFamily: "'Google Sans','Roboto','Segoe UI',sans-serif",
     zIndex: 9999,
-  },
-  blobTopRight: {
-    position: "fixed",
-    top: -80,
-    right: -60,
-    width: 260,
-    height: 260,
-    borderRadius: "50%",
-    background:
-      "radial-gradient(circle, rgba(251,146,60,.16) 0%, rgba(251,146,60,0) 70%)",
-    pointerEvents: "none",
-  },
-  blobBottomLeft: {
-    position: "fixed",
-    bottom: -100,
-    left: -80,
-    width: 300,
-    height: 300,
-    borderRadius: "50%",
-    background:
-      "radial-gradient(circle, rgba(251,146,60,.14) 0%, rgba(251,146,60,0) 70%)",
-    pointerEvents: "none",
   },
   page: {
     position: "relative",
@@ -8196,13 +8604,13 @@ const PJ = {
   brandLogo: { height: 30, width: "auto", objectFit: "contain" },
   pageTitle: {
     fontSize: 34,
-    fontWeight: 800,
-    color: "#0f172a",
+    fontWeight: 500,
+    color: "#202124",
     margin: "0 0 8px",
     letterSpacing: -0.5,
   },
-  pageTitleAccent: { color: "#f97316" },
-  pageSubtitle: { fontSize: 15, color: "#64748b", margin: 0 },
+  pageTitleAccent: { color: "#1a73e8" },
+  pageSubtitle: { fontSize: 15, color: "#5f6368", margin: 0 },
 
   card: {
     display: "flex",
@@ -8225,11 +8633,11 @@ const PJ = {
     position: "relative",
     width: "100%",
     aspectRatio: "16/10",
-    background: "#e9edf3",
-    borderRadius: 20,
+    background: "#3c4043",
+    borderRadius: 12,
     overflow: "hidden",
-    border: "1px solid rgba(15,23,42,.06)",
-    boxShadow: "0 16px 40px rgba(15,23,42,.08)",
+    border: "1px solid rgba(32,33,36,.08)",
+    boxShadow: "0 1px 4px rgba(32,33,36,.16)",
   },
   previewAvatarWrap: {
     position: "absolute",
@@ -8237,18 +8645,18 @@ const PJ = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "#eef1f5",
+    background: "#3c4043",
   },
   previewAvatar: {
     width: 96,
     height: 96,
     borderRadius: "50%",
-    background: "linear-gradient(135deg,#fb923c,#f97316)",
+    background: "#1a73e8",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     fontSize: 34,
-    fontWeight: 800,
+    fontWeight: 500,
     color: "#fff",
   },
   previewWatermark: {
@@ -8267,7 +8675,7 @@ const PJ = {
     display: "flex",
     alignItems: "center",
     gap: 14,
-    background: "rgba(15,17,23,.62)",
+    background: "rgba(32,33,36,.72)",
     backdropFilter: "blur(6px)",
     borderRadius: 999,
     padding: "9px 20px",
@@ -8283,9 +8691,9 @@ const PJ = {
     gap: 7,
     border: "none",
     background: "transparent",
-    color: "#f1f5f9",
+    color: "#f1f3f4",
     fontSize: 13,
-    fontWeight: 600,
+    fontWeight: 500,
     fontFamily: "inherit",
     cursor: "pointer",
     padding: 0,
@@ -8294,17 +8702,17 @@ const PJ = {
     display: "flex",
     alignItems: "flex-start",
     gap: 12,
-    background: "#fffdfb",
-    border: "1px solid rgba(15,23,42,.06)",
-    borderRadius: 16,
+    background: "#ffffff",
+    border: "1px solid rgba(32,33,36,.08)",
+    borderRadius: 12,
     padding: "14px 16px",
-    boxShadow: "0 10px 24px rgba(15,23,42,.05)",
+    boxShadow: "0 1px 3px rgba(32,33,36,.08)",
   },
   secureIconWrap: {
     width: 34,
     height: 34,
     borderRadius: "50%",
-    background: "rgba(249,115,22,.12)",
+    background: "rgba(26,115,232,.1)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -8312,41 +8720,41 @@ const PJ = {
   },
   secureTitle: {
     fontSize: 13.5,
-    fontWeight: 700,
-    color: "#0f172a",
+    fontWeight: 500,
+    color: "#202124",
     margin: "2px 0 3px",
   },
-  secureSubtitle: { fontSize: 12.5, color: "#94a3b8", margin: 0 },
+  secureSubtitle: { fontSize: 12.5, color: "#5f6368", margin: 0 },
 
   infoCol: {
-  width: 380,
-  maxWidth: "100%",
-  color: "#0f172a",
-  background: "#fffdfb",
-  border: "1px solid rgba(15,23,42,.06)",
-  borderRadius: 20,
-  padding: "26px 26px 22px",
-  boxShadow: "0 16px 40px rgba(15,23,42,.08)",
-  overflow: "hidden",
-  boxSizing: "border-box",
-},
+    width: 380,
+    maxWidth: "100%",
+    color: "#202124",
+    background: "#ffffff",
+    border: "1px solid rgba(32,33,36,.08)",
+    borderRadius: 12,
+    padding: "26px 26px 22px",
+    boxShadow: "0 1px 4px rgba(32,33,36,.12)",
+    overflow: "hidden",
+    boxSizing: "border-box",
+  },
   title: {
-  fontSize: 20,
-  fontWeight: 800,
-  margin: "0 0 8px",
-  textAlign: "center",
-  wordBreak: "break-word",
-  overflowWrap: "anywhere",
-},
+    fontSize: 20,
+    fontWeight: 500,
+    margin: "0 0 8px",
+    textAlign: "center",
+    wordBreak: "break-word",
+    overflowWrap: "anywhere",
+  },
   subtitle: {
     fontSize: 13,
-    color: "#64748b",
+    color: "#5f6368",
     margin: "0 0 4px",
     textAlign: "center",
   },
   code: {
     fontSize: 12.5,
-    color: "#64748b",
+    color: "#5f6368",
     margin: "0 0 18px",
     textAlign: "center",
     display: "flex",
@@ -8359,51 +8767,51 @@ const PJ = {
     alignItems: "center",
     justifyContent: "center",
     border: "none",
-    background: "rgba(15,23,42,.06)",
-    color: "#64748b",
+    background: "rgba(32,33,36,.06)",
+    color: "#5f6368",
     borderRadius: 6,
     width: 22,
     height: 22,
     cursor: "pointer",
   },
   sectionHeading: {
-  textAlign: "center",
-  marginBottom: 18,
-  paddingBottom: 12,
-  borderBottom: "1px solid rgba(15,23,42,.08)",
-},
-sectionHeadingText: {
-  fontSize: 15,
-  fontWeight: 800,
-  color: "#0f172a",
-  margin: "0 0 8px",
-},
-sectionHeadingDash: {
-  display: "flex",
-  justifyContent: "center",
-  gap: 6,
-},
-dashOrange: {
-  width: 36,
-  height: 3,
-  borderRadius: 2,
-  background: "#f97316",
-  display: "inline-block",
-},
+    textAlign: "center",
+    marginBottom: 18,
+    paddingBottom: 12,
+    borderBottom: "1px solid rgba(32,33,36,.08)",
+  },
+  sectionHeadingText: {
+    fontSize: 15,
+    fontWeight: 500,
+    color: "#202124",
+    margin: "0 0 8px",
+  },
+  sectionHeadingDash: {
+    display: "flex",
+    justifyContent: "center",
+    gap: 6,
+  },
+  dashOrange: {
+    width: 36,
+    height: 3,
+    borderRadius: 2,
+    background: "#1a73e8",
+    display: "inline-block",
+  },
   label: {
     fontSize: 12,
-    fontWeight: 700,
-    color: "#334155",
+    fontWeight: 500,
+    color: "#3c4043",
     marginBottom: 6,
     display: "block",
   },
   input: {
     width: "100%",
-    background: "#fbfaf8",
-    border: "1px solid rgba(15,23,42,.12)",
-    borderRadius: 12,
+    background: "#ffffff",
+    border: "1px solid rgba(32,33,36,.16)",
+    borderRadius: 8,
     padding: "11px 14px",
-    color: "#0f172a",
+    color: "#202124",
     fontSize: 14,
     marginBottom: 14,
     outline: "none",
@@ -8414,25 +8822,25 @@ dashOrange: {
     alignItems: "center",
     gap: 6,
     fontSize: 11,
-    color: "#b45309",
+    color: "#b06000",
     marginBottom: 10,
   },
-  errText: { fontSize: 12, color: "#dc2626", marginBottom: 10 },
+  errText: { fontSize: 12, color: "#d93025", marginBottom: 10 },
   joinBtn: {
     width: "100%",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    background: "linear-gradient(135deg,#fb923c,#f97316)",
+    background: "#1a73e8",
     color: "#fff",
     border: "none",
-    borderRadius: 14,
+    borderRadius: 8,
     padding: "13px 0",
     fontSize: 14,
-    fontWeight: 700,
+    fontWeight: 500,
     cursor: "pointer",
-    boxShadow: "0 10px 24px rgba(249,115,22,.35)",
+    boxShadow: "0 1px 2px rgba(26,115,232,.3)",
   },
   hint: {
     display: "flex",
@@ -8440,7 +8848,7 @@ dashOrange: {
     justifyContent: "center",
     gap: 6,
     fontSize: 11.5,
-    color: "#94a3b8",
+    color: "#5f6368",
     marginTop: 12,
     textAlign: "center",
   },
@@ -8454,8 +8862,8 @@ const LB = {
     gap: 12,
     textAlign: "center",
     maxWidth: 380,
-    color: "#e2e8f0",
-    fontFamily: "'Inter','Segoe UI',sans-serif",
+    color: "#3c4043",
+    fontFamily: "'Google Sans','Roboto','Segoe UI',sans-serif",
   },
   pulseWrap: {
     position: "relative",
@@ -8469,26 +8877,28 @@ const LB = {
     position: "absolute",
     inset: 0,
     borderRadius: "50%",
-    background: "rgba(147,197,253,.14)",
+    background: "rgba(26,115,232,.12)",
     animation: "livePulse 1.6s ease-in-out infinite",
   },
-  title: { fontSize: 18, fontWeight: 800, margin: 0, color: "#fff" },
-  subtitle: { fontSize: 13, color: "#94a3b8", margin: 0 },
+  title: { fontSize: 18, fontWeight: 500, margin: 0, color: "#202124" },
+  subtitle: { fontSize: 13, color: "#5f6368", margin: 0 },
   cancelBtn: {
     marginTop: 10,
-    background: "rgba(255,255,255,.06)",
-    border: "1px solid rgba(255,255,255,.1)",
-    color: "#cbd5e1",
-    borderRadius: 12,
+    background: "#ffffff",
+    border: "1px solid rgba(32,33,36,.16)",
+    color: "#3c4043",
+    borderRadius: 8,
     padding: "9px 20px",
     fontSize: 13,
-    fontWeight: 700,
+    fontWeight: 500,
     cursor: "pointer",
   },
 };
 
 /* ═════════════════════════════════════════════════════════════════
-   MEETING ROOM STYLES (mirrors LiveRoom.jsx's design language)
+   MEETING ROOM STYLES — Google Meet visual language: flat charcoal
+   surfaces, uniform 12px tile radius, blue (#1a73e8/#8ab4f8) accent,
+   red (#ea4335) only on the leave/end control.
 ═════════════════════════════════════════════════════════════════ */
 const IM_STYLES = {
   root: {
@@ -8497,7 +8907,7 @@ const IM_STYLES = {
     height: "100vh",
     width: "100%",
     background: "var(--im-page)",
-    fontFamily: "'Inter','Segoe UI',sans-serif",
+    fontFamily: "'Google Sans','Roboto','Segoe UI',sans-serif",
     color: "var(--im-text-soft)",
     overflow: "hidden",
   },
@@ -8511,10 +8921,10 @@ const IM_STYLES = {
     alignItems: "center",
     gap: 12,
     padding: "14px 24px",
-    borderRadius: 14,
-    background: "linear-gradient(135deg,#dc2626,#f43f5e)",
+    borderRadius: 8,
+    background: "#d93025",
     color: "#fff",
-    boxShadow: "0 8px 32px rgba(244,63,94,.5)",
+    boxShadow: "0 2px 10px rgba(217,48,37,.4)",
     animation: "toastIn .35s ease",
     minWidth: 280,
   },
@@ -8523,20 +8933,20 @@ const IM_STYLES = {
     alignItems: "center",
     gap: 8,
     padding: "9px 14px",
-    borderRadius: 10,
+    borderRadius: 8,
     background: "var(--im-panel-elevated)",
     border: "1px solid var(--im-border)",
     borderLeft: "3px solid var(--im-border)",
     color: "var(--im-text-soft)",
     fontSize: 12,
-    fontWeight: 600,
-    boxShadow: "0 8px 24px rgba(0,0,0,.35)",
+    fontWeight: 500,
+    boxShadow: "0 2px 8px rgba(0,0,0,.3)",
     animation: "toastIn .3s ease",
     pointerEvents: "none",
     maxWidth: 280,
   },
-  noticePillJoin: { borderLeft: "3px solid #34d399" },
-  noticePillLeave: { borderLeft: "3px solid #f87171" },
+  noticePillJoin: { borderLeft: "3px solid #81c995" },
+  noticePillLeave: { borderLeft: "3px solid #f28b82" },
 
   topBar: {
     display: "flex",
@@ -8560,20 +8970,20 @@ const IM_STYLES = {
     display: "flex",
     alignItems: "center",
     gap: 6,
-    background: "rgba(239,68,68,.14)",
-    border: "1px solid rgba(239,68,68,.28)",
+    background: "rgba(242,139,130,.14)",
+    border: "1px solid rgba(242,139,130,.28)",
     borderRadius: 8,
     padding: "5px 10px",
     fontSize: 11,
-    fontWeight: 800,
+    fontWeight: 500,
     letterSpacing: 1.2,
-    color: "#ef4444",
+    color: "#ea4335",
   },
   liveDot: {
     width: 7,
     height: 7,
     borderRadius: "50%",
-    background: "#ef4444",
+    background: "#ea4335",
     animation: "livePulse 1.2s ease-in-out infinite",
     display: "inline-block",
   },
@@ -8581,13 +8991,13 @@ const IM_STYLES = {
     display: "flex",
     alignItems: "center",
     gap: 5,
-    background: "rgba(127,29,29,.35)",
-    border: "1px solid rgba(248,113,113,.25)",
+    background: "rgba(92,43,41,.35)",
+    border: "1px solid rgba(242,139,130,.25)",
     borderRadius: 8,
     padding: "5px 10px",
     fontSize: 11,
-    fontWeight: 700,
-    color: "#fca5a5",
+    fontWeight: 500,
+    color: "#f6aea9",
     animation: "recBlink 2s infinite",
   },
   timerBadge: {
@@ -8595,7 +9005,7 @@ const IM_STYLES = {
     alignItems: "center",
     gap: 6,
     fontSize: 12,
-    fontWeight: 600,
+    fontWeight: 500,
     color: "var(--im-text-soft)",
     background: "var(--im-ghost-bg)",
     borderRadius: 8,
@@ -8604,24 +9014,24 @@ const IM_STYLES = {
   },
   sessionName: {
     fontSize: 15,
-    fontWeight: 700,
+    fontWeight: 500,
     color: "var(--im-text)",
     marginLeft: 2,
   },
   logoImg: {
-  height: 30,
-  width: "auto",
-  maxWidth: 130,
-  objectFit: "contain",
-  flexShrink: 0,
-  display: "block",
-},
+    height: 30,
+    width: "auto",
+    maxWidth: 130,
+    objectFit: "contain",
+    flexShrink: 0,
+    display: "block",
+  },
   peopleCountBadge: {
     display: "flex",
     alignItems: "center",
     gap: 6,
     fontSize: 12,
-    fontWeight: 600,
+    fontWeight: 500,
     color: "var(--im-text-soft)",
     background: "var(--im-ghost-bg)",
     borderRadius: 8,
@@ -8635,13 +9045,13 @@ const IM_STYLES = {
     padding: "6px 9px",
   },
   connOn: {
-    background: "rgba(34,197,94,.12)",
-    border: "1px solid rgba(34,197,94,.28)",
-    color: "#22c55e",
+    background: "rgba(129,201,149,.12)",
+    border: "1px solid rgba(129,201,149,.28)",
+    color: "#81c995",
   },
   connOff: {
-    background: "rgba(100,116,139,.1)",
-    border: "1px solid rgba(100,116,139,.2)",
+    background: "rgba(154,160,166,.1)",
+    border: "1px solid rgba(154,160,166,.2)",
     color: "var(--im-text-mute2)",
   },
   // FIX (mobile screen-share bug): compact top-bar status pill, shown
@@ -8658,33 +9068,33 @@ const IM_STYLES = {
     color: "var(--im-text-mute2)",
   },
   screenStatusPillOn: {
-    background: "rgba(37,99,235,.16)",
-    border: "1px solid rgba(96,165,250,.32)",
-    color: "#93c5fd",
+    background: "rgba(138,180,248,.16)",
+    border: "1px solid rgba(138,180,248,.32)",
+    color: "#8ab4f8",
   },
   screenStatusPillBlocked: {
-    background: "rgba(239,68,68,.14)",
-    border: "1px solid rgba(239,68,68,.4)",
-    color: "#f87171",
+    background: "rgba(242,139,130,.14)",
+    border: "1px solid rgba(242,139,130,.4)",
+    color: "#f28b82",
   },
   endSessionBtn: {
     display: "flex",
     alignItems: "center",
     gap: 6,
-    background: "#ef4444",
+    background: "#ea4335",
     color: "#fff",
     border: "none",
-    borderRadius: 10,
+    borderRadius: 8,
     padding: "9px 16px",
     fontSize: 12,
-    fontWeight: 700,
+    fontWeight: 500,
     cursor: "pointer",
-    boxShadow: "0 4px 14px rgba(239,68,68,.35)",
+    boxShadow: "none",
   },
   iconGhostBtn: {
     background: "var(--im-ghost-bg)",
     border: "1px solid var(--im-border)",
-    borderRadius: 9,
+    borderRadius: 8,
     padding: 8,
     color: "var(--im-text-mute2)",
     cursor: "pointer",
@@ -8696,10 +9106,10 @@ const IM_STYLES = {
     right: 0,
     background: "var(--im-panel-elevated)",
     border: "1px solid var(--im-border)",
-    borderRadius: 12,
+    borderRadius: 8,
     padding: 6,
     minWidth: 190,
-    boxShadow: "0 12px 32px rgba(0,0,0,.5)",
+    boxShadow: "0 2px 10px rgba(0,0,0,.4)",
     zIndex: 50,
     display: "flex",
     flexDirection: "column",
@@ -8713,7 +9123,7 @@ const IM_STYLES = {
     border: "none",
     color: "var(--im-text-soft)",
     fontSize: 12,
-    fontWeight: 600,
+    fontWeight: 500,
     padding: "8px 10px",
     borderRadius: 8,
     cursor: "pointer",
@@ -8731,7 +9141,7 @@ const IM_STYLES = {
     background: "var(--im-panel-elevated)",
     border: "1px solid var(--im-border)",
     borderRadius: 999,
-    boxShadow: "0 12px 32px rgba(0,0,0,.5)",
+    boxShadow: "0 2px 10px rgba(0,0,0,.4)",
     zIndex: 50,
     animation: "slideUp .16s ease",
   },
@@ -8751,10 +9161,10 @@ const IM_STYLES = {
     position: "absolute",
     top: -4,
     right: -4,
-    background: "#6d5ef7",
+    background: "#1a73e8",
     color: "#fff",
     fontSize: 9,
-    fontWeight: 800,
+    fontWeight: 500,
     borderRadius: 8,
     padding: "1px 5px",
     border: "2px solid var(--im-panel)",
@@ -8773,7 +9183,7 @@ const IM_STYLES = {
     display: "flex",
     flexDirection: "column",
     gap: 14,
-    padding: 18,
+    padding: 6,
     overflow: "hidden",
     minWidth: 0,
     position: "relative",
@@ -8793,10 +9203,10 @@ const IM_STYLES = {
   stage: {
     position: "relative",
     background: "var(--im-tile-bg)",
-    borderRadius: 22,
+    borderRadius: 12,
     overflow: "hidden",
     border: "1px solid var(--im-border)",
-    boxShadow: "0 16px 44px rgba(0,0,0,.38)",
+    boxShadow: "0 1px 4px rgba(0,0,0,.3)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -8813,20 +9223,19 @@ const IM_STYLES = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "var(--im-tile-bg)",
+    background: "transparent",
   },
   stageAvatar: {
     width: 108,
     height: 108,
     borderRadius: "50%",
-    background: "linear-gradient(135deg,#6d5ef7,#8b5cf6)",
+    background: "#1a73e8",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     fontSize: 40,
-    fontWeight: 800,
+    fontWeight: 500,
     color: "#fff",
-    boxShadow: "0 10px 40px rgba(109,94,247,.35)",
   },
   stageNameTag: {
     position: "absolute",
@@ -8836,21 +9245,30 @@ const IM_STYLES = {
     alignItems: "center",
     gap: 7,
     fontSize: 13,
-    fontWeight: 600,
+    fontWeight: 500,
     color: "#fff",
-    background: "rgba(10,12,18,.72)",
-    borderRadius: 9,
+    background: "rgba(32,33,36,.72)",
+    borderRadius: 8,
     padding: "6px 12px",
+    maxWidth: "calc(100% - 96px)",
+  },
+  nameEllipsis: {
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    minWidth: 0,
+    maxWidth: "100%",
+    display: "inline-block",
   },
   stageHostTag: {
     position: "absolute",
     top: 16,
     right: 16,
     fontSize: 12,
-    fontWeight: 700,
-    color: "#93c5fd",
-    background: "rgba(37,99,235,.22)",
-    border: "1px solid rgba(96,165,250,.25)",
+    fontWeight: 500,
+    color: "#8ab4f8",
+    background: "rgba(138,180,248,.18)",
+    border: "1px solid rgba(138,180,248,.25)",
     borderRadius: 8,
     padding: "4px 12px",
   },
@@ -8862,12 +9280,12 @@ const IM_STYLES = {
     alignItems: "center",
     gap: 6,
     fontSize: 11,
-    fontWeight: 700,
-    color: "#1a1a1a",
-    background: "#fbbf24",
+    fontWeight: 500,
+    color: "#202124",
+    background: "#fdd663",
     borderRadius: 8,
     padding: "5px 10px",
-    boxShadow: "0 4px 14px rgba(251,191,36,.4)",
+    boxShadow: "none",
     animation: "recBlink 1.4s infinite",
   },
   stageReactionBadge: {
@@ -8876,7 +9294,7 @@ const IM_STYLES = {
     right: 16,
     fontSize: 30,
     lineHeight: 1,
-    filter: "drop-shadow(0 4px 10px rgba(0,0,0,.4))",
+    filter: "drop-shadow(0 2px 6px rgba(0,0,0,.3))",
     pointerEvents: "none",
   },
   screenLabel: {
@@ -8887,9 +9305,9 @@ const IM_STYLES = {
     alignItems: "center",
     gap: 6,
     fontSize: 12,
-    fontWeight: 700,
+    fontWeight: 500,
     color: "#fff",
-    background: "rgba(10,12,18,.72)",
+    background: "rgba(32,33,36,.72)",
     borderRadius: 8,
     padding: "5px 10px",
   },
@@ -8902,11 +9320,34 @@ const IM_STYLES = {
     justifyContent: "center",
     width: 34,
     height: 34,
-    borderRadius: 9,
+    borderRadius: 8,
     border: "1px solid rgba(255,255,255,.18)",
-    background: "rgba(10,12,18,.72)",
+    background: "rgba(32,33,36,.72)",
     color: "#fff",
     cursor: "pointer",
+  },
+  presenterCamBubble: {
+    position: "absolute",
+    bottom: 16,
+    right: 16,
+    width: 118,
+    aspectRatio: "4/3",
+    borderRadius: 8,
+    overflow: "hidden",
+    border: "2px solid rgba(255,255,255,.25)",
+    boxShadow: "0 2px 8px rgba(0,0,0,.4)",
+    zIndex: 5,
+  },
+  presenterCamName: {
+    position: "absolute",
+    bottom: 4,
+    left: 6,
+    fontSize: 10,
+    fontWeight: 500,
+    color: "#fff",
+    background: "rgba(32,33,36,.68)",
+    borderRadius: 6,
+    padding: "1px 6px",
   },
   zoomOverlay: {
     position: "fixed",
@@ -8926,9 +9367,9 @@ const IM_STYLES = {
     display: "flex",
     alignItems: "center",
     gap: 12,
-    background: "rgba(10,12,18,.78)",
+    background: "rgba(32,33,36,.78)",
     border: "1px solid rgba(255,255,255,.14)",
-    borderRadius: 12,
+    borderRadius: 8,
     padding: "8px 10px 8px 16px",
   },
   zoomOverlayLabel: {
@@ -8936,8 +9377,8 @@ const IM_STYLES = {
     alignItems: "center",
     gap: 7,
     fontSize: 13,
-    fontWeight: 600,
-    color: "#e2e8f0",
+    fontWeight: 500,
+    color: "#e8eaed",
     whiteSpace: "nowrap",
   },
   zoomExitBtn: {
@@ -8950,20 +9391,40 @@ const IM_STYLES = {
     borderRadius: 8,
     padding: "7px 12px",
     fontSize: 12,
-    fontWeight: 700,
+    fontWeight: 500,
     cursor: "pointer",
     whiteSpace: "nowrap",
   },
   captionsBar: {
     display: "flex",
+    flexDirection: "column",
+    gap: 6,
     alignItems: "center",
-    gap: 8,
-    background: "rgba(10,12,18,.72)",
-    borderRadius: 10,
-    padding: "8px 14px",
-    fontSize: 12,
-    color: "var(--im-text-soft)",
+    justifyContent: "center",
+    background: "rgba(32,33,36,.85)",
+    backdropFilter: "blur(8px)",
+    WebkitBackdropFilter: "blur(8px)",
+    borderRadius: 8,
+    padding: "12px 22px",
+    fontSize: 15,
+    lineHeight: 1.45,
+    color: "#f8f9fa",
     flexShrink: 0,
+    maxWidth: "88%",
+    margin: "0 auto",
+    textAlign: "center",
+    boxShadow: "0 2px 8px rgba(0,0,0,.3)",
+  },
+  captionLine: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    flexWrap: "wrap",
+  },
+  captionSpeakerName: {
+    fontWeight: 500,
+    color: "#fdd663",
   },
   presentingBar: {
     display: "flex",
@@ -8971,22 +9432,22 @@ const IM_STYLES = {
     justifyContent: "center",
     gap: 10,
     padding: "8px 16px",
-    background: "rgba(37,99,235,.16)",
-    borderBottom: "1px solid rgba(96,165,250,.25)",
-    color: "#93c5fd",
+    background: "rgba(138,180,248,.14)",
+    borderBottom: "1px solid rgba(138,180,248,.25)",
+    color: "#8ab4f8",
     fontSize: 12,
-    fontWeight: 600,
+    fontWeight: 500,
     flexShrink: 0,
     flexWrap: "wrap",
   },
   presentingStopBtn: {
-    background: "#2563eb",
+    background: "#1a73e8",
     color: "#fff",
     border: "none",
     borderRadius: 8,
     padding: "4px 12px",
     fontSize: 11,
-    fontWeight: 700,
+    fontWeight: 500,
     cursor: "pointer",
   },
   mediaErrorBar: {
@@ -8994,18 +9455,18 @@ const IM_STYLES = {
     alignItems: "center",
     gap: 10,
     padding: "8px 16px",
-    background: "rgba(245,158,11,.16)",
-    borderBottom: "1px solid rgba(251,191,36,.3)",
-    color: "#fbbf24",
+    background: "rgba(253,214,99,.16)",
+    borderBottom: "1px solid rgba(253,214,99,.3)",
+    color: "#fdd663",
     fontSize: 12,
-    fontWeight: 600,
+    fontWeight: 500,
     flexShrink: 0,
     flexWrap: "wrap",
   },
   mediaErrorClose: {
     background: "none",
     border: "none",
-    color: "#fbbf24",
+    color: "#fdd663",
     cursor: "pointer",
     display: "flex",
     marginLeft: "auto",
@@ -9029,13 +9490,13 @@ const IM_STYLES = {
   },
   floaterEmoji: {
     fontSize: 34,
-    filter: "drop-shadow(0 4px 10px rgba(0,0,0,.35))",
+    filter: "drop-shadow(0 2px 6px rgba(0,0,0,.3))",
   },
   floaterName: {
     fontSize: 10,
-    fontWeight: 700,
+    fontWeight: 500,
     color: "#fff",
-    background: "rgba(0,0,0,.55)",
+    background: "rgba(32,33,36,.55)",
     padding: "2px 7px",
     borderRadius: 8,
     whiteSpace: "nowrap",
@@ -9044,7 +9505,7 @@ const IM_STYLES = {
   filmstrip: {
     flexShrink: 0,
     display: "flex",
-    gap: 16,
+    gap: 12,
     padding: "2px 2px 6px",
     overflowX: "auto",
   },
@@ -9054,10 +9515,10 @@ const IM_STYLES = {
     width: "clamp(112px, 15vw, 220px)",
     aspectRatio: "16/12.6",
     background: "var(--im-tile-bg)",
-    borderRadius: 16,
+    borderRadius: 12,
     overflow: "hidden",
     border: "1px solid var(--im-border)",
-    boxShadow: "0 4px 14px rgba(0,0,0,.22)",
+    boxShadow: "0 1px 3px rgba(0,0,0,.25)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -9089,7 +9550,7 @@ const IM_STYLES = {
     alignItems: "center",
     justifyContent: "center",
     fontSize: 17,
-    fontWeight: 800,
+    fontWeight: 500,
     color: "#fff",
   },
   stripBadgeTopLeft: {
@@ -9099,7 +9560,7 @@ const IM_STYLES = {
     width: 20,
     height: 20,
     borderRadius: "50%",
-    background: "#fbbf24",
+    background: "#fdd663",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -9111,7 +9572,7 @@ const IM_STYLES = {
     width: 20,
     height: 20,
     borderRadius: "50%",
-    background: "rgba(10,12,18,.72)",
+    background: "rgba(32,33,36,.72)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -9122,9 +9583,9 @@ const IM_STYLES = {
     bottom: 7,
     left: 8,
     fontSize: 11,
-    fontWeight: 600,
+    fontWeight: 500,
     color: "#fff",
-    background: "rgba(10,12,18,.68)",
+    background: "rgba(32,33,36,.68)",
     borderRadius: 6,
     padding: "2px 8px",
     maxWidth: "calc(100% - 14px)",
@@ -9138,7 +9599,7 @@ const IM_STYLES = {
     right: 8,
     fontSize: 18,
     lineHeight: 1,
-    filter: "drop-shadow(0 2px 6px rgba(0,0,0,.4))",
+    filter: "drop-shadow(0 1px 4px rgba(0,0,0,.3))",
     pointerEvents: "none",
   },
 
@@ -9153,21 +9614,21 @@ const IM_STYLES = {
     paddingBottom: 4,
   },
   mobileTile: {
-  position: "relative",
-  width: "100%",
-  aspectRatio: "16/9",     // ✅ fixed, deterministic height
-  flexShrink: 0,
-  background: "var(--im-tile-bg)",
-  borderRadius: 20,
-  overflow: "hidden",
-  border: "1px solid var(--im-border)",
-  boxShadow: "0 8px 24px rgba(0,0,0,.3)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-},
+    position: "relative",
+    width: "100%",
+    aspectRatio: "16/9", // fixed, deterministic height — same across every tile
+    flexShrink: 0,
+    background: "var(--im-tile-bg)",
+    borderRadius: 12,
+    overflow: "hidden",
+    border: "1px solid var(--im-border)",
+    boxShadow: "0 1px 4px rgba(0,0,0,.25)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   mobileTileActive: {
-    border: "2px solid #6d5ef7",
+    border: "2px solid #8ab4f8",
   },
   mobileTileAvatarWrap: {
     position: "absolute",
@@ -9184,7 +9645,7 @@ const IM_STYLES = {
     alignItems: "center",
     justifyContent: "center",
     fontSize: 34,
-    fontWeight: 800,
+    fontWeight: 500,
     color: "#fff",
   },
   mobileTileTopLeft: {
@@ -9198,7 +9659,7 @@ const IM_STYLES = {
     width: 26,
     height: 26,
     borderRadius: "50%",
-    background: "rgba(10,12,18,.72)",
+    background: "rgba(32,33,36,.72)",
     color: "#fff",
     display: "flex",
     alignItems: "center",
@@ -9211,7 +9672,7 @@ const IM_STYLES = {
     width: 30,
     height: 30,
     borderRadius: "50%",
-    background: "rgba(10,12,18,.55)",
+    background: "rgba(32,33,36,.55)",
     border: "none",
     color: "#fff",
     display: "flex",
@@ -9224,9 +9685,9 @@ const IM_STYLES = {
     bottom: 10,
     left: 10,
     fontSize: 12,
-    fontWeight: 600,
+    fontWeight: 500,
     color: "#fff",
-    background: "rgba(10,12,18,.68)",
+    background: "rgba(32,33,36,.68)",
     borderRadius: 8,
     padding: "4px 10px",
     maxWidth: "calc(100% - 20px)",
@@ -9240,53 +9701,42 @@ const IM_STYLES = {
     right: 46,
     fontSize: 26,
     lineHeight: 1,
-    filter: "drop-shadow(0 3px 8px rgba(0,0,0,.4))",
+    filter: "drop-shadow(0 2px 6px rgba(0,0,0,.3))",
     pointerEvents: "none",
   },
 
-  /* FIX (Bug 2 — UI redesign to match Google Meet, image 3):
-     Previously this used `gridAutoRows: "1fr"` inside a flex:1 container,
-     which forces every tile to stretch and fill 100% of the available
-     vertical space regardless of aspect ratio — that's exactly why the
-     tiles in the bug screenshots looked like tall, edge-to-edge stretched
-     rectangles instead of proportioned Meet-style cards.
-     Now: tiles keep a fixed, video-like aspect ratio (see gridTile below),
-     rows size to their content ("auto") instead of stretching, and the
-     whole grid is centered within the available space with breathing
-     room around it — matching Meet's centered, card-like tile layout. */
+  /* Grid tiles: fixed, video-like aspect ratio, same size, centered —
+     matches Meet's uniform card grid rather than stretched rows. */
   gridWrap: {
     flex: 1,
-    display: "grid",
-    gridAutoRows: "min-content",
-    gap: 14,
+    display: "flex",
+    flexWrap: "wrap",
+    alignContent: "stretch",
+    alignItems: "stretch",
+    gap: 0,
     minHeight: 0,
     minWidth: 0,
-    overflow: "auto",
-    alignContent: "center",
-    justifyContent: "center",
-    padding: "4px 2px",
+    height: "100%",
+    width: "100%",
+    padding: 0,
   },
   gridCellOuter: {
     display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
     minHeight: 0,
     minWidth: 0,
   },
   gridTile: {
     position: "relative",
     background: "var(--im-tile-bg)",
-    borderRadius: 18,
+    borderRadius: 0,
     overflow: "hidden",
-    border: "1px solid var(--im-border)",
-    boxShadow: "0 8px 24px rgba(0,0,0,.3)",
+    border: "none",
+    boxShadow: "none",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    aspectRatio: "4/3",
     width: "100%",
-    maxWidth: "min(46vw, 420px)",
-    maxHeight: "min(56vh, 420px)",
+    height: "100%",
   },
   gridAvatar: {
     width: "26%",
@@ -9298,7 +9748,7 @@ const IM_STYLES = {
     alignItems: "center",
     justifyContent: "center",
     fontSize: "clamp(16px,3vw,32px)",
-    fontWeight: 800,
+    fontWeight: 500,
     color: "#fff",
   },
   gridNameTag: {
@@ -9309,9 +9759,9 @@ const IM_STYLES = {
     alignItems: "center",
     gap: 6,
     fontSize: 12,
-    fontWeight: 600,
+    fontWeight: 500,
     color: "#fff",
-    background: "rgba(10,12,18,.72)",
+    background: "rgba(32,33,36,.72)",
     borderRadius: 8,
     padding: "4px 9px",
     maxWidth: "calc(100% - 20px)",
@@ -9322,10 +9772,10 @@ const IM_STYLES = {
     top: 10,
     right: 10,
     fontSize: 10,
-    fontWeight: 700,
-    color: "#93c5fd",
-    background: "rgba(37,99,235,.22)",
-    border: "1px solid rgba(96,165,250,.25)",
+    fontWeight: 500,
+    color: "#8ab4f8",
+    background: "rgba(138,180,248,.18)",
+    border: "1px solid rgba(138,180,248,.25)",
     borderRadius: 6,
     padding: "3px 8px",
   },
@@ -9338,7 +9788,7 @@ const IM_STYLES = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "#fbbf24",
+    background: "#fdd663",
     borderRadius: "50%",
   },
   gridReactionBadge: {
@@ -9347,7 +9797,7 @@ const IM_STYLES = {
     right: 10,
     fontSize: 22,
     lineHeight: 1,
-    filter: "drop-shadow(0 3px 8px rgba(0,0,0,.4))",
+    filter: "drop-shadow(0 2px 6px rgba(0,0,0,.3))",
     pointerEvents: "none",
   },
 
@@ -9397,13 +9847,13 @@ const IM_STYLES = {
     cursor: "pointer",
     fontSize: 13,
     fontFamily: "inherit",
-    fontWeight: 700,
+    fontWeight: 500,
   },
-  tabOn: { color: "#6d8bf7", borderBottom: "2px solid #6d8bf7" },
+  tabOn: { color: "#8ab4f8", borderBottom: "2px solid #8ab4f8" },
   cnt: {
     fontSize: 11,
-    background: "rgba(109,94,247,.2)",
-    color: "#b7aefc",
+    background: "rgba(138,180,248,.2)",
+    color: "#8ab4f8",
     borderRadius: 10,
     padding: "1px 7px",
     marginLeft: 3,
@@ -9453,12 +9903,12 @@ const IM_STYLES = {
     alignItems: "baseline",
     gap: 8,
     fontSize: 12,
-    fontWeight: 700,
-    color: "#7ba9f7",
+    fontWeight: 500,
+    color: "#8ab4f8",
     padding: "0 2px",
   },
-  bHeaderSelf: { color: "#b7aefc" },
-  bHeaderTime: { fontSize: 11, fontWeight: 500, color: "var(--im-text-mute)" },
+  bHeaderSelf: { color: "#8ab4f8" },
+  bHeaderTime: { fontSize: 11, fontWeight: 400, color: "var(--im-text-mute)" },
   sysBubble: {
     fontSize: 12,
     color: "var(--im-text-mute2)",
@@ -9469,7 +9919,7 @@ const IM_STYLES = {
   },
   bubble: {
     maxWidth: "100%",
-    borderRadius: 16,
+    borderRadius: 12,
     padding: "9px 14px",
     display: "flex",
     flexDirection: "column",
@@ -9477,7 +9927,7 @@ const IM_STYLES = {
     wordBreak: "break-word",
   },
   bSelf: {
-    background: "linear-gradient(135deg,#6d5ef7,#8b5cf6)",
+    background: "#1a73e8",
     borderBottomRightRadius: 4,
   },
   bOther: { background: "var(--im-surface3)", borderBottomLeftRadius: 4 },
@@ -9502,7 +9952,7 @@ const IM_STYLES = {
     outline: "none",
   },
   sendBtn: {
-    background: "linear-gradient(135deg,#6d5ef7,#8b5cf6)",
+    background: "#1a73e8",
     border: "none",
     borderRadius: "50%",
     width: 40,
@@ -9535,7 +9985,7 @@ const IM_STYLES = {
     alignItems: "center",
     gap: 10,
     padding: "8px 10px",
-    borderRadius: 10,
+    borderRadius: 8,
     background: "var(--im-ghost-bg-soft)",
   },
   pAv: {
@@ -9546,7 +9996,7 @@ const IM_STYLES = {
     alignItems: "center",
     justifyContent: "center",
     fontSize: 14,
-    fontWeight: 700,
+    fontWeight: 500,
     flexShrink: 0,
     color: "#fff",
   },
@@ -9561,20 +10011,20 @@ const IM_STYLES = {
   },
   hostTag: {
     fontSize: 10,
-    background: "rgba(59,130,246,.15)",
-    color: "#60a5fa",
+    background: "rgba(138,180,248,.15)",
+    color: "#8ab4f8",
     padding: "2px 8px",
     borderRadius: 6,
-    fontWeight: 600,
+    fontWeight: 500,
     flexShrink: 0,
   },
   youTag: {
     fontSize: 10,
-    background: "rgba(52,211,153,.12)",
-    color: "#6ee7b7",
+    background: "rgba(129,201,149,.12)",
+    color: "#81c995",
     padding: "2px 8px",
     borderRadius: 6,
-    fontWeight: 600,
+    fontWeight: 500,
     flexShrink: 0,
   },
 
@@ -9593,9 +10043,9 @@ const IM_STYLES = {
     maxWidth: "100%",
     background: "var(--im-panel-elevated)",
     border: "1px solid var(--im-border)",
-    borderRadius: 16,
+    borderRadius: 12,
     overflow: "hidden",
-    boxShadow: "0 20px 60px rgba(0,0,0,.6)",
+    boxShadow: "0 4px 20px rgba(0,0,0,.5)",
   },
   settingsHead: {
     display: "flex",
@@ -9624,13 +10074,117 @@ const IM_STYLES = {
     borderRadius: 20,
     padding: "5px 14px",
     fontSize: 11,
-    fontWeight: 700,
+    fontWeight: 500,
     cursor: "pointer",
   },
   settingsToggleOn: {
-    background: "rgba(109,94,247,.22)",
-    borderColor: "rgba(109,94,247,.4)",
-    color: "#b7aefc",
+    background: "rgba(138,180,248,.22)",
+    borderColor: "rgba(138,180,248,.4)",
+    color: "#8ab4f8",
+  },
+  mobileSheetBackdrop: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,.45)",
+    zIndex: 9997,
+    animation: "fadeIn .18s ease",
+  },
+  mobileSheet: {
+    position: "fixed",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 9998,
+    background: "var(--im-panel-elevated)",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    padding: "10px 16px calc(env(safe-area-inset-bottom, 0px) + 18px)",
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+    boxShadow: "0 -4px 20px rgba(0,0,0,.4)",
+    animation: "slideUp .22s ease",
+    maxHeight: "80vh",
+    overflowY: "auto",
+  },
+  mobileSheetHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 4,
+    background: "var(--im-border)",
+    alignSelf: "center",
+    marginBottom: 4,
+  },
+  mobileSheetPillWide: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    width: "100%",
+    border: "1px solid var(--im-border)",
+    background: "var(--im-ghost-bg)",
+    color: "var(--im-text-soft)",
+    borderRadius: 999,
+    padding: "13px 0",
+    fontSize: 14,
+    fontWeight: 500,
+    fontFamily: "inherit",
+    cursor: "pointer",
+  },
+  mobileSheetPillActive: {
+    background: "rgba(138,180,248,.22)",
+    borderColor: "rgba(138,180,248,.4)",
+    color: "#8ab4f8",
+  },
+  mobileSheetLeaveBtn: {
+    background: "#ea4335",
+    borderColor: "#ea4335",
+    color: "#fff",
+  },
+  mobileSheetIconRow: {
+    display: "grid",
+    gridTemplateColumns: "repeat(4, 1fr)",
+    gap: 8,
+  },
+  mobileSheetIconBtn: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 5,
+    border: "1px solid var(--im-border)",
+    background: "var(--im-ghost-bg-soft)",
+    color: "var(--im-text-soft)",
+    borderRadius: 12,
+    padding: "12px 4px",
+    fontSize: 10,
+    fontWeight: 500,
+    fontFamily: "inherit",
+    cursor: "pointer",
+  },
+  mobileSheetIconBtnActive: {
+    background: "rgba(138,180,248,.22)",
+    borderColor: "rgba(138,180,248,.4)",
+    color: "#8ab4f8",
+  },
+  mobileSheetRow2: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: 8,
+  },
+  mobileSheetPillHalf: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 7,
+    border: "1px solid var(--im-border)",
+    background: "var(--im-ghost-bg)",
+    color: "var(--im-text-soft)",
+    borderRadius: 999,
+    padding: "11px 0",
+    fontSize: 12.5,
+    fontWeight: 500,
+    fontFamily: "inherit",
+    cursor: "pointer",
   },
   themeSwitch: {
     display: "flex",
@@ -9650,13 +10204,13 @@ const IM_STYLES = {
     borderRadius: 16,
     padding: "5px 11px",
     fontSize: 11,
-    fontWeight: 700,
+    fontWeight: 500,
     cursor: "pointer",
     fontFamily: "inherit",
   },
   themeSwitchBtnOn: {
-    background: "rgba(109,94,247,.22)",
-    color: "#b7aefc",
+    background: "rgba(138,180,248,.22)",
+    color: "#8ab4f8",
   },
 
   ctrlBar: {
@@ -9672,85 +10226,4 @@ const IM_STYLES = {
     flexWrap: "nowrap",
   },
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

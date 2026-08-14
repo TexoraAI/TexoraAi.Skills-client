@@ -691,7 +691,7 @@ const RecordedClasses = () => {
               lineHeight: LINE_HEIGHT.heroTitle,
               letterSpacing: LETTER_SPACING.heroTitle,
             }}>
-              Video Lectures
+              Recorded Lectures
             </h1>
             <p style={{ fontSize: FONT_SIZE.bodySmall, color: t.textSub, margin: 0, fontWeight: FONT_WEIGHT.medium, fontFamily: FONT_FAMILY }}>
               Watch your recorded and live sessions

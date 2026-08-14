@@ -13,13 +13,23 @@ import IlmDemoSidebar, {
   ROLE_HOME_PATH,
 } from "../../components/IlmDemoSidebar";
 import Footer from "../Landing/components/Footer";
+import { HUB_MENU_ITEMS, PRODUCT_MENU_ITEMS } from "../Landing/components/navMenuData";
 import IlmDemoProfilePage from "../IlmDemoProfilePage";
 import NotificationBell from "../../components/NotificationBell";
-// ═══ REAL PRODUCTION CONTENT (no dummy/placeholder pages) ═══
-// getRoleHomeComponent()/getSectionComponent() return the SAME
-// lazy-loaded Student/Trainer/Admin components App.jsx already routes
-// to at /student, /trainer, /admin — rendered here instead, inside
-// this page's own header/sidebar, so we never leave /ilm-demo.
+// ILM ORA Feature dropdown pages — Student, Trainer and Manager Hub.
+// These are standalone public pages opened from the top navbar dropdown.
+// The selected hub opens its actual route instead of rendering inside /ilm-demo.
+import StudentHub from "../Landing/StudentHub";
+import TrainerHub from "../Landing/TrainerHub";
+import ManagerHub from "../Landing/ManagerHub";
+// All Courses uses the same real production page available at /all-courses.
+// The navbar opens the actual All Courses route instead of rendering it
+// inside the /ilm-demo shell.
+import AllCoursesPage from "../Landing/AllCourses";
+// ═══ REAL PRODUCTION CONTENT ═══
+// getRoleHomeComponent()/getSectionComponent() resolve the same
+// production components used by the main application.
+// Sidebar sections continue to render within the /ilm-demo shell.
 import {
   getRoleHomeComponent,
   getSectionComponent,
@@ -43,6 +53,9 @@ import {
   CalendarCheck,
   Video,
   Bot,
+  Menu,
+  LogOut,
+  Lock,
   NotebookPen,
   MessageCircleQuestion,
   Users,
@@ -88,13 +101,32 @@ import {
   Info,
   Star,
   ArrowRight,
-  Menu,
+  GraduationCap,
+  BarChart3,
+  ChevronDown,
+  Trophy,
 } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
 
+// Icon name (string, from shared navMenuData.js) → actual lucide-react
+// component already imported above. Navigation handlers
+// (goToHub / goToProductSection) stay in this file, NOT in the shared
+// data file — only the item content (title/description/icon) is shared.
+const NAV_ICON_MAP = { GraduationCap, Users, BarChart3, FileText, LayoutDashboard };
+const HUB_ICON_COLORS = { student: "#16a34a", trainer: "#3b82f6", admin: "#a855f7" };
+const PRODUCT_ICON_COLORS = { meet: "#F97316", resume: "#16a34a", workspace: "#F97316" };
+
 const GOOGLE_CLIENT_ID =
   "572421778240-akk3kkb4f60ukuv9pcfrpg2ielm09thk.apps.googleusercontent.com";
+
+// "ILM ORA Feature" dropdown → Student/Trainer/Manager Hub. Keyed by the
+// same hubKey goToHub() receives ("student" | "trainer" | "admin").
+const HUB_COMPONENTS = {
+  student: StudentHub,
+  trainer: TrainerHub,
+  admin: ManagerHub,
+};
 
 /* ─── TypeWriter ─────────────────────────────────────────────────────────── */
 function TypeWriter({
@@ -751,7 +783,6 @@ const ROLE_CHOICES = [
 
 function RoleSelectToast({ onSelect, onSkip }) {
   return (
-    // <div className="ilm-overlay" onClick={(e) => e.target === e.currentTarget && onSkip()}>
     <div
       className="ilm-overlay ilm-overlay-clear"
       onClick={(e) => e.target === e.currentTarget && onSkip()}
@@ -1384,6 +1415,12 @@ export default function IlmOraDemoPage() {
   const [profileReturnPathState, setProfileReturnPathState] = useState(
     getPersistedReturnPath,
   );
+  // Which field/section inside the profile page to auto-scroll to once it
+  // opens — "role" | "password" | null. Set by goToProfile() and passed
+  // straight through to <IlmDemoProfilePage scrollTarget=.../>, which
+  // already knows how to smooth-scroll to #profile-role-field or
+  // #profile-password-section (see IlmDemoProfilePage.jsx).
+  const [profileScrollTarget, setProfileScrollTarget] = useState(null);
 
   // Wrapper that keeps React state AND sessionStorage in sync, so a
   // refresh while mid-profile-completion still remembers where to send
@@ -1402,6 +1439,8 @@ export default function IlmOraDemoPage() {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false); // ← responsive mobile nav toggle
+  const [mobileFeatureOpen, setMobileFeatureOpen] = useState(true); // ← ILM ORA Feature accordion, full-screen mobile menu
+  const [mobileProductOpen, setMobileProductOpen] = useState(true); // ← Product accordion, full-screen mobile menu
 
   // Which role was picked in Step 4 (kept for reference / feature lookups)
   const [selectedRole, setSelectedRole] = useState(null);
@@ -1467,10 +1506,26 @@ export default function IlmOraDemoPage() {
 
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
+
+  // "ILM ORA Feature" nav mega-menu — click-toggle, same pattern as the
+  // user-avatar menu above (open state + ref + outside click closes it).
+  const [featureMenuOpen, setFeatureMenuOpen] = useState(false);
+  const featureMenuRef = useRef(null);
+
+  // Product dropdown — ILM ORA Meet, AI Resume Builder and Workspace.
+  // Uses the same click-toggle and outside-click behavior as the
+  // ILM ORA Feature dropdown. Each item opens its actual production route.
+  const [productMenuOpen, setProductMenuOpen] = useState(false);
+  const productMenuRef = useRef(null);
+
   useEffect(() => {
     const handler = (e) => {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target))
         setUserMenuOpen(false);
+      if (featureMenuRef.current && !featureMenuRef.current.contains(e.target))
+        setFeatureMenuOpen(false);
+      if (productMenuRef.current && !productMenuRef.current.contains(e.target))
+        setProductMenuOpen(false);
     };
     document.addEventListener("click", handler);
     return () => document.removeEventListener("click", handler);
@@ -1499,6 +1554,28 @@ export default function IlmOraDemoPage() {
       return {};
     }
   };
+
+  // ── Role-change lock ──
+  // The Role field on the profile page can only be changed ONCE. Once used,
+  // `lms_user.roleChangeUsed` is set (see IlmDemoProfilePage.jsx) and stays
+  // locked forever after — this reads that same flag so the "Edit Role"
+  // item in the avatar dropdown can warn the user before they even open
+  // the profile page.
+  // ── Role-change count lock (max 3 changes) ──
+  // The Role field on the profile page can be swapped up to
+  // MAX_ROLE_CHANGES times. `lms_user.roleChangeCount` tracks how many
+  // times it's been used (see IlmDemoProfilePage.jsx) — this reads the
+  // same value so the "Swap Role" item in the avatar dropdown can warn
+  // the user before they even open the profile page.
+  const MAX_ROLE_CHANGES = 3;
+  const getRoleChangeCount = () => {
+    try {
+      return Number(JSON.parse(localStorage.getItem("lms_user") || "{}").roleChangeCount) || 0;
+    } catch {
+      return 0;
+    }
+  };
+  const hasUsedRoleChange = () => getRoleChangeCount() >= MAX_ROLE_CHANGES;
 
   const savedUser = getSavedUser();
   const hasRole = !!savedUser?.role;
@@ -1589,12 +1666,31 @@ export default function IlmOraDemoPage() {
   // "Business & Partnership" always resolves to featureRoleKey "admin"
   // above, so it already lands on the real Admin dashboard/pages — there
   // is no separate Business panel in this app, by design.
+  // A `hub:<key>` section (set by goToHub, from the "ILM ORA Feature"
+  // dropdown) is a special case: it always shows that hub's own preview
+  // page (StudentHub/TrainerHub/ManagerHub) regardless of the logged-in
+  // user's own featureRoleKey, so it's resolved separately below instead
+  // of going through the per-role sidebar registry.
+  const activeHubKey =
+    activeSection && activeSection.startsWith("hub:")
+      ? activeSection.slice(4)
+      : null;
+  const HubComponent = activeHubKey ? HUB_COMPONENTS[activeHubKey] : null;
+
+  // "All Courses" navbar link — a `page:all-courses` value in ?section=
+  // (set by goToAllCourses), same pattern as `hub:<key>` above. It's the
+  // exact same AllCoursesPage App.jsx renders at /all-courses, shared by
+  // every role (not looked up per-role in the registry), so it's resolved
+  // separately here too instead of going through getSectionComponent.
+  const isAllCoursesSection = activeSection === "page:all-courses";
+
   const ContentComponent = useMemo(() => {
+    if (activeHubKey || isAllCoursesSection) return null;
     if (activeSection) {
       return getSectionComponent(featureRoleKey, activeSection) || null;
     }
     return getRoleHomeComponent(featureRoleKey);
-  }, [activeSection, featureRoleKey]);
+  }, [activeSection, activeHubKey, isAllCoursesSection, featureRoleKey]);
 
   // Setup state
   const profileCompleted = !!getSavedUser()?.profileCompleted;
@@ -1911,12 +2007,62 @@ export default function IlmOraDemoPage() {
     );
   };
 
+// ─────────────────────────────────────────────────────────────
+// TOP NAVBAR ROUTES
+// These links open the actual production pages.
+// LEFT SIDEBAR navigation remains inside the /ilm-demo shell.
+// ─────────────────────────────────────────────────────────────
+
+const HUB_ROUTES = {
+  student: "/student-hub",
+  trainer: "/trainer-hub",
+  admin: "/manager-hub",
+};
+
+const PRODUCT_ROUTES = {
+  meet: "/ilm-ora-meet",
+  resume: "/resume-builder",
+  workspace: "/workspace",
+};
+
+// ILM ORA Feature → Student / Trainer / Manager Hub
+const goToHub = (hubKey) => {
+  setFeatureMenuOpen(false);
+
+  if (isLoggedIn && hasRole) {
+    navigate(HUB_ROUTES[hubKey] || "/");
+  } else {
+    scrollToId("features");
+  }
+};
+
+// Product → real public product page
+const goToProductSection = (productKey) => {
+  setProductMenuOpen(false);
+
+  if (isLoggedIn && hasRole) {
+    navigate(PRODUCT_ROUTES[productKey] || "/");
+  } else {
+    scrollToId("tools");
+  }
+};
+
+// All Courses → actual production All Courses page.
+const goToAllCourses = () => {
+  navigate("/all-courses");
+};
+
   // Navigate to the REAL profile route for this role instead of mounting
   // <ProfilePage /> inline. Mounting it inline made it inherit this page's
   // global styles (the universal box-sizing/margin/padding reset and the
   // DM Sans font-family on .d-page), which is what broke its layout,
   // spacing and width compared to visiting /student/profile directly.
-  const goToProfile = () => {
+  //
+  // `scrollTarget` ("role" | "password" | null) is forwarded straight to
+  // <IlmDemoProfilePage scrollTarget=.../> so it can open on the right
+  // tab and smooth-scroll to the exact field (Role field or Password
+  // section) once it mounts.
+  const goToProfile = (scrollTarget = null) => {
     const user = getSavedUser();
     if (!user?.role) {
       addToast({
@@ -1928,6 +2074,7 @@ export default function IlmOraDemoPage() {
       return;
     }
     setProfileReturnPath(null);
+    setProfileScrollTarget(scrollTarget);
     setShowProfile(true);
   };
 
@@ -1946,21 +2093,42 @@ export default function IlmOraDemoPage() {
     }
   };
 
-  const DASHBOARD_ROUTE_BY_ROLE = {
-    student: "/student/dashboard",
-    trainer: "/trainer/dashboard",
-    admin: "/admin/dashboard",
-  };
-
   const goToDashboard = () => {
-    const user = getSavedUser();
-    const role = normalizeAppRole(user?.role) || "student";
-    navigate(DASHBOARD_ROUTE_BY_ROLE[role] || "/ilm-demo");
-  };
+  const user = getSavedUser();
 
+  // Keep the current logged-in user/session.
+  // Only return from the current internal page to Dashboard Home.
+  if (!user?.role) {
+    addToast({
+      type: "warning",
+      title: "Select Your Role",
+      desc: "Please choose your role first to continue.",
+    });
+    setShowRolePopup(true);
+    return;
+  }
+
+  // Close Profile / Role / other internal page views.
+  setShowProfile(false);
+  setProfileScrollTarget(null);
+  setProfileReturnPath(null);
+
+  // /ilm-demo is the existing Dashboard shell.
+  // Removing ?section returns the SAME logged-in user
+  // to their role-based Dashboard Home.
+  setSearchParams(
+    (prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete("section");
+      return next;
+    },
+    { replace: true }
+  );
+};
   const handleProfileCompleted = () => {
     setShowProfile(false);
     setProfileReturnPath(null);
+    setProfileScrollTarget(null);
     // Profile complete hone ke baad IlmOraDemoPage (/ilm-demo) pe bhejo.
     // Wahan ek toast dikhega — user uspe click karega to role ke hisab
     // se seedha uska dashboard khulega (goToDashboard already role-based
@@ -2264,16 +2432,62 @@ export default function IlmOraDemoPage() {
         @media(min-width:1200px){ .d-nav-link { font-size:0.82rem; padding:7px 14px; } }
         .d-nav-link:hover { background:rgba(255,255,255,0.06); color:var(--d-orange); }
 
-        /* Mobile hamburger + dropdown nav (pure CSS, driven by a checkbox-like React toggle) */
+        /* ILM ORA Feature dropdown — click to toggle.
+           Uses the same interaction pattern as the user-avatar menu.
+           Each item opens its corresponding Hub page. */
+        .d-nav-dropdown { position:relative; }
+        .d-nav-dropdown-menu {
+          position:absolute; top:calc(100% + 8px); left:0; width:280px;
+          max-width:calc(100vw - 32px);
+          background:#232323; border:1px solid rgba(255,255,255,0.08);
+          border-radius:12px; box-shadow:0 16px 48px rgba(0,0,0,0.45);
+          padding:8px; opacity:0; visibility:hidden; transform:translateY(-6px);
+          pointer-events:none;
+          transition:all .2s cubic-bezier(.22,.61,.36,1); z-index:200;
+        }
+        .d-nav-dropdown-menu.open {
+          opacity:1; visibility:visible; transform:translateY(0); pointer-events:all;
+        }
+        .d-nav-dropdown-item { display:flex; align-items:flex-start; gap:12px; width:100%; text-align:left; padding:10px 12px; border-radius:8px; background:none; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; transition:background .15s; }
+        .d-nav-dropdown-item:hover { background:rgba(249,115,22,0.12); }
+        .d-nav-dropdown-item-icon { flex-shrink:0; margin-top:2px; }
+        .d-nav-dropdown-item-title { font-size:0.85rem; font-weight:700; color:#f1f5f9; }
+        .d-nav-dropdown-item-desc { font-size:0.72rem; color:#94a3b8; margin-top:2px; }
+        .d-nav-dropdown-chevron { transition:transform .2s; }
+        .d-nav-dropdown-chevron.open { transform:rotate(180deg); }
+
+        /* Mobile hamburger + full-screen nav overlay (pure CSS, driven by a checkbox-like React toggle) */
         .d-nav-hamburger { display:flex; width:38px; height:38px; align-items:center; justify-content:center; background:rgba(255,255,255,0.06); border:1.5px solid rgba(255,255,255,0.12); border-radius:10px; color:#e5e7eb; cursor:pointer; flex-shrink:0; }
         @media(min-width:1024px){ .d-nav-hamburger { display:none; } }
-        .d-nav-links-mobile { display:${""}none; position:fixed; top:60px; left:0; right:0; background:#181818; border-bottom:1px solid rgba(255,255,255,0.08); flex-direction:column; padding:8px; gap:2px; z-index:99; box-shadow:0 12px 24px rgba(0,0,0,0.3); max-height:calc(100vh - 60px); overflow-y:auto; }
-        @media(min-width:480px){ .d-nav-links-mobile { top:64px; max-height:calc(100vh - 64px); } }
-        @media(min-width:768px){ .d-nav-links-mobile { top:68px; max-height:calc(100vh - 68px); } }
+        .d-nav-links-mobile { display:none; position:fixed; inset:0; width:100%; height:100dvh; background:#0b0b0f; flex-direction:column; padding:0; gap:0; z-index:10000; box-shadow:none; overflow-y:auto; }
         .d-nav-links-mobile.open { display:flex; }
         @media(min-width:1024px){ .d-nav-links-mobile { display:none !important; } }
-        .d-nav-links-mobile .d-nav-link { width:100%; color:#e5e7eb; padding:12px 14px; font-size:0.9rem; justify-content:space-between; border-radius:10px; }
-        .d-nav-links-mobile .d-nav-link:hover { background:rgba(255,255,255,0.08); }
+        .d-mobile-menu-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid rgba(255,255,255,0.08); flex-shrink:0; }
+        .d-mobile-menu-logo { font-size:1.4rem; font-weight:800; font-family:'DM Sans',sans-serif; letter-spacing:0.01em; white-space:nowrap; }
+        .d-mobile-menu-close { display:flex; width:36px; height:36px; align-items:center; justify-content:center; background:transparent; border:none; color:#e5e7eb; cursor:pointer; border-radius:10px; transition:background .15s; flex-shrink:0; }
+        .d-mobile-menu-close:hover { background:rgba(255,255,255,0.08); }
+        .d-mobile-menu-body { flex:1 1 auto; overflow-y:auto; padding:10px 12px 20px; display:flex; flex-direction:column; gap:2px; }
+        .d-nav-links-mobile .d-nav-link { width:100%; color:#e5e7eb; padding:14px 12px; font-size:1rem; font-weight:700; justify-content:flex-start; gap:14px; border-radius:12px; }
+        .d-nav-links-mobile .d-nav-link:hover { background:rgba(255,255,255,0.06); }
+        .d-mobile-menu-divider { height:1px; background:rgba(255,255,255,0.08); margin:10px 4px; flex-shrink:0; }
+        .d-mobile-section-header { display:flex; align-items:center; justify-content:space-between; width:100%; background:none; border:none; cursor:pointer; padding:12px; font-family:'DM Sans',sans-serif; font-size:0.95rem; font-weight:700; color:#f1f5f9; border-radius:10px; }
+        .d-mobile-section-header:hover { background:rgba(255,255,255,0.06); }
+        .d-mobile-section-chevron { transition:transform .2s; color:#e5e7eb; flex-shrink:0; }
+        .d-mobile-section-chevron.open { transform:rotate(180deg); }
+        .d-mobile-section-items { display:flex; flex-direction:column; gap:2px; padding:2px 0 4px; }
+        .d-mobile-section-item { display:flex; align-items:flex-start; gap:14px; width:100%; text-align:left; padding:8px 8px; border-radius:12px; background:none; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; transition:background .15s; }
+        .d-mobile-section-item:hover { background:rgba(255,255,255,0.06); }
+        .d-mobile-section-item-icon { flex-shrink:0; width:40px; height:40px; border-radius:12px; background:#f8fafc; display:flex; align-items:center; justify-content:center; }
+        .d-mobile-section-item-title { display:block; font-size:0.92rem; font-weight:700; color:#f8fafc; }
+        .d-mobile-section-item-desc { display:block; font-size:0.76rem; color:#94a3b8; margin-top:2px; }
+        .d-mobile-user-block { flex-shrink:0; padding:18px 20px calc(24px + env(safe-area-inset-bottom)); border-top:1px solid rgba(255,255,255,0.08); }
+        .d-mobile-user-row { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+        .d-mobile-user-avatar { width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,#F97316,#ea580c); display:flex; align-items:center; justify-content:center; font-size:1.05rem; font-weight:800; color:#fff; flex-shrink:0; user-select:none; }
+        .d-mobile-user-name { font-size:1rem; font-weight:800; color:#f8fafc; overflow-wrap:anywhere; }
+        .d-mobile-user-email { font-size:0.82rem; color:#94a3b8; margin-top:1px; overflow-wrap:anywhere; }
+        .d-mobile-user-action { display:flex; align-items:center; gap:12px; width:100%; padding:12px; font-size:0.95rem; font-weight:700; background:none; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; border-radius:10px; text-align:left; color:#60a5fa; }
+        .d-mobile-user-action:hover { background:rgba(255,255,255,0.06); }
+        .d-mobile-user-action.signout { color:#f87171; }
 
         .d-nav-right { display:flex; align-items:center; gap:6px; flex-shrink:0; }
         @media(min-width:480px){ .d-nav-right { gap:8px; } }
@@ -2553,6 +2767,22 @@ export default function IlmOraDemoPage() {
         .ilm-pricing-cta { margin-top:auto; width:100%; padding:11px; border:none; border-radius:10px; color:#fff; font-size:0.82rem; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; transition:opacity .18s, transform .12s; box-sizing:border-box; }
         .ilm-pricing-cta:hover { opacity:0.9; transform:translateY(-1px); }
 
+        /* ── Hub preview pages (Student/Trainer/Manager Hub) embed fix ──────────
+           StudentHub/TrainerHub/ManagerHub ko chhua nahi — yeh sirf unke root
+           wrapper (PublicLayout) ke forced height:100vh / apne overflow-y ko,
+           bahar se neutralize karta hai, taaki woh /ilm-demo ke already-scrolling
+           shell ke andar apna DOOSRA scroll container na banaye. Result: sirf EK
+           scrollbar, aur hero/footer ka spacing bhi page ke natural content flow
+           se aata hai (fake 100vh calculation se nahi). */
+        .ilm-hub-embed { overflow: visible; }
+.ilm-hub-embed > * {
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow-y: visible !important;
+  overflow-x: visible !important;
+}
+
         /* ── Extra-large desktop / large iMac / ultra-wide refinement ── */
         @media(min-width:1600px){
           .d-section-inner, .d-hero { max-width:1360px; }
@@ -2610,56 +2840,112 @@ export default function IlmOraDemoPage() {
           <div className="d-nav-links">
             <button
               className="d-nav-link"
-              onClick={() =>
-                isLoggedIn
-                  ? goToFeature("/all-courses")
-                  : navigate("/all-courses")
-              }
+              onClick={goToAllCourses}
             >
               All Courses
             </button>
-            <button
-              className="d-nav-link"
-              onClick={() => scrollToId("features")}
-            >
-              ILM ORA Feature
-              <ChevronRight
-                size={13}
-                style={{ transform: "rotate(90deg)", marginLeft: 4 }}
-              />
-            </button>
-            <button className="d-nav-link" onClick={() => scrollToId("tools")}>
-              Product
-              <ChevronRight
-                size={13}
-                style={{ transform: "rotate(90deg)", marginLeft: 4 }}
-              />
-            </button>
-            <button
-              className="d-nav-link"
-              onClick={() =>
-                isLoggedIn ? goToFeature("/mentors") : navigate("/mentors")
-              }
-            >
+            {/* ILM ORA Feature — click-toggle dropdown.
+                Each item opens its corresponding Student, Trainer or Manager Hub page. */}
+            <div className="d-nav-dropdown" ref={featureMenuRef}>
+              <button
+                type="button"
+                className="d-nav-link"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFeatureMenuOpen((o) => !o);
+                }}
+              >
+                ILM ORA Feature
+                <ChevronDown
+                  size={14}
+                  className={`d-nav-dropdown-chevron ${featureMenuOpen ? "open" : ""}`}
+                  style={{ marginLeft: 4 }}
+                />
+              </button>
+              <div className={`d-nav-dropdown-menu ${featureMenuOpen ? "open" : ""}`}>
+                {HUB_MENU_ITEMS.map((item) => {
+                  const ItemIcon = NAV_ICON_MAP[item.icon];
+                  return (
+                    <button
+                      key={item.key}
+                      className="d-nav-dropdown-item"
+                      onClick={() => goToHub(item.key)}
+                    >
+                      <ItemIcon
+                        size={18}
+                        className="d-nav-dropdown-item-icon"
+                        color={HUB_ICON_COLORS[item.key]}
+                      />
+                      <div>
+                        <div className="d-nav-dropdown-item-title">{item.title}</div>
+                        <div className="d-nav-dropdown-item-desc">{item.description}</div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Product dropdown — ILM ORA Meet, AI Resume Builder and Workspace.
+                Uses the same click-toggle and outside-click behavior as the
+                ILM ORA Feature dropdown. Each item opens its actual production route. */}
+            <div className="d-nav-dropdown" ref={productMenuRef}>
+              <button
+                type="button"
+                className="d-nav-link"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setProductMenuOpen((o) => !o);
+                }}
+              >
+                Product
+                <ChevronDown
+                  size={14}
+                  className={`d-nav-dropdown-chevron ${productMenuOpen ? "open" : ""}`}
+                  style={{ marginLeft: 4 }}
+                />
+              </button>
+              <div className={`d-nav-dropdown-menu ${productMenuOpen ? "open" : ""}`}>
+                {PRODUCT_MENU_ITEMS.map((item) => {
+                  const ItemIcon = NAV_ICON_MAP[item.icon];
+                  return (
+                    <button
+                      key={item.key}
+                      className="d-nav-dropdown-item"
+                      onClick={() => {
+                        setProductMenuOpen(false);
+                        goToProductSection(item.key);
+                      }}
+                    >
+                      <ItemIcon
+                        size={18}
+                        className="d-nav-dropdown-item-icon"
+                        color={PRODUCT_ICON_COLORS[item.key]}
+                      />
+                      <div>
+                        <div className="d-nav-dropdown-item-title">{item.title}</div>
+                        <div className="d-nav-dropdown-item-desc">{item.description}</div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Mentors / Success Stories — same labels as the public
+                Navbar. /ilm-demo has no #mentors/#successstories sections
+                of its own, so (matching PublicLayout's existing fallback
+                convention) these send the visitor to the homepage
+                section, same as every other page without that content. */}
+            <button className="d-nav-link" onClick={() => navigate("/#mentors")}>
               Mentors
             </button>
-            <button
-              className="d-nav-link"
-              onClick={() => scrollToId("successstories")}
-            >
+            <button className="d-nav-link" onClick={() => navigate("/#successstories")}>
               Success Stories
             </button>
           </div>
 
          <div className="d-nav-right">
-  <button
-    className="d-nav-hamburger"
-    onClick={() => setMobileNavOpen((o) => !o)}
-    aria-label="Toggle navigation menu"
-  >
-    {mobileNavOpen ? <X size={18} /> : <Menu size={18} />}
-  </button>
-
   {/* Notification Bell */}
   {isLoggedIn && (
     <NotificationBell roleOverride={featureRoleKey} />
@@ -2702,87 +2988,269 @@ export default function IlmOraDemoPage() {
                     className="d-user-dropdown-item"
                     onClick={() => {
                       setUserMenuOpen(false);
+                      goToDashboard();
+                    }}
+                  >
+                    <LayoutDashboard size={16} /> Go to Dashboard
+                  </button>
+                  <button
+                    className="d-user-dropdown-item"
+                    onClick={() => {
+                      setUserMenuOpen(false);
                       goToProfile();
                     }}
                   >
-                    <User size={16} /> My Profile
+                    <User size={16} /> Profile
+                  </button>
+                 <button
+                    className={`d-user-dropdown-item${hasUsedRoleChange() ? " disabled" : ""}`}
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      if (hasUsedRoleChange()) {
+                        addToast({
+                          type: "warning",
+                          title: "Role Changes Exhausted",
+                          desc: `You've used all ${MAX_ROLE_CHANGES} role changes. Your role is now locked.`,
+                        });
+                        return;
+                      }
+                      goToProfile("role");
+                    }}
+                  >
+                    {hasUsedRoleChange() ? <Lock size={16} /> : <UserCog size={16} />} Swap Role
+                  </button>
+                  <button
+                    className="d-user-dropdown-item"
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      goToProfile("password");
+                    }}
+                  >
+                    <Settings size={16} /> Change Password
                   </button>
                   <div className="d-user-dropdown-divider" />
                   <button
                     className="d-user-dropdown-item signout"
                     onClick={handleSignOut}
                   >
-                    <X size={16} /> Sign Out
+                    <LogOut size={16} /> Sign Out
                   </button>
                 </div>
               </div>
             ) : (
-              <>
-                <button
-                  className="d-btn-login"
-                  onClick={() => setShowLogin(true)}
-                >
-                  Log In
-                </button>
-                <button
-                  className="d-btn-signup"
-                  onClick={() => navigate("/ilm-demo")}
-                >
-                  Sign Up
-                </button>
-              </>
+              <button
+                className="d-btn-signup"
+                onClick={() => setShowLogin(true)}
+              >
+                Get Started
+              </button>
             )}
+
+            <button
+              className="d-nav-hamburger"
+              onClick={() => setMobileNavOpen((o) => !o)}
+              aria-label="Toggle navigation menu"
+            >
+              {mobileNavOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
           </div>
 
-          {/* Mobile / tablet dropdown nav — mirrors d-nav-links, shown below 1024px */}
+          {/* Full-screen mobile / tablet nav overlay — shown below 1024px */}
           <div className={`d-nav-links-mobile ${mobileNavOpen ? "open" : ""}`}>
-            <button
-              className="d-nav-link"
-              onClick={() => {
-                setMobileNavOpen(false);
-                isLoggedIn
-                  ? goToFeature("/all-courses")
-                  : navigate("/all-courses");
-              }}
-            >
-              All Courses
-            </button>
-            <button
-              className="d-nav-link"
-              onClick={() => {
-                setMobileNavOpen(false);
-                scrollToId("features");
-              }}
-            >
-              ILM ORA Feature
-            </button>
-            <button
-              className="d-nav-link"
-              onClick={() => {
-                setMobileNavOpen(false);
-                scrollToId("tools");
-              }}
-            >
-              Product
-            </button>
-            <button
-              className="d-nav-link"
-              onClick={() => {
-                setMobileNavOpen(false);
-                isLoggedIn ? goToFeature("/mentors") : navigate("/mentors");
-              }}
-            >
-              Mentors
-            </button>
-            <button
-              className="d-nav-link"
-              onClick={() => {
-                setMobileNavOpen(false);
-                scrollToId("successstories");
-              }}
-            >
-              Success Stories
-            </button>
+            {/* Header — logo + close button, matches the full-screen menu design */}
+            <div className="d-mobile-menu-header">
+              <span className="d-mobile-menu-logo">
+                <span className="text-green-600">ILM</span>{" "}
+                <span className="text-[#F97316] ml-1">ORA</span>
+                <span className="inline-flex items-center bg-orange-50 border border-[#F97316] rounded ml-1.5 px-1.5 py-0.5 text-[0.42rem] font-sans font-semibold tracking-widest text-[#F97316] uppercase leading-snug align-middle">
+                  Demo
+                </span>
+              </span>
+              <button
+                type="button"
+                className="d-mobile-menu-close"
+                onClick={() => setMobileNavOpen(false)}
+                aria-label="Close menu"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="d-mobile-menu-body">
+              <button
+                className="d-nav-link"
+                onClick={() => {
+                  setMobileNavOpen(false);
+                  goToAllCourses();
+                }}
+              >
+                <GraduationCap size={18} color="#16a34a" />
+                All Courses
+              </button>
+
+              <div className="d-mobile-menu-divider" />
+
+              {/* ILM ORA Feature — collapsible accordion, same items/handler
+                  (goToHub) as the desktop dropdown. */}
+              <button
+                type="button"
+                className="d-mobile-section-header"
+                onClick={() => setMobileFeatureOpen((o) => !o)}
+              >
+                ILM ORA Feature
+                <ChevronDown
+                  size={18}
+                  className={`d-mobile-section-chevron ${mobileFeatureOpen ? "open" : ""}`}
+                />
+              </button>
+              {mobileFeatureOpen && (
+                <div className="d-mobile-section-items">
+                  {HUB_MENU_ITEMS.map((item) => {
+                    const ItemIcon = NAV_ICON_MAP[item.icon];
+                    return (
+                      <button
+                        key={item.key}
+                        className="d-mobile-section-item"
+                        onClick={() => {
+                          setMobileNavOpen(false);
+                          goToHub(item.key);
+                        }}
+                      >
+                        <span className="d-mobile-section-item-icon">
+                          <ItemIcon size={20} color={HUB_ICON_COLORS[item.key]} />
+                        </span>
+                        <span>
+                          <span className="d-mobile-section-item-title">
+                            {item.title}
+                          </span>
+                          <span className="d-mobile-section-item-desc">
+                            {item.description}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="d-mobile-menu-divider" />
+
+              {/* Product — collapsible accordion, same items/handler
+                  (goToProductSection) as the desktop dropdown. */}
+              <button
+                type="button"
+                className="d-mobile-section-header"
+                onClick={() => setMobileProductOpen((o) => !o)}
+              >
+                Product
+                <ChevronDown
+                  size={18}
+                  className={`d-mobile-section-chevron ${mobileProductOpen ? "open" : ""}`}
+                />
+              </button>
+              {mobileProductOpen && (
+                <div className="d-mobile-section-items">
+                  {PRODUCT_MENU_ITEMS.map((item) => {
+                    const ItemIcon = NAV_ICON_MAP[item.icon];
+                    return (
+                      <button
+                        key={item.key}
+                        className="d-mobile-section-item"
+                        onClick={() => {
+                          setMobileNavOpen(false);
+                          goToProductSection(item.key);
+                        }}
+                      >
+                        <span className="d-mobile-section-item-icon">
+                          <ItemIcon size={20} color={PRODUCT_ICON_COLORS[item.key]} />
+                        </span>
+                        <span>
+                          <span className="d-mobile-section-item-title">
+                            {item.title}
+                          </span>
+                          <span className="d-mobile-section-item-desc">
+                            {item.description}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="d-mobile-menu-divider" />
+
+              {/* Mentors / Success Stories — same /#mentors, /#successstories
+                  convention as the desktop nav links above. */}
+              <button
+                className="d-nav-link"
+                onClick={() => {
+                  setMobileNavOpen(false);
+                  navigate("/#mentors");
+                }}
+              >
+                <Star size={18} color="#a855f7" />
+                Mentors
+              </button>
+              <button
+                className="d-nav-link"
+                onClick={() => {
+                  setMobileNavOpen(false);
+                  navigate("/#successstories");
+                }}
+              >
+                <Trophy size={18} color="#eab308" />
+                Success Stories
+              </button>
+            </div>
+
+            {/* Footer — user profile + Go to Dashboard + Sign out (logged in),
+                or Get Started (logged out). Same handlers as the desktop
+                avatar dropdown, unchanged. */}
+            {isLoggedIn ? (
+              <div className="d-mobile-user-block">
+                <div className="d-mobile-user-row">
+                  <div className="d-mobile-user-avatar">{userInitial}</div>
+                  <div>
+                    <div className="d-mobile-user-name">{userName}</div>
+                    <div className="d-mobile-user-email">{userEmail}</div>
+                  </div>
+                </div>
+                <button
+                  className="d-mobile-user-action"
+                  onClick={() => {
+                    setMobileNavOpen(false);
+                    goToDashboard();
+                  }}
+                >
+                  <ArrowRight size={18} />
+                  Go to Dashboard
+                </button>
+                <button
+                  className="d-mobile-user-action signout"
+                  onClick={() => {
+                    setMobileNavOpen(false);
+                    handleSignOut();
+                  }}
+                >
+                  <LogOut size={18} />
+                  Sign out
+                </button>
+              </div>
+            ) : (
+              <div className="d-mobile-user-block">
+                <button
+                  className="d-btn-signup"
+                  style={{ width: "100%", justifyContent: "center" }}
+                  onClick={() => {
+                    setMobileNavOpen(false);
+                    setShowLogin(true);
+                  }}
+                >
+                  Get Started
+                </button>
+              </div>
+            )}
           </div>
         </nav>
 
@@ -2819,49 +3287,10 @@ export default function IlmOraDemoPage() {
               overflowX: "hidden",
             }}
           >
-            {canLeaveProfile && (
-              <div style={{ padding: "24px 24px 0" }}>
-                <button
-                  onClick={handleProfileBack}
-                  style={{
-                    marginBottom: 16,
-                    padding: "8px 16px",
-                    borderRadius: 10,
-                    border: "1px solid #e2e8f0",
-                    background: "#fff",
-                    cursor: "pointer",
-                    fontWeight: 600,
-                    fontSize: "0.85rem",
-                  }}
-                >
-                  ← Back to Dashboard
-                </button>
-              </div>
-            )}
-            {!canLeaveProfile && (
-              <div style={{ padding: "24px 24px 0" }}>
-                <div
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 8,
-                    padding: "8px 14px",
-                    borderRadius: 10,
-                    border: "1px solid #fed7aa",
-                    background: "#fff7ed",
-                    color: "#c2410c",
-                    fontWeight: 600,
-                    fontSize: "0.82rem",
-                  }}
-                >
-                  Complete <strong>Profile Info</strong> &amp;{" "}
-                  <strong>Details</strong> to unlock your dashboard
-                </div>
-              </div>
-            )}
             <IlmDemoProfilePage
               roleOverride={featureRoleKey}
               onProfileComplete={handleProfileCompleted}
+              scrollTarget={profileScrollTarget}
             />
           </div>
         ) : isLoggedIn && hasRole ? (
@@ -2872,7 +3301,11 @@ export default function IlmOraDemoPage() {
           // this page's own header/sidebar. We never navigate to
           // /student/*, /trainer/*, or /admin/*; the URL stays /ilm-demo.
           <div
-            className="d-reset-scope d-sidebar-offset"
+            className={
+              isAllCoursesSection
+                ? "d-sidebar-offset ilm-hub-embed"
+                : "d-reset-scope d-sidebar-offset"
+            }
             style={{
               marginLeft: contentOffset,
               transition: "margin-left 0.28s ease",
@@ -2881,6 +3314,22 @@ export default function IlmOraDemoPage() {
             <Suspense fallback={<IlmDemoContentLoading />}>
               {ContentComponent ? (
                 <ContentComponent theme={theme} toggleTheme={toggleTheme} />
+              ) : isAllCoursesSection ? (
+                <AllCoursesPage
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  setShowLoginModal={setShowLogin}
+                  embedded
+                />
+              ) : HubComponent ? (
+                <div className="ilm-hub-embed">
+                  <HubComponent
+                    theme={theme}
+                    toggleTheme={toggleTheme}
+                    setShowLoginModal={setShowLogin}
+                    scrollToSection={scrollToId}
+                  />
+                </div>
               ) : (
                 <IlmDemoSectionContent
                   section={activeSection}
@@ -3107,20 +3556,25 @@ export default function IlmOraDemoPage() {
             )}
           </div>
         )}
-        <div
-          className="d-sidebar-offset"
-          style={
-            isLoggedIn &&
-            !showProfile &&
-            !showRolePopup &&
-            !showInterestPopup &&
-            hasRole
-              ? { marginLeft: contentOffset, transition: "margin-left 0.28s ease" }
-              : undefined
-          }
-        >
-          <Footer scrollToSection={(id) => scrollToId(id)} />
-        </div>
+        {/* Hub preview pages (Student/Trainer/Manager Hub) and the All
+            Courses page bring their own footer via PublicLayout — don't
+            stack the ilm-demo Footer under them too. */}
+        {!activeHubKey && !isAllCoursesSection && (
+          <div
+            className="d-sidebar-offset"
+            style={
+              isLoggedIn &&
+              !showProfile &&
+              !showRolePopup &&
+              !showInterestPopup &&
+              hasRole
+                ? { marginLeft: contentOffset, transition: "margin-left 0.28s ease" }
+                : undefined
+            }
+          >
+            <Footer scrollToSection={(id) => scrollToId(id)} />
+          </div>
+        )}
 
         {/* ═══ MULTI-TOAST ═══ */}
         <ToastContainer toasts={toasts} />

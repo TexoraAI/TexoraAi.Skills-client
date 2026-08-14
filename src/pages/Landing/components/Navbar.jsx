@@ -16,16 +16,43 @@ import {
   ChevronDown,
   FileText,
   GraduationCap,
+  Lock,
   LogOut,
   Menu,
   Moon,
   Sparkles,
   Sun,
   User,
+  UserCog,
   Users,
    LayoutDashboard, 
 } from "lucide-react";
 import MobileFullScreenMenu from "./MobileFullScreenMenu";
+import { HUB_MENU_ITEMS, PRODUCT_MENU_ITEMS } from "./navMenuData";
+
+// Icon name (string, from navMenuData) → actual lucide-react component.
+// Routes stay here, in Navbar.jsx, NOT in the shared data file.
+const NAV_ICON_MAP = { GraduationCap, Users, BarChart3, FileText, LayoutDashboard };
+const HUB_ROUTES = {
+  student: "/student-hub",
+  trainer: "/trainer-hub",
+  admin: "/manager-hub",
+};
+const PRODUCT_ROUTES = {
+  meet: "/ilm-ora-meet",
+  resume: "/resume-builder",
+  workspace: "/workspace",
+};
+const HUB_ICON_COLORS = {
+  student: "text-green-600",
+  trainer: "text-blue-600",
+  admin: "text-purple-600",
+};
+const PRODUCT_ICON_COLORS = {
+  meet: "text-orange-500",
+  resume: "text-green-600",
+  workspace: "text-orange-500",
+};
 
 /* ─────────────────────────────────────────────────────────────────
    NAVBAR — logo, desktop navigation, mega menu, dropdowns, user/login
@@ -45,21 +72,89 @@ export default function Navbar({ theme, toggleTheme, setShowLoginModal }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Bug fix: this used to read sessionStorage["user"], a key the real
+  // login flow never writes to — so this navbar never saw a logged-in
+  // user. It now reads the SAME real session source IlmOraDemoPage.jsx
+  // already uses (localStorage["lms_token"] / localStorage["lms_user"]),
+  // so the same authenticated session is detected everywhere, including
+  // after navigating away from /ilm-demo to a public page.
   useEffect(() => {
-    const userData = sessionStorage.getItem("user");
-    if (userData) {
-      try {
-        setUser(JSON.parse(userData));
-      } catch {
-        sessionStorage.removeItem("user");
-      }
+    const token = localStorage.getItem("lms_token");
+    const rawUser = localStorage.getItem("lms_user");
+    let parsedUser = null;
+    try {
+      parsedUser = rawUser ? JSON.parse(rawUser) : null;
+    } catch {
+      parsedUser = null;
+    }
+
+    // Same stale-data guard IlmOraDemoPage.jsx already runs on mount: a
+    // bare isNewUser:true flag with no matching Google credential is
+    // leftover data from an interrupted Google sign-in (tab/browser
+    // closed before role selection finished) — sessionStorage clears on
+    // session end but localStorage["lms_user"] doesn't, so this flag can
+    // outlive the real session. Without this check, a public page loaded
+    // first (before /ilm-demo ever mounts and cleans it up) would trust
+    // the stale flag and show the avatar for a user who never logged in.
+    const hasGoogleCred = !!sessionStorage.getItem("ilmora_google_credential");
+    if (!token && parsedUser?.isNewUser === true && !hasGoogleCred) {
+      localStorage.removeItem("lms_user");
+      setUser(null);
+      return;
+    }
+
+    if (token || parsedUser) {
+      setUser(parsedUser || {});
+    } else {
+      setUser(null);
     }
   }, []);
 
+  // Same fields the "Student Hub"/"Trainer Hub"/"Manager Hub" logic in
+  // IlmOraDemoPage.jsx already normalizes role strings with — copied
+  // here as a pure function (no shared/duplicate STATE, just the same
+  // string-mapping logic) so "Go to Dashboard" below sends the user to
+  // the correct role dashboard, same as it does on /ilm-demo.
+  const normalizeAppRole = (raw) => {
+    const r = (raw || "").toString().trim().toUpperCase();
+    if (["TENANT_ADMIN", "ADMIN", "BUSINESS", "MANAGER", "PARTNERSHIP"].includes(r))
+      return "admin";
+    if (r === "TRAINER") return "trainer";
+    if (r === "STUDENT") return "student";
+    return "";
+  };
+  const DASHBOARD_ROUTE_BY_ROLE = {
+    student: "/student/dashboard",
+    trainer: "/trainer/dashboard",
+    admin: "/admin/dashboard",
+  };
+  const goToDashboard = () => {
+    const role =
+      normalizeAppRole(user?.role) ||
+      normalizeAppRole(localStorage.getItem("role")) ||
+      "student";
+    navigate(DASHBOARD_ROUTE_BY_ROLE[role] || "/ilm-demo");
+  };
+  // Same roleChangeUsed flag IlmOraDemoPage.jsx's hasUsedRoleChange()
+  // already reads from lms_user — same source, read here too. Kept for
+  // potential future use even though the public dropdown no longer
+  // surfaces an "Edit Role" item itself.
+  const hasUsedRoleChange = () => !!user?.roleChangeUsed;
+
+  // Mirrors IlmOraDemoPage.jsx's handleSignOut exactly — same keys
+  // cleared, so signing out here fully signs the user out everywhere,
+  // not just on this page.
   const handleLogout = () => {
-    sessionStorage.removeItem("user");
+    localStorage.removeItem("lms_token");
+    localStorage.removeItem("lms_user");
+    localStorage.removeItem("role");
+    localStorage.removeItem("organizationId");
+    localStorage.removeItem("selectedPlan");
+    sessionStorage.removeItem("ilmora_google_user");
+    sessionStorage.removeItem("ilmora_google_credential");
+    sessionStorage.removeItem("ilmora_profile_return_path");
     setUser(null);
-    navigate("/login");
+    navigate("/", { replace: true });
   };
 
   const navLinks = [
@@ -137,56 +232,28 @@ export default function Navbar({ theme, toggleTheme, setShowLoginModal }) {
                 </button>
 
                 <div className="absolute top-full left-0 mt-2 w-80 bg-[#232323] border border-white/[0.08] rounded-xl shadow-xl p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                  <button
-                    onClick={() => navigate("/student-hub")}
-                    className="w-full text-left p-3 rounded-lg hover:bg-[#F97316]/[0.12]"
-                  >
-                    <div className="flex items-start gap-3">
-                      <GraduationCap className="w-5 h-5 text-green-600 mt-1" />
-                      <div>
-                        <div className="font-semibold text-sm text-white">
-                          Student Hub
+                  {HUB_MENU_ITEMS.map((item) => {
+                    const ItemIcon = NAV_ICON_MAP[item.icon];
+                    return (
+                      <button
+                        key={item.key}
+                        onClick={() => navigate(HUB_ROUTES[item.key])}
+                        className="w-full text-left p-3 rounded-lg hover:bg-[#F97316]/[0.12]"
+                      >
+                        <div className="flex items-start gap-3">
+                          <ItemIcon className={`w-5 h-5 ${HUB_ICON_COLORS[item.key]} mt-1`} />
+                          <div>
+                            <div className="font-semibold text-sm text-white">
+                              {item.title}
+                            </div>
+                            <div className="text-xs text-gray-400">
+                              {item.description}
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-400">
-                          AI-Powered Learning & Career Growth
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => navigate("/trainer-hub")}
-                    className="w-full text-left p-3 rounded-lg hover:bg-[#F97316]/[0.12]"
-                  >
-                    <div className="flex items-start gap-3">
-                      <Users className="w-5 h-5 text-blue-600 mt-1" />
-                      <div>
-                        <div className="font-semibold text-sm text-white">
-                          Trainer Hub
-                        </div>
-                        <div className="text-xs text-gray-400">
-                          Training Management & Mentorship
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => navigate("/manager-hub")}
-                    className="w-full text-left p-3 rounded-lg hover:bg-[#F97316]/[0.12]"
-                  >
-                    <div className="flex items-start gap-3">
-                      <BarChart3 className="w-5 h-5 text-purple-600 mt-1" />
-                      <div>
-                        <div className="font-semibold text-sm text-white">
-                          Manager Hub
-                        </div>
-                        <div className="text-xs text-gray-400">
-                          Analytics, Performance & Team Development
-                        </div>
-                      </div>
-                    </div>
-                  </button>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -198,59 +265,28 @@ export default function Navbar({ theme, toggleTheme, setShowLoginModal }) {
                 </button>
 
                 <div className="absolute top-full left-0 mt-2 w-80 bg-[#232323] border border-white/[0.08] rounded-xl shadow-xl p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                  {/* ILM ORA Meet */}
-                  <button
-                    onClick={() => navigate("/ilm-ora-meet")}
-                    className="w-full text-left p-3 rounded-lg hover:bg-[#F97316]/[0.12]"
-                  >
-                    <div className="flex items-start gap-3">
-                      <Users className="w-5 h-5 text-orange-500 mt-1" />
-                      <div>
-                        <div className="font-semibold text-sm text-white">
-                          ILM ORA Meet
+                  {PRODUCT_MENU_ITEMS.map((item) => {
+                    const ItemIcon = NAV_ICON_MAP[item.icon];
+                    return (
+                      <button
+                        key={item.key}
+                        onClick={() => navigate(PRODUCT_ROUTES[item.key])}
+                        className="w-full text-left p-3 rounded-lg hover:bg-[#F97316]/[0.12]"
+                      >
+                        <div className="flex items-start gap-3">
+                          <ItemIcon className={`w-5 h-5 ${PRODUCT_ICON_COLORS[item.key]} mt-1`} />
+                          <div>
+                            <div className="font-semibold text-sm text-white">
+                              {item.title}
+                            </div>
+                            <div className="text-xs text-gray-400">
+                              {item.description}
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-400">
-                          Virtual Meetings & Collaboration
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-
-                  {/* AI Resume Builder */}
-                  <button
-                    onClick={() => navigate("/resume-builder")}
-                    className="w-full text-left p-3 rounded-lg hover:bg-[#F97316]/[0.12]"
-                  >
-                    <div className="flex items-start gap-3">
-                      <FileText className="w-5 h-5 text-green-600 mt-1" />
-                      <div>
-                        <div className="font-semibold text-sm text-white">
-                          AI Resume Builder
-                        </div>
-                        <div className="text-xs text-gray-400">
-                          Create ATS-Friendly Professional Resumes
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-
-                  {/* Workspace */}
-                  <button
-                    onClick={() => navigate("/workspace")}
-                    className="w-full text-left p-3 rounded-lg hover:bg-[#F97316]/[0.12]"
-                  >
-                    <div className="flex items-start gap-3">
-                      <LayoutDashboard className="w-5 h-5 text-orange-500 mt-1" />
-                      <div>
-                        <div className="font-semibold text-sm text-white">
-                          Workspace
-                        </div>
-                        <div className="text-xs text-gray-400">
-                          Your Live Sessions & Meetings Hub
-                        </div>
-                      </div>
-                    </div>
-                  </button>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -315,23 +351,24 @@ export default function Navbar({ theme, toggleTheme, setShowLoginModal }) {
                         </p>
                       </div>
                       <DropdownMenuSeparator />
+                      {/* Public/landing dropdown is intentionally minimal:
+                          only "Go to Dashboard" here + "Sign Out" below.
+                          Profile / Edit Role / Change Password are
+                          dashboard-only items and live in
+                          IlmOraDemoPage.jsx's own avatar dropdown — do not
+                          add them back here; these two UI contexts are
+                          intentionally different. */}
                       {[
                         {
-                          icon: GraduationCap,
-                          label: "My Learning",
-                          desc: "View your courses",
-                          path: "/my-learning",
-                        },
-                        {
-                          icon: User,
-                          label: "Edit Profile",
-                          desc: "Update your info",
-                          path: "/edit-profile",
+                          icon: LayoutDashboard,
+                          label: "Go to Dashboard",
+                          desc: "Jump back into your dashboard",
+                          onClick: goToDashboard,
                         },
                       ].map((item) => (
                         <DropdownMenuItem
                           key={item.label}
-                          onClick={() => navigate(item.path)}
+                          onClick={item.onClick}
                           className="gap-3 cursor-pointer"
                         >
                           <div className="w-8 h-8 rounded-lg bg-[#F97316]/10 flex items-center justify-center">
@@ -351,7 +388,7 @@ export default function Navbar({ theme, toggleTheme, setShowLoginModal }) {
                         className="gap-3 text-red-600 cursor-pointer"
                       >
                         <LogOut className="w-4 h-4" />
-                        <span className="text-sm font-medium">Logout</span>
+                        <span className="text-sm font-medium">Sign Out</span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -380,40 +417,3 @@ export default function Navbar({ theme, toggleTheme, setShowLoginModal }) {
     </>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

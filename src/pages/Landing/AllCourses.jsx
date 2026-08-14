@@ -787,7 +787,7 @@ function buildSections() {
   return sections;
 }
  
-export default function AllCourses({ theme, toggleTheme, setShowLoginModal }) {
+export default function AllCourses({ theme, toggleTheme, setShowLoginModal, embedded = false }) {
   const isDark = theme === "dark";
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
@@ -953,7 +953,11 @@ export default function AllCourses({ theme, toggleTheme, setShowLoginModal }) {
  
   return (
     <div className={`w-full max-w-full max-lg:overflow-x-hidden ${isDark ? "bg-[#141414]" : "bg-gray-50"}`}>
-      <Navbar theme={theme} toggleTheme={toggleTheme} setShowLoginModal={setShowLoginModal} />
+      {/* Skip this page's own Navbar when embedded inside /ilm-demo —
+          that shell already has its own navbar right above this. */}
+      {!embedded && (
+        <Navbar theme={theme} toggleTheme={toggleTheme} setShowLoginModal={setShowLoginModal} />
+      )}
  
       <style>{`
         .no-scrollbar::-webkit-scrollbar{display:none}
@@ -979,7 +983,7 @@ export default function AllCourses({ theme, toggleTheme, setShowLoginModal }) {
         .ac-thumb-v:hover,.ac-thumb-v:active,.ac-thumb-h:hover,.ac-thumb-h:active{background:#FB923C}
       `}</style>
  
-      <div className="pt-[68px] flex flex-col lg:flex-row lg:items-start min-h-screen w-full max-w-full">
+      <div className={`${embedded ? "" : "pt-[68px]"} flex flex-col lg:flex-row lg:items-start min-h-screen w-full max-w-full`}>
         <AllCoursesSidebar
           categories={CATEGORIES}
           activeId={activeId}

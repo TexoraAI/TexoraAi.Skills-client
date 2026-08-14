@@ -877,8 +877,8 @@ const StudentAttendance = () => {
   const presentDays = attendanceData.filter((a) => a.status === "Present").length;
   const lateDays = attendanceData.filter((a) => a.status === "Late").length;
   const absentDays = attendanceData.filter((a) => a.status === "Absent").length;
-  const pct =
-    totalDays > 0 ? (((presentDays + lateDays) / totalDays) * 100).toFixed(1) : 0;
+  const pctNum = totalDays > 0 ? ((presentDays + lateDays) / totalDays) * 100 : 0;
+const pct = Number.isFinite(pctNum) ? pctNum.toFixed(1) : "0.0";
  
   // Same `stat` shape the Dashboard/AssignmentDetail/Assessments hand to
   // <StatCard/>. Only blue/green/orange/purple colorKeys are confirmed
@@ -889,7 +889,7 @@ const StudentAttendance = () => {
     { label: "Present", numericValue: presentDays, change: `${totalDays} total days`, trend: "up", icon: CheckCircle, colorKey: "green" },
     { label: "Late", numericValue: lateDays, change: lateDays > 0 ? "arrived late" : "none", trend: lateDays > 0 ? "down" : "up", icon: AlertCircle, colorKey: "orange" },
     { label: "Absent", numericValue: absentDays, change: absentDays > 0 ? "missed days" : "none", trend: absentDays > 0 ? "down" : "up", icon: XCircle, colorKey: "purple" },
-    { label: "Rate", numericValue: `${pct}%`, change: "present + late", trend: pct >= 75 ? "up" : "down", icon: BarChart3, colorKey: "blue" },
+    { label: "Rate", numericValue: Number(pct), unit: "%", change: "present + late", trend: pctNum >= 75 ? "up" : "down", icon: BarChart3, colorKey: "blue" },
   ];
  
   const statusBadge = (s) => (

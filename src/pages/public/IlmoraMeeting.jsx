@@ -4874,6 +4874,10 @@
 
 
 
+
+
+
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
@@ -5172,18 +5176,22 @@ function safeParse(json) {
    Google Meet uses flat, solid avatar colors (no gradients) — this
    palette mirrors that: one solid fill per person, chosen from a
    small rotating set of Meet-like hues. */
+// Each entry is [tileBackdrop, avatarCircle] — a dark, muted backdrop so
+// the tile recedes, paired with a brighter, more saturated version of the
+// same hue so the avatar circle actually pops forward off it.
 const AVATAR_PALETTES = [
-  "#2d6a4f", // muted teal-green
-  "#1f4e79", // muted navy
-  "#8a4a2f", // muted terracotta
-  "#4a5568", // muted slate
-  "#5c4a72", // muted plum
-  "#3c6e71", // muted teal
-  "#7a5c1e", // muted olive/amber
-  "#6b3f3f", // muted brick
-  "#2f4f3f", // muted forest
-  "#4a3f6b", // muted indigo
+  ["#17301f", "#34a853"],
+  ["#122a4a", "#4285f4"],
+  ["#3a1f14", "#e8703a"],
+  ["#2a2f38", "#8a97ab"],
+  ["#2a1f38", "#9d6fd1"],
+  ["#123030", "#20b2aa"],
+  ["#3a2e0f", "#d1a53a"],
+  ["#3a1818", "#c0554f"],
+  ["#141f18", "#3f8f5f"],
+  ["#1e1a38", "#7266c9"],
 ];
+
 function hashSeed(str) {
   let h = 0;
   const s = String(str || "?");
@@ -5196,7 +5204,12 @@ function hashSeed(str) {
 
 function getAvatarStyle(seed) {
   const h = hashSeed(seed);
-  return AVATAR_PALETTES[h % AVATAR_PALETTES.length];
+  return AVATAR_PALETTES[h % AVATAR_PALETTES.length][0];
+}
+
+function getAvatarCircleStyle(seed) {
+  const h = hashSeed(seed);
+  return AVATAR_PALETTES[h % AVATAR_PALETTES.length][1];
 }
 
 /* ─── media element wrappers ─────────────────────────────────────── */
@@ -5445,7 +5458,9 @@ function StripTile({ p, active, raised, reaction, S }) {
           <div
             style={{
               ...S.stripAvatar,
-              background: "rgba(255,255,255,0.28)",
+              background: getAvatarCircleStyle(
+                p.isLocal ? "you" : p.avatarSeed || p.identity || p.name,
+              ),
             }}
           >
             {initial}
@@ -5546,7 +5561,9 @@ function StageTile({ p, raised, reaction, S, onMaximize, presenterCam }) {
             <div
               style={{
                 ...S.stageAvatar,
-                background: "rgba(255,255,255,0.28)",
+                background: getAvatarCircleStyle(
+                  p.isLocal ? "you" : p.avatarSeed || p.identity || p.name,
+                ),
               }}
             >
               {initial}
@@ -5617,10 +5634,8 @@ function StageTile({ p, raised, reaction, S, onMaximize, presenterCam }) {
 
 function gridColumns(n, maxCols = 5) {
   if (n <= 1) return 1;
-  if (n === 2) return 2;
-  if (n <= 4) return 2;
-  if (n <= 9) return Math.min(3, maxCols);
-  return Math.min(Math.ceil(Math.sqrt(n)), maxCols);
+  const idealCols = Math.ceil(Math.sqrt(n));
+  return Math.min(idealCols, maxCols);
 }
 
 function GridTile({ p, raised, reaction, S, basisPercent }) {
@@ -5641,7 +5656,11 @@ function GridTile({ p, raised, reaction, S, basisPercent }) {
   return (
     <div
       ref={wrapRef}
-      style={{ ...S.gridCellOuter, flex: `1 1 ${basisPercent}%` }}
+      style={{
+        ...S.gridCellOuter,
+        flex: `0 0 ${basisPercent}%`,
+        maxWidth: `${basisPercent}%`,
+      }}
     >
       <div
         style={{ ...S.gridTile, background: tileColor }}
@@ -5658,7 +5677,9 @@ function GridTile({ p, raised, reaction, S, basisPercent }) {
             <div
               style={{
                 ...S.gridAvatar,
-                background: "rgba(255,255,255,0.28)",
+                background: getAvatarCircleStyle(
+                  p.isLocal ? "you" : p.avatarSeed || p.identity || p.name,
+                ),
               }}
             >
               {initial}
@@ -6211,9 +6232,16 @@ function MobileMoreSheet({
             }}
             onClick={onToggleScreen}
             disabled={!screenOn && !screenShareSupport.supported}
+            title={
+              !screenOn && !screenShareSupport.supported
+                ? screenShareSupport.message
+                : undefined
+            }
           >
             {screenOn ? <MonitorOff size={19} /> : <MonitorUp size={19} />}
-            <span>Present</span>
+            <span>
+              {!screenShareSupport.supported ? "Unsupported" : "Present"}
+            </span>
           </button>
           <button
             style={{
@@ -9192,12 +9220,13 @@ const IM_STYLES = {
     margin: "0 auto",
   },
   stageOuter: {
-    flex: 1,
+    flex: "1 1 auto",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     minHeight: 0,
     minWidth: 0,
+    maxHeight: "calc(100% - 132px)",
     overflow: "hidden",
   },
   stage: {
@@ -9504,16 +9533,19 @@ const IM_STYLES = {
 
   filmstrip: {
     flexShrink: 0,
+    flexGrow: 0,
+    height: 112,
     display: "flex",
-    gap: 12,
+    gap: 8,
     padding: "2px 2px 6px",
     overflowX: "auto",
+    overflowY: "hidden",
   },
   stripTile: {
     position: "relative",
     flex: "0 0 auto",
     width: "clamp(112px, 15vw, 220px)",
-    aspectRatio: "16/12.6",
+    height: "100%",
     background: "var(--im-tile-bg)",
     borderRadius: 12,
     overflow: "hidden",
@@ -9713,7 +9745,8 @@ const IM_STYLES = {
     flexWrap: "wrap",
     alignContent: "stretch",
     alignItems: "stretch",
-    gap: 0,
+    justifyContent: "center",
+    gap: 3,
     minHeight: 0,
     minWidth: 0,
     height: "100%",
@@ -9728,7 +9761,7 @@ const IM_STYLES = {
   gridTile: {
     position: "relative",
     background: "var(--im-tile-bg)",
-    borderRadius: 0,
+    borderRadius: 4,
     overflow: "hidden",
     border: "none",
     boxShadow: "none",
@@ -10226,4 +10259,3 @@ const IM_STYLES = {
     flexWrap: "nowrap",
   },
 };
-

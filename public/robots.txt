@@ -1,11 +1,11 @@
 User-agent: *
 Allow: /
 
-Disallow: /student
-Disallow: /trainer
-Disallow: /admin
-Disallow: /business
-Disallow: /superadmin
+Disallow: /student/
+Disallow: /trainer/
+Disallow: /admin/
+Disallow: /business/
+Disallow: /superadmin/
 
 Disallow: /login
 Disallow: /reset-password

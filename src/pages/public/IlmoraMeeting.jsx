@@ -5724,7 +5724,7 @@ function ParticipantGrid({
   S,
   device,
 }) {
-  const maxCols = device === "phone" ? 2 : device === "tablet" ? 3 : 5;
+  const maxCols = device === "phone" ? 3 : device === "tablet" ? 3 : 5;
   const cols = gridColumns(participants.length, maxCols);
   return (
     <div style={S.gridWrap} className="im-grid">
@@ -7502,15 +7502,12 @@ function MeetingRoom({
     0,
     stripParticipants.length - MAX_STRIP_VISIBLE,
   );
+  // FIX (grid-everywhere UI): both mobile and desktop reference screenshots
+  // show the uniform participant grid at all times when there's more than
+  // one participant — no stage+filmstrip speaker layout at all. A screen
+  // share still forces speaker view so the presenter's content is legible.
   const gridMode = !screenSharer && participants.length > 1;
-  // Phone gets a manual grid/speaker toggle (see mobileGridView, set from
-  // the bottom sheet); desktop/tablet keep the automatic rule. A screen
-  // share always forces speaker view on every device.
-  const effectiveGridMode = screenSharer
-    ? false
-    : isCompactDevice
-      ? mobileGridView
-      : gridMode;
+  const effectiveGridMode = screenSharer ? false : gridMode;
 
   const pipTrack =
     screenSharer?.screenTrack ||
@@ -8283,6 +8280,14 @@ function MeetingRoom({
               />
             </div>
             <Btn
+              icon={<Hand size={18} />}
+              label="Raise Hand"
+              active={handRaised}
+              onClick={toggleHandRaise}
+              pressed={handRaised}
+              S={S}
+            />
+            <Btn
               icon={<MoreVertical size={18} />}
               label="More"
               active={mobileSheetOpen}
@@ -8378,39 +8383,11 @@ function MeetingRoom({
               onClick={() => openTab("people")}
               S={S}
             />
-            {isHost && (
-              <Btn
-                icon={<Clock size={18} />}
-                label="Waiting"
-                badge={waiting.length || undefined}
-                active={sidebarOpen && sidebarTab === "waiting"}
-                onClick={() => openTab("waiting")}
-                S={S}
-              />
-            )}
             <Btn
               icon={<Settings size={18} />}
               label="Settings"
               active={settingsOpen}
               onClick={() => setSettingsOpen((v) => !v)}
-              S={S}
-            />
-            {isHost && (
-              <Btn
-                icon={<Disc2 size={18} />}
-                label={recToggling ? "Wait…" : "Record"}
-                active={recording}
-                onClick={toggleRecording}
-                pressed={recording}
-                S={S}
-              />
-            )}
-            <Btn
-              icon={<PictureInPicture2 size={18} />}
-              label="PiP"
-              active={!!pipWindow}
-              onClick={togglePiP}
-              pressed={!!pipWindow}
               S={S}
             />
             <Btn
@@ -8563,7 +8540,7 @@ function MeetingRoom({
           .im-sidebar { width: 100% !important; max-width: 100% !important; }
           .im-sessionname { display: none; }
           .im-stage { border-radius: 12px !important; }
-          .im-grid { grid-template-columns: repeat(var(--cols-phone, 2), minmax(0, 1fr)) !important; }
+          .im-grid { grid-template-columns: repeat(var(--cols-phone, 3), minmax(0, 1fr)) !important; }
         }
         @media (max-width: 899px) {
           .im-topbar { padding: 8px 12px !important; }
@@ -10259,3 +10236,4 @@ const IM_STYLES = {
     flexWrap: "nowrap",
   },
 };
+

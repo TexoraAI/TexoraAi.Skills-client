@@ -101,6 +101,11 @@ export function OthersTile({ participants, S, device }) {
 
   return (
     <div
+      // FIX (mobile UI): marker class so the phone-only aspect-ratio rule
+      // in MeetingRoom.jsx's <style> block (which sizes normal 2-column
+      // tiles) can skip this tile — it's a full-width row with its own
+      // content-driven height (gridOthersTileMobile), not a 3:4 card.
+      className={isPhone ? "im-grid-others-cell" : undefined}
       style={{
         ...S.gridCellOuter,
         // FIX (mobile UI): on phone the "others" tile spans the full grid

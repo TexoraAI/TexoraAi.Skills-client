@@ -1904,7 +1904,21 @@ export function MeetingRoom({
           .im-sidebar { width: 100% !important; max-width: 100% !important; }
           .im-sessionname { display: none; }
           .im-stage { border-radius: 12px !important; }
-          .im-grid { grid-template-columns: repeat(var(--cols-phone, 3), minmax(0, 1fr)) !important; }
+          /* FIX (mobile UI): --cols-phone was never set anywhere, so this
+             rule's !important fallback of 3 silently overrode the 2-column
+             layout ParticipantGrid.jsx already computes for phone — that's
+             what was forcing 3 skinny columns and stretching every card
+             tall. Also stop forcing rows to equally fill 100% of the stage
+             height (grid-auto-rows: 1fr) — instead size each row from the
+             tile's own aspect ratio so cards stay balanced like Image 3,
+             with leftover space simply sitting empty below the grid. */
+          .im-grid {
+            grid-template-columns: repeat(var(--cols-phone, 2), minmax(0, 1fr)) !important;
+            grid-auto-rows: unset !important;
+            align-content: start !important;
+            gap: 10px !important;
+          }
+          .im-grid > div:not(.im-grid-others-cell) { aspect-ratio: 3 / 4; }
         }
         @media (max-width: 899px) {
           .im-topbar { padding: 8px 12px !important; }

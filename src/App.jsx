@@ -184,8 +184,14 @@ const PublicBooking                 = lazyLoad(() => import("./pages/public/Publ
 const PublicBookingConfirmation     = lazyLoad(() => import("./pages/public/PublicBookingConfirmation"));
 const PublicJoinSession             = lazyLoad(() => import("./pages/public/PublicJoinSession"));
 const PublicSessionComplete         = lazyLoad(() => import("./pages/public/PublicSessionComplete"));
+// const IlmoraMeetingPage = lazyLoad(
+//   () => import("./pages/public/IlmoraMeeting.jsx"),
+// );
 const IlmoraMeetingPage = lazyLoad(
-  () => import("./pages/public/IlmoraMeeting.jsx"),
+  () =>
+    import(
+      "./pages/public/IlmoraMeeting/src/components/IlmoraMeeting/IlmoraMeeting.jsx"
+    )
 );
 /* ================= LANDING ================= */
 const ProgramPlayer = lazyLoad(() => import("./pages/Landing/ProgramPlayer"));

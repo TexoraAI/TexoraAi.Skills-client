@@ -80,6 +80,10 @@ export default function CourseDetailsPage() {
     }
   }, [dark]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
+
   // useEffect(() => {
   //   if (!courseData) navigate("/");
   // }, [courseData, navigate]);
@@ -472,7 +476,8 @@ export default function CourseDetailsPage() {
                   <button
                     type="button"
                     aria-label="Preview course"
-                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/90 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300"
+                    className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-full bg-white/90 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300"
+                    style={{ aspectRatio: "1 / 1" }}
                   >
                     <PlayCircle
                       className="w-8 h-8 sm:w-10 sm:h-10 text-[#F97316]"

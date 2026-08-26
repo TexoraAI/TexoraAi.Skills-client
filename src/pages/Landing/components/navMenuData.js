@@ -40,20 +40,44 @@ export const HUB_MENU_ITEMS = [
     title: "Manager Hub",
     description: "Analytics, Performance & Team Development",
   },
-];
-
-export const PRODUCT_MENU_ITEMS = [
   {
-    key: "meet",
-    icon: "Users",
-    title: "ILM ORA Meet",
-    description: "Virtual Meetings & Collaboration",
+    key: "whiteboard",
+    icon: "PenTool",
+    title: "Whiteboard",
+    description: "Draw, Design & Collaborate Visually",
+  },
+  {
+    key: "aiCompanion",
+    icon: "Sparkles",
+    title: "AI Companion",
+    description: "Your intelligent AI-powered learning companion",
   },
   {
     key: "resume",
     icon: "FileText",
     title: "AI Resume Builder",
     description: "Create ATS-Friendly Professional Resumes",
+  },
+  {
+    key: "codingLab",
+    icon: "Code2",
+    title: "Coding Lab",
+    description: "Practice, Code & Build Real Projects",
+  },
+   {
+   key: "studyPlan",
+   icon: "CalendarCheck",
+   title: "Study Plan",
+   description: "Personalized Study Plans & Progress Tracking",
+ },
+];
+
+export const PRODUCT_MENU_ITEMS = [
+  {
+    key: "meet",
+    icon: "Users",
+    title: "ILM ORA Calendry",
+    description: "Virtual Meetings & Collaboration",
   },
   {
     key: "workspace",

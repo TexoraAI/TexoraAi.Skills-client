@@ -182,3 +182,13 @@ export const updateIndividualFeatureFlags = (email, dto) =>
   api
     .put(`/feature-flags/individual`, dto, { params: { email } })
     .then((res) => res.data);
+// ===== ADMIN-SCOPED — org admin managing ONE user within their own org =====
+export const getAdminUserFeatureFlags = (email) =>
+  api
+    .get(`/feature-flags/admin/user/${encodeURIComponent(email)}`)
+    .then((res) => res.data);
+
+export const updateAdminUserFeatureFlags = (email, dto) =>
+  api
+    .put(`/feature-flags/admin/user/${encodeURIComponent(email)}`, dto)
+    .then((res) => res.data);

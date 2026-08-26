@@ -5,6 +5,31 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <!-- ✅ Theme pre-hydration — runs synchronously before <body> paints and
+       before React mounts. This is the single source of truth for theme
+       on load: without it, Dashboard.jsx / AiCompanionPanel.jsx /
+       useAutoDarkMode.js each detect theme independently at their own
+       mount time, causing the F5 half-light/half-dark race. -->
+  <script>
+    (function () {
+      try {
+        var isDark = localStorage.getItem("theme") === "dark";
+        var root = document.documentElement;
+        if (isDark) {
+          root.classList.add("dark");
+          root.setAttribute("data-theme", "dark");
+        } else {
+          root.classList.remove("dark");
+          root.setAttribute("data-theme", "light");
+        }
+      } catch (e) {
+        // localStorage unavailable — default to light, no-op
+      }
+    })();
+  </script>
+
+  <!-- Preconnect for performance -->
+
   <!-- Preconnect for performance -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

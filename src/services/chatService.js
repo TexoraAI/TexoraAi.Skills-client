@@ -235,3 +235,20 @@ export const getMeetingSummary = (meetingId) =>
 
 /** GET /api/meeting-summaries/my */
 export const getMyMeetingSummaries = () => API.get("/meeting-summaries/my");
+
+// ── Admin — per-user-in-org (org admin only) ───────────────────────────────
+// organizationId is derived server-side from the caller's own JWT — never
+// sent from the client — so an admin can only touch their own org's users.
+
+/** GET /api/chat-feature-flags/admin/user/{email} */
+// ── Admin — per-user-in-org (org admin only) ───────────────────────────────
+// organizationId is derived server-side from the caller's own JWT — never
+// sent from the client — so an admin can only touch their own org's users.
+
+/** GET /api/chat-feature-flags/admin/user/{email} */
+export const getAdminUserChatFeatureFlags = (email) =>
+  API.get(`/chat-feature-flags/admin/user/${encodeURIComponent(email)}`);
+
+/** PUT /api/chat-feature-flags/admin/user/{email} */
+export const updateAdminUserChatFeatureFlags = (email, dto) =>
+  API.put(`/chat-feature-flags/admin/user/${encodeURIComponent(email)}`, dto);

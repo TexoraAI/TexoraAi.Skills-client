@@ -28,7 +28,7 @@ const GLOBAL_LAYOUT_CSS = `
 
   /* ══════ Crisp / HD rendering ══════ */
   * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
-  .dashboard-shell, .dashboard-shell * { backface-visibility: hidden; }
+ 
   .dashboard-shell p, .dashboard-shell span, .dashboard-shell h1, .dashboard-shell h3, .dashboard-shell button, .dashboard-shell input {
     -webkit-font-smoothing: antialiased;
     letter-spacing: 0.01em;
@@ -134,3 +134,34 @@ const PageContainer = ({ mode = "dark", pageBg, textColor, children }) => (
 
 export default PageContainer;
 export { GLOBAL_LAYOUT_CSS };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

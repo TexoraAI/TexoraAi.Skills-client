@@ -282,6 +282,21 @@ const attendanceService = {
       headers: getAuthHeader(),
     });
   },
+
+  getAdminUserAttendanceFeatureFlags: (email) => {
+    return axios.get(
+      `${BASE_URL}/attendance-feature-flags/admin/user/${encodeURIComponent(email)}`,
+      { headers: getAuthHeader() },
+    );
+  },
+
+  updateAdminUserAttendanceFeatureFlags: (email, dto) => {
+    return axios.put(
+      `${BASE_URL}/attendance-feature-flags/admin/user/${encodeURIComponent(email)}`,
+      dto,
+      { headers: getAuthHeader() },
+    );
+  },
 };
 
 export default attendanceService;

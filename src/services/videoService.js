@@ -506,6 +506,22 @@ const videoService = {
       { headers: getAuthHeaders() },
     );
   },
+
+  // ================= ADMIN — PER-USER-IN-ORG (org admin only) =================
+  getAdminUserVideoFeatureFlags(email) {
+    return axios.get(
+      `${API_GATEWAY}/video-feature-flags/admin/user/${encodeURIComponent(email)}`,
+      { headers: getAuthHeaders() },
+    );
+  },
+
+  updateAdminUserVideoFeatureFlags(email, dto) {
+    return axios.put(
+      `${API_GATEWAY}/video-feature-flags/admin/user/${encodeURIComponent(email)}`,
+      dto,
+      { headers: getAuthHeaders() },
+    );
+  },
 };
 
 export default videoService;

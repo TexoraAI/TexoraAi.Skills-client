@@ -22,11 +22,7 @@ import StudentPanel from "./Student/StudentPanel";
 import TrainerPanel from "./Trainer/TrainerPanel";
 // import SuperAdminLayout from "./SuperAdmin/SuperAdminLayout";
 
-/* ================= APPLY ================= */
-const ApplyAdmin            = lazyLoad(() => import("./Admin/ApplyAdmin.jsx"));
-const ApplyBusiness         = lazyLoad(() => import("./Business/ApplyBusiness.jsx"));
-const StudentApplicationForm = lazyLoad(() => import("./Student/StudentApplicationForm.jsx"));
-const ApplyTrainer          = lazyLoad(() => import("./Trainer/ApplyTrainer.jsx"));
+
 
 /* ================= SUPER ADMIN ================= */
 
@@ -35,6 +31,7 @@ import SuperAdminLayout from "./SuperAdmin/components/layout/SuperAdminLayout";
 import { AuthProvider } from "./SuperAdmin/context/AuthContext";
 import { PermissionProvider } from "./SuperAdmin/context/PermissionContext";
 import { UserManagementProvider } from "./SuperAdmin/context/UserManagementContext";
+import { ThemeProvider } from "./SuperAdmin/context/ThemeContext";
 
 /* Dashboard */
 const SuperAdminDashboard = lazyLoad(() =>
@@ -162,6 +159,15 @@ const SuperAdminProfile         = lazyLoad(() => import("./SuperAdmin/profile/Su
 const SuperAdminMeetings = lazyLoad(
   () => import("./SuperAdmin/meetings/SuperAdminMeetings"),
 );
+const RoadmapTemplateLibraryPage = lazyLoad(
+  () => import("./SuperAdmin/roadmap-control/TemplateLibraryPage.jsx"),
+);
+const RoadmapTemplateEditorPage = lazyLoad(
+  () => import("./SuperAdmin/roadmap-control/TemplateEditorPage.jsx"),
+);
+const RoadmapPlatformOverviewPage = lazyLoad(
+  () => import("./SuperAdmin/roadmap-control/PlatformOverviewPage.jsx"),
+);
 
 /* ================= CMS MANAGEMENT ================= */
 
@@ -213,6 +219,10 @@ const StudentHub           = lazyLoad(() => import("./pages/Landing/StudentHub")
 const TrainerHub           = lazyLoad(() => import("./pages/Landing/TrainerHub"));
 const ManagerHub           = lazyLoad(() => import("./pages/Landing/ManagerHub"));
 const Workspace            = lazyLoad(() => import("./pages/Landing/Workspace"));
+const AiCompanionLanding   = lazyLoad(() => import("./pages/Landing/Aicampanion"));
+const WhiteboardLanding    = lazyLoad(() => import("./pages/Landing/Whiteboard"));
+const CodingLabLanding     = lazyLoad(() => import("./pages/Landing/CodingLabLanding"));
+const StudyPlanLanding     = lazyLoad(() => import("./pages/Landing/StudyPlanLanding"));
 /* ================= SUBJECTS ================= */
 const Class9Subjects       = lazyLoad(() => import("./pages/Landing/Subjects/Class9Subjects"));
 const Class9Math           = lazyLoad(() => import("./pages/Landing/Subjects/Class9Math"));
@@ -231,7 +241,7 @@ const NotificationsPage = lazyLoad(() => import("./pages/NotificationsPage"));
 const ProfilePage       = lazyLoad(() => import("./pages/ProfilePage"));
 const IlmDemoProfilePage = lazyLoad(() => import("./pages/IlmDemoProfilePage"));
 const SearchPage        = lazyLoad(() => import("./pages/SearchPage"));
-const ApplyForm         = lazyLoad(() => import("./pages/common/ApplyForm"));
+
 
 const EditProfile       = lazyLoad(() => import("./pages/common/EditProfile"));
 const CallRoom          = lazyLoad(() => import("./components/live/CallRoom.jsx"));
@@ -265,6 +275,8 @@ const StudentCompilerPage   = lazyLoad(() => import("./Student/StudentCompilerPa
 const StudentStudyPlanPage = lazyLoad( () => import("./Student/StudentStudyPlanPage.jsx"),);
 const ResumeBuilder        = lazyLoad(() => import("./Student/ResumeBuilder.jsx"));
 const StudentMeetings = lazyLoad(() => import("./Student/StudentMeetings.jsx"));
+const RoadmapBrowser = lazyLoad(() => import("./Student/RoadmapBrowser.jsx"));
+const RoadmapView = lazyLoad(() => import("./Student/RoadmapView.jsx"));
 /* ================= TRAINER ================= */
 const TrainerAssessments    = lazyLoad(() => import("./Trainer/Assessments"));
 const TrainerAttendance     = lazyLoad(() => import("./Trainer/Attendance"));
@@ -307,6 +319,11 @@ const AiCompanionPanel = lazyLoad(
 );
 
 const TrainerMeetings = lazyLoad(() => import("./Trainer/TrainerMeetings.jsx"));
+const RoadmapList = lazyLoad(() => import("./Trainer/RoadmapList.jsx"));
+const RoadmapEditor = lazyLoad(() => import("./Trainer/RoadmapEditor.jsx"));
+const RoadmapStudentsProgress = lazyLoad(
+  () => import("./Trainer/RoadmapStudentsProgress.jsx"),
+);
 /* ================= ADMIN ================= */
 const AdminBatches              = lazyLoad(() => import("./Admin/AdminBatches"));
 const AdminDashboard            = lazyLoad(() => import("./Admin/AdminDashboard"));
@@ -339,6 +356,11 @@ const AdminAssessmentSystem = lazyLoad(
 );
 const AdminAttendance = lazyLoad(() => import("./Admin/AdminAttendance"));
 const AdminMeetings = lazyLoad(() => import("./Admin/AdminMeetings.jsx"));
+const AccessControlPage = lazyLoad(() => import("./Admin/AccessControlPage"));
+const RoadmapManagement = lazyLoad(
+  () => import("./Admin/RoadmapManagement.jsx"),
+);
+const RoadmapAnalytics = lazyLoad(() => import("./Admin/RoadmapAnalytics.jsx"));
 /* ================= BUSINESS ================= */
 const BusinessDashboard = lazyLoad(() => import("./Business/BusinessDashboard"));
 const NewEnrollments    = lazyLoad(() => import("./Business/Enrollments/NewEnrollments.jsx"));
@@ -367,20 +389,23 @@ const ProtectedRoute = ({ children }) => {
 };
 
 export default function App() {
-  const [theme, setTheme] = useState("light");
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem("theme") || "light";
+    } catch {
+      return "light";
+    }
+  });
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   const toggleTheme = () =>
   setTheme((prev) => (prev === "dark" ? "light" : "dark"));
-  useEffect(() => {
-    const saved = localStorage.getItem("theme");
-    if (saved) setTheme(saved);
-  }, []);
 
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", theme === "dark");
-    localStorage.setItem("theme", theme);
-  }, [theme]);
+ useEffect(() => {
+  document.documentElement.classList.toggle("dark", theme === "dark");
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem("theme", theme);
+}, [theme]);
 
  // ✅ Register SW always + FCM token only if already logged in
 useEffect(() => {
@@ -406,12 +431,13 @@ seedCMSData();
     });
   }
 }, []);
-  return (
-    <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
-      {/* <SEO /> */}
-      <ErrorBoundary>
-        <Suspense fallback={<LoadingSpinner />}>
-          <Routes>
+    return (
+    <ThemeProvider theme={theme} toggleTheme={toggleTheme}>
+      <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
+        {/* <SEO /> */}
+        <ErrorBoundary>
+          <Suspense fallback={<LoadingSpinner />}>
+            <Routes>
 
           {/* ================= LANDING ================= */}
             <Route
@@ -564,6 +590,46 @@ seedCMSData();
     />
   }
 />
+<Route
+  path="/ai-companion"
+  element={
+    <AiCompanionLanding
+      theme={theme}
+      toggleTheme={toggleTheme}
+      setShowLoginModal={setShowLoginModal}
+    />
+  }
+/>
+<Route
+  path="/whiteboard"
+  element={
+    <WhiteboardLanding
+      theme={theme}
+      toggleTheme={toggleTheme}
+      setShowLoginModal={setShowLoginModal}
+    />
+  }
+/>
+<Route
+  path="/coding-lab"
+  element={
+    <CodingLabLanding
+      theme={theme}
+      toggleTheme={toggleTheme}
+      setShowLoginModal={setShowLoginModal}
+    />
+  }
+/>
+<Route
+  path="/study-plan"
+  element={
+    <StudyPlanLanding
+      theme={theme}
+      toggleTheme={toggleTheme}
+      setShowLoginModal={setShowLoginModal}
+    />
+  }
+/>
             {/* ================= CLASS 9 ================= */}
             <Route path="/school-class/9" element={<Class9Subjects />} />
             <Route path="/school-class/9/math" element={<Class9Math />} />
@@ -673,16 +739,15 @@ seedCMSData();
             <Route path="/verify-email" element={<VerifyEmail />} />
 
             {/* ================= DEMO ================= */}
-            <Route path="/ilm-demo" element={<IlmOraDemoPage />} />
-
-            {/* ================= APPLY ================= */}
-            <Route path="/apply" element={<ApplyForm />} />
-            
-            <Route path="/apply-admin" element={<ApplyAdmin />} />
-            <Route path="/apply-business" element={<ApplyBusiness />} />
-            <Route path="/apply-trainer" element={<ApplyTrainer />} />
-            <Route path="/apply-student" element={<StudentApplicationForm />} />
-
+            {/* <Route path="/ilm-demo" element={<IlmOraDemoPage />} /> */}
+            <Route
+  path="/ilm-demo"
+  element={
+    <ProtectedRoute>
+      <IlmOraDemoPage />
+    </ProtectedRoute>
+  }
+/>
             {/* ================= STUDENT ================= */}
             <Route path="/student" element={<ProtectedRoute><RoleGuard allowedRoles={["STUDENT", "ADMIN"]}><StudentPanel /></RoleGuard></ProtectedRoute>}>
               <Route index element={<DashboardPage />} />
@@ -721,6 +786,8 @@ seedCMSData();
               <Route path="study-plan" element={<StudentStudyPlanPage />} />
               <Route path="resume-builder" element={<ResumeBuilder />} />
               <Route path="workspace" element={<StudentMeetings />} />
+               <Route path="roadmap" element={<RoadmapBrowser />} />
+              <Route path="roadmap/:slug" element={<RoadmapView />} />
             </Route>
 
             {/* ================= TRAINER ================= */}
@@ -767,9 +834,14 @@ seedCMSData();
               <Route path="compiler" element={<TrainerCompilerPage />} />
               <Route path="study-plan" element={<TrainerStudyPlanPage />} />
               <Route path="ai-companion" element={<AiCompanionPanel />} />
-              <Route path="whiteboard" element={<WhiteboardPanel />} />
-              
+              <Route path="whiteboard" element={<WhiteboardPanel />} />          
               <Route path="workspace" element={<TrainerMeetings />} />
+              <Route path="roadmaps" element={<RoadmapList />} />
+              <Route path="roadmaps/:id/edit" element={<RoadmapEditor />} />
+              <Route
+                path="roadmaps/:id/students-progress"
+                element={<RoadmapStudentsProgress />}
+              />
             </Route>
 
             {/* ================= ADMIN ================= */}
@@ -782,10 +854,7 @@ seedCMSData();
               <Route path="batches/:batchId/assign-trainer" element={<AssignTrainerPage />} />
               <Route path="batches/:batchId/students/:trainerEmail" element={<BatchStudentsPage />} />
               <Route path="batches/:batchId/trainers" element={<BatchTrainerOverviewPage />} />
-              <Route path="users" element={<AllUsers />} />
-           
-             
-             
+              <Route path="users" element={<AllUsers />} /> 
               <Route path="courses" element={<AllCourses />} />
               <Route path="categories" element={<Categories />} />
               <Route path="videos" element={<AdminVideos />} />
@@ -810,6 +879,9 @@ seedCMSData();
               <Route path="feedback-review" element={<AdminFeedback />} />
               <Route path="skill-analytics" element={<AdminSkillDashboard />} />
                <Route path="workspace" element={<AdminMeetings />} />
+               <Route path="roadmaps" element={<RoadmapManagement />} />
+              <Route path="roadmaps/analytics" element={<RoadmapAnalytics />} />
+              <Route path="access-control" element={<AccessControlPage />} />
             </Route>
 
             {/* ================= BUSINESS ================= */}
@@ -841,7 +913,7 @@ seedCMSData();
                 <ProtectedRoute>
                   <AuthProvider>
                   <RoleGuard allowedRoles={["SUPER_ADMIN"]}>
-                      <SaasProvider>
+                        <SaasProvider>
                         <UserManagementProvider>
                           <PermissionProvider>
                             <SuperAdminLayout />
@@ -898,6 +970,18 @@ seedCMSData();
 <Route path="organizations/:orgId/admins/:adminId" element={<OrganizationAdminDetailsPage />} />
 
 <Route path="batches/:batchId" element={<BatchDetailsPage />} />
+<Route
+                path="roadmap-templates"
+                element={<RoadmapTemplateLibraryPage />}
+              />
+              <Route
+                path="roadmap-templates/:id/edit"
+                element={<RoadmapTemplateEditorPage />}
+              />
+              <Route
+                path="roadmap-overview"
+                element={<RoadmapPlatformOverviewPage />}
+              />
 {/* ================= FEATURED PROGRAMS ================= */}
 
 <Route
@@ -979,6 +1063,7 @@ seedCMSData();
         onOpenLogin={() => setShowLoginModal(true)}
       />
     </GoogleOAuthProvider>
+    </ThemeProvider>
   );
 }
 

@@ -510,6 +510,22 @@ export const getAssessmentIndividualFeatureFlags = (email) =>
  */
 export const updateAssessmentIndividualFeatureFlags = (email, dto) =>
   API.put("/assessment-feature-flags/individual", dto, { params: { email } });
+
+/**
+ * Admin-scoped: get/update per-user-in-org feature flags. organizationId is
+ * derived server-side from the caller's own JWT — never sent from the
+ * client — so an admin can only touch their own org's users.
+ * GET  /assessment-feature-flags/admin/user/:email
+ * PUT  /assessment-feature-flags/admin/user/:email
+ */
+export const getAdminUserAssessmentFeatureFlags = (email) =>
+  API.get(`/assessment-feature-flags/admin/user/${encodeURIComponent(email)}`);
+
+export const updateAdminUserAssessmentFeatureFlags = (email, dto) =>
+  API.put(
+    `/assessment-feature-flags/admin/user/${encodeURIComponent(email)}`,
+    dto,
+  );
 /* ========================================================= */
 /* 🔥 DEFAULT EXPORT (FIXED) */
 /* ========================================================= */
@@ -604,4 +620,6 @@ export default {
   updateAssessmentOrgFeatureFlags,
   getAssessmentIndividualFeatureFlags,
   updateAssessmentIndividualFeatureFlags,
+  getAdminUserAssessmentFeatureFlags,
+  updateAdminUserAssessmentFeatureFlags,
 };

@@ -1,5 +1,6 @@
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { useEffect, useState, useRef, useCallback, useMemo, Suspense } from "react";
+import { flushSync } from "react-dom";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -68,6 +69,7 @@ import {
   BarChart,
   Film,
   Layers,
+  Sparkles,
   Landmark,
   LayoutDashboard,
   UserCog,
@@ -105,6 +107,7 @@ import {
   BarChart3,
   ChevronDown,
   Trophy,
+  Code2,
 } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -113,8 +116,11 @@ gsap.registerPlugin(ScrollTrigger);
 // component already imported above. Navigation handlers
 // (goToHub / goToProductSection) stay in this file, NOT in the shared
 // data file — only the item content (title/description/icon) is shared.
-const NAV_ICON_MAP = { GraduationCap, Users, BarChart3, FileText, LayoutDashboard };
-const HUB_ICON_COLORS = { student: "#16a34a", trainer: "#3b82f6", admin: "#a855f7" };
+
+// NAV_ICON_MAP mein Code2 add karo
+const NAV_ICON_MAP = { GraduationCap, Users, BarChart3, FileText, LayoutDashboard, Sparkles, PenTool, Code2, CalendarCheck };
+// HUB_ICON_COLORS mein color add karo
+const HUB_ICON_COLORS = { student: "#16a34a", trainer: "#3b82f6", admin: "#a855f7", whiteboard: "#F97316", studyPlan: "#F97316", aiCompanion: "#a855f7", resume: "#16a34a", codingLab: "#0ea5e9" };
 const PRODUCT_ICON_COLORS = { meet: "#F97316", resume: "#16a34a", workspace: "#F97316" };
 
 const GOOGLE_CLIENT_ID =
@@ -1367,7 +1373,7 @@ export default function IlmOraDemoPage() {
   const [showLogin, setShowLogin] = useState(false);
   const [showRolePopup, setShowRolePopup] = useState(false);
   const [showInterestPopup, setShowInterestPopup] = useState(false);
-
+  const [isSigningOut, setIsSigningOut] = useState(false);
   // Real backend session check. /ilm-demo is now the single real
   // dashboard route — it's only ever reached after actual authentication
   // (onboarding completion, or email/password register/login), so there
@@ -1411,7 +1417,37 @@ export default function IlmOraDemoPage() {
   // Only the Details tab (mobile, DOB, education, etc.) is MANDATORY to
   // unlock the dashboard.
   const isProfileFullyComplete = (user) => !!user?.profileCompleted;
-  const [showProfile, setShowProfile] = useState(false);
+  // Bug fix: showProfile used to be plain local state, so a hard refresh
+  // (F5/Ctrl+R) while viewing the Profile page always reset it to false
+  // and silently bounced the user back to the Dashboard/section view —
+  // an unwanted redirect. It's now seeded from — and kept in sync with —
+  // the `?view=profile` URL param (same pattern already used for
+  // `?section=`), so a refresh re-derives the same showProfile value
+  // instead of losing it.
+  const [showProfile, setShowProfile] = useState(
+    () => searchParams.get("view") === "profile",
+  );
+  useEffect(() => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (showProfile) {
+          next.set("view", "profile");
+        } else {
+          next.delete("view");
+          // Profile is closed — also drop the leftover ?target= (and
+          // ?tab=, set by IlmDemoProfilePage) so re-opening Profile later
+          // via the plain "Profile" link doesn't wrongly reopen the Swap
+          // Role modal or land back on the Security tab.
+          next.delete("target");
+          next.delete("tab");
+        }
+        return next;
+      },
+      { replace: true },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showProfile]);
   const [profileReturnPathState, setProfileReturnPathState] = useState(
     getPersistedReturnPath,
   );
@@ -1445,11 +1481,11 @@ export default function IlmOraDemoPage() {
   // Which role was picked in Step 4 (kept for reference / feature lookups)
   const [selectedRole, setSelectedRole] = useState(null);
 
-  const [theme, setTheme] = useState(
-    () => localStorage.getItem("ilmora-theme") || "light",
+    const [theme, setTheme] = useState(
+    () => localStorage.getItem("theme") || "light",
   );
   useEffect(() => {
-    localStorage.setItem("ilmora-theme", theme);
+    localStorage.setItem("theme", theme);
     // App.jsx (the normal /student, /trainer, /admin routing) toggles this
     // same "dark" class on <html> whenever ITS OWN theme state changes —
     // that's what nested dashboard pages (DashboardPage.jsx etc., via the
@@ -1590,6 +1626,15 @@ export default function IlmOraDemoPage() {
 
   const isLoggedIn =
     !!localStorage.getItem("lms_token") || !!localStorage.getItem("lms_user");
+
+  // Guard for the showProfile/`?view=profile` URL-persistence fix above:
+  // don't honor a stale `?view=profile` URL for a logged-out session
+  // (e.g. a link shared/reopened after logout) — fall back to the normal
+  // logged-out view instead of rendering the Profile page.
+  useEffect(() => {
+    if (!isLoggedIn && showProfile) setShowProfile(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn]);
 
   const userName =
     signupUser?.name ||
@@ -1915,23 +1960,38 @@ export default function IlmOraDemoPage() {
     finalizeOnboarding(null);
   };
   const handleSignOut = () => {
-    localStorage.removeItem("lms_token");
-    localStorage.removeItem("lms_user");
-    localStorage.removeItem("role");
-    localStorage.removeItem("organizationId");
-    localStorage.removeItem("selectedPlan");
-    sessionStorage.removeItem("ilmora_google_user");
-    sessionStorage.removeItem("ilmora_google_credential");
-    sessionStorage.removeItem("ilmora_profile_return_path"); // Bug 1: clear persisted return path too
+  // flushSync forces React to render+paint the blank isSigningOut
+  // screen BEFORE anything below runs, so the dashboard/dropdown can
+  // never remain visible while we sign out.
+  flushSync(() => {
+    setIsSigningOut(true);
+    setHasRealSession(false);
     setUserMenuOpen(false);
-    setHasRealSession(false); // real token is gone
-    addToast({
-      type: "info",
-      title: "Signed out",
-      desc: "You have been signed out successfully.",
-    });
-    navigate("/", { replace: true });
-  };
+    setShowProfile(false);
+    setShowRolePopup(false);
+    setShowInterestPopup(false);
+  });
+
+  // Clear ALL authentication/session data
+  localStorage.removeItem("lms_token");
+  localStorage.removeItem("lms_user");
+  localStorage.removeItem("role");
+  localStorage.removeItem("organizationId");
+  localStorage.removeItem("selectedPlan");
+
+  sessionStorage.removeItem("ilmora_google_user");
+  sessionStorage.removeItem("ilmora_google_credential");
+  sessionStorage.removeItem("ilmora_profile_return_path");
+
+  // Client-side navigation (React Router), NOT window.location.replace().
+  // window.location.replace() forces a full browser reload — the browser
+  // has to unload the current document and re-fetch/re-parse/re-render
+  // the entire app from scratch, and it shows a blank white page for that
+  // entire duration. navigate() just swaps the rendered route in place,
+  // so there's no document reload and therefore no white-screen flash —
+  // it goes straight from the blank isSigningOut screen to the home page.
+  navigate("/", { replace: true });
+};
 
   const handleGoToDashboard = () => {
     setUserMenuOpen(false);
@@ -2017,6 +2077,11 @@ const HUB_ROUTES = {
   student: "/student-hub",
   trainer: "/trainer-hub",
   admin: "/manager-hub",
+  whiteboard: "/whiteboard",
+  aiCompanion: "/ai-companion",
+  resume: "/resume-builder",
+  codingLab: "/coding-lab",
+  studyPlan: "/study-plan",
 };
 
 const PRODUCT_ROUTES = {
@@ -2076,6 +2141,23 @@ const goToAllCourses = () => {
     setProfileReturnPath(null);
     setProfileScrollTarget(scrollTarget);
     setShowProfile(true);
+    // Bug fix: scrollTarget ("role" | "password") used to live only in
+    // React state, so a hard refresh (Ctrl+Shift+R) while the Swap Role
+    // modal was open, or while on the Security tab via "Change Password",
+    // lost it and silently bounced the user back to the default Profile
+    // Info tab. It's now also written into the URL as `?target=` (same
+    // pattern as `?view=profile`), so <IlmDemoProfilePage> can recover it
+    // from the URL on remount instead of losing it.
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("view", "profile");
+        if (scrollTarget) next.set("target", scrollTarget);
+        else next.delete("target");
+        return next;
+      },
+      { replace: true },
+    );
   };
 
   const handleProfileBack = () => {
@@ -2342,6 +2424,19 @@ const goToAllCourses = () => {
     }, ctaRef);
     return () => ctx.revert();
   }, []);
+ if (isSigningOut) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 999999,
+        background: "#fff",
+      }}
+    />
+  );
+}
+
 
   return (
     <>
@@ -2455,6 +2550,18 @@ const goToAllCourses = () => {
         .d-nav-dropdown-item-desc { font-size:0.72rem; color:#94a3b8; margin-top:2px; }
         .d-nav-dropdown-chevron { transition:transform .2s; }
         .d-nav-dropdown-chevron.open { transform:rotate(180deg); }
+
+        /* ILM ORA Feature — 2-column compact card grid.
+           Scoped to -hub classes only, so the Product dropdown (which still
+           uses .d-nav-dropdown-item / .d-mobile-section-item) is untouched. */
+        .d-nav-dropdown-menu-hub { width:300px; }
+        .d-nav-hub-grid { display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; }
+        .d-nav-hub-card { display:flex; flex-direction:column; text-align:left; background:#1A1A1A; border:1px solid rgba(255,255,255,0.05); border-radius:10px; padding:10px; cursor:pointer; font-family:'DM Sans',sans-serif; transition:border-color .15s, background .15s; }
+        .d-nav-hub-card:hover { border-color:rgba(249,115,22,0.4); background:rgba(249,115,22,0.06); }
+        .d-nav-hub-card-top { display:flex; align-items:center; gap:6px; }
+        .d-nav-hub-card-title { font-size:0.8rem; font-weight:700; color:#f1f5f9; line-height:1.2; }
+        .d-nav-hub-card-desc { font-size:0.68rem; color:#94a3b8; margin-top:4px; line-height:1.3; }
+        .d-mobile-section-items-hub { display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; padding:2px 0 4px; }
 
         /* Mobile hamburger + full-screen nav overlay (pure CSS, driven by a checkbox-like React toggle) */
         .d-nav-hamburger { display:flex; width:38px; height:38px; align-items:center; justify-content:center; background:rgba(255,255,255,0.06); border:1.5px solid rgba(255,255,255,0.12); border-radius:10px; color:#e5e7eb; cursor:pointer; flex-shrink:0; }
@@ -2862,27 +2969,28 @@ const goToAllCourses = () => {
                   style={{ marginLeft: 4 }}
                 />
               </button>
-              <div className={`d-nav-dropdown-menu ${featureMenuOpen ? "open" : ""}`}>
-                {HUB_MENU_ITEMS.map((item) => {
-                  const ItemIcon = NAV_ICON_MAP[item.icon];
-                  return (
-                    <button
-                      key={item.key}
-                      className="d-nav-dropdown-item"
-                      onClick={() => goToHub(item.key)}
-                    >
-                      <ItemIcon
-                        size={18}
-                        className="d-nav-dropdown-item-icon"
-                        color={HUB_ICON_COLORS[item.key]}
-                      />
-                      <div>
-                        <div className="d-nav-dropdown-item-title">{item.title}</div>
-                        <div className="d-nav-dropdown-item-desc">{item.description}</div>
-                      </div>
-                    </button>
-                  );
-                })}
+              <div className={`d-nav-dropdown-menu d-nav-dropdown-menu-hub ${featureMenuOpen ? "open" : ""}`}>
+                <div className="d-nav-hub-grid">
+                  {HUB_MENU_ITEMS.map((item) => {
+                    const ItemIcon = NAV_ICON_MAP[item.icon];
+                    return (
+                      <button
+                        key={item.key}
+                        className="d-nav-hub-card"
+                        onClick={() => goToHub(item.key)}
+                      >
+                        <div className="d-nav-hub-card-top">
+                          <ItemIcon
+                            size={17}
+                            color={HUB_ICON_COLORS[item.key]}
+                          />
+                          <span className="d-nav-hub-card-title">{item.title}</span>
+                        </div>
+                        <span className="d-nav-hub-card-desc">{item.description}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
@@ -3104,29 +3212,23 @@ const goToAllCourses = () => {
                 />
               </button>
               {mobileFeatureOpen && (
-                <div className="d-mobile-section-items">
+                <div className="d-mobile-section-items-hub">
                   {HUB_MENU_ITEMS.map((item) => {
                     const ItemIcon = NAV_ICON_MAP[item.icon];
                     return (
                       <button
                         key={item.key}
-                        className="d-mobile-section-item"
+                        className="d-nav-hub-card"
                         onClick={() => {
                           setMobileNavOpen(false);
                           goToHub(item.key);
                         }}
                       >
-                        <span className="d-mobile-section-item-icon">
-                          <ItemIcon size={20} color={HUB_ICON_COLORS[item.key]} />
-                        </span>
-                        <span>
-                          <span className="d-mobile-section-item-title">
-                            {item.title}
-                          </span>
-                          <span className="d-mobile-section-item-desc">
-                            {item.description}
-                          </span>
-                        </span>
+                        <div className="d-nav-hub-card-top">
+                          <ItemIcon size={17} color={HUB_ICON_COLORS[item.key]} />
+                          <span className="d-nav-hub-card-title">{item.title}</span>
+                        </div>
+                        <span className="d-nav-hub-card-desc">{item.description}</span>
                       </button>
                     );
                   })}
@@ -3304,7 +3406,8 @@ const goToAllCourses = () => {
             className={
               isAllCoursesSection
                 ? "d-sidebar-offset ilm-hub-embed"
-                : "d-reset-scope d-sidebar-offset"
+                // : "d-reset-scope d-sidebar-offset"
+                                : "d-sidebar-offset"
             }
             style={{
               marginLeft: contentOffset,
@@ -3588,3 +3691,45 @@ const goToAllCourses = () => {
     </>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

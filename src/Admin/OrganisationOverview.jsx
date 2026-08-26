@@ -1,1863 +1,3 @@
-// import {
-//   AlertCircle,
-//   ArrowRight,
-//   Building2,
-//   ChevronDown,
-//   ChevronRight,
-//   ChevronLeft,
-//   Eye,
-//   EyeOff,
-//   GitBranch,
-//   Layers,
-//   Loader2,
-//   Mail,
-//   Pencil,
-//   Plus,
-//   RefreshCw,
-//   Search,
-//   Sparkles,
-//   Trash2,
-//   Users,
-//   X,
-//   GripVertical,
-//   Check,
-//   Lock,
-// } from "lucide-react";
-// import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-// import { useNavigate } from "react-router-dom";
-// import ReactDOM from "react-dom";
-
-// import {
-//   createBranch,
-//   createDepartment,
-//   deleteBatch,
-//   deleteBranch,
-//   deleteDepartment,
-//   getAllBatches,
-//   getBranches,
-//   getDepartments,
-//   updateBranch,
-//   updateDepartment,
-//   createBatch,
-// } from "../services/batchService";
-// import userService from "../services/userService";
-
-// /* ═══════════════════════════════════════════════════════════════════════════
-//    THEME
-// ═══════════════════════════════════════════════════════════════════════════ */
-// const T = {
-//   dark: {
-//     pageBg: "#0a0a0f",
-//     cardBg: "#13131a",
-//     heroBg: "#13131a",
-//     border: "rgba(255,255,255,0.08)",
-//     borderHero: "rgba(255,255,255,0.08)",
-//     text: "#f1f5f9",
-//     textSub: "rgba(255,255,255,0.55)",
-//     textMuted: "rgba(255,255,255,0.32)",
-//     pillBg: "rgba(255,255,255,0.06)",
-//     pillBorder: "rgba(255,255,255,0.1)",
-//     actBg: "rgba(255,255,255,0.06)",
-//     actBorder: "rgba(255,255,255,0.1)",
-//     shadow: "0 2px 12px rgba(0,0,0,0.4)",
-//     shadowHov: "0 16px 48px rgba(0,0,0,0.6)",
-//     emptyBorder: "rgba(255,255,255,0.1)",
-//     emptyBg: "rgba(255,255,255,0.03)",
-//     emptyIcon: "rgba(255,255,255,0.18)",
-//     inputBg: "rgba(255,255,255,0.06)",
-//     inputBorder: "rgba(255,255,255,0.12)",
-//     inputText: "#f1f5f9",
-//     skeletonBg: "rgba(255,255,255,0.08)",
-//     theadBg: "rgba(255,255,255,0.04)",
-//     rowHov: "rgba(255,255,255,0.04)",
-//     dropdownBg: "#1a1a24",
-//     dropdownItemHov: "rgba(255,255,255,0.08)",
-//     errorBg: "rgba(244,63,94,0.1)",
-//     errorBorder: "rgba(244,63,94,0.28)",
-//     bannerBg: "rgba(59,130,246,0.09)",
-//     bannerBorder: "rgba(59,130,246,0.22)",
-//     gridLine: "rgba(255,255,255,0.4)",
-//     panelBg: "#0f0f16",
-//   },
-//   light: {
-//     pageBg: "#F8FAFC",
-//     cardBg: "#ffffff",
-//     heroBg: "#ffffff",
-//     border: "#E2E8F0",
-//     borderHero: "#E2E8F0",
-//     text: "#0f172a",
-//     textSub: "#64748b",
-//     textMuted: "#94a3b8",
-//     pillBg: "#f1f5f9",
-//     pillBorder: "#E2E8F0",
-//     actBg: "#f8fafc",
-//     actBorder: "#E2E8F0",
-//     shadow: "0 1px 3px rgba(15,23,42,0.06), 0 6px 20px rgba(15,23,42,0.06)",
-//     shadowHov: "0 10px 32px rgba(15,23,42,0.12)",
-//     emptyBorder: "#E2E8F0",
-//     emptyBg: "#f8fafc",
-//     emptyIcon: "#cbd5e1",
-//     inputBg: "#ffffff",
-//     inputBorder: "#E2E8F0",
-//     inputText: "#0f172a",
-//     skeletonBg: "#edf2f7",
-//     theadBg: "#f8fafc",
-//     rowHov: "#f7f9fc",
-//     dropdownBg: "#ffffff",
-//     dropdownItemHov: "#f1f5f9",
-//     errorBg: "rgba(244,63,94,0.06)",
-//     errorBorder: "rgba(244,63,94,0.2)",
-//     bannerBg: "#eff6ff",
-//     bannerBorder: "#bfdbfe",
-//     gridLine: "rgba(15,23,42,0.08)",
-//     panelBg: "#fbfcfe",
-//   },
-// };
-
-// /* ═══════════════════════════════════════════════════════════════════════════
-//    CONSTANTS
-// ═══════════════════════════════════════════════════════════════════════════ */
-// const GRAD_COLORS = [
-//   ["#a78bfa", "#7c3aed"],
-//   ["#22d3ee", "#0891b2"],
-//   ["#f43f5e", "#be123c"],
-//   ["#f59e0b", "#b45309"],
-//   ["#34d399", "#059669"],
-//   ["#818cf8", "#4338ca"],
-// ];
-// const gradColor = (name) =>
-//   GRAD_COLORS[(name?.charCodeAt(0) ?? 0) % GRAD_COLORS.length];
-
-// const DEPARTMENT_OPTIONS = [
-//   "Engineering","Computer Science","Electronics & Communication",
-//   "Mechanical Engineering","Civil Engineering","Information Technology",
-//   "MBA","Business Administration","Finance & Accounting",
-//   "Human Resources","Marketing","Sales & Business Development",
-//   "Data Science & AI","Cybersecurity","Cloud Computing",
-//   "Product Management","Operations","Research & Development",
-//   "Legal & Compliance","Quality Assurance","Design & UX",
-//   "Content & Communications","Customer Support","Logistics & Supply Chain",
-//   "Healthcare Management","Biotechnology","Architecture",
-//   "Physics","Mathematics","Chemistry",
-// ];
-
-// const CITY_OPTIONS = [
-//   "Delhi","Mumbai","Kolkata","Chennai","Bangalore","Hyderabad","Pune",
-//   "Ahmedabad","Jaipur","Surat","Lucknow","Kanpur","Nagpur","Indore",
-//   "Bhopal","Patna","Ranchi","Raipur","Chandigarh","Noida","Gurgaon",
-//   "Faridabad","Ghaziabad","Meerut","Agra","Varanasi","Prayagraj",
-//   "Gwalior","Jabalpur","Udaipur","Jodhpur","Amritsar","Ludhiana",
-//   "Dehradun","Shimla","Srinagar","Jammu","Thiruvananthapuram","Kochi",
-//   "Coimbatore","Madurai","Mysore","Mangalore","Visakhapatnam","Vijayawada",
-// ];
-
-// const ROLE_CFG = {
-//   ROLE_ADMIN:   { label: "Admin",   color: "#f43f5e", bg: "rgba(244,63,94,0.12)"  },
-//   ROLE_TRAINER: { label: "Trainer", color: "#3b82f6", bg: "rgba(59,130,246,0.12)" },
-//   ROLE_STUDENT: { label: "Student", color: "#8b5cf6", bg: "rgba(139,92,246,0.12)" },
-// };
-
-// const ROLE_TO_AUTH_ROLE = { ROLE_STUDENT: "STUDENT", ROLE_TRAINER: "TRAINER" };
-
-// // One entry per management column, in the exact order/colors of the reference design.
-// const CATS = [
-//   { id:"departments", label:"Departments", singular:"Department", icon:Building2,
-//     color:"#3b82f6", grad:["#3b82f6","#2563eb"], soft:"#eff6ff", softDark:"rgba(59,130,246,0.18)" },
-//   { id:"branches",    label:"Branches",    singular:"Branch",     icon:GitBranch,
-//     color:"#10b981", grad:["#10b981","#059669"], soft:"#ecfdf5", softDark:"rgba(16,185,129,0.18)" },
-//   { id:"batches",     label:"Batches",     singular:"Batch",      icon:Layers,
-//     color:"#f59e0b", grad:["#f59e0b","#d97706"], soft:"#fffbeb", softDark:"rgba(245,158,11,0.18)" },
-//   { id:"users",       label:"Users",       singular:"User",       icon:Users,
-//     color:"#8b5cf6", grad:["#8b5cf6","#7c3aed"], soft:"#f5f3ff", softDark:"rgba(139,92,246,0.18)" },
-// ];
-// const catById = (id) => CATS.find((c) => c.id === id);
-// const softBg  = (cat, isDark) => isDark ? cat.softDark : cat.soft;
-
-// /* ═══════════════════════════════════════════════════════════════════════════
-//    HOOKS
-// ═══════════════════════════════════════════════════════════════════════════ */
-// function useDarkMode() {
-//   const [isDark, setIsDark] = useState(
-//     () =>
-//       typeof document !== "undefined" &&
-//       (document.documentElement.classList.contains("dark") ||
-//         document.documentElement.getAttribute("data-theme") === "dark"),
-//   );
-//   useEffect(() => {
-//     const obs = new MutationObserver(() =>
-//       setIsDark(
-//         document.documentElement.classList.contains("dark") ||
-//           document.documentElement.getAttribute("data-theme") === "dark",
-//       ),
-//     );
-//     obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class","data-theme"] });
-//     return () => obs.disconnect();
-//   }, []);
-//   return isDark;
-// }
-
-// /* ═══════════════════════════════════════════════════════════════════════════
-//    GLOBAL CSS (injected once)
-// ═══════════════════════════════════════════════════════════════════════════ */
-// const GLOBAL_CSS = `
-// @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
-
-// @keyframes oo-fadeUp  { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
-// @keyframes oo-popIn   { from{opacity:0;transform:scale(0.97) translateY(-4px)} to{opacity:1;transform:scale(1) translateY(0)} }
-// @keyframes oo-shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-// @keyframes oo-spin    { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-// @keyframes oo-panelFadeIn { from{opacity:0; transform:translateX(8px);} to{opacity:1; transform:translateX(0);} }
-// @keyframes oo-collapseIn { from{opacity:0; transform:translateY(-4px);} to{opacity:1; transform:translateY(0);} }
-
-// .oo-fade     { animation: oo-fadeUp  0.38s ease both; }
-// .oo-pop      { animation: oo-popIn   0.18s ease both; }
-// .oo-spin-cls { animation: oo-spin    0.9s linear infinite; }
-// .oo-panel-content-anim { animation: oo-panelFadeIn 0.22s ease both; }
-// .oo-collapse-anim { animation: oo-collapseIn 0.18s ease both; }
-
-// .oo-shimmer-el {
-//   animation: oo-shimmer 1.5s infinite;
-//   background-image: linear-gradient(90deg,transparent 0%,rgba(148,163,184,0.14) 50%,transparent 100%);
-//   background-size: 200% 100%;
-// }
-
-// .oo-focusable:focus-visible { outline: 2.5px solid #3b82f6; outline-offset: 2px; border-radius: 8px; }
-
-// /* ── Buttons ── */
-// .oo-btn-primary {
-//   display:inline-flex; align-items:center; gap:6px;
-//   padding:9px 16px; border-radius:11px; border:none;
-//   background:linear-gradient(135deg,#2563eb,#4f46e5);
-//   color:#fff; font-size:12.5px; font-weight:700; cursor:pointer;
-//   font-family:'Poppins',sans-serif; white-space:nowrap;
-//   box-shadow:0 4px 16px rgba(37,99,235,0.3);
-//   transition:transform 0.15s ease, box-shadow 0.15s ease;
-// }
-// .oo-btn-primary:hover  { transform:translateY(-1px); box-shadow:0 8px 24px rgba(37,99,235,0.38); }
-// .oo-btn-primary:active { transform:translateY(0); }
-// .oo-btn-primary:disabled { opacity:0.65; cursor:not-allowed; transform:none; }
-
-// .oo-btn-solid {
-//   display:inline-flex; align-items:center; justify-content:center; gap:4px;
-//   height:24px; padding:0 9px; border-radius:7px; border:none;
-//   color:#fff; font-size:10px; font-weight:700; cursor:pointer;
-//   font-family:'Poppins',sans-serif; white-space:nowrap; line-height:1;
-//   transition:transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
-// }
-// .oo-btn-solid:hover { transform:translateY(-1px); filter:brightness(1.06); }
-// .oo-btn-solid:disabled {
-//   opacity:0.5; cursor:not-allowed; transform:none; filter:none;
-//   background:#94a3b8 !important; box-shadow:none !important;
-// }
-
-// .oo-btn-ghost {
-//   display:inline-flex; align-items:center; gap:6px;
-//   height:38px; padding:0 13px; border-radius:10px;
-//   border:1px solid #e2e8f0; background:#f8fafc; color:#64748b;
-//   font-size:12px; font-weight:600; cursor:pointer;
-//   font-family:'Poppins',sans-serif; white-space:nowrap;
-//   transition:background 0.14s, border-color 0.14s;
-// }
-// .oo-btn-ghost:hover { border-color:#cbd5e1; background:#fff; }
-
-// .oo-icon-btn {
-//   width:30px; height:30px; border-radius:9px;
-//   display:inline-flex; align-items:center; justify-content:center;
-//   cursor:pointer; transition:transform 0.13s, filter 0.13s;
-//   flex-shrink:0;
-// }
-// .oo-icon-btn:hover   { transform:translateY(-1px); filter:brightness(1.06); }
-// .oo-icon-btn:disabled{ cursor:not-allowed; opacity:0.55; transform:none; }
-
-// .oo-page-btn {
-//   width:24px; height:24px; border-radius:7px;
-//   display:inline-flex; align-items:center; justify-content:center;
-//   cursor:pointer; transition:background 0.12s ease;
-//   flex-shrink:0; background:transparent; border:none;
-// }
-// .oo-page-btn:disabled { opacity:0.35; cursor:not-allowed; }
-
-// /* ── Table rows ── */
-// .oo-tr { transition:background 0.12s ease; }
-
-// /* ── Menu item ── */
-// .oo-menu-item {
-//   display:flex; align-items:center; gap:10px;
-//   width:100%; padding:9px 13px; border-radius:9px;
-//   border:none; background:none; font-size:12.5px; font-weight:600;
-//   cursor:pointer; font-family:'Poppins',sans-serif; text-align:left;
-//   transition:background 0.12s ease;
-// }
-// .oo-menu-item:disabled {
-//   opacity:0.45; cursor:not-allowed;
-// }
-
-// /* ── Grid layouts ── */
-// .oo-quad-grid {
-//   display:grid;
-//   grid-template-columns:repeat(4,minmax(0,1fr));
-//   gap:12px;
-//   align-items:stretch;
-// }
-// @media(max-width:1100px){ .oo-quad-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; } }
-// @media(max-width:820px) { .oo-quad-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; } }
-// @media(max-width:600px) { .oo-quad-grid { grid-template-columns:1fr; gap:9px; } }
-// @media(max-width:430px) { .oo-quad-grid { grid-template-columns:1fr; } }
-
-// /* The side panel eats fixed pixel width regardless of viewport size, so when it's
-//    open the left grid needs fewer columns to avoid squeezed/overlapping card headers. */
-// @media(min-width:901px) {
-//   .oo-split-shell:has(.oo-split-right) .oo-quad-grid {
-//     grid-template-columns:repeat(2,minmax(0,1fr));
-//   }
-// }
-
-// .oo-col-stack {
-//   display:flex;
-//   flex-direction:column;
-//   min-width:0;
-//   height:100%;
-// }
-
-// /* ── Setup progress steps row ── */
-// .oo-setup-steps {
-//   display:flex;
-//   align-items:stretch;
-//   gap:0;
-// }
-// @media(max-width:900px){
-//   .oo-setup-row { flex-direction:column; }
-//   .oo-setup-steps { flex-direction:column; gap:8px; }
-//   .oo-setup-arrow { display:none; }
-// }
-
-// /* ── SPLIT-VIEW SHELL (side panel used for editing existing rows) ── */
-// .oo-split-shell {
-//   display:flex;
-//   align-items:stretch;
-//   width:100%;
-//   min-height:100vh;
-// }
-// .oo-split-left {
-//   flex:1 1 auto;
-//   min-width:0;
-//   overflow-y:auto;
-// }
-// .oo-split-divider {
-//   flex:0 0 auto;
-//   width:6px;
-//   cursor:col-resize;
-//   position:relative;
-//   display:flex;
-//   align-items:center;
-//   justify-content:center;
-//   touch-action:none;
-//   -webkit-user-select:none; user-select:none;
-//   background:transparent;
-//   z-index:5;
-// }
-// .oo-split-divider::before {
-//   content:""; position:absolute; top:0; left:50%; transform:translateX(-50%);
-//   width:1px; height:100%; background:var(--oo-divider-line); transition:background 0.15s ease, width 0.15s ease;
-// }
-// .oo-split-divider:hover::before,
-// .oo-split-divider.oo-dragging::before {
-//   width:2px; background:var(--oo-divider-line-hov);
-// }
-// .oo-split-grip {
-//   position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-//   width:18px; height:46px; border-radius:7px;
-//   display:flex; align-items:center; justify-content:center;
-//   background:var(--oo-divider-grip-bg);
-//   border:1px solid var(--oo-divider-grip-border);
-//   color:var(--oo-divider-grip-fg);
-//   opacity:0; transition:opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
-//   pointer-events:none;
-// }
-// .oo-split-divider:hover .oo-split-grip,
-// .oo-split-divider.oo-dragging .oo-split-grip {
-//   opacity:1;
-// }
-// .oo-split-divider.oo-dragging .oo-split-grip,
-// .oo-split-divider:hover .oo-split-grip {
-//   background:var(--oo-divider-line-hov); color:#fff; border-color:var(--oo-divider-line-hov);
-// }
-// .oo-split-right {
-//   flex:0 0 auto;
-//   height:100vh;
-//   position:sticky;
-//   top:0;
-//   display:flex;
-//   flex-direction:column;
-//   overflow:hidden;
-//   transition:width 0.18s cubic-bezier(0.4,0,0.2,1);
-// }
-// .oo-split-right.oo-resizing { transition:none; }
-// @media(max-width:900px){
-//   .oo-split-shell { flex-direction:column; }
-//   .oo-split-divider { display:none; }
-//   .oo-split-right {
-//     width:100% !important;
-//     height:auto;
-//     position:relative;
-//     border-top:1px solid var(--oo-divider-line);
-//     max-height:80vh;
-//   }
-// }
-
-// /* ── Reduced motion ── */
-// @media(prefers-reduced-motion:reduce){
-//   .oo-fade,.oo-pop,.oo-spin-cls,.oo-shimmer-el,.oo-panel-content-anim,.oo-collapse-anim{animation:none!important;}
-//   .oo-btn-primary,.oo-btn-ghost,.oo-icon-btn,.oo-split-right{transition:none!important;}
-// }
-// `;
-
-// function InjectStyles() {
-//   useEffect(() => {
-//     const id = "oo-global-styles";
-//     let el = document.getElementById(id);
-//     if (!el) {
-//       el = document.createElement("style");
-//       el.id = id;
-//       document.head.appendChild(el);
-//     }
-//     el.textContent = GLOBAL_CSS;
-//   }, []);
-//   return null;
-// }
-
-// /* ═══════════════════════════════════════════════════════════════════════════
-//    SPLIT-VIEW SHELL — used for BOTH the Add form and the Edit side panel
-// ═══════════════════════════════════════════════════════════════════════════ */
-// const PANEL_DEFAULT_WIDTH = 420;
-// const PANEL_MIN_WIDTH = 360;
-// const PANEL_MAX_WIDTH = 650;
-
-// function SplitShell({ t, isDark, panelOpen, children, panelContent }) {
-//   const [width, setWidth] = useState(PANEL_DEFAULT_WIDTH);
-//   const [isResizing, setIsResizing] = useState(false);
-//   const dragState = useRef(null);
-
-//   const clampWidth = useCallback((w) => {
-//     const viewportMax = typeof window !== "undefined" ? window.innerWidth - 280 : PANEL_MAX_WIDTH;
-//     return Math.min(Math.max(w, PANEL_MIN_WIDTH), Math.min(PANEL_MAX_WIDTH, viewportMax));
-//   }, []);
-
-//   const handlePointerMove = useCallback((e) => {
-//     if (!dragState.current) return;
-//     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-//     const delta = dragState.current.startX - clientX;
-//     setWidth(clampWidth(dragState.current.startWidth + delta));
-//     e.preventDefault?.();
-//   }, [clampWidth]);
-
-//   const handlePointerUp = useCallback(() => {
-//     dragState.current = null;
-//     setIsResizing(false);
-//     document.body.style.cursor = "";
-//     document.removeEventListener("mousemove", handlePointerMove);
-//     document.removeEventListener("mouseup", handlePointerUp);
-//     document.removeEventListener("touchmove", handlePointerMove);
-//     document.removeEventListener("touchend", handlePointerUp);
-//   }, [handlePointerMove]);
-
-//   const handlePointerDown = useCallback((e) => {
-//     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-//     dragState.current = { startX: clientX, startWidth: width };
-//     setIsResizing(true);
-//     document.body.style.cursor = "col-resize";
-//     document.addEventListener("mousemove", handlePointerMove);
-//     document.addEventListener("mouseup", handlePointerUp);
-//     document.addEventListener("touchmove", handlePointerMove, { passive: false });
-//     document.addEventListener("touchend", handlePointerUp);
-//     e.preventDefault();
-//   }, [handlePointerMove, handlePointerUp, width]);
-
-//   const handleDoubleClick = () => setWidth(PANEL_DEFAULT_WIDTH);
-
-//   const cssVars = {
-//     "--oo-divider-line": isDark ? "rgba(255,255,255,0.10)" : "#e2e8f0",
-//     "--oo-divider-line-hov": "#3b82f6",
-//     "--oo-divider-grip-bg": isDark ? "rgba(255,255,255,0.08)" : "#ffffff",
-//     "--oo-divider-grip-border": t.border,
-//     "--oo-divider-grip-fg": t.textMuted,
-//   };
-
-//   return (
-//     <div className="oo-split-shell" style={cssVars}>
-//       <div className="oo-split-left">{children}</div>
-
-//       {panelOpen && (
-//         <>
-//           <div
-//             className={`oo-split-divider ${isResizing ? "oo-dragging" : ""}`}
-//             onMouseDown={handlePointerDown}
-//             onTouchStart={handlePointerDown}
-//             onDoubleClick={handleDoubleClick}
-//             title="Drag to resize · double-click to reset"
-//             role="separator"
-//             aria-orientation="vertical"
-//           >
-//             <div className="oo-split-grip"><GripVertical size={12} /></div>
-//           </div>
-
-//           <div
-//             className={`oo-split-right ${isResizing ? "oo-resizing" : ""}`}
-//             style={{ width, background: t.panelBg, borderLeft: `1px solid ${t.border}` }}
-//           >
-//             {panelContent}
-//           </div>
-//         </>
-//       )}
-//     </div>
-//   );
-// }
-
-// function SidePanelFrame({ t, title, subtitle, onClose, children }) {
-//   return (
-//     <div className="oo-panel-content-anim" style={{ display:"flex", flexDirection:"column", height:"100%" }}>
-//       <div style={{
-//         padding:"18px 20px", borderBottom:`1px solid ${t.border}`,
-//         display:"flex", alignItems:"flex-start", justifyContent:"space-between",
-//         flexShrink:0, background:t.theadBg,
-//       }}>
-//         <div style={{ minWidth:0 }}>
-//           <p style={{ fontSize:15, fontWeight:600, color:t.text, margin:0, fontFamily:"'Poppins',sans-serif" }}>{title}</p>
-//           {subtitle && <p style={{ fontSize:12, color:t.textMuted, margin:"4px 0 0" }}>{subtitle}</p>}
-//         </div>
-//         <button onClick={onClose} className="oo-icon-btn" style={{ border:`1px solid ${t.border}`, background:t.actBg, color:t.textSub, marginLeft:12 }} aria-label="Close">
-//           <X size={15} />
-//         </button>
-//       </div>
-//       <div style={{ flex:1, padding:"20px 22px", overflowY:"auto" }}>{children}</div>
-//     </div>
-//   );
-// }
-
-// /* ═══════════════════════════════════════════════════════════════════════════
-//    SHARED PRIMITIVES
-// ═══════════════════════════════════════════════════════════════════════════ */
-// function Skeleton({ t, rows = 4 }) {
-//   return (
-//     <div style={{ padding:"4px 0" }}>
-//       {Array.from({ length: rows }).map((_, i) => (
-//         <div key={i} className="oo-shimmer-el" style={{ height:32, borderRadius:9, background:t.skeletonBg, marginBottom:7 }} />
-//       ))}
-//     </div>
-//   );
-// }
-
-// function EmptyState({ t, icon: Icon, title, desc, onAdd, addLabel, addDisabled, addDisabledReason }) {
-//   return (
-//     <div style={{
-//       display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
-//       padding:"22px 12px", textAlign:"center", border:`1.5px dashed ${t.emptyBorder}`,
-//       borderRadius:14, background:t.emptyBg, gap:9, height:"100%", boxSizing:"border-box",
-//     }}>
-//       <div style={{
-//         width:38, height:38, borderRadius:"50%",
-//         background:t.emptyBg, border:`1px solid ${t.emptyBorder}`,
-//         display:"flex", alignItems:"center", justifyContent:"center",
-//       }}>
-//         <Icon size={16} color={t.emptyIcon} />
-//       </div>
-//       <p style={{ fontWeight:700, fontSize:12.5, color:t.text, margin:0 }}>{title}</p>
-//       {desc && <p style={{ fontSize:11, color:t.textMuted, margin:0, lineHeight:1.5 }}>{desc}</p>}
-//       {onAdd && (
-//         <button
-//           onClick={onAdd}
-//           disabled={addDisabled}
-//           title={addDisabled ? addDisabledReason : undefined}
-//           className="oo-btn-primary"
-//           style={{ marginTop:4, fontSize:11, padding:"7px 14px" }}
-//         >
-//           {addDisabled ? <Lock size={12} /> : <Plus size={12} />} {addLabel}
-//         </button>
-//       )}
-//       {addDisabled && addDisabledReason && (
-//         <p style={{ fontSize:10, color:t.textMuted, margin:0, fontStyle:"italic" }}>{addDisabledReason}</p>
-//       )}
-//     </div>
-//   );
-// }
-
-// /* Compact table used inside each management column */
-// function MiniDataTable({ t, columns, rows, loading, emptyState }) {
-//   if (loading) return <Skeleton t={t} />;
-//   if (!rows.length) return emptyState;
-//   return (
-//     <div style={{ overflowX:"auto", borderRadius:10, border:`1px solid ${t.border}` }}>
-//       <table style={{ width:"100%", borderCollapse:"collapse" }}>
-//         <thead>
-//           <tr style={{ background:t.theadBg }}>
-//             {columns.map((col) => (
-//               <th key={col.key} style={{
-//                 padding:"7px 9px", textAlign:col.align||"left",
-//                 fontSize:8.5, fontWeight:700, letterSpacing:"0.08em",
-//                 textTransform:"uppercase", color:t.textMuted,
-//                 borderBottom:`1px solid ${t.border}`, whiteSpace:"nowrap",
-//                 fontFamily:"'Poppins',sans-serif",
-//               }}>
-//                 {col.label}
-//               </th>
-//             ))}
-//           </tr>
-//         </thead>
-//         <tbody>
-//           {rows.map((row, ri) => (
-//             <tr key={ri} className="oo-tr" style={{ borderBottom: ri === rows.length - 1 ? "none" : `1px solid ${t.border}` }}
-//               onMouseEnter={(e) => e.currentTarget.style.background = t.rowHov}
-//               onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-//             >
-//               {columns.map((col) => (
-//                 <td key={col.key} style={{
-//                   padding:"7px 9px", fontSize:11.5, color:t.text,
-//                   verticalAlign:"middle", textAlign:col.align||"left",
-//                   fontFamily:"'Poppins',sans-serif", ...(col.style||{}),
-//                 }}>
-//                   {col.render ? col.render(row, ri) : row[col.key]}
-//                 </td>
-//               ))}
-//             </tr>
-//           ))}
-//         </tbody>
-//       </table>
-//     </div>
-//   );
-// }
-
-// /* "Showing N of M" footer + prev/next */
-// function MiniPagination({ t, page, totalPages, onPrev, onNext }) {
-//   return (
-//     <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:9 }}>
-//       <span style={{ fontSize:10.5, color:t.textMuted, fontFamily:"'Poppins',sans-serif" }}>
-//         Showing {page} of {Math.max(totalPages,1)}
-//       </span>
-//       <div style={{ display:"flex", alignItems:"center", gap:4 }}>
-//         <button onClick={onPrev} disabled={page<=1} className="oo-page-btn" style={{ border:`1px solid ${t.border}`, color:t.textSub }}>
-//           <ChevronLeft size={12} />
-//         </button>
-//         <span style={{
-//           width:22, height:22, borderRadius:6, display:"flex", alignItems:"center", justifyContent:"center",
-//           fontSize:10.5, fontWeight:700, color:t.text, background:t.pillBg,
-//         }}>
-//           {page}
-//         </span>
-//         <button onClick={onNext} disabled={page>=totalPages} className="oo-page-btn" style={{ border:`1px solid ${t.border}`, color:t.textSub }}>
-//           <ChevronRight size={12} />
-//         </button>
-//       </div>
-//     </div>
-//   );
-// }
-
-// function FormField({ t, label, children }) {
-//   return (
-//     <div style={{ marginBottom:16 }}>
-//       <label style={{
-//         display:"block", fontSize:10, fontWeight:700, letterSpacing:"0.1em",
-//         textTransform:"uppercase", color:t.textMuted, marginBottom:7,
-//         fontFamily:"'Poppins',sans-serif",
-//       }}>
-//         {label}
-//       </label>
-//       {children}
-//     </div>
-//   );
-// }
-
-// function OOInput({ t, ...props }) {
-//   return (
-//     <input
-//       {...props}
-//       className={`oo-focusable ${props.className||""}`}
-//       style={{
-//         width:"100%", height:42, borderRadius:10, border:`1.5px solid ${t.inputBorder}`,
-//         background:t.inputBg, color:t.inputText, fontSize:13, fontFamily:"'Poppins',sans-serif",
-//         padding:"0 13px", outline:"none", boxSizing:"border-box",
-//         transition:"border-color 0.14s",
-//         ...(props.style||{}),
-//       }}
-//     />
-//   );
-// }
-
-// function OOSelect({ t, children, ...props }) {
-//   return (
-//     <select
-//       {...props}
-//       className="oo-focusable"
-//       style={{
-//         width:"100%", height:42, borderRadius:10, border:`1.5px solid ${t.inputBorder}`,
-//         background:t.inputBg, color:t.inputText, fontSize:13, fontFamily:"'Poppins',sans-serif",
-//         padding:"0 13px", outline:"none", boxSizing:"border-box", cursor:"pointer",
-//         transition:"border-color 0.14s",
-//         ...(props.style||{}),
-//       }}
-//     >
-//       {children}
-//     </select>
-//   );
-// }
-
-// function SaveBtn({ saving, label, onClick, gradient }) {
-//   return (
-//     <button
-//       onClick={onClick} disabled={saving}
-//       className="oo-btn-primary"
-//       style={{
-//         width:"100%", justifyContent:"center", padding:"12px 0", fontSize:13, marginTop:20,
-//         background: gradient || undefined,
-//       }}
-//     >
-//       {saving ? <><Loader2 size={15} className="oo-spin-cls" /> Saving…</> : <><ChevronRight size={15} /> {label}</>}
-//     </button>
-//   );
-// }
-
-// function ErrorBanner({ message }) {
-//   if (!message) return null;
-//   return (
-//     <div style={{
-//       display:"flex", alignItems:"center", gap:9, padding:"10px 14px",
-//       borderRadius:11, background:"rgba(244,63,94,0.06)", border:"1px solid rgba(244,63,94,0.2)",
-//       marginBottom:6, marginTop:4,
-//     }}>
-//       <AlertCircle size={14} color="#f43f5e" style={{ flexShrink:0 }} />
-//       <span style={{ fontSize:12, color:"#f43f5e", fontFamily:"'Poppins',sans-serif" }}>{message}</span>
-//     </div>
-//   );
-// }
-
-// function LimitErrorBanner({ t, message, onDismiss }) {
-//   if (!message) return null;
-//   return (
-//     <div style={{
-//       display:"flex", alignItems:"flex-start", gap:10, padding:"14px 16px",
-//       borderRadius:14, background:"rgba(244,63,94,0.08)",
-//       border:"1.5px solid rgba(244,63,94,0.28)", marginBottom:14,
-//     }}>
-//       <AlertCircle size={18} color="#f43f5e" style={{ flexShrink:0, marginTop:1 }} />
-//       <div style={{ flex:1 }}>
-//         <p style={{ fontSize:13, fontWeight:800, color:"#f43f5e", margin:"0 0 4px", fontFamily:"'Poppins',sans-serif" }}>
-//           Plan Limit Reached
-//         </p>
-//         <p style={{ fontSize:12, color:t.textSub, margin:0, lineHeight:1.6 }}>
-//           {message}. Please contact your Super Admin to upgrade your plan.
-//         </p>
-//       </div>
-//       <button onClick={onDismiss} className="oo-icon-btn" style={{ width:24, height:24, background:"transparent", color:"#f43f5e" }}>
-//         <X size={13} />
-//       </button>
-//     </div>
-//   );
-// }
-
-// /* ═══════════════════════════════════════════════════════════════════════════
-//    PANEL / INLINE FORMS — logic unchanged from the previous implementation
-// ═══════════════════════════════════════════════════════════════════════════ */
-// function DepartmentForm({ t, mode, initial, onSubmitted }) {
-//   const [form, setForm] = useState(initial || { name:"", head:"" });
-//   const [saving, setSaving] = useState(false);
-//   const [formError, setFormError] = useState("");
-//   const [limitError, setLimitError] = useState(null);
-//   const [customOptions, setCustomOptions] = useState([]);
-//   const allOptions = [...DEPARTMENT_OPTIONS, ...customOptions];
-
-//   useEffect(() => { setForm(initial || { name:"", head:"" }); setFormError(""); setLimitError(null); }, [initial, mode]);
-
-//   const getOrgId = useCallback(() => {
-//     try {
-//       const token = localStorage.getItem("lms_token");
-//       if (!token) return null;
-//       const payload = JSON.parse(atob(token.split(".")[1]));
-//       return payload.organizationId || payload.orgId || null;
-//     } catch { return null; }
-//   }, []);
-
-//   const handleSave = async () => {
-//     if (!form.name.trim()) { setFormError("Department name is required."); return; }
-//     if (!form.head.trim()) { setFormError("Department head is required."); return; }
-//     setFormError(""); setLimitError(null);
-//     try {
-//       setSaving(true);
-//       if (mode === "create") {
-//         const res = await createDepartment({ name:form.name.trim(), head:form.head.trim(), organizationId:getOrgId() });
-//         onSubmitted(res.data, "create");
-//       } else {
-//         const res = await updateDepartment(initial.id, { name:form.name.trim(), head:form.head.trim() });
-//         onSubmitted(res.data, "edit");
-//       }
-//     } catch (err) {
-//       const msg = err?.response?.data?.message || err?.response?.data || "Something went wrong.";
-//       const text = typeof msg === "string" ? msg : "Something went wrong.";
-//       if (text.toLowerCase().includes("limit") || text.toLowerCase().includes("max")) setLimitError(text);
-//       else setFormError(text);
-//     } finally { setSaving(false); }
-//   };
-
-//   return (
-//     <>
-//       <LimitErrorBanner t={t} message={limitError} onDismiss={() => setLimitError(null)} />
-//       <FormField t={t} label="Department Name *">
-//         <OOSelect t={t} value={form.name} onChange={(e) => setForm((f) => ({ ...f, name:e.target.value }))} style={{ color:form.name ? t.inputText : t.textMuted }}>
-//           <option value="">Select department…</option>
-//           {allOptions.map((o) => <option key={o} value={o}>{o}</option>)}
-//           <option value="__custom__">+ Add custom…</option>
-//         </OOSelect>
-//       </FormField>
-//       {form.name === "__custom__" && (
-//         <FormField t={t} label="Custom Name">
-//           <OOInput t={t} placeholder="Enter department name" onChange={(e) => {
-//             setCustomOptions((p) => [...p.filter((x) => x !== e.target.value), e.target.value]);
-//             setForm((f) => ({ ...f, name:e.target.value }));
-//           }} />
-//         </FormField>
-//       )}
-//       <FormField t={t} label="Department Head *">
-//         <OOInput t={t} value={form.head} onChange={(e) => setForm((f) => ({ ...f, head:e.target.value }))} placeholder="e.g. Dr. Rahul Sharma" />
-//       </FormField>
-//       <ErrorBanner message={formError} />
-//       <SaveBtn saving={saving} label={mode==="create" ? "Add Department" : "Save Changes"} onClick={handleSave}
-//         gradient="linear-gradient(135deg,#3b82f6,#2563eb)" />
-//     </>
-//   );
-// }
-
-// function BranchForm({ t, mode, initial, departments, onSubmitted }) {
-//   const [form, setForm] = useState(initial || { name:"", city:"", departmentId:"" });
-//   const [saving, setSaving] = useState(false);
-//   const [saveError, setSaveError] = useState("");
-//   const [limitError, setLimitError] = useState(null);
-
-//   useEffect(() => { setForm(initial || { name:"", city:"", departmentId:"" }); setSaveError(""); setLimitError(null); }, [initial, mode]);
-
-//   const handleSave = async () => {
-//     if (!form.name.trim() || !form.city.trim()) { setSaveError("Name and city are required."); return; }
-//     setSaveError(""); setLimitError(null);
-//     try {
-//       setSaving(true);
-//       const res = mode === "edit" ? await updateBranch(initial.id, form) : await createBranch(form);
-//       onSubmitted(res?.data, mode);
-//     } catch (e) {
-//       const msg = e?.response?.data?.message || e?.response?.data || "Something went wrong.";
-//       const text = typeof msg === "string" ? msg : "Something went wrong.";
-//       if (text.toLowerCase().includes("limit") || text.toLowerCase().includes("max")) setLimitError(text);
-//       else setSaveError(text);
-//     } finally { setSaving(false); }
-//   };
-
-//   return (
-//     <>
-//       <LimitErrorBanner t={t} message={limitError} onDismiss={() => setLimitError(null)} />
-//       <FormField t={t} label="Branch Name *">
-//         <OOInput t={t} value={form.name} onChange={(e) => setForm((f) => ({ ...f, name:e.target.value }))} placeholder="e.g. Patna Main Campus" />
-//       </FormField>
-//       <FormField t={t} label="City *">
-//         <OOSelect t={t} value={form.city} onChange={(e) => setForm((f) => ({ ...f, city:e.target.value }))}>
-//           <option value="">Select city…</option>
-//           {CITY_OPTIONS.map((c) => <option key={c} value={c}>{c}</option>)}
-//         </OOSelect>
-//       </FormField>
-//       <FormField t={t} label="Department">
-//         <OOSelect t={t} value={form.departmentId} onChange={(e) => setForm((f) => ({ ...f, departmentId:e.target.value }))}>
-//           <option value="">Select department…</option>
-//           {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-//         </OOSelect>
-//       </FormField>
-//       <ErrorBanner message={saveError} />
-//       <SaveBtn saving={saving} label={mode==="edit" ? "Save Changes" : "Add Branch"} onClick={handleSave}
-//         gradient="linear-gradient(135deg,#10b981,#059669)" />
-//     </>
-//   );
-// }
-
-// function BatchForm({ t, branches, onSubmitted }) {
-//   const [form, setForm] = useState({ batchName:"", branchId:"" });
-//   const [saving, setSaving] = useState(false);
-//   const [formError, setFormError] = useState("");
-//   const [limitError, setLimitError] = useState(null);
-
-//   const handleSave = async () => {
-//     if (!form.batchName.trim()) { setFormError("Batch name is required."); return; }
-//     if (!form.branchId) { setFormError("Please select a branch."); return; }
-//     setFormError(""); setLimitError(null);
-//     try {
-//       setSaving(true);
-//       const res = await createBatch({ batchName: form.batchName.trim(), branchId: form.branchId });
-//       onSubmitted(res?.data);
-//     } catch (err) {
-//       const msg = err?.response?.data?.message || err?.response?.data || "Something went wrong.";
-//       const text = typeof msg === "string" ? msg : "Something went wrong.";
-//       if (text.toLowerCase().includes("limit") || text.toLowerCase().includes("max")) setLimitError(text);
-//       else setFormError(text);
-//     } finally { setSaving(false); }
-//   };
-
-//   return (
-//     <>
-//       <LimitErrorBanner t={t} message={limitError} onDismiss={() => setLimitError(null)} />
-//       <FormField t={t} label="Batch Name *">
-//         <OOInput t={t} value={form.batchName} onChange={(e) => setForm((f) => ({ ...f, batchName:e.target.value }))} placeholder="Enter batch name" />
-//       </FormField>
-//       <FormField t={t} label="Branch *">
-//         <OOSelect t={t} value={form.branchId} onChange={(e) => setForm((f) => ({ ...f, branchId:e.target.value }))}>
-//           <option value="">Select branch…</option>
-//           {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-//         </OOSelect>
-//       </FormField>
-//       <ErrorBanner message={formError} />
-//       <SaveBtn saving={saving} label="Add Batch" onClick={handleSave}
-//         gradient="linear-gradient(135deg,#f59e0b,#d97706)" />
-//     </>
-//   );
-// }
-
-// function UserForm({ t, mode, initial, loggedInUser, onSubmitted }) {
-//   const [formData, setFormData] = useState(initial || { displayName:"", email:"", password:"", roles:"ROLE_STUDENT" });
-//   const [showPassword, setShowPassword] = useState(false);
-//   const [formError, setFormError] = useState("");
-//   const [limitError, setLimitError] = useState(null);
-//   const [saving, setSaving] = useState(false);
-
-//   useEffect(() => {
-//     setFormData(initial || { displayName:"", email:"", password:"", roles:"ROLE_STUDENT" });
-//     setFormError(""); setLimitError(null); setShowPassword(false);
-//   }, [initial, mode]);
-
-//   const getPasswordStrength = (pw) => {
-//     if (!pw) return { score:0, label:"", color:"" };
-//     let score = 0;
-//     if (pw.length>=8) score++; if (pw.length>=12) score++;
-//     if (/[A-Z]/.test(pw)) score++; if (/[a-z]/.test(pw)) score++;
-//     if (/[0-9]/.test(pw)) score++; if (/[^A-Za-z0-9]/.test(pw)) score++;
-//     if (score<=2) return { score, label:"Weak",   color:"#f43f5e" };
-//     if (score<=4) return { score, label:"Fair",   color:"#f59e0b" };
-//     if (score===5) return { score, label:"Good",  color:"#3b82f6" };
-//     return { score, label:"Strong", color:"#10b981" };
-//   };
-//   const pwStr = getPasswordStrength(formData.password);
-
-//   const handleSave = async (e) => {
-//     e?.preventDefault?.();
-//     if (!formData.displayName.trim() || !formData.email.trim()) { setFormError("Name and email are required."); return; }
-//     setFormError(""); setLimitError(null);
-//     try {
-//       setSaving(true);
-//       if (mode === "edit") {
-//         const authService = (await import("../services/authService")).default;
-//         await authService.adminUpdateUserByEmail(initial.email, { name:formData.displayName, email:formData.email, role:ROLE_TO_AUTH_ROLE[formData.roles] });
-//         const res = await userService.updateUser(initial.id, { displayName:formData.displayName });
-//         onSubmitted(res.data, "edit");
-//         if (loggedInUser && loggedInUser.email===initial.email && loggedInUser.roles!==formData.roles) {
-//           alert("Your role has been changed. Please login again."); localStorage.clear(); window.location.href="/login"; return;
-//         }
-//       } else {
-//         const currentUser = JSON.parse(localStorage.getItem("lms_user") || "null");
-//         const orgId = currentUser?.organizationId || null;
-//         await userService.createAuthUser({ email:formData.email, password:formData.password, displayName:formData.displayName, roles:formData.roles, organizationId:orgId });
-//         onSubmitted(null, "create");
-//       }
-//     } catch (err) {
-//       const msg = err?.response?.data?.message || err?.response?.data || "Something went wrong.";
-//       const text = typeof msg === "string" ? msg : "Something went wrong.";
-//       if (text.toLowerCase().includes("limit")||text.toLowerCase().includes("max")) setLimitError(text);
-//       else setFormError(text);
-//     } finally { setSaving(false); }
-//   };
-
-//   return (
-//     <>
-//       <LimitErrorBanner t={t} message={limitError} onDismiss={() => setLimitError(null)} />
-//       <FormField t={t} label="Full Name *">
-//         <OOInput t={t} value={formData.displayName} onChange={(e) => setFormData((f) => ({ ...f, displayName:e.target.value }))} placeholder="e.g. Rahul Sharma" />
-//       </FormField>
-//       <FormField t={t} label="Email *">
-//         <OOInput t={t} type="email" value={formData.email} onChange={(e) => setFormData((f) => ({ ...f, email:e.target.value }))} placeholder="user@email.com" />
-//       </FormField>
-//       {mode !== "edit" && (
-//         <FormField t={t} label="Password *">
-//           <div style={{ position:"relative" }}>
-//             <OOInput t={t} type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => setFormData((f) => ({ ...f, password:e.target.value }))} placeholder="Enter password" style={{ paddingRight:44 }} />
-//             <button onClick={() => setShowPassword((p) => !p)} type="button" style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:t.textMuted, display:"flex" }}>
-//               {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-//             </button>
-//           </div>
-//           {formData.password && (
-//             <div style={{ marginTop:8 }}>
-//               <div style={{ display:"flex", gap:4, marginBottom:4 }}>
-//                 {[1,2,3,4,5,6].map((i) => (
-//                   <div key={i} style={{ flex:1, height:3, borderRadius:2, background: i<=pwStr.score ? pwStr.color : t.border, transition:"background 0.2s" }} />
-//                 ))}
-//               </div>
-//               <span style={{ fontSize:10, color:pwStr.color, fontWeight:700 }}>{pwStr.label}</span>
-//             </div>
-//           )}
-//         </FormField>
-//       )}
-//       <FormField t={t} label="Role">
-//         <OOSelect t={t} value={formData.roles} onChange={(e) => setFormData((f) => ({ ...f, roles:e.target.value }))}>
-//           <option value="ROLE_STUDENT">Student</option>
-//           <option value="ROLE_TRAINER">Trainer</option>
-//         </OOSelect>
-//       </FormField>
-//       <ErrorBanner message={formError} />
-//       <SaveBtn saving={saving} label={mode==="edit" ? "Save Changes" : "Add User"} onClick={handleSave}
-//         gradient="linear-gradient(135deg,#8b5cf6,#7c3aed)" />
-//     </>
-//   );
-// }
-
-// /* ═══════════════════════════════════════════════════════════════════════════
-//    MANAGEMENT COLUMN — header + filter + search + table + pagination
-// ═══════════════════════════════════════════════════════════════════════════ */
-// function ManagementColumn({ t, isDark, cat, items, count, loading, departments, branches, onAdd, addDisabled, addDisabledReason }) {
-//   const Icon = cat.icon;
-//   const PAGE_SIZE = 5;
-
-//   const [search, setSearch] = useState("");
-//   const [filterVal, setFilterVal] = useState("");
-//   const [page, setPage] = useState(1);
-
-//   useEffect(() => { setPage(1); }, [search, filterVal, items.length]);
-
-//   const filtered = useMemo(() => {
-//     const s = search.toLowerCase();
-//     return items.filter((it) => {
-//       let matchesSearch = true;
-//       let matchesFilter = true;
-//       if (cat.id === "departments") {
-//         matchesSearch = !s || it.name?.toLowerCase().includes(s);
-//       } else if (cat.id === "branches") {
-//         matchesSearch = !s || it.name?.toLowerCase().includes(s) || it.city?.toLowerCase().includes(s);
-//         matchesFilter = !filterVal || String(it.departmentId) === String(filterVal);
-//       } else if (cat.id === "batches") {
-//         matchesSearch = !s || it.batchName?.toLowerCase().includes(s);
-//         matchesFilter = !filterVal || String(it.branchId) === String(filterVal);
-//       } else {
-//         matchesSearch = !s || it.displayName?.toLowerCase().includes(s) || it.email?.toLowerCase().includes(s);
-//         matchesFilter = !filterVal || it.roles === filterVal;
-//       }
-//       return matchesSearch && matchesFilter;
-//     });
-//   }, [items, search, filterVal, cat.id]);
-
-//   const totalPages = Math.max(Math.ceil(filtered.length / PAGE_SIZE), 1);
-//   const pageRows = filtered.slice((page-1)*PAGE_SIZE, page*PAGE_SIZE);
-
-//   const columns = useMemo(() => {
-//     if (cat.id === "departments") {
-//       return [
-//         { key:"#", label:"#", style:{ width:26 }, render:(_,i) => <span style={{ fontSize:10.5, color:t.textMuted, fontWeight:600 }}>{(page-1)*PAGE_SIZE+i+1}</span> },
-//         { key:"name", label:"Department Name", render:(row) => {
-//           const [c1,c2] = gradColor(row.name);
-//           return (
-//             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-//               <div style={{ width:22, height:22, borderRadius:7, background:`linear-gradient(135deg,${c1},${c2})`, display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:700, fontSize:10, flexShrink:0 }}>
-//                 {row.name?.[0]?.toUpperCase()}
-//               </div>
-//               <span style={{ fontWeight:600, color:t.text, fontSize:11.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{row.name}</span>
-//             </div>
-//           );
-//         }},
-//         { key:"actions", label:"Actions", align:"right", render:(row) => (
-//           <div style={{ display:"flex", gap:4, justifyContent:"flex-end" }}>
-//             <button onClick={row.__onEdit} className="oo-icon-btn" style={{ width:22, height:22, border:`1px solid ${t.border}`, background:t.actBg, color:t.textSub }}><Pencil size={10} /></button>
-//             <button onClick={row.__onDelete} className="oo-icon-btn" style={{ width:22, height:22, border:"1px solid rgba(244,63,94,0.24)", background:"rgba(244,63,94,0.08)", color:"#f43f5e" }}><Trash2 size={10} /></button>
-//           </div>
-//         )},
-//       ];
-//     }
-//     if (cat.id === "branches") {
-//       return [
-//         { key:"#", label:"#", style:{ width:26 }, render:(_,i) => <span style={{ fontSize:10.5, color:t.textMuted, fontWeight:600 }}>{(page-1)*PAGE_SIZE+i+1}</span> },
-//         { key:"name", label:"Branch Name", render:(row) => {
-//           const [c1,c2] = gradColor(row.name);
-//           return (
-//             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-//               <div style={{ width:22, height:22, borderRadius:7, background:`linear-gradient(135deg,${c1},${c2})`, display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", flexShrink:0 }}>
-//                 <GitBranch size={10} />
-//               </div>
-//               <span style={{ fontWeight:600, color:t.text, fontSize:11.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{row.name}</span>
-//             </div>
-//           );
-//         }},
-//         { key:"city", label:"City", render:(row) => <span style={{ fontSize:11, color:t.textSub }}>{row.city||"—"}</span> },
-//         { key:"actions", label:"Actions", align:"right", render:(row) => (
-//           <div style={{ display:"flex", gap:4, justifyContent:"flex-end" }}>
-//             <button onClick={row.__onEdit} className="oo-icon-btn" style={{ width:22, height:22, border:`1px solid ${t.border}`, background:t.actBg, color:t.textSub }}><Pencil size={10} /></button>
-//             <button onClick={row.__onDelete} className="oo-icon-btn" style={{ width:22, height:22, border:"1px solid rgba(244,63,94,0.24)", background:"rgba(244,63,94,0.08)", color:"#f43f5e" }}><Trash2 size={10} /></button>
-//           </div>
-//         )},
-//       ];
-//     }
-//     if (cat.id === "batches") {
-//       return [
-//         { key:"#", label:"#", style:{ width:26 }, render:(_,i) => <span style={{ fontSize:10.5, color:t.textMuted, fontWeight:600 }}>{(page-1)*PAGE_SIZE+i+1}</span> },
-//         { key:"batchName", label:"Batch Name", render:(row) => {
-//           const [c1,c2] = gradColor(row.batchName);
-//           return (
-//             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-//               <div style={{ width:22, height:22, borderRadius:7, background:`linear-gradient(135deg,${c1},${c2})`, display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", flexShrink:0 }}>
-//                 <Layers size={10} />
-//               </div>
-//               <span style={{ fontWeight:600, color:t.text, fontSize:11.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{row.batchName}</span>
-//             </div>
-//           );
-//         }},
-//         { key:"actions", label:"Actions", align:"right", render:(row) => (
-//           <div style={{ display:"flex", gap:4, justifyContent:"flex-end" }}>
-//             <button onClick={row.__onEdit} className="oo-icon-btn" style={{ width:22, height:22, border:`1px solid ${t.border}`, background:t.actBg, color:t.textSub }}><Pencil size={10} /></button>
-//             <button onClick={row.__onDelete} className="oo-icon-btn" style={{ width:22, height:22, border:"1px solid rgba(244,63,94,0.24)", background:"rgba(244,63,94,0.08)", color:"#f43f5e" }}><Trash2 size={10} /></button>
-//           </div>
-//         )},
-//       ];
-//     }
-//     return [
-//       { key:"#", label:"#", style:{ width:26 }, render:(_,i) => <span style={{ fontSize:10.5, color:t.textMuted, fontWeight:600 }}>{(page-1)*PAGE_SIZE+i+1}</span> },
-//       { key:"displayName", label:"User Name", render:(row) => {
-//         const [c1,c2] = gradColor(row.displayName||row.email);
-//         const initials = (row.displayName||row.email||"U").split(" ").map((w)=>w[0]).join("").slice(0,2).toUpperCase();
-//         return (
-//           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-//             <div style={{ width:22, height:22, borderRadius:7, background:`linear-gradient(135deg,${c1},${c2})`, display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:700, fontSize:9, flexShrink:0 }}>
-//               {initials}
-//             </div>
-//             <span style={{ fontWeight:600, color:t.text, fontSize:11.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{row.displayName||row.email}</span>
-//           </div>
-//         );
-//       }},
-//       { key:"roles", label:"Role", render:(row) => {
-//         const cfg = ROLE_CFG[row.roles] || { label:row.roles||"—", color:"#94a3b8", bg:"rgba(148,163,184,0.12)" };
-//         return <span style={{ padding:"2px 8px", borderRadius:999, fontSize:9.5, fontWeight:700, background:cfg.bg, color:cfg.color }}>{cfg.label}</span>;
-//       }},
-//       { key:"actions", label:"Actions", align:"right", render:(row) => (
-//         <div style={{ display:"flex", gap:4, justifyContent:"flex-end" }}>
-//           <button onClick={row.__onEdit} className="oo-icon-btn" style={{ width:22, height:22, border:`1px solid ${t.border}`, background:t.actBg, color:t.textSub }}><Pencil size={10} /></button>
-//           <button onClick={row.__onDelete} className="oo-icon-btn" style={{ width:22, height:22, border:"1px solid rgba(244,63,94,0.24)", background:"rgba(244,63,94,0.08)", color:"#f43f5e" }}><Trash2 size={10} /></button>
-//         </div>
-//       )},
-//     ];
-//   }, [cat.id, t, page]);
-
-//   const searchPlaceholder =
-//     cat.id === "departments" ? "Search departments…" :
-//     cat.id === "branches"    ? "Search branches…" :
-//     cat.id === "batches"     ? "Search batches…" : "Search users…";
-
-//   return (
-//     <div style={{
-//       background: t.cardBg, border:`1px solid ${t.border}`,
-//       borderRadius:16, boxShadow:t.shadow,
-//       display:"flex", flexDirection:"column", minWidth:0, overflow:"hidden",
-//       padding:"13px 14px 14px", flex:"1 1 auto",
-//     }}>
-//       {/* Column header */}
-//       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:11, gap:6, flexWrap:"wrap", rowGap:6 }}>
-//         <div style={{ display:"flex", alignItems:"center", gap:7, minWidth:0, flex:"1 1 auto", overflow:"hidden" }}>
-//           <div style={{ width:26, height:26, borderRadius:8, background:`linear-gradient(135deg,${cat.grad[0]},${cat.grad[1]})`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-//             <Icon size={12} color="#fff" />
-//           </div>
-//           <span style={{ fontSize:12.5, fontWeight:700, color:t.text, fontFamily:"'Poppins',sans-serif", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", minWidth:0 }}>
-//             {cat.label} {count !== null ? `(${count})` : ""}
-//           </span>
-//         </div>
-//         <button
-//           onClick={onAdd}
-//           disabled={addDisabled}
-//           title={addDisabled ? addDisabledReason : undefined}
-//           className="oo-btn-solid"
-//           style={{ background: addDisabled ? undefined : `linear-gradient(135deg,${cat.grad[0]},${cat.grad[1]})`, boxShadow: addDisabled ? "none" : `0 3px 10px ${cat.color}40`, flexShrink:0 }}
-//         >
-//           {addDisabled ? <Lock size={10} /> : <Plus size={10} />} Add {cat.singular}
-//         </button>
-//       </div>
-
-//       {addDisabled && addDisabledReason && (
-//         <div style={{
-//           display:"flex", alignItems:"center", gap:7, padding:"7px 10px", borderRadius:9,
-//           background:t.emptyBg, border:`1px dashed ${t.emptyBorder}`, marginBottom:9,
-//         }}>
-//           <Lock size={11} color={t.textMuted} style={{ flexShrink:0 }} />
-//           <span style={{ fontSize:10.5, color:t.textMuted, fontFamily:"'Poppins',sans-serif" }}>{addDisabledReason}</span>
-//         </div>
-//       )}
-
-//       {cat.id === "branches" && (
-//         <OOSelect t={t} value={filterVal} onChange={(e) => setFilterVal(e.target.value)} style={{ height:30, fontSize:11, marginBottom:8 }}>
-//           <option value="">All Departments</option>
-//           {(departments||[]).map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-//         </OOSelect>
-//       )}
-//       {cat.id === "batches" && (
-//         <OOSelect t={t} value={filterVal} onChange={(e) => setFilterVal(e.target.value)} style={{ height:30, fontSize:11, marginBottom:8 }}>
-//           <option value="">All Branches</option>
-//           {(branches||[]).map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-//         </OOSelect>
-//       )}
-//       {cat.id === "users" && (
-//         <OOSelect t={t} value={filterVal} onChange={(e) => setFilterVal(e.target.value)} style={{ height:30, fontSize:11, marginBottom:8 }}>
-//           <option value="">All Roles</option>
-//           <option value="ROLE_TRAINER">Trainer</option>
-//           <option value="ROLE_STUDENT">Student</option>
-//         </OOSelect>
-//       )}
-
-//       <div style={{ position:"relative", marginBottom:10 }}>
-//         <Search size={11} style={{ position:"absolute", left:9, top:"50%", transform:"translateY(-50%)", color:t.textMuted }} />
-//         <input
-//           value={search} onChange={(e) => setSearch(e.target.value)}
-//           placeholder={searchPlaceholder} className="oo-focusable"
-//           style={{
-//             width:"100%", height:30, borderRadius:8, border:`1px solid ${t.inputBorder}`,
-//             background:t.inputBg, color:t.inputText, fontSize:11, fontFamily:"'Poppins',sans-serif",
-//             paddingLeft:26, paddingRight:10, outline:"none", boxSizing:"border-box",
-//           }}
-//         />
-//       </div>
-
-//       <div style={{ minHeight:130, flex:"1 1 auto" }}>
-//         <MiniDataTable
-//           t={t} columns={columns} rows={pageRows} loading={loading}
-//           emptyState={
-//             <EmptyState
-//               t={t} icon={Icon} title={`No ${cat.label.toLowerCase()} found`}
-//               desc={`Add your first ${cat.singular.toLowerCase()} to get started`}
-//               onAdd={onAdd} addLabel={`Add ${cat.singular}`}
-//               addDisabled={addDisabled} addDisabledReason={addDisabledReason}
-//             />
-//           }
-//         />
-//       </div>
-
-//       <MiniPagination
-//         t={t} page={Math.min(page,totalPages)} totalPages={totalPages}
-//         onPrev={() => setPage((p) => Math.max(1, p-1))}
-//         onNext={() => setPage((p) => Math.min(totalPages, p+1))}
-//       />
-//     </div>
-//   );
-// }
-
-// /* ═══════════════════════════════════════════════════════════════════════════
-//    INFORMATION CARDS — "What is a Department / Branch / Batch?" etc.
-// ═══════════════════════════════════════════════════════════════════════════ */
-// const HELP_CONTENT = {
-//   departments: {
-//     title:"What is a Department?",
-//     desc:"Departments are the highest level in your organisation.",
-//     examples:"Engineering · Management · Science",
-//     next:"Create Branch",
-//   },
-//   branches: {
-//     title:"What is a Branch?",
-//     desc:"A branch belongs to a department.",
-//     examples:"Engineering → AIML · Engineering → CSE · Engineering → IT",
-//     next:"Create Batch",
-//   },
-//   batches: {
-//     title:"What is a Batch?",
-//     desc:"A batch is a group of students in the same course and year.",
-//     examples:"B.Tech 2026 · BCA Sem 1",
-//     next:"Add Users",
-//   },
-//   users: {
-//     title:"What are Users?",
-//     desc:"Users can be Students or Trainers added to a specific batch.",
-//     examples:null,
-//     next:null,
-//   },
-// };
-
-// function HelpCard({ t, isDark, cat }) {
-//   const info = HELP_CONTENT[cat.id];
-//   if (!info) return null;
-//   return (
-//     <div style={{
-//       background:softBg(cat, isDark), border:`1px solid ${cat.color}30`,
-//       borderRadius:14, padding:"12px 13px", marginTop:10,
-//       display:"flex", flexDirection:"column", justifyContent:"space-between",
-//       minHeight:118, boxSizing:"border-box", flex:"0 0 auto",
-//     }}>
-//       <div>
-//         <p style={{ margin:"0 0 4px", fontSize:11.5, fontWeight:800, color:cat.color, fontFamily:"'Poppins',sans-serif" }}>
-//           {info.title}
-//         </p>
-//         <p style={{ margin: info.examples ? "0 0 6px" : "0 0 8px", fontSize:11, color:t.textSub, lineHeight:1.5 }}>
-//           {info.desc}
-//         </p>
-//         {info.examples && (
-//           <p style={{ margin:"0 0 8px", fontSize:10.5, color:t.textMuted, lineHeight:1.6 }}>
-//             {info.examples}
-//           </p>
-//         )}
-//       </div>
-//       {info.next ? (
-//         <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:10.5, fontWeight:700, color:cat.color, fontFamily:"'Poppins',sans-serif" }}>
-//           Next Step: {info.next} <ArrowRight size={11} />
-//         </span>
-//       ) : (
-//         <span style={{ fontSize:10.5, fontWeight:700, color:cat.color, fontFamily:"'Poppins',sans-serif" }}>
-//           You're almost done! 🎉
-//         </span>
-//       )}
-//     </div>
-//   );
-// }
-
-// /* ═══════════════════════════════════════════════════════════════════════════
-//    ORGANISATION SETUP PROGRESS + NEXT ACTION BAR
-// ═══════════════════════════════════════════════════════════════════════════ */
-// const SETUP_STEPS = [
-//   { id:1, key:"departments", title:"Create Department", desc:"Add your departments" },
-//   { id:2, key:"branches",    title:"Create Branch",     desc:"Add branches under departments" },
-//   { id:3, key:"batches",     title:"Create Batch",      desc:"Add batches under branches" },
-//   { id:4, key:"users",       title:"Add Users",         desc:"Add students or trainers in batches" },
-// ];
-
-// function HowItWorksCard({ t }) {
-//   const items = [
-//     { n:1, label:"Create Department", color:"#3b82f6" },
-//     { n:2, label:"Create Branch",     color:"#10b981" },
-//     { n:3, label:"Create Batch",      color:"#f59e0b" },
-//     { n:4, label:"Add Users",         color:"#8b5cf6" },
-//   ];
-//   return (
-//     <div style={{ background:t.bannerBg, border:`1px solid ${t.bannerBorder}`, borderRadius:14, padding:"14px 16px", flex:"0 0 220px", minWidth:200 }}>
-//       <p style={{ margin:"0 0 10px", fontSize:12.5, fontWeight:800, color:t.text, fontFamily:"'Poppins',sans-serif" }}>
-//         How it works?
-//       </p>
-//       <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-//         {items.map((it) => (
-//           <div key={it.n} style={{ display:"flex", alignItems:"center", gap:8 }}>
-//             <div style={{
-//               width:18, height:18, borderRadius:"50%", background:it.color, color:"#fff",
-//               fontSize:9.5, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0,
-//               fontFamily:"'Poppins',sans-serif",
-//             }}>
-//               {it.n}
-//             </div>
-//             <span style={{ fontSize:11.5, color:t.textSub, fontWeight:600, fontFamily:"'Poppins',sans-serif" }}>{it.label}</span>
-//           </div>
-//         ))}
-//       </div>
-//     </div>
-//   );
-// }
-
-// function SetupProgress({ t, isDark, counts, onJump }) {
-//   const allLoaded = Object.values(counts).every((v) => v !== null);
-//   const stepDone = (key) => (counts[key] ?? 0) > 0;
-//   const doneCount = SETUP_STEPS.filter((s) => stepDone(s.key)).length;
-//   const pct = allLoaded ? Math.round((doneCount / SETUP_STEPS.length) * 100) : 0;
-//   const nextStep = SETUP_STEPS.find((s) => !stepDone(s.key));
-
-//   const nextActionText = !allLoaded
-//     ? "Loading your organisation setup…"
-//     : !nextStep
-//     ? "All set! Your organisation is fully configured."
-//     : nextStep.key === "departments"
-//     ? 'Click "Add Department" to create your first department.'
-//     : nextStep.key === "branches"
-//     ? 'Select a department and click "Add Branch" to continue.'
-//     : nextStep.key === "batches"
-//     ? 'Select a branch and click "Add Batch" to continue.'
-//     : 'Click "Add User" to add students or trainers.';
-
-//   return (
-//     <div className="oo-fade" style={{ background: t.cardBg, border:`1px solid ${t.border}`, borderRadius:18, boxShadow:t.shadow, padding:"16px clamp(14px,3vw,22px) 18px", marginBottom:14 }}>
-//       <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", flexWrap:"wrap", gap:10, marginBottom:16 }}>
-//         <div>
-//           <p style={{ fontSize:14.5, fontWeight:700, color:t.text, margin:"0 0 3px", fontFamily:"'Poppins',sans-serif" }}>
-//             Organisation Setup Progress
-//           </p>
-//           <p style={{ fontSize:11.5, color:t.textSub, margin:0 }}>
-//             Follow these steps to complete your organisation setup.
-//           </p>
-//         </div>
-//         <div style={{ textAlign:"right" }}>
-//           <p style={{ fontSize:9.5, fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase", color:t.textMuted, margin:"0 0 5px" }}>
-//             Overall Progress
-//           </p>
-//           <div style={{ display:"flex", alignItems:"center", gap:8, justifyContent:"flex-end" }}>
-//             <div style={{ width:110, maxWidth:"40vw", height:7, borderRadius:99, background:t.pillBg, overflow:"hidden" }}>
-//               <div style={{ width:`${pct}%`, height:"100%", borderRadius:99, background:"linear-gradient(90deg,#3b82f6,#10b981)", transition:"width 0.4s ease" }} />
-//             </div>
-//             <span style={{ fontSize:13, fontWeight:800, color:t.text, fontFamily:"'Poppins',sans-serif" }}>{pct}%</span>
-//           </div>
-//         </div>
-//       </div>
-
-//       <div className="oo-setup-row" style={{ display:"flex", gap:16, alignItems:"stretch" }}>
-//         <div className="oo-setup-steps" style={{ flex:"1 1 420px", minWidth:0 }}>
-//           {SETUP_STEPS.map((s, i) => {
-//             const done = stepDone(s.key);
-//             const isNext = nextStep?.id === s.id;
-//             const cat = catById(s.key);
-//             const locked = !done && !isNext;
-//             return (
-//               <div key={s.id} style={{ display:"flex", alignItems:"center", flex:1, minWidth:0 }}>
-//                 <button
-//                   onClick={() => onJump?.(s.key)}
-//                   disabled={locked}
-//                   title={locked ? "Complete the previous step first." : undefined}
-//                   className="oo-focusable"
-//                   style={{
-//                     display:"flex", alignItems:"center", gap:10, flex:1, minWidth:0,
-//                     padding:"10px 12px", borderRadius:13, textAlign:"left",
-//                     cursor: locked ? "not-allowed" : "pointer",
-//                     opacity: locked ? 0.6 : 1,
-//                     border: isNext ? `1.5px solid ${cat.color}` : `1px solid ${t.border}`,
-//                     background: isNext ? softBg(cat, isDark) : "transparent",
-//                     fontFamily:"'Poppins',sans-serif",
-//                   }}
-//                 >
-//                   <div style={{
-//                     width:30, height:30, borderRadius:"50%", flexShrink:0,
-//                     display:"flex", alignItems:"center", justifyContent:"center",
-//                     background: done ? "linear-gradient(135deg,#10b981,#059669)" : (isNext ? cat.color : t.pillBg),
-//                     color: done || isNext ? "#fff" : t.textMuted,
-//                     fontWeight:800, fontSize:12.5,
-//                   }}>
-//                     {done ? <Check size={15} /> : s.id}
-//                   </div>
-//                   <div style={{ minWidth:0 }}>
-//                     <p style={{ margin:0, fontSize:12, fontWeight:700, color:t.text, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{s.title}</p>
-//                     <p style={{ margin:0, fontSize:10, color:t.textMuted, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{s.desc}</p>
-//                   </div>
-//                 </button>
-//                 {i < SETUP_STEPS.length - 1 && (
-//                   <ArrowRight size={14} color={t.textMuted} className="oo-setup-arrow" style={{ margin:"0 6px", flexShrink:0 }} />
-//                 )}
-//               </div>
-//             );
-//           })}
-//         </div>
-//         <HowItWorksCard t={t} />
-//       </div>
-
-//       <div style={{
-//         display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap", marginTop:14,
-//         padding:"11px 14px", borderRadius:12, background:t.bannerBg, border:`1px solid ${t.bannerBorder}`,
-//       }}>
-//         <div style={{ display:"flex", alignItems:"center", gap:10, minWidth:0 }}>
-//           <Sparkles size={14} color="#3b82f6" style={{ flexShrink:0 }} />
-//           <span style={{ fontSize:12, color:t.text, fontFamily:"'Poppins',sans-serif" }}>
-//             <strong>Next Action:</strong> {nextActionText}
-//           </span>
-//         </div>
-//         {nextStep && (
-//           <button onClick={() => onJump?.(nextStep.key)} className="oo-btn-primary" style={{ fontSize:11.5, padding:"8px 14px", flexShrink:0 }}>
-//             Continue Setup <ArrowRight size={13} />
-//           </button>
-//         )}
-//       </div>
-//     </div>
-//   );
-// }
-
-// /* ═══════════════════════════════════════════════════════════════════════════
-//    ADD-NEW DROPDOWN MENU
-// ═══════════════════════════════════════════════════════════════════════════ */
-// function AddNewMenu({ t, onPick, disabledMap }) {
-//   const [open, setOpen] = useState(false);
-//   const [coords, setCoords] = useState({ top:0, left:0, width:200 });
-//   const btnRef = useRef(null);
-//   const menuRef = useRef(null);
-
-//   const computePosition = useCallback(() => {
-//     const btn = btnRef.current;
-//     if (!btn) return;
-//     const rect = btn.getBoundingClientRect();
-//     const menuWidth = 200;
-//     let left = rect.right - menuWidth;
-//     left = Math.max(8, Math.min(left, window.innerWidth - menuWidth - 8));
-//     let top = rect.bottom + 8;
-//     setCoords({ top, left, width: menuWidth });
-//   }, []);
-
-//   useEffect(() => {
-//     if (!open) return;
-//     computePosition();
-//     const handleOutside = (e) => {
-//       if (
-//         btnRef.current && !btnRef.current.contains(e.target) &&
-//         menuRef.current && !menuRef.current.contains(e.target)
-//       ) setOpen(false);
-//     };
-//     const handleReposition = () => computePosition();
-//     document.addEventListener("mousedown", handleOutside);
-//     window.addEventListener("resize", handleReposition);
-//     window.addEventListener("scroll", handleReposition, true);
-//     return () => {
-//       document.removeEventListener("mousedown", handleOutside);
-//       window.removeEventListener("resize", handleReposition);
-//       window.removeEventListener("scroll", handleReposition, true);
-//     };
-//   }, [open, computePosition]);
-
-//   return (
-//     <div style={{ position:"relative" }}>
-//       <button ref={btnRef} onClick={() => setOpen((p) => !p)} className="oo-btn-primary">
-//         <Plus size={14} /> Add New
-//         <ChevronDown size={12} style={{ transform: open ? "rotate(180deg)" : "none", transition:"transform 0.15s" }} />
-//       </button>
-//       {open && typeof document !== "undefined" && ReactDOM.createPortal(
-//         <div
-//           ref={menuRef}
-//           className="oo-pop"
-//           style={{
-//             position:"fixed", top:coords.top, left:coords.left, zIndex:9995,
-//             minWidth:coords.width, background:t.dropdownBg, border:`1px solid ${t.border}`,
-//             borderRadius:14, boxShadow:t.shadowHov, padding:6,
-//           }}
-//         >
-//           {CATS.map((cat) => {
-//             const Icon = cat.icon;
-//             const isDisabled = !!disabledMap?.[cat.id]?.disabled;
-//             const reason = disabledMap?.[cat.id]?.reason;
-//             return (
-//               <button
-//                 key={cat.id}
-//                 onClick={() => { if (isDisabled) return; setOpen(false); onPick(cat.id); }}
-//                 disabled={isDisabled}
-//                 title={isDisabled ? reason : undefined}
-//                 className="oo-menu-item"
-//                 style={{ color:t.text }}
-//                 onMouseEnter={(e)=>{ if (!isDisabled) e.currentTarget.style.background=t.dropdownItemHov; }}
-//                 onMouseLeave={(e)=>e.currentTarget.style.background="transparent"}
-//               >
-//                 <div style={{ width:24, height:24, borderRadius:7, background: isDisabled ? t.pillBg : `linear-gradient(135deg,${cat.grad[0]},${cat.grad[1]})`, display:"flex", alignItems:"center", justifyContent:"center" }}>
-//                   {isDisabled ? <Lock size={12} color={t.textMuted} /> : <Icon size={12} color="#fff" />}
-//                 </div>
-//                 Add {cat.singular}
-//               </button>
-//             );
-//           })}
-//         </div>,
-//         document.body,
-//       )}
-//     </div>
-//   );
-// }
-
-// /* ═══════════════════════════════════════════════════════════════════════════
-//    MAIN PAGE
-// ═══════════════════════════════════════════════════════════════════════════ */
-// const OrganisationOverview = () => {
-//   const navigate  = useNavigate();
-//   const isDark    = useDarkMode();
-//   const t         = isDark ? T.dark : T.light;
-
-//   const [counts, setCounts]                 = useState({ departments:null, branches:null, batches:null, users:null });
-//   const [preview, setPreview]               = useState({ departments:[], branches:[], batches:[], users:[] });
-//   const [previewLoading, setPreviewLoading] = useState(true);
-
-//   // A single active panel drives BOTH "Add" and "Edit" flows.
-//   // Only one form can ever be open at a time, and every form starts closed.
-//   const [activePanel, setActivePanel] = useState(null);
-
-//   const loadOverview = useCallback(async () => {
-//     setPreviewLoading(true);
-//     try {
-//       const [dRes, bRes, btRes] = await Promise.allSettled([getDepartments(), getBranches(), getAllBatches()]);
-
-//       const deptList = dRes.status==="fulfilled" ? (dRes.value?.data||[]) : [];
-//       const branchListRaw = bRes.status==="fulfilled" ? bRes.value?.data : [];
-//       const branchList = Array.isArray(branchListRaw) ? branchListRaw : Array.isArray(branchListRaw?.data) ? branchListRaw.data : [];
-//       const batchListRaw = btRes.status==="fulfilled" ? (btRes.value?.data?.data||btRes.value?.data?.batches||btRes.value?.data||[]) : [];
-//       const batchList = Array.isArray(batchListRaw) ? batchListRaw : [];
-
-//       let userList = [], userCount = 0;
-//       try {
-//         const role = localStorage.getItem("role");
-//         if (role === "TENANT_ADMIN") {
-//           const currentUser = JSON.parse(localStorage.getItem("lms_user")||"null");
-//           const orgId = currentUser?.organizationId||null;
-//           if (orgId) {
-//             const data = await userService.getUsersByOrg(orgId);
-//             userList = Array.isArray(data) ? data.filter((u) => u.roles==="ROLE_STUDENT"||u.roles==="ROLE_TRAINER") : [];
-//             userCount = userList.length;
-//           }
-//         } else {
-//           const res = await userService.getUsers(0, 50);
-//           userList = res?.data?.content||[];
-//           userCount = res?.data?.totalElements ?? userList.length;
-//         }
-//       } catch {}
-
-//       setCounts({ departments:deptList.length, branches:branchList.length, batches:batchList.length, users:userCount });
-//       setPreview({ departments:deptList, branches:branchList, batches:batchList, users:userList });
-//     } catch (e) { console.error("Overview load error:", e); }
-//     finally { setPreviewLoading(false); }
-//   }, []);
-
-//   useEffect(() => { loadOverview(); }, [loadOverview]);
-
-//   const closePanel = () => setActivePanel(null);
-
-//   // ── Step dependency rules ──────────────────────────────────────────────
-//   // Add Branch needs >=1 department, Add Batch needs >=1 branch, Add User needs >=1 batch.
-//   const dependencyState = useMemo(() => ({
-//     departments: { disabled:false, reason:"" },
-//     branches: {
-//       disabled: !(counts.departments ?? 0),
-//       reason: "Create a Department first.",
-//     },
-//     batches: {
-//       disabled: !(counts.branches ?? 0),
-//       reason: "Create a Branch first.",
-//     },
-//     users: {
-//       disabled: !(counts.batches ?? 0),
-//       reason: "Create a Batch first.",
-//     },
-//   }), [counts]);
-
-//   const isAddDisabled = (catId) => previewLoading ? false : dependencyState[catId]?.disabled;
-//   const addDisabledReason = (catId) => dependencyState[catId]?.reason;
-
-//   // ── Open the "Add" panel for a category (respecting dependencies) ─────
-//   const openAddPanel = useCallback((catId) => {
-//     if (isAddDisabled(catId)) return;
-//     const base = { mode:"create", onSubmitted: () => { loadOverview(); closePanel(); } };
-//     if (catId === "departments") {
-//       setActivePanel({ ...base, type:"department", initial:{ name:"", head:"" } });
-//     } else if (catId === "branches") {
-//       setActivePanel({ ...base, type:"branch", initial:{ name:"", city:"", departmentId:"" }, departments:preview.departments });
-//     } else if (catId === "batches") {
-//       setActivePanel({ ...base, type:"batch", branches:preview.branches });
-//     } else if (catId === "users") {
-//       setActivePanel({ ...base, type:"user", initial:{ displayName:"", email:"", password:"", roles:"ROLE_STUDENT" } });
-//     }
-//   }, [dependencyState, preview, loadOverview]);
-
-//   // "Continue Setup" / step-click jumps straight to the relevant Add panel.
-//   const handleJumpToStep = (catId) => openAddPanel(catId);
-//   const handleQuickAdd = (catId) => openAddPanel(catId);
-
-//   const handleOpenEditPanel = useCallback((panelConfig) => setActivePanel(panelConfig), []);
-
-//   const overviewActions = {
-//     departments: {
-//       onEdit: (row) => handleOpenEditPanel({
-//         type: "department", mode: "edit", initial: { id:row.id, name:row.name, head:row.head||"" },
-//         onSubmitted: () => { loadOverview(); closePanel(); },
-//       }),
-//       onDelete: async (row) => {
-//         if (!window.confirm("Delete this department? All branches and batches will also be deleted.")) return;
-//         try { await deleteDepartment(row.id); loadOverview(); } catch { alert("Delete failed."); }
-//       },
-//     },
-//     branches: {
-//       onEdit: (row) => handleOpenEditPanel({
-//         type: "branch", mode: "edit", initial: { id:row.id, name:row.name, city:row.city, departmentId:row.departmentId||"" },
-//         departments: preview.departments,
-//         onSubmitted: () => { loadOverview(); closePanel(); },
-//       }),
-//       onDelete: async (row) => {
-//         if (!window.confirm(`Delete branch "${row.name}"? All batches will also be removed.`)) return;
-//         try { await deleteBranch(row.id); loadOverview(); } catch { alert("Failed to delete branch"); }
-//       },
-//     },
-//     batches: {
-//       onEdit: () => {}, // no dedicated batch-edit endpoint
-//       onDelete: async (row) => {
-//         if (!window.confirm(`Delete batch "${row.batchName}"?`)) return;
-//         try { await deleteBatch(row.id); loadOverview(); } catch { alert("Failed to delete batch"); }
-//       },
-//     },
-//     users: {
-//       onEdit: (row) => handleOpenEditPanel({
-//         type: "user", mode: "edit",
-//         initial: { id:row.id, email:row.email, displayName:row.displayName||"", password:"", roles:row.roles||"ROLE_STUDENT" },
-//         loggedInUser: JSON.parse(localStorage.getItem("lms_user") || "null"),
-//         onSubmitted: () => { loadOverview(); closePanel(); },
-//       }),
-//       onDelete: async (row) => {
-//         if (!window.confirm("Delete this user?")) return;
-//         try { await userService.deleteUser(row.id); loadOverview(); } catch { alert("Failed to delete user"); }
-//       },
-//     },
-//   };
-
-//   const decorateItems = (catId, items) => items.map((it) => ({
-//     ...it,
-//     __onEdit: () => overviewActions[catId].onEdit(it),
-//     __onDelete: () => overviewActions[catId].onDelete(it),
-//   }));
-
-//   const panelMeta = activePanel ? catById(
-//     activePanel.type === "department" ? "departments" :
-//     activePanel.type === "branch"     ? "branches"     :
-//     activePanel.type === "batch"      ? "batches"      : "users"
-//   ) : null;
-
-//   const panelTitle = activePanel ? `${activePanel.mode === "edit" ? "Edit" : "Add"} ${panelMeta.singular}` : "";
-//   const panelSubtitle = activePanel
-//     ? (activePanel.mode === "edit" ? `Update ${panelMeta.singular.toLowerCase()} details` : `Fill in the details to add a new ${panelMeta.singular.toLowerCase()}`)
-//     : "";
-
-//   const panelBody = !activePanel ? null : (
-//     activePanel.type === "department" ? (
-//       <DepartmentForm t={t} mode={activePanel.mode} initial={activePanel.initial} onSubmitted={activePanel.onSubmitted} />
-//     ) : activePanel.type === "branch" ? (
-//       <BranchForm t={t} mode={activePanel.mode} initial={activePanel.initial} departments={activePanel.departments || preview.departments} onSubmitted={activePanel.onSubmitted} />
-//     ) : activePanel.type === "batch" ? (
-//       <BatchForm t={t} branches={activePanel.branches || preview.branches} onSubmitted={activePanel.onSubmitted} />
-//     ) : activePanel.type === "user" ? (
-//       <UserForm t={t} mode={activePanel.mode} initial={activePanel.initial} loggedInUser={activePanel.loggedInUser} onSubmitted={activePanel.onSubmitted} />
-//     ) : null
-//   );
-
-//   return (
-//     <>
-//       <InjectStyles />
-
-//       <SplitShell
-//         t={t} isDark={isDark} panelOpen={!!activePanel}
-//         panelContent={
-//           <SidePanelFrame t={t} title={panelTitle} subtitle={panelSubtitle} onClose={closePanel}>
-//             {panelBody}
-//           </SidePanelFrame>
-//         }
-//       >
-//         <div style={{ minHeight:"100vh", background:t.pageBg, color:t.text, fontFamily:"'Poppins',sans-serif" }}>
-//           <div style={{ maxWidth:1440, margin:"0 auto", padding:"16px clamp(10px,3vw,24px) 44px" }}>
-
-//             {/* ══ HEADER ══ */}
-//             <div className="oo-fade" style={{ marginBottom:14 }}>
-//               <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:6, flexWrap:"wrap" }}>
-//                 <span style={{ fontSize:11.5, fontWeight:600, color:t.textMuted, fontFamily:"'Poppins',sans-serif" }}>Admin Portal</span>
-//                 <ChevronRight size={12} color={t.textMuted} />
-//                 <span style={{ fontSize:11.5, fontWeight:700, color:t.text, fontFamily:"'Poppins',sans-serif" }}>Organisation Management</span>
-//               </div>
-
-//               <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
-//                 <div style={{ minWidth:0 }}>
-//                   <h1 style={{ fontSize:"clamp(1.3rem,2.6vw,1.7rem)", fontWeight:700, color:t.text, margin:"0 0 4px", lineHeight:1.15, letterSpacing:"-0.01em", fontFamily:"'Poppins',sans-serif" }}>
-//                     Organisation Management
-//                   </h1>
-//                   <p style={{ fontSize:12, color:t.textSub, margin:0, fontWeight:500 }}>
-//                     Manage departments, branches, batches and users – all in one place
-//                   </p>
-//                 </div>
-
-//                 <div style={{ display:"flex", alignItems:"center", gap:9, flexShrink:0 }}>
-//                   <button
-//                     onClick={loadOverview}
-//                     className="oo-icon-btn"
-//                     style={{ border:`1px solid ${t.actBorder}`, background:t.actBg, color:t.textSub, width:36, height:36 }}
-//                     title="Refresh data"
-//                   >
-//                     <RefreshCw size={14} className={previewLoading ? "oo-spin-cls" : ""} />
-//                   </button>
-//                   <AddNewMenu
-//                     t={t}
-//                     onPick={handleQuickAdd}
-//                     disabledMap={{
-//                       departments: { disabled:isAddDisabled("departments"), reason:addDisabledReason("departments") },
-//                       branches:    { disabled:isAddDisabled("branches"),    reason:addDisabledReason("branches") },
-//                       batches:     { disabled:isAddDisabled("batches"),     reason:addDisabledReason("batches") },
-//                       users:       { disabled:isAddDisabled("users"),       reason:addDisabledReason("users") },
-//                     }}
-//                   />
-//                 </div>
-//               </div>
-//             </div>
-
-//             {/* ══ ORGANISATION SETUP PROGRESS + NEXT ACTION ══ */}
-//             <SetupProgress t={t} isDark={isDark} counts={counts} onJump={handleJumpToStep} />
-
-//             {/* ══ 4 MANAGEMENT COLUMNS (identical height, no inline forms) ══ */}
-//             <div className="oo-fade oo-quad-grid" style={{ animationDelay:"0.08s" }}>
-//               {CATS.map((cat) => (
-//                 <div key={cat.id} id={`oo-col-${cat.id}`} className="oo-col-stack">
-//                   <ManagementColumn
-//                     t={t} isDark={isDark} cat={cat}
-//                     items={decorateItems(cat.id, preview[cat.id])} count={counts[cat.id]}
-//                     loading={previewLoading}
-//                     departments={preview.departments}
-//                     branches={preview.branches}
-//                     onAdd={() => handleQuickAdd(cat.id)}
-//                     addDisabled={isAddDisabled(cat.id)}
-//                     addDisabledReason={addDisabledReason(cat.id)}
-//                   />
-//                   <HelpCard t={t} isDark={isDark} cat={cat} />
-//                 </div>
-//               ))}
-//             </div>
-
-//           </div>
-//         </div>
-//       </SplitShell>
-//     </>
-//   );
-// };
-
-// export default OrganisationOverview;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import {
   AlertCircle,
   ArrowRight,
@@ -1870,6 +10,7 @@ import {
   GitBranch,
   Layers,
   Loader2,
+  UserCheck,
   Mail,
   Pencil,
   Plus,
@@ -1908,7 +49,15 @@ import userService from "../services/userService";
 // Golden Reference. The extra page-local tokens below (inputs, dropdowns,
 // table rows, banners, split-panel, etc.) have no shared equivalent yet,
 // so they stay page-local but are reconciled to the shared palette.
-import { T as DS_T, FONT_FAMILY, FONT_IMPORT, FONT_WEIGHT, FONT_SIZE, LETTER_SPACING, ACCENT_PURPLE } from "@/design-system";
+import {
+  T as DS_T,
+  FONT_FAMILY,
+  FONT_IMPORT,
+  FONT_WEIGHT,
+  FONT_SIZE,
+  LETTER_SPACING,
+  ACCENT_PURPLE,
+} from "@/design-system";
 
 /* ═══════════════════════════════════════════════════════════════════════════
    THEME
@@ -1988,22 +137,46 @@ const T = {
 // switches from blue to the shared purple (ACCENT_PURPLE) used for
 // every primary action across the app.
 Object.assign(T.dark, {
-  pageBg: DS_T.dark.pageBg, cardBg: DS_T.dark.cardBg, heroBg: DS_T.dark.heroBg,
-  border: DS_T.dark.border, borderHero: DS_T.dark.borderHero, text: DS_T.dark.text,
-  textSub: DS_T.dark.textSub, textMuted: DS_T.dark.textMuted, pillBg: DS_T.dark.pillBg,
-  pillBorder: DS_T.dark.pillBorder, actBg: DS_T.dark.actBg, actBorder: DS_T.dark.actBorder,
-  shadow: DS_T.dark.shadow, shadowHov: DS_T.dark.shadowHov, emptyBorder: DS_T.dark.emptyBorder,
-  emptyBg: DS_T.dark.emptyBg, emptyIcon: DS_T.dark.emptyIcon,
-  bannerBg: "rgba(124,58,237,0.10)", bannerBorder: "rgba(124,58,237,0.28)",
+  pageBg: DS_T.dark.pageBg,
+  cardBg: DS_T.dark.cardBg,
+  heroBg: DS_T.dark.heroBg,
+  border: DS_T.dark.border,
+  borderHero: DS_T.dark.borderHero,
+  text: DS_T.dark.text,
+  textSub: DS_T.dark.textSub,
+  textMuted: DS_T.dark.textMuted,
+  pillBg: DS_T.dark.pillBg,
+  pillBorder: DS_T.dark.pillBorder,
+  actBg: DS_T.dark.actBg,
+  actBorder: DS_T.dark.actBorder,
+  shadow: DS_T.dark.shadow,
+  shadowHov: DS_T.dark.shadowHov,
+  emptyBorder: DS_T.dark.emptyBorder,
+  emptyBg: DS_T.dark.emptyBg,
+  emptyIcon: DS_T.dark.emptyIcon,
+  bannerBg: "rgba(124,58,237,0.10)",
+  bannerBorder: "rgba(124,58,237,0.28)",
 });
 Object.assign(T.light, {
-  pageBg: DS_T.light.pageBg, cardBg: DS_T.light.cardBg, heroBg: DS_T.light.heroBg,
-  border: DS_T.light.border, borderHero: DS_T.light.borderHero, text: DS_T.light.text,
-  textSub: DS_T.light.textSub, textMuted: DS_T.light.textMuted, pillBg: DS_T.light.pillBg,
-  pillBorder: DS_T.light.pillBorder, actBg: DS_T.light.actBg, actBorder: DS_T.light.actBorder,
-  shadow: DS_T.light.shadow, shadowHov: DS_T.light.shadowHov, emptyBorder: DS_T.light.emptyBorder,
-  emptyBg: DS_T.light.emptyBg, emptyIcon: DS_T.light.emptyIcon,
-  bannerBg: "rgba(124,58,237,0.06)", bannerBorder: "rgba(124,58,237,0.20)",
+  pageBg: DS_T.light.pageBg,
+  cardBg: DS_T.light.cardBg,
+  heroBg: DS_T.light.heroBg,
+  border: DS_T.light.border,
+  borderHero: DS_T.light.borderHero,
+  text: DS_T.light.text,
+  textSub: DS_T.light.textSub,
+  textMuted: DS_T.light.textMuted,
+  pillBg: DS_T.light.pillBg,
+  pillBorder: DS_T.light.pillBorder,
+  actBg: DS_T.light.actBg,
+  actBorder: DS_T.light.actBorder,
+  shadow: DS_T.light.shadow,
+  shadowHov: DS_T.light.shadowHov,
+  emptyBorder: DS_T.light.emptyBorder,
+  emptyBg: DS_T.light.emptyBg,
+  emptyIcon: DS_T.light.emptyIcon,
+  bannerBg: "rgba(124,58,237,0.06)",
+  bannerBorder: "rgba(124,58,237,0.20)",
 });
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -2021,49 +194,147 @@ const gradColor = (name) =>
   GRAD_COLORS[(name?.charCodeAt(0) ?? 0) % GRAD_COLORS.length];
 
 const DEPARTMENT_OPTIONS = [
-  "Engineering","Computer Science","Electronics & Communication",
-  "Mechanical Engineering","Civil Engineering","Information Technology",
-  "MBA","Business Administration","Finance & Accounting",
-  "Human Resources","Marketing","Sales & Business Development",
-  "Data Science & AI","Cybersecurity","Cloud Computing",
-  "Product Management","Operations","Research & Development",
-  "Legal & Compliance","Quality Assurance","Design & UX",
-  "Content & Communications","Customer Support","Logistics & Supply Chain",
-  "Healthcare Management","Biotechnology","Architecture",
-  "Physics","Mathematics","Chemistry",
+  "Engineering",
+  "Computer Science",
+  "Electronics & Communication",
+  "Mechanical Engineering",
+  "Civil Engineering",
+  "Information Technology",
+  "MBA",
+  "Business Administration",
+  "Finance & Accounting",
+  "Human Resources",
+  "Marketing",
+  "Sales & Business Development",
+  "Data Science & AI",
+  "Cybersecurity",
+  "Cloud Computing",
+  "Product Management",
+  "Operations",
+  "Research & Development",
+  "Legal & Compliance",
+  "Quality Assurance",
+  "Design & UX",
+  "Content & Communications",
+  "Customer Support",
+  "Logistics & Supply Chain",
+  "Healthcare Management",
+  "Biotechnology",
+  "Architecture",
+  "Physics",
+  "Mathematics",
+  "Chemistry",
 ];
 
 const CITY_OPTIONS = [
-  "Delhi","Mumbai","Kolkata","Chennai","Bangalore","Hyderabad","Pune",
-  "Ahmedabad","Jaipur","Surat","Lucknow","Kanpur","Nagpur","Indore",
-  "Bhopal","Patna","Ranchi","Raipur","Chandigarh","Noida","Gurgaon",
-  "Faridabad","Ghaziabad","Meerut","Agra","Varanasi","Prayagraj",
-  "Gwalior","Jabalpur","Udaipur","Jodhpur","Amritsar","Ludhiana",
-  "Dehradun","Shimla","Srinagar","Jammu","Thiruvananthapuram","Kochi",
-  "Coimbatore","Madurai","Mysore","Mangalore","Visakhapatnam","Vijayawada",
+  "Delhi",
+  "Mumbai",
+  "Kolkata",
+  "Chennai",
+  "Bangalore",
+  "Hyderabad",
+  "Pune",
+  "Ahmedabad",
+  "Jaipur",
+  "Surat",
+  "Lucknow",
+  "Kanpur",
+  "Nagpur",
+  "Indore",
+  "Bhopal",
+  "Patna",
+  "Ranchi",
+  "Raipur",
+  "Chandigarh",
+  "Noida",
+  "Gurgaon",
+  "Faridabad",
+  "Ghaziabad",
+  "Meerut",
+  "Agra",
+  "Varanasi",
+  "Prayagraj",
+  "Gwalior",
+  "Jabalpur",
+  "Udaipur",
+  "Jodhpur",
+  "Amritsar",
+  "Ludhiana",
+  "Dehradun",
+  "Shimla",
+  "Srinagar",
+  "Jammu",
+  "Thiruvananthapuram",
+  "Kochi",
+  "Coimbatore",
+  "Madurai",
+  "Mysore",
+  "Mangalore",
+  "Visakhapatnam",
+  "Vijayawada",
 ];
 
 const ROLE_CFG = {
-  ROLE_ADMIN:   { label: "Admin",   color: "#f43f5e", bg: "rgba(244,63,94,0.12)"  },
-  ROLE_TRAINER: { label: "Trainer", color: "#3b82f6", bg: "rgba(59,130,246,0.12)" },
-  ROLE_STUDENT: { label: "Student", color: "#8b5cf6", bg: "rgba(139,92,246,0.12)" },
+  ROLE_ADMIN: { label: "Admin", color: "#f43f5e", bg: "rgba(244,63,94,0.12)" },
+  ROLE_TRAINER: {
+    label: "Trainer",
+    color: "#3b82f6",
+    bg: "rgba(59,130,246,0.12)",
+  },
+  ROLE_STUDENT: {
+    label: "Student",
+    color: "#8b5cf6",
+    bg: "rgba(139,92,246,0.12)",
+  },
 };
 
 const ROLE_TO_AUTH_ROLE = { ROLE_STUDENT: "STUDENT", ROLE_TRAINER: "TRAINER" };
 
 // One entry per management column, in the exact order/colors of the reference design.
 const CATS = [
-  { id:"departments", label:"Departments", singular:"Department", icon:Building2,
-    color:"#3b82f6", grad:["#3b82f6","#2563eb"], soft:"#eff6ff", softDark:"rgba(59,130,246,0.18)" },
-  { id:"branches",    label:"Branches",    singular:"Branch",     icon:GitBranch,
-    color:"#10b981", grad:["#10b981","#059669"], soft:"#ecfdf5", softDark:"rgba(16,185,129,0.18)" },
-  { id:"batches",     label:"Batches",     singular:"Batch",      icon:Layers,
-    color:"#f59e0b", grad:["#f59e0b","#d97706"], soft:"#fffbeb", softDark:"rgba(245,158,11,0.18)" },
-  { id:"users",       label:"Users",       singular:"User",       icon:Users,
-    color:"#8b5cf6", grad:["#8b5cf6","#7c3aed"], soft:"#f5f3ff", softDark:"rgba(139,92,246,0.18)" },
+  {
+    id: "departments",
+    label: "Departments",
+    singular: "Department",
+    icon: Building2,
+    color: "#3b82f6",
+    grad: ["#3b82f6", "#2563eb"],
+    soft: "#eff6ff",
+    softDark: "rgba(59,130,246,0.18)",
+  },
+  {
+    id: "branches",
+    label: "Branches",
+    singular: "Branch",
+    icon: GitBranch,
+    color: "#10b981",
+    grad: ["#10b981", "#059669"],
+    soft: "#ecfdf5",
+    softDark: "rgba(16,185,129,0.18)",
+  },
+  {
+    id: "batches",
+    label: "Batches",
+    singular: "Batch",
+    icon: Layers,
+    color: "#f59e0b",
+    grad: ["#f59e0b", "#d97706"],
+    soft: "#fffbeb",
+    softDark: "rgba(245,158,11,0.18)",
+  },
+  {
+    id: "users",
+    label: "Users",
+    singular: "User",
+    icon: Users,
+    color: "#8b5cf6",
+    grad: ["#8b5cf6", "#7c3aed"],
+    soft: "#f5f3ff",
+    softDark: "rgba(139,92,246,0.18)",
+  },
 ];
 const catById = (id) => CATS.find((c) => c.id === id);
-const softBg  = (cat, isDark) => isDark ? cat.softDark : cat.soft;
+const softBg = (cat, isDark) => (isDark ? cat.softDark : cat.soft);
 
 /* ═══════════════════════════════════════════════════════════════════════════
    HOOKS
@@ -2082,7 +353,10 @@ function useDarkMode() {
           document.documentElement.getAttribute("data-theme") === "dark",
       ),
     );
-    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class","data-theme"] });
+    obs.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class", "data-theme"],
+    });
     return () => obs.disconnect();
   }, []);
   return isDark;
@@ -2331,17 +605,24 @@ function SplitShell({ t, isDark, panelOpen, children, panelContent }) {
   const dragState = useRef(null);
 
   const clampWidth = useCallback((w) => {
-    const viewportMax = typeof window !== "undefined" ? window.innerWidth - 280 : PANEL_MAX_WIDTH;
-    return Math.min(Math.max(w, PANEL_MIN_WIDTH), Math.min(PANEL_MAX_WIDTH, viewportMax));
+    const viewportMax =
+      typeof window !== "undefined" ? window.innerWidth - 280 : PANEL_MAX_WIDTH;
+    return Math.min(
+      Math.max(w, PANEL_MIN_WIDTH),
+      Math.min(PANEL_MAX_WIDTH, viewportMax),
+    );
   }, []);
 
-  const handlePointerMove = useCallback((e) => {
-    if (!dragState.current) return;
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const delta = dragState.current.startX - clientX;
-    setWidth(clampWidth(dragState.current.startWidth + delta));
-    e.preventDefault?.();
-  }, [clampWidth]);
+  const handlePointerMove = useCallback(
+    (e) => {
+      if (!dragState.current) return;
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const delta = dragState.current.startX - clientX;
+      setWidth(clampWidth(dragState.current.startWidth + delta));
+      e.preventDefault?.();
+    },
+    [clampWidth],
+  );
 
   const handlePointerUp = useCallback(() => {
     dragState.current = null;
@@ -2353,17 +634,22 @@ function SplitShell({ t, isDark, panelOpen, children, panelContent }) {
     document.removeEventListener("touchend", handlePointerUp);
   }, [handlePointerMove]);
 
-  const handlePointerDown = useCallback((e) => {
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    dragState.current = { startX: clientX, startWidth: width };
-    setIsResizing(true);
-    document.body.style.cursor = "col-resize";
-    document.addEventListener("mousemove", handlePointerMove);
-    document.addEventListener("mouseup", handlePointerUp);
-    document.addEventListener("touchmove", handlePointerMove, { passive: false });
-    document.addEventListener("touchend", handlePointerUp);
-    e.preventDefault();
-  }, [handlePointerMove, handlePointerUp, width]);
+  const handlePointerDown = useCallback(
+    (e) => {
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      dragState.current = { startX: clientX, startWidth: width };
+      setIsResizing(true);
+      document.body.style.cursor = "col-resize";
+      document.addEventListener("mousemove", handlePointerMove);
+      document.addEventListener("mouseup", handlePointerUp);
+      document.addEventListener("touchmove", handlePointerMove, {
+        passive: false,
+      });
+      document.addEventListener("touchend", handlePointerUp);
+      e.preventDefault();
+    },
+    [handlePointerMove, handlePointerUp, width],
+  );
 
   const handleDoubleClick = () => setWidth(PANEL_DEFAULT_WIDTH);
 
@@ -2390,12 +676,18 @@ function SplitShell({ t, isDark, panelOpen, children, panelContent }) {
             role="separator"
             aria-orientation="vertical"
           >
-            <div className="oo-split-grip"><GripVertical size={12} /></div>
+            <div className="oo-split-grip">
+              <GripVertical size={12} />
+            </div>
           </div>
 
           <div
             className={`oo-split-right ${isResizing ? "oo-resizing" : ""}`}
-            style={{ width, background: t.panelBg, borderLeft: `1px solid ${t.border}` }}
+            style={{
+              width,
+              background: t.panelBg,
+              borderLeft: `1px solid ${t.border}`,
+            }}
           >
             {panelContent}
           </div>
@@ -2407,21 +699,56 @@ function SplitShell({ t, isDark, panelOpen, children, panelContent }) {
 
 function SidePanelFrame({ t, title, subtitle, onClose, children }) {
   return (
-    <div className="oo-panel-content-anim" style={{ display:"flex", flexDirection:"column", height:"100%" }}>
-      <div style={{
-        padding:"18px 20px", borderBottom:`1px solid ${t.border}`,
-        display:"flex", alignItems:"flex-start", justifyContent:"space-between",
-        flexShrink:0, background:t.theadBg,
-      }}>
-        <div style={{ minWidth:0 }}>
-          <p style={{ fontSize:15, fontWeight:FONT_WEIGHT.semibold, color:t.text, margin:0, fontFamily:FONT_FAMILY }}>{title}</p>
-          {subtitle && <p style={{ fontSize:12, color:t.textMuted, margin:"4px 0 0" }}>{subtitle}</p>}
+    <div
+      className="oo-panel-content-anim"
+      style={{ display: "flex", flexDirection: "column", height: "100%" }}
+    >
+      <div
+        style={{
+          padding: "18px 20px",
+          borderBottom: `1px solid ${t.border}`,
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          flexShrink: 0,
+          background: t.theadBg,
+        }}
+      >
+        <div style={{ minWidth: 0 }}>
+          <p
+            style={{
+              fontSize: 15,
+              fontWeight: FONT_WEIGHT.semibold,
+              color: t.text,
+              margin: 0,
+              fontFamily: FONT_FAMILY,
+            }}
+          >
+            {title}
+          </p>
+          {subtitle && (
+            <p style={{ fontSize: 12, color: t.textMuted, margin: "4px 0 0" }}>
+              {subtitle}
+            </p>
+          )}
         </div>
-        <button onClick={onClose} className="oo-icon-btn" style={{ border:`1px solid ${t.border}`, background:t.actBg, color:t.textSub, marginLeft:12 }} aria-label="Close">
+        <button
+          onClick={onClose}
+          className="oo-icon-btn"
+          style={{
+            border: `1px solid ${t.border}`,
+            background: t.actBg,
+            color: t.textSub,
+            marginLeft: 12,
+          }}
+          aria-label="Close"
+        >
           <X size={15} />
         </button>
       </div>
-      <div style={{ flex:1, padding:"20px 22px", overflowY:"auto" }}>{children}</div>
+      <div style={{ flex: 1, padding: "20px 22px", overflowY: "auto" }}>
+        {children}
+      </div>
     </div>
   );
 }
@@ -2431,43 +758,108 @@ function SidePanelFrame({ t, title, subtitle, onClose, children }) {
 ═══════════════════════════════════════════════════════════════════════════ */
 function Skeleton({ t, rows = 4 }) {
   return (
-    <div style={{ padding:"4px 0" }}>
+    <div style={{ padding: "4px 0" }}>
       {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="oo-shimmer-el" style={{ height:32, borderRadius:9, background:t.skeletonBg, marginBottom:7 }} />
+        <div
+          key={i}
+          className="oo-shimmer-el"
+          style={{
+            height: 32,
+            borderRadius: 9,
+            background: t.skeletonBg,
+            marginBottom: 7,
+          }}
+        />
       ))}
     </div>
   );
 }
 
-function EmptyState({ t, icon: Icon, title, desc, onAdd, addLabel, addDisabled, addDisabledReason }) {
+function EmptyState({
+  t,
+  icon: Icon,
+  title,
+  desc,
+  onAdd,
+  addLabel,
+  addDisabled,
+  addDisabledReason,
+}) {
   return (
-    <div style={{
-      display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
-      padding:"22px 12px", textAlign:"center", border:`1.5px dashed ${t.emptyBorder}`,
-      borderRadius:14, background:t.emptyBg, gap:9, height:"100%", boxSizing:"border-box",
-    }}>
-      <div style={{
-        width:38, height:38, borderRadius:"50%",
-        background:t.emptyBg, border:`1px solid ${t.emptyBorder}`,
-        display:"flex", alignItems:"center", justifyContent:"center",
-      }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "22px 12px",
+        textAlign: "center",
+        border: `1.5px dashed ${t.emptyBorder}`,
+        borderRadius: 14,
+        background: t.emptyBg,
+        gap: 9,
+        height: "100%",
+        boxSizing: "border-box",
+      }}
+    >
+      <div
+        style={{
+          width: 38,
+          height: 38,
+          borderRadius: "50%",
+          background: t.emptyBg,
+          border: `1px solid ${t.emptyBorder}`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <Icon size={16} color={t.emptyIcon} />
       </div>
-      <p style={{ fontWeight:FONT_WEIGHT.bold, fontSize:12.5, color:t.text, margin:0 }}>{title}</p>
-      {desc && <p style={{ fontSize:11, color:t.textMuted, margin:0, lineHeight:1.5 }}>{desc}</p>}
+      <p
+        style={{
+          fontWeight: FONT_WEIGHT.bold,
+          fontSize: 12.5,
+          color: t.text,
+          margin: 0,
+        }}
+      >
+        {title}
+      </p>
+      {desc && (
+        <p
+          style={{
+            fontSize: 11,
+            color: t.textMuted,
+            margin: 0,
+            lineHeight: 1.5,
+          }}
+        >
+          {desc}
+        </p>
+      )}
       {onAdd && (
         <button
           onClick={onAdd}
           disabled={addDisabled}
           title={addDisabled ? addDisabledReason : undefined}
           className="oo-btn-primary"
-          style={{ marginTop:4, fontSize:11, padding:"7px 14px" }}
+          style={{ marginTop: 4, fontSize: 11, padding: "7px 14px" }}
         >
           {addDisabled ? <Lock size={12} /> : <Plus size={12} />} {addLabel}
         </button>
       )}
       {addDisabled && addDisabledReason && (
-        <p style={{ fontSize:10, color:t.textMuted, margin:0, fontStyle:"italic" }}>{addDisabledReason}</p>
+        <p
+          style={{
+            fontSize: 10,
+            color: t.textMuted,
+            margin: 0,
+            fontStyle: "italic",
+          }}
+        >
+          {addDisabledReason}
+        </p>
       )}
     </div>
   );
@@ -2478,18 +870,32 @@ function MiniDataTable({ t, columns, rows, loading, emptyState }) {
   if (loading) return <Skeleton t={t} />;
   if (!rows.length) return emptyState;
   return (
-    <div style={{ overflowX:"auto", borderRadius:10, border:`1px solid ${t.border}` }}>
-      <table style={{ width:"100%", borderCollapse:"collapse" }}>
+    <div
+      style={{
+        overflowX: "auto",
+        borderRadius: 10,
+        border: `1px solid ${t.border}`,
+      }}
+    >
+      <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
-          <tr style={{ background:t.theadBg }}>
+          <tr style={{ background: t.theadBg }}>
             {columns.map((col) => (
-              <th key={col.key} style={{
-                padding:"7px 9px", textAlign:col.align||"left",
-                fontSize:8.5, fontWeight:FONT_WEIGHT.bold, letterSpacing:"0.08em",
-                textTransform:"uppercase", color:t.textMuted,
-                borderBottom:`1px solid ${t.border}`, whiteSpace:"nowrap",
-                fontFamily:FONT_FAMILY,
-              }}>
+              <th
+                key={col.key}
+                style={{
+                  padding: "7px 9px",
+                  textAlign: col.align || "left",
+                  fontSize: 8.5,
+                  fontWeight: FONT_WEIGHT.bold,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: t.textMuted,
+                  borderBottom: `1px solid ${t.border}`,
+                  whiteSpace: "nowrap",
+                  fontFamily: FONT_FAMILY,
+                }}
+              >
                 {col.label}
               </th>
             ))}
@@ -2497,16 +903,33 @@ function MiniDataTable({ t, columns, rows, loading, emptyState }) {
         </thead>
         <tbody>
           {rows.map((row, ri) => (
-            <tr key={ri} className="oo-tr" style={{ borderBottom: ri === rows.length - 1 ? "none" : `1px solid ${t.border}` }}
-              onMouseEnter={(e) => e.currentTarget.style.background = t.rowHov}
-              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+            <tr
+              key={ri}
+              className="oo-tr"
+              style={{
+                borderBottom:
+                  ri === rows.length - 1 ? "none" : `1px solid ${t.border}`,
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.background = t.rowHov)
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.background = "transparent")
+              }
             >
               {columns.map((col) => (
-                <td key={col.key} style={{
-                  padding:"7px 9px", fontSize:11.5, color:t.text,
-                  verticalAlign:"middle", textAlign:col.align||"left",
-                  fontFamily:FONT_FAMILY, ...(col.style||{}),
-                }}>
+                <td
+                  key={col.key}
+                  style={{
+                    padding: "7px 9px",
+                    fontSize: 11.5,
+                    color: t.text,
+                    verticalAlign: "middle",
+                    textAlign: col.align || "left",
+                    fontFamily: FONT_FAMILY,
+                    ...(col.style || {}),
+                  }}
+                >
                   {col.render ? col.render(row, ri) : row[col.key]}
                 </td>
               ))}
@@ -2521,21 +944,50 @@ function MiniDataTable({ t, columns, rows, loading, emptyState }) {
 /* "Showing N of M" footer + prev/next */
 function MiniPagination({ t, page, totalPages, onPrev, onNext }) {
   return (
-    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:9 }}>
-      <span style={{ fontSize:10.5, color:t.textMuted, fontFamily:FONT_FAMILY }}>
-        Showing {page} of {Math.max(totalPages,1)}
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginTop: 9,
+      }}
+    >
+      <span
+        style={{ fontSize: 10.5, color: t.textMuted, fontFamily: FONT_FAMILY }}
+      >
+        Showing {page} of {Math.max(totalPages, 1)}
       </span>
-      <div style={{ display:"flex", alignItems:"center", gap:4 }}>
-        <button onClick={onPrev} disabled={page<=1} className="oo-page-btn" style={{ border:`1px solid ${t.border}`, color:t.textSub }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <button
+          onClick={onPrev}
+          disabled={page <= 1}
+          className="oo-page-btn"
+          style={{ border: `1px solid ${t.border}`, color: t.textSub }}
+        >
           <ChevronLeft size={12} />
         </button>
-        <span style={{
-          width:22, height:22, borderRadius:6, display:"flex", alignItems:"center", justifyContent:"center",
-          fontSize:10.5, fontWeight:FONT_WEIGHT.bold, color:t.text, background:t.pillBg,
-        }}>
+        <span
+          style={{
+            width: 22,
+            height: 22,
+            borderRadius: 6,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 10.5,
+            fontWeight: FONT_WEIGHT.bold,
+            color: t.text,
+            background: t.pillBg,
+          }}
+        >
           {page}
         </span>
-        <button onClick={onNext} disabled={page>=totalPages} className="oo-page-btn" style={{ border:`1px solid ${t.border}`, color:t.textSub }}>
+        <button
+          onClick={onNext}
+          disabled={page >= totalPages}
+          className="oo-page-btn"
+          style={{ border: `1px solid ${t.border}`, color: t.textSub }}
+        >
           <ChevronRight size={12} />
         </button>
       </div>
@@ -2545,12 +997,19 @@ function MiniPagination({ t, page, totalPages, onPrev, onNext }) {
 
 function FormField({ t, label, children }) {
   return (
-    <div style={{ marginBottom:16 }}>
-      <label style={{
-        display:"block", fontSize:10, fontWeight:FONT_WEIGHT.bold, letterSpacing:LETTER_SPACING.eyebrowWide,
-        textTransform:"uppercase", color:t.textMuted, marginBottom:7,
-        fontFamily:FONT_FAMILY,
-      }}>
+    <div style={{ marginBottom: 16 }}>
+      <label
+        style={{
+          display: "block",
+          fontSize: 10,
+          fontWeight: FONT_WEIGHT.bold,
+          letterSpacing: LETTER_SPACING.eyebrowWide,
+          textTransform: "uppercase",
+          color: t.textMuted,
+          marginBottom: 7,
+          fontFamily: FONT_FAMILY,
+        }}
+      >
         {label}
       </label>
       {children}
@@ -2562,13 +1021,21 @@ function OOInput({ t, ...props }) {
   return (
     <input
       {...props}
-      className={`oo-focusable ${props.className||""}`}
+      className={`oo-focusable ${props.className || ""}`}
       style={{
-        width:"100%", height:42, borderRadius:10, border:`1.5px solid ${t.inputBorder}`,
-        background:t.inputBg, color:t.inputText, fontSize:13, fontFamily:FONT_FAMILY,
-        padding:"0 13px", outline:"none", boxSizing:"border-box",
-        transition:"border-color 0.14s",
-        ...(props.style||{}),
+        width: "100%",
+        height: 42,
+        borderRadius: 10,
+        border: `1.5px solid ${t.inputBorder}`,
+        background: t.inputBg,
+        color: t.inputText,
+        fontSize: 13,
+        fontFamily: FONT_FAMILY,
+        padding: "0 13px",
+        outline: "none",
+        boxSizing: "border-box",
+        transition: "border-color 0.14s",
+        ...(props.style || {}),
       }}
     />
   );
@@ -2580,11 +1047,20 @@ function OOSelect({ t, children, ...props }) {
       {...props}
       className="oo-focusable"
       style={{
-        width:"100%", height:42, borderRadius:10, border:`1.5px solid ${t.inputBorder}`,
-        background:t.inputBg, color:t.inputText, fontSize:13, fontFamily:FONT_FAMILY,
-        padding:"0 13px", outline:"none", boxSizing:"border-box", cursor:"pointer",
-        transition:"border-color 0.14s",
-        ...(props.style||{}),
+        width: "100%",
+        height: 42,
+        borderRadius: 10,
+        border: `1.5px solid ${t.inputBorder}`,
+        background: t.inputBg,
+        color: t.inputText,
+        fontSize: 13,
+        fontFamily: FONT_FAMILY,
+        padding: "0 13px",
+        outline: "none",
+        boxSizing: "border-box",
+        cursor: "pointer",
+        transition: "border-color 0.14s",
+        ...(props.style || {}),
       }}
     >
       {children}
@@ -2595,14 +1071,27 @@ function OOSelect({ t, children, ...props }) {
 function SaveBtn({ saving, label, onClick, gradient }) {
   return (
     <button
-      onClick={onClick} disabled={saving}
+      onClick={onClick}
+      disabled={saving}
       className="oo-btn-primary"
       style={{
-        width:"100%", justifyContent:"center", padding:"12px 0", fontSize:13, marginTop:20,
+        width: "100%",
+        justifyContent: "center",
+        padding: "12px 0",
+        fontSize: 13,
+        marginTop: 20,
         background: gradient || undefined,
       }}
     >
-      {saving ? <><Loader2 size={15} className="oo-spin-cls" /> Saving…</> : <><ChevronRight size={15} /> {label}</>}
+      {saving ? (
+        <>
+          <Loader2 size={15} className="oo-spin-cls" /> Saving…
+        </>
+      ) : (
+        <>
+          <ChevronRight size={15} /> {label}
+        </>
+      )}
     </button>
   );
 }
@@ -2610,13 +1099,23 @@ function SaveBtn({ saving, label, onClick, gradient }) {
 function ErrorBanner({ message }) {
   if (!message) return null;
   return (
-    <div style={{
-      display:"flex", alignItems:"center", gap:9, padding:"10px 14px",
-      borderRadius:11, background:"rgba(244,63,94,0.06)", border:"1px solid rgba(244,63,94,0.2)",
-      marginBottom:6, marginTop:4,
-    }}>
-      <AlertCircle size={14} color="#f43f5e" style={{ flexShrink:0 }} />
-      <span style={{ fontSize:12, color:"#f43f5e", fontFamily:FONT_FAMILY }}>{message}</span>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 9,
+        padding: "10px 14px",
+        borderRadius: 11,
+        background: "rgba(244,63,94,0.06)",
+        border: "1px solid rgba(244,63,94,0.2)",
+        marginBottom: 6,
+        marginTop: 4,
+      }}
+    >
+      <AlertCircle size={14} color="#f43f5e" style={{ flexShrink: 0 }} />
+      <span style={{ fontSize: 12, color: "#f43f5e", fontFamily: FONT_FAMILY }}>
+        {message}
+      </span>
     </div>
   );
 }
@@ -2624,21 +1123,51 @@ function ErrorBanner({ message }) {
 function LimitErrorBanner({ t, message, onDismiss }) {
   if (!message) return null;
   return (
-    <div style={{
-      display:"flex", alignItems:"flex-start", gap:10, padding:"14px 16px",
-      borderRadius:14, background:"rgba(244,63,94,0.08)",
-      border:"1.5px solid rgba(244,63,94,0.28)", marginBottom:14,
-    }}>
-      <AlertCircle size={18} color="#f43f5e" style={{ flexShrink:0, marginTop:1 }} />
-      <div style={{ flex:1 }}>
-        <p style={{ fontSize:13, fontWeight:FONT_WEIGHT.extrabold, color:"#f43f5e", margin:"0 0 4px", fontFamily:FONT_FAMILY }}>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "flex-start",
+        gap: 10,
+        padding: "14px 16px",
+        borderRadius: 14,
+        background: "rgba(244,63,94,0.08)",
+        border: "1.5px solid rgba(244,63,94,0.28)",
+        marginBottom: 14,
+      }}
+    >
+      <AlertCircle
+        size={18}
+        color="#f43f5e"
+        style={{ flexShrink: 0, marginTop: 1 }}
+      />
+      <div style={{ flex: 1 }}>
+        <p
+          style={{
+            fontSize: 13,
+            fontWeight: FONT_WEIGHT.extrabold,
+            color: "#f43f5e",
+            margin: "0 0 4px",
+            fontFamily: FONT_FAMILY,
+          }}
+        >
           Plan Limit Reached
         </p>
-        <p style={{ fontSize:12, color:t.textSub, margin:0, lineHeight:1.6 }}>
+        <p
+          style={{ fontSize: 12, color: t.textSub, margin: 0, lineHeight: 1.6 }}
+        >
           {message}. Please contact your Super Admin to upgrade your plan.
         </p>
       </div>
-      <button onClick={onDismiss} className="oo-icon-btn" style={{ width:24, height:24, background:"transparent", color:"#f43f5e" }}>
+      <button
+        onClick={onDismiss}
+        className="oo-icon-btn"
+        style={{
+          width: 24,
+          height: 24,
+          background: "transparent",
+          color: "#f43f5e",
+        }}
+      >
         <X size={13} />
       </button>
     </div>
@@ -2649,14 +1178,18 @@ function LimitErrorBanner({ t, message, onDismiss }) {
    PANEL / INLINE FORMS — logic unchanged from the previous implementation
 ═══════════════════════════════════════════════════════════════════════════ */
 function DepartmentForm({ t, mode, initial, onSubmitted }) {
-  const [form, setForm] = useState(initial || { name:"", head:"" });
+  const [form, setForm] = useState(initial || { name: "", head: "" });
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
   const [limitError, setLimitError] = useState(null);
   const [customOptions, setCustomOptions] = useState([]);
   const allOptions = [...DEPARTMENT_OPTIONS, ...customOptions];
 
-  useEffect(() => { setForm(initial || { name:"", head:"" }); setFormError(""); setLimitError(null); }, [initial, mode]);
+  useEffect(() => {
+    setForm(initial || { name: "", head: "" });
+    setFormError("");
+    setLimitError(null);
+  }, [initial, mode]);
 
   const getOrgId = useCallback(() => {
     try {
@@ -2664,238 +1197,509 @@ function DepartmentForm({ t, mode, initial, onSubmitted }) {
       if (!token) return null;
       const payload = JSON.parse(atob(token.split(".")[1]));
       return payload.organizationId || payload.orgId || null;
-    } catch { return null; }
+    } catch {
+      return null;
+    }
   }, []);
 
   const handleSave = async () => {
-    if (!form.name.trim()) { setFormError("Department name is required."); return; }
-    if (!form.head.trim()) { setFormError("Department head is required."); return; }
-    setFormError(""); setLimitError(null);
+    if (!form.name.trim()) {
+      setFormError("Department name is required.");
+      return;
+    }
+    if (!form.head.trim()) {
+      setFormError("Department head is required.");
+      return;
+    }
+    setFormError("");
+    setLimitError(null);
     try {
       setSaving(true);
       if (mode === "create") {
-        const res = await createDepartment({ name:form.name.trim(), head:form.head.trim(), organizationId:getOrgId() });
+        const res = await createDepartment({
+          name: form.name.trim(),
+          head: form.head.trim(),
+          organizationId: getOrgId(),
+        });
         onSubmitted(res.data, "create");
       } else {
-        const res = await updateDepartment(initial.id, { name:form.name.trim(), head:form.head.trim() });
+        const res = await updateDepartment(initial.id, {
+          name: form.name.trim(),
+          head: form.head.trim(),
+        });
         onSubmitted(res.data, "edit");
       }
     } catch (err) {
-      const msg = err?.response?.data?.message || err?.response?.data || "Something went wrong.";
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data ||
+        "Something went wrong.";
       const text = typeof msg === "string" ? msg : "Something went wrong.";
-      if (text.toLowerCase().includes("limit") || text.toLowerCase().includes("max")) setLimitError(text);
+      if (
+        text.toLowerCase().includes("limit") ||
+        text.toLowerCase().includes("max")
+      )
+        setLimitError(text);
       else setFormError(text);
-    } finally { setSaving(false); }
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <>
-      <LimitErrorBanner t={t} message={limitError} onDismiss={() => setLimitError(null)} />
+      <LimitErrorBanner
+        t={t}
+        message={limitError}
+        onDismiss={() => setLimitError(null)}
+      />
       <FormField t={t} label="Department Name *">
-        <OOSelect t={t} value={form.name} onChange={(e) => setForm((f) => ({ ...f, name:e.target.value }))} style={{ color:form.name ? t.inputText : t.textMuted }}>
+        <OOSelect
+          t={t}
+          value={form.name}
+          onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+          style={{ color: form.name ? t.inputText : t.textMuted }}
+        >
           <option value="">Select department…</option>
-          {allOptions.map((o) => <option key={o} value={o}>{o}</option>)}
+          {allOptions.map((o) => (
+            <option key={o} value={o}>
+              {o}
+            </option>
+          ))}
           <option value="__custom__">+ Add custom…</option>
         </OOSelect>
       </FormField>
       {form.name === "__custom__" && (
         <FormField t={t} label="Custom Name">
-          <OOInput t={t} placeholder="Enter department name" onChange={(e) => {
-            setCustomOptions((p) => [...p.filter((x) => x !== e.target.value), e.target.value]);
-            setForm((f) => ({ ...f, name:e.target.value }));
-          }} />
+          <OOInput
+            t={t}
+            placeholder="Enter department name"
+            onChange={(e) => {
+              setCustomOptions((p) => [
+                ...p.filter((x) => x !== e.target.value),
+                e.target.value,
+              ]);
+              setForm((f) => ({ ...f, name: e.target.value }));
+            }}
+          />
         </FormField>
       )}
       <FormField t={t} label="Department Head *">
-        <OOInput t={t} value={form.head} onChange={(e) => setForm((f) => ({ ...f, head:e.target.value }))} placeholder="e.g. Dr. Rahul Sharma" />
+        <OOInput
+          t={t}
+          value={form.head}
+          onChange={(e) => setForm((f) => ({ ...f, head: e.target.value }))}
+          placeholder="e.g. Dr. Rahul Sharma"
+        />
       </FormField>
       <ErrorBanner message={formError} />
-      <SaveBtn saving={saving} label={mode==="create" ? "Add Department" : "Save Changes"} onClick={handleSave}
-        gradient={`linear-gradient(135deg,${ACCENT_PURPLE.base},#6d28d9)`} />
+      <SaveBtn
+        saving={saving}
+        label={mode === "create" ? "Add Department" : "Save Changes"}
+        onClick={handleSave}
+        gradient={`linear-gradient(135deg,${ACCENT_PURPLE.base},#6d28d9)`}
+      />
     </>
   );
 }
 
 function BranchForm({ t, mode, initial, departments, onSubmitted }) {
-  const [form, setForm] = useState(initial || { name:"", city:"", departmentId:"" });
+  const [form, setForm] = useState(
+    initial || { name: "", city: "", departmentId: "" },
+  );
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [limitError, setLimitError] = useState(null);
 
-  useEffect(() => { setForm(initial || { name:"", city:"", departmentId:"" }); setSaveError(""); setLimitError(null); }, [initial, mode]);
+  useEffect(() => {
+    setForm(initial || { name: "", city: "", departmentId: "" });
+    setSaveError("");
+    setLimitError(null);
+  }, [initial, mode]);
 
   const handleSave = async () => {
-    if (!form.name.trim() || !form.city.trim()) { setSaveError("Name and city are required."); return; }
-    setSaveError(""); setLimitError(null);
+    if (!form.name.trim() || !form.city.trim()) {
+      setSaveError("Name and city are required.");
+      return;
+    }
+    setSaveError("");
+    setLimitError(null);
     try {
       setSaving(true);
-      const res = mode === "edit" ? await updateBranch(initial.id, form) : await createBranch(form);
+      const res =
+        mode === "edit"
+          ? await updateBranch(initial.id, form)
+          : await createBranch(form);
       onSubmitted(res?.data, mode);
     } catch (e) {
-      const msg = e?.response?.data?.message || e?.response?.data || "Something went wrong.";
+      const msg =
+        e?.response?.data?.message ||
+        e?.response?.data ||
+        "Something went wrong.";
       const text = typeof msg === "string" ? msg : "Something went wrong.";
-      if (text.toLowerCase().includes("limit") || text.toLowerCase().includes("max")) setLimitError(text);
+      if (
+        text.toLowerCase().includes("limit") ||
+        text.toLowerCase().includes("max")
+      )
+        setLimitError(text);
       else setSaveError(text);
-    } finally { setSaving(false); }
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <>
-      <LimitErrorBanner t={t} message={limitError} onDismiss={() => setLimitError(null)} />
+      <LimitErrorBanner
+        t={t}
+        message={limitError}
+        onDismiss={() => setLimitError(null)}
+      />
       <FormField t={t} label="Branch Name *">
-        <OOInput t={t} value={form.name} onChange={(e) => setForm((f) => ({ ...f, name:e.target.value }))} placeholder="e.g. Patna Main Campus" />
+        <OOInput
+          t={t}
+          value={form.name}
+          onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+          placeholder="e.g. Patna Main Campus"
+        />
       </FormField>
       <FormField t={t} label="City *">
-        <OOSelect t={t} value={form.city} onChange={(e) => setForm((f) => ({ ...f, city:e.target.value }))}>
+        <OOSelect
+          t={t}
+          value={form.city}
+          onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
+        >
           <option value="">Select city…</option>
-          {CITY_OPTIONS.map((c) => <option key={c} value={c}>{c}</option>)}
+          {CITY_OPTIONS.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
         </OOSelect>
       </FormField>
       <FormField t={t} label="Department">
-        <OOSelect t={t} value={form.departmentId} onChange={(e) => setForm((f) => ({ ...f, departmentId:e.target.value }))}>
+        <OOSelect
+          t={t}
+          value={form.departmentId}
+          onChange={(e) =>
+            setForm((f) => ({ ...f, departmentId: e.target.value }))
+          }
+        >
           <option value="">Select department…</option>
-          {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+          {departments.map((d) => (
+            <option key={d.id} value={d.id}>
+              {d.name}
+            </option>
+          ))}
         </OOSelect>
       </FormField>
       <ErrorBanner message={saveError} />
-      <SaveBtn saving={saving} label={mode==="edit" ? "Save Changes" : "Add Branch"} onClick={handleSave}
-        gradient={`linear-gradient(135deg,${ACCENT_PURPLE.base},#6d28d9)`} />
+      <SaveBtn
+        saving={saving}
+        label={mode === "edit" ? "Save Changes" : "Add Branch"}
+        onClick={handleSave}
+        gradient={`linear-gradient(135deg,${ACCENT_PURPLE.base},#6d28d9)`}
+      />
     </>
   );
 }
 
 function BatchForm({ t, branches, onSubmitted }) {
-  const [form, setForm] = useState({ batchName:"", branchId:"" });
+  const [form, setForm] = useState({ batchName: "", branchId: "" });
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
   const [limitError, setLimitError] = useState(null);
 
   const handleSave = async () => {
-    if (!form.batchName.trim()) { setFormError("Batch name is required."); return; }
-    if (!form.branchId) { setFormError("Please select a branch."); return; }
-    setFormError(""); setLimitError(null);
+    if (!form.batchName.trim()) {
+      setFormError("Batch name is required.");
+      return;
+    }
+    if (!form.branchId) {
+      setFormError("Please select a branch.");
+      return;
+    }
+    setFormError("");
+    setLimitError(null);
     try {
       setSaving(true);
-      const res = await createBatch({ batchName: form.batchName.trim(), branchId: form.branchId });
+      const res = await createBatch({
+        batchName: form.batchName.trim(),
+        branchId: form.branchId,
+      });
       onSubmitted(res?.data);
     } catch (err) {
-      const msg = err?.response?.data?.message || err?.response?.data || "Something went wrong.";
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data ||
+        "Something went wrong.";
       const text = typeof msg === "string" ? msg : "Something went wrong.";
-      if (text.toLowerCase().includes("limit") || text.toLowerCase().includes("max")) setLimitError(text);
+      if (
+        text.toLowerCase().includes("limit") ||
+        text.toLowerCase().includes("max")
+      )
+        setLimitError(text);
       else setFormError(text);
-    } finally { setSaving(false); }
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <>
-      <LimitErrorBanner t={t} message={limitError} onDismiss={() => setLimitError(null)} />
+      <LimitErrorBanner
+        t={t}
+        message={limitError}
+        onDismiss={() => setLimitError(null)}
+      />
       <FormField t={t} label="Batch Name *">
-        <OOInput t={t} value={form.batchName} onChange={(e) => setForm((f) => ({ ...f, batchName:e.target.value }))} placeholder="Enter batch name" />
+        <OOInput
+          t={t}
+          value={form.batchName}
+          onChange={(e) =>
+            setForm((f) => ({ ...f, batchName: e.target.value }))
+          }
+          placeholder="Enter batch name"
+        />
       </FormField>
       <FormField t={t} label="Branch *">
-        <OOSelect t={t} value={form.branchId} onChange={(e) => setForm((f) => ({ ...f, branchId:e.target.value }))}>
+        <OOSelect
+          t={t}
+          value={form.branchId}
+          onChange={(e) => setForm((f) => ({ ...f, branchId: e.target.value }))}
+        >
           <option value="">Select branch…</option>
-          {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+          {branches.map((b) => (
+            <option key={b.id} value={b.id}>
+              {b.name}
+            </option>
+          ))}
         </OOSelect>
       </FormField>
       <ErrorBanner message={formError} />
-      <SaveBtn saving={saving} label="Add Batch" onClick={handleSave}
-        gradient={`linear-gradient(135deg,${ACCENT_PURPLE.base},#6d28d9)`} />
+      <SaveBtn
+        saving={saving}
+        label="Add Batch"
+        onClick={handleSave}
+        gradient={`linear-gradient(135deg,${ACCENT_PURPLE.base},#6d28d9)`}
+      />
     </>
   );
 }
 
 function UserForm({ t, mode, initial, loggedInUser, onSubmitted }) {
-  const [formData, setFormData] = useState(initial || { displayName:"", email:"", password:"", roles:"ROLE_STUDENT" });
+  const [formData, setFormData] = useState(
+    initial || {
+      displayName: "",
+      email: "",
+      password: "",
+      roles: "ROLE_STUDENT",
+    },
+  );
   const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState("");
   const [limitError, setLimitError] = useState(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    setFormData(initial || { displayName:"", email:"", password:"", roles:"ROLE_STUDENT" });
-    setFormError(""); setLimitError(null); setShowPassword(false);
+    setFormData(
+      initial || {
+        displayName: "",
+        email: "",
+        password: "",
+        roles: "ROLE_STUDENT",
+      },
+    );
+    setFormError("");
+    setLimitError(null);
+    setShowPassword(false);
   }, [initial, mode]);
 
   const getPasswordStrength = (pw) => {
-    if (!pw) return { score:0, label:"", color:"" };
+    if (!pw) return { score: 0, label: "", color: "" };
     let score = 0;
-    if (pw.length>=8) score++; if (pw.length>=12) score++;
-    if (/[A-Z]/.test(pw)) score++; if (/[a-z]/.test(pw)) score++;
-    if (/[0-9]/.test(pw)) score++; if (/[^A-Za-z0-9]/.test(pw)) score++;
-    if (score<=2) return { score, label:"Weak",   color:"#f43f5e" };
-    if (score<=4) return { score, label:"Fair",   color:"#f59e0b" };
-    if (score===5) return { score, label:"Good",  color:"#3b82f6" };
-    return { score, label:"Strong", color:"#10b981" };
+    if (pw.length >= 8) score++;
+    if (pw.length >= 12) score++;
+    if (/[A-Z]/.test(pw)) score++;
+    if (/[a-z]/.test(pw)) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    if (score <= 2) return { score, label: "Weak", color: "#f43f5e" };
+    if (score <= 4) return { score, label: "Fair", color: "#f59e0b" };
+    if (score === 5) return { score, label: "Good", color: "#3b82f6" };
+    return { score, label: "Strong", color: "#10b981" };
   };
   const pwStr = getPasswordStrength(formData.password);
 
   const handleSave = async (e) => {
     e?.preventDefault?.();
-    if (!formData.displayName.trim() || !formData.email.trim()) { setFormError("Name and email are required."); return; }
-    setFormError(""); setLimitError(null);
+    if (!formData.displayName.trim() || !formData.email.trim()) {
+      setFormError("Name and email are required.");
+      return;
+    }
+    setFormError("");
+    setLimitError(null);
     try {
       setSaving(true);
       if (mode === "edit") {
         const authService = (await import("../services/authService")).default;
-        await authService.adminUpdateUserByEmail(initial.email, { name:formData.displayName, email:formData.email, role:ROLE_TO_AUTH_ROLE[formData.roles] });
-        const res = await userService.updateUser(initial.id, { displayName:formData.displayName });
+        await authService.adminUpdateUserByEmail(initial.email, {
+          name: formData.displayName,
+          email: formData.email,
+          role: ROLE_TO_AUTH_ROLE[formData.roles],
+        });
+        const res = await userService.updateUser(initial.id, {
+          displayName: formData.displayName,
+        });
         onSubmitted(res.data, "edit");
-        if (loggedInUser && loggedInUser.email===initial.email && loggedInUser.roles!==formData.roles) {
-          alert("Your role has been changed. Please login again."); localStorage.clear(); window.location.href="/login"; return;
+        if (
+          loggedInUser &&
+          loggedInUser.email === initial.email &&
+          loggedInUser.roles !== formData.roles
+        ) {
+          alert("Your role has been changed. Please login again.");
+          localStorage.clear();
+          window.location.href = "/login";
+          return;
         }
       } else {
-        const currentUser = JSON.parse(localStorage.getItem("lms_user") || "null");
+        const currentUser = JSON.parse(
+          localStorage.getItem("lms_user") || "null",
+        );
         const orgId = currentUser?.organizationId || null;
-        await userService.createAuthUser({ email:formData.email, password:formData.password, displayName:formData.displayName, roles:formData.roles, organizationId:orgId });
+        await userService.createAuthUser({
+          email: formData.email,
+          password: formData.password,
+          displayName: formData.displayName,
+          roles: formData.roles,
+          organizationId: orgId,
+        });
         onSubmitted(null, "create");
       }
     } catch (err) {
-      const msg = err?.response?.data?.message || err?.response?.data || "Something went wrong.";
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data ||
+        "Something went wrong.";
       const text = typeof msg === "string" ? msg : "Something went wrong.";
-      if (text.toLowerCase().includes("limit")||text.toLowerCase().includes("max")) setLimitError(text);
+      if (
+        text.toLowerCase().includes("limit") ||
+        text.toLowerCase().includes("max")
+      )
+        setLimitError(text);
       else setFormError(text);
-    } finally { setSaving(false); }
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <>
-      <LimitErrorBanner t={t} message={limitError} onDismiss={() => setLimitError(null)} />
+      <LimitErrorBanner
+        t={t}
+        message={limitError}
+        onDismiss={() => setLimitError(null)}
+      />
       <FormField t={t} label="Full Name *">
-        <OOInput t={t} value={formData.displayName} onChange={(e) => setFormData((f) => ({ ...f, displayName:e.target.value }))} placeholder="e.g. Rahul Sharma" />
+        <OOInput
+          t={t}
+          value={formData.displayName}
+          onChange={(e) =>
+            setFormData((f) => ({ ...f, displayName: e.target.value }))
+          }
+          placeholder="e.g. Rahul Sharma"
+        />
       </FormField>
       <FormField t={t} label="Email *">
-        <OOInput t={t} type="email" value={formData.email} onChange={(e) => setFormData((f) => ({ ...f, email:e.target.value }))} placeholder="user@email.com" />
+        <OOInput
+          t={t}
+          type="email"
+          value={formData.email}
+          onChange={(e) =>
+            setFormData((f) => ({ ...f, email: e.target.value }))
+          }
+          placeholder="user@email.com"
+        />
       </FormField>
       {mode !== "edit" && (
         <FormField t={t} label="Password *">
-          <div style={{ position:"relative" }}>
-            <OOInput t={t} type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => setFormData((f) => ({ ...f, password:e.target.value }))} placeholder="Enter password" style={{ paddingRight:44 }} />
-            <button onClick={() => setShowPassword((p) => !p)} type="button" style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:t.textMuted, display:"flex" }}>
+          <div style={{ position: "relative" }}>
+            <OOInput
+              t={t}
+              type={showPassword ? "text" : "password"}
+              value={formData.password}
+              onChange={(e) =>
+                setFormData((f) => ({ ...f, password: e.target.value }))
+              }
+              placeholder="Enter password"
+              style={{ paddingRight: 44 }}
+            />
+            <button
+              onClick={() => setShowPassword((p) => !p)}
+              type="button"
+              style={{
+                position: "absolute",
+                right: 12,
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: t.textMuted,
+                display: "flex",
+              }}
+            >
               {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
             </button>
           </div>
           {formData.password && (
-            <div style={{ marginTop:8 }}>
-              <div style={{ display:"flex", gap:4, marginBottom:4 }}>
-                {[1,2,3,4,5,6].map((i) => (
-                  <div key={i} style={{ flex:1, height:3, borderRadius:2, background: i<=pwStr.score ? pwStr.color : t.border, transition:"background 0.2s" }} />
+            <div style={{ marginTop: 8 }}>
+              <div style={{ display: "flex", gap: 4, marginBottom: 4 }}>
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div
+                    key={i}
+                    style={{
+                      flex: 1,
+                      height: 3,
+                      borderRadius: 2,
+                      background: i <= pwStr.score ? pwStr.color : t.border,
+                      transition: "background 0.2s",
+                    }}
+                  />
                 ))}
               </div>
-              <span style={{ fontSize:10, color:pwStr.color, fontWeight:FONT_WEIGHT.bold }}>{pwStr.label}</span>
+              <span
+                style={{
+                  fontSize: 10,
+                  color: pwStr.color,
+                  fontWeight: FONT_WEIGHT.bold,
+                }}
+              >
+                {pwStr.label}
+              </span>
             </div>
           )}
         </FormField>
       )}
       <FormField t={t} label="Role">
-        <OOSelect t={t} value={formData.roles} onChange={(e) => setFormData((f) => ({ ...f, roles:e.target.value }))}>
+        <OOSelect
+          t={t}
+          value={formData.roles}
+          onChange={(e) =>
+            setFormData((f) => ({ ...f, roles: e.target.value }))
+          }
+        >
           <option value="ROLE_STUDENT">Student</option>
           <option value="ROLE_TRAINER">Trainer</option>
         </OOSelect>
       </FormField>
       <ErrorBanner message={formError} />
-      <SaveBtn saving={saving} label={mode==="edit" ? "Save Changes" : "Add User"} onClick={handleSave}
-        gradient={`linear-gradient(135deg,${ACCENT_PURPLE.base},#6d28d9)`} />
+      <SaveBtn
+        saving={saving}
+        label={mode === "edit" ? "Save Changes" : "Add User"}
+        onClick={handleSave}
+        gradient={`linear-gradient(135deg,${ACCENT_PURPLE.base},#6d28d9)`}
+      />
     </>
   );
 }
@@ -2903,7 +1707,20 @@ function UserForm({ t, mode, initial, loggedInUser, onSubmitted }) {
 /* ═══════════════════════════════════════════════════════════════════════════
    MANAGEMENT COLUMN — header + filter + search + table + pagination
 ═══════════════════════════════════════════════════════════════════════════ */
-function ManagementColumn({ t, isDark, cat, items, count, loading, departments, branches, onAdd, addDisabled, addDisabledReason }) {
+function ManagementColumn({
+  t,
+  isDark,
+  cat,
+  items,
+  count,
+  loading,
+  departments,
+  branches,
+  onAdd,
+  addDisabled,
+  addDisabledReason,
+}) {
+  const navigate = useNavigate();
   const Icon = cat.icon;
   const PAGE_SIZE = 5;
 
@@ -2911,7 +1728,9 @@ function ManagementColumn({ t, isDark, cat, items, count, loading, departments, 
   const [filterVal, setFilterVal] = useState("");
   const [page, setPage] = useState(1);
 
-  useEffect(() => { setPage(1); }, [search, filterVal, items.length]);
+  useEffect(() => {
+    setPage(1);
+  }, [search, filterVal, items.length]);
 
   const filtered = useMemo(() => {
     const s = search.toLowerCase();
@@ -2921,13 +1740,20 @@ function ManagementColumn({ t, isDark, cat, items, count, loading, departments, 
       if (cat.id === "departments") {
         matchesSearch = !s || it.name?.toLowerCase().includes(s);
       } else if (cat.id === "branches") {
-        matchesSearch = !s || it.name?.toLowerCase().includes(s) || it.city?.toLowerCase().includes(s);
-        matchesFilter = !filterVal || String(it.departmentId) === String(filterVal);
+        matchesSearch =
+          !s ||
+          it.name?.toLowerCase().includes(s) ||
+          it.city?.toLowerCase().includes(s);
+        matchesFilter =
+          !filterVal || String(it.departmentId) === String(filterVal);
       } else if (cat.id === "batches") {
         matchesSearch = !s || it.batchName?.toLowerCase().includes(s);
         matchesFilter = !filterVal || String(it.branchId) === String(filterVal);
       } else {
-        matchesSearch = !s || it.displayName?.toLowerCase().includes(s) || it.email?.toLowerCase().includes(s);
+        matchesSearch =
+          !s ||
+          it.displayName?.toLowerCase().includes(s) ||
+          it.email?.toLowerCase().includes(s);
         matchesFilter = !filterVal || it.roles === filterVal;
       }
       return matchesSearch && matchesFilter;
@@ -2935,122 +1761,542 @@ function ManagementColumn({ t, isDark, cat, items, count, loading, departments, 
   }, [items, search, filterVal, cat.id]);
 
   const totalPages = Math.max(Math.ceil(filtered.length / PAGE_SIZE), 1);
-  const pageRows = filtered.slice((page-1)*PAGE_SIZE, page*PAGE_SIZE);
+  const pageRows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const columns = useMemo(() => {
     if (cat.id === "departments") {
       return [
-        { key:"#", label:"#", style:{ width:26 }, render:(_,i) => <span style={{ fontSize:10.5, color:t.textMuted, fontWeight:FONT_WEIGHT.semibold }}>{(page-1)*PAGE_SIZE+i+1}</span> },
-        { key:"name", label:"Department Name", render:(row) => {
-          const [c1,c2] = gradColor(row.name);
-          return (
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <div style={{ width:22, height:22, borderRadius:7, background:`linear-gradient(135deg,${c1},${c2})`, display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:FONT_WEIGHT.bold, fontSize:10, flexShrink:0 }}>
-                {row.name?.[0]?.toUpperCase()}
+        {
+          key: "#",
+          label: "#",
+          style: { width: 26 },
+          render: (_, i) => (
+            <span
+              style={{
+                fontSize: 10.5,
+                color: t.textMuted,
+                fontWeight: FONT_WEIGHT.semibold,
+              }}
+            >
+              {(page - 1) * PAGE_SIZE + i + 1}
+            </span>
+          ),
+        },
+        {
+          key: "name",
+          label: "Department Name",
+          render: (row) => {
+            const [c1, c2] = gradColor(row.name);
+            return (
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div
+                  style={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: 7,
+                    background: `linear-gradient(135deg,${c1},${c2})`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#fff",
+                    fontWeight: FONT_WEIGHT.bold,
+                    fontSize: 10,
+                    flexShrink: 0,
+                  }}
+                >
+                  {row.name?.[0]?.toUpperCase()}
+                </div>
+                <span
+                  style={{
+                    fontWeight: FONT_WEIGHT.semibold,
+                    color: t.text,
+                    fontSize: 11.5,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {row.name}
+                </span>
               </div>
-              <span style={{ fontWeight:FONT_WEIGHT.semibold, color:t.text, fontSize:11.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{row.name}</span>
+            );
+          },
+        },
+        {
+          key: "actions",
+          label: "Actions",
+          align: "right",
+          render: (row) => (
+            <div
+              style={{ display: "flex", gap: 4, justifyContent: "flex-end" }}
+            >
+              <button
+                onClick={row.__onEdit}
+                className="oo-icon-btn"
+                style={{
+                  width: 22,
+                  height: 22,
+                  border: `1px solid ${t.border}`,
+                  background: t.actBg,
+                  color: t.textSub,
+                }}
+              >
+                <Pencil size={10} />
+              </button>
+              <button
+                onClick={row.__onDelete}
+                className="oo-icon-btn"
+                style={{
+                  width: 22,
+                  height: 22,
+                  border: "1px solid rgba(244,63,94,0.24)",
+                  background: "rgba(244,63,94,0.08)",
+                  color: "#f43f5e",
+                }}
+              >
+                <Trash2 size={10} />
+              </button>
             </div>
-          );
-        }},
-        { key:"actions", label:"Actions", align:"right", render:(row) => (
-          <div style={{ display:"flex", gap:4, justifyContent:"flex-end" }}>
-            <button onClick={row.__onEdit} className="oo-icon-btn" style={{ width:22, height:22, border:`1px solid ${t.border}`, background:t.actBg, color:t.textSub }}><Pencil size={10} /></button>
-            <button onClick={row.__onDelete} className="oo-icon-btn" style={{ width:22, height:22, border:"1px solid rgba(244,63,94,0.24)", background:"rgba(244,63,94,0.08)", color:"#f43f5e" }}><Trash2 size={10} /></button>
-          </div>
-        )},
+          ),
+        },
       ];
     }
     if (cat.id === "branches") {
       return [
-        { key:"#", label:"#", style:{ width:26 }, render:(_,i) => <span style={{ fontSize:10.5, color:t.textMuted, fontWeight:FONT_WEIGHT.semibold }}>{(page-1)*PAGE_SIZE+i+1}</span> },
-        { key:"name", label:"Branch Name", render:(row) => {
-          const [c1,c2] = gradColor(row.name);
-          return (
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <div style={{ width:22, height:22, borderRadius:7, background:`linear-gradient(135deg,${c1},${c2})`, display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", flexShrink:0 }}>
-                <GitBranch size={10} />
+        {
+          key: "#",
+          label: "#",
+          style: { width: 26 },
+          render: (_, i) => (
+            <span
+              style={{
+                fontSize: 10.5,
+                color: t.textMuted,
+                fontWeight: FONT_WEIGHT.semibold,
+              }}
+            >
+              {(page - 1) * PAGE_SIZE + i + 1}
+            </span>
+          ),
+        },
+        {
+          key: "name",
+          label: "Branch Name",
+          render: (row) => {
+            const [c1, c2] = gradColor(row.name);
+            return (
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div
+                  style={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: 7,
+                    background: `linear-gradient(135deg,${c1},${c2})`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#fff",
+                    flexShrink: 0,
+                  }}
+                >
+                  <GitBranch size={10} />
+                </div>
+                <span
+                  style={{
+                    fontWeight: FONT_WEIGHT.semibold,
+                    color: t.text,
+                    fontSize: 11.5,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {row.name}
+                </span>
               </div>
-              <span style={{ fontWeight:FONT_WEIGHT.semibold, color:t.text, fontSize:11.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{row.name}</span>
+            );
+          },
+        },
+        {
+          key: "city",
+          label: "City",
+          render: (row) => (
+            <span style={{ fontSize: 11, color: t.textSub }}>
+              {row.city || "—"}
+            </span>
+          ),
+        },
+        {
+          key: "actions",
+          label: "Actions",
+          align: "right",
+          render: (row) => (
+            <div
+              style={{ display: "flex", gap: 4, justifyContent: "flex-end" }}
+            >
+              <button
+                onClick={row.__onEdit}
+                className="oo-icon-btn"
+                style={{
+                  width: 22,
+                  height: 22,
+                  border: `1px solid ${t.border}`,
+                  background: t.actBg,
+                  color: t.textSub,
+                }}
+              >
+                <Pencil size={10} />
+              </button>
+              <button
+                onClick={row.__onDelete}
+                className="oo-icon-btn"
+                style={{
+                  width: 22,
+                  height: 22,
+                  border: "1px solid rgba(244,63,94,0.24)",
+                  background: "rgba(244,63,94,0.08)",
+                  color: "#f43f5e",
+                }}
+              >
+                <Trash2 size={10} />
+              </button>
             </div>
-          );
-        }},
-        { key:"city", label:"City", render:(row) => <span style={{ fontSize:11, color:t.textSub }}>{row.city||"—"}</span> },
-        { key:"actions", label:"Actions", align:"right", render:(row) => (
-          <div style={{ display:"flex", gap:4, justifyContent:"flex-end" }}>
-            <button onClick={row.__onEdit} className="oo-icon-btn" style={{ width:22, height:22, border:`1px solid ${t.border}`, background:t.actBg, color:t.textSub }}><Pencil size={10} /></button>
-            <button onClick={row.__onDelete} className="oo-icon-btn" style={{ width:22, height:22, border:"1px solid rgba(244,63,94,0.24)", background:"rgba(244,63,94,0.08)", color:"#f43f5e" }}><Trash2 size={10} /></button>
-          </div>
-        )},
+          ),
+        },
       ];
     }
     if (cat.id === "batches") {
       return [
-        { key:"#", label:"#", style:{ width:26 }, render:(_,i) => <span style={{ fontSize:10.5, color:t.textMuted, fontWeight:FONT_WEIGHT.semibold }}>{(page-1)*PAGE_SIZE+i+1}</span> },
-        { key:"batchName", label:"Batch Name", render:(row) => {
-          const [c1,c2] = gradColor(row.batchName);
-          return (
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <div style={{ width:22, height:22, borderRadius:7, background:`linear-gradient(135deg,${c1},${c2})`, display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", flexShrink:0 }}>
-                <Layers size={10} />
+        {
+          key: "#",
+          label: "#",
+          style: { width: 26 },
+          render: (_, i) => (
+            <span
+              style={{
+                fontSize: 10.5,
+                color: t.textMuted,
+                fontWeight: FONT_WEIGHT.semibold,
+              }}
+            >
+              {(page - 1) * PAGE_SIZE + i + 1}
+            </span>
+          ),
+        },
+        {
+          key: "batchName",
+          label: "Batch Name",
+          render: (row) => {
+            const [c1, c2] = gradColor(row.batchName);
+            return (
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div
+                  style={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: 7,
+                    background: `linear-gradient(135deg,${c1},${c2})`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#fff",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Layers size={10} />
+                </div>
+                <span
+                  style={{
+                    fontWeight: FONT_WEIGHT.semibold,
+                    color: t.text,
+                    fontSize: 11.5,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {row.batchName}
+                </span>
               </div>
-              <span style={{ fontWeight:FONT_WEIGHT.semibold, color:t.text, fontSize:11.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{row.batchName}</span>
+            );
+          },
+        },
+        {
+          key: "actions",
+          label: "Actions",
+          align: "right",
+          render: (row) => (
+            <div
+              style={{
+                display: "flex",
+                gap: 5,
+                justifyContent: "flex-end",
+                flexWrap: "wrap",
+              }}
+            >
+              <button
+                onClick={() =>
+                  navigate(
+                    row.trainerEmail
+                      ? `/admin/batches/${row.id}/trainers`
+                      : `/admin/batches/${row.id}/assign-trainer`,
+                  )
+                }
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                  padding: "5px 10px",
+                  borderRadius: 8,
+                  border: "1px solid rgba(59,130,246,0.3)",
+                  background: "rgba(59,130,246,0.1)",
+                  color: "#3b82f6",
+                  fontSize: 10,
+                  fontWeight: FONT_WEIGHT.semibold,
+                  cursor: "pointer",
+                  fontFamily: FONT_FAMILY,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <UserCheck size={11} />
+                {row.trainerEmail ? "Manage Students" : "Assign Trainer"}
+              </button>
+              <button
+                onClick={() => navigate(`/admin/batches/${row.id}/trainers`)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                  padding: "5px 10px",
+                  borderRadius: 8,
+                  border: `1px solid ${t.border}`,
+                  background: t.actBg,
+                  color: t.textSub,
+                  fontSize: 10,
+                  fontWeight: FONT_WEIGHT.semibold,
+                  cursor: "pointer",
+                  fontFamily: FONT_FAMILY,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <Users size={11} /> Trainers
+              </button>
+              <button
+                onClick={row.__onDelete}
+                className="oo-icon-btn"
+                style={{
+                  width: 22,
+                  height: 22,
+                  border: "1px solid rgba(244,63,94,0.24)",
+                  background: "rgba(244,63,94,0.08)",
+                  color: "#f43f5e",
+                }}
+              >
+                <Trash2 size={10} />
+              </button>
             </div>
-          );
-        }},
-        { key:"actions", label:"Actions", align:"right", render:(row) => (
-          <div style={{ display:"flex", gap:4, justifyContent:"flex-end" }}>
-            <button onClick={row.__onEdit} className="oo-icon-btn" style={{ width:22, height:22, border:`1px solid ${t.border}`, background:t.actBg, color:t.textSub }}><Pencil size={10} /></button>
-            <button onClick={row.__onDelete} className="oo-icon-btn" style={{ width:22, height:22, border:"1px solid rgba(244,63,94,0.24)", background:"rgba(244,63,94,0.08)", color:"#f43f5e" }}><Trash2 size={10} /></button>
-          </div>
-        )},
+          ),
+        },
       ];
     }
     return [
-      { key:"#", label:"#", style:{ width:26 }, render:(_,i) => <span style={{ fontSize:10.5, color:t.textMuted, fontWeight:FONT_WEIGHT.semibold }}>{(page-1)*PAGE_SIZE+i+1}</span> },
-      { key:"displayName", label:"User Name", render:(row) => {
-        const [c1,c2] = gradColor(row.displayName||row.email);
-        const initials = (row.displayName||row.email||"U").split(" ").map((w)=>w[0]).join("").slice(0,2).toUpperCase();
-        return (
-          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-            <div style={{ width:22, height:22, borderRadius:7, background:`linear-gradient(135deg,${c1},${c2})`, display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:FONT_WEIGHT.bold, fontSize:9, flexShrink:0 }}>
-              {initials}
+      {
+        key: "#",
+        label: "#",
+        style: { width: 26 },
+        render: (_, i) => (
+          <span
+            style={{
+              fontSize: 10.5,
+              color: t.textMuted,
+              fontWeight: FONT_WEIGHT.semibold,
+            }}
+          >
+            {(page - 1) * PAGE_SIZE + i + 1}
+          </span>
+        ),
+      },
+      {
+        key: "displayName",
+        label: "User Name",
+        render: (row) => {
+          const [c1, c2] = gradColor(row.displayName || row.email);
+          const initials = (row.displayName || row.email || "U")
+            .split(" ")
+            .map((w) => w[0])
+            .join("")
+            .slice(0, 2)
+            .toUpperCase();
+          return (
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div
+                style={{
+                  width: 22,
+                  height: 22,
+                  borderRadius: 7,
+                  background: `linear-gradient(135deg,${c1},${c2})`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#fff",
+                  fontWeight: FONT_WEIGHT.bold,
+                  fontSize: 9,
+                  flexShrink: 0,
+                }}
+              >
+                {initials}
+              </div>
+              <span
+                style={{
+                  fontWeight: FONT_WEIGHT.semibold,
+                  color: t.text,
+                  fontSize: 11.5,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {row.displayName || row.email}
+              </span>
             </div>
-            <span style={{ fontWeight:FONT_WEIGHT.semibold, color:t.text, fontSize:11.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{row.displayName||row.email}</span>
+          );
+        },
+      },
+      {
+        key: "roles",
+        label: "Role",
+        render: (row) => {
+          const cfg = ROLE_CFG[row.roles] || {
+            label: row.roles || "—",
+            color: "#94a3b8",
+            bg: "rgba(148,163,184,0.12)",
+          };
+          return (
+            <span
+              style={{
+                padding: "2px 8px",
+                borderRadius: 999,
+                fontSize: 9.5,
+                fontWeight: FONT_WEIGHT.bold,
+                background: cfg.bg,
+                color: cfg.color,
+              }}
+            >
+              {cfg.label}
+            </span>
+          );
+        },
+      },
+      {
+        key: "actions",
+        label: "Actions",
+        align: "right",
+        render: (row) => (
+          <div style={{ display: "flex", gap: 4, justifyContent: "flex-end" }}>
+            <button
+              onClick={row.__onEdit}
+              className="oo-icon-btn"
+              style={{
+                width: 22,
+                height: 22,
+                border: `1px solid ${t.border}`,
+                background: t.actBg,
+                color: t.textSub,
+              }}
+            >
+              <Pencil size={10} />
+            </button>
+            <button
+              onClick={row.__onDelete}
+              className="oo-icon-btn"
+              style={{
+                width: 22,
+                height: 22,
+                border: "1px solid rgba(244,63,94,0.24)",
+                background: "rgba(244,63,94,0.08)",
+                color: "#f43f5e",
+              }}
+            >
+              <Trash2 size={10} />
+            </button>
           </div>
-        );
-      }},
-      { key:"roles", label:"Role", render:(row) => {
-        const cfg = ROLE_CFG[row.roles] || { label:row.roles||"—", color:"#94a3b8", bg:"rgba(148,163,184,0.12)" };
-        return <span style={{ padding:"2px 8px", borderRadius:999, fontSize:9.5, fontWeight:FONT_WEIGHT.bold, background:cfg.bg, color:cfg.color }}>{cfg.label}</span>;
-      }},
-      { key:"actions", label:"Actions", align:"right", render:(row) => (
-        <div style={{ display:"flex", gap:4, justifyContent:"flex-end" }}>
-          <button onClick={row.__onEdit} className="oo-icon-btn" style={{ width:22, height:22, border:`1px solid ${t.border}`, background:t.actBg, color:t.textSub }}><Pencil size={10} /></button>
-          <button onClick={row.__onDelete} className="oo-icon-btn" style={{ width:22, height:22, border:"1px solid rgba(244,63,94,0.24)", background:"rgba(244,63,94,0.08)", color:"#f43f5e" }}><Trash2 size={10} /></button>
-        </div>
-      )},
+        ),
+      },
     ];
   }, [cat.id, t, page]);
 
   const searchPlaceholder =
-    cat.id === "departments" ? "Search departments…" :
-    cat.id === "branches"    ? "Search branches…" :
-    cat.id === "batches"     ? "Search batches…" : "Search users…";
+    cat.id === "departments"
+      ? "Search departments…"
+      : cat.id === "branches"
+        ? "Search branches…"
+        : cat.id === "batches"
+          ? "Search batches…"
+          : "Search users…";
 
   return (
-    <div style={{
-      background: t.cardBg, border:`1px solid ${t.border}`,
-      borderRadius:16, boxShadow:t.shadow,
-      display:"flex", flexDirection:"column", minWidth:0, overflow:"hidden",
-      padding:"13px 14px 14px", flex:"1 1 auto",
-    }}>
+    <div
+      style={{
+        background: t.cardBg,
+        border: `1px solid ${t.border}`,
+        borderRadius: 16,
+        boxShadow: t.shadow,
+        display: "flex",
+        flexDirection: "column",
+        minWidth: 0,
+        overflow: "hidden",
+        padding: "13px 14px 14px",
+        flex: "1 1 auto",
+      }}
+    >
       {/* Column header */}
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:11, gap:6, flexWrap:"wrap", rowGap:6 }}>
-        <div style={{ display:"flex", alignItems:"center", gap:7, minWidth:0, flex:"1 1 auto", overflow:"hidden" }}>
-          <div style={{ width:26, height:26, borderRadius:8, background:`linear-gradient(135deg,${cat.grad[0]},${cat.grad[1]})`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 11,
+          gap: 6,
+          flexWrap: "wrap",
+          rowGap: 6,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 7,
+            minWidth: 0,
+            flex: "1 1 auto",
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              width: 26,
+              height: 26,
+              borderRadius: 8,
+              background: `linear-gradient(135deg,${cat.grad[0]},${cat.grad[1]})`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
             <Icon size={12} color="#fff" />
           </div>
-          <span style={{ fontSize:12.5, fontWeight:FONT_WEIGHT.bold, color:t.text, fontFamily:FONT_FAMILY, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", minWidth:0 }}>
+          <span
+            style={{
+              fontSize: 12.5,
+              fontWeight: FONT_WEIGHT.bold,
+              color: t.text,
+              fontFamily: FONT_FAMILY,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              minWidth: 0,
+            }}
+          >
             {cat.label} {count !== null ? `(${count})` : ""}
           </span>
         </div>
@@ -3059,73 +2305,150 @@ function ManagementColumn({ t, isDark, cat, items, count, loading, departments, 
           disabled={addDisabled}
           title={addDisabled ? addDisabledReason : undefined}
           className="oo-btn-solid"
-          style={{ background: addDisabled ? undefined : `linear-gradient(135deg,${ACCENT_PURPLE.base},#6d28d9)`, boxShadow: addDisabled ? "none" : `0 3px 10px ${ACCENT_PURPLE.base}40`, flexShrink:0 }}
+          style={{
+            background: addDisabled
+              ? undefined
+              : `linear-gradient(135deg,${ACCENT_PURPLE.base},#6d28d9)`,
+            boxShadow: addDisabled
+              ? "none"
+              : `0 3px 10px ${ACCENT_PURPLE.base}40`,
+            flexShrink: 0,
+          }}
         >
-          {addDisabled ? <Lock size={10} /> : <Plus size={10} />} Add {cat.singular}
+          {addDisabled ? <Lock size={10} /> : <Plus size={10} />} Add{" "}
+          {cat.singular}
         </button>
       </div>
 
       {addDisabled && addDisabledReason && (
-        <div style={{
-          display:"flex", alignItems:"center", gap:7, padding:"7px 10px", borderRadius:9,
-          background:t.emptyBg, border:`1px dashed ${t.emptyBorder}`, marginBottom:9,
-        }}>
-          <Lock size={11} color={t.textMuted} style={{ flexShrink:0 }} />
-          <span style={{ fontSize:10.5, color:t.textMuted, fontFamily:FONT_FAMILY }}>{addDisabledReason}</span>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 7,
+            padding: "7px 10px",
+            borderRadius: 9,
+            background: t.emptyBg,
+            border: `1px dashed ${t.emptyBorder}`,
+            marginBottom: 9,
+          }}
+        >
+          <Lock size={11} color={t.textMuted} style={{ flexShrink: 0 }} />
+          <span
+            style={{
+              fontSize: 10.5,
+              color: t.textMuted,
+              fontFamily: FONT_FAMILY,
+            }}
+          >
+            {addDisabledReason}
+          </span>
         </div>
       )}
 
       {cat.id === "branches" && (
-        <OOSelect t={t} value={filterVal} onChange={(e) => setFilterVal(e.target.value)} style={{ height:30, fontSize:11, marginBottom:8 }}>
+        <OOSelect
+          t={t}
+          value={filterVal}
+          onChange={(e) => setFilterVal(e.target.value)}
+          style={{ height: 30, fontSize: 11, marginBottom: 8 }}
+        >
           <option value="">All Departments</option>
-          {(departments||[]).map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+          {(departments || []).map((d) => (
+            <option key={d.id} value={d.id}>
+              {d.name}
+            </option>
+          ))}
         </OOSelect>
       )}
       {cat.id === "batches" && (
-        <OOSelect t={t} value={filterVal} onChange={(e) => setFilterVal(e.target.value)} style={{ height:30, fontSize:11, marginBottom:8 }}>
+        <OOSelect
+          t={t}
+          value={filterVal}
+          onChange={(e) => setFilterVal(e.target.value)}
+          style={{ height: 30, fontSize: 11, marginBottom: 8 }}
+        >
           <option value="">All Branches</option>
-          {(branches||[]).map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+          {(branches || []).map((b) => (
+            <option key={b.id} value={b.id}>
+              {b.name}
+            </option>
+          ))}
         </OOSelect>
       )}
       {cat.id === "users" && (
-        <OOSelect t={t} value={filterVal} onChange={(e) => setFilterVal(e.target.value)} style={{ height:30, fontSize:11, marginBottom:8 }}>
+        <OOSelect
+          t={t}
+          value={filterVal}
+          onChange={(e) => setFilterVal(e.target.value)}
+          style={{ height: 30, fontSize: 11, marginBottom: 8 }}
+        >
           <option value="">All Roles</option>
           <option value="ROLE_TRAINER">Trainer</option>
           <option value="ROLE_STUDENT">Student</option>
         </OOSelect>
       )}
 
-      <div style={{ position:"relative", marginBottom:10 }}>
-        <Search size={11} style={{ position:"absolute", left:9, top:"50%", transform:"translateY(-50%)", color:t.textMuted }} />
-        <input
-          value={search} onChange={(e) => setSearch(e.target.value)}
-          placeholder={searchPlaceholder} className="oo-focusable"
+      <div style={{ position: "relative", marginBottom: 10 }}>
+        <Search
+          size={11}
           style={{
-            width:"100%", height:30, borderRadius:8, border:`1px solid ${t.inputBorder}`,
-            background:t.inputBg, color:t.inputText, fontSize:11, fontFamily:FONT_FAMILY,
-            paddingLeft:26, paddingRight:10, outline:"none", boxSizing:"border-box",
+            position: "absolute",
+            left: 9,
+            top: "50%",
+            transform: "translateY(-50%)",
+            color: t.textMuted,
+          }}
+        />
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder={searchPlaceholder}
+          className="oo-focusable"
+          style={{
+            width: "100%",
+            height: 30,
+            borderRadius: 8,
+            border: `1px solid ${t.inputBorder}`,
+            background: t.inputBg,
+            color: t.inputText,
+            fontSize: 11,
+            fontFamily: FONT_FAMILY,
+            paddingLeft: 26,
+            paddingRight: 10,
+            outline: "none",
+            boxSizing: "border-box",
           }}
         />
       </div>
 
-      <div style={{ minHeight:130, flex:"1 1 auto" }}>
+      <div style={{ minHeight: 130, flex: "1 1 auto" }}>
         <MiniDataTable
-          t={t} columns={columns} rows={pageRows} loading={loading}
+          t={t}
+          columns={columns}
+          rows={pageRows}
+          loading={loading}
           emptyState={
             <EmptyState
-              t={t} icon={Icon} title={`No ${cat.label.toLowerCase()} found`}
+              t={t}
+              icon={Icon}
+              title={`No ${cat.label.toLowerCase()} found`}
               desc={`Add your first ${cat.singular.toLowerCase()} to get started`}
-              onAdd={onAdd} addLabel={`Add ${cat.singular}`}
-              addDisabled={addDisabled} addDisabledReason={addDisabledReason}
+              onAdd={onAdd}
+              addLabel={`Add ${cat.singular}`}
+              addDisabled={addDisabled}
+              addDisabledReason={addDisabledReason}
             />
           }
         />
       </div>
 
       <MiniPagination
-        t={t} page={Math.min(page,totalPages)} totalPages={totalPages}
-        onPrev={() => setPage((p) => Math.max(1, p-1))}
-        onNext={() => setPage((p) => Math.min(totalPages, p+1))}
+        t={t}
+        page={Math.min(page, totalPages)}
+        totalPages={totalPages}
+        onPrev={() => setPage((p) => Math.max(1, p - 1))}
+        onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
       />
     </div>
   );
@@ -3136,28 +2459,28 @@ function ManagementColumn({ t, isDark, cat, items, count, loading, departments, 
 ═══════════════════════════════════════════════════════════════════════════ */
 const HELP_CONTENT = {
   departments: {
-    title:"What is a Department?",
-    desc:"Departments are the highest level in your organisation.",
-    examples:"Engineering · Management · Science",
-    next:"Create Branch",
+    title: "What is a Department?",
+    desc: "Departments are the highest level in your organisation.",
+    examples: "Engineering · Management · Science",
+    next: "Create Branch",
   },
   branches: {
-    title:"What is a Branch?",
-    desc:"A branch belongs to a department.",
-    examples:"Engineering → AIML · Engineering → CSE · Engineering → IT",
-    next:"Create Batch",
+    title: "What is a Branch?",
+    desc: "A branch belongs to a department.",
+    examples: "Engineering → AIML · Engineering → CSE · Engineering → IT",
+    next: "Create Batch",
   },
   batches: {
-    title:"What is a Batch?",
-    desc:"A batch is a group of students in the same course and year.",
-    examples:"B.Tech 2026 · BCA Sem 1",
-    next:"Add Users",
+    title: "What is a Batch?",
+    desc: "A batch is a group of students in the same course and year.",
+    examples: "B.Tech 2026 · BCA Sem 1",
+    next: "Add Users",
   },
   users: {
-    title:"What are Users?",
-    desc:"Users can be Students or Trainers added to a specific batch.",
-    examples:null,
-    next:null,
+    title: "What are Users?",
+    desc: "Users can be Students or Trainers added to a specific batch.",
+    examples: null,
+    next: null,
   },
 };
 
@@ -3165,31 +2488,79 @@ function HelpCard({ t, isDark, cat }) {
   const info = HELP_CONTENT[cat.id];
   if (!info) return null;
   return (
-    <div style={{
-      background:softBg(cat, isDark), border:`1px solid ${cat.color}30`,
-      borderRadius:14, padding:"12px 13px", marginTop:10,
-      display:"flex", flexDirection:"column", justifyContent:"space-between",
-      minHeight:118, boxSizing:"border-box", flex:"0 0 auto",
-    }}>
+    <div
+      style={{
+        background: softBg(cat, isDark),
+        border: `1px solid ${cat.color}30`,
+        borderRadius: 14,
+        padding: "12px 13px",
+        marginTop: 10,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        minHeight: 118,
+        boxSizing: "border-box",
+        flex: "0 0 auto",
+      }}
+    >
       <div>
-        <p style={{ margin:"0 0 4px", fontSize:11.5, fontWeight:FONT_WEIGHT.extrabold, color:cat.color, fontFamily:FONT_FAMILY }}>
+        <p
+          style={{
+            margin: "0 0 4px",
+            fontSize: 11.5,
+            fontWeight: FONT_WEIGHT.extrabold,
+            color: cat.color,
+            fontFamily: FONT_FAMILY,
+          }}
+        >
           {info.title}
         </p>
-        <p style={{ margin: info.examples ? "0 0 6px" : "0 0 8px", fontSize:11, color:t.textSub, lineHeight:1.5 }}>
+        <p
+          style={{
+            margin: info.examples ? "0 0 6px" : "0 0 8px",
+            fontSize: 11,
+            color: t.textSub,
+            lineHeight: 1.5,
+          }}
+        >
           {info.desc}
         </p>
         {info.examples && (
-          <p style={{ margin:"0 0 8px", fontSize:10.5, color:t.textMuted, lineHeight:1.6 }}>
+          <p
+            style={{
+              margin: "0 0 8px",
+              fontSize: 10.5,
+              color: t.textMuted,
+              lineHeight: 1.6,
+            }}
+          >
             {info.examples}
           </p>
         )}
       </div>
       {info.next ? (
-        <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:10.5, fontWeight:FONT_WEIGHT.bold, color:cat.color, fontFamily:FONT_FAMILY }}>
+        <span
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 5,
+            fontSize: 10.5,
+            fontWeight: FONT_WEIGHT.bold,
+            color: cat.color,
+            fontFamily: FONT_FAMILY,
+          }}
+        >
           Next Step: {info.next} <ArrowRight size={11} />
         </span>
       ) : (
-        <span style={{ fontSize:10.5, fontWeight:FONT_WEIGHT.bold, color:cat.color, fontFamily:FONT_FAMILY }}>
+        <span
+          style={{
+            fontSize: 10.5,
+            fontWeight: FONT_WEIGHT.bold,
+            color: cat.color,
+            fontFamily: FONT_FAMILY,
+          }}
+        >
           You're almost done! 🎉
         </span>
       )}
@@ -3201,35 +2572,95 @@ function HelpCard({ t, isDark, cat }) {
    ORGANISATION SETUP PROGRESS + NEXT ACTION BAR
 ═══════════════════════════════════════════════════════════════════════════ */
 const SETUP_STEPS = [
-  { id:1, key:"departments", title:"Create Department", desc:"Add your departments" },
-  { id:2, key:"branches",    title:"Create Branch",     desc:"Add branches under departments" },
-  { id:3, key:"batches",     title:"Create Batch",      desc:"Add batches under branches" },
-  { id:4, key:"users",       title:"Add Users",         desc:"Add students or trainers in batches" },
+  {
+    id: 1,
+    key: "departments",
+    title: "Create Department",
+    desc: "Add your departments",
+  },
+  {
+    id: 2,
+    key: "branches",
+    title: "Create Branch",
+    desc: "Add branches under departments",
+  },
+  {
+    id: 3,
+    key: "batches",
+    title: "Create Batch",
+    desc: "Add batches under branches",
+  },
+  {
+    id: 4,
+    key: "users",
+    title: "Add Users",
+    desc: "Add students or trainers in batches",
+  },
 ];
 
 function HowItWorksCard({ t }) {
   const items = [
-    { n:1, label:"Create Department", color:"#3b82f6" },
-    { n:2, label:"Create Branch",     color:"#10b981" },
-    { n:3, label:"Create Batch",      color:"#f59e0b" },
-    { n:4, label:"Add Users",         color:"#8b5cf6" },
+    { n: 1, label: "Create Department", color: "#3b82f6" },
+    { n: 2, label: "Create Branch", color: "#10b981" },
+    { n: 3, label: "Create Batch", color: "#f59e0b" },
+    { n: 4, label: "Add Users", color: "#8b5cf6" },
   ];
   return (
-    <div style={{ background:t.bannerBg, border:`1px solid ${t.bannerBorder}`, borderRadius:14, padding:"14px 16px", flex:"0 0 220px", minWidth:200 }}>
-      <p style={{ margin:"0 0 10px", fontSize:12.5, fontWeight:FONT_WEIGHT.extrabold, color:t.text, fontFamily:FONT_FAMILY }}>
+    <div
+      style={{
+        background: t.bannerBg,
+        border: `1px solid ${t.bannerBorder}`,
+        borderRadius: 14,
+        padding: "14px 16px",
+        flex: "0 0 220px",
+        minWidth: 200,
+      }}
+    >
+      <p
+        style={{
+          margin: "0 0 10px",
+          fontSize: 12.5,
+          fontWeight: FONT_WEIGHT.extrabold,
+          color: t.text,
+          fontFamily: FONT_FAMILY,
+        }}
+      >
         How it works?
       </p>
-      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {items.map((it) => (
-          <div key={it.n} style={{ display:"flex", alignItems:"center", gap:8 }}>
-            <div style={{
-              width:18, height:18, borderRadius:"50%", background:it.color, color:"#fff",
-              fontSize:9.5, fontWeight:FONT_WEIGHT.extrabold, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0,
-              fontFamily:FONT_FAMILY,
-            }}>
+          <div
+            key={it.n}
+            style={{ display: "flex", alignItems: "center", gap: 8 }}
+          >
+            <div
+              style={{
+                width: 18,
+                height: 18,
+                borderRadius: "50%",
+                background: it.color,
+                color: "#fff",
+                fontSize: 9.5,
+                fontWeight: FONT_WEIGHT.extrabold,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+                fontFamily: FONT_FAMILY,
+              }}
+            >
               {it.n}
             </div>
-            <span style={{ fontSize:11.5, color:t.textSub, fontWeight:FONT_WEIGHT.semibold, fontFamily:FONT_FAMILY }}>{it.label}</span>
+            <span
+              style={{
+                fontSize: 11.5,
+                color: t.textSub,
+                fontWeight: FONT_WEIGHT.semibold,
+                fontFamily: FONT_FAMILY,
+              }}
+            >
+              {it.label}
+            </span>
           </div>
         ))}
       </div>
@@ -3241,85 +2672,220 @@ function SetupProgress({ t, isDark, counts, onJump }) {
   const allLoaded = Object.values(counts).every((v) => v !== null);
   const stepDone = (key) => (counts[key] ?? 0) > 0;
   const doneCount = SETUP_STEPS.filter((s) => stepDone(s.key)).length;
-  const pct = allLoaded ? Math.round((doneCount / SETUP_STEPS.length) * 100) : 0;
+  const pct = allLoaded
+    ? Math.round((doneCount / SETUP_STEPS.length) * 100)
+    : 0;
   const nextStep = SETUP_STEPS.find((s) => !stepDone(s.key));
 
   const nextActionText = !allLoaded
     ? "Loading your organisation setup…"
     : !nextStep
-    ? "All set! Your organisation is fully configured."
-    : nextStep.key === "departments"
-    ? 'Click "Add Department" to create your first department.'
-    : nextStep.key === "branches"
-    ? 'Select a department and click "Add Branch" to continue.'
-    : nextStep.key === "batches"
-    ? 'Select a branch and click "Add Batch" to continue.'
-    : 'Click "Add User" to add students or trainers.';
+      ? "All set! Your organisation is fully configured."
+      : nextStep.key === "departments"
+        ? 'Click "Add Department" to create your first department.'
+        : nextStep.key === "branches"
+          ? 'Select a department and click "Add Branch" to continue.'
+          : nextStep.key === "batches"
+            ? 'Select a branch and click "Add Batch" to continue.'
+            : 'Click "Add User" to add students or trainers.';
 
   return (
-    <div className="oo-fade" style={{ background: t.cardBg, border:`1px solid ${t.border}`, borderRadius:18, boxShadow:t.shadow, padding:"16px clamp(14px,3vw,22px) 18px", marginBottom:14 }}>
-      <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", flexWrap:"wrap", gap:10, marginBottom:16 }}>
+    <div
+      className="oo-fade"
+      style={{
+        background: t.cardBg,
+        border: `1px solid ${t.border}`,
+        borderRadius: 18,
+        boxShadow: t.shadow,
+        padding: "16px clamp(14px,3vw,22px) 18px",
+        marginBottom: 14,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: 10,
+          marginBottom: 16,
+        }}
+      >
         <div>
-          <p style={{ fontSize:14.5, fontWeight:FONT_WEIGHT.bold, color:t.text, margin:"0 0 3px", fontFamily:FONT_FAMILY }}>
+          <p
+            style={{
+              fontSize: 14.5,
+              fontWeight: FONT_WEIGHT.bold,
+              color: t.text,
+              margin: "0 0 3px",
+              fontFamily: FONT_FAMILY,
+            }}
+          >
             Organisation Setup Progress
           </p>
-          <p style={{ fontSize:11.5, color:t.textSub, margin:0 }}>
+          <p style={{ fontSize: 11.5, color: t.textSub, margin: 0 }}>
             Follow these steps to complete your organisation setup.
           </p>
         </div>
-        <div style={{ textAlign:"right" }}>
-          <p style={{ fontSize:9.5, fontWeight:FONT_WEIGHT.bold, letterSpacing:LETTER_SPACING.eyebrowWide, textTransform:"uppercase", color:t.textMuted, margin:"0 0 5px" }}>
+        <div style={{ textAlign: "right" }}>
+          <p
+            style={{
+              fontSize: 9.5,
+              fontWeight: FONT_WEIGHT.bold,
+              letterSpacing: LETTER_SPACING.eyebrowWide,
+              textTransform: "uppercase",
+              color: t.textMuted,
+              margin: "0 0 5px",
+            }}
+          >
             Overall Progress
           </p>
-          <div style={{ display:"flex", alignItems:"center", gap:8, justifyContent:"flex-end" }}>
-            <div style={{ width:110, maxWidth:"40vw", height:7, borderRadius:99, background:t.pillBg, overflow:"hidden" }}>
-              <div style={{ width:`${pct}%`, height:"100%", borderRadius:99, background:`linear-gradient(90deg,${ACCENT_PURPLE.base},#10b981)`, transition:"width 0.4s ease" }} />
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              justifyContent: "flex-end",
+            }}
+          >
+            <div
+              style={{
+                width: 110,
+                maxWidth: "40vw",
+                height: 7,
+                borderRadius: 99,
+                background: t.pillBg,
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  width: `${pct}%`,
+                  height: "100%",
+                  borderRadius: 99,
+                  background: `linear-gradient(90deg,${ACCENT_PURPLE.base},#10b981)`,
+                  transition: "width 0.4s ease",
+                }}
+              />
             </div>
-            <span style={{ fontSize:13, fontWeight:FONT_WEIGHT.extrabold, color:t.text, fontFamily:FONT_FAMILY }}>{pct}%</span>
+            <span
+              style={{
+                fontSize: 13,
+                fontWeight: FONT_WEIGHT.extrabold,
+                color: t.text,
+                fontFamily: FONT_FAMILY,
+              }}
+            >
+              {pct}%
+            </span>
           </div>
         </div>
       </div>
 
-      <div className="oo-setup-row" style={{ display:"flex", gap:16, alignItems:"stretch" }}>
-        <div className="oo-setup-steps" style={{ flex:"1 1 420px", minWidth:0 }}>
+      <div
+        className="oo-setup-row"
+        style={{ display: "flex", gap: 16, alignItems: "stretch" }}
+      >
+        <div
+          className="oo-setup-steps"
+          style={{ flex: "1 1 420px", minWidth: 0 }}
+        >
           {SETUP_STEPS.map((s, i) => {
             const done = stepDone(s.key);
             const isNext = nextStep?.id === s.id;
             const cat = catById(s.key);
             const locked = !done && !isNext;
             return (
-              <div key={s.id} style={{ display:"flex", alignItems:"center", flex:1, minWidth:0 }}>
+              <div
+                key={s.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  flex: 1,
+                  minWidth: 0,
+                }}
+              >
                 <button
                   onClick={() => onJump?.(s.key)}
                   disabled={locked}
-                  title={locked ? "Complete the previous step first." : undefined}
+                  title={
+                    locked ? "Complete the previous step first." : undefined
+                  }
                   className="oo-focusable"
                   style={{
-                    display:"flex", alignItems:"center", gap:10, flex:1, minWidth:0,
-                    padding:"10px 12px", borderRadius:13, textAlign:"left",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    flex: 1,
+                    minWidth: 0,
+                    padding: "10px 12px",
+                    borderRadius: 13,
+                    textAlign: "left",
                     cursor: locked ? "not-allowed" : "pointer",
                     opacity: locked ? 0.6 : 1,
-                    border: isNext ? `1.5px solid ${cat.color}` : `1px solid ${t.border}`,
+                    border: isNext
+                      ? `1.5px solid ${cat.color}`
+                      : `1px solid ${t.border}`,
                     background: isNext ? softBg(cat, isDark) : "transparent",
-                    fontFamily:FONT_FAMILY,
+                    fontFamily: FONT_FAMILY,
                   }}
                 >
-                  <div style={{
-                    width:30, height:30, borderRadius:"50%", flexShrink:0,
-                    display:"flex", alignItems:"center", justifyContent:"center",
-                    background: done ? "linear-gradient(135deg,#10b981,#059669)" : (isNext ? cat.color : t.pillBg),
-                    color: done || isNext ? "#fff" : t.textMuted,
-                    fontWeight:FONT_WEIGHT.extrabold, fontSize:12.5,
-                  }}>
+                  <div
+                    style={{
+                      width: 30,
+                      height: 30,
+                      borderRadius: "50%",
+                      flexShrink: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: done
+                        ? "linear-gradient(135deg,#10b981,#059669)"
+                        : isNext
+                          ? cat.color
+                          : t.pillBg,
+                      color: done || isNext ? "#fff" : t.textMuted,
+                      fontWeight: FONT_WEIGHT.extrabold,
+                      fontSize: 12.5,
+                    }}
+                  >
                     {done ? <Check size={15} /> : s.id}
                   </div>
-                  <div style={{ minWidth:0 }}>
-                    <p style={{ margin:0, fontSize:12, fontWeight:FONT_WEIGHT.bold, color:t.text, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{s.title}</p>
-                    <p style={{ margin:0, fontSize:10, color:t.textMuted, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{s.desc}</p>
+                  <div style={{ minWidth: 0 }}>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: 12,
+                        fontWeight: FONT_WEIGHT.bold,
+                        color: t.text,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {s.title}
+                    </p>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: 10,
+                        color: t.textMuted,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {s.desc}
+                    </p>
                   </div>
                 </button>
                 {i < SETUP_STEPS.length - 1 && (
-                  <ArrowRight size={14} color={t.textMuted} className="oo-setup-arrow" style={{ margin:"0 6px", flexShrink:0 }} />
+                  <ArrowRight
+                    size={14}
+                    color={t.textMuted}
+                    className="oo-setup-arrow"
+                    style={{ margin: "0 6px", flexShrink: 0 }}
+                  />
                 )}
               </div>
             );
@@ -3328,18 +2894,45 @@ function SetupProgress({ t, isDark, counts, onJump }) {
         <HowItWorksCard t={t} />
       </div>
 
-      <div style={{
-        display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap", marginTop:14,
-        padding:"11px 14px", borderRadius:12, background:t.bannerBg, border:`1px solid ${t.bannerBorder}`,
-      }}>
-        <div style={{ display:"flex", alignItems:"center", gap:10, minWidth:0 }}>
-          <Sparkles size={14} color={ACCENT_PURPLE.base} style={{ flexShrink:0 }} />
-          <span style={{ fontSize:12, color:t.text, fontFamily:FONT_FAMILY }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+          flexWrap: "wrap",
+          marginTop: 14,
+          padding: "11px 14px",
+          borderRadius: 12,
+          background: t.bannerBg,
+          border: `1px solid ${t.bannerBorder}`,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            minWidth: 0,
+          }}
+        >
+          <Sparkles
+            size={14}
+            color={ACCENT_PURPLE.base}
+            style={{ flexShrink: 0 }}
+          />
+          <span
+            style={{ fontSize: 12, color: t.text, fontFamily: FONT_FAMILY }}
+          >
             <strong>Next Action:</strong> {nextActionText}
           </span>
         </div>
         {nextStep && (
-          <button onClick={() => onJump?.(nextStep.key)} className="oo-btn-primary" style={{ fontSize:11.5, padding:"8px 14px", flexShrink:0 }}>
+          <button
+            onClick={() => onJump?.(nextStep.key)}
+            className="oo-btn-primary"
+            style={{ fontSize: 11.5, padding: "8px 14px", flexShrink: 0 }}
+          >
             Continue Setup <ArrowRight size={13} />
           </button>
         )}
@@ -3353,7 +2946,7 @@ function SetupProgress({ t, isDark, counts, onJump }) {
 ═══════════════════════════════════════════════════════════════════════════ */
 function AddNewMenu({ t, onPick, disabledMap }) {
   const [open, setOpen] = useState(false);
-  const [coords, setCoords] = useState({ top:0, left:0, width:200 });
+  const [coords, setCoords] = useState({ top: 0, left: 0, width: 200 });
   const btnRef = useRef(null);
   const menuRef = useRef(null);
 
@@ -3373,9 +2966,12 @@ function AddNewMenu({ t, onPick, disabledMap }) {
     computePosition();
     const handleOutside = (e) => {
       if (
-        btnRef.current && !btnRef.current.contains(e.target) &&
-        menuRef.current && !menuRef.current.contains(e.target)
-      ) setOpen(false);
+        btnRef.current &&
+        !btnRef.current.contains(e.target) &&
+        menuRef.current &&
+        !menuRef.current.contains(e.target)
+      )
+        setOpen(false);
     };
     const handleReposition = () => computePosition();
     document.addEventListener("mousedown", handleOutside);
@@ -3389,46 +2985,90 @@ function AddNewMenu({ t, onPick, disabledMap }) {
   }, [open, computePosition]);
 
   return (
-    <div style={{ position:"relative" }}>
-      <button ref={btnRef} onClick={() => setOpen((p) => !p)} className="oo-btn-primary">
+    <div style={{ position: "relative" }}>
+      <button
+        ref={btnRef}
+        onClick={() => setOpen((p) => !p)}
+        className="oo-btn-primary"
+      >
         <Plus size={14} /> Add New
-        <ChevronDown size={12} style={{ transform: open ? "rotate(180deg)" : "none", transition:"transform 0.15s" }} />
-      </button>
-      {open && typeof document !== "undefined" && ReactDOM.createPortal(
-        <div
-          ref={menuRef}
-          className="oo-pop"
+        <ChevronDown
+          size={12}
           style={{
-            position:"fixed", top:coords.top, left:coords.left, zIndex:9995,
-            minWidth:coords.width, background:t.dropdownBg, border:`1px solid ${t.border}`,
-            borderRadius:14, boxShadow:t.shadowHov, padding:6,
+            transform: open ? "rotate(180deg)" : "none",
+            transition: "transform 0.15s",
           }}
-        >
-          {CATS.map((cat) => {
-            const Icon = cat.icon;
-            const isDisabled = !!disabledMap?.[cat.id]?.disabled;
-            const reason = disabledMap?.[cat.id]?.reason;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => { if (isDisabled) return; setOpen(false); onPick(cat.id); }}
-                disabled={isDisabled}
-                title={isDisabled ? reason : undefined}
-                className="oo-menu-item"
-                style={{ color:t.text }}
-                onMouseEnter={(e)=>{ if (!isDisabled) e.currentTarget.style.background=t.dropdownItemHov; }}
-                onMouseLeave={(e)=>e.currentTarget.style.background="transparent"}
-              >
-                <div style={{ width:24, height:24, borderRadius:7, background: isDisabled ? t.pillBg : `linear-gradient(135deg,${cat.grad[0]},${cat.grad[1]})`, display:"flex", alignItems:"center", justifyContent:"center" }}>
-                  {isDisabled ? <Lock size={12} color={t.textMuted} /> : <Icon size={12} color="#fff" />}
-                </div>
-                Add {cat.singular}
-              </button>
-            );
-          })}
-        </div>,
-        document.body,
-      )}
+        />
+      </button>
+      {open &&
+        typeof document !== "undefined" &&
+        ReactDOM.createPortal(
+          <div
+            ref={menuRef}
+            className="oo-pop"
+            style={{
+              position: "fixed",
+              top: coords.top,
+              left: coords.left,
+              zIndex: 9995,
+              minWidth: coords.width,
+              background: t.dropdownBg,
+              border: `1px solid ${t.border}`,
+              borderRadius: 14,
+              boxShadow: t.shadowHov,
+              padding: 6,
+            }}
+          >
+            {CATS.map((cat) => {
+              const Icon = cat.icon;
+              const isDisabled = !!disabledMap?.[cat.id]?.disabled;
+              const reason = disabledMap?.[cat.id]?.reason;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => {
+                    if (isDisabled) return;
+                    setOpen(false);
+                    onPick(cat.id);
+                  }}
+                  disabled={isDisabled}
+                  title={isDisabled ? reason : undefined}
+                  className="oo-menu-item"
+                  style={{ color: t.text }}
+                  onMouseEnter={(e) => {
+                    if (!isDisabled)
+                      e.currentTarget.style.background = t.dropdownItemHov;
+                  }}
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.background = "transparent")
+                  }
+                >
+                  <div
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: 7,
+                      background: isDisabled
+                        ? t.pillBg
+                        : `linear-gradient(135deg,${cat.grad[0]},${cat.grad[1]})`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {isDisabled ? (
+                      <Lock size={12} color={t.textMuted} />
+                    ) : (
+                      <Icon size={12} color="#fff" />
+                    )}
+                  </div>
+                  Add {cat.singular}
+                </button>
+              );
+            })}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
@@ -3437,12 +3077,22 @@ function AddNewMenu({ t, onPick, disabledMap }) {
    MAIN PAGE
 ═══════════════════════════════════════════════════════════════════════════ */
 const OrganisationOverview = () => {
-  const navigate  = useNavigate();
-  const isDark    = useDarkMode();
-  const t         = isDark ? T.dark : T.light;
+  const navigate = useNavigate();
+  const isDark = useDarkMode();
+  const t = isDark ? T.dark : T.light;
 
-  const [counts, setCounts]                 = useState({ departments:null, branches:null, batches:null, users:null });
-  const [preview, setPreview]               = useState({ departments:[], branches:[], batches:[], users:[] });
+  const [counts, setCounts] = useState({
+    departments: null,
+    branches: null,
+    batches: null,
+    users: null,
+  });
+  const [preview, setPreview] = useState({
+    departments: [],
+    branches: [],
+    batches: [],
+    users: [],
+  });
   const [previewLoading, setPreviewLoading] = useState(true);
 
   // A single active panel drives BOTH "Add" and "Edit" flows.
@@ -3452,206 +3102,465 @@ const OrganisationOverview = () => {
   const loadOverview = useCallback(async () => {
     setPreviewLoading(true);
     try {
-      const [dRes, bRes, btRes] = await Promise.allSettled([getDepartments(), getBranches(), getAllBatches()]);
+      const [dRes, bRes, btRes] = await Promise.allSettled([
+        getDepartments(),
+        getBranches(),
+        getAllBatches(),
+      ]);
 
-      const deptList = dRes.status==="fulfilled" ? (dRes.value?.data||[]) : [];
-      const branchListRaw = bRes.status==="fulfilled" ? bRes.value?.data : [];
-      const branchList = Array.isArray(branchListRaw) ? branchListRaw : Array.isArray(branchListRaw?.data) ? branchListRaw.data : [];
-      const batchListRaw = btRes.status==="fulfilled" ? (btRes.value?.data?.data||btRes.value?.data?.batches||btRes.value?.data||[]) : [];
+      const deptList =
+        dRes.status === "fulfilled" ? dRes.value?.data || [] : [];
+      const branchListRaw = bRes.status === "fulfilled" ? bRes.value?.data : [];
+      const branchList = Array.isArray(branchListRaw)
+        ? branchListRaw
+        : Array.isArray(branchListRaw?.data)
+          ? branchListRaw.data
+          : [];
+      const batchListRaw =
+        btRes.status === "fulfilled"
+          ? btRes.value?.data?.data ||
+            btRes.value?.data?.batches ||
+            btRes.value?.data ||
+            []
+          : [];
       const batchList = Array.isArray(batchListRaw) ? batchListRaw : [];
 
-      let userList = [], userCount = 0;
+      let userList = [],
+        userCount = 0;
       try {
         const role = localStorage.getItem("role");
         if (role === "TENANT_ADMIN") {
-          const currentUser = JSON.parse(localStorage.getItem("lms_user")||"null");
-          const orgId = currentUser?.organizationId||null;
+          const currentUser = JSON.parse(
+            localStorage.getItem("lms_user") || "null",
+          );
+          const orgId = currentUser?.organizationId || null;
           if (orgId) {
             const data = await userService.getUsersByOrg(orgId);
-            userList = Array.isArray(data) ? data.filter((u) => u.roles==="ROLE_STUDENT"||u.roles==="ROLE_TRAINER") : [];
+            userList = Array.isArray(data)
+              ? data.filter(
+                  (u) =>
+                    u.roles === "ROLE_STUDENT" || u.roles === "ROLE_TRAINER",
+                )
+              : [];
             userCount = userList.length;
           }
         } else {
           const res = await userService.getUsers(0, 50);
-          userList = res?.data?.content||[];
+          userList = res?.data?.content || [];
           userCount = res?.data?.totalElements ?? userList.length;
         }
       } catch {}
 
-      setCounts({ departments:deptList.length, branches:branchList.length, batches:batchList.length, users:userCount });
-      setPreview({ departments:deptList, branches:branchList, batches:batchList, users:userList });
-    } catch (e) { console.error("Overview load error:", e); }
-    finally { setPreviewLoading(false); }
+      setCounts({
+        departments: deptList.length,
+        branches: branchList.length,
+        batches: batchList.length,
+        users: userCount,
+      });
+      setPreview({
+        departments: deptList,
+        branches: branchList,
+        batches: batchList,
+        users: userList,
+      });
+    } catch (e) {
+      console.error("Overview load error:", e);
+    } finally {
+      setPreviewLoading(false);
+    }
   }, []);
 
-  useEffect(() => { loadOverview(); }, [loadOverview]);
+  useEffect(() => {
+    loadOverview();
+  }, [loadOverview]);
 
   const closePanel = () => setActivePanel(null);
 
   // ── Step dependency rules ──────────────────────────────────────────────
   // Add Branch needs >=1 department, Add Batch needs >=1 branch, Add User needs >=1 batch.
-  const dependencyState = useMemo(() => ({
-    departments: { disabled:false, reason:"" },
-    branches: {
-      disabled: !(counts.departments ?? 0),
-      reason: "Create a Department first.",
-    },
-    batches: {
-      disabled: !(counts.branches ?? 0),
-      reason: "Create a Branch first.",
-    },
-    users: {
-      disabled: !(counts.batches ?? 0),
-      reason: "Create a Batch first.",
-    },
-  }), [counts]);
+  const dependencyState = useMemo(
+    () => ({
+      departments: { disabled: false, reason: "" },
+      branches: {
+        disabled: !(counts.departments ?? 0),
+        reason: "Create a Department first.",
+      },
+      batches: {
+        disabled: !(counts.branches ?? 0),
+        reason: "Create a Branch first.",
+      },
+      users: {
+        disabled: !(counts.batches ?? 0),
+        reason: "Create a Batch first.",
+      },
+    }),
+    [counts],
+  );
 
-  const isAddDisabled = (catId) => previewLoading ? false : dependencyState[catId]?.disabled;
+  const isAddDisabled = (catId) =>
+    previewLoading ? false : dependencyState[catId]?.disabled;
   const addDisabledReason = (catId) => dependencyState[catId]?.reason;
 
   // ── Open the "Add" panel for a category (respecting dependencies) ─────
-  const openAddPanel = useCallback((catId) => {
-    if (isAddDisabled(catId)) return;
-    const base = { mode:"create", onSubmitted: () => { loadOverview(); closePanel(); } };
-    if (catId === "departments") {
-      setActivePanel({ ...base, type:"department", initial:{ name:"", head:"" } });
-    } else if (catId === "branches") {
-      setActivePanel({ ...base, type:"branch", initial:{ name:"", city:"", departmentId:"" }, departments:preview.departments });
-    } else if (catId === "batches") {
-      setActivePanel({ ...base, type:"batch", branches:preview.branches });
-    } else if (catId === "users") {
-      setActivePanel({ ...base, type:"user", initial:{ displayName:"", email:"", password:"", roles:"ROLE_STUDENT" } });
-    }
-  }, [dependencyState, preview, loadOverview]);
+  const openAddPanel = useCallback(
+    (catId) => {
+      if (isAddDisabled(catId)) return;
+      const base = {
+        mode: "create",
+        onSubmitted: () => {
+          loadOverview();
+          closePanel();
+        },
+      };
+      if (catId === "departments") {
+        setActivePanel({
+          ...base,
+          type: "department",
+          initial: { name: "", head: "" },
+        });
+      } else if (catId === "branches") {
+        setActivePanel({
+          ...base,
+          type: "branch",
+          initial: { name: "", city: "", departmentId: "" },
+          departments: preview.departments,
+        });
+      } else if (catId === "batches") {
+        setActivePanel({ ...base, type: "batch", branches: preview.branches });
+      } else if (catId === "users") {
+        setActivePanel({
+          ...base,
+          type: "user",
+          initial: {
+            displayName: "",
+            email: "",
+            password: "",
+            roles: "ROLE_STUDENT",
+          },
+        });
+      }
+    },
+    [dependencyState, preview, loadOverview],
+  );
 
   // "Continue Setup" / step-click jumps straight to the relevant Add panel.
   const handleJumpToStep = (catId) => openAddPanel(catId);
   const handleQuickAdd = (catId) => openAddPanel(catId);
 
-  const handleOpenEditPanel = useCallback((panelConfig) => setActivePanel(panelConfig), []);
+  const handleOpenEditPanel = useCallback(
+    (panelConfig) => setActivePanel(panelConfig),
+    [],
+  );
 
   const overviewActions = {
     departments: {
-      onEdit: (row) => handleOpenEditPanel({
-        type: "department", mode: "edit", initial: { id:row.id, name:row.name, head:row.head||"" },
-        onSubmitted: () => { loadOverview(); closePanel(); },
-      }),
+      onEdit: (row) =>
+        handleOpenEditPanel({
+          type: "department",
+          mode: "edit",
+          initial: { id: row.id, name: row.name, head: row.head || "" },
+          onSubmitted: () => {
+            loadOverview();
+            closePanel();
+          },
+        }),
       onDelete: async (row) => {
-        if (!window.confirm("Delete this department? All branches and batches will also be deleted.")) return;
-        try { await deleteDepartment(row.id); loadOverview(); } catch { alert("Delete failed."); }
+        if (
+          !window.confirm(
+            "Delete this department? All branches and batches will also be deleted.",
+          )
+        )
+          return;
+        try {
+          await deleteDepartment(row.id);
+          loadOverview();
+        } catch {
+          alert("Delete failed.");
+        }
       },
     },
     branches: {
-      onEdit: (row) => handleOpenEditPanel({
-        type: "branch", mode: "edit", initial: { id:row.id, name:row.name, city:row.city, departmentId:row.departmentId||"" },
-        departments: preview.departments,
-        onSubmitted: () => { loadOverview(); closePanel(); },
-      }),
+      onEdit: (row) =>
+        handleOpenEditPanel({
+          type: "branch",
+          mode: "edit",
+          initial: {
+            id: row.id,
+            name: row.name,
+            city: row.city,
+            departmentId: row.departmentId || "",
+          },
+          departments: preview.departments,
+          onSubmitted: () => {
+            loadOverview();
+            closePanel();
+          },
+        }),
       onDelete: async (row) => {
-        if (!window.confirm(`Delete branch "${row.name}"? All batches will also be removed.`)) return;
-        try { await deleteBranch(row.id); loadOverview(); } catch { alert("Failed to delete branch"); }
+        if (
+          !window.confirm(
+            `Delete branch "${row.name}"? All batches will also be removed.`,
+          )
+        )
+          return;
+        try {
+          await deleteBranch(row.id);
+          loadOverview();
+        } catch {
+          alert("Failed to delete branch");
+        }
       },
     },
     batches: {
       onEdit: () => {}, // no dedicated batch-edit endpoint
       onDelete: async (row) => {
         if (!window.confirm(`Delete batch "${row.batchName}"?`)) return;
-        try { await deleteBatch(row.id); loadOverview(); } catch { alert("Failed to delete batch"); }
+        try {
+          await deleteBatch(row.id);
+          loadOverview();
+        } catch {
+          alert("Failed to delete batch");
+        }
       },
     },
     users: {
-      onEdit: (row) => handleOpenEditPanel({
-        type: "user", mode: "edit",
-        initial: { id:row.id, email:row.email, displayName:row.displayName||"", password:"", roles:row.roles||"ROLE_STUDENT" },
-        loggedInUser: JSON.parse(localStorage.getItem("lms_user") || "null"),
-        onSubmitted: () => { loadOverview(); closePanel(); },
-      }),
+      onEdit: (row) =>
+        handleOpenEditPanel({
+          type: "user",
+          mode: "edit",
+          initial: {
+            id: row.id,
+            email: row.email,
+            displayName: row.displayName || "",
+            password: "",
+            roles: row.roles || "ROLE_STUDENT",
+          },
+          loggedInUser: JSON.parse(localStorage.getItem("lms_user") || "null"),
+          onSubmitted: () => {
+            loadOverview();
+            closePanel();
+          },
+        }),
       onDelete: async (row) => {
         if (!window.confirm("Delete this user?")) return;
-        try { await userService.deleteUser(row.id); loadOverview(); } catch { alert("Failed to delete user"); }
+        try {
+          await userService.deleteUser(row.id);
+          loadOverview();
+        } catch {
+          alert("Failed to delete user");
+        }
       },
     },
   };
 
-  const decorateItems = (catId, items) => items.map((it) => ({
-    ...it,
-    __onEdit: () => overviewActions[catId].onEdit(it),
-    __onDelete: () => overviewActions[catId].onDelete(it),
-  }));
+  const decorateItems = (catId, items) =>
+    items.map((it) => ({
+      ...it,
+      __onEdit: () => overviewActions[catId].onEdit(it),
+      __onDelete: () => overviewActions[catId].onDelete(it),
+    }));
 
-  const panelMeta = activePanel ? catById(
-    activePanel.type === "department" ? "departments" :
-    activePanel.type === "branch"     ? "branches"     :
-    activePanel.type === "batch"      ? "batches"      : "users"
-  ) : null;
+  const panelMeta = activePanel
+    ? catById(
+        activePanel.type === "department"
+          ? "departments"
+          : activePanel.type === "branch"
+            ? "branches"
+            : activePanel.type === "batch"
+              ? "batches"
+              : "users",
+      )
+    : null;
 
-  const panelTitle = activePanel ? `${activePanel.mode === "edit" ? "Edit" : "Add"} ${panelMeta.singular}` : "";
+  const panelTitle = activePanel
+    ? `${activePanel.mode === "edit" ? "Edit" : "Add"} ${panelMeta.singular}`
+    : "";
   const panelSubtitle = activePanel
-    ? (activePanel.mode === "edit" ? `Update ${panelMeta.singular.toLowerCase()} details` : `Fill in the details to add a new ${panelMeta.singular.toLowerCase()}`)
+    ? activePanel.mode === "edit"
+      ? `Update ${panelMeta.singular.toLowerCase()} details`
+      : `Fill in the details to add a new ${panelMeta.singular.toLowerCase()}`
     : "";
 
-  const panelBody = !activePanel ? null : (
-    activePanel.type === "department" ? (
-      <DepartmentForm t={t} mode={activePanel.mode} initial={activePanel.initial} onSubmitted={activePanel.onSubmitted} />
-    ) : activePanel.type === "branch" ? (
-      <BranchForm t={t} mode={activePanel.mode} initial={activePanel.initial} departments={activePanel.departments || preview.departments} onSubmitted={activePanel.onSubmitted} />
-    ) : activePanel.type === "batch" ? (
-      <BatchForm t={t} branches={activePanel.branches || preview.branches} onSubmitted={activePanel.onSubmitted} />
-    ) : activePanel.type === "user" ? (
-      <UserForm t={t} mode={activePanel.mode} initial={activePanel.initial} loggedInUser={activePanel.loggedInUser} onSubmitted={activePanel.onSubmitted} />
-    ) : null
-  );
+  const panelBody = !activePanel ? null : activePanel.type === "department" ? (
+    <DepartmentForm
+      t={t}
+      mode={activePanel.mode}
+      initial={activePanel.initial}
+      onSubmitted={activePanel.onSubmitted}
+    />
+  ) : activePanel.type === "branch" ? (
+    <BranchForm
+      t={t}
+      mode={activePanel.mode}
+      initial={activePanel.initial}
+      departments={activePanel.departments || preview.departments}
+      onSubmitted={activePanel.onSubmitted}
+    />
+  ) : activePanel.type === "batch" ? (
+    <BatchForm
+      t={t}
+      branches={activePanel.branches || preview.branches}
+      onSubmitted={activePanel.onSubmitted}
+    />
+  ) : activePanel.type === "user" ? (
+    <UserForm
+      t={t}
+      mode={activePanel.mode}
+      initial={activePanel.initial}
+      loggedInUser={activePanel.loggedInUser}
+      onSubmitted={activePanel.onSubmitted}
+    />
+  ) : null;
 
   return (
     <>
       <InjectStyles />
 
       <SplitShell
-        t={t} isDark={isDark} panelOpen={!!activePanel}
+        t={t}
+        isDark={isDark}
+        panelOpen={!!activePanel}
         panelContent={
-          <SidePanelFrame t={t} title={panelTitle} subtitle={panelSubtitle} onClose={closePanel}>
+          <SidePanelFrame
+            t={t}
+            title={panelTitle}
+            subtitle={panelSubtitle}
+            onClose={closePanel}
+          >
             {panelBody}
           </SidePanelFrame>
         }
       >
-        <div style={{ minHeight:"100vh", background:t.pageBg, color:t.text, fontFamily:FONT_FAMILY }}>
-          <div style={{ maxWidth:1440, margin:"0 auto", padding:"16px clamp(10px,3vw,24px) 44px" }}>
-
+        <div
+          style={{
+            minHeight: "100vh",
+            background: t.pageBg,
+            color: t.text,
+            fontFamily: FONT_FAMILY,
+          }}
+        >
+          <div
+            style={{
+              maxWidth: 1440,
+              margin: "0 auto",
+              padding: "16px clamp(10px,3vw,24px) 44px",
+            }}
+          >
             {/* ══ HEADER ══ */}
-            <div className="oo-fade" style={{ marginBottom:14 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:6, flexWrap:"wrap" }}>
-                <span style={{ fontSize:11.5, fontWeight:FONT_WEIGHT.semibold, color:t.textMuted, fontFamily:FONT_FAMILY }}>Admin Portal</span>
+            <div className="oo-fade" style={{ marginBottom: 14 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  marginBottom: 6,
+                  flexWrap: "wrap",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 11.5,
+                    fontWeight: FONT_WEIGHT.semibold,
+                    color: t.textMuted,
+                    fontFamily: FONT_FAMILY,
+                  }}
+                >
+                  Admin Portal
+                </span>
                 <ChevronRight size={12} color={t.textMuted} />
-                <span style={{ fontSize:11.5, fontWeight:FONT_WEIGHT.bold, color:t.text, fontFamily:FONT_FAMILY }}>Organisation Management</span>
+                <span
+                  style={{
+                    fontSize: 11.5,
+                    fontWeight: FONT_WEIGHT.bold,
+                    color: t.text,
+                    fontFamily: FONT_FAMILY,
+                  }}
+                >
+                  Organisation Management
+                </span>
               </div>
 
-              <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
-                <div style={{ minWidth:0 }}>
-                  <h1 style={{ fontSize:FONT_SIZE.heroTitle, fontWeight:FONT_WEIGHT.heroTitle, color:t.text, margin:"0 0 4px", lineHeight:1.15, letterSpacing:LETTER_SPACING.heroTitle, fontFamily:FONT_FAMILY }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: 12,
+                }}
+              >
+                <div style={{ minWidth: 0 }}>
+                  <h1
+                    style={{
+                      fontSize: FONT_SIZE.heroTitle,
+                      fontWeight: FONT_WEIGHT.heroTitle,
+                      color: t.text,
+                      margin: "0 0 4px",
+                      lineHeight: 1.15,
+                      letterSpacing: LETTER_SPACING.heroTitle,
+                      fontFamily: FONT_FAMILY,
+                    }}
+                  >
                     Organisation Management
                   </h1>
-                  <p style={{ fontSize:12, color:t.textSub, margin:0, fontWeight:FONT_WEIGHT.medium }}>
-                    Manage departments, branches, batches and users – all in one place
+                  <p
+                    style={{
+                      fontSize: 12,
+                      color: t.textSub,
+                      margin: 0,
+                      fontWeight: FONT_WEIGHT.medium,
+                    }}
+                  >
+                    Manage departments, branches, batches and users – all in one
+                    place
                   </p>
                 </div>
 
-                <div style={{ display:"flex", alignItems:"center", gap:9, flexShrink:0 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 9,
+                    flexShrink: 0,
+                  }}
+                >
                   <button
                     onClick={loadOverview}
                     className="oo-icon-btn"
-                    style={{ border:`1px solid ${t.actBorder}`, background:t.actBg, color:t.textSub, width:36, height:36 }}
+                    style={{
+                      border: `1px solid ${t.actBorder}`,
+                      background: t.actBg,
+                      color: t.textSub,
+                      width: 36,
+                      height: 36,
+                    }}
                     title="Refresh data"
                   >
-                    <RefreshCw size={14} className={previewLoading ? "oo-spin-cls" : ""} />
+                    <RefreshCw
+                      size={14}
+                      className={previewLoading ? "oo-spin-cls" : ""}
+                    />
                   </button>
                   <AddNewMenu
                     t={t}
                     onPick={handleQuickAdd}
                     disabledMap={{
-                      departments: { disabled:isAddDisabled("departments"), reason:addDisabledReason("departments") },
-                      branches:    { disabled:isAddDisabled("branches"),    reason:addDisabledReason("branches") },
-                      batches:     { disabled:isAddDisabled("batches"),     reason:addDisabledReason("batches") },
-                      users:       { disabled:isAddDisabled("users"),       reason:addDisabledReason("users") },
+                      departments: {
+                        disabled: isAddDisabled("departments"),
+                        reason: addDisabledReason("departments"),
+                      },
+                      branches: {
+                        disabled: isAddDisabled("branches"),
+                        reason: addDisabledReason("branches"),
+                      },
+                      batches: {
+                        disabled: isAddDisabled("batches"),
+                        reason: addDisabledReason("batches"),
+                      },
+                      users: {
+                        disabled: isAddDisabled("users"),
+                        reason: addDisabledReason("users"),
+                      },
                     }}
                   />
                 </div>
@@ -3659,15 +3568,30 @@ const OrganisationOverview = () => {
             </div>
 
             {/* ══ ORGANISATION SETUP PROGRESS + NEXT ACTION ══ */}
-            <SetupProgress t={t} isDark={isDark} counts={counts} onJump={handleJumpToStep} />
+            <SetupProgress
+              t={t}
+              isDark={isDark}
+              counts={counts}
+              onJump={handleJumpToStep}
+            />
 
             {/* ══ 4 MANAGEMENT COLUMNS (identical height, no inline forms) ══ */}
-            <div className="oo-fade oo-quad-grid" style={{ animationDelay:"0.08s" }}>
+            <div
+              className="oo-fade oo-quad-grid"
+              style={{ animationDelay: "0.08s" }}
+            >
               {CATS.map((cat) => (
-                <div key={cat.id} id={`oo-col-${cat.id}`} className="oo-col-stack">
+                <div
+                  key={cat.id}
+                  id={`oo-col-${cat.id}`}
+                  className="oo-col-stack"
+                >
                   <ManagementColumn
-                    t={t} isDark={isDark} cat={cat}
-                    items={decorateItems(cat.id, preview[cat.id])} count={counts[cat.id]}
+                    t={t}
+                    isDark={isDark}
+                    cat={cat}
+                    items={decorateItems(cat.id, preview[cat.id])}
+                    count={counts[cat.id]}
                     loading={previewLoading}
                     departments={preview.departments}
                     branches={preview.branches}
@@ -3679,7 +3603,6 @@ const OrganisationOverview = () => {
                 </div>
               ))}
             </div>
-
           </div>
         </div>
       </SplitShell>

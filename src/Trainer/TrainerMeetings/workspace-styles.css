@@ -1,0 +1,2582 @@
+/* =============================================================================
+ * ILM ORA — Trainer Portal Workspace
+ * Global tokens + shared component classes used across every workspace page.
+ * Palette / spacing intentionally mirrors the existing SuperAdminEvents.jsx
+ * design language (violet brand, soft cards, pill badges) so the new pages
+ * read as part of the same product, not a re-skin.
+ * ============================================================================= */
+
+/* FONT_IMPORT — same Poppins import used by design-system/tokens/typography.js.
+ * Loaded here (once) so the Workspace never depends on some other page
+ * having already imported it first. */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap");
+
+:root {
+  /* ---------------------------------------------------------------------
+   * Colors — pulled 1:1 from design-system/tokens/colors.js (T.light) and
+   * ACCENT_PURPLE, so the Workspace reads as the same palette as Dashboard.
+   * Do not hand-tune these; change them in the Global Design System instead. */
+  --font-family: "Poppins", sans-serif;
+
+  --brand: #7c3aed; /* ACCENT_PURPLE.base */
+  --brand-2: #a855f7; /* ACCENT_PURPLE.light */
+  --brand-deep: #6d28d9; /* Button.jsx primary bgHov */
+  --live: #16a34a; /* T.light.liveColor */
+  --ws-accent: #f59e0b; /* STAT_COLORS_FLAT.amber.solid */
+  --accent-2: #ec4899;
+  --info: #3b82f6; /* STAT_COLORS_FLAT.blue.solid */
+
+  --ws-bg: #f1f5f9; /* T.light.pageBg */
+  --ws-card: #ffffff; /* T.light.cardBg */
+  --ws-text: #0f172a; /* T.light.text */
+  --ws-muted: #64748b; /* T.light.textSub */
+  --ws-border: #e2e8f0; /* T.light.border */
+
+  --outer-sidebar-bg: #14101f;
+  --outer-sidebar-text: #cbc3dd;
+
+  /* Radius — RADIUS tokens (radius.js). standardCard / card-visual(14) / button-input-chip */
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+
+  /* ---------------------------------------------------------------------
+   * Spacing scale — single source of truth for every gap/margin/padding
+   * across the workspace. Every page reuses these tokens instead of
+   * hand-picked pixel values, so spacing stays identical page-to-page. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+
+  /* Shadows — T.light.shadow / shadowHov (tokens/colors.js) */
+  --shadow-card: 0 1px 8px rgba(0, 0, 0, 0.07);
+  --shadow-card-hover: 0 8px 32px rgba(0, 0, 0, 0.1);
+  /* SHADOW_DROPDOWN.light / SHADOW_TOAST (tokens/shadows.js) */
+  --shadow-dropdown: 0 16px 40px rgba(0, 0, 0, 0.14);
+  --shadow-toast: 0 8px 32px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.06);
+
+  /* Status-tone pairs — verbatim from STAT_COLORS_FLAT / Badge.jsx TONES.
+   * Reused here (as CSS vars, since this file is CSS not inline-JS) so
+   * every badge/stat tone in the Workspace matches the Global Design
+   * System's palette exactly instead of the page's old teal/pink set. */
+  --tone-purple-solid: #7c3aed;
+  --tone-purple-soft: #ede9fe;
+  --tone-green-solid: #16a34a;
+  --tone-green-soft: #dcfce7;
+  --tone-amber-solid: #f59e0b;
+  --tone-amber-soft: #fef3c7;
+  --tone-red-solid: #ef4444;
+  --tone-red-soft: #fee2e2;
+  --tone-blue-solid: #3b82f6;
+  --tone-blue-soft: #dbeafe;
+
+  color-scheme: light;
+}
+
+/* ---------------------------------------------------------------------
+ * Dark theme — same variables, dark values only. Activated by the
+ * `.dark` class WorkspaceApp.jsx applies to `.workspace-shell` whenever
+ * document.documentElement is in dark mode (same detection concept as
+ * Dashboard.jsx). No component/JSX/markup or design token *names* change —
+ * every class in this file keeps reading the same --var, it just resolves
+ * to a different value here. */
+.workspace-shell.dark {
+  --ws-bg: #0a0a0a;
+  --ws-card: #111111;
+  --ws-text: #f5f5f5;
+  --ws-muted: #a1a1aa;
+  --ws-border: rgba(255, 255, 255, 0.08);
+
+  --tone-purple-soft: rgba(124, 58, 237, 0.18);
+  --tone-green-soft: rgba(22, 163, 74, 0.18);
+  --tone-amber-soft: rgba(245, 158, 11, 0.18);
+  --tone-red-soft: rgba(239, 68, 68, 0.18);
+  --tone-blue-soft: rgba(59, 130, 246, 0.18);
+
+  --shadow-card: 0 1px 8px rgba(0, 0, 0, 0.5);
+  --shadow-card-hover: 0 8px 32px rgba(0, 0, 0, 0.65);
+  --shadow-dropdown: 0 16px 40px rgba(0, 0, 0, 0.7);
+  --shadow-toast: 0 8px 32px rgba(0, 0, 0, 0.6), 0 1px 4px rgba(0, 0, 0, 0.3);
+
+  color-scheme: dark;
+}
+
+/* A handful of spots use a fixed light hex instead of a --var (hover tint,
+ * muted badge, form error banner). Same classes, same names — just a dark
+ * counterpart so nothing looks like a light-mode leftover on a dark page. */
+.workspace-shell.dark .btn-ghost:hover {
+  background: #1a1a1a;
+}
+.workspace-shell.dark .badge.muted {
+  background: rgba(255, 255, 255, 0.08);
+}
+.workspace-shell.dark .wm-error {
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--ws-bg);
+  color: var(--ws-text);
+  font-family: var(--font-family);
+  letter-spacing: 0.01em; /* LETTER_SPACING.base */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  max-width: 100%;
+}
+
+/* Safety net: nothing inside the workspace should force horizontal overflow */
+.ws-sidebar,
+.ws-content,
+.workspace-shell,
+.card,
+.ws-stat-card,
+.section-card,
+.quick-action,
+.contact-card,
+.integration-card,
+.full-month-grid,
+.full-month-cell {
+  min-width: 0;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * App shell: outer trainer-portal rail + top nav + workspace inner sidebar
+ * ------------------------------------------------------------------------- */
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Outer rail (Dashboard / Batch Management / Workspace / ...) */
+.outer-rail {
+  width: 232px;
+  flex-shrink: 0;
+  background: var(--outer-sidebar-bg);
+  color: var(--outer-sidebar-text);
+  display: flex;
+  flex-direction: column;
+  padding: 18px 12px 16px;
+  gap: 14px;
+}
+.outer-rail.is-collapsed {
+  width: 76px;
+}
+.outer-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px 10px;
+}
+.outer-brand .logo-chip {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+  font-weight: 800;
+  font-size: 13px;
+}
+.outer-brand .brand-text {
+  min-width: 0;
+}
+.outer-brand .brand-text .name {
+  font-size: 14px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.outer-brand .brand-text .name .ora {
+  color: var(--brand-2);
+}
+.outer-brand .brand-text .sub {
+  font-size: 10px;
+  color: #8b83a3;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 1px;
+}
+.rail-collapse-btn {
+  margin-left: auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: #cbc3dd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.rail-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+  flex: 1;
+}
+.rail-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border-radius: 11px;
+  border: none;
+  background: transparent;
+  color: #b6acd0;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  text-align: left;
+}
+.rail-item svg {
+  flex-shrink: 0;
+}
+.rail-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+.rail-item.is-active {
+  background: linear-gradient(135deg, var(--brand), var(--brand-deep));
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(124, 58, 237, 0.35);
+}
+.outer-rail.is-collapsed .rail-item span,
+.outer-rail.is-collapsed .brand-text {
+  display: none;
+}
+.outer-rail.is-collapsed .rail-item {
+  justify-content: center;
+  padding: 10px;
+}
+
+.rail-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.rail-footer .avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--brand-2), var(--accent-2));
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.rail-footer .who {
+  min-width: 0;
+}
+.rail-footer .who b {
+  display: block;
+  font-size: 12.5px;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rail-footer .who span {
+  font-size: 10px;
+  color: #8b83a3;
+}
+.outer-rail.is-collapsed .rail-footer .who {
+  display: none;
+}
+
+/* Right side: top nav + workspace body */
+.shell-right {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.top-nav {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 0 24px;
+  height: 58px;
+  background: #14101f;
+  color: #cbc3dd;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+.top-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #a79bc4;
+  flex: 1;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.top-nav-links span {
+  cursor: pointer;
+}
+.top-nav-links span:hover,
+.top-nav-links span.is-active {
+  color: #fff;
+}
+.top-nav-icons {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+.top-nav-icons .icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: #cbc3dd;
+}
+.top-nav-icons .avatar-sm {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--brand-2), var(--accent-2));
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.workspace-shell {
+  display: grid;
+  grid-template-columns: 216px minmax(0, 1fr);
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 0;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Hamburger button that opens the sidebar drawer — hidden on desktop/laptop,
+ * shown once the sidebar itself goes off-canvas (see breakpoints below). */
+.ws-mobile-toggle {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  grid-column: 1 / -1;
+  grid-row: 1;
+  width: fit-content;
+  margin: var(--space-3) 0 0 var(--space-4);
+  padding: 8px 14px;
+  border: 1px solid var(--ws-border);
+  border-radius: 10px;
+  background: var(--ws-card);
+  color: var(--ws-text);
+  font-size: 12.5px;
+  font-weight: 700;
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  z-index: 30;
+}
+
+.ws-sidebar-backdrop {
+  display: none;
+}
+
+/* Inner workspace sidebar */
+.ws-sidebar {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  background: var(--ws-card) !important;
+  border-right: 1px solid var(--ws-border);
+  padding: 18px 14px 16px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+.ws-sidebar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 6px 14px;
+  margin-bottom: 2px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ws-text);
+  border-bottom: 1px solid var(--ws-border);
+}
+.ws-sidebar-head-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ws-sidebar-close {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  border: 1px solid var(--ws-border);
+  background: var(--ws-card);
+  color: var(--ws-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.ws-sidebar-close:hover {
+  background: rgba(124, 58, 237, 0.08);
+  color: var(--brand-deep);
+}
+.ws-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ws-group-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--ws-muted);
+  padding: 10px 10px 6px;
+  text-transform: uppercase;
+}
+.ws-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border-radius: 9px;
+  border: none;
+  background: transparent;
+  color: var(--ws-text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+.ws-item svg {
+  flex-shrink: 0;
+  color: var(--ws-muted);
+}
+.ws-item:hover {
+  background: rgba(124, 58, 237, 0.07);
+}
+.ws-item.is-active {
+  background: rgba(124, 58, 237, 0.12);
+  color: var(--brand-deep);
+}
+.ws-item.is-active svg {
+  color: var(--brand);
+}
+
+/* ---------------------------------------------------------------------
+ * Collapsed (icon-only) state for the inner workspace sidebar, toggled by
+ * WorkspaceSidebar.jsx's own .ws-sidebar-collapse button (separate from
+ * the mobile drawer's .ws-sidebar-close). Reuses the same tokens as the
+ * rest of .ws-sidebar — no new colors/spacing introduced. */
+.ws-sidebar.is-collapsed {
+  width: 72px;
+  min-width: 72px;
+  max-width: 72px;
+  transition: width 0.2s ease, min-width 0.2s ease, max-width 0.2s ease;
+}
+.ws-sidebar.is-collapsed .ws-sidebar-head {
+  justify-content: center;
+  padding: 0 0 14px;
+}
+.ws-sidebar.is-collapsed .ws-group-label {
+  display: none;
+}
+.ws-sidebar.is-collapsed .ws-item {
+  justify-content: center;
+  padding: 9px;
+  position: relative;
+}
+
+.ws-sidebar-collapse {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  border: 1px solid var(--ws-border);
+  background: var(--ws-card);
+  color: var(--ws-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+}
+.ws-sidebar-collapse:hover {
+  background: rgba(124, 58, 237, 0.08);
+  color: var(--brand-deep);
+}
+
+/* Custom hover tooltip (replaces the native title attribute) shown only
+ * when the sidebar is collapsed to icon-only mode. */
+.ws-tooltip {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-6px);
+  background: var(--ws-text);
+  color: var(--ws-card);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 50;
+  box-shadow: var(--shadow-dropdown);
+}
+.ws-tooltip::before {
+  content: "";
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 5px solid transparent;
+  border-right-color: var(--ws-text);
+}
+.ws-sidebar-collapse:hover .ws-tooltip,
+.ws-item:hover .ws-tooltip {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* Main workspace content */
+.ws-content {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--space-6) var(--space-6) 56px !important;
+  background: var(--ws-bg);
+  container-type: inline-size;
+  container-name: ws;
+}
+
+/* =============================================================================
+ * UNIVERSAL VERTICAL RHYTHM — the single source of truth for spacing between
+ * top-level blocks (page head, toolbars, tabs, stat rows, cards) on EVERY
+ * workspace page. Individual pages/components must NOT set their own
+ * margin-top / margin-bottom for this purpose — this rule owns it, so every
+ * one of the 13 workspace tabs gets identical spacing automatically, with
+ * zero per-page patching. */
+.ws-content > * + * {
+  margin-top: var(--space-5) !important;
+}
+.ws-content > .ws-page-head + * {
+  margin-top: var(--space-6) !important;
+}
+
+.ws-page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 100%;
+}
+.ws-page-head-title {
+  min-width: 0;
+  flex: 1 1 260px;
+}
+.ws-page-head-eyebrow {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ws-muted);
+}
+.ws-page-head-eyebrow b {
+  color: var(--brand-deep);
+  font-weight: 700;
+}
+.ws-page-head h1 {
+  font-size: clamp(24px, 2.2vw, 30px); /* FONT_SIZE.heroTitle */
+  font-weight: 600; /* FONT_WEIGHT.heroTitle */
+  line-height: 1.1; /* LINE_HEIGHT.heroTitle */
+  margin: 0 0 8px;
+  letter-spacing: -0.02em; /* LETTER_SPACING.heroTitle */
+  overflow-wrap: break-word;
+  color: var(--ws-text);
+}
+.ws-page-head p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ws-muted);
+}
+.ws-page-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  min-width: 0;
+}
+/* Force the pills + primary/ghost action button in the header row to the
+ * same height, so "Live" / date / "Create New" (or "Create Event", etc.)
+ * sit flush on one visual baseline instead of the button looking taller
+ * than the pills next to it. */
+.ws-page-head-actions .live-pill,
+.ws-page-head-actions .date-pill,
+.ws-page-head-actions .btn-primary,
+.ws-page-head-actions .btn-ghost {
+  height: 34px;
+  padding-top: 0;
+  padding-bottom: 0;
+  box-sizing: border-box;
+}
+.live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--live);
+  background: var(--tone-green-soft);
+  padding: 6px var(--space-3);
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.live-pill .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--live);
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.25);
+  flex-shrink: 0;
+}
+.date-pill {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ws-muted);
+  background: var(--ws-card);
+  border: 1px solid var(--ws-border);
+  padding: 6px var(--space-3);
+  border-radius: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Buttons */
+/* Buttons — match design-system/components/Button.jsx exactly: solid
+ * brand fill (no gradient/glow), same height/radius/weight as the "md"
+ * primary variant, secondary variant hovers to a neutral surface. */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  background: var(--brand);
+  color: #fff;
+  border: 1px solid transparent;
+  padding: 10px var(--space-4);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.btn-primary:hover {
+  background: var(--brand-deep);
+}
+.btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  background: var(--ws-card);
+  border: 1px solid var(--ws-border);
+  color: var(--ws-text);
+  padding: 10px var(--space-4);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.btn-ghost:hover {
+  background: #f8fafc;
+}
+.btn-sm {
+  padding: 7px var(--space-3);
+  font-size: 12px;
+  border-radius: 8px;
+}
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  border: 1px solid var(--ws-border);
+  background: var(--ws-card);
+  color: var(--ws-text);
+  cursor: pointer;
+}
+.icon-btn:hover {
+  background: rgba(124, 58, 237, 0.1);
+}
+
+/* Cards / grids reused across pages */
+.card {
+  background: var(--ws-card);
+  border: 1px solid var(--ws-border);
+  border-radius: var(--radius-md); /* matches Panel.jsx / StatCard.jsx visual radius (14) */
+  padding: var(--space-5);
+  box-shadow: var(--shadow-card);
+}
+.stat-grid {
+  display: grid !important;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px !important; /* GRID_GAP.statGrid */
+}
+.ws-stat-card {
+  background: var(--ws-card) !important;
+  border: 1px solid var(--ws-border) !important;
+  border-radius: var(--radius-md); /* matches StatCard.jsx radius (14) */
+  padding: var(--space-5) !important;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  box-shadow: var(--shadow-card) !important;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+.ws-stat-card:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-1px);
+}
+.stat-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--tone-purple-soft);
+  color: var(--tone-purple-solid);
+}
+.tone-live .stat-icon {
+  background: var(--tone-green-soft);
+  color: var(--tone-green-solid);
+}
+.tone-accent .stat-icon {
+  background: var(--tone-amber-soft);
+  color: var(--tone-amber-solid);
+}
+.tone-pink .stat-icon {
+  background: var(--tone-red-soft);
+  color: var(--tone-red-solid);
+}
+.tone-info .stat-icon {
+  background: var(--tone-blue-soft);
+  color: var(--tone-blue-solid);
+}
+.stat-value {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin-top: var(--space-3);
+  color: var(--ws-text);
+}
+.stat-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ws-muted);
+}
+.stat-delta {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--tone-green-solid);
+  margin-top: 3px;
+}
+.stat-delta.muted-delta {
+  color: var(--ws-muted);
+}
+
+.content-grid-2 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.72fr);
+  gap: var(--space-5) !important;
+  align-items: start;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Right-hand tools column (Instant Meeting / Calendar Sync / Email / Quick Actions) */
+.workspace-tools-column {
+  min-width: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+.workspace-tools-column > * {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Container-query-driven responsive behavior: these react to the actual
+ * rendered width of .ws-content (the third fold), not the browser
+ * viewport — the third fold can be narrower than the viewport once the
+ * outer app sidebar(s) are accounted for, so viewport-based @media rules
+ * were triggering later than the content actually needed them to.
+ * Thresholds are set below the real third-fold width (~846px at a 1366px
+ * viewport, with the actual 232px outer rail + 240px workspace sidebar),
+ * so the full desktop layout (4 stats across, 2-col content) holds at
+ * normal desktop sizes and only collapses on genuinely narrow containers. */
+@container ws (max-width: 700px) {
+  .content-grid-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .full-month-cell {
+    min-height: 74px;
+  }
+}
+@container ws (max-width: 640px) {
+  .stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@container ws (max-width: 420px) {
+  .stat-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.section-card {
+  background: var(--ws-card) !important;
+  border: 1px solid var(--ws-border) !important;
+  border-radius: var(--radius-md); /* matches Panel.jsx radius (14) */
+  padding: var(--space-5) !important;
+  box-shadow: var(--shadow-card) !important;
+  min-width: 0;
+  max-width: 100%;
+}
+.section-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.section-card-head h2 {
+  font-size: 15.5px;
+  font-weight: 800;
+  margin: 0;
+  color: var(--ws-text);
+}
+.section-link {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--brand);
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* Row-style list item (events / schedules / reminders / shared items).
+ * Left corners are intentionally square (not rounded) — pairing a colored
+ * border-left accent stripe with a rounded corner makes the border curve
+ * into a stray "(" bracket shape at the top/bottom-left. Keeping the left
+ * edge flush and only rounding the right corners avoids that artifact. */
+.list-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-3);
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: 3px solid var(--brand);
+  margin-bottom: var(--space-2);
+  background: rgba(124, 58, 237, 0.03);
+  min-width: 0;
+  max-width: 100%;
+}
+/* Rows that include the date column (Events / MySchedules) get a strict
+ * grid so the countdown badge can never push the row wider than its track;
+ * rows without a date column (Today's Schedule, Reminders, etc.) keep the
+ * simpler flex layout above. */
+.list-row:has(.list-row-date) {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  gap: 12px;
+  align-items: center;
+}
+.list-row:has(.list-row-date) > * {
+  min-width: 0;
+}
+.list-row.type-presentation {
+  border-left-color: var(--tone-blue-solid);
+}
+.list-row.type-review {
+  border-left-color: var(--tone-green-solid);
+}
+.list-row.type-demo {
+  border-left-color: var(--tone-amber-solid);
+}
+.list-row.type-planning {
+  border-left-color: var(--tone-red-solid);
+}
+.list-row-date {
+  width: 48px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.list-row-date .mon {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--brand);
+  letter-spacing: 0.05em;
+}
+.list-row-date .day {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ws-text);
+}
+.list-row-main {
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+}
+.list-row-main .title {
+  font-size: 13px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ws-text);
+}
+.list-row-main .meta {
+  font-size: 11px;
+  color: var(--ws-muted);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Badge — same tone palette as design-system/components/Badge.jsx
+ * (purple / info / warning / success / neutral). */
+.badge {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 5px var(--space-2);
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  background: var(--tone-purple-soft);
+  color: var(--brand-deep);
+}
+.badge.info {
+  background: var(--tone-blue-soft);
+  color: #1d4ed8;
+}
+.badge.warn {
+  background: var(--tone-amber-soft);
+  color: #b45309;
+}
+.badge.live {
+  background: var(--tone-green-soft);
+  color: #15803d;
+}
+.badge.muted {
+  background: #f1f5f9;
+  color: var(--ws-muted);
+}
+.row-menu-btn {
+  border: none;
+  background: transparent;
+  color: var(--ws-muted);
+  cursor: pointer;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.row-menu-btn:hover {
+  background: rgba(124, 58, 237, 0.08);
+}
+
+/* Tabs (segmented) */
+.tab-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--ws-border);
+  padding-bottom: 2px;
+}
+.tab-strip .tab {
+  border: none;
+  background: transparent;
+  color: var(--ws-muted);
+  font-size: 13px;
+  font-weight: 700;
+  padding: var(--space-3) var(--space-1);
+  margin-right: var(--space-4);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+.tab-strip .tab.is-active {
+  color: var(--ws-text);
+  border-bottom-color: var(--brand);
+}
+.pill-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.pill-tabs .pill-tab {
+  border: 1px solid var(--ws-border);
+  background: var(--ws-bg);
+  color: var(--ws-muted);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px var(--space-3);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.pill-tabs .pill-tab.is-active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+
+/* Search + filter row */
+.toolbar-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--ws-card);
+  border: 1px solid var(--ws-border);
+  border-radius: 10px;
+  padding: var(--space-2) var(--space-3);
+  flex: 1;
+  min-width: 180px;
+}
+.search-box input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 13px;
+  width: 100%;
+  color: var(--ws-text);
+}
+.search-box svg {
+  color: var(--ws-muted);
+  flex-shrink: 0;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 40px 16px;
+  color: var(--ws-muted);
+}
+.empty-state svg {
+  color: var(--brand-2);
+  margin-bottom: 10px;
+}
+.empty-state h3 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: var(--ws-text);
+}
+.empty-state p {
+  margin: 0;
+  font-size: 12.5px;
+}
+
+/* Quick actions grid (Overview) */
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+.quick-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+  background: var(--ws-card);
+  border: 1px solid var(--ws-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-3);
+  cursor: pointer;
+  color: var(--ws-text);
+  box-shadow: var(--shadow-card);
+}
+.quick-action:hover {
+  border-color: var(--brand);
+  transform: translateY(-1px);
+}
+.quick-action .qa-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(124, 58, 237, 0.12);
+  color: var(--brand);
+}
+.quick-action span {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ws-text);
+}
+
+/* Instant meeting page */
+.im-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: var(--space-5);
+  width: 100%;
+  min-width: 0;
+}
+.im-hero {
+  background: linear-gradient(135deg, var(--brand), var(--brand-deep));
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  max-width: 100%;
+}
+.im-hero h2 {
+  margin: 0;
+  font-size: 18px;
+}
+.im-hero p {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 380px;
+}
+.im-hero .btn-primary {
+  background: #fff;
+  color: var(--brand-deep);
+  box-shadow: none;
+  align-self: flex-start;
+}
+.im-join-row {
+  display: flex;
+  gap: var(--space-2);
+  min-width: 0;
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+.im-join-row input {
+  flex: 1 1 160px;
+  min-width: 0;
+  border-radius: 10px;
+  border: 1px solid var(--ws-border);
+  padding: var(--space-3) var(--space-3);
+  font-size: 13px;
+  outline: none;
+}
+.im-join-row .btn-primary {
+  flex-shrink: 0;
+}
+
+/* Calendar page */
+.cal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.cal-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ws-text);
+}
+.full-month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+.full-month-grid .dow {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--ws-muted);
+  text-align: center;
+  padding-bottom: 6px;
+}
+.full-month-cell {
+  min-height: 88px;
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid var(--ws-border);
+  border-radius: 12px;
+  padding: 6px;
+  background: var(--ws-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  cursor: pointer;
+}
+.full-month-cell.is-empty {
+  background: transparent;
+  border: none;
+  cursor: default;
+}
+.full-month-cell.is-today {
+  border-color: var(--brand);
+}
+.full-month-cell.is-selected {
+  background: rgba(124, 58, 237, 0.08);
+  border-color: var(--brand);
+}
+.full-month-cell .num {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ws-muted);
+}
+.full-month-cell.is-today .num {
+  color: var(--brand);
+}
+.full-month-cell .mini-evt {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 5px;
+  background: rgba(124, 58, 237, 0.14);
+  color: var(--brand-deep);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Calendar day-detail panel — stays pinned alongside the month grid while
+ * scrolling so it never "runs out" and leaves an orphaned empty column. */
+.cal-day-panel {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+}
+
+/* Contacts */
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+.contact-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: var(--ws-card);
+  border: 1px solid var(--ws-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-card);
+}
+.contact-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 800;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.contact-info {
+  flex: 1;
+  min-width: 0;
+}
+.contact-info b {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ws-text);
+}
+.contact-info span {
+  font-size: 11px;
+  color: var(--ws-muted);
+}
+.contact-actions {
+  display: flex;
+  gap: 6px;
+}
+
+/* Availability */
+.avail-day-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-1);
+  border-bottom: 1px solid var(--ws-border);
+}
+.avail-day-row:last-child {
+  border-bottom: none;
+}
+.avail-day-name {
+  width: 100px;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+  color: var(--ws-text);
+}
+.avail-time-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+.avail-time-inputs input[type="time"] {
+  border: 1px solid var(--ws-border);
+  border-radius: 9px;
+  padding: 7px 10px;
+  font-size: 12.5px;
+  outline: none;
+  background: var(--ws-bg);
+}
+.avail-time-inputs span {
+  color: var(--ws-muted);
+  font-size: 12px;
+}
+.toggle-switch {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  flex-shrink: 0;
+}
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: rgba(107, 100, 120, 0.25);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.toggle-slider::before {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  left: 3px;
+  top: 3px;
+  background: #fff;
+  border-radius: 999px;
+  transition: transform 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+.toggle-switch input:checked + .toggle-slider {
+  background: var(--brand);
+}
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(18px);
+}
+
+/* Integrations */
+.integrations-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+.integration-card {
+  background: var(--ws-card);
+  border: 1px solid var(--ws-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  box-shadow: var(--shadow-card);
+}
+.integration-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.integration-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(124, 58, 237, 0.1);
+  color: var(--brand);
+  flex-shrink: 0;
+}
+.integration-top b {
+  font-size: 13px;
+  font-weight: 800;
+  display: block;
+  color: var(--ws-text);
+}
+.connected-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--tone-green-solid);
+}
+.connected-tag .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--tone-green-solid);
+}
+
+/* Settings */
+.settings-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--ws-bg);
+  border-radius: 12px;
+  padding: 4px;
+  width: fit-content;
+  margin-bottom: 18px;
+}
+.settings-tabs button {
+  border: none;
+  background: transparent;
+  padding: var(--space-2) var(--space-4);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ws-muted);
+  border-radius: 9px;
+  cursor: pointer;
+}
+.settings-tabs button.is-active {
+  background: var(--ws-card);
+  color: var(--ws-text);
+  box-shadow: 0 1px 3px rgba(23, 15, 40, 0.1);
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.form-field label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ws-text);
+}
+.form-field input,
+.form-field select {
+  border: 1px solid var(--ws-border);
+  border-radius: 10px;
+  padding: var(--space-3) var(--space-3);
+  font-size: 13px;
+  outline: none;
+  background: var(--ws-bg);
+  color: var(--ws-text);
+}
+.settings-toggle-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--ws-border);
+}
+.settings-toggle-row:last-child {
+  border-bottom: none;
+}
+.settings-toggle-row b {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ws-text);
+}
+.settings-toggle-row span {
+  font-size: 11px;
+  color: var(--ws-muted);
+}
+
+/* Sync history / connected calendar */
+.sync-history-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--ws-border);
+  font-size: 12.5px;
+}
+.sync-history-row:last-child {
+  border-bottom: none;
+}
+.sync-history-row .t {
+  margin-left: auto;
+  color: var(--ws-muted);
+  font-size: 11px;
+}
+
+/* Instant Meeting card — lives permanently in the right-hand tools column
+ * (stacked above Calendar Sync / Email / Quick Actions), so it always
+ * renders as a compact vertical card regardless of container width. */
+.instant-hero-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  min-width: 0;
+  max-width: 100%;
+}
+.instant-hero-head {
+  flex-shrink: 0;
+}
+.instant-hero-head h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  color: var(--ws-text);
+}
+.instant-hero-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+.instant-hero-body p {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--ws-muted);
+  max-width: 100%;
+}
+.instant-hero-illustration {
+  display: flex;
+  flex-shrink: 0;
+}
+.instant-hero-card .btn-primary {
+  width: 100%;
+  justify-content: center;
+}
+.ihi-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  border: 2px solid var(--ws-card);
+  margin-left: -10px;
+}
+.ihi-avatar:first-child {
+  margin-left: 0;
+}
+.ihi-avatar.ihi-1 {
+  background: var(--brand);
+}
+.ihi-avatar.ihi-2 {
+  background: var(--info);
+}
+.ihi-avatar.ihi-3 {
+  background: var(--accent-2);
+}
+
+/* Calendar sync row (Overview) */
+.calendar-sync-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border: 1px solid var(--ws-border);
+  border-radius: 12px;
+  padding: var(--space-3);
+}
+
+/* Email unread / sent / drafts row (Overview) */
+.email-stats-row {
+  display: flex;
+  justify-content: space-around;
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--ws-border);
+}
+.email-stat {
+  text-align: center;
+}
+.email-stat .val {
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--ws-text);
+}
+
+/* Footer link under a list-based section-card (e.g. "View full calendar") */
+.section-card-footer {
+  display: flex;
+  justify-content: center;
+  padding-top: 10px;
+  margin-top: 4px;
+  border-top: 1px solid var(--ws-border);
+}
+
+.muted {
+  color: var(--ws-muted);
+  font-size: 12.5px;
+}
+
+.spin {
+  animation: ws-spin 0.9s linear infinite;
+}
+@keyframes ws-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Row menu dropdown (Events "..." menu) */
+.row-menu-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+.row-menu-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  background: var(--ws-card);
+  border: 1px solid var(--ws-border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-dropdown);
+  display: flex;
+  flex-direction: column;
+  min-width: 150px;
+  padding: var(--space-1);
+  z-index: 20;
+}
+.row-menu-dropdown button {
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ws-text);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.row-menu-dropdown button:hover {
+  background: rgba(124, 58, 237, 0.08);
+}
+
+/* Toast / click-feedback stack */
+.toast-stack {
+  position: fixed;
+  right: var(--space-6);
+  bottom: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  z-index: 9999;
+  pointer-events: none;
+}
+.toast-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--ws-text);
+  color: #fff;
+  padding: var(--space-3) var(--space-4);
+  border-radius: 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  box-shadow: var(--shadow-toast);
+  animation: ws-toast-in 0.18s ease;
+}
+.toast-item svg {
+  color: var(--tone-green-solid);
+  flex-shrink: 0;
+}
+@keyframes ws-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+
+/* ---- Laptop / small-desktop: slightly narrower sidebar, everything else
+ * unchanged. Covers 13"-14" laptops and windowed desktop browsers. ---- */
+@media (max-width: 1280px) {
+  .workspace-shell {
+    grid-template-columns: 200px minmax(0, 1fr);
+  }
+}
+
+/* ---- iPad landscape / small laptop window: compact sidebar, two-column
+ * content still holds (container queries below handle the content itself
+ * once its rendered width gets tight). ---- */
+@media (max-width: 1024px) {
+  .workspace-shell {
+    grid-template-columns: 188px minmax(0, 1fr);
+  }
+}
+
+/* ---- iPad portrait, iPad mini, tablets and every phone: the inner
+ * sidebar becomes an off-canvas drawer opened by the hamburger button,
+ * instead of a fixed column — this is the real fix for navigation being
+ * unreachable on small/touch screens. ---- */
+@media (max-width: 860px) {
+  .workspace-shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+  }
+  .ws-mobile-toggle {
+    display: inline-flex;
+  }
+  .ws-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    max-width: 84vw;
+    z-index: 220;
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+    box-shadow: var(--shadow-dropdown);
+  }
+  .ws-sidebar.is-open {
+    transform: translateX(0);
+  }
+  /* On the off-canvas drawer, the sidebar always opens at full (expanded)
+   * width — icon-only collapse doesn't make sense once it's already a
+   * temporary overlay, so ignore .is-collapsed at this breakpoint. */
+  .ws-sidebar.is-collapsed {
+    width: 280px;
+    min-width: 0;
+    max-width: 84vw;
+  }
+  .ws-sidebar.is-collapsed .ws-sidebar-head {
+    justify-content: space-between;
+  }
+  .ws-sidebar.is-collapsed .ws-group-label {
+    display: block;
+  }
+  .ws-sidebar.is-collapsed .ws-item {
+    justify-content: flex-start;
+    padding: 9px 11px;
+  }
+  .ws-sidebar-close {
+    display: inline-flex;
+  }
+  .ws-sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 16, 31, 0.45);
+    z-index: 210;
+  }
+  .ws-content {
+    grid-column: 1;
+    grid-row: 2;
+  }
+}
+
+@media (max-width: 480px) {
+  .ws-content {
+    padding: var(--space-4) var(--space-4) 48px !important;
+  }
+  .ws-mobile-toggle {
+    margin-left: var(--space-3);
+  }
+}
+
+/* Safety clearance for the HOST app's floating mobile "reopen sidebar"
+ * button (IlmDemoSidebar.jsx: .ilm-sb-reopen, position:fixed, top:72px,
+ * height:40px, left:14px, z-index:150). That button lives outside this
+ * component entirely and always floats on top of the page, so on the
+ * same breakpoint where it appears (<=1024px, per IlmDemoSidebar.jsx) we
+ * reserve enough top space that our own page title/toggle never renders
+ * underneath it. This is a defensive buffer only — the correct long-term
+ * fix is for the host page's main-content wrapper to offset for its own
+ * fixed sidebar/reopen button; see chat for details. */
+@media (max-width: 1024px) {
+  .workspace-shell {
+    padding-top: 54px;
+  }
+}
+
+/* ---- Content-level responsiveness driven by the actual rendered width of
+ * .ws-content (a CSS container), so it reacts correctly whether it's
+ * narrowed by the viewport, the sidebar, or a split-screen/iPad app
+ * window — not just the raw browser width. ---- */
+@container ws (max-width: 640px) {
+  .quick-actions-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .integrations-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .im-grid {
+    grid-template-columns: 1fr;
+  }
+  .contact-grid {
+    grid-template-columns: 1fr;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .cal-day-panel {
+    position: static;
+    max-height: none;
+  }
+}
+@container ws (max-width: 480px) {
+  .quick-actions-grid {
+    grid-template-columns: 1fr;
+  }
+  .integrations-grid {
+    grid-template-columns: 1fr;
+  }
+  .email-stats-row {
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+  .full-month-cell {
+    min-height: 60px;
+    padding: 4px;
+  }
+  .full-month-cell .mini-evt {
+    font-size: 8.5px;
+    padding: 1px 4px;
+  }
+  .cal-toolbar {
+    justify-content: flex-start;
+  }
+}
+/* =============================================================================
+ * Workspace Modal system — WorkspaceModal shell + EventForm / ScheduleForm /
+ * EmailComposer / ContactForm / MeetingSetup / JoinMeetingModal. Reuses the
+ * existing tokens (--brand, --ws-card, --ws-border, --radius-*, --space-*, shadows)
+ * so every real form reads as a native part of the Workspace, not a re-skin.
+ * ============================================================================= */
+
+.wm-scrim {
+  position: fixed;
+  top: var(--wm-top, 0px);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(15, 23, 42, 0.18);
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  z-index: 9999;
+  animation: wm-fade-in 0.15s ease-out;
+}
+
+@keyframes wm-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes wm-slide-in {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Inline, right-docked resizable panel — replaces the old centered
+ * "wm-modal" popup box. Full viewport height, width is user-adjustable
+ * via .wm-resize-handle, clamped in JS between MIN_WIDTH and the
+ * viewport width. */
+.wm-panel {
+  position: relative;
+  width: var(--wm-width, 640px);
+  max-width: calc(100vw - 32px);
+  height: 100%;
+  background: var(--ws-card);
+  border-left: 1px solid var(--ws-border);
+  box-shadow: var(--shadow-dropdown);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: wm-slide-in 0.18s ease-out;
+}
+.wm-panel--dragging {
+  animation: none;
+  transition: none;
+}
+
+.wm-resize-handle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 10px;
+  height: 100%;
+  cursor: ew-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  touch-action: none;
+}
+.wm-resize-handle::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 100%;
+  background: transparent;
+  transition: background 0.12s ease;
+}
+.wm-resize-handle:hover::before,
+.wm-panel--dragging .wm-resize-handle::before {
+  background: var(--brand);
+}
+.wm-resize-grip {
+  width: 4px;
+  height: 44px;
+  border-radius: 3px;
+  background: var(--brand);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+}
+.wm-resize-handle:hover .wm-resize-grip,
+.wm-panel--dragging .wm-resize-grip {
+  opacity: 1;
+}
+
+.wm-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-6);
+  border-bottom: 1px solid var(--ws-border);
+  flex-shrink: 0;
+}
+.wm-header-text h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--ws-text);
+}
+.wm-header-text p {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  color: var(--ws-muted);
+}
+.wm-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 1px solid var(--ws-border);
+  background: var(--ws-card);
+  color: var(--ws-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.wm-close:hover {
+  background: rgba(124, 58, 237, 0.08);
+  color: var(--brand-deep);
+}
+
+.wm-body {
+  padding: var(--space-6);
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.wm-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--ws-border);
+  flex-shrink: 0;
+  background: var(--ws-bg);
+}
+
+/* Fields */
+.wm-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.wm-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ws-text);
+}
+.wm-required {
+  color: var(--accent-2);
+}
+.wm-hint {
+  margin: 0;
+  font-size: 11px;
+  color: var(--ws-muted);
+}
+.wm-error {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #ef4444; /* T.light.overdueText */
+  background: #fef2f2; /* T.light.overdueBg */
+  border: 1px solid #fecaca; /* T.light.overdueBorder */
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+}
+
+.wm-row {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.wm-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.wm-section-title {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ws-muted);
+}
+
+.wm-input,
+.wm-textarea,
+select.wm-input {
+  width: 100%;
+  border: 1px solid var(--ws-border);
+  background: var(--ws-card);
+  color: var(--ws-text);
+  border-radius: 10px;
+  padding: 9px var(--space-3);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.wm-input:focus,
+.wm-textarea:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.14);
+}
+.wm-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.wm-textarea {
+  resize: vertical;
+  min-height: 44px;
+  line-height: 1.5;
+}
+select.wm-input {
+  cursor: pointer;
+}
+
+.wm-inline-link {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: var(--brand);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+.wm-inline-link:hover {
+  color: var(--brand-deep);
+  text-decoration: underline;
+}
+
+/* Tag / chip multi-input (attendees, participants, to/cc/bcc) */
+.wm-taginput {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--ws-border);
+  background: var(--ws-card);
+  border-radius: 10px;
+  padding: 7px var(--space-3);
+  min-height: 40px;
+}
+.wm-taginput:focus-within {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.14);
+}
+.wm-taginput input {
+  flex: 1;
+  min-width: 120px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 13px;
+  color: var(--ws-text);
+  font-family: inherit;
+  padding: 3px 0;
+}
+.wm-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(124, 58, 237, 0.1);
+  color: var(--brand-deep);
+  border-radius: 999px;
+  padding: 4px 4px 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.wm-tag button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(124, 58, 237, 0.18);
+  color: var(--brand-deep);
+  cursor: pointer;
+}
+.wm-tag button:hover {
+  background: rgba(124, 58, 237, 0.3);
+}
+
+/* Segmented toggle (Online / In-person) */
+.wm-segmented {
+  display: inline-flex;
+  padding: 3px;
+  background: var(--ws-bg);
+  border: 1px solid var(--ws-border);
+  border-radius: 10px;
+  gap: 2px;
+  width: fit-content;
+}
+.wm-segment {
+  border: none;
+  background: transparent;
+  color: var(--ws-muted);
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 7px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.wm-segment.is-active {
+  background: var(--ws-card);
+  color: var(--brand-deep);
+  box-shadow: var(--shadow-card);
+}
+
+/* Switch (Camera / Microphone / Schedule Send) */
+.wm-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.wm-switch-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ws-text);
+}
+.wm-switch-hint {
+  font-size: 11px;
+  color: var(--ws-muted);
+  margin-top: 1px;
+}
+.wm-switch {
+  position: relative;
+  width: 38px;
+  height: 22px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(124, 58, 237, 0.22);
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+}
+.wm-switch.is-on {
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+}
+.wm-switch-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(23, 15, 40, 0.3);
+  transition: left 0.15s ease;
+}
+.wm-switch.is-on .wm-switch-knob {
+  left: 19px;
+}
+
+/* Device tiles (Camera/Mic in Meeting Setup + Join Meeting) */
+.wm-device-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-3);
+  min-width: 0;
+}
+.wm-device-tile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  border: 1px solid var(--ws-border);
+  border-radius: 12px;
+  padding: var(--space-3) var(--space-4);
+  color: var(--brand-deep);
+  min-width: 0;
+  max-width: 100%;
+}
+.wm-device-tile .wm-switch-row {
+  flex: 1;
+}
+
+/* Checkbox option list (Meeting Options) */
+.wm-check-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.wm-check-option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  cursor: pointer;
+}
+.wm-check-option input {
+  margin-top: 2px;
+  width: 15px;
+  height: 15px;
+  accent-color: var(--brand);
+  cursor: pointer;
+}
+.wm-check-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ws-text);
+}
+.wm-check-hint {
+  display: block;
+  font-size: 11px;
+  color: var(--ws-muted);
+  margin-top: 1px;
+}
+
+/* Rich text editor (Email composer message body) */
+.wm-richtext {
+  border: 1px solid var(--ws-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.wm-richtext-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px;
+  background: var(--ws-bg);
+  border-bottom: 1px solid var(--ws-border);
+}
+.wm-richtext-toolbar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--ws-muted);
+  cursor: pointer;
+}
+.wm-richtext-toolbar button:hover {
+  background: rgba(124, 58, 237, 0.1);
+  color: var(--brand-deep);
+}
+.wm-richtext-area {
+  min-height: 130px;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: var(--space-3) var(--space-4);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ws-text);
+  outline: none;
+}
+.wm-richtext-area:empty::before {
+  content: attr(data-placeholder);
+  color: var(--ws-muted);
+}
+
+/* Attachment chips */
+.wm-attachment-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: var(--space-2);
+}
+.wm-attachment-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--ws-bg);
+  border: 1px solid var(--ws-border);
+  border-radius: 8px;
+  padding: 5px 5px 5px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ws-text);
+}
+.wm-attachment-chip button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(124, 58, 237, 0.14);
+  color: var(--brand-deep);
+  cursor: pointer;
+}
+
+/* Join Meeting validated banner */
+.wm-validated-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--tone-green-soft); /* T.light.statusCompletedBg */
+  border: 1px solid #bbf7d0;
+  color: #15803d; /* T.light.statusCompletedText */
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  /* Resizing doesn't make sense on a narrow/touch screen — the panel
+   * falls back to a full-width bottom sheet, same as before, and the
+   * drag handle is hidden. */
+  .wm-scrim {
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .wm-panel {
+    width: 100% !important;
+    max-width: 100%;
+    height: auto;
+    max-height: 92vh;
+    border-left: none;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    animation: wm-fade-in 0.15s ease-out;
+  }
+  .wm-resize-handle {
+    display: none;
+  }
+  .wm-row,
+  .wm-device-row {
+    grid-template-columns: 1fr !important;
+  }
+  .wm-header,
+  .wm-body,
+  .wm-footer {
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+  }
+  .wm-footer {
+    flex-wrap: wrap;
+  }
+  .wm-footer button {
+    flex: 1;
+  }
+}
+@media (max-width: 400px) {
+  .wm-panel {
+    max-height: 94vh;
+  }
+  .wm-header,
+  .wm-body,
+  .wm-footer {
+    padding-left: var(--space-3);
+    padding-right: var(--space-3);
+  }
+  .wm-body {
+    gap: var(--space-4);
+    padding-top: var(--space-4);
+    padding-bottom: var(--space-4);
+  }
+  .wm-richtext-toolbar {
+    flex-wrap: wrap;
+  }
+  .wm-segmented {
+    width: 100%;
+  }
+  .wm-segment {
+    flex: 1;
+    text-align: center;
+  }
+}

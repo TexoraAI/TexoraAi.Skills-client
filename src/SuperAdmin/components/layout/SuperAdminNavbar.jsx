@@ -91,19 +91,31 @@ const NAV = [
     ],
   },
   {
+    type: "dropdown",
+    label: "Roadmap Control",
+    children: [
+      {
+        label: "Template Library",
+        path: "/superadmin/roadmap-templates",
+        icon: ic.roadmap,
+        permission: null, // swap for a PERMISSIONS.* value if you have one for this
+      },
+      {
+        label: "Platform Overview",
+        path: "/superadmin/roadmap-overview",
+        icon: ic.roadmap,
+        permission: null,
+      },
+    ],
+  },
+  {
     type: "item",
     label: "Analytics",
     path: "/superadmin/analytics",
     icon: ic.analytics,
     permission: PERMISSIONS.VIEW_ANALYTICS,
   },
-  // {
-  //   type: "item",
-  //   label: "Featured Programs",
-  //   path: "/superadmin/featured-programs",
-  //   icon: ic.featuredPrograms,
-  //   permission: null,
-  // },
+ 
 {
     type: "item",
     label: "WorkSpace",

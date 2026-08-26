@@ -40,6 +40,7 @@ import {
   Upload,
   Users,
   Video,
+  ShieldCheck,
   Headphones,
 } from "lucide-react";
 import React from "react";
@@ -137,6 +138,22 @@ const studentMenus = [
       },
     ],
   },
+   {
+    name: "Roadmaps",
+    icon: GitBranch,
+    children: [
+      {
+        name: "Browse Roadmaps",
+        path: "/student/roadmaps",
+        icon: GitBranch,
+      },
+      {
+        name: "My Progress",
+        path: "/student/roadmap-progress",
+        icon: TrendingUp,
+      },
+    ],
+  },
 
   // ================= Workspace (top-level) =================
   {
@@ -220,7 +237,22 @@ const trainerMenus = [
     path: "/trainer/workspace",
     icon: Video,
   },
-
+ {
+    name: "Roadmaps",
+    icon: GitBranch,
+    children: [
+      {
+        name: "Manage Roadmaps",
+        path: "/trainer/roadmaps",
+        icon: GitBranch,
+      },
+      {
+        name: "Student Progress",
+        path: "/trainer/roadmap-progress",
+        icon: TrendingUp,
+      },
+    ],
+  },
   // ═══════════════════════════════════════════════════════════════
   // 4. AI COMPANION (top-level)
   // ═══════════════════════════════════════════════════════════════
@@ -350,6 +382,27 @@ const adminMenus = [
     name: "Organisation Manager",
     icon: Building2,
     path: "/admin/organisation-overview",
+  },
+   {
+    name: "Access Control",
+    icon: ShieldCheck,
+    path: "/admin/access-control",
+  },
+   {
+    name: "Roadmaps",
+    icon: GitBranch,
+    children: [
+      {
+        name: "Roadmap Management",
+        path: "/admin/roadmaps",
+        icon: GitBranch,
+      },
+      {
+        name: "Roadmap Analytics",
+        path: "/admin/roadmap-analytics",
+        icon: BarChart3,
+      },
+    ],
   },
   {
     name: "Assessment System",
@@ -1150,3 +1203,39 @@ const IlmDemoSidebar = ({
 
 export default IlmDemoSidebar;
 export { SIDEBAR_WIDTHS, SECTION_INDEX, ROLE_HOME_PATH };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

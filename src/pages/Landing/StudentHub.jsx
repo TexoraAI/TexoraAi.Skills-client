@@ -8,7 +8,8 @@ import {
   Podcast, Users, TrendingUp, BookMarked, LayoutDashboard
 } from "lucide-react";
 import PublicLayout from "../Landing/components/PublicLayout";
-
+import authService from "../../services/authService";
+import { registerFcmToken } from "../../services/firebaseService";
 // ─── GLOBAL RESPONSIVE STYLE INJECTION ───────────────────────────────────────
 const GLOBAL_STYLES = `
   *, *::before, *::after { box-sizing: border-box; }
@@ -304,7 +305,9 @@ function SecBadge({ children }) {
 }
 
 // ─── MAIN COMPONENT (renamed: LearningHub → StudentHub) ───────────────────────
-export default function StudentHub() {
+export default function StudentHub({
+  setShowLoginModal,
+}) {
   const [darkMode, setDarkMode] = useState(() => {
     try {
       const saved = localStorage.getItem("theme");
@@ -336,10 +339,11 @@ export default function StudentHub() {
 
   return (
     <PublicLayout
-      theme={darkMode ? "dark" : "light"}
-      toggleTheme={toggleTheme}
-      scrollToSection={scrollToSection}
-    >
+  theme={darkMode ? "dark" : "light"}
+  toggleTheme={toggleTheme}
+  setShowLoginModal={setShowLoginModal}
+  scrollToSection={scrollToSection}
+>
       <div
         style={{
           ...theme,

@@ -55,7 +55,8 @@ function useCountUp(target, duration = 1200) {
  *   dashboard (Student/Trainer/Admin/Business) with zero per-page wiring.
  */
 const StatCard = ({ stat, index, loading, mode }) => {
-  const autoDark = useAutoDarkMode(mode != null);
+  // const autoDark = useAutoDarkMode(mode != null);
+  const autoDark = useAutoDarkMode();
   const resolvedMode = mode ?? (autoDark ? "dark" : "light");
   const Icon = stat.icon;
   const count = useCountUp(loading ? 0 : (stat.numericValue ?? 0));

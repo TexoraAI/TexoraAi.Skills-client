@@ -68,6 +68,9 @@ import {
   Check,
   Info,
   Star,
+  Sparkles,
+  ChevronDown,
+   Code2,
 } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -543,6 +546,39 @@ const TOOLS = [
 
 const ICON_COLORS = ["#F97316", "#16a34a", "#6366f1", "#ec4899", "#0ea5e9", "#f59e0b", "#10b981", "#8b5cf6", "#ef4444", "#14b8a6", "#f97316", "#3b82f6"];
 
+/* ─── NAV "Product" dropdown items ───────────────────────────────────────
+   Mirrors Navbar.jsx's Product menu: ILM ORA Calendry (renamed from
+   "ILM ORA Meet" — same route/functionality) and Workspace only. Resume
+   Builder, AI Companion, and Whiteboard moved to the ILM ORA Feature menu.
+   Routes match Navbar.jsx's PRODUCT_ROUTES exactly so there are no
+   duplicate/diverging routes. */
+const NAV_PRODUCT_MENU_ITEMS = [
+  {
+    key: "meet",
+    title: "ILM ORA Calendry",
+    description: "Live classes & video sessions",
+    icon: Video,
+    route: "/ilm-ora-meet",
+    color: "#F97316",
+  },
+  {
+    key: "workspace",
+    title: "Workspace",
+    description: "Your all-in-one collaborative space",
+    icon: Layers,
+    route: "/workspace",
+    color: "#F97316",
+  },
+ {
+  key: "codingLab",
+  title: "Coding Lab",
+  description: "Practice, Code & Build Real Projects",
+  icon: Code2,     // ✅ direct component, koi quotes nahi
+  route: "/coding-lab",
+  color: "#F97316",
+}
+];
+
 /* ─── Main Demo Page ─────────────────────────────────────────────────────── */
 export default function IlmOraDemoPage() {
   const navigate = useNavigate();
@@ -585,6 +621,12 @@ export default function IlmOraDemoPage() {
   const [productMenuOpen, setProductMenuOpen] = useState(false);
   const featureMenuRef = useRef(null);
   const productMenuRef = useRef(null);
+  // Mobile/tablet-width trigger for the Product menu renders in d-nav-right
+  // (see CSS: hidden >=768px, shown below) since .d-nav-links itself is
+  // hidden below 768px. It shares productMenuOpen/setProductMenuOpen with
+  // the desktop trigger; this ref just lets outside-click detection treat
+  // both trigger+panel instances as "inside" the menu.
+  const productMenuMobileRef = useRef(null);
   useEffect(() => {
     const handler = (e) => { if (userMenuRef.current && !userMenuRef.current.contains(e.target)) setUserMenuOpen(false); };
     document.addEventListener("click", handler);
@@ -597,10 +639,14 @@ export default function IlmOraDemoPage() {
     const handler = (e) => {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target)) setUserMenuOpen(false);
       if (featureMenuRef.current && !featureMenuRef.current.contains(e.target)) setFeatureMenuOpen(false);
-      if (productMenuRef.current && !productMenuRef.current.contains(e.target)) setProductMenuOpen(false);
+      const insideDesktopProductMenu = productMenuRef.current && productMenuRef.current.contains(e.target);
+      const insideMobileProductMenu = productMenuMobileRef.current && productMenuMobileRef.current.contains(e.target);
+      if (!insideDesktopProductMenu && !insideMobileProductMenu) setProductMenuOpen(false);
     };
+    document.addEventListener("click", handler);
     const saved = sessionStorage.getItem("ilmora_google_user");
     if (saved) { try { setGoogleUserInfo(JSON.parse(saved)); } catch (e) {} }
+    return () => document.removeEventListener("click", handler);
   }, []);
 
   const getSavedUser = () => {
@@ -875,6 +921,21 @@ const userEmail =
         .d-nav-link { font-size:0.82rem; font-weight:600; color:#e5e7eb; background:none; border:none; padding:7px 14px; border-radius:8px; cursor:pointer; font-family:'DM Sans',sans-serif; transition:0.18s; display:flex; align-items:center; }
         .d-nav-link:hover { background:rgba(255,255,255,0.06); color:var(--d-orange); }
         .d-nav-right { display:flex; align-items:center; gap:10px; }
+
+        /* PRODUCT MENU DROPDOWN (desktop nav-link trigger + mobile icon trigger) */
+        .d-product-menu-wrap { position:relative; }
+        .d-product-menu-wrap-mobile { display:flex; }
+        @media(min-width:768px){ .d-product-menu-wrap-mobile { display:none; } }
+        .d-product-mobile-trigger { width:40px; height:40px; background:rgba(255,255,255,0.06); border-radius:12px; border:1.5px solid rgba(255,255,255,0.12); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .3s,border-color .3s,transform .2s; flex-shrink:0; color:var(--d-orange); }
+        .d-product-mobile-trigger:hover { transform:scale(1.06); border-color:var(--d-orange); }
+        .d-product-dropdown { position:absolute; top:calc(100% + 10px); left:0; width:min(300px,88vw); background:#232323; border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:6px; box-shadow:0 16px 48px rgba(0,0,0,0.35); opacity:0; visibility:hidden; transform:translateY(-8px) scale(.98); pointer-events:none; transition:all .2s cubic-bezier(.22,.61,.36,1); z-index:300; }
+        .d-product-dropdown.open { opacity:1; visibility:visible; transform:translateY(0) scale(1); pointer-events:all; }
+        .d-product-dropdown-mobile { left:auto; right:0; }
+        .d-product-dropdown-item { display:flex; align-items:flex-start; gap:10px; width:100%; padding:10px 10px; border-radius:10px; background:none; border:none; cursor:pointer; text-align:left; transition:background .15s; font-family:'DM Sans',sans-serif; }
+        .d-product-dropdown-item:hover { background:rgba(249,115,22,0.12); }
+        .d-product-dropdown-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+        .d-product-dropdown-item-title { font-size:.83rem; font-weight:700; color:#f1f5f9; }
+        .d-product-dropdown-item-desc { font-size:.72rem; color:#94a3b8; margin-top:2px; line-height:1.4; }
         .d-btn-login { font-size:0.8rem; font-weight:600; color:var(--d-text-muted); background:var(--d-card-bg); border:1px solid var(--d-card-border); border-radius:10px; padding:8px 18px; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.18s; box-shadow:0 1px 4px rgba(0,0,0,0.06); }
         .d-btn-login:hover { border-color:var(--d-orange); color:var(--d-orange); }
         .d-btn-signup { font-size:0.8rem; font-weight:700; color:#fff; background:#1E293B; border:none; border-radius:10px; padding:8px 20px; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.18s; display:flex; align-items:center; gap:6px; box-shadow:0 4px 12px rgba(30,41,59,0.25); }
@@ -1163,10 +1224,37 @@ const userEmail =
                 ILM ORA Feature
                 <ChevronRight size={13} style={{ transform: "rotate(90deg)", marginLeft: 4 }} />
               </button>
-              <button className="d-nav-link" onClick={() => scrollToId("tools")}>
-                Product
-                <ChevronRight size={13} style={{ transform: "rotate(90deg)", marginLeft: 4 }} />
-              </button>
+              <div className="d-product-menu-wrap" ref={productMenuRef}>
+                <button
+                  type="button"
+                  className="d-nav-link"
+                  aria-haspopup="true"
+                  aria-expanded={productMenuOpen}
+                  onClick={() => setProductMenuOpen((o) => !o)}
+                >
+                  Product
+                  <ChevronDown size={13} style={{ marginLeft: 4, transition: "transform .2s", transform: productMenuOpen ? "rotate(180deg)" : "rotate(0deg)" }} />
+                </button>
+                <div className={`d-product-dropdown ${productMenuOpen ? "open" : ""}`} role="menu">
+                  {NAV_PRODUCT_MENU_ITEMS.map((item) => (
+                    <button
+                      key={item.key}
+                      type="button"
+                      role="menuitem"
+                      className="d-product-dropdown-item"
+                      onClick={() => { setProductMenuOpen(false); navigate(item.route); }}
+                    >
+                      <div className="d-product-dropdown-icon" style={{ background: `${item.color}1f`, color: item.color }}>
+                        <item.icon size={18} strokeWidth={1.8} />
+                      </div>
+                      <div>
+                        <div className="d-product-dropdown-item-title">{item.title}</div>
+                        <div className="d-product-dropdown-item-desc">{item.description}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
               <button className="d-nav-link" onClick={() => navigate("/mentors")}>
                 Mentors
               </button>
@@ -1181,6 +1269,42 @@ const userEmail =
   {isLoggedIn && (
     <NotificationBell roleOverride={featureRoleKey} />
   )}
+
+  {/* Product menu — compact trigger for iPad Mini/tablet/iPhone/Pixel/
+      small mobile widths (<768px), where .d-nav-links is hidden. Shares
+      productMenuOpen state with the desktop trigger above so only one
+      menu instance is ever open at a time. */}
+  <div className="d-product-menu-wrap d-product-menu-wrap-mobile" ref={productMenuMobileRef}>
+    <button
+      type="button"
+      className="d-product-mobile-trigger"
+      aria-label="Product menu"
+      aria-haspopup="true"
+      aria-expanded={productMenuOpen}
+      onClick={() => setProductMenuOpen((o) => !o)}
+    >
+      <Sparkles size={18} />
+    </button>
+    <div className={`d-product-dropdown d-product-dropdown-mobile ${productMenuOpen ? "open" : ""}`} role="menu">
+      {NAV_PRODUCT_MENU_ITEMS.map((item) => (
+        <button
+          key={item.key}
+          type="button"
+          role="menuitem"
+          className="d-product-dropdown-item"
+          onClick={() => { setProductMenuOpen(false); navigate(item.route); }}
+        >
+          <div className="d-product-dropdown-icon" style={{ background: `${item.color}1f`, color: item.color }}>
+            <item.icon size={18} strokeWidth={1.8} />
+          </div>
+          <div>
+            <div className="d-product-dropdown-item-title">{item.title}</div>
+            <div className="d-product-dropdown-item-desc">{item.description}</div>
+          </div>
+        </button>
+      ))}
+    </div>
+  </div>
 
   {/* Theme Toggle */}
   <button
@@ -1398,32 +1522,6 @@ const userEmail =
     </>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

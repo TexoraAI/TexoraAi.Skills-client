@@ -665,3 +665,15 @@ export const requestMeetingSummary = (meetingId, messages) =>
     { messages },
     getAuthHeader(),
   );
+/**
+ * POST /api/meetings/permanent
+ * Body: { title, creatorName, organizationId? }
+ * Creates a named, permanent meeting — same link forever, only removed
+ * by deleteMeetingApi(). Ending the call never expires the link.
+ */
+export const createPermanentMeeting = (data) =>
+  axios.post(`${API_BASE}/meetings/permanent`, data, getAuthHeader());
+
+/** GET /api/meetings/permanent/my — all permanent meetings for the logged-in user */
+export const getMyPermanentMeetings = () =>
+  axios.get(`${API_BASE}/meetings/permanent/my`, getAuthHeader());

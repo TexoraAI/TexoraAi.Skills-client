@@ -1311,12 +1311,18 @@ const SearchableDropdown = ({
   accentRing = "focus:ring-violet-400",
   addNewLabel = "Add New",
   disabled = false,
+  // Optional: (trimmedValue) => true | string. Return true to accept,
+  // or an error string to reject the "Add New" value. Defaults to
+  // accepting any non-empty value, preserving existing behavior for
+  // every field that doesn't pass this in.
+  addNewValidate = null,
 }) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [options, setOptions] = useState(initialOptions);
   const [addingNew, setAddingNew] = useState(false);
   const [newVal, setNewVal] = useState("");
+  const [addNewError, setAddNewError] = useState("");
   const containerRef = useRef(null);
   const searchRef = useRef(null);
   const newInputRef = useRef(null);
@@ -1365,8 +1371,28 @@ const SearchableDropdown = ({
   const handleAddNew = () => {
     const trimmed = newVal.trim();
     if (!trimmed) return;
-    if (!options.includes(trimmed)) setOptions((p) => [...p, trimmed]);
-    select(trimmed);
+    if (addNewValidate) {
+      const result = addNewValidate(trimmed);
+      if (result !== true) {
+        setAddNewError(typeof result === "string" ? result : "Invalid value");
+        return;
+      }
+    }
+    setAddNewError("");
+    // Bug fix: compare case-/whitespace-insensitively so re-adding the
+    // same value (e.g. "Location" then "location") doesn't keep piling
+    // up near-duplicate entries in the options list. If a matching entry
+    // already exists, reuse its exact original casing instead of adding
+    // a new one.
+    const existing = options.find(
+      (o) => o.trim().toLowerCase() === trimmed.toLowerCase(),
+    );
+    if (existing) {
+      select(existing);
+    } else {
+      setOptions((p) => [...p, trimmed]);
+      select(trimmed);
+    }
     setNewVal("");
   };
 
@@ -1455,39 +1481,49 @@ const SearchableDropdown = ({
           {/* Add New */}
           <div className="border-t border-gray-100 dark:border-white/10 p-1.5">
             {addingNew ? (
-              <div className="flex gap-2 px-1">
-                <input
-                  ref={newInputRef}
-                  type="text"
-                  value={newVal}
-                  onChange={(e) => setNewVal(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleAddNew();
-                    if (e.key === "Escape") {
+              <div className="px-1">
+                <div className="flex gap-2">
+                  <input
+                    ref={newInputRef}
+                    type="text"
+                    value={newVal}
+                    onChange={(e) => {
+                      setNewVal(e.target.value);
+                      if (addNewError) setAddNewError("");
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleAddNew();
+                      if (e.key === "Escape") {
+                        setAddingNew(false);
+                        setNewVal("");
+                        setAddNewError("");
+                      }
+                    }}
+                    placeholder="Type and press Enter"
+                    className="flex-1 px-2.5 py-1.5 rounded-lg text-sm bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddNew}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 dark:bg-white/20 text-white transition-colors hover:bg-gray-700"
+                  >
+                    Add
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
                       setAddingNew(false);
                       setNewVal("");
-                    }
-                  }}
-                  placeholder="Type and press Enter"
-                  className="flex-1 px-2.5 py-1.5 rounded-lg text-sm bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={handleAddNew}
-                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 dark:bg-white/20 text-white transition-colors hover:bg-gray-700"
-                >
-                  Add
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAddingNew(false);
-                    setNewVal("");
-                  }}
-                  className="px-2 py-1.5 rounded-lg text-xs text-gray-400 hover:text-gray-600 dark:hover:text-white/70"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
+                      setAddNewError("");
+                    }}
+                    className="px-2 py-1.5 rounded-lg text-xs text-gray-400 hover:text-gray-600 dark:hover:text-white/70"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                {addNewError && (
+                  <p className="text-xs text-red-500 mt-1">{addNewError}</p>
+                )}
               </div>
             ) : (
               <button
@@ -1573,9 +1609,16 @@ const MultiSearchableDropdown = ({
   const handleAddNew = () => {
     const trimmed = newVal.trim();
     if (!trimmed) return;
-    if (!options.includes(trimmed)) setOptions((p) => [...p, trimmed]);
-    if (!value.includes(trimmed)) {
-      onChange({ target: { name, value: [...value, trimmed] } });
+    // Bug fix: same case-/whitespace-insensitive dedupe as the
+    // single-select dropdown, so this list doesn't accumulate
+    // near-duplicate entries either.
+    const existing = options.find(
+      (o) => o.trim().toLowerCase() === trimmed.toLowerCase(),
+    );
+    const finalVal = existing || trimmed;
+    if (!existing) setOptions((p) => [...p, trimmed]);
+    if (!value.some((v) => v.trim().toLowerCase() === finalVal.toLowerCase())) {
+      onChange({ target: { name, value: [...value, finalVal] } });
     }
     setNewVal("");
     setAddingNew(false);
@@ -2164,7 +2207,8 @@ const ProfileInfoTab = ({
   roleKey,
   onRoleUpdate,
   onProfileComplete,
-  autoOpenSwapRole,
+  swapRoleNavTarget,
+  clearRoleTarget,
 }) => {
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
@@ -2181,15 +2225,22 @@ const ProfileInfoTab = ({
   const ac = ACCENT[accent];
 
   // Skip Image 2 entirely: if the navbar "Swap Role" click routed here
-  // with scrollTarget="role" (see IlmDemoProfilePage → autoOpenSwapRole
+  // with scrollTarget="role" (see IlmDemoProfilePage → swapRoleNavTarget
   // prop), open the Swap Role modal immediately on mount instead of
   // making the user land on Profile Info and click the button again.
+  // Bug fix: also CLOSE the modal if the navbar target changes to
+  // "password" (i.e. the user clicks "Change Password" while the Swap
+  // Role modal is still open) — previously this only ever opened the
+  // modal and never closed it, so it stayed stuck open on screen even
+  // after navigating to Change Password.
   useEffect(() => {
-    if (autoOpenSwapRole && !roleLocked) {
-      setShowSwapModal(true);
+    if (swapRoleNavTarget === "role") {
+      if (!roleLocked) setShowSwapModal(true);
+    } else if (swapRoleNavTarget === "password") {
+      setShowSwapModal(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoOpenSwapRole]);
+  }, [swapRoleNavTarget]);
 
   useEffect(() => {
     if (!editing) setName(user.name);
@@ -2234,6 +2285,7 @@ const ProfileInfoTab = ({
       setRoleChangeCount(nextCount);
       if (onRoleUpdate) onRoleUpdate(newRoleKey);
       setShowSwapModal(false);
+      clearRoleTarget?.();
       showToast(
         nextCount >= MAX_ROLE_CHANGES
           ? "Role swapped. You've used all your role changes."
@@ -2294,7 +2346,11 @@ const ProfileInfoTab = ({
         <SwapRoleModal
           currentRoleKey={roleKey}
           remaining={MAX_ROLE_CHANGES - roleChangeCount - 1}
-          onClose={() => !swapSaving && setShowSwapModal(false)}
+          onClose={() => {
+            if (swapSaving) return;
+            setShowSwapModal(false);
+            clearRoleTarget?.();
+          }}
           onConfirm={handleSwapRoleConfirm}
           saving={swapSaving}
         />
@@ -3336,6 +3392,11 @@ const StudentDetailsTab = ({ accent, returnTo, onProfileComplete }) => {
                   error={!!errors.yearOfPassing}
                   accentRing={ac.ring}
                   addNewLabel="Add Custom Year"
+                  addNewValidate={(v) =>
+                    /^\d{4}$/.test(v) && Number(v) >= 1950 && Number(v) <= 2100
+                      ? true
+                      : "Enter a valid 4-digit year"
+                  }
                 />
                 <ErrorMsg msg={errors.yearOfPassing} />
               </div>
@@ -4928,13 +4989,62 @@ const IlmDemoProfilePage = ({
   const location = useLocation();
   const { pathname } = location;
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const returnTo = searchParams.get("returnTo");
-  const [activeTab, setActiveTab] = useState(() => {
-    if (scrollTarget === "password") return "security";
+  // Bug fix: scrollTarget was only ever passed in as a prop (parent React
+  // state), so a hard refresh (Ctrl+Shift+R) — which remounts everything
+  // from scratch — lost it, and both the Swap Role modal (from "Swap
+  // Role") and the Security tab (from "Change Password") silently closed
+  // / reset back to the default Profile Info tab. The parent now also
+  // writes it into the URL as `?target=`, so it's read from there too and
+  // survives a full reload, same pattern as `?view=` and `?tab=` below.
+  const targetFromUrl = searchParams.get("target");
+  const effectiveScrollTarget =
+    scrollTarget || (targetFromUrl === "role" || targetFromUrl === "password" ? targetFromUrl : null);
+  const VALID_PROFILE_TABS = ["profile", "details", "security", "billing"];
+  // Bug fix: activeTab used to be plain local state, so refreshing the
+  // page while on "Details"/"Security"/"Billing" always dropped the user
+  // back onto the default "Profile Info" tab — an unwanted redirect away
+  // from the exact tab they were on. It's now seeded from — and kept in
+  // sync with — the `?tab=` URL param, so a refresh re-derives the same
+  // tab instead of losing it.
+  const [activeTab, setActiveTabState] = useState(() => {
+    const tabFromUrl = searchParams.get("tab");
+    if (tabFromUrl && VALID_PROFILE_TABS.includes(tabFromUrl)) return tabFromUrl;
+    if (effectiveScrollTarget === "password") return "security";
     if (returnTo) return "details";
     return "profile";
   });
+  const setActiveTab = (tab) => {
+    setActiveTabState(tab);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("tab", tab);
+        return next;
+      },
+      { replace: true },
+    );
+  };
+  // Bug fix: the useState initializer above only runs once, at mount.
+  // If the Profile page is already mounted (e.g. the Swap Role modal is
+  // open) and the user then clicks "Change Password" from the navbar,
+  // `effectiveScrollTarget` changes from "role" to "password" without a
+  // remount — so the tab never actually switched to Security. This effect
+  // reacts to that live change and switches tabs even without a remount.
+  // Guarded to skip its first run, since the mount case is already
+  // handled by the initializer above (and re-running here on mount could
+  // wrongly override an explicit `?tab=` already present in the URL).
+  const scrollTargetTabSyncedRef = useRef(false);
+  useEffect(() => {
+    if (!scrollTargetTabSyncedRef.current) {
+      scrollTargetTabSyncedRef.current = true;
+      return;
+    }
+    if (effectiveScrollTarget === "password") setActiveTab("security");
+    else if (effectiveScrollTarget === "role") setActiveTab("profile");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effectiveScrollTarget]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showReturnBanner, setShowReturnBanner] = useState(!!returnTo);
@@ -5091,26 +5201,28 @@ const IlmDemoProfilePage = ({
   // scrollTarget ("role" | "password"). Once loading is done and the
   // right tab's content has mounted, smooth-scroll to the exact
   // field/section so the user can see immediately where to act.
-  // Guarded by a ref so it only ever fires once per page visit — it
-  // should not keep re-scrolling every time the tab or state changes.
-  const scrolledToTargetRef = useRef(false);
+  // Tracks the last target it scrolled to (by value, not just a boolean)
+  // so clicking a *different* navbar shortcut (e.g. "Swap Role" then
+  // "Change Password") scrolls again instead of being permanently
+  // suppressed after the first scroll.
+  const scrolledToTargetRef = useRef(null);
   useEffect(() => {
-    if (!scrollTarget || loading || scrolledToTargetRef.current) return;
+    if (!effectiveScrollTarget || loading || scrolledToTargetRef.current === effectiveScrollTarget) return;
     const idByTarget = {
       role: "profile-role-field",
       password: "profile-password-section",
     };
-    const targetId = idByTarget[scrollTarget];
+    const targetId = idByTarget[effectiveScrollTarget];
     if (!targetId) return;
     const t = setTimeout(() => {
       const el = document.getElementById(targetId);
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "center" });
-        scrolledToTargetRef.current = true;
+        scrolledToTargetRef.current = effectiveScrollTarget;
       }
     }, 250);
     return () => clearTimeout(t);
-  }, [scrollTarget, activeTab, loading]);
+  }, [effectiveScrollTarget, activeTab, loading]);
 
   if (loading) return <Skeleton />;
 
@@ -5174,7 +5286,17 @@ const IlmDemoProfilePage = ({
     roleKey={roleKey}
     onRoleUpdate={handleRoleUpdate}
     onProfileComplete={onProfileComplete}
-    autoOpenSwapRole={scrollTarget === "role"}
+    swapRoleNavTarget={effectiveScrollTarget}
+    clearRoleTarget={() => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (next.get("target") === "role") next.delete("target");
+          return next;
+        },
+        { replace: true },
+      );
+    }}
   />
 )}
                   {activeTab === "details" && (

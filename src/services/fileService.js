@@ -242,5 +242,24 @@ const fileService = {
   getFeaturedSessionFileDownloadUrl(fileName) {
     return `${API_GATEWAY}/featured-files/download/${encodeURIComponent(fileName)}`;
   },
+
+  // ================= ADMIN — PER-USER-IN-ORG (org admin only) =================
+  // organizationId is NOT sent from the client — the backend derives it from
+  // the caller's own JWT (SecurityUtils.getCurrentOrganizationId()), so an
+  // admin can only ever read/write flags for users in their own org.
+  getAdminUserFileFeatureFlags(email) {
+    return axios.get(
+      `${API_GATEWAY}/file-feature-flags/admin/user/${encodeURIComponent(email)}`,
+      { headers: authHeader() },
+    );
+  },
+
+  updateAdminUserFileFeatureFlags(email, dto) {
+    return axios.put(
+      `${API_GATEWAY}/file-feature-flags/admin/user/${encodeURIComponent(email)}`,
+      dto,
+      { headers: authHeader() },
+    );
+  },
 };
 export default fileService;

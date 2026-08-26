@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import {
   Sparkles, FileText, Upload, Check, Target, BarChart3, Brain,
@@ -12,7 +11,8 @@ import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import auth from "../../auth";
-
+import authService from "../../services/authService";
+import { registerFcmToken } from "../../services/firebaseService";
 // ✅ Same shared shell used by every other public page (Careers, ManagerHub,
 // ILM ORA Meet, About, Pricing, Contact, FAQ, etc). Lives at
 // src/pages/Landing/components/PublicLayout. If this file lives somewhere
@@ -478,17 +478,18 @@ const FAQS = [
   { q: "What file format can I download?", a: "You can download your resume as a professional PDF, ready to email or upload to any job portal." },
 ];
 
-/* ─── Main Landing Page ── */
 export default function ILMORALanding({
   onNavigateToBuilder,
   theme = "light",
   toggleTheme,
   scrollToSection,
+  showLoginModal,
+  setShowLoginModal,
 }) {
   const [activeTplId, setActiveTplId] = useState("summit");
   const [openFaq, setOpenFaq] = useState(null);
   const [vis, setVis] = useState(new Set());
-  const [showLoginModal, setShowLoginModal] = useState(false);
+
   const refs = useRef({});
   const navigate = useNavigate();
 
@@ -545,7 +546,7 @@ export default function ILMORALanding({
         }}
       >
         <StyleInjector />
-        <LoginModal show={showLoginModal} onClose={() => setShowLoginModal(false)} theme={theme} navigate={navigate} />
+        {showLoginModal && <LoginModal onClose={() => setShowLoginModal(false)} />}
 
         {/* ─── HERO ─── */}
         <section style={{ position: "relative", overflow: "hidden", background: theme === "dark" ? "#000" : "linear-gradient(135deg,#fffbf7 0%,#f8fafc 50%,#f0f4ff 100%)", borderBottom: theme === "dark" ? "1px solid #1f2937" : "1px solid #e2e8f0", padding: "72px 24px 80px" }}>

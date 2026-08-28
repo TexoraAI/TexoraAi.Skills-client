@@ -408,7 +408,9 @@ a {
   overflow-x: hidden;
   position: relative;
 }
-
+.workspace-shell:has(.ws-sidebar.is-collapsed) {
+  grid-template-columns: 72px minmax(0, 1fr);
+}
 /* Hamburger button that opens the sidebar drawer — hidden on desktop/laptop,
  * shown once the sidebar itself goes off-canvas (see breakpoints below). */
 .ws-mobile-toggle {
@@ -523,6 +525,84 @@ a {
 }
 .ws-item.is-active svg {
   color: var(--brand);
+}
+
+/* ---------------------------------------------------------------------
+ * Collapsed (icon-only) state for the inner workspace sidebar, toggled by
+ * WorkspaceSidebar.jsx's own .ws-sidebar-collapse button (separate from
+ * the mobile drawer's .ws-sidebar-close). Reuses the same tokens as the
+ * rest of .ws-sidebar — no new colors/spacing introduced. */
+.ws-sidebar.is-collapsed {
+  width: 72px;
+  min-width: 72px;
+  max-width: 72px;
+  transition: width 0.2s ease, min-width 0.2s ease, max-width 0.2s ease;
+}
+.ws-sidebar.is-collapsed .ws-sidebar-head {
+  justify-content: center;
+  padding: 0 0 14px;
+}
+.ws-sidebar.is-collapsed .ws-group-label {
+  display: none;
+}
+.ws-sidebar.is-collapsed .ws-item {
+  justify-content: center;
+  padding: 9px;
+  position: relative;
+}
+
+.ws-sidebar-collapse {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+}
+.ws-sidebar-collapse:hover {
+  background: rgba(124, 58, 237, 0.08);
+  color: var(--brand-deep);
+}
+
+/* Custom hover tooltip (replaces the native title attribute) shown only
+ * when the sidebar is collapsed to icon-only mode. */
+.ws-tooltip {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-6px);
+  background: var(--text);
+  color: var(--card);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 50;
+  box-shadow: var(--shadow-dropdown);
+}
+.ws-tooltip::before {
+  content: "";
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 5px solid transparent;
+  border-right-color: var(--text);
+}
+.ws-sidebar-collapse:hover .ws-tooltip,
+.ws-item:hover .ws-tooltip {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
 }
 
 /* Main workspace content */
@@ -1785,6 +1865,24 @@ a {
   }
   .ws-sidebar.is-open {
     transform: translateX(0);
+  }
+  /* On the off-canvas drawer, the sidebar always opens at full (expanded)
+   * width — icon-only collapse doesn't make sense once it's already a
+   * temporary overlay, so ignore .is-collapsed at this breakpoint. */
+  .ws-sidebar.is-collapsed {
+    width: 280px;
+    min-width: 0;
+    max-width: 84vw;
+  }
+  .ws-sidebar.is-collapsed .ws-sidebar-head {
+    justify-content: space-between;
+  }
+  .ws-sidebar.is-collapsed .ws-group-label {
+    display: block;
+  }
+  .ws-sidebar.is-collapsed .ws-item {
+    justify-content: flex-start;
+    padding: 9px 11px;
   }
   .ws-sidebar-close {
     display: inline-flex;

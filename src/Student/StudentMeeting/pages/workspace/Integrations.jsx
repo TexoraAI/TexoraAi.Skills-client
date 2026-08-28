@@ -1,30 +1,54 @@
-import React, { useState } from "react";
-import { CalendarDays, Video, Radio, MailCheck, Hash, Users } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { CalendarDays, MailCheck } from "lucide-react";
 import PageHead from "../../components/PageHead";
-import { integrations as seedIntegrations } from "../../data/mockData";
+import { getSyncStatus } from "../../../../services/calendarSyncService";
 
-const ICONS = {
-  "Google Calendar": CalendarDays,
-  Zoom: Video,
-  "Google Meet": Radio,
-  "Outlook Calendar": MailCheck,
-  Slack: Hash,
-  "Microsoft Teams": Users,
-};
+export default function Integrations({ onNavigate }) {
+  const [googleConnected, setGoogleConnected] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-export default function Integrations() {
-  const [items, setItems] = useState(seedIntegrations);
+  const loadStatus = () => {
+    setLoading(true);
+    getSyncStatus()
+      .then((res) => setGoogleConnected(!!res.data?.connected))
+      .catch((err) => {
+        console.error("Failed to load calendar sync status:", err);
+        setGoogleConnected(false);
+      })
+      .finally(() => setLoading(false));
+  };
 
-  const toggleConnect = (id) =>
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, connected: !i.connected } : i)));
+  useEffect(() => {
+    loadStatus();
+  }, []);
+
+  const items = [
+    {
+      id: "google-calendar",
+      name: "Google Calendar",
+      desc: "Sync events and reminders",
+      icon: CalendarDays,
+      connected: googleConnected,
+    },
+    {
+      id: "outlook-calendar",
+      name: "Outlook Calendar",
+      desc: "Sync with Outlook",
+      icon: MailCheck,
+      connected: false, // not implemented yet
+    },
+  ];
 
   return (
     <div className="ws-content">
-      <PageHead title="Integrations" subtitle="Connect your favorite tools and services." />
+      <PageHead
+        title="Integrations"
+        subtitle="Connect your favorite tools and services."
+      />
 
       <div className="integrations-grid">
         {items.map((i) => {
-          const Icon = ICONS[i.name] || CalendarDays;
+          const Icon = i.icon;
           return (
             <div className="integration-card" key={i.id}>
               <div className="integration-top">
@@ -33,7 +57,9 @@ export default function Integrations() {
                 </div>
                 <div>
                   <b>{i.name}</b>
-                  {i.connected ? (
+                  {loading ? (
+                    <span className="muted">Checking...</span>
+                  ) : i.connected ? (
                     <span className="connected-tag">
                       <span className="dot" /> Connected
                     </span>
@@ -46,8 +72,10 @@ export default function Integrations() {
                 {i.desc}
               </p>
               <button
-                className={i.connected ? "btn-ghost btn-sm" : "btn-primary btn-sm"}
-                onClick={() => toggleConnect(i.id)}
+                className={
+                  i.connected ? "btn-ghost btn-sm" : "btn-primary btn-sm"
+                }
+                onClick={() => onNavigate?.("calendar-sync")}
               >
                 {i.connected ? "Manage" : "Connect"}
               </button>

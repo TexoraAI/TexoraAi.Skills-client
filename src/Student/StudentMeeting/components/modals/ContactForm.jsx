@@ -4,15 +4,22 @@ import { Field, Row } from "./FormControls";
 
 const ROLE_OPTIONS = ["Mentor", "Student", "Team", "Other"];
 
-export default function ContactForm({ onClose, onSubmit }) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [role, setRole] = useState(ROLE_OPTIONS[0]);
-  const [organization, setOrganization] = useState("");
-  const [notes, setNotes] = useState("");
-  const [error, setError] = useState("");
+export default function ContactForm({ onClose, onSubmit, contactToEdit }) {
+  const isEdit = Boolean(contactToEdit);
 
+  const [name, setName] = useState(
+    contactToEdit
+      ? `${contactToEdit.firstName || ""} ${contactToEdit.lastName || ""}`.trim()
+      : "",
+  );
+  const [email, setEmail] = useState(contactToEdit?.email || "");
+  const [phone, setPhone] = useState(contactToEdit?.phone || "");
+  const [role, setRole] = useState(contactToEdit?.role || ROLE_OPTIONS[0]);
+  const [organization, setOrganization] = useState(
+    contactToEdit?.organization || "",
+  );
+  const [notes, setNotes] = useState(contactToEdit?.notes || "");
+  const [error, setError] = useState("");
   const handleSave = () => {
     if (!name.trim()) {
       setError("Enter the contact's name.");
@@ -22,12 +29,19 @@ export default function ContactForm({ onClose, onSubmit }) {
       setError("Enter a valid email address.");
       return;
     }
-    onSubmit({ name: name.trim(), email: email.trim(), phone: phone.trim(), role, organization: organization.trim(), notes: notes.trim() });
+    onSubmit({
+      name: name.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      role,
+      organization: organization.trim(),
+      notes: notes.trim(),
+    });
   };
 
   return (
     <WorkspaceModal
-      title="Add Contact"
+      title={isEdit ? "Edit Contact" : "Add Contact"}
       subtitle="Save a new contact to your workspace."
       onClose={onClose}
       width={560}
@@ -37,13 +51,19 @@ export default function ContactForm({ onClose, onSubmit }) {
             Cancel
           </button>
           <button type="button" className="btn-primary" onClick={handleSave}>
-            Save Contact
+            {isEdit ? "Update Contact" : "Save Contact"}
           </button>
         </>
       }
     >
       <Field label="Name" required id="ct-name">
-        <input id="ct-name" className="wm-input" placeholder="Full name" value={name} onChange={(e) => setName(e.target.value)} />
+        <input
+          id="ct-name"
+          className="wm-input"
+          placeholder="Full name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
       </Field>
 
       <Row cols={2}>
@@ -58,13 +78,24 @@ export default function ContactForm({ onClose, onSubmit }) {
           />
         </Field>
         <Field label="Phone" id="ct-phone">
-          <input id="ct-phone" className="wm-input" placeholder="+1 (555) 000-0000" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          <input
+            id="ct-phone"
+            className="wm-input"
+            placeholder="+1 (555) 000-0000"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
         </Field>
       </Row>
 
       <Row cols={2}>
         <Field label="Role" id="ct-role">
-          <select id="ct-role" className="wm-input" value={role} onChange={(e) => setRole(e.target.value)}>
+          <select
+            id="ct-role"
+            className="wm-input"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+          >
             {ROLE_OPTIONS.map((o) => (
               <option key={o} value={o}>
                 {o}

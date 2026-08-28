@@ -1,32 +1,68 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Plus, Bell, Check } from "lucide-react";
 import PageHead from "../../components/PageHead";
-import { reminders as seedReminders } from "../../data/mockData";
 import { useToast } from "../../components/Toast";
+import {
+  getMyReminders,
+  dismissReminder,
+} from "../../../../services/reminderService";
 
 const TABS = ["All", "Upcoming", "Completed"];
 
+function formatDue(reminder) {
+  if (reminder.linkedTitle) return reminder.linkedTitle;
+  if (reminder.eventId) return `Linked to event #${reminder.eventId}`;
+  if (reminder.scheduleId) return `Linked to schedule #${reminder.scheduleId}`;
+  return "Not linked";
+}
+
+function formatMeta(reminder) {
+  const parts = [];
+  if (reminder.linkedDate) parts.push(reminder.linkedDate);
+  if (reminder.linkedStartTime) parts.push(reminder.linkedStartTime);
+  parts.push(reminder.reminderTime);
+  return parts.filter(Boolean).join(" · ");
+}
+
 export default function Reminders() {
   const [tab, setTab] = useState("All");
-  const [items, setItems] = useState(seedReminders);
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const showToast = useToast();
 
-  const toggle = (id) =>
-    setItems((prev) => prev.map((r) => (r.id === id ? { ...r, done: !r.done } : r)));
+  const loadReminders = () => {
+    setLoading(true);
+    setError(null);
+    getMyReminders()
+      .then((res) => setItems(res.data || []))
+      .catch((err) => {
+        console.error("Failed to load reminders:", err);
+        setError("Could not load reminders. Please try again.");
+      })
+      .finally(() => setLoading(false));
+  };
 
-  const handleAdd = () => {
-    const nextId = Math.max(0, ...items.map((r) => r.id)) + 1;
-    setItems((prev) => [
-      { id: nextId, title: `New reminder ${nextId}`, due: "Not scheduled yet", done: false, urgency: "New" },
-      ...prev,
-    ]);
-    setTab("All");
-    showToast("Reminder added");
+  useEffect(() => {
+    loadReminders();
+  }, []);
+
+  const toggle = (id, status) => {
+    if (status === "DISMISSED") return; // no "un-dismiss" endpoint
+    dismissReminder(id)
+      .then(() => {
+        showToast("Reminder dismissed");
+        loadReminders();
+      })
+      .catch((err) => {
+        console.error("Failed to dismiss reminder:", err);
+        showToast("Failed to dismiss reminder");
+      });
   };
 
   const list = useMemo(() => {
-    if (tab === "Upcoming") return items.filter((r) => !r.done);
-    if (tab === "Completed") return items.filter((r) => r.done);
+    if (tab === "Upcoming") return items.filter((r) => r.status === "PENDING");
+    if (tab === "Completed") return items.filter((r) => r.status !== "PENDING");
     return items;
   }, [tab, items]);
 
@@ -36,7 +72,14 @@ export default function Reminders() {
         title="Reminders"
         subtitle="Manage your reminders and never miss important tasks."
         actions={
-          <button className="btn-primary" onClick={handleAdd}>
+          <button
+            className="btn-primary"
+            onClick={() =>
+              showToast(
+                "Reminders are created from an Event or Schedule's reminder field",
+              )
+            }
+          >
             <Plus size={15} /> Add Reminder
           </button>
         }
@@ -44,42 +87,65 @@ export default function Reminders() {
 
       <div className="tab-strip">
         {TABS.map((t) => (
-          <button key={t} className={`tab ${tab === t ? "is-active" : ""}`} onClick={() => setTab(t)}>
+          <button
+            key={t}
+            className={`tab ${tab === t ? "is-active" : ""}`}
+            onClick={() => setTab(t)}
+          >
             {t}
           </button>
         ))}
       </div>
 
       <section className="section-card">
-        {list.length === 0 ? (
+        {loading ? (
+          <div className="empty-state">
+            <p>Loading reminders...</p>
+          </div>
+        ) : error ? (
+          <div className="empty-state">
+            <Bell size={30} />
+            <h3>Something went wrong</h3>
+            <p>{error}</p>
+            <button className="btn-ghost btn-sm" onClick={loadReminders}>
+              Retry
+            </button>
+          </div>
+        ) : list.length === 0 ? (
           <div className="empty-state">
             <Bell size={30} />
             <h3>No reminders here</h3>
             <p>Add a reminder to stay on top of your tasks.</p>
           </div>
         ) : (
-          list.map((r) => (
-            <div className="list-row" key={r.id}>
-              <button
-                className="icon-btn"
-                style={{
-                  background: r.done ? "var(--brand)" : "var(--card)",
-                  color: r.done ? "#fff" : "var(--muted)",
-                }}
-                onClick={() => toggle(r.id)}
-                title={r.done ? "Mark as pending" : "Mark as done"}
-              >
-                <Check size={14} />
-              </button>
-              <div className="list-row-main">
-                <div className="title" style={{ textDecoration: r.done ? "line-through" : "none" }}>
-                  {r.title}
+          list.map((r) => {
+            const done = r.status !== "PENDING";
+            return (
+              <div className="list-row" key={r.id}>
+                <button
+                  className="icon-btn"
+                  style={{
+                    background: done ? "var(--brand)" : "var(--card)",
+                    color: done ? "#fff" : "var(--muted)",
+                  }}
+                  onClick={() => toggle(r.id, r.status)}
+                  title={done ? "Already handled" : "Dismiss"}
+                >
+                  <Check size={14} />
+                </button>
+                <div className="list-row-main">
+                  <div
+                    className="title"
+                    style={{ textDecoration: done ? "line-through" : "none" }}
+                  >
+                    {formatDue(r)}
+                  </div>
+                  <div className="meta">{formatMeta(r)}</div>
                 </div>
-                <div className="meta">{r.due}</div>
+                {!done && <span className="badge">{r.status}</span>}
               </div>
-              {!r.done && <span className="badge">{r.urgency}</span>}
-            </div>
-          ))
+            );
+          })
         )}
       </section>
     </div>

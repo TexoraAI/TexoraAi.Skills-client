@@ -1,10 +1,19 @@
 // Zero-touch compatibility shim.
 //
-// App.jsx already does:
-//   import TrainerMeetings from "./Trainer/TrainerMeetings.jsx";
+// App.jsx can import it like:
+//   const TrainerMeetings = lazyLoad(
+//     () => import("./Trainer/TrainerMeetings"),
+//   );
 //
-// The real, split-into-files implementation now lives in the sibling
-// folder ./TrainerMeetings/ (index.jsx + components/pages/data). This file
-// just re-exports it under the exact path App.jsx already imports, so no
-// other file in the project needs to change.
-export { default } from "./TrainerMeetings/index.jsx";
+// The real, split-into-files implementation lives in the sibling
+// folder ./TrainerMeeting/ (index.jsx + components/pages/data). This file
+// just re-exports it under this path, so no other file in the project
+// needs to change. Mirrors the existing SuperAdminMeetings.jsx /
+// AdminMeetings.jsx pattern.
+//
+// ⚠️ PATH ASSUMPTION: this shim assumes TrainerMeeting/ is a direct sibling
+// of this file (e.g. src/Trainer/TrainerMeetings.jsx + src/Trainer/TrainerMeeting/...),
+// matching AdminMeeting's confirmed real structure. If your actual path is
+// different, adjust the "../../../../" prefix in TrainerMeeting's
+// services/auth/components imports accordingly — see accompanying notes.
+export { default } from "./TrainerMeeting/index.jsx";

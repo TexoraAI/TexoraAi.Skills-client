@@ -3,7 +3,22 @@ import WorkspaceModal from "./WorkspaceModal";
 import { Field, Row } from "./FormControls";
 
 const TYPE_OPTIONS = ["Session", "Class", "Meeting", "Task", "Personal"];
-const REMINDER_OPTIONS = ["No reminder", "5 minutes before", "10 minutes before", "30 minutes before", "1 hour before", "1 day before"];
+const REMINDER_OPTIONS = [
+  "No reminder",
+  "5 minutes before",
+  "10 minutes before",
+  "30 minutes before",
+  "1 hour before",
+  "1 day before",
+];
+const REMINDER_MAP = {
+  "No reminder": "NO_REMINDER",
+  "5 minutes before": "5MIN",
+  "10 minutes before": "10MIN",
+  "30 minutes before": "30MIN",
+  "1 hour before": "1HOUR",
+  "1 day before": "1DAY",
+};
 
 export default function ScheduleForm({ onClose, onSubmit }) {
   const [title, setTitle] = useState("");
@@ -25,7 +40,16 @@ export default function ScheduleForm({ onClose, onSubmit }) {
       setError("Pick a date, start time and end time.");
       return;
     }
-    onSubmit({ title: title.trim(), date, startTime, endTime, type, location, description, reminder });
+    onSubmit({
+      title: title.trim(),
+      date,
+      startTime,
+      endTime,
+      type,
+      location,
+      description,
+      reminder: REMINDER_MAP[reminder],
+    });
   };
 
   return (
@@ -57,10 +81,21 @@ export default function ScheduleForm({ onClose, onSubmit }) {
 
       <Row cols={2}>
         <Field label="Date" required id="sc-date">
-          <input id="sc-date" type="date" className="wm-input" value={date} onChange={(e) => setDate(e.target.value)} />
+          <input
+            id="sc-date"
+            type="date"
+            className="wm-input"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+          />
         </Field>
         <Field label="Type" id="sc-type">
-          <select id="sc-type" className="wm-input" value={type} onChange={(e) => setType(e.target.value)}>
+          <select
+            id="sc-type"
+            className="wm-input"
+            value={type}
+            onChange={(e) => setType(e.target.value)}
+          >
             {TYPE_OPTIONS.map((o) => (
               <option key={o} value={o}>
                 {o}
@@ -72,10 +107,22 @@ export default function ScheduleForm({ onClose, onSubmit }) {
 
       <Row cols={2}>
         <Field label="Start Time" required id="sc-start">
-          <input id="sc-start" type="time" className="wm-input" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+          <input
+            id="sc-start"
+            type="time"
+            className="wm-input"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+          />
         </Field>
         <Field label="End Time" required id="sc-end">
-          <input id="sc-end" type="time" className="wm-input" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+          <input
+            id="sc-end"
+            type="time"
+            className="wm-input"
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+          />
         </Field>
       </Row>
 
@@ -101,7 +148,12 @@ export default function ScheduleForm({ onClose, onSubmit }) {
       </Field>
 
       <Field label="Reminder" id="sc-reminder">
-        <select id="sc-reminder" className="wm-input" value={reminder} onChange={(e) => setReminder(e.target.value)}>
+        <select
+          id="sc-reminder"
+          className="wm-input"
+          value={reminder}
+          onChange={(e) => setReminder(e.target.value)}
+        >
           {REMINDER_OPTIONS.map((o) => (
             <option key={o} value={o}>
               {o}

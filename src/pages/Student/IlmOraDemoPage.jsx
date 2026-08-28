@@ -2450,12 +2450,12 @@ const goToAllCourses = () => {
         .d-page[data-theme="light"] {
           --d-green:#16a34a; --d-orange:#F97316; --d-dark:#1E293B; --d-cream:#F6EDE6;
           --d-white:#fff; --d-gray:#64748b; --d-light:#f1f5f9;
-          --d-bg:#F6EDE6; --d-bg2:#fff; --d-card-bg:#fff; --d-card-border:#e2e8f0;
+          --d-bg:#f1f5f9; --d-bg2:#fff; --d-card-bg:#fff; --d-card-border:#e2e8f0;
           --d-nav-bg:#fff; --d-nav-border:#e5d9c8;
           --d-text:#1E293B; --d-text-muted:#64748b;
           --d-stats-bg:#1E293B; --d-stats-text:rgba(255,255,255,.5);
           --d-footer-bg:#fff; --d-footer-border:#e2e8f0;
-          --d-hero-bg: linear-gradient(135deg,#F6EDE6 0%,#fff 60%,#F6EDE6 100%);
+          --d-hero-bg: linear-gradient(135deg,#f1f5f9 0%,#fff 60%,#f1f5f9 100%);
           --d-hero-title:#1E293B; --d-hero-sub:#64748b; --d-hero-greeting:#94a3b8; --d-hero-name:#1E293B;
           --d-tab-bg:#fff; --d-tab-border:#e2e8f0; --d-tab-color:#64748b;
           --d-toggle-bg:#f1f5f9; --d-toggle-border:#e2e8f0; --d-toggle-icon:#F97316;

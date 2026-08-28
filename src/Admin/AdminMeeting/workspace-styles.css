@@ -173,7 +173,7 @@ a {
 }
 
 /* ---------------------------------------------------------------------------
- * App shell: outer admin-portal rail + top nav + workspace inner sidebar
+ * App shell: outer superadmin-portal rail + top nav + workspace inner sidebar
  * ------------------------------------------------------------------------- */
 .app-shell {
   display: flex;
@@ -408,7 +408,9 @@ a {
   overflow-x: hidden;
   position: relative;
 }
-
+.workspace-shell:has(.ws-sidebar.is-collapsed) {
+  grid-template-columns: 72px minmax(0, 1fr);
+}
 /* Hamburger button that opens the sidebar drawer — hidden on desktop/laptop,
  * shown once the sidebar itself goes off-canvas (see breakpoints below). */
 .ws-mobile-toggle {

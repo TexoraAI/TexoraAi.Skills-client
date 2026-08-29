@@ -65,7 +65,7 @@ import authService from "../../services/authService";
 import { registerFcmToken } from "../../services/firebaseService";
 
 // ── Real, zero-API AI Companion components — embedded live ──────────────────
-import AiModeCards, { MODES_BY_TAB } from "../../trainer/ai-companion/AiModeCards";
+import AiModeCards, { MODES_BY_TAB } from "../../Trainer/ai-companion/AiModeCards";
 import AiSourceDropdown from "../../trainer/ai-companion/AiSourceDropdown";
 import AiWorkflowTemplates from "../../trainer/ai-companion/AiWorkflowTemplates";
 import AiTemplateGalleryModal from "../../trainer/ai-companion/AiTemplateGalleryModal";

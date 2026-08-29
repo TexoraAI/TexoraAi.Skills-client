@@ -120,7 +120,7 @@ const studentMenus = [
       },
     ],
   },
-
+{ name: "Roadmap", path: "/student/roadmap-upgraded", icon: GitBranch },
   // ================= Classes (dropdown) =================
   {
     name: "Classes",
@@ -138,22 +138,7 @@ const studentMenus = [
       },
     ],
   },
-   {
-    name: "Roadmaps",
-    icon: GitBranch,
-    children: [
-      {
-        name: "Browse Roadmaps",
-        path: "/student/roadmaps",
-        icon: GitBranch,
-      },
-      {
-        name: "My Progress",
-        path: "/student/roadmap-progress",
-        icon: TrendingUp,
-      },
-    ],
-  },
+  
 
   // ================= Workspace (top-level) =================
   {
@@ -237,22 +222,8 @@ const trainerMenus = [
     path: "/trainer/workspace",
     icon: Video,
   },
- {
-    name: "Roadmaps",
-    icon: GitBranch,
-    children: [
-      {
-        name: "Manage Roadmaps",
-        path: "/trainer/roadmaps",
-        icon: GitBranch,
-      },
-      {
-        name: "Student Progress",
-        path: "/trainer/roadmap-progress",
-        icon: TrendingUp,
-      },
-    ],
-  },
+   { name: "Roadmap", path: "/trainer/roadmap-upgraded", icon: GitBranch },
+
   // ═══════════════════════════════════════════════════════════════
   // 4. AI COMPANION (top-level)
   // ═══════════════════════════════════════════════════════════════
@@ -388,22 +359,8 @@ const adminMenus = [
     icon: ShieldCheck,
     path: "/admin/access-control",
   },
-   {
-    name: "Roadmaps",
-    icon: GitBranch,
-    children: [
-      {
-        name: "Roadmap Management",
-        path: "/admin/roadmaps",
-        icon: GitBranch,
-      },
-      {
-        name: "Roadmap Analytics",
-        path: "/admin/roadmap-analytics",
-        icon: BarChart3,
-      },
-    ],
-  },
+  { name: "Roadmap", icon: GitBranch, path: "/admin/roadmap-upgraded" },
+   
   {
     name: "Assessment System",
     icon: ClipboardCheck,

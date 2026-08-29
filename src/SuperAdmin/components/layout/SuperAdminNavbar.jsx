@@ -91,22 +91,11 @@ const NAV = [
     ],
   },
   {
-    type: "dropdown",
-    label: "Roadmap Control",
-    children: [
-      {
-        label: "Template Library",
-        path: "/superadmin/roadmap-templates",
-        icon: ic.roadmap,
-        permission: null, // swap for a PERMISSIONS.* value if you have one for this
-      },
-      {
-        label: "Platform Overview",
-        path: "/superadmin/roadmap-overview",
-        icon: ic.roadmap,
-        permission: null,
-      },
-    ],
+    type: "item", // ✅ NEW
+    label: "Roadmap",
+    path: "/superadmin/roadmap-upgraded",
+    icon: ic.roadmap,
+    permission: null,
   },
   {
     type: "item",

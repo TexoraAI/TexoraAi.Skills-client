@@ -1,49 +1,47 @@
 // ---------------------------------------------------------------------------
 // roadmapService.js
 // ---------------------------------------------------------------------------
-// API layer for the Roadmap feature of the LMS `progress-service` backend.
+// API layer for the "Roadmap Upgraded" feature (AI-generated learning
+// syllabi: modules -> resources, progress tracking, AI mentor chat, and
+// admin / super-admin usage stats).
 //
-// Backend controller: RoadmapController  ->  @RequestMapping("/api/progress/roadmaps")
-// Auth: every call is authenticated with a JWT Bearer token. The backend derives
-//       role / userId / orgId from the token itself (resolveCaller()), so the
-//       client never sends email / userId / orgId for the roadmap endpoints
-//       (unlike the older progressService methods).
+// Backend controller: RoadmapUpgradedController -> @RequestMapping("/api/roadmap-upgraded")
+// Auth: every endpoint reads the raw Authorization header on the backend
+// (@RequestHeader("Authorization") String authHeader, then
+// extractToken() expects "Bearer <token>"). The backend derives
+// userId / role / organizationId from the JWT itself - the client never
+// sends those fields, except organizationId is NOT even part of any request
+// body in this controller (unlike the old roadmap service).
 //
-// This module is intentionally self-contained and follows the exact same
-// conventions as your existing `progressService` (same base URL + same
-// Authorization header read from localStorage["lms_token"]). You can either
-// import it directly, or copy its methods into progressService.js.
-//
-// It also exports the enum / status / graph mapping helpers that the roadmap
-// components and pages rely on to translate between the React-Flow UI shape
-// and the backend DTO shape.
+// This file COMPLETELY REPLACES the previous roadmapService.js (the one
+// built around /api/progress/roadmaps, React-Flow nodes/edges, etc). That
+// backend no longer exists in the new zip - this is the only roadmap
+// controller present now. Do not merge the two; the old endpoints, DTOs and
+// mappers (toApiNodeType, backendGraphToFlow, etc.) are gone.
 // ---------------------------------------------------------------------------
 
 import axios from "axios";
 
-// --- Base config (mirrors progressService) --------------------------------
+// --- Base config (same convention as the rest of the app) -----------------
 const API_BASE_URL =
-  // (typeof import.meta !== "undefined" &&
-  //   import.meta.env &&
-  //   import.meta.env.VITE_API_BASE_URL) ||
-  // "http://localhost:9000/api";
   import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/api";
 
-// Roadmap controller root.
-const ROADMAPS = `${API_BASE_URL}/progress/roadmaps`;
+// RoadmapUpgradedController root -> /api/roadmap-upgraded
+const ROADMAP_UPGRADED = `${API_BASE_URL}/roadmap-upgraded`;
 
 function authHeader() {
   const token =
     typeof localStorage !== "undefined"
       ? localStorage.getItem("lms_token")
       : null;
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  // The backend does `authHeader.substring("Bearer ".length())` with no
+  // fallback, and throws 401 if the header is missing/malformed - so we
+  // always send a well-formed "Bearer <token>" (even if token is empty,
+  // to surface the 401 instead of silently omitting the header).
+  return { Authorization: `Bearer ${token || ""}` };
 }
 
-// A single pre-configured axios instance keeps the Authorization header fresh
-// on every request (interceptor re-reads the token so login/logout mid-session
-// is picked up automatically).
-const http = axios.create({ baseURL: ROADMAPS });
+const http = axios.create({ baseURL: ROADMAP_UPGRADED });
 http.interceptors.request.use((config) => {
   config.headers = { ...(config.headers || {}), ...authHeader() };
   return config;
@@ -51,6 +49,15 @@ http.interceptors.request.use((config) => {
 http.interceptors.response.use(
   (res) => res,
   (err) => {
+    // ResponseStatusException on the backend serializes {status, error,
+    // message, ...}; surface .message on the JS Error the same way the old
+    // service did, so existing catch(err) => toast(err.message) code works.
+    //
+    // NOTE: for blob-response calls (getResourcePdfBlob below), a failed
+    // request's err.response.data is itself a Blob, not a parsed JSON
+    // object, so this branch is a no-op for those and the caller just sees
+    // a normal axios error - which is fine, PdfModal only checks
+    // success/failure, not err.message.
     const data = err?.response?.data;
     if (data && typeof data === "object" && typeof data.message === "string") {
       err.message = data.message;
@@ -58,644 +65,197 @@ http.interceptors.response.use(
     return Promise.reject(err);
   },
 );
-// ===========================================================================
-//  ENUM / STATUS MAPPERS
-//  UI (lowercase, react-flow friendly)  <->  Backend (UPPERCASE enums)
-// ===========================================================================
-
-// --- NodeStatus:  NOT_STARTED | IN_PROGRESS | DONE | SKIPPED ---------------
-// The RoadmapView page also uses an internal vocabulary (locked / available /
-// in-progress / completed) for lock derivation, so we accept those spellings
-// too and normalise them here.
-export function toApiStatus(uiStatus) {
-  switch (String(uiStatus || "").toLowerCase()) {
-    case "done":
-    case "completed":
-      return "DONE";
-    case "in_progress":
-    case "in-progress":
-    case "inprogress":
-      return "IN_PROGRESS";
-    case "skipped":
-      return "SKIPPED";
-    case "not_started":
-    case "available":
-    case "locked":
-    default:
-      return "NOT_STARTED";
-  }
-}
-
-export function toUiStatus(apiStatus) {
-  switch (String(apiStatus || "").toUpperCase()) {
-    case "DONE":
-      return "done";
-    case "IN_PROGRESS":
-      return "in_progress";
-    case "SKIPPED":
-      return "skipped";
-    case "NOT_STARTED":
-    default:
-      return "not_started";
-  }
-}
-
-// --- NodeType:  TOPIC | SUBTOPIC | MILESTONE -------------------------------
-// The trainer editor UI offers topic / subtopic / task / resource / milestone,
-// but the backend enum only has TOPIC / SUBTOPIC / MILESTONE. "task" and
-// "resource" are therefore stored as SUBTOPIC (lossy — on reload they read
-// back as "subtopic"). If you need to preserve the finer UI subtype you'd have
-// to add a column to the backend node model.
-export function toApiNodeType(uiType) {
-  switch (String(uiType || "").toLowerCase()) {
-    case "milestone":
-      return "MILESTONE";
-    case "topic":
-      return "TOPIC";
-    case "subtopic":
-    case "task":
-    case "resource":
-      return "SUBTOPIC";
-    default:
-      return "TOPIC";
-  }
-}
-
-export function toUiNodeType(apiType) {
-  switch (String(apiType || "").toUpperCase()) {
-    case "MILESTONE":
-      return "milestone";
-    case "SUBTOPIC":
-      return "subtopic";
-    case "TOPIC":
-    default:
-      return "topic";
-  }
-}
-
-// --- ResourceType: ARTICLE | VIDEO | COURSE | BOOK | DOCUMENTATION | TOOL ---
-export function toApiResourceType(uiType) {
-  switch (String(uiType || "").toLowerCase()) {
-    case "video":
-      return "VIDEO";
-    case "course":
-      return "COURSE";
-    case "book":
-      return "BOOK";
-    case "doc":
-    case "documentation":
-      return "DOCUMENTATION";
-    case "tool":
-      return "TOOL";
-    case "article":
-    default:
-      return "ARTICLE";
-  }
-}
-
-export function toUiResourceType(apiType) {
-  switch (String(apiType || "").toUpperCase()) {
-    case "VIDEO":
-      return "video";
-    case "COURSE":
-      return "course";
-    case "BOOK":
-      return "book";
-    case "DOCUMENTATION":
-      return "doc";
-    case "TOOL":
-      return "tool";
-    case "ARTICLE":
-    default:
-      return "article";
-  }
-}
 
 // ===========================================================================
-//  TOKEN HELPERS
-//  The roadmap endpoints derive identity from the JWT, but a few org-admin
-//  writes (createCustomRoadmap / cloneTemplate) still need orgId in the BODY.
-//  These helpers read it from the stored token so the UI doesn't have to.
+//  ENUM CONSTANTS (mirror the backend's plain-string "enums" - see
+//  RoadmapUpgradedService: these are just Strings, not real Java enums, so
+//  the values below are the exact literals the backend reads/writes)
 // ===========================================================================
 
-export function decodeJwt(token) {
-  try {
-    const raw =
-      token ||
-      (typeof localStorage !== "undefined"
-        ? localStorage.getItem("lms_token")
-        : null);
-    if (!raw) return null;
-    const payload = raw.split(".")[1];
-    if (!payload) return null;
-    const json = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
-    return JSON.parse(json);
-  } catch {
-    return null;
-  }
-}
+// Syllabus.sourceType
+export const SOURCE_TYPE = {
+  GENERATED: "GENERATED", // built fresh for this owner
+  LIBRARY: "LIBRARY", // fromLibrary:true - reused/cloned from a cached template
+};
 
-// Best-effort orgId extraction. Tries the common claim names, then falls back
-// to an explicit VITE_DEFAULT_ORG_ID (or a value stashed in localStorage).
-// NOTE: organization IDs are opaque strings (UUIDs), so this returns the claim
-// AS-IS. Do NOT wrap in Number() — Number("some-uuid") is NaN, which serializes
-// to null in a JSON body and silently drops the org (this broke clone/create).
-export function getOrgIdFromToken(token) {
-  const claims = decodeJwt(token) || {};
-  const fromClaim =
-    claims.orgId ??
-    claims.org_id ??
-    claims.organizationId ??
-    claims.organisationId ??
-    claims.tenantId ??
-    claims.tenant_id ??
-    null;
-  if (fromClaim != null && String(fromClaim).trim() !== "")
-    return String(fromClaim);
+// Syllabus.status
+export const ROADMAP_STATUS = {
+  GENERATING: "GENERATING",
+  READY: "READY",
+  IN_PROGRESS: "IN_PROGRESS",
+  COMPLETED: "COMPLETED",
+};
 
-  const ls =
-    typeof localStorage !== "undefined"
-      ? localStorage.getItem("lms_org_id")
-      : null;
-  if (ls != null && ls !== "") return String(ls);
+// Resource.type - the only 4 values the generator ever produces
+// (see RoadmapUpgradedService.ALL_CONTENT_SOURCES)
+export const RESOURCE_TYPE = {
+  VIDEO: "VIDEO",
+  ARTICLE: "ARTICLE",
+  PDF: "PDF",
+  QUIZ: "QUIZ",
+};
 
-  const env =
-    typeof import.meta !== "undefined" &&
-    import.meta.env &&
-    import.meta.env.VITE_DEFAULT_ORG_ID;
-  return env != null && env !== "" ? String(env) : null;
-}
+export const ALL_CONTENT_SOURCES = ["VIDEO", "ARTICLE", "PDF", "QUIZ"];
+
+// Mentor message sender
+export const MENTOR_SENDER = {
+  USER: "USER",
+  MENTOR: "MENTOR",
+};
 
 // ===========================================================================
-//  GRAPH TRANSFORMS
-//  Backend graph DTO  <->  React-Flow { nodes, edges }
-// ===========================================================================
-
-// Map a backend resource (OrgResourceResponse) to the UI shape used by
-// ResourceDrawer. NOTE the boolean JSON key from the backend is "featured"
-// (Jackson serialises the isFeatured() getter as "featured").
-export function mapResourceToUi(r) {
-  if (!r) return null;
-  return {
-    id: r.id,
-    backendId: r.id,
-    nodeId: r.nodeId,
-    type: toUiResourceType(r.type),
-    title: r.title,
-    url: r.url,
-    description: r.description || "",
-    durationMinutes: r.durationMinutes ?? null,
-    difficulty: r.difficulty || null,
-    upvotes: r.upvotes ?? 0,
-    isFeatured: r.featured ?? false, // backend JSON key = "featured"
-    addedBy: r.addedBy ?? null,
-    createdAt: r.createdAt ?? null,
-  };
-}
-
-// Convert either a student RoadmapGraphResponse or a trainer
-// OrgRoadmapGraphResponse into the React-Flow shape the RoadmapCanvas expects.
-//   - Student graph nodes carry `progressStatus` (per-user status).
-//   - Trainer graph nodes do not, so status falls back to "not_started".
-// Boolean JSON keys coming FROM the backend responses are: "optional",
-// "hasQuiz", "hasProject" (see GraphNodeResponse / OrgNodeResponse).
-export function backendGraphToFlow(graph) {
-  if (!graph) return { nodes: [], edges: [] };
-
-  const nodes = (graph.nodes || []).map((n) => {
-    const parents = (n.parentNodeIds || []).map((id) => String(id));
-    return {
-      id: String(n.id),
-      type: "roadmapNode",
-      position: { x: n.positionX ?? 0, y: n.positionY ?? 0 },
-      data: {
-        title: n.title,
-        description: n.description || "",
-        nodeType: toUiNodeType(n.type),
-        status: toUiStatus(n.progressStatus), // "not_started" for trainer graphs
-        estimatedHours: n.estimatedHours ?? null,
-        orderIndex: n.orderIndex ?? null,
-        isOptional: n.optional ?? false, // backend JSON key = "optional"
-        hasQuiz: n.hasQuiz ?? false,
-        hasProject: n.hasProject ?? false,
-        prerequisites: parents,
-        hasPrerequisites: parents.length > 0,
-        resources: (n.resources || []).map(mapResourceToUi),
-        // keep the raw backend id (Long) for write-back calls
-        backendId: n.id,
-        sourceNodeId: n.sourceNodeId ?? null,
-        progressCompletedAt: n.progressCompletedAt ?? null,
-        progressLastAccessedAt: n.progressLastAccessedAt ?? null,
-      },
-    };
-  });
-
-  const edges = (graph.edges || []).map((e) => ({
-    id: `e-${e.fromNodeId}-${e.toNodeId}`,
-    source: String(e.fromNodeId),
-    target: String(e.toNodeId),
-  }));
-
-  return { nodes, edges };
-}
-
-// Given a react-flow node id and the current edge list, collect the backend
-// (Long) ids of its parents. Edges are parent -> child (source -> target), so a
-// node's parents are the `source` of every edge whose `target` is this node.
-// Only numeric (already-persisted) ids are included; temp/client ids are skipped.
-export function parentIdsFromEdges(flowNodeId, edges) {
-  return (edges || [])
-    .filter((e) => String(e.target) === String(flowNodeId))
-    .map((e) => Number(e.source))
-    .filter((id) => Number.isFinite(id));
-}
-
-// Build a CreateOrgNodeRequest body from a react-flow node.
-// IMPORTANT: create uses the JSON key "optional" (primitive boolean getter
-// isOptional() -> Jackson property "optional").
-export function flowNodeToCreateRequest(flowNode, orgRoadmapId, edges) {
-  const d = flowNode.data || {};
-  return {
-    orgRoadmapId,
-    sourceNodeId: d.sourceNodeId ?? null,
-    title: d.title || "Untitled node",
-    description: d.description || null,
-    type: toApiNodeType(d.nodeType),
-    positionX: flowNode.position?.x ?? 0,
-    positionY: flowNode.position?.y ?? 0,
-    optional: !!d.isOptional, // <-- create key
-    estimatedHours: d.estimatedHours ?? null,
-    orderIndex: d.orderIndex ?? null,
-    hasQuiz: !!d.hasQuiz,
-    hasProject: !!d.hasProject,
-    parentNodeIds: parentIdsFromEdges(flowNode.id, edges),
-  };
-}
-
-// Build an UpdateOrgNodeRequest body from a react-flow node.
-// IMPORTANT: update uses the JSON key "isOptional" (Boolean getter
-// getIsOptional() -> Jackson property "isOptional"). All fields are nullable /
-// partial; pass only what you want to change.
-export function flowNodeToUpdateRequest(flowNode, edges) {
-  const d = flowNode.data || {};
-  return {
-    title: d.title,
-    description: d.description ?? null,
-    type: toApiNodeType(d.nodeType),
-    positionX: flowNode.position?.x,
-    positionY: flowNode.position?.y,
-    isOptional: !!d.isOptional, // <-- update key (differs from create!)
-    estimatedHours: d.estimatedHours ?? null,
-    orderIndex: d.orderIndex ?? null,
-    hasQuiz: !!d.hasQuiz,
-    hasProject: !!d.hasProject,
-    parentNodeIds: parentIdsFromEdges(flowNode.id, edges),
-  };
-}
-
-// Lightweight position-only update, e.g. after a drag on the canvas.
-export function flowNodePositionUpdate(flowNode) {
-  return {
-    positionX: flowNode.position?.x ?? 0,
-    positionY: flowNode.position?.y ?? 0,
-  };
-}
-
-// ===========================================================================
-//  API METHODS
+//  API METHODS - one method per controller endpoint, same shape, same order
 // ===========================================================================
 
 const roadmapService = {
-  // expose mappers on the service object too, for convenience
-  toApiStatus,
-  toUiStatus,
-  toApiNodeType,
-  toUiNodeType,
-  toApiResourceType,
-  toUiResourceType,
-  backendGraphToFlow,
-  mapResourceToUi,
-  flowNodeToCreateRequest,
-  flowNodeToUpdateRequest,
-  flowNodePositionUpdate,
-  parentIdsFromEdges,
-  decodeJwt,
-  getOrgIdFromToken,
+  SOURCE_TYPE,
+  ROADMAP_STATUS,
+  RESOURCE_TYPE,
+  ALL_CONTENT_SOURCES,
+  MENTOR_SENDER,
 
   // -------------------------------------------------------------------------
-  //  STUDENT  (identity from JWT; scoped to caller.orgId)
+  // POST /api/roadmap-upgraded/generate -> RoadmapUpgradedResponseDto
+  // Used for BOTH the step-by-step wizard (Path B, live generation) and the
+  // library "Use this roadmap" one-click flow (Path A).
+  //
+  // request: {
+  //   domain: string,            // e.g. "Technology & Computing"
+  //   pathType: string,          // e.g. "JOB_PROFILE" | "SKILL" | "TASK" | "CERTIFICATION" | "COURSE_BATCH"
+  //   targetRole: string,        // e.g. "Full-stack Developer"
+  //   language: string,          // e.g. "English"
+  //   contentSources: string[],  // subset of ALL_CONTENT_SOURCES; empty/omitted = all four
+  //   fromLibrary: boolean,      // true = try to reuse a cached LIBRARY/READY syllabus for this targetRole first
+  // }
   // -------------------------------------------------------------------------
-
-  // GET /  -> PagedResponse<RoadmapListItemResponse>
-  // Published roadmaps in the student's org. (No completion field here — merge
-  // with getStudentDashboard() for completion %.)
-  async listRoadmaps({ page = 0, size = 50 } = {}) {
-    const res = await http.get("", { params: { page, size } });
-    return res.data;
-  },
-
-  // GET /dashboard -> StudentDashboardResponse
-  // { userId, orgId, enrolledRoadmaps:[EnrolledRoadmapSummary], totalEnrolled,
-  //   averageCompletionPercent }
-  async getStudentDashboard() {
-    const res = await http.get("/dashboard");
-    return res.data;
-  },
-
-  // GET /{slug} -> RoadmapGraphResponse (nodes carry this student's progressStatus)
-  async getRoadmapGraph(slug) {
-    const res = await http.get(`/${encodeURIComponent(slug)}`);
-    return res.data;
-  },
-
-  // GET /{slug}/progress -> List<NodeProgressResponse>
-  async getRoadmapProgress(slug) {
-    const res = await http.get(`/${encodeURIComponent(slug)}/progress`);
-    return res.data;
-  },
-
-  // PUT /{slug}/nodes/{nodeId}/progress -> NodeProgressResponse
-  // status may be a UI value ("done") or a backend value ("DONE"); it's normalised.
-  async updateNodeProgress(
-    slug,
-    nodeId,
-    {
-      status,
-      additionalTimeSpentMinutes = null,
-      incrementResourceClick = null,
-    } = {},
-  ) {
+  async generateRoadmap({
+    domain,
+    pathType,
+    targetRole,
+    language = "English",
+    contentSources = [],
+    fromLibrary = false,
+  }) {
     const body = {
-      nodeId: Number(nodeId),
-      status: toApiStatus(status),
-      additionalTimeSpentMinutes,
-      incrementResourceClick,
+      domain,
+      pathType,
+      targetRole,
+      language,
+      contentSources,
+      fromLibrary,
     };
-    const res = await http.put(
-      `/${encodeURIComponent(slug)}/nodes/${nodeId}/progress`,
-      body,
-    );
+    const res = await http.post("/generate", body);
     return res.data;
   },
 
-  // PUT /{slug}/progress/batch -> BatchUpdateProgressResponse
-  // updates: [{ nodeId, status }]  (status normalised to backend enum)
-  async batchUpdateProgress(slug, orgRoadmapId, updates = []) {
-    const body = {
-      orgRoadmapId: Number(orgRoadmapId),
-      updates: updates.map((u) => ({
-        nodeId: Number(u.nodeId),
-        status: toApiStatus(u.status),
-      })),
-    };
-    const res = await http.put(
-      `/${encodeURIComponent(slug)}/progress/batch`,
-      body,
-    );
+  // GET /api/roadmap-upgraded/my -> RoadmapUpgradedResponseDto[]
+  // All roadmaps owned by the caller (student/trainer/admin/super-admin - any
+  // role can own roadmaps, ownership is just "who generated it").
+  async getMyRoadmaps() {
+    const res = await http.get("/my");
     return res.data;
   },
 
-  // -------------------------------------------------------------------------
-  //  TRAINER / OWNER  (must own the roadmap: createdBy == caller userId)
-  // -------------------------------------------------------------------------
-
-  // GET /org/mine -> PagedResponse<OrgRoadmapResponse>  (roadmaps I created)
-  async listMyRoadmaps({ page = 0, size = 50 } = {}) {
-    const res = await http.get("/org/mine", { params: { page, size } });
+  // GET /api/roadmap-upgraded/{id} -> RoadmapUpgradedResponseDto
+  // 403 if caller is not the owner, and not an ADMIN/TENANT_ADMIN of the same
+  // org, and not SUPER_ADMIN. 404 if it doesn't exist.
+  async getRoadmapById(id) {
+    const res = await http.get(`/${id}`);
     return res.data;
   },
 
-  // GET /org/{id} -> OrgRoadmapResponse (metadata incl. "published"/"archived")
-  async getOrgRoadmap(id) {
-    const res = await http.get(`/org/${id}`);
-    return res.data;
-  },
-
-  // GET /org/{id}/graph -> OrgRoadmapGraphResponse (editing view, no per-user status)
-  async getOrgRoadmapGraph(id) {
-    const res = await http.get(`/org/${id}/graph`);
-    return res.data;
-  },
-
-  // POST /org/{id}/nodes -> OrgNodeResponse (201)
-  // Pass a body built with flowNodeToCreateRequest(), or a raw CreateOrgNodeRequest.
-  async createNode(id, createOrgNodeRequest) {
-    const res = await http.post(`/org/${id}/nodes`, createOrgNodeRequest);
-    return res.data;
-  },
-
-  // PUT /org/{id}/nodes/{nodeId} -> OrgNodeResponse
-  async updateNode(id, nodeId, updateOrgNodeRequest) {
-    const res = await http.put(
-      `/org/${id}/nodes/${nodeId}`,
-      updateOrgNodeRequest,
-    );
-    return res.data;
-  },
-
-  // DELETE /org/{id}/nodes/{nodeId} -> 204
-  async deleteNode(id, nodeId) {
-    await http.delete(`/org/${id}/nodes/${nodeId}`);
-    return true;
-  },
-
-  // POST /org/{id}/nodes/{nodeId}/resources -> OrgResourceResponse (201)
-  // resource: { type, title, url, description, durationMinutes, difficulty }
-  // (type may be UI ("doc") or backend ("DOCUMENTATION"); it's normalised.)
-  async addResource(id, nodeId, resource) {
-    const body = {
-      nodeId: Number(nodeId),
-      type: toApiResourceType(resource.type),
-      title: resource.title,
-      url: resource.url,
-      description: resource.description ?? null,
-      durationMinutes: resource.durationMinutes ?? null,
-      difficulty: resource.difficulty ?? null,
-    };
-    const res = await http.post(`/org/${id}/nodes/${nodeId}/resources`, body);
-    return res.data;
-  },
-
-  // PUT /org/{id}/resources/{resourceId} -> OrgResourceResponse
-  // Update uses the JSON key "isFeatured" (getIsFeatured()).
-  async updateResource(id, resourceId, resource) {
-    const body = {
-      type: resource.type != null ? toApiResourceType(resource.type) : null,
-      title: resource.title ?? null,
-      url: resource.url ?? null,
-      description: resource.description ?? null,
-      durationMinutes: resource.durationMinutes ?? null,
-      difficulty: resource.difficulty ?? null,
-      isFeatured: resource.isFeatured ?? null, // <-- update key
-    };
-    const res = await http.put(`/org/${id}/resources/${resourceId}`, body);
-    return res.data;
-  },
-
-  // DELETE /org/{id}/resources/{resourceId} -> 204
-  async deleteResource(id, resourceId) {
-    await http.delete(`/org/${id}/resources/${resourceId}`);
-    return true;
-  },
-
-  // GET /org/{id}/students-progress -> PagedResponse<StudentProgressSummaryResponse>
-  // NOTE: summaries only (studentId, studentName, completionPercent, lastActiveAt).
-  // There is NO backend endpoint for another student's per-node progress.
-  async getStudentsProgress(id, { page = 0, size = 100 } = {}) {
-    const res = await http.get(`/org/${id}/students-progress`, {
-      params: { page, size },
+  // POST /api/roadmap-upgraded/resource/{id}/complete?quizScore=NN -> RoadmapUpgradedResponseDto
+  // Marks a single resource complete, recomputes that module's progress %,
+  // unlocks the next module if this one just hit 100%, recomputes overall
+  // completionPercent/status, and returns the FULL updated roadmap (not just
+  // the resource) so the UI can re-render module locks/progress in one shot.
+  // quizScore is only meaningful when the resource's type is "QUIZ".
+  async markResourceComplete(resourceId, quizScore = null) {
+    const res = await http.post(`/resource/${resourceId}/complete`, null, {
+      params: quizScore != null ? { quizScore } : {},
     });
     return res.data;
   },
 
-  // GET /org/{id}/analytics -> RoadmapAnalyticsResponse (org-admin / super-admin)
-  async getAnalytics(id) {
-    const res = await http.get(`/org/${id}/analytics`);
+  // GET /api/roadmap-upgraded/resource/{id}/pdf -> raw PDF bytes
+  // (Content-Type: application/pdf). Fetched as a Blob (not JSON) so
+  // PdfModal can build an object URL and render it inline via <iframe> -
+  // never triggers a download or new tab. Same auth header as every other
+  // call here (attached by the request interceptor above). 404s if the
+  // resource isn't a PDF or has no stored content (see
+  // RoadmapUpgradedService.getResourcePdf()); PdfModal treats any rejected
+  // promise here as "couldn't be loaded".
+  async getResourcePdfBlob(resourceId) {
+    const res = await http.get(`/resource/${resourceId}/pdf`, {
+      responseType: "blob",
+    });
     return res.data;
   },
 
-  // -------------------------------------------------------------------------
-  //  ORG ADMIN / SUPER ADMIN  (roadmap lifecycle)
-  //  NOTE: authorizeOrgRoadmapAccess() allows only SUPER_ADMIN and a matching
-  //  ORG_ADMIN. A pure TRAINER role gets 403 FORBIDDEN_ROLE on create / clone /
-  //  update / publish / unpublish / analytics / org-list. See header notes.
-  // -------------------------------------------------------------------------
-
-  // POST /org/custom -> OrgRoadmapResponse (201). Server auto-generates the slug
-  // (any client slug is ignored).
-  async createCustomRoadmap({
-    orgId,
-    title,
-    description = null,
-    category = null,
-    thumbnailUrl = null,
-  }) {
-    const body = { orgId, title, description, category, thumbnailUrl };
-    const res = await http.post("/org/custom", body);
+  // POST /api/roadmap-upgraded/{id}/regenerate -> RoadmapUpgradedResponseDto
+  // Re-generates resources for every module that isn't already 100% complete
+  // (progress on those modules resets to 0%). Always requests all four
+  // content source types (contentSources isn't persisted on the syllabus, so
+  // there's nothing role/user-specific to replay here).
+  async regenerateRemainingModules(id) {
+    const res = await http.post(`/${id}/regenerate`);
     return res.data;
   },
 
-  // POST /org/clone/{templateId} -> OrgRoadmapResponse (201)
-  async cloneTemplate(
-    templateId,
-    {
-      orgId,
-      title = null,
-      description = null,
-      category = null,
-      thumbnailUrl = null,
-    } = {},
-  ) {
-    const body = {
-      sourceTemplateId: templateId,
-      orgId,
-      title,
-      description,
-      category,
-      thumbnailUrl,
-    };
-    const res = await http.post(`/org/clone/${templateId}`, body);
+  // POST /api/roadmap-upgraded/{id}/clone -> RoadmapUpgradedResponseDto (201)
+  // Deep-copies the roadmap's modules + resources under the CALLER as the new
+  // owner, with all progress reset (only module 0 unlocked). Used for
+  // "clone as batch template" (trainer) and similar reuse flows.
+  async cloneAsTemplate(id) {
+    const res = await http.post(`/${id}/clone`);
     return res.data;
   },
 
-  // PUT /org/{id} -> OrgRoadmapResponse. Booleans use keys isPublished/isArchived.
-  async updateOrgRoadmap(id, patch = {}) {
-    const body = {
-      title: patch.title ?? null,
-      description: patch.description ?? null,
-      category: patch.category ?? null,
-      thumbnailUrl: patch.thumbnailUrl ?? null,
-      isPublished: patch.isPublished ?? null,
-      isArchived: patch.isArchived ?? null,
-    };
-    const res = await http.put(`/org/${id}`, body);
+  // GET /api/roadmap-upgraded/admin/stats -> RoadmapUpgradedAdminStatsDto
+  // ADMIN/TENANT_ADMIN only (403 otherwise). Scoped to the caller's own
+  // organizationId (400 if the admin's token has no organizationId claim).
+  async getAdminStats() {
+    const res = await http.get("/admin/stats");
     return res.data;
   },
 
-  // POST /org/{id}/publish -> OrgRoadmapResponse
-  async publishRoadmap(id) {
-    const res = await http.post(`/org/${id}/publish`);
+  // GET /api/roadmap-upgraded/super-admin/stats -> RoadmapUpgradedSuperAdminStatsDto
+  // SUPER_ADMIN only (403 otherwise). Cross-org: totals, a per-org
+  // breakdown (each shaped like an AdminStatsDto), plus null-org (unassigned)
+  // students/trainers and a platform-wide top-users list.
+  async getSuperAdminStats() {
+    const res = await http.get("/super-admin/stats");
     return res.data;
   },
 
-  // POST /org/{id}/unpublish -> OrgRoadmapResponse
-  async unpublishRoadmap(id) {
-    const res = await http.post(`/org/${id}/unpublish`);
+  // POST /api/roadmap-upgraded/mentor/ask -> RoadmapUpgradedMentorResponseDto
+  // request: { syllabusId: number, message: string }
+  // response: { reply: string, suggestedFollowUps: string[] }
+  // Requires the same access as getRoadmapById (owner / same-org admin / super-admin).
+  async askMentor(syllabusId, message) {
+    const body = { syllabusId, message };
+    const res = await http.post("/mentor/ask", body);
     return res.data;
   },
 
-  // GET /org?orgId=(optional) -> PagedResponse<RoadmapListItemResponse>
-  // TRAINER / STUDENT are rejected by the controller.
-  async listOrgRoadmaps({ orgId = null, page = 0, size = 50 } = {}) {
-    const params = { page, size };
-    if (orgId != null) params.orgId = orgId;
-    const res = await http.get("/org", { params });
+  // GET /api/roadmap-upgraded/mentor/{syllabusId}/history -> RoadmapUpgradedMentorMessageDto[]
+  // Full chat history for this roadmap, oldest first: [{ id, sender: "USER"|"MENTOR", messageText, sentAt }]
+  async getMentorHistory(syllabusId) {
+    const res = await http.get(`/mentor/${syllabusId}/history`);
     return res.data;
   },
 
-  // -------------------------------------------------------------------------
-  //  SUPER ADMIN — global templates (included for completeness)
-  // -------------------------------------------------------------------------
-
-  async createTemplate(createTemplateRequest) {
-    const res = await http.post("/admin/templates", createTemplateRequest);
+  // GET /api/roadmap-upgraded/{id}/export-pdf -> raw PDF bytes (application/pdf)
+  // Whole-roadmap export (every module/topic/resource + completion state)
+  // as ONE PDF - separate from getResourcePdfBlob above, which only ever
+  // covers a single resource's own generated PDF. Fetched as a Blob so the
+  // caller can trigger a real file download (unlike PdfModal, this one IS
+  // meant to be saved/downloaded, not viewed inline).
+  async exportRoadmapPdfBlob(id) {
+    const res = await http.get(`/${id}/export-pdf`, {
+      responseType: "blob",
+    });
     return res.data;
-  },
-  async listTemplates({ page = 0, size = 50 } = {}) {
-    const res = await http.get("/admin/templates", { params: { page, size } });
-    return res.data;
-  },
-  async getTemplate(id) {
-    const res = await http.get(`/admin/templates/${id}`);
-    return res.data;
-  },
-  async updateTemplate(id, updateTemplateRequest) {
-    const res = await http.put(`/admin/templates/${id}`, updateTemplateRequest);
-    return res.data;
-  },
-  async getTemplateGraph(id) {
-    const res = await http.get(`/admin/templates/${id}/graph`);
-    return res.data;
-  },
-  async publishTemplate(templateId) {
-    const res = await http.post(`/admin/templates/${templateId}/publish`);
-    return res.data;
-  },
-  async createTemplateNode(templateId, createTemplateNodeRequest) {
-    const res = await http.post(
-      `/admin/templates/${templateId}/nodes`,
-      createTemplateNodeRequest,
-    );
-    return res.data;
-  },
-  async updateTemplateNode(nodeId, updateTemplateNodeRequest) {
-    const res = await http.put(
-      `/admin/templates/nodes/${nodeId}`,
-      updateTemplateNodeRequest,
-    );
-    return res.data;
-  },
-  async deleteTemplateNode(nodeId) {
-    await http.delete(`/admin/templates/nodes/${nodeId}`);
-    return true;
-  },
-  async addTemplateResource(nodeId, createTemplateResourceRequest) {
-    const res = await http.post(
-      `/admin/templates/nodes/${nodeId}/resources`,
-      createTemplateResourceRequest,
-    );
-    return res.data;
-  },
-  async updateTemplateResource(resourceId, updateTemplateResourceRequest) {
-    const res = await http.put(
-      `/admin/templates/resources/${resourceId}`,
-      updateTemplateResourceRequest,
-    );
-    return res.data;
-  },
-  async deleteTemplateResource(resourceId) {
-    await http.delete(`/admin/templates/resources/${resourceId}`);
-    return true;
   },
 };
 

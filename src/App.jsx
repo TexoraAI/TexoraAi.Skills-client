@@ -159,14 +159,17 @@ const SuperAdminProfile         = lazyLoad(() => import("./SuperAdmin/profile/Su
 const SuperAdminMeetings = lazyLoad(
   () => import("./SuperAdmin/meetings/SuperAdminMeetings"),
 );
-const RoadmapTemplateLibraryPage = lazyLoad(
-  () => import("./SuperAdmin/roadmap-control/TemplateLibraryPage.jsx"),
+
+const SuperAdminRoadmapUpgraded = lazyLoad(
+  () => import("./SuperAdmin/roadmap-control/SuperAdminRoadmapUpgraded.jsx"),
 );
-const RoadmapTemplateEditorPage = lazyLoad(
-  () => import("./SuperAdmin/roadmap-control/TemplateEditorPage.jsx"),
+const SuperAdminRoadmapUpgradedWizard = lazyLoad(
+  () =>
+    import("./SuperAdmin/roadmap-control/SuperAdminRoadmapUpgradedWizard.jsx"),
 );
-const RoadmapPlatformOverviewPage = lazyLoad(
-  () => import("./SuperAdmin/roadmap-control/PlatformOverviewPage.jsx"),
+const SuperAdminRoadmapUpgradedDetail = lazyLoad(
+  () =>
+    import("./SuperAdmin/roadmap-control/SuperAdminRoadmapUpgradedDetail.jsx"),
 );
 
 /* ================= CMS MANAGEMENT ================= */
@@ -275,8 +278,16 @@ const StudentCompilerPage   = lazyLoad(() => import("./Student/StudentCompilerPa
 const StudentStudyPlanPage = lazyLoad( () => import("./Student/StudentStudyPlanPage.jsx"),);
 const ResumeBuilder        = lazyLoad(() => import("./Student/ResumeBuilder.jsx"));
 const StudentMeetings = lazyLoad(() => import("./Student/StudentMeetings.jsx"));
-const RoadmapBrowser = lazyLoad(() => import("./Student/RoadmapBrowser.jsx"));
-const RoadmapView = lazyLoad(() => import("./Student/RoadmapView.jsx"));
+
+const StudentRoadmapUpgraded = lazyLoad(
+  () => import("./Student/StudentRoadmapUpgraded.jsx"),
+);
+const StudentRoadmapUpgradedWizard = lazyLoad(
+  () => import("./Student/StudentRoadmapUpgradedWizard.jsx"),
+);
+const StudentRoadmapUpgradedDetail = lazyLoad(
+  () => import("./Student/StudentRoadmapUpgradedDetail.jsx"),
+);
 /* ================= TRAINER ================= */
 const TrainerAssessments    = lazyLoad(() => import("./Trainer/Assessments"));
 const TrainerAttendance     = lazyLoad(() => import("./Trainer/Attendance"));
@@ -319,10 +330,14 @@ const AiCompanionPanel = lazyLoad(
 );
 
 const TrainerMeetings = lazyLoad(() => import("./Trainer/TrainerMeetings.jsx"));
-const RoadmapList = lazyLoad(() => import("./Trainer/RoadmapList.jsx"));
-const RoadmapEditor = lazyLoad(() => import("./Trainer/RoadmapEditor.jsx"));
-const RoadmapStudentsProgress = lazyLoad(
-  () => import("./Trainer/RoadmapStudentsProgress.jsx"),
+const TrainerRoadmapUpgraded = lazyLoad(
+  () => import("./Trainer/TrainerRoadmapUpgraded.jsx"),
+);
+const TrainerRoadmapUpgradedWizard = lazyLoad(
+  () => import("./Trainer/TrainerRoadmapUpgradedWizard.jsx"),
+);
+const TrainerRoadmapUpgradedDetail = lazyLoad(
+  () => import("./Trainer/TrainerRoadmapUpgradedDetail.jsx"),
 );
 /* ================= ADMIN ================= */
 const AdminBatches              = lazyLoad(() => import("./Admin/AdminBatches"));
@@ -357,10 +372,15 @@ const AdminAssessmentSystem = lazyLoad(
 const AdminAttendance = lazyLoad(() => import("./Admin/AdminAttendance"));
 const AdminMeetings = lazyLoad(() => import("./Admin/AdminMeetings.jsx"));
 const AccessControlPage = lazyLoad(() => import("./Admin/AccessControlPage"));
-const RoadmapManagement = lazyLoad(
-  () => import("./Admin/RoadmapManagement.jsx"),
+const AdminRoadmapUpgraded = lazyLoad(
+  () => import("./Admin/AdminRoadmapUpgraded.jsx"),
 );
-const RoadmapAnalytics = lazyLoad(() => import("./Admin/RoadmapAnalytics.jsx"));
+const AdminRoadmapUpgradedWizard = lazyLoad(
+  () => import("./Admin/AdminRoadmapUpgradedWizard.jsx"),
+);
+const AdminRoadmapUpgradedDetail = lazyLoad(
+  () => import("./Admin/AdminRoadmapUpgradedDetail.jsx"),
+);
 /* ================= BUSINESS ================= */
 const BusinessDashboard = lazyLoad(() => import("./Business/BusinessDashboard"));
 const NewEnrollments    = lazyLoad(() => import("./Business/Enrollments/NewEnrollments.jsx"));
@@ -786,8 +806,18 @@ seedCMSData();
               <Route path="study-plan" element={<StudentStudyPlanPage />} />
               <Route path="resume-builder" element={<ResumeBuilder />} />
               <Route path="workspace" element={<StudentMeetings />} />
-               <Route path="roadmap" element={<RoadmapBrowser />} />
-              <Route path="roadmap/:slug" element={<RoadmapView />} />
+              <Route
+                path="roadmap-upgraded"
+                element={<StudentRoadmapUpgraded />}
+              />
+              <Route
+                path="roadmap-upgraded/new"
+                element={<StudentRoadmapUpgradedWizard />}
+              />
+              <Route
+                path="roadmap-upgraded/:id"
+                element={<StudentRoadmapUpgradedDetail />}
+              />
             </Route>
 
             {/* ================= TRAINER ================= */}
@@ -836,11 +866,18 @@ seedCMSData();
               <Route path="ai-companion" element={<AiCompanionPanel />} />
               <Route path="whiteboard" element={<WhiteboardPanel />} />          
               <Route path="workspace" element={<TrainerMeetings />} />
-              <Route path="roadmaps" element={<RoadmapList />} />
-              <Route path="roadmaps/:id/edit" element={<RoadmapEditor />} />
+            
+             <Route
+                path="roadmap-upgraded"
+                element={<TrainerRoadmapUpgraded />}
+              />
               <Route
-                path="roadmaps/:id/students-progress"
-                element={<RoadmapStudentsProgress />}
+                path="roadmap-upgraded/new"
+                element={<TrainerRoadmapUpgradedWizard />}
+              />
+              <Route
+                path="roadmap-upgraded/:id"
+                element={<TrainerRoadmapUpgradedDetail />}
               />
             </Route>
 
@@ -879,8 +916,18 @@ seedCMSData();
               <Route path="feedback-review" element={<AdminFeedback />} />
               <Route path="skill-analytics" element={<AdminSkillDashboard />} />
                <Route path="workspace" element={<AdminMeetings />} />
-               <Route path="roadmaps" element={<RoadmapManagement />} />
-              <Route path="roadmaps/analytics" element={<RoadmapAnalytics />} />
+          <Route
+                path="roadmap-upgraded"
+                element={<AdminRoadmapUpgraded />}
+              />
+              <Route
+                path="roadmap-upgraded/new"
+                element={<AdminRoadmapUpgradedWizard />}
+              />
+              <Route
+                path="roadmap-upgraded/:id"
+                element={<AdminRoadmapUpgradedDetail />}
+              />
               <Route path="access-control" element={<AccessControlPage />} />
             </Route>
 
@@ -970,17 +1017,17 @@ seedCMSData();
 <Route path="organizations/:orgId/admins/:adminId" element={<OrganizationAdminDetailsPage />} />
 
 <Route path="batches/:batchId" element={<BatchDetailsPage />} />
-<Route
-                path="roadmap-templates"
-                element={<RoadmapTemplateLibraryPage />}
+ <Route
+                path="roadmap-upgraded"
+                element={<SuperAdminRoadmapUpgraded />}
               />
               <Route
-                path="roadmap-templates/:id/edit"
-                element={<RoadmapTemplateEditorPage />}
+                path="roadmap-upgraded/new"
+                element={<SuperAdminRoadmapUpgradedWizard />}
               />
               <Route
-                path="roadmap-overview"
-                element={<RoadmapPlatformOverviewPage />}
+                path="roadmap-upgraded/:id"
+                element={<SuperAdminRoadmapUpgradedDetail />}
               />
 {/* ================= FEATURED PROGRAMS ================= */}
 

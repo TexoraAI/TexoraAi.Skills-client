@@ -42,6 +42,10 @@ export default function CourseDetailsPage() {
   const location = useLocation();
   const { id } = useParams();
 
+    // NOTE: location.state?.course now comes from the lightweight summary DTO
+  // (homepage / related-courses), so it's missing syllabusWeeks/highlights/
+  // learningOutcomes. We still show it instantly for a fast perceived load,
+  // but we always fetch the full detail in the background to fill those in.
   const [courseData, setCourseData] = useState(location.state?.course || null);
   const [loadingCourse, setLoadingCourse] = useState(!location.state?.course);
   const [showEnrollModal, setShowEnrollModal] = useState(false);
@@ -94,7 +98,8 @@ export default function CourseDetailsPage() {
       navigate("/");
       return;
     }
-    if (courseData) return; // already have it from state
+    // Always fetch full detail — location.state.course (if present) is only
+    // the lightweight summary and lacks syllabus/highlights/learningOutcomes.
     async function load() {
       try {
         const { data } = await courseService.getFeaturedProgramById(id);
@@ -161,36 +166,66 @@ export default function CourseDetailsPage() {
      used on the homepage (courseService.getAllFeaturedPrograms) —
      no new API/service is introduced. Just filters out the current
      course and shows a few others. ── */
-  useEffect(() => {
+  // useEffect(() => {
+  //   if (!courseData?.id) return;
+  //   async function loadRelated() {
+  //     try {
+  //       const { data } = await courseService.getAllFeaturedPrograms();
+  //       const others = (data || [])
+  //         .filter((p) => String(p.id) !== String(courseData.id))
+  //         .slice(0, 3)
+  //         //   .map((p) => ({
+  //         //     id: p.id,
+  //         //     title: p.title,
+  //         //     instructor: p.instructorRole || p.instructorName,
+  //         //     duration: `${p.durationWeeks} weeks`,
+  //         //     students: p.studentsEnrolled,
+  //         //     rating: p.rating,
+  //         //     level: p.level,
+  //         //     price: `₹${Number(p.price).toLocaleString("en-IN")}`,
+  //         //   }));
+  //         // setRelatedCourses(others);
+  //         // .map((p) => ({
+  //         //   id: p.id,
+  //         //   title: p.title,
+  //         //   instructor: p.instructorRole || p.instructorName,
+  //         //   duration: `${p.durationWeeks} weeks`,
+  //         //   students: p.studentsEnrolled,
+  //         //   rating: p.rating,
+  //         //   level: p.level,
+  //         //   price: `₹${Number(p.price).toLocaleString("en-IN")}`,
+  //         //   thumbnailUrl: p.thumbnailUrl || "",
+  //         // }));
+  //         .map((p) => ({
+  //           id: p.id,
+  //           title: p.title,
+  //           instructor: p.instructorRole || p.instructorName,
+  //           duration: `${p.durationWeeks} weeks`,
+  //           students: p.studentsEnrolled,
+  //           rating: p.rating,
+  //           level: p.level,
+  //           price: `₹${Number(p.price).toLocaleString("en-IN")}`,
+  //           thumbnailUrl: p.thumbnailUrl || "",
+  //           instructorLinkedIn: p.instructorLinkedIn || "",
+  //           videoUrl: p.videoUrl || "",
+  //         }));
+  //       setRelatedCourses(others);
+  //     } catch (err) {
+  //       console.error("Failed to load related courses", err);
+  //     } finally {
+  //       setRelatedLoading(false);
+  //     }
+  //   }
+  //   loadRelated();
+  // }, [courseData?.id]);
+   useEffect(() => {
     if (!courseData?.id) return;
     async function loadRelated() {
       try {
-        const { data } = await courseService.getAllFeaturedPrograms();
+        const { data } = await courseService.getFeaturedProgramsSummary();
         const others = (data || [])
           .filter((p) => String(p.id) !== String(courseData.id))
           .slice(0, 3)
-          //   .map((p) => ({
-          //     id: p.id,
-          //     title: p.title,
-          //     instructor: p.instructorRole || p.instructorName,
-          //     duration: `${p.durationWeeks} weeks`,
-          //     students: p.studentsEnrolled,
-          //     rating: p.rating,
-          //     level: p.level,
-          //     price: `₹${Number(p.price).toLocaleString("en-IN")}`,
-          //   }));
-          // setRelatedCourses(others);
-          // .map((p) => ({
-          //   id: p.id,
-          //   title: p.title,
-          //   instructor: p.instructorRole || p.instructorName,
-          //   duration: `${p.durationWeeks} weeks`,
-          //   students: p.studentsEnrolled,
-          //   rating: p.rating,
-          //   level: p.level,
-          //   price: `₹${Number(p.price).toLocaleString("en-IN")}`,
-          //   thumbnailUrl: p.thumbnailUrl || "",
-          // }));
           .map((p) => ({
             id: p.id,
             title: p.title,
@@ -213,6 +248,9 @@ export default function CourseDetailsPage() {
     }
     loadRelated();
   }, [courseData?.id]);
+
+
+
 
   if (loadingCourse)
     return (

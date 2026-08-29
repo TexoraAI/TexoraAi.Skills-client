@@ -699,4 +699,10 @@ export const courseService = {
       { headers: authHeader() },
     );
   },
+
+
+    // GET /api/course/v1/featurecourse/summary  (public — lightweight, homepage only)
+  getFeaturedProgramsSummary() {
+    return axios.get(`${API}/course/v1/featurecourse/summary`);
+  },
 };

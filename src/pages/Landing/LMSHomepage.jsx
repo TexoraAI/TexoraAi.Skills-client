@@ -526,55 +526,46 @@ export default function LMSHomepage({ theme, toggleTheme }) {
      fails or returns no programs in any category. Includes the fuller
      backend field mapping: thumbnails, banners, instructor photos,
      LinkedIn, video URL, and only shows Published programs. */
-  useEffect(() => {
+   useEffect(() => {
     async function loadPrograms() {
       try {
-        const { data } = await courseService.getAllFeaturedPrograms();
+        const { data } = await courseService.getFeaturedProgramsSummary();
         const grouped = {};
 
-        data
-          .filter((p) => p.publishStatus === "Published") // defensive client-side guard
-          .forEach((p) => {
-            const cat = (p.category || "Other").trim();
+        data.forEach((p) => {
+          const cat = (p.category || "Other").trim();
 
-            if (!grouped[cat]) {
-              grouped[cat] = [];
-            }
+          if (!grouped[cat]) {
+            grouped[cat] = [];
+          }
 
-            grouped[cat].push({
-              id: p.id,
-              title: p.title,
-              instructor: p.instructorRole || p.instructorName,
-              instructorFull: p.instructorName,
-              instructorTitle: p.instructorRole || "",
-              duration: `${p.durationWeeks} weeks`,
-              students: p.studentsEnrolled,
-              rating: p.rating,
-              level: p.level,
-              description: p.shortDescription,
-              modules: (p.syllabusWeeks || []).map((w) => w.title),
-              price: `₹${Number(p.price).toLocaleString("en-IN")}`,
-              thumbnailUrl: p.thumbnailUrl || "",
-              bannerUrl: p.bannerUrl || "",
-              instructorPhotoUrl: p.instructorPhotoUrl || "",
-              instructorLinkedIn: p.instructorLinkedIn || "",
-              videoUrl: p.videoUrl || "",
-              highlights: (p.highlights || [])
-                .map((h) => (typeof h === "string" ? h : h?.text || ""))
-                .filter((h) => h && h !== "[object Object]"),
-              learningOutcomes: (p.learningOutcomes || [])
-                .map((t, i) => ({
-                  id: i,
-                  text: typeof t === "string" ? t : t?.text || "",
-                }))
-                .filter((t) => t.text && t.text !== "[object Object]"),
-              totalLessons: p.lessons,
-              projects: p.projects,
-              syllabusWeeks: p.syllabusWeeks || [],
-              enrollmentUrl: p.enrollmentUrl || "",
-              liveSessions: p.liveSessions ?? "—",
-            });
+          grouped[cat].push({
+            id: p.id,
+            title: p.title,
+            instructor: p.instructorRole || p.instructorName,
+            instructorFull: p.instructorName,
+            instructorTitle: p.instructorRole || "",
+            duration: `${p.durationWeeks} weeks`,
+            students: p.studentsEnrolled,
+            rating: p.rating,
+            level: p.level,
+            description: p.shortDescription,
+            modules: [],
+            price: `₹${Number(p.price).toLocaleString("en-IN")}`,
+            thumbnailUrl: p.thumbnailUrl || "",
+            bannerUrl: p.bannerUrl || "",
+            instructorPhotoUrl: p.instructorPhotoUrl || "",
+            instructorLinkedIn: p.instructorLinkedIn || "",
+            videoUrl: p.videoUrl || "",
+            highlights: [],
+            learningOutcomes: [],
+            totalLessons: p.lessons,
+            projects: p.projects,
+            syllabusWeeks: [],
+            enrollmentUrl: p.enrollmentUrl || "",
+            liveSessions: p.liveSessions ?? "—",
           });
+        });
 
         // Only use API data if we actually got programs
         const hasPrograms = Object.values(grouped).some(

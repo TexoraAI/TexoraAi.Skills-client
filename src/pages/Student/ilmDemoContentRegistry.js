@@ -59,10 +59,9 @@ const StudentSections = {
   "/student/study-plan": lazy(() =>
     import("../../Student/StudentStudyPlanPage.jsx"),
   ),
-  "/student/roadmaps": lazy(() => import("../../Student/RoadmapBrowser.jsx")),
-
-  "/student/roadmap-progress": lazy(
-    () => import("../../Student/RoadmapView.jsx"),
+  
+   "/student/roadmap-upgraded": lazy(
+    () => import("../../Student/StudentRoadmapUpgraded.jsx"),
   ),
 };
 
@@ -100,14 +99,9 @@ const TrainerSections = {
   "/trainer/study-plan": lazy(() =>
     import("../../Trainer/TrainerStudyPlanPage.jsx"),
   ),
-  "/trainer/roadmaps": lazy(() => import("../../Trainer/RoadmapList.jsx")),
-
-  "/trainer/roadmap-progress": lazy(
-    () => import("../../Trainer/RoadmapStudentsProgress.jsx"),
-  ),
-
-  "/trainer/roadmap-editor": lazy(
-    () => import("../../Trainer/RoadmapEditor.jsx"),
+ 
+   "/trainer/roadmap-upgraded": lazy(
+    () => import("../../Trainer/TrainerRoadmapUpgraded.jsx"),
   ),
 };
 
@@ -135,11 +129,11 @@ const AdminSections = {
   "/admin/feedback-review": lazy(() => import("../../Admin/Adminfeedback.jsx")),
   "/admin/attendance": lazy(() => import("../../Admin/AdminAttendance")),
   "/admin/settings": lazy(() => import("../../Admin/OrgSettings")),
-  "/admin/roadmaps": lazy(() => import("../../Admin/RoadmapManagement.jsx")),
-
-  "/admin/roadmap-analytics": lazy(
-    () => import("../../Admin/RoadmapAnalytics.jsx"),
+  "/admin/roadmap-upgraded": lazy(
+    () => import("../../Admin/AdminRoadmapUpgraded.jsx"),
   ),
+
+ 
 };
 
 const SECTIONS_BY_ROLE = {

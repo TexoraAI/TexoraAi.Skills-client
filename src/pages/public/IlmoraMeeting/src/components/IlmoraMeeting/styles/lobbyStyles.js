@@ -38,3 +38,202 @@ export const LB = {
     cursor: "pointer",
   },
 };
+
+/* ═════════════════════════════════════════════════════════════════
+   LOBBY SCREEN v2 — richer "waiting room" layout (used by LobbyScreen
+   only; kept separate from LB.* above so StatusScreen / DeniedScreen
+   are unaffected).
+═════════════════════════════════════════════════════════════════ */
+export const LB2 = {
+  wrap: {
+    boxSizing: "border-box",
+    width: "100%",
+    maxWidth: 440,
+    margin: "0 auto",
+    padding: "clamp(40px, 8vh, 88px) 20px 48px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    textAlign: "center",
+    color: "#3c4043",
+    fontFamily: "'Google Sans','Roboto','Segoe UI',sans-serif",
+  },
+
+  /* pulsing icon + sparkles */
+  iconStage: {
+    position: "relative",
+    width: 116,
+    height: 116,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 6,
+  },
+  iconGlow: {
+    position: "absolute",
+    inset: 0,
+    borderRadius: "50%",
+    background:
+      "radial-gradient(circle, rgba(26,115,232,.16) 0%, rgba(26,115,232,0) 72%)",
+  },
+  iconRing: {
+    position: "absolute",
+    width: 84,
+    height: 84,
+    borderRadius: "50%",
+    background: "rgba(26,115,232,.12)",
+    animation: "lobbyPulseRing 1.8s ease-in-out infinite",
+  },
+  iconCore: {
+    position: "relative",
+    width: 60,
+    height: 60,
+    borderRadius: "50%",
+    background: "#ffffff",
+    boxShadow: "0 2px 8px rgba(32,33,36,.14)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sparkle: {
+    position: "absolute",
+    animation: "lobbySparkleTwinkle 2.2s ease-in-out infinite",
+  },
+  sparkleA: { top: 2, left: 8, animationDelay: "0s" },
+  sparkleB: { top: 14, right: 2, animationDelay: ".5s" },
+  sparkleC: { bottom: 10, left: 2, animationDelay: "1.1s" },
+
+  title: {
+    fontSize: 23,
+    fontWeight: 600,
+    margin: "18px 0 10px",
+    color: "#202124",
+    letterSpacing: -0.2,
+  },
+  subtitle: {
+    fontSize: 14.5,
+    lineHeight: 1.5,
+    color: "#5f6368",
+    margin: "0 0 26px",
+    maxWidth: 360,
+  },
+
+  /* meeting / joined-at info box */
+  infoBox: {
+    display: "flex",
+    alignItems: "stretch",
+    width: "100%",
+    background: "#ffffff",
+    border: "1px solid rgba(32,33,36,.1)",
+    borderRadius: 14,
+    boxShadow: "0 1px 3px rgba(32,33,36,.08)",
+    marginBottom: 22,
+    overflow: "hidden",
+  },
+  infoCol: {
+    flex: "1 1 0",
+    minWidth: 0,
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    padding: "16px 14px",
+  },
+  infoDivider: {
+    width: 1,
+    alignSelf: "stretch",
+    margin: "12px 0",
+    background: "rgba(32,33,36,.1)",
+    flexShrink: 0,
+  },
+  infoIconWrap: {
+    flexShrink: 0,
+    width: 34,
+    height: 34,
+    borderRadius: "50%",
+    background: "rgba(26,115,232,.1)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  infoTextCol: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-start",
+    minWidth: 0,
+    textAlign: "left",
+  },
+  infoLabel: {
+    fontSize: 12,
+    color: "#5f6368",
+    marginBottom: 2,
+  },
+  infoValue: {
+    fontSize: 13.5,
+    fontWeight: 600,
+    color: "#202124",
+    maxWidth: "100%",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+
+  /* "you're in the waiting room" row */
+  waitingRow: {
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 12,
+    width: "100%",
+    textAlign: "left",
+    marginBottom: 26,
+  },
+  waitingIconWrap: {
+    flexShrink: 0,
+    width: 32,
+    height: 32,
+    borderRadius: "50%",
+    background: "rgba(30,142,62,.12)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 1,
+  },
+  waitingTitle: {
+    fontSize: 14,
+    fontWeight: 600,
+    color: "#202124",
+    margin: "0 0 3px",
+  },
+  waitingSubtitle: {
+    fontSize: 13,
+    lineHeight: 1.45,
+    color: "#5f6368",
+    margin: 0,
+  },
+
+  cancelBtn: {
+    width: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    background: "#ffffff",
+    border: "1px solid rgba(217,48,37,.35)",
+    color: "#d93025",
+    borderRadius: 10,
+    padding: "13px 0",
+    fontSize: 14,
+    fontWeight: 600,
+    fontFamily: "inherit",
+    cursor: "pointer",
+  },
+
+  footer: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    marginTop: 32,
+    fontSize: 12,
+    color: "#80868b",
+  },
+};

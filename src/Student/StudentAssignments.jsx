@@ -1172,7 +1172,7 @@ export default function StudentAssignments() {
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 12 }}>
                   <h2 style={{
                     fontSize: 15, fontWeight: 700, color: unlocked ? t.text : t.textMuted, margin: 0,
-                    lineHeight: 1.4, fontFamily: "'Poppins',sans-serif", display: "flex",
+                    lineHeight: 1.4, fontFamily: "\x27Poppins\x27,sans-serif",
                     alignItems: "flex-start", gap: 6,
                     overflow: "hidden", textOverflow: "ellipsis",
                     display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",

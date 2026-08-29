@@ -1622,16 +1622,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
               <div className="h-[42px] flex items-center px-1 sm:px-1.5 bg-white dark:bg-gray-900 rounded-full border border-gray-200 dark:border-gray-800 shadow-md shadow-slate-200/50 dark:shadow-none overflow-hidden">
                 <CategoryTabScroller activeKey={activeTab}>
                   <TabsList className="flex w-max items-center justify-center gap-1.5 bg-transparent mx-auto h-full">
-                    {Object.keys(
-                      programsLoading
-                        ? courses
-                        : featuredPrograms &&
-                            Object.values(featuredPrograms).some(
-                              (a) => a.length > 0,
-                            )
-                          ? featuredPrograms
-                          : courses,
-                    ).map((tab) => (
+                    {Object.keys(featuredPrograms).map((tab) => (
                       <TabsTrigger
                         key={tab}
                         value={tab}
@@ -1648,14 +1639,8 @@ export default function LMSHomepage({ theme, toggleTheme }) {
             {/* Real featured programs from the backend (with hardcoded
                `courses` as the fallback while loading or if the API
                returns nothing). */}
-            {Object.entries(
-              programsLoading
-                ? courses
-                : featuredPrograms &&
-                    Object.values(featuredPrograms).some((a) => a.length > 0)
-                  ? featuredPrograms
-                  : courses,
-            ).map(([category, categoryCourses]) => (
+            {Object.entries(featuredPrograms).map(
+  ([category, categoryCourses]) => (
               <TabsContent key={category} value={category}>
                 <HorizontalCarousel
                   items={categoryCourses}

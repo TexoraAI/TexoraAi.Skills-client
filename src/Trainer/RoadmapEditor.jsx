@@ -10,7 +10,7 @@ import { useNodesState, useEdgesState, addEdge } from "@xyflow/react";
 import roadmapService, {
   backendGraphToFlow,
   mapResourceToUi,
-} from "../../services/roadmapService";
+} from "../services/roadmapService";
 import RoadmapCanvas from "../components/roadmap/RoadmapCanvas";
 import ResourceDrawer from "../components/roadmap/ResourceDrawer";
 import "../components/roadmap/roadmap-tokens.css";

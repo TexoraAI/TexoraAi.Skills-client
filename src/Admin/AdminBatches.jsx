@@ -20,7 +20,7 @@ import { useNavigate } from "react-router-dom";
 
 import { deleteBatch, getAllBatches } from "../services/batchService";
 import CreateBatchModal from "./CreateBatchModal";
-import { DS_T, FONT_FAMILY } from "../theme"; // adjust path to wherever you actually defined these
+import { T as DS_T, FONT_FAMILY } from "@/design-system";
 /* ─── theme token map — same as AdminDashboard ─── */
 const T = {
   dark: {

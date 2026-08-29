@@ -2047,6 +2047,7 @@ import { WaitingRoomPanel } from "./components/WaitingRoomPanel";
 import {
   JOIN_CHIME_BATCH_MS,
   MEETING_STATUS_POLL_MS,
+  RAISE_HAND_CHIME_BATCH_MS,
   REACTIONS,
   WAITING_ROOM_POLL_MS,
   getTime,
@@ -2061,6 +2062,8 @@ import {
   playJoinChime,
   playJoinRequestChime,
   playMessageChime,
+  playRaiseHandChime,
+  primeNotificationAudio,
 } from "./utils/notificationSound";
 import { buildParticipantList } from "./utils/participants";
 import { detectScreenShareSupport, detectSpeechRecognitionSupport } from "./utils/platformSupport";
@@ -2100,11 +2103,22 @@ export function MeetingRoom({
   // trigger re-renders and never get reset by unrelated state updates.
   const initialSyncDoneRef = useRef(false); // becomes true once the initial room state (participants already in the call) has been loaded
   const knownIdentitiesRef = useRef(new Set()); // identities we've already accounted for — guards against duplicate ParticipantConnected fires (resyncs/reconnects)
-  const joinBatchTimerRef = useRef(null); // debounce timer: 2-4 near-simultaneous joins => one chime
+  const joinChimeCoolingRef = useRef(false); // true while a just-played join chime is still "covering" its batch window
+  const joinChimeCooldownTimerRef = useRef(null); // clears joinChimeCoolingRef once the batch window elapses
   const seenMessageIdsRef = useRef(new Set()); // messageId/eventId dedup so re-renders/redeliveries never replay the chime
   const notifiedWaitingIdsRef = useRef(new Set()); // join-request ids we've already notified about
   const firstWaitingPollRef = useRef(true); // first poll just establishes a baseline, it never fires notifications
-  const waitingBatchTimerRef = useRef(null); // debounce timer for batching simultaneous join-request chimes
+  const waitingBatchTimerRef = useRef(null); // clears requestChimeCoolingRef once the batch window elapses
+  const requestChimeCoolingRef = useRef(false); // true while a just-played request chime is still "covering" its batch window
+
+  // Phase 2 — Raise Hand notification/tune bookkeeping. Plain refs, same
+  // rationale as the Phase 1 ones above: they must never trigger a
+  // re-render and must never be reset by an unrelated state update, since
+  // they're read/written from inside the DataReceived handler which only
+  // fires on the actual raise-hand event itself.
+  const raisedHandStateRef = useRef({}); // identity -> boolean, read synchronously here (mirrors raisedHands state) so we can tell a genuine lower->raise transition apart from a redundant "raised: true" redelivery without depending on a possibly-stale closure over React state
+  const raiseHandChimeCoolingRef = useRef(false); // true while a just-played Raise Hand chime is still "covering" its batch window
+  const raiseHandChimeCooldownTimerRef = useRef(null); // clears raiseHandChimeCoolingRef once the batch window elapses
 
   const [connected, setConnected] = useState(false);
   const [micOn, setMicOn] = useState(initialAV?.micOn ?? true);
@@ -2185,6 +2199,13 @@ export function MeetingRoom({
 
   const isHost = !!connectPayload?.isHost;
   const device = useResponsiveDevice();
+
+  // Warm up the notification AudioContext as early as possible — by the
+  // time a real join/message/request happens, playback has zero startup
+  // latency instead of paying that cost on the very first chime.
+  useEffect(() => {
+    primeNotificationAudio();
+  }, []);
   const isCompactDevice = device === "phone";
   const timer = useElapsedTimer(joinedAt);
   const handRaised = !!raisedHands.you;
@@ -2281,10 +2302,40 @@ export function MeetingRoom({
           } else if (msg.type === "reaction" && msg.emoji) {
             showReaction(participant?.identity, msg.emoji);
           } else if (msg.type === "hand") {
-            setRaisedHands((prev) => ({
-              ...prev,
-              [participant?.identity]: !!msg.raised,
-            }));
+            // The People-list/tile state updates immediately, for every
+            // event, exactly like the join-notice path above — audio
+            // batching below never affects participant state.
+            const identity = participant?.identity;
+            const nextRaised = !!msg.raised;
+            const wasRaised = !!raisedHandStateRef.current[identity];
+            raisedHandStateRef.current = {
+              ...raisedHandStateRef.current,
+              [identity]: nextRaised,
+            };
+            setRaisedHands((prev) => ({ ...prev, [identity]: nextRaised }));
+
+            // Only a genuine "was not raised -> now raised" transition is
+            // an actual Raise Hand event. This guards against:
+            //  - Lower Hand (nextRaised === false) ever playing the chime.
+            //  - A duplicate/redelivered "raised: true" event (resyncs,
+            //    reconnects, redundant DataReceived firing) playing a
+            //    second chime for the same still-raised hand.
+            if (nextRaised && !wasRaised) {
+              // Batch the AUDIO only: the FIRST raise of a burst plays its
+              // chime immediately — no delay — and briefly "covers" a short
+              // window so 2-4 hands raised together still produce exactly
+              // ONE loud chime instead of overlapping sounds. Hands raised
+              // with a real gap between them each get their own instant
+              // chime, same pattern as the Phase 1 join chime above.
+              if (!raiseHandChimeCoolingRef.current) {
+                raiseHandChimeCoolingRef.current = true;
+                playRaiseHandChime();
+                raiseHandChimeCooldownTimerRef.current = setTimeout(() => {
+                  raiseHandChimeCoolingRef.current = false;
+                  raiseHandChimeCooldownTimerRef.current = null;
+                }, RAISE_HAND_CHIME_BATCH_MS);
+              }
+            }
           } else if (msg.type === "caption" && msg.text) {
             const speakerName =
               participant?.name || participant?.identity || "Someone";
@@ -2331,15 +2382,18 @@ export function MeetingRoom({
         // just join, so they never get a chime (or count toward a batch).
         if (!initialSyncDoneRef.current) return;
 
-        // Batch the AUDIO only: 2-4 people joining within a short window
-        // produce exactly ONE clean chime. A new join within the window
-        // resets the timer; joins separated by a real gap each get their
-        // own chime once their own window elapses.
-        if (joinBatchTimerRef.current) clearTimeout(joinBatchTimerRef.current);
-        joinBatchTimerRef.current = setTimeout(() => {
-          joinBatchTimerRef.current = null;
+        // Batch the AUDIO only: the FIRST join of a burst plays its chime
+        // immediately — no delay — and briefly "covers" a short window so
+        // 2-4 people joining together still produce exactly ONE chime.
+        // Joins separated by a real gap each get their own instant chime.
+        if (!joinChimeCoolingRef.current) {
+          joinChimeCoolingRef.current = true;
           playJoinChime();
-        }, JOIN_CHIME_BATCH_MS);
+          joinChimeCooldownTimerRef.current = setTimeout(() => {
+            joinChimeCoolingRef.current = false;
+            joinChimeCooldownTimerRef.current = null;
+          }, JOIN_CHIME_BATCH_MS);
+        }
       });
       room.on(RoomEvent.ParticipantDisconnected, (p) => {
         rebuild();
@@ -2350,6 +2404,16 @@ export function MeetingRoom({
           delete next[p.identity];
           return next;
         });
+        // Also forget their last-known Raise Hand state — otherwise, if
+        // they left with their hand still raised and later rejoin and
+        // raise it again, that would look like a redundant "already
+        // raised" redelivery and would wrongly be swallowed instead of
+        // chiming as the genuine new Raise Hand event it is.
+        if (raisedHandStateRef.current[p.identity] !== undefined) {
+          const nextState = { ...raisedHandStateRef.current };
+          delete nextState[p.identity];
+          raisedHandStateRef.current = nextState;
+        }
       });
       room.on(RoomEvent.ActiveSpeakersChanged, (speakers) => {
         speakingSetRef.current = new Set(
@@ -2458,12 +2522,19 @@ export function MeetingRoom({
 
     return () => {
       cancelled = true;
-      if (joinBatchTimerRef.current) {
-        clearTimeout(joinBatchTimerRef.current);
-        joinBatchTimerRef.current = null;
+      if (joinChimeCooldownTimerRef.current) {
+        clearTimeout(joinChimeCooldownTimerRef.current);
+        joinChimeCooldownTimerRef.current = null;
       }
+      joinChimeCoolingRef.current = false;
       initialSyncDoneRef.current = false;
       knownIdentitiesRef.current = new Set();
+      if (raiseHandChimeCooldownTimerRef.current) {
+        clearTimeout(raiseHandChimeCooldownTimerRef.current);
+        raiseHandChimeCooldownTimerRef.current = null;
+      }
+      raiseHandChimeCoolingRef.current = false;
+      raisedHandStateRef.current = {};
       try {
         roomRef.current?.disconnect();
       } catch (_) {}
@@ -2506,14 +2577,18 @@ export function MeetingRoom({
               notifiedWaitingIdsRef.current.add(w.requestId);
               pushNotice(`${w.name || "Someone"} wants to join`, "request");
             });
-            // Same batching pattern as live joins: several requests
-            // landing together produce exactly one chime.
-            if (waitingBatchTimerRef.current)
-              clearTimeout(waitingBatchTimerRef.current);
-            waitingBatchTimerRef.current = setTimeout(() => {
-              waitingBatchTimerRef.current = null;
+            // Same leading-edge batching pattern as live joins: the first
+            // new request plays its chime immediately, and any others
+            // landing in the same short window are covered by it instead
+            // of each queuing their own delayed chime.
+            if (!requestChimeCoolingRef.current) {
+              requestChimeCoolingRef.current = true;
               playJoinRequestChime();
-            }, JOIN_CHIME_BATCH_MS);
+              waitingBatchTimerRef.current = setTimeout(() => {
+                requestChimeCoolingRef.current = false;
+                waitingBatchTimerRef.current = null;
+              }, JOIN_CHIME_BATCH_MS);
+            }
           }
         }
 
@@ -2535,6 +2610,7 @@ export function MeetingRoom({
         clearTimeout(waitingBatchTimerRef.current);
         waitingBatchTimerRef.current = null;
       }
+      requestChimeCoolingRef.current = false;
     };
   }, [isHost, meetingId, pushNotice]);
   /* ── live captions (client-side Web Speech API) ─────────────────────

@@ -66,11 +66,11 @@ import { registerFcmToken } from "../../services/firebaseService";
 
 // ── Real, zero-API AI Companion components — embedded live ──────────────────
 import AiModeCards, { MODES_BY_TAB } from "../../Trainer/ai-companion/AiModeCards";
-import AiSourceDropdown from "../../trainer/ai-companion/AiSourceDropdown";
-import AiWorkflowTemplates from "../../trainer/ai-companion/AiWorkflowTemplates";
-import AiTemplateGalleryModal from "../../trainer/ai-companion/AiTemplateGalleryModal";
-import AiContextResourceModal from "../../trainer/ai-companion/AiContextResourceModal";
-import AiCompanionSidebar from "../../trainer/ai-companion/AiCompanionSidebar";
+import AiSourceDropdown from "../../Trainer/ai-companion/AiSourceDropdown";
+import AiWorkflowTemplates from "../../Trainer/ai-companion/AiWorkflowTemplates";
+import AiTemplateGalleryModal from "../../Trainer/ai-companion/AiTemplateGalleryModal";
+import AiContextResourceModal from "../../Trainer/ai-companion/AiContextResourceModal";
+import AiCompanionSidebar from "../../Trainer/ai-companion/AiCompanionSidebar";
 
 // ─────────────────────────────────────────────────────────────────────────
 // Theme tokens — identical palette to the ILM ORA marketing shell
@@ -1918,3 +1918,4 @@ export default function AiCompanionLanding({
     </PublicLayout>
   );
 }
+

@@ -1606,27 +1606,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
             onValueChange={setActiveTab}
             className="w-full"
           >
-            {/* ── Category Tabs: compact carousel, scales to 10/20/50+ categories
-                 without ever wrapping to multiple rows. Arrows + drag + wheel
-                 + native swipe, active tab always auto-scrolled into view. ── */}
-            {/* <div className="mb-6 sm:mb-8 mx-auto w-fit max-w-full sm:max-w-3xl px-1 sm:px-0">
-              <div className="h-[42px] flex items-center px-1 sm:px-1.5 bg-white dark:bg-gray-900 rounded-full border border-gray-200 dark:border-gray-800 shadow-md shadow-slate-200/50 dark:shadow-none overflow-hidden">
-                <CategoryTabScroller activeKey={activeTab}>
-                  <TabsList className="flex w-max items-center justify-center gap-1.5 bg-transparent mx-auto h-full">
-                    {Object.keys(featuredPrograms).map((tab) => (
-                      <TabsTrigger
-                        key={tab}
-                        value={tab}
-                        className="rounded-full capitalize font-semibold text-xs sm:text-sm whitespace-nowrap px-3.5 sm:px-5 h-[34px] flex-shrink-0 flex items-center text-[#1E293B] dark:text-gray-300 transition-all duration-300 ease-out data-[state=active]:bg-[#F97316] data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-orange-500/30"
-                      >
-                        {tab}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                </CategoryTabScroller>
-              </div>
-            </div> */}
-
+           
             {Object.keys(featuredPrograms).length > 0 && (
   <div className="mb-6 sm:mb-8 mx-auto w-fit max-w-full sm:max-w-3xl px-1 sm:px-0">
     <div className="h-[42px] flex items-center px-1 sm:px-1.5 bg-white dark:bg-gray-900 rounded-full border border-gray-200 dark:border-gray-800 shadow-md shadow-slate-200/50 dark:shadow-none overflow-hidden">
@@ -1666,21 +1646,13 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                     const isWishlisted = wishlist.has(course.id);
 
                     return (
-                      // <div
-                      //   onClick={() =>
-                      //     navigate(`/course-details/${course.id}`, {
-                      //       state: { course },
-                      //     })
-                      //   }
-                      //   className="group relative flex flex-col min-w-0 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-md hover:shadow-xl hover:shadow-slate-300/40 dark:hover:shadow-black/40 hover:-translate-y-1 transition-all duration-300 ease-out overflow-hidden cursor-pointer w-full h-full"
-                      // >
-                      <div
+                   <div
   onClick={() =>
     navigate(`/course-details/${course.id}`, {
       state: { course },
     })
   }
-  className="group relative flex flex-col min-w-0 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-md hover:shadow-xl hover:shadow-slate-300/40 dark:hover:shadow-black/40 hover:-translate-y-1 transition-all duration-300 ease-out cursor-pointer w-full h-full"
+  className="group relative flex flex-col min-w-0 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-[#F97316]/50 hover:-translate-y-1 transition-all duration-300 ease-out cursor-pointer w-full h-full"
 >
                         {/* ── Thumbnail / Banner ── */}
                         <div className="relative h-16 sm:h-20 overflow-hidden rounded-t-2xl bg-gradient-to-br from-[#1E293B] via-[#334155] to-[#F97316] flex-shrink-0">

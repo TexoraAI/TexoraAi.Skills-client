@@ -133,9 +133,6 @@ export default function HorizontalCarousel({
         <ChevronRight size={20} className="hidden sm:block" />
       </button>
 
-      {/* Edge fade masks (desktop) */}
-      <div className="hidden sm:block pointer-events-none absolute left-0 top-0 bottom-0 w-8 z-10 bg-gradient-to-r from-[#F8FAFC] dark:from-black to-transparent" />
-      <div className="hidden sm:block pointer-events-none absolute right-0 top-0 bottom-0 w-8 z-10 bg-gradient-to-l from-[#F8FAFC] dark:from-black to-transparent" />
 
       <div
         ref={trackRef}

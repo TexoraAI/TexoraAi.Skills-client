@@ -29,10 +29,10 @@
   <url><loc>https://ilmora.texora.ai/faq</loc><priority>0.5</priority></url>
   <url><loc>https://ilmora.texora.ai/help-center</loc><priority>0.5</priority></url>
 
-  <url><loc>https://ilmora.texora.ai/apply</loc><priority>0.5</priority></url>
-  <url><loc>https://ilmora.texora.ai/apply-trainer</loc><priority>0.5</priority></url>
-  <url><loc>https://ilmora.texora.ai/apply-business</loc><priority>0.5</priority></url>
-  <url><loc>https://ilmora.texora.ai/apply-student</loc><priority>0.5</priority></url>
+  <url><loc>https://ilmora.texora.ai/ai-companion</loc><priority>0.6</priority></url>
+<url><loc>https://ilmora.texora.ai/whiteboard</loc><priority>0.6</priority></url>
+<url><loc>https://ilmora.texora.ai/coding-lab</loc><priority>0.6</priority></url>
+<url><loc>https://ilmora.texora.ai/study-plan</loc><priority>0.6</priority></url>
 
   <url><loc>https://ilmora.texora.ai/privacy-policy</loc><priority>0.3</priority></url>
   <url><loc>https://ilmora.texora.ai/terms-of-service</loc><priority>0.3</priority></url>

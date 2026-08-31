@@ -852,12 +852,18 @@ const TexoraLogin = () => {
           display: flex;
           justify-content: center;
         }
-        .google-wrap > div,
-        .google-wrap iframe,
-        .google-wrap > div > div {
-          width: 100% !important;
-          max-width: 100% !important;
+        .google-wrap {
+        width: 100%;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: center;
+        position: relative;
+        z-index: 2;
         }
+       .google-wrap > div {
+       width: 100%;
+       max-width: 372px;
+       }
 
         .or-div {
           display: flex;

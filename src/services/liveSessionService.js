@@ -496,6 +496,16 @@ export const askAiTranscript = (transcriptId, question) =>
     getAuthHeader(),
   );
 
+/**
+ * GET /api/v1/ai-companion/transcripts/by-session/{liveSessionId}
+ * Returns: { session, segments } for a virtual meeting's Whisper-derived transcript
+ */
+export const getTranscriptByLiveSession = (liveSessionId) =>
+  axios.get(
+    `${API_BASE}/v1/ai-companion/transcripts/by-session/${liveSessionId}`,
+    getAuthHeader(),
+  );
+
 // ✅ NEW — guest join (no auth), name-only
 export const joinLiveSessionGuest = (sessionId, name) =>
   axios.get(
@@ -610,6 +620,32 @@ export const getGuestToken = (
     params: { guestIdentity, displayName },
   });
 
+/**
+ * GET /api/meetings/{id}/token/refresh?displayName=...
+ * Host-only refresh — same shape as getMeetingJoinToken, called
+ * periodically to renew a long-running host connection's token.
+ */
+export const refreshHostToken = (meetingId, displayName) =>
+  axios.get(`${API_BASE}/meetings/${meetingId}/token/refresh`, {
+    ...getAuthHeader(),
+    params: { displayName },
+  });
+
+/**
+ * GET /api/meetings/{id}/token/guest/{requestId}/refresh?guestIdentity=...&displayName=...
+ * Guest-only refresh — same shape as getGuestToken, called
+ * periodically to renew a long-running guest connection's token.
+ */
+export const refreshGuestToken = (
+  meetingId,
+  requestId,
+  guestIdentity,
+  displayName,
+) =>
+  axios.get(
+    `${API_BASE}/meetings/${meetingId}/token/guest/${requestId}/refresh`,
+    { params: { guestIdentity, displayName } },
+  );
 // ─── MEETINGS — Host-only lobby controls ───────────────────────────
 
 /**

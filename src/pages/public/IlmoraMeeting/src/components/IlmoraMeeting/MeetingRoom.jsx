@@ -43,6 +43,8 @@ import {
   getMeetingByJoinCode,
   listPendingJoinRequests,
   requestMeetingSummary,
+  refreshHostToken,
+  refreshGuestToken,
 } from "@/services/liveSessionService";
 import { AudioPermissionAlert } from "./components/AudioPermissionAlert";
 import { Btn } from "./components/Btn";
@@ -98,10 +100,16 @@ export function MeetingRoom({
   initialAV,
   onEndedRemotely,
   onLeft,
+  guestRequestId,
+  guestIdentity,
 }) {
   const roomRef = useRef(null);
   const localCamRef = useRef(null);
   const localMicRef = useRef(null);
+  const localScreenRef = useRef(null); // NEW — tracks the active screen-share track so refresh can republish it
+  const micOnRef = useRef(true); // NEW — mirrors micOn state, read inside setInterval closures so refresh always sees the LATEST value, not a stale one captured at mount
+  const camOnRef = useRef(true); // NEW — mirrors camOn state, same reason
+  const tokenRefreshTimerRef = useRef(null);
   const camReadyPromiseRef = useRef(null);
   const chatEndRef = useRef(null);
   const waitingPollRef = useRef(null);
@@ -140,6 +148,16 @@ export function MeetingRoom({
   const [micOn, setMicOn] = useState(initialAV?.micOn ?? true);
   const [camOn, setCamOn] = useState(initialAV?.camOn ?? true);
   const [screenOn, setScreenOn] = useState(false);
+
+  // NEW — keep the refs in sync with state on every change, so the
+  // setInterval closure in doTokenRefresh always reads the CURRENT
+  // mic/cam status instead of whatever it was at the moment of mount.
+  useEffect(() => {
+    micOnRef.current = micOn;
+  }, [micOn]);
+  useEffect(() => {
+    camOnRef.current = camOn;
+  }, [camOn]);
   const [participants, setParticipants] = useState([]);
   const [messages, setMessages] = useState(() => [
     {
@@ -489,6 +507,103 @@ export function MeetingRoom({
           knownIdentitiesRef.current.add(p.identity),
         );
         initialSyncDoneRef.current = true;
+        // ── Proactive token refresh for long-running sessions ──────
+        // Renews the LiveKit token well before it expires. Does a clean
+        // disconnect + fresh connect + explicit republish of mic, camera,
+        // AND screen-share (if active) — calling room.connect() again on
+        // an already-connected Room silently orphans existing tracks
+        // otherwise. Retries 3x on failure; if all 3 fail, reloads the
+        // page as a last-resort recovery so the user isn't stuck silently
+        // disconnected — the whole join flow re-runs fresh from scratch
+        // and issues a brand-new token.
+        const refreshIntervalMs = 8 * 60 * 60 * 1000; // every 8 hours (24h TTL / 3)
+
+        const doTokenRefresh = async (attempt = 1) => {
+          try {
+            const isHostToken = !!connectPayload?.isHost;
+            let newToken;
+            if (isHostToken) {
+              const res = await refreshHostToken(meetingId);
+              newToken = res?.data?.token;
+            } else {
+              const res = await refreshGuestToken(
+                meetingId,
+                guestRequestId,
+                guestIdentity,
+              );
+              newToken = res?.data?.token;
+            }
+            if (!newToken || !roomRef.current) return;
+
+            // Preserve current local tracks + their enabled state before
+            // tearing down the connection. Read from refs, NOT the
+            // micOn/camOn state directly — this function is captured in a
+            // setInterval closure at mount time, so reading state directly
+            // would always see the value from the very first render, not
+            // whatever the user toggled it to since.
+            const micTrack = localMicRef.current;
+            const camTrack = localCamRef.current;
+            const screenTrack = localScreenRef.current;
+            const wasMicOn = micOnRef.current;
+            const wasCamOn = camOnRef.current;
+
+            // Clean disconnect — does NOT stop the underlying
+            // MediaStreamTrack devices (mic/camera/screen keep running).
+            await roomRef.current.disconnect();
+
+            // Fresh connect with the new token.
+            await roomRef.current.connect(serverUrl, newToken);
+
+            // Explicitly republish every track that was active before —
+            // this is the step that was missing originally, and is why
+            // audio/video/screen-share silently died on refresh.
+            if (micTrack && micTrack.mediaStreamTrack?.readyState === "live") {
+              await roomRef.current.localParticipant.publishTrack(micTrack);
+              localMicRef.current = micTrack;
+              if (!wasMicOn) await micTrack.mute();
+            }
+            if (camTrack && camTrack.mediaStreamTrack?.readyState === "live") {
+              await roomRef.current.localParticipant.publishTrack(camTrack);
+              localCamRef.current = camTrack;
+              if (!wasCamOn) await camTrack.mute();
+            }
+            if (
+              screenTrack &&
+              screenTrack.mediaStreamTrack?.readyState === "live"
+            ) {
+              await roomRef.current.localParticipant.publishTrack(screenTrack, {
+                source: Track.Source.ScreenShare,
+              });
+              localScreenRef.current = screenTrack;
+            }
+
+            rebuild();
+            console.log(
+              "✅ Token refreshed — clean reconnect + all tracks republished",
+            );
+          } catch (err) {
+            console.error(`❌ Token refresh failed (attempt ${attempt}):`, err);
+            if (attempt < 3) {
+              setTimeout(() => doTokenRefresh(attempt + 1), 30000);
+            } else {
+              // Last resort: all 3 attempts failed. Don't leave the user
+              // silently stuck — reload the page so the whole join flow
+              // (IlmoraMeeting.jsx) runs fresh and issues a brand-new
+              // token/connection from scratch.
+              setMediaError(
+                "Reconnecting… your session will refresh automatically.",
+              );
+              setTimeout(() => {
+                window.location.reload();
+              }, 3000);
+            }
+          }
+        };
+
+        tokenRefreshTimerRef.current = setInterval(
+          () => doTokenRefresh(1),
+          refreshIntervalMs,
+        );
       } catch (err) {
         console.error("LiveKit connect failed:", err);
         return;
@@ -578,6 +693,10 @@ export function MeetingRoom({
 
     return () => {
       cancelled = true;
+      if (tokenRefreshTimerRef.current) {
+        clearInterval(tokenRefreshTimerRef.current);
+        tokenRefreshTimerRef.current = null;
+      }
       if (joinChimeCooldownTimerRef.current) {
         clearTimeout(joinChimeCooldownTimerRef.current);
         joinChimeCooldownTimerRef.current = null;
@@ -776,42 +895,62 @@ export function MeetingRoom({
     if (!room) return;
     try {
       const nextEnabled = !micOn;
+      const trackReallyDead =
+        localMicRef.current?.mediaStreamTrack?.readyState === "ended";
 
-      if (nextEnabled && !localMicRef.current?.isEnabled) {
-        console.log("🎤 Mic disabled or dead, getting fresh track...");
+      if (nextEnabled && trackReallyDead) {
+        console.log("🎤 Mic track actually dead, attempting restart...");
         try {
-          if (localMicRef.current) {
-            try {
-              await room.localParticipant.unpublishTrack(localMicRef.current);
-            } catch (_) {}
-          }
-
-          const tracks = await createLocalTracks({
-            audio: {
-              echoCancellation: true,
-              noiseSuppression: true,
-              autoGainControl: true,
-            },
+          // restartTrack recovers the SAME track (same ID) — no
+          // unpublish/republish, so nobody else has to resubscribe.
+          await localMicRef.current.restartTrack({
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
           });
-          const audioTrack = tracks.find((t) => t.kind === Track.Kind.Audio);
-          if (!audioTrack) {
-            throw new Error("Fresh microphone track not available");
-          }
-
-          await room.localParticipant.publishTrack(audioTrack);
-          localMicRef.current = audioTrack;
-
-          audioTrack.on("muted", () => {
-            console.warn("⚠️ New audio track was muted");
-          });
-
           setMicOn(true);
           setMediaError(null);
           rebuild();
           return;
         } catch (err) {
-          console.error("❌ Failed to get fresh mic track:", err);
-          throw err;
+          console.warn(
+            "⚠️ restartTrack failed, falling back to fresh track:",
+            err,
+          );
+          try {
+            if (localMicRef.current) {
+              try {
+                await room.localParticipant.unpublishTrack(localMicRef.current);
+              } catch (_) {}
+            }
+
+            const tracks = await createLocalTracks({
+              audio: {
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true,
+              },
+            });
+            const audioTrack = tracks.find((t) => t.kind === Track.Kind.Audio);
+            if (!audioTrack) {
+              throw new Error("Fresh microphone track not available");
+            }
+
+            await room.localParticipant.publishTrack(audioTrack);
+            localMicRef.current = audioTrack;
+
+            audioTrack.on("muted", () => {
+              console.warn("⚠️ New audio track was muted");
+            });
+
+            setMicOn(true);
+            setMediaError(null);
+            rebuild();
+            return;
+          } catch (err2) {
+            console.error("❌ Failed to get fresh mic track:", err2);
+            throw err2;
+          }
         }
       }
 
@@ -884,6 +1023,7 @@ export function MeetingRoom({
       } catch (err) {
         console.warn("Stop screen share failed:", err);
       } finally {
+        localScreenRef.current = null; // NEW
         setScreenOn(false);
         rebuild();
       }
@@ -906,6 +1046,7 @@ export function MeetingRoom({
         contentHint: "detail",
       });
       if (!pub) return;
+      localScreenRef.current = pub.track || null; // NEW — remember it for refresh republish
       setScreenOn(true);
       setMediaError(null);
       rebuild();
@@ -916,6 +1057,7 @@ export function MeetingRoom({
           // "Stop sharing" bar/indicator (Windows, macOS, Chrome, Edge) —
           // keep our button state in sync with that native control.
           room.localParticipant.setScreenShareEnabled(false).catch(() => {});
+          localScreenRef.current = null; // NEW
           setScreenOn(false);
           rebuild();
         },

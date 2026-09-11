@@ -28,11 +28,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  AlertTriangle,
-  Loader2,
-  PhoneOff,
-} from "lucide-react";
+import { AlertTriangle, Loader2, PhoneOff } from "lucide-react";
 import {
   getGuestToken,
   getJoinRequestStatus,
@@ -268,7 +264,6 @@ export default function IlmoraMeeting() {
   if (phase === "denied") {
     return <DeniedScreen onRetry={() => setPhase("prejoin")} />;
   }
-
   return (
     <MeetingRoom
       joinCode={joinCode}
@@ -278,6 +273,8 @@ export default function IlmoraMeeting() {
       initialAV={initialAV}
       onEndedRemotely={handleMeetingEndedRemotely}
       onLeft={handleLeftMeeting}
+      guestRequestId={joinRequestId}
+      guestIdentity={guestIdentity}
     />
   );
 }

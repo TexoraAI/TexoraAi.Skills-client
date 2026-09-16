@@ -5,7 +5,6 @@ import {
   MicOff,
   MonitorPlay,
 } from "lucide-react";
-import { AudioTrackEl } from "./AudioTrackEl";
 import { ReactionBadge } from "./ReactionBadge";
 import { VideoTrackEl } from "./VideoTrackEl";
 import { getAvatarCircleStyle, getAvatarStyle } from "../utils/avatar";
@@ -59,9 +58,7 @@ export function StageTile({ p, raised, reaction, S, onMaximize, presenterCam }) 
             </div>
           </div>
         )}
-        {!p.isLocal && p.micTrack && <AudioTrackEl track={p.micTrack} />}
-
-        {isScreen && !p.isLocal && (
+                {isScreen && !p.isLocal && (
           <div style={S.screenLabel}>
             <MonitorPlay size={13} />
             {`${p.name} is presenting`}

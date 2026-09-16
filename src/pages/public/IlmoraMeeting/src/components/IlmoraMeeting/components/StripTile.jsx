@@ -5,7 +5,6 @@ import {
   Mic,
   MicOff,
 } from "lucide-react";
-import { AudioTrackEl } from "./AudioTrackEl";
 import { ReactionBadge } from "./ReactionBadge";
 import { VideoTrackEl } from "./VideoTrackEl";
 import { useInView } from "../hooks/useInView";
@@ -48,8 +47,7 @@ export function StripTile({ p, active, raised, reaction, S }) {
           </div>
         </div>
       )}
-      {!p.isLocal && p.micTrack && <AudioTrackEl track={p.micTrack} />}
-      {(raised || p.isHost) && (
+            {(raised || p.isHost) && (
         <div style={S.stripBadgeTopLeft}>
           {raised ? (
             <Hand size={11} color="#202124" />

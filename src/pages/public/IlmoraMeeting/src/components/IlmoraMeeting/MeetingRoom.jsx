@@ -52,6 +52,7 @@ import { EmojiFloaters } from "./components/EmojiFloaters";
 import { MobileMoreSheet } from "./components/MobileMoreSheet";
 import { ParticipantGrid } from "./components/ParticipantGrid";
 import { PersonRow } from "./components/PersonRow";
+import { RemoteAudioRenderer } from "./components/RemoteAudioRenderer";
 import { PiPPanel } from "./components/PiPPanel";
 import { StageTile } from "./components/StageTile";
 import { StripOverflow } from "./components/StripOverflow";
@@ -1720,8 +1721,9 @@ export function MeetingRoom({
         </div>
       )}
 
-      {/* ── main area ── */}
+            {/* ── main area ── */}
       <div style={S.mainArea} className="im-mainarea">
+        <RemoteAudioRenderer participants={participants} />
         <div style={S.stageColumn} className="im-stagecolumn">
           {effectiveGridMode ? (
             <>

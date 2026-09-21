@@ -1,12 +1,41 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  Code2, Terminal, Database, Coffee, Braces,
-  ChevronLeft, Play, Save, FolderOpen, Trophy,
-  FlaskConical, Trash2, RefreshCw, X, FileCode2,
-  LayoutGrid, History, Gamepad2, Zap, ChevronDown,
-  ChevronUp, AlertTriangle, BookOpen, CheckCircle2,
-  XCircle, Clock, Cpu, User, Hash, Eye, EyeOff,
-  RotateCcw, Table2, PanelLeft, FileText, Loader2
+  Code2,
+  Terminal,
+  Database,
+  Coffee,
+  Braces,
+  ChevronLeft,
+  Play,
+  Save,
+  FolderOpen,
+  Trophy,
+  FlaskConical,
+  Trash2,
+  RefreshCw,
+  X,
+  FileCode2,
+  LayoutGrid,
+  History,
+  Gamepad2,
+  Zap,
+  ChevronDown,
+  ChevronUp,
+  AlertTriangle,
+  BookOpen,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Cpu,
+  User,
+  Hash,
+  Eye,
+  EyeOff,
+  RotateCcw,
+  Table2,
+  PanelLeft,
+  FileText,
+  Loader2,
 } from "lucide-react";
 import API, {
   deleteCodeFile,
@@ -20,8 +49,13 @@ import API, {
   runCode,
   saveCodeFile,
   submitCodeForJudge,
+  getCodingSolveUsage,
+  getPlaygroundRunUsage,
+  getSaveFileUsage,
 } from "../services/assessmentService";
 import { getStudentClassroom } from "../services/batchService";
+import UpgradeModal from "../components/plan/UpgradeModal";
+import { parsePlanError } from "../services/planErrorHandler";
 
 const codeFilesAPI = {
   save: (data) => saveCodeFile(data),
@@ -809,33 +843,45 @@ const LANGUAGES = ["JAVA", "PYTHON", "JAVASCRIPT", "MYSQL", "BASH"];
 const LangIcon = ({ lang, size = 12 }) => {
   const props = { size, strokeWidth: 2.2 };
   switch (lang) {
-    case "JAVA":       return <Coffee {...props} />;
-    case "PYTHON":     return <Code2 {...props} />;
-    case "JAVASCRIPT": return <Braces {...props} />;
-    case "MYSQL":      return <Database {...props} />;
-    case "BASH":       return <Terminal {...props} />;
-    default:           return <FileCode2 {...props} />;
+    case "JAVA":
+      return <Coffee {...props} />;
+    case "PYTHON":
+      return <Code2 {...props} />;
+    case "JAVASCRIPT":
+      return <Braces {...props} />;
+    case "MYSQL":
+      return <Database {...props} />;
+    case "BASH":
+      return <Terminal {...props} />;
+    default:
+      return <FileCode2 {...props} />;
   }
 };
 
 const LANG_LABEL = {
-  JAVA:       "Java",
-  PYTHON:     "Python",
+  JAVA: "Java",
+  PYTHON: "Python",
   JAVASCRIPT: "JS",
-  MYSQL:      "MySQL",
-  BASH:       "Bash",
+  MYSQL: "MySQL",
+  BASH: "Bash",
 };
 
 /* ── File icon by language ── */
 const FileIcon = ({ lang }) => {
   const size = 22;
   switch (lang) {
-    case "JAVA":       return <Coffee size={size} color="#f97316" strokeWidth={1.8} />;
-    case "PYTHON":     return <Code2 size={size} color="#3b82f6" strokeWidth={1.8} />;
-    case "JAVASCRIPT": return <Braces size={size} color="#eab308" strokeWidth={1.8} />;
-    case "MYSQL":      return <Database size={size} color="#22d3ee" strokeWidth={1.8} />;
-    case "BASH":       return <Terminal size={size} color="#34d399" strokeWidth={1.8} />;
-    default:           return <FileText size={size} color="#94a3b8" strokeWidth={1.8} />;
+    case "JAVA":
+      return <Coffee size={size} color="#f97316" strokeWidth={1.8} />;
+    case "PYTHON":
+      return <Code2 size={size} color="#3b82f6" strokeWidth={1.8} />;
+    case "JAVASCRIPT":
+      return <Braces size={size} color="#eab308" strokeWidth={1.8} />;
+    case "MYSQL":
+      return <Database size={size} color="#22d3ee" strokeWidth={1.8} />;
+    case "BASH":
+      return <Terminal size={size} color="#34d399" strokeWidth={1.8} />;
+    default:
+      return <FileText size={size} color="#94a3b8" strokeWidth={1.8} />;
   }
 };
 
@@ -891,6 +937,16 @@ echo "10 * 4 = $((10 * 4))"`,
 
 const NO_INPUT_LANGS = ["MYSQL", "BASH"];
 
+const getAuthTokenUserId = () => {
+  try {
+    const token = localStorage.getItem("lms_token");
+    if (!token) return null;
+    return JSON.parse(atob(token.split(".")[1]))?.userId ?? null;
+  } catch {
+    return null;
+  }
+};
+
 const isDarkMode = () =>
   document.documentElement.classList.contains("dark") ||
   document.body.classList.contains("dark") ||
@@ -927,13 +983,41 @@ export default function StudentCompilerPage() {
   const [saveFileLoading, setSaveFileLoading] = useState(false);
   const [saveFileError, setSaveFileError] = useState("");
   const [dark, setDark] = useState(isDarkMode);
+  const [usage, setUsage] = useState(null);
+  const [runUsage, setRunUsage] = useState(null);
+  const [saveUsage, setSaveUsage] = useState(null);
+  const [upgradeConfig, setUpgradeConfig] = useState(null);
+
+  const fetchUsage = () => {
+    getCodingSolveUsage()
+      .then((res) => setUsage(res.data))
+      .catch(() => setUsage(null));
+  };
+
+  const fetchRunUsage = () => {
+    getPlaygroundRunUsage()
+      .then((res) => setRunUsage(res.data))
+      .catch(() => setRunUsage(null));
+  };
+
+  const fetchSaveUsage = () => {
+    getSaveFileUsage()
+      .then((res) => setSaveUsage(res.data))
+      .catch(() => setSaveUsage(null));
+  };
 
   const textareaRef = useRef(null);
 
   useEffect(() => {
     const observer = new MutationObserver(() => setDark(isDarkMode()));
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
     return () => observer.disconnect();
   }, []);
 
@@ -965,125 +1049,274 @@ export default function StudentCompilerPage() {
     fetchEmail();
   }, []);
 
-  useEffect(() => { if (batchId) fetchProblems(); }, [batchId]);
-  useEffect(() => { if (tab === "history" && batchId) fetchHistory(); }, [tab, batchId]);
+  useEffect(() => {
+    if (batchId) fetchProblems();
+  }, [batchId]);
+  useEffect(() => {
+    if (tab === "history" && batchId) fetchHistory();
+  }, [tab, batchId]);
+  useEffect(() => {
+    if (batchId) {
+      fetchRunUsage();
+      fetchSaveUsage();
+    }
+  }, [batchId]);
 
   const fetchProblems = async () => {
-    try { const res = await getStudentProblems(batchId); setProblems(res.data || []); }
-    catch { setProblems([]); }
+    try {
+      const res = await getStudentProblems(batchId);
+      setProblems(res.data || []);
+    } catch {
+      setProblems([]);
+    }
   };
 
   const fetchHistory = async () => {
-    try { const res = await getMyCodeSubmissions(batchId); setHistory(res.data || []); }
-    catch { setHistory([]); }
+    try {
+      const res = await getMyCodeSubmissions(batchId);
+      setHistory(res.data || []);
+    } catch {
+      setHistory([]);
+    }
   };
 
   const fetchMySQLState = async () => {
     setMysqlStateLoading(true);
-    try { const res = await getMySQLState(); setMysqlTables(res.data); }
-    catch { setMysqlTables({ output: "Could not fetch database state.", status: "RUNTIME_ERROR" }); }
-    finally { setMysqlStateLoading(false); }
+    try {
+      const res = await getMySQLState();
+      setMysqlTables(res.data);
+    } catch {
+      setMysqlTables({
+        output: "Could not fetch database state.",
+        status: "RUNTIME_ERROR",
+      });
+    } finally {
+      setMysqlStateLoading(false);
+    }
   };
 
   const handleMySQLReset = async () => {
-    if (!window.confirm("⚠️ This will DROP your entire database and all tables.\n\nAre you sure?")) return;
-    setRunLoading(true); setOutput(null);
-    try { const res = await resetMySQLDatabase(); setOutput(res.data); setMysqlTables(null); setShowDbExplorer(false); }
-    catch (e) { setOutput({ output: e.response?.data?.message || "Reset failed.", status: "RUNTIME_ERROR" }); }
-    finally { setRunLoading(false); }
+    if (
+      !window.confirm(
+        "⚠️ This will DROP your entire database and all tables.\n\nAre you sure?",
+      )
+    )
+      return;
+    setRunLoading(true);
+    setOutput(null);
+    try {
+      const res = await resetMySQLDatabase();
+      setOutput(res.data);
+      setMysqlTables(null);
+      setShowDbExplorer(false);
+    } catch (e) {
+      setOutput({
+        output: e.response?.data?.message || "Reset failed.",
+        status: "RUNTIME_ERROR",
+      });
+    } finally {
+      setRunLoading(false);
+    }
   };
 
   const fetchMyFiles = async () => {
     if (!batchId) return;
     setMyFilesLoading(true);
-    try { const res = await codeFilesAPI.getAll(studentEmail, batchId); setMyFiles(res.data || []); }
-    catch { setMyFiles([]); }
-    finally { setMyFilesLoading(false); }
+    try {
+      const res = await codeFilesAPI.getAll(studentEmail, batchId);
+      setMyFiles(res.data || []);
+    } catch {
+      setMyFiles([]);
+    } finally {
+      setMyFilesLoading(false);
+    }
   };
 
-  const handleOpenMyFiles = () => { setShowMyFiles(true); fetchMyFiles(); };
+  const handleOpenMyFiles = () => {
+    setShowMyFiles(true);
+    fetchMyFiles();
+  };
 
   const handleLoadFile = async (file) => {
     try {
       const res = await codeFilesAPI.getById(file.id);
       const f = res.data;
       const lang = (f.language || file.language || language).toUpperCase();
-      setLanguage(lang); setCode(f.code || f.content || "");
-      setOutput(null); setJudgeResult(null); setShowMyFiles(false);
-    } catch { alert("Could not load file."); }
+      setLanguage(lang);
+      setCode(f.code || f.content || "");
+      setOutput(null);
+      setJudgeResult(null);
+      setShowMyFiles(false);
+    } catch {
+      alert("Could not load file.");
+    }
   };
 
   const handleDeleteFile = async (fileId, e) => {
     e.stopPropagation();
     if (!window.confirm("Delete this file?")) return;
-    try { await codeFilesAPI.delete(fileId); setMyFiles((prev) => prev.filter((f) => f.id !== fileId)); }
-    catch { alert("Could not delete file."); }
+    try {
+      await codeFilesAPI.delete(fileId);
+      setMyFiles((prev) => prev.filter((f) => f.id !== fileId));
+    } catch {
+      alert("Could not delete file.");
+    }
   };
 
   const handleSaveFile = async () => {
     const trimmed = saveFileName.trim();
-    if (!trimmed) { setSaveFileError("File name is required."); return; }
-    setSaveFileLoading(true); setSaveFileError("");
+    if (!trimmed) {
+      setSaveFileError("File name is required.");
+      return;
+    }
+    setSaveFileLoading(true);
+    setSaveFileError("");
     try {
-      await codeFilesAPI.save({ fileName: trimmed, language, code, batchId, ...(studentEmail ? { studentEmail } : {}) });
-      setSaveFileModal(false); setSaveFileName("");
-    } catch (e) { setSaveFileError(e.response?.data?.message || "Save failed. Please try again."); }
-    finally { setSaveFileLoading(false); }
+      await codeFilesAPI.save({
+        fileName: trimmed,
+        language,
+        code,
+        batchId,
+        ...(studentEmail ? { studentEmail } : {}),
+      });
+      setSaveFileModal(false);
+      setSaveFileName("");
+      fetchSaveUsage();
+    } catch (e) {
+      const planError = parsePlanError(e);
+      if (planError) {
+        setSaveFileModal(false);
+        setUpgradeConfig({ featureLabel: planError.message });
+      } else {
+        setSaveFileError(
+          e.response?.data?.message || "Save failed. Please try again.",
+        );
+      }
+    } finally {
+      setSaveFileLoading(false);
+    }
   };
-
   const openProblem = async (problemId) => {
     setProblemLoading(true);
+    fetchUsage();
     try {
       const res = await getStudentProblemById(problemId);
-      setSelectedProblem(res.data); setCode(DEFAULT_CODE[language]);
-      setOutput(null); setJudgeResult(null); setMode("editor"); setTab("editor");
-    } catch { alert("Could not load problem."); }
-    finally { setProblemLoading(false); }
+      setSelectedProblem(res.data);
+      setCode(DEFAULT_CODE[language]);
+      setOutput(null);
+      setJudgeResult(null);
+      setMode("editor");
+      setTab("editor");
+    } catch {
+      alert("Could not load problem.");
+    } finally {
+      setProblemLoading(false);
+    }
   };
 
   const handleLanguageChange = (lang) => {
-    setLanguage(lang); setCode(DEFAULT_CODE[lang]);
-    setOutput(null); setJudgeResult(null);
+    setLanguage(lang);
+    setCode(DEFAULT_CODE[lang]);
+    setOutput(null);
+    setJudgeResult(null);
     if (NO_INPUT_LANGS.includes(lang)) setShowCustomInput(false);
-    if (lang !== "MYSQL") { setShowDbExplorer(false); setMysqlTables(null); }
+    if (lang !== "MYSQL") {
+      setShowDbExplorer(false);
+      setMysqlTables(null);
+    }
   };
 
   const handleRunCode = async () => {
-    setRunLoading(true); setOutput(null); setJudgeResult(null);
+    setRunLoading(true);
+    setOutput(null);
+    setJudgeResult(null);
     try {
       let stdinInput = "";
       if (!NO_INPUT_LANGS.includes(language)) {
-        stdinInput = mode === "playground" ? customInput : selectedProblem?.sampleInput || "";
+        stdinInput =
+          mode === "playground"
+            ? customInput
+            : selectedProblem?.sampleInput || "";
       }
       const res = await runCode(batchId, language, code, stdinInput);
       setOutput(res.data);
-    } catch (e) { setOutput({ output: e.response?.data?.message || "Run failed.", status: "RUNTIME_ERROR" }); }
-    finally { setRunLoading(false); }
+      fetchRunUsage();
+    } catch (e) {
+      const planError = parsePlanError(e);
+      if (planError) {
+        setUpgradeConfig({ featureLabel: planError.message });
+      } else {
+        setOutput({
+          output: e.response?.data?.message || "Run failed.",
+          status: "RUNTIME_ERROR",
+        });
+      }
+      fetchRunUsage();
+    } finally {
+      setRunLoading(false);
+    }
   };
 
   const handleSubmit = async () => {
     if (!selectedProblem) return;
-    setLoading(true); setJudgeResult(null); setOutput(null);
-    try { const res = await submitCodeForJudge(selectedProblem.id, batchId, language, code); setJudgeResult(res.data); }
-    catch { setJudgeResult({ overallVerdict: "ERROR", marksObtained: 0, totalMarks: 0 }); }
-    finally { setLoading(false); }
+    setLoading(true);
+    setJudgeResult(null);
+    setOutput(null);
+    try {
+      const res = await submitCodeForJudge(
+        selectedProblem.id,
+        batchId,
+        language,
+        code,
+      );
+      setJudgeResult(res.data);
+      fetchUsage();
+    } catch (err) {
+      const planError = parsePlanError(err);
+      if (planError) {
+        setUpgradeConfig({ featureLabel: planError.message });
+      } else {
+        setJudgeResult({
+          overallVerdict: "ERROR",
+          marksObtained: 0,
+          totalMarks: 0,
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleTabKey = (e) => {
     if (e.key === "Tab") {
       e.preventDefault();
       const ta = textareaRef.current;
-      const start = ta.selectionStart; const end = ta.selectionEnd;
+      const start = ta.selectionStart;
+      const end = ta.selectionEnd;
       const newCode = code.substring(0, start) + "    " + code.substring(end);
       setCode(newCode);
-      setTimeout(() => { ta.selectionStart = ta.selectionEnd = start + 4; }, 0);
+      setTimeout(() => {
+        ta.selectionStart = ta.selectionEnd = start + 4;
+      }, 0);
     }
   };
 
-  const verdictColor = (v) => v === "ACCEPTED" ? "#16a34a" : v === "PARTIAL" ? "#d97706" : "#dc2626";
-  const diffClass = (d) => d === "EASY" ? "sc-badge-diff-easy" : d === "MEDIUM" ? "sc-badge-diff-medium" : "sc-badge-diff-hard";
-  const statusColor = (s) => s === "SUCCESS" ? "#16a34a" : s === "COMPILE_ERROR" ? "#d97706" : "#dc2626";
-  const statusBg = (s) => s === "SUCCESS" ? "rgba(52,211,153,0.10)" : s === "COMPILE_ERROR" ? "rgba(251,146,60,0.10)" : "rgba(239,68,68,0.10)";
+  const verdictColor = (v) =>
+    v === "ACCEPTED" ? "#16a34a" : v === "PARTIAL" ? "#d97706" : "#dc2626";
+  const diffClass = (d) =>
+    d === "EASY"
+      ? "sc-badge-diff-easy"
+      : d === "MEDIUM"
+        ? "sc-badge-diff-medium"
+        : "sc-badge-diff-hard";
+  const statusColor = (s) =>
+    s === "SUCCESS" ? "#16a34a" : s === "COMPILE_ERROR" ? "#d97706" : "#dc2626";
+  const statusBg = (s) =>
+    s === "SUCCESS"
+      ? "rgba(52,211,153,0.10)"
+      : s === "COMPILE_ERROR"
+        ? "rgba(251,146,60,0.10)"
+        : "rgba(239,68,68,0.10)";
 
   const rootClass = `sc-root${dark ? " sc-dark" : ""}`;
 
@@ -1094,10 +1327,20 @@ export default function StudentCompilerPage() {
         <div className="sc-mysql-toolbar-left">
           <Database size={14} strokeWidth={2} />
           <strong>MySQL</strong>
-          <span style={{ fontWeight: 400, opacity: 0.8 }}>— Your database persists across runs. CREATE once, INSERT/SELECT in separate runs.</span>
+          <span style={{ fontWeight: 400, opacity: 0.8 }}>
+            — Your database persists across runs. CREATE once, INSERT/SELECT in
+            separate runs.
+          </span>
         </div>
         <div className="sc-mysql-actions">
-          <button className="sc-db-explorer-btn" onClick={() => { const next = !showDbExplorer; setShowDbExplorer(next); if (next) fetchMySQLState(); }}>
+          <button
+            className="sc-db-explorer-btn"
+            onClick={() => {
+              const next = !showDbExplorer;
+              setShowDbExplorer(next);
+              if (next) fetchMySQLState();
+            }}
+          >
             <Table2 size={12} strokeWidth={2} />
             {showDbExplorer ? "Hide Tables" : "Show Tables"}
           </button>
@@ -1113,18 +1356,28 @@ export default function StudentCompilerPage() {
             <span className="sc-db-explorer-header-left">
               <Table2 size={13} strokeWidth={2} /> Your Tables
             </span>
-            <button className="sc-refresh-btn" onClick={fetchMySQLState} disabled={mysqlStateLoading}>
+            <button
+              className="sc-refresh-btn"
+              onClick={fetchMySQLState}
+              disabled={mysqlStateLoading}
+            >
               <RefreshCw size={11} strokeWidth={2} />
               {mysqlStateLoading ? "Loading..." : "Refresh"}
             </button>
           </div>
           <div className="sc-db-explorer-body">
             {mysqlStateLoading ? (
-              <span style={{ color: "var(--text-muted)", fontSize: 12 }}>Loading...</span>
+              <span style={{ color: "var(--text-muted)", fontSize: 12 }}>
+                Loading...
+              </span>
             ) : mysqlTables ? (
-              <pre className="sc-sql-output-pre">{mysqlTables.output || "No tables found."}</pre>
+              <pre className="sc-sql-output-pre">
+                {mysqlTables.output || "No tables found."}
+              </pre>
             ) : (
-              <span style={{ color: "var(--text-muted)", fontSize: 12 }}>Click Refresh to see your tables.</span>
+              <span style={{ color: "var(--text-muted)", fontSize: 12 }}>
+                Click Refresh to see your tables.
+              </span>
             )}
           </div>
         </div>
@@ -1137,18 +1390,27 @@ export default function StudentCompilerPage() {
       <div className="sc-run-overlay-box">
         <div className="sc-run-spinner" />
         <div className="sc-run-overlay-text">
-          {language === "MYSQL"
-            ? <><Database size={16} strokeWidth={2} /> Running SQL on your database...</>
-            : language === "BASH"
-            ? <><Terminal size={16} strokeWidth={2} /> Executing shell script...</>
-            : <><Play size={16} strokeWidth={2} /> Running code...</>}
+          {language === "MYSQL" ? (
+            <>
+              <Database size={16} strokeWidth={2} /> Running SQL on your
+              database...
+            </>
+          ) : language === "BASH" ? (
+            <>
+              <Terminal size={16} strokeWidth={2} /> Executing shell script...
+            </>
+          ) : (
+            <>
+              <Play size={16} strokeWidth={2} /> Running code...
+            </>
+          )}
         </div>
         <div className="sc-run-overlay-sub">
           {language === "MYSQL"
             ? "Your data will persist after this run"
             : language === "BASH"
-            ? "Running in sandbox environment"
-            : "Please wait..."}
+              ? "Running in sandbox environment"
+              : "Please wait..."}
         </div>
       </div>
     </div>
@@ -1158,8 +1420,15 @@ export default function StudentCompilerPage() {
     <div className="sc-drawer-overlay" onClick={() => setShowMyFiles(false)}>
       <div className="sc-drawer-panel" onClick={(e) => e.stopPropagation()}>
         <div className="sc-drawer-header">
-          <span className="sc-drawer-title"><FolderOpen size={16} strokeWidth={2} /> My Saved Files</span>
-          <button className="sc-drawer-close" onClick={() => setShowMyFiles(false)}><X size={16} strokeWidth={2} /></button>
+          <span className="sc-drawer-title">
+            <FolderOpen size={16} strokeWidth={2} /> My Saved Files
+          </span>
+          <button
+            className="sc-drawer-close"
+            onClick={() => setShowMyFiles(false)}
+          >
+            <X size={16} strokeWidth={2} />
+          </button>
         </div>
         <div className="sc-drawer-body">
           {myFilesLoading ? (
@@ -1169,24 +1438,52 @@ export default function StudentCompilerPage() {
             </div>
           ) : myFiles.length === 0 ? (
             <div className="sc-drawer-empty">
-              <div style={{ display: "flex", justifyContent: "center", marginBottom: 10, opacity: 0.4 }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  marginBottom: 10,
+                  opacity: 0.4,
+                }}
+              >
                 <FolderOpen size={40} strokeWidth={1.5} />
               </div>
-              <div style={{ color: "var(--text-muted)", fontSize: 13, fontWeight: 600 }}>No saved files yet.</div>
-              <div style={{ color: "var(--text-muted)", fontSize: 12, marginTop: 6, opacity: 0.7 }}>
+              <div
+                style={{
+                  color: "var(--text-muted)",
+                  fontSize: 13,
+                  fontWeight: 600,
+                }}
+              >
+                No saved files yet.
+              </div>
+              <div
+                style={{
+                  color: "var(--text-muted)",
+                  fontSize: 12,
+                  marginTop: 6,
+                  opacity: 0.7,
+                }}
+              >
                 Use the Save button in the editor to save your code.
               </div>
             </div>
           ) : (
             <div className="sc-file-list">
               {myFiles.map((file) => (
-                <div key={file.id} className="sc-file-card" onClick={() => handleLoadFile(file)}>
+                <div
+                  key={file.id}
+                  className="sc-file-card"
+                  onClick={() => handleLoadFile(file)}
+                >
                   <div className="sc-file-card-left">
                     <span className="sc-file-icon">
                       <FileIcon lang={file.language} />
                     </span>
                     <div>
-                      <div className="sc-file-name">{file.fileName || file.name}</div>
+                      <div className="sc-file-name">
+                        {file.fileName || file.name}
+                      </div>
                       <div className="sc-file-meta">
                         <span className="sc-file-lang-badge">
                           <LangIcon lang={file.language} size={10} />
@@ -1201,7 +1498,11 @@ export default function StudentCompilerPage() {
                       </div>
                     </div>
                   </div>
-                  <button className="sc-file-delete" onClick={(e) => handleDeleteFile(file.id, e)} title="Delete file">
+                  <button
+                    className="sc-file-delete"
+                    onClick={(e) => handleDeleteFile(file.id, e)}
+                    title="Delete file"
+                  >
                     <Trash2 size={15} strokeWidth={2} />
                   </button>
                 </div>
@@ -1210,7 +1511,11 @@ export default function StudentCompilerPage() {
           )}
         </div>
         <div className="sc-drawer-footer">
-          <button className="sc-drawer-refresh" onClick={fetchMyFiles} disabled={myFilesLoading}>
+          <button
+            className="sc-drawer-refresh"
+            onClick={fetchMyFiles}
+            disabled={myFilesLoading}
+          >
             <RefreshCw size={13} strokeWidth={2} /> Refresh
           </button>
         </div>
@@ -1219,11 +1524,27 @@ export default function StudentCompilerPage() {
   );
 
   const SaveFileModal = () => (
-    <div className="sc-save-modal-overlay" onClick={() => { setSaveFileModal(false); setSaveFileName(""); setSaveFileError(""); }}>
+    <div
+      className="sc-save-modal-overlay"
+      onClick={() => {
+        setSaveFileModal(false);
+        setSaveFileName("");
+        setSaveFileError("");
+      }}
+    >
       <div className="sc-save-modal" onClick={(e) => e.stopPropagation()}>
         <div className="sc-drawer-header">
-          <span className="sc-drawer-title"><Save size={16} strokeWidth={2} /> Save File</span>
-          <button className="sc-drawer-close" onClick={() => { setSaveFileModal(false); setSaveFileName(""); setSaveFileError(""); }}>
+          <span className="sc-drawer-title">
+            <Save size={16} strokeWidth={2} /> Save File
+          </span>
+          <button
+            className="sc-drawer-close"
+            onClick={() => {
+              setSaveFileModal(false);
+              setSaveFileName("");
+              setSaveFileError("");
+            }}
+          >
             <X size={16} strokeWidth={2} />
           </button>
         </div>
@@ -1232,10 +1553,15 @@ export default function StudentCompilerPage() {
           <input
             className="sc-save-input"
             value={saveFileName}
-            onChange={(e) => { setSaveFileName(e.target.value); setSaveFileError(""); }}
+            onChange={(e) => {
+              setSaveFileName(e.target.value);
+              setSaveFileError("");
+            }}
             placeholder="e.g. bubble_sort.py"
             autoFocus
-            onKeyDown={(e) => { if (e.key === "Enter") handleSaveFile(); }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleSaveFile();
+            }}
           />
           {saveFileError && (
             <div className="sc-save-error">
@@ -1247,15 +1573,41 @@ export default function StudentCompilerPage() {
               <LangIcon lang={language} size={10} />
               {LANG_LABEL[language]}
             </span>
-            <span style={{ color: "var(--text-muted)", fontSize: 11 }}>{code.split("\n").length} lines</span>
+            <span style={{ color: "var(--text-muted)", fontSize: 11 }}>
+              {code.split("\n").length} lines
+            </span>
           </div>
         </div>
         <div className="sc-save-footer">
-          <button className="sc-save-cancel" onClick={() => { setSaveFileModal(false); setSaveFileName(""); setSaveFileError(""); }}>Cancel</button>
-          <button className="sc-save-confirm" onClick={handleSaveFile} disabled={saveFileLoading}>
-            {saveFileLoading
-              ? <><Loader2 size={13} strokeWidth={2} style={{ animation: "sc-spin 0.8s linear infinite" }} /> Saving...</>
-              : <><Save size={13} strokeWidth={2} /> Save</>}
+          <button
+            className="sc-save-cancel"
+            onClick={() => {
+              setSaveFileModal(false);
+              setSaveFileName("");
+              setSaveFileError("");
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            className="sc-save-confirm"
+            onClick={handleSaveFile}
+            disabled={saveFileLoading}
+          >
+            {saveFileLoading ? (
+              <>
+                <Loader2
+                  size={13}
+                  strokeWidth={2}
+                  style={{ animation: "sc-spin 0.8s linear infinite" }}
+                />{" "}
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save size={13} strokeWidth={2} /> Save
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -1268,7 +1620,9 @@ export default function StudentCompilerPage() {
       <div className={rootClass}>
         <div className="sc-loading-screen">
           <div className="sc-spinner" />
-          <p style={{ color: "var(--text-muted)", fontSize: 14, margin: 0 }}>Loading your workspace...</p>
+          <p style={{ color: "var(--text-muted)", fontSize: 14, margin: 0 }}>
+            Loading your workspace...
+          </p>
         </div>
       </div>
     );
@@ -1279,7 +1633,9 @@ export default function StudentCompilerPage() {
       <div className={rootClass}>
         <div className="sc-loading-screen">
           <AlertTriangle size={36} color="#dc2626" strokeWidth={1.8} />
-          <p style={{ color: "#dc2626", fontSize: 14, margin: 0 }}>Could not load your batch. Please contact your trainer.</p>
+          <p style={{ color: "#dc2626", fontSize: 14, margin: 0 }}>
+            Could not load your batch. Please contact your trainer.
+          </p>
         </div>
       </div>
     );
@@ -1289,7 +1645,11 @@ export default function StudentCompilerPage() {
   const LangToggle = () => (
     <div className="sc-lang-toggle">
       {LANGUAGES.map((l) => (
-        <button key={l} className={`sc-lang-btn${language === l ? " active" : ""}`} onClick={() => handleLanguageChange(l)}>
+        <button
+          key={l}
+          className={`sc-lang-btn${language === l ? " active" : ""}`}
+          onClick={() => handleLanguageChange(l)}
+        >
           <LangIcon lang={l} size={12} />
           {LANG_LABEL[l]}
         </button>
@@ -1304,25 +1664,49 @@ export default function StudentCompilerPage() {
         <div className="sc-output-running">
           <div className="sc-spinner-sm" />
           <span>
-            {language === "MYSQL" ? "Running SQL on your database..." : language === "BASH" ? "Executing shell script..." : "Running code..."}
+            {language === "MYSQL"
+              ? "Running SQL on your database..."
+              : language === "BASH"
+                ? "Executing shell script..."
+                : "Running code..."}
           </span>
         </div>
       )}
       {!output && !runLoading && (
         <div className="sc-output-placeholder">
           <Terminal size={14} strokeWidth={2} style={{ opacity: 0.5 }} />
-          {isPlayground
-            ? "Run your code to see output here"
-            : <>Click <strong>Run</strong> to test, or <strong>Submit</strong> to judge against all test cases.</>}
+          {isPlayground ? (
+            "Run your code to see output here"
+          ) : (
+            <>
+              Click <strong>Run</strong> to test, or <strong>Submit</strong> to
+              judge against all test cases.
+            </>
+          )}
         </div>
       )}
       {output && !runLoading && (
         <div>
-          <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 10 }}>
-            <span className="sc-status-chip" style={{ background: statusBg(output.status), color: statusColor(output.status) }}>
-              {output.status === "SUCCESS"
-                ? <CheckCircle2 size={11} strokeWidth={2.5} />
-                : <XCircle size={11} strokeWidth={2.5} />}
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              alignItems: "center",
+              marginBottom: 10,
+            }}
+          >
+            <span
+              className="sc-status-chip"
+              style={{
+                background: statusBg(output.status),
+                color: statusColor(output.status),
+              }}
+            >
+              {output.status === "SUCCESS" ? (
+                <CheckCircle2 size={11} strokeWidth={2.5} />
+              ) : (
+                <XCircle size={11} strokeWidth={2.5} />
+              )}
               {output.status}
             </span>
             {output.executionTimeMs && (
@@ -1332,7 +1716,11 @@ export default function StudentCompilerPage() {
               </span>
             )}
           </div>
-          <pre className={language === "MYSQL" ? "sc-sql-output-pre" : "sc-output-pre"}>
+          <pre
+            className={
+              language === "MYSQL" ? "sc-sql-output-pre" : "sc-output-pre"
+            }
+          >
             {output.output || "(no output)"}
           </pre>
         </div>
@@ -1350,45 +1738,108 @@ export default function StudentCompilerPage() {
 
         <div className="sc-header">
           <div className="sc-header-left">
-            <button className="sc-btn sc-btn-back" onClick={() => setMode("problems")}>
+            <button
+              className="sc-btn sc-btn-back"
+              onClick={() => setMode("problems")}
+            >
               <ChevronLeft size={14} strokeWidth={2.5} /> Back
             </button>
             <div className="sc-logo-wrap">
-              <span className="sc-logo-icon"><Code2 size={20} strokeWidth={2.5} /></span>
+              <span className="sc-logo-icon">
+                <Code2 size={20} strokeWidth={2.5} />
+              </span>
               <span className="sc-logo-text">CodeLab</span>
             </div>
             <span className="sc-badge sc-badge-play">
               <Gamepad2 size={10} strokeWidth={2.5} /> Playground
             </span>
+            {runUsage && (
+              <span className="sc-badge sc-badge-batch">
+                {runUsage.limit === "unlimited"
+                  ? "Unlimited runs"
+                  : `${runUsage.used}/${runUsage.limit} runs this month`}
+              </span>
+            )}
+            {saveUsage && (
+              <span className="sc-badge sc-badge-batch">
+                {saveUsage.limit === "unlimited"
+                  ? "Unlimited saved files"
+                  : `${saveUsage.used}/${saveUsage.limit} files saved`}
+              </span>
+            )}
           </div>
           <div className="sc-header-right">
             <LangToggle />
             <button className="sc-btn sc-btn-files" onClick={handleOpenMyFiles}>
               <FolderOpen size={13} strokeWidth={2} /> My Files
             </button>
-            <button className="sc-btn sc-btn-save" onClick={() => { setSaveFileName(""); setSaveFileError(""); setSaveFileModal(true); }}>
+            <button
+              className="sc-btn sc-btn-save"
+              onClick={() => {
+                setSaveFileName("");
+                setSaveFileError("");
+                setSaveFileModal(true);
+              }}
+            >
               <Save size={13} strokeWidth={2} /> Save
             </button>
-            <button className="sc-btn sc-btn-run-primary" onClick={handleRunCode} disabled={runLoading}>
-              {runLoading
-                ? <><span className="sc-spinner-sm" /> Running...</>
-                : <><Play size={13} strokeWidth={2.5} fill="currentColor" /> Run Code</>}
+            <button
+              className="sc-btn sc-btn-run-primary"
+              onClick={handleRunCode}
+              disabled={runLoading}
+            >
+              {runLoading ? (
+                <>
+                  <span className="sc-spinner-sm" /> Running...
+                </>
+              ) : (
+                <>
+                  <Play size={13} strokeWidth={2.5} fill="currentColor" /> Run
+                  Code
+                </>
+              )}
             </button>
           </div>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 60px)", overflow: "hidden" }}>
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            height: "calc(100vh - 60px)",
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
             {language === "MYSQL" && <MySQLToolbar />}
             {language === "BASH" && (
-              <div className="sc-lang-banner" style={{ background: "rgba(52,211,153,0.06)", borderColor: "rgba(52,211,153,0.20)", color: "var(--accent3)" }}>
+              <div
+                className="sc-lang-banner"
+                style={{
+                  background: "rgba(52,211,153,0.06)",
+                  borderColor: "rgba(52,211,153,0.20)",
+                  color: "var(--accent3)",
+                }}
+              >
                 <Terminal size={13} strokeWidth={2} />
-                <strong>Bash Mode</strong> — Your script runs in a sandboxed shell environment.
+                <strong>Bash Mode</strong> — Your script runs in a sandboxed
+                shell environment.
               </div>
             )}
             <div className="sc-editor-area-wrap">
               <div className="sc-line-numbers">
-                {code.split("\n").map((_, i) => <div key={i} className="sc-line-num">{i + 1}</div>)}
+                {code.split("\n").map((_, i) => (
+                  <div key={i} className="sc-line-num">
+                    {i + 1}
+                  </div>
+                ))}
               </div>
               <textarea
                 ref={textareaRef}
@@ -1399,17 +1850,29 @@ export default function StudentCompilerPage() {
                 spellCheck={false}
                 autoCapitalize="none"
                 autoCorrect="off"
-                placeholder={language === "MYSQL" ? "-- Write your SQL here..." : language === "BASH" ? "#!/bin/bash\n# Write your shell script here..." : "// Start coding here..."}
+                placeholder={
+                  language === "MYSQL"
+                    ? "-- Write your SQL here..."
+                    : language === "BASH"
+                      ? "#!/bin/bash\n# Write your shell script here..."
+                      : "// Start coding here..."
+                }
               />
             </div>
 
             <div className="sc-bottom-panel">
               <div className="sc-bottom-tabs">
-                <button className={`sc-bottom-tab${!showCustomInput ? " active" : ""}`} onClick={() => setShowCustomInput(false)}>
+                <button
+                  className={`sc-bottom-tab${!showCustomInput ? " active" : ""}`}
+                  onClick={() => setShowCustomInput(false)}
+                >
                   <Terminal size={13} strokeWidth={2} /> Output
                 </button>
                 {!NO_INPUT_LANGS.includes(language) && (
-                  <button className={`sc-bottom-tab${showCustomInput ? " active" : ""}`} onClick={() => setShowCustomInput(true)}>
+                  <button
+                    className={`sc-bottom-tab${showCustomInput ? " active" : ""}`}
+                    onClick={() => setShowCustomInput(true)}
+                  >
                     <PanelLeft size={13} strokeWidth={2} /> Custom Input
                   </button>
                 )}
@@ -1443,7 +1906,9 @@ export default function StudentCompilerPage() {
         <div className="sc-header">
           <div className="sc-header-left">
             <div className="sc-logo-wrap">
-              <span className="sc-logo-icon"><Code2 size={20} strokeWidth={2.5} /></span>
+              <span className="sc-logo-icon">
+                <Code2 size={20} strokeWidth={2.5} />
+              </span>
               <span className="sc-logo-text">CodeLab</span>
             </div>
             <span className="sc-badge sc-badge-student">
@@ -1454,10 +1919,16 @@ export default function StudentCompilerPage() {
             </span>
           </div>
           <div className="sc-nav-tabs">
-            <button className={`sc-nav-tab${tab === "problems" ? " active" : ""}`} onClick={() => setTab("problems")}>
+            <button
+              className={`sc-nav-tab${tab === "problems" ? " active" : ""}`}
+              onClick={() => setTab("problems")}
+            >
               <LayoutGrid size={13} strokeWidth={2} /> Problems
             </button>
-            <button className={`sc-nav-tab${tab === "history" ? " active" : ""}`} onClick={() => setTab("history")}>
+            <button
+              className={`sc-nav-tab${tab === "history" ? " active" : ""}`}
+              onClick={() => setTab("history")}
+            >
               <History size={13} strokeWidth={2} /> History
             </button>
           </div>
@@ -1465,7 +1936,15 @@ export default function StudentCompilerPage() {
             <button className="sc-btn sc-btn-files" onClick={handleOpenMyFiles}>
               <FolderOpen size={13} strokeWidth={2} /> My Files
             </button>
-            <button className="sc-btn sc-btn-play" onClick={() => { setMode("playground"); setCode(DEFAULT_CODE[language]); setOutput(null); setJudgeResult(null); }}>
+            <button
+              className="sc-btn sc-btn-play"
+              onClick={() => {
+                setMode("playground");
+                setCode(DEFAULT_CODE[language]);
+                setOutput(null);
+                setJudgeResult(null);
+              }}
+            >
               <Gamepad2 size={13} strokeWidth={2} /> Playground
             </button>
           </div>
@@ -1476,11 +1955,15 @@ export default function StudentCompilerPage() {
             <>
               <div className="sc-page-title">
                 <span>Assigned Problems</span>
-                <span className="sc-count-badge">{problems.length} Problems</span>
+                <span className="sc-count-badge">
+                  {problems.length} Problems
+                </span>
               </div>
               {problems.length === 0 ? (
                 <div className="sc-empty">
-                  <div className="sc-empty-icon"><BookOpen size={52} strokeWidth={1.2} /></div>
+                  <div className="sc-empty-icon">
+                    <BookOpen size={52} strokeWidth={1.2} />
+                  </div>
                   <p className="sc-empty-text">No problems assigned yet.</p>
                 </div>
               ) : (
@@ -1489,21 +1972,46 @@ export default function StudentCompilerPage() {
                     <div key={p.id} className="sc-problem-card">
                       <div className="sc-problem-card-header">
                         <span className="sc-problem-index">
-                          <Hash size={10} strokeWidth={2.5} />{i + 1}
+                          <Hash size={10} strokeWidth={2.5} />
+                          {i + 1}
                         </span>
-                        <span className={`sc-badge ${diffClass(p.difficulty)}`}>{p.difficulty}</span>
+                        <span className={`sc-badge ${diffClass(p.difficulty)}`}>
+                          {p.difficulty}
+                        </span>
                       </div>
                       <div className="sc-problem-title">{p.title}</div>
                       <div className="sc-problem-desc">
-                        {p.description?.slice(0, 110)}{p.description?.length > 110 ? "..." : ""}
+                        {p.description?.slice(0, 110)}
+                        {p.description?.length > 110 ? "..." : ""}
                       </div>
                       <div className="sc-problem-footer">
                         <div className="sc-problem-meta">
-                          <span className="sc-chip-marks"><Trophy size={11} strokeWidth={2} /> {p.totalMarks} pts</span>
-                          <span className="sc-chip-tests"><FlaskConical size={11} strokeWidth={2} /> {p.visibleTestCases?.length || 0} tests</span>
+                          <span className="sc-chip-marks">
+                            <Trophy size={11} strokeWidth={2} /> {p.totalMarks}{" "}
+                            pts
+                          </span>
+                          <span className="sc-chip-tests">
+                            <FlaskConical size={11} strokeWidth={2} />{" "}
+                            {p.visibleTestCases?.length || 0} tests
+                          </span>
                         </div>
-                        <button className="sc-btn sc-btn-solve" onClick={() => openProblem(p.id)} disabled={problemLoading}>
-                          {problemLoading ? "..." : <><Play size={11} strokeWidth={2.5} fill="currentColor" /> Solve</>}
+                        <button
+                          className="sc-btn sc-btn-solve"
+                          onClick={() => openProblem(p.id)}
+                          disabled={problemLoading}
+                        >
+                          {problemLoading ? (
+                            "..."
+                          ) : (
+                            <>
+                              <Play
+                                size={11}
+                                strokeWidth={2.5}
+                                fill="currentColor"
+                              />{" "}
+                              Solve
+                            </>
+                          )}
                         </button>
                       </div>
                     </div>
@@ -1521,7 +2029,9 @@ export default function StudentCompilerPage() {
               </div>
               {history.length === 0 ? (
                 <div className="sc-empty">
-                  <div className="sc-empty-icon"><History size={52} strokeWidth={1.2} /></div>
+                  <div className="sc-empty-icon">
+                    <History size={52} strokeWidth={1.2} />
+                  </div>
                   <p className="sc-empty-text">No submissions yet.</p>
                 </div>
               ) : (
@@ -1530,17 +2040,34 @@ export default function StudentCompilerPage() {
                     <div
                       key={h.submissionId}
                       className={`sc-history-card${activeHistoryItem === h.submissionId ? " open" : ""}`}
-                      onClick={() => setActiveHistoryItem(activeHistoryItem === h.submissionId ? null : h.submissionId)}
+                      onClick={() =>
+                        setActiveHistoryItem(
+                          activeHistoryItem === h.submissionId
+                            ? null
+                            : h.submissionId,
+                        )
+                      }
                     >
                       <div className="sc-history-row">
                         <span className="sc-history-lang">
                           <LangIcon lang={h.language} size={11} />
                           {h.language}
                         </span>
-                        <span className="sc-status-chip" style={{ background: statusBg(h.status), color: statusColor(h.status), fontSize: 11, padding: "3px 12px", borderRadius: 50 }}>
-                          {h.status === "SUCCESS"
-                            ? <CheckCircle2 size={10} strokeWidth={2.5} />
-                            : <XCircle size={10} strokeWidth={2.5} />}
+                        <span
+                          className="sc-status-chip"
+                          style={{
+                            background: statusBg(h.status),
+                            color: statusColor(h.status),
+                            fontSize: 11,
+                            padding: "3px 12px",
+                            borderRadius: 50,
+                          }}
+                        >
+                          {h.status === "SUCCESS" ? (
+                            <CheckCircle2 size={10} strokeWidth={2.5} />
+                          ) : (
+                            <XCircle size={10} strokeWidth={2.5} />
+                          )}
                           {h.status}
                         </span>
                         <span className="sc-history-time">
@@ -1552,9 +2079,11 @@ export default function StudentCompilerPage() {
                           {h.executionTimeMs}ms
                         </span>
                         <span className="sc-expand-icon">
-                          {activeHistoryItem === h.submissionId
-                            ? <ChevronUp size={14} strokeWidth={2} />
-                            : <ChevronDown size={14} strokeWidth={2} />}
+                          {activeHistoryItem === h.submissionId ? (
+                            <ChevronUp size={14} strokeWidth={2} />
+                          ) : (
+                            <ChevronDown size={14} strokeWidth={2} />
+                          )}
                         </span>
                       </div>
                       {activeHistoryItem === h.submissionId && (
@@ -1562,7 +2091,13 @@ export default function StudentCompilerPage() {
                           <div className="sc-history-out-label">
                             <Terminal size={11} strokeWidth={2} /> Output
                           </div>
-                          <pre className={h.language === "MYSQL" ? "sc-sql-output-pre" : "sc-output-pre"}>
+                          <pre
+                            className={
+                              h.language === "MYSQL"
+                                ? "sc-sql-output-pre"
+                                : "sc-output-pre"
+                            }
+                          >
                             {h.output || "(no output)"}
                           </pre>
                         </div>
@@ -1587,15 +2122,48 @@ export default function StudentCompilerPage() {
 
       <div className="sc-header">
         <div className="sc-header-left">
-          <button className="sc-btn sc-btn-back" onClick={() => { setMode("problems"); setTab("problems"); }}>
+          <button
+            className="sc-btn sc-btn-back"
+            onClick={() => {
+              setMode("problems");
+              setTab("problems");
+            }}
+          >
             <ChevronLeft size={14} strokeWidth={2.5} /> Problems
           </button>
           <div className="sc-logo-wrap">
-            <span className="sc-logo-icon"><Code2 size={20} strokeWidth={2.5} /></span>
+            <span className="sc-logo-icon">
+              <Code2 size={20} strokeWidth={2.5} />
+            </span>
             <span className="sc-logo-text">CodeLab</span>
           </div>
           {selectedProblem && (
-            <span className={`sc-badge ${diffClass(selectedProblem.difficulty)}`}>{selectedProblem.difficulty}</span>
+            <span
+              className={`sc-badge ${diffClass(selectedProblem.difficulty)}`}
+            >
+              {selectedProblem.difficulty}
+            </span>
+          )}
+          {usage && (
+            <span className="sc-badge sc-badge-batch">
+              {usage.limit === "unlimited"
+                ? "Unlimited solves"
+                : `${usage.used}/${usage.limit} solves this month`}
+            </span>
+          )}
+          {runUsage && (
+            <span className="sc-badge sc-badge-batch">
+              {runUsage.limit === "unlimited"
+                ? "Unlimited runs"
+                : `${runUsage.used}/${runUsage.limit} runs this month`}
+            </span>
+          )}
+          {saveUsage && (
+            <span className="sc-badge sc-badge-batch">
+              {saveUsage.limit === "unlimited"
+                ? "Unlimited saved files"
+                : `${saveUsage.used}/${saveUsage.limit} files saved`}
+            </span>
           )}
         </div>
         <div className="sc-header-right">
@@ -1603,51 +2171,108 @@ export default function StudentCompilerPage() {
           <button className="sc-btn sc-btn-files" onClick={handleOpenMyFiles}>
             <FolderOpen size={13} strokeWidth={2} /> My Files
           </button>
-          <button className="sc-btn sc-btn-save" onClick={() => { setSaveFileName(""); setSaveFileError(""); setSaveFileModal(true); }}>
+          <button
+            className="sc-btn sc-btn-save"
+            onClick={() => {
+              setSaveFileName("");
+              setSaveFileError("");
+              setSaveFileModal(true);
+            }}
+          >
             <Save size={13} strokeWidth={2} /> Save
           </button>
-          <button className="sc-btn sc-btn-run" onClick={handleRunCode} disabled={runLoading}>
-            {runLoading
-              ? <><span className="sc-spinner-sm" /> Running...</>
-              : <><Play size={13} strokeWidth={2.5} fill="currentColor" /> Run</>}
+          <button
+            className="sc-btn sc-btn-run"
+            onClick={handleRunCode}
+            disabled={runLoading}
+          >
+            {runLoading ? (
+              <>
+                <span className="sc-spinner-sm" /> Running...
+              </>
+            ) : (
+              <>
+                <Play size={13} strokeWidth={2.5} fill="currentColor" /> Run
+              </>
+            )}
           </button>
           {selectedProblem && (
-            <button className="sc-btn sc-btn-submit" onClick={handleSubmit} disabled={loading}>
-              {loading
-                ? <><span className="sc-spinner-sm" style={{ borderTopColor: "#fff" }} /> Judging...</>
-                : <><Zap size={13} strokeWidth={2.5} fill="currentColor" /> Submit</>}
+            <button
+              className="sc-btn sc-btn-submit"
+              onClick={handleSubmit}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <span
+                    className="sc-spinner-sm"
+                    style={{ borderTopColor: "#fff" }}
+                  />{" "}
+                  Judging...
+                </>
+              ) : (
+                <>
+                  <Zap size={13} strokeWidth={2.5} fill="currentColor" /> Submit
+                </>
+              )}
             </button>
           )}
         </div>
       </div>
 
-      <div className="sc-editor-layout" style={{ height: "calc(100vh - 60px)" }}>
+      <div
+        className="sc-editor-layout"
+        style={{ height: "calc(100vh - 60px)" }}
+      >
         {/* Problem Panel */}
         <div className="sc-problem-panel">
           {selectedProblem ? (
             <div className="sc-problem-detail">
-              <h2 className="sc-problem-detail-title">{selectedProblem.title}</h2>
+              <h2 className="sc-problem-detail-title">
+                {selectedProblem.title}
+              </h2>
               <div className="sc-info-row">
-                <span className={`sc-badge ${diffClass(selectedProblem.difficulty)}`}>{selectedProblem.difficulty}</span>
-                <span className="sc-chip-marks"><Trophy size={11} strokeWidth={2} /> {selectedProblem.totalMarks} pts</span>
+                <span
+                  className={`sc-badge ${diffClass(selectedProblem.difficulty)}`}
+                >
+                  {selectedProblem.difficulty}
+                </span>
+                <span className="sc-chip-marks">
+                  <Trophy size={11} strokeWidth={2} />{" "}
+                  {selectedProblem.totalMarks} pts
+                </span>
               </div>
 
-              <Section label="Description" icon={<BookOpen size={10} strokeWidth={2.5} />}>
+              <Section
+                label="Description"
+                icon={<BookOpen size={10} strokeWidth={2.5} />}
+              >
                 <p className="sc-desc-text">{selectedProblem.description}</p>
               </Section>
               {selectedProblem.inputFormat && (
-                <Section label="Input Format" icon={<PanelLeft size={10} strokeWidth={2.5} />}>
+                <Section
+                  label="Input Format"
+                  icon={<PanelLeft size={10} strokeWidth={2.5} />}
+                >
                   <p className="sc-desc-text">{selectedProblem.inputFormat}</p>
                 </Section>
               )}
               {selectedProblem.outputFormat && (
-                <Section label="Output Format" icon={<Terminal size={10} strokeWidth={2.5} />}>
+                <Section
+                  label="Output Format"
+                  icon={<Terminal size={10} strokeWidth={2.5} />}
+                >
                   <p className="sc-desc-text">{selectedProblem.outputFormat}</p>
                 </Section>
               )}
               {selectedProblem.constraints && (
-                <Section label="Constraints" icon={<Cpu size={10} strokeWidth={2.5} />}>
-                  <div className="sc-mono-block">{selectedProblem.constraints}</div>
+                <Section
+                  label="Constraints"
+                  icon={<Cpu size={10} strokeWidth={2.5} />}
+                >
+                  <div className="sc-mono-block">
+                    {selectedProblem.constraints}
+                  </div>
                 </Section>
               )}
               <div className="sc-io-grid">
@@ -1656,7 +2281,9 @@ export default function StudentCompilerPage() {
                     <div className="sc-io-label">
                       <Eye size={10} strokeWidth={2} /> Sample Input
                     </div>
-                    <pre className="sc-io-content">{selectedProblem.sampleInput}</pre>
+                    <pre className="sc-io-content">
+                      {selectedProblem.sampleInput}
+                    </pre>
                   </div>
                 )}
                 {selectedProblem.sampleOutput && (
@@ -1664,37 +2291,61 @@ export default function StudentCompilerPage() {
                     <div className="sc-io-label">
                       <CheckCircle2 size={10} strokeWidth={2} /> Sample Output
                     </div>
-                    <pre className="sc-io-content">{selectedProblem.sampleOutput}</pre>
+                    <pre className="sc-io-content">
+                      {selectedProblem.sampleOutput}
+                    </pre>
                   </div>
                 )}
               </div>
-              {selectedProblem.visibleTestCases?.filter((tc) => !tc.isHidden).length > 0 && (
-                <Section label="Sample Test Cases" icon={<FlaskConical size={10} strokeWidth={2.5} />}>
-                  {selectedProblem.visibleTestCases.filter((tc) => !tc.isHidden).map((tc, i) => (
-                    <div key={tc.id} className="sc-test-case">
-                      <div className="sc-test-case-label">
-                        <Hash size={10} strokeWidth={2.5} /> Case {i + 1}
-                      </div>
-                      {tc.input && (
-                        <div className="sc-test-row">
-                          <span className="sc-test-key">Input</span>
-                          <code className="sc-test-val">{tc.input}</code>
+              {selectedProblem.visibleTestCases?.filter((tc) => !tc.isHidden)
+                .length > 0 && (
+                <Section
+                  label="Sample Test Cases"
+                  icon={<FlaskConical size={10} strokeWidth={2.5} />}
+                >
+                  {selectedProblem.visibleTestCases
+                    .filter((tc) => !tc.isHidden)
+                    .map((tc, i) => (
+                      <div key={tc.id} className="sc-test-case">
+                        <div className="sc-test-case-label">
+                          <Hash size={10} strokeWidth={2.5} /> Case {i + 1}
                         </div>
-                      )}
-                      <div className="sc-test-row">
-                        <span className="sc-test-key">Expected</span>
-                        <code className="sc-test-val">{tc.expectedOutput}</code>
+                        {tc.input && (
+                          <div className="sc-test-row">
+                            <span className="sc-test-key">Input</span>
+                            <code className="sc-test-val">{tc.input}</code>
+                          </div>
+                        )}
+                        <div className="sc-test-row">
+                          <span className="sc-test-key">Expected</span>
+                          <code className="sc-test-val">
+                            {tc.expectedOutput}
+                          </code>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
                 </Section>
               )}
             </div>
           ) : (
             <div className="sc-no-problem">
-              <LayoutGrid size={44} strokeWidth={1.5} style={{ opacity: 0.3 }} />
-              <p style={{ color: "var(--text-muted)", fontSize: 14, margin: 0 }}>Select a problem to start solving</p>
-              <button className="sc-btn sc-btn-solve" onClick={() => { setMode("problems"); setTab("problems"); }}>
+              <LayoutGrid
+                size={44}
+                strokeWidth={1.5}
+                style={{ opacity: 0.3 }}
+              />
+              <p
+                style={{ color: "var(--text-muted)", fontSize: 14, margin: 0 }}
+              >
+                Select a problem to start solving
+              </p>
+              <button
+                className="sc-btn sc-btn-solve"
+                onClick={() => {
+                  setMode("problems");
+                  setTab("problems");
+                }}
+              >
                 <LayoutGrid size={12} strokeWidth={2} /> Browse Problems
               </button>
             </div>
@@ -1702,17 +2353,36 @@ export default function StudentCompilerPage() {
         </div>
 
         {/* Editor Panel */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+          }}
+        >
           {language === "MYSQL" && <MySQLToolbar />}
           {language === "BASH" && (
-            <div className="sc-lang-banner" style={{ background: "rgba(52,211,153,0.06)", borderColor: "rgba(52,211,153,0.20)", color: "var(--accent3)" }}>
+            <div
+              className="sc-lang-banner"
+              style={{
+                background: "rgba(52,211,153,0.06)",
+                borderColor: "rgba(52,211,153,0.20)",
+                color: "var(--accent3)",
+              }}
+            >
               <Terminal size={13} strokeWidth={2} />
-              <strong>Bash Mode</strong> — Runs in a sandboxed shell environment.
+              <strong>Bash Mode</strong> — Runs in a sandboxed shell
+              environment.
             </div>
           )}
           <div className="sc-editor-area-wrap">
             <div className="sc-line-numbers">
-              {code.split("\n").map((_, i) => <div key={i} className="sc-line-num">{i + 1}</div>)}
+              {code.split("\n").map((_, i) => (
+                <div key={i} className="sc-line-num">
+                  {i + 1}
+                </div>
+              ))}
             </div>
             <textarea
               ref={textareaRef}
@@ -1732,10 +2402,15 @@ export default function StudentCompilerPage() {
             ) : (
               <div>
                 <div className="sc-judge-header">
-                  <span className="sc-verdict-big" style={{ color: verdictColor(judgeResult.overallVerdict) }}>
-                    {judgeResult.overallVerdict === "ACCEPTED"
-                      ? <CheckCircle2 size={18} strokeWidth={2.5} />
-                      : <XCircle size={18} strokeWidth={2.5} />}
+                  <span
+                    className="sc-verdict-big"
+                    style={{ color: verdictColor(judgeResult.overallVerdict) }}
+                  >
+                    {judgeResult.overallVerdict === "ACCEPTED" ? (
+                      <CheckCircle2 size={18} strokeWidth={2.5} />
+                    ) : (
+                      <XCircle size={18} strokeWidth={2.5} />
+                    )}
                     {judgeResult.overallVerdict}
                   </span>
                   <span className="sc-score-chip">
@@ -1744,31 +2419,74 @@ export default function StudentCompilerPage() {
                   </span>
                   <span className="sc-exec-time">
                     <FlaskConical size={11} strokeWidth={2} />
-                    {judgeResult.testCasesPassed}/{judgeResult.totalTestCases} tests
+                    {judgeResult.testCasesPassed}/{judgeResult.totalTestCases}{" "}
+                    tests
                   </span>
                 </div>
                 <div className="sc-judge-grid">
                   {judgeResult.judgeResults?.map((r, i) => (
-                    <div key={i} className="sc-judge-card" style={{ background: r.passed ? "rgba(52,211,153,0.08)" : "rgba(239,68,68,0.08)", borderColor: r.passed ? "rgba(52,211,153,0.25)" : "rgba(239,68,68,0.25)" }}>
+                    <div
+                      key={i}
+                      className="sc-judge-card"
+                      style={{
+                        background: r.passed
+                          ? "rgba(52,211,153,0.08)"
+                          : "rgba(239,68,68,0.08)",
+                        borderColor: r.passed
+                          ? "rgba(52,211,153,0.25)"
+                          : "rgba(239,68,68,0.25)",
+                      }}
+                    >
                       <div className="sc-judge-card-top">
-                        <span style={{ color: "var(--text)", display: "flex", alignItems: "center", gap: 4 }}>
+                        <span
+                          style={{
+                            color: "var(--text)",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                          }}
+                        >
                           <Hash size={10} strokeWidth={2.5} /> Test {i + 1}
                         </span>
-                        <span style={{ color: r.passed ? "#16a34a" : "#dc2626", display: "flex", alignItems: "center", gap: 4 }}>
-                          {r.passed
-                            ? <CheckCircle2 size={12} strokeWidth={2.5} />
-                            : <XCircle size={12} strokeWidth={2.5} />}
+                        <span
+                          style={{
+                            color: r.passed ? "#16a34a" : "#dc2626",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                          }}
+                        >
+                          {r.passed ? (
+                            <CheckCircle2 size={12} strokeWidth={2.5} />
+                          ) : (
+                            <XCircle size={12} strokeWidth={2.5} />
+                          )}
                           {r.verdict}
                         </span>
                       </div>
                       {!r.isHidden && r.actualOutput && (
-                        <div style={{ marginTop: 5, fontSize: 12, color: "var(--text-muted)" }}>
+                        <div
+                          style={{
+                            marginTop: 5,
+                            fontSize: 12,
+                            color: "var(--text-muted)",
+                          }}
+                        >
                           <span style={{ fontWeight: 600 }}>Output: </span>
                           <code className="sc-test-val">{r.actualOutput}</code>
                         </div>
                       )}
                       {r.isHidden && (
-                        <div style={{ color: "var(--text-muted)", fontSize: 11, marginTop: 5, display: "flex", alignItems: "center", gap: 4 }}>
+                        <div
+                          style={{
+                            color: "var(--text-muted)",
+                            fontSize: 11,
+                            marginTop: 5,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                          }}
+                        >
                           <EyeOff size={10} strokeWidth={2} /> Hidden test case
                         </div>
                       )}
@@ -1780,6 +2498,21 @@ export default function StudentCompilerPage() {
           </div>
         </div>
       </div>
+      {upgradeConfig && (
+        <UpgradeModal
+          isOpen={!!upgradeConfig}
+          onClose={() => setUpgradeConfig(null)}
+          planType="individual"
+          userId={getAuthTokenUserId()}
+          currentPlan={usage?.tier || "free"}
+          availableTargetPlans={["pro", "premium"]}
+          featureLabel={upgradeConfig.featureLabel}
+          onSuccess={() => {
+            setUpgradeConfig(null);
+            fetchUsage();
+          }}
+        />
+      )}
     </div>
   );
 }

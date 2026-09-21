@@ -292,6 +292,20 @@ const userService = {
       headers: authHeader(),
     });
   },
+
+  // ── PLAN / QUOTA — Resume Builder ──
+  getAiUsage(userId) {
+    return axios.get(`${API_GATEWAY}/v1/resume/${userId}/ai/usage`, {
+      headers: authHeader(),
+    });
+  },
+
+  // ⚠️ Backend endpoint not confirmed to exist yet — see chat notes.
+  getResumeTemplates(userId) {
+    return axios.get(`${API_GATEWAY}/v1/resume/${userId}/templates`, {
+      headers: authHeader(),
+    });
+  },
   // =========================
   // ✅ GET STUDENT PROFILE DETAILS
   // =========================

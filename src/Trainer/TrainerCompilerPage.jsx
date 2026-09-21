@@ -10,8 +10,11 @@ import {
   getAssignmentsByBatchForTrainer,
   unassignProblem,
   getBatchCodeSubmissions,
+  getCodingCreateUsage,
 } from "../services/assessmentService";
 import { getTrainerBatches } from "../services/batchService";
+import UpgradeModal from "../components/plan/UpgradeModal";
+import { parsePlanError } from "../services/planErrorHandler";
 
 const DIFFICULTIES = ["EASY", "MEDIUM", "HARD"];
 
@@ -32,6 +35,16 @@ const emptyTC = {
   expectedOutput: "",
   isHidden: false,
   weightage: 1,
+};
+
+const getAuthTokenUserId = () => {
+  try {
+    const token = localStorage.getItem("lms_token");
+    if (!token) return null;
+    return JSON.parse(atob(token.split(".")[1]))?.userId ?? null;
+  } catch {
+    return null;
+  }
 };
 
 /* ─────────────────────────────────────────────
@@ -167,7 +180,14 @@ const IconTrash = (props) => (
 );
 
 const IconBolt = (props) => (
-  <svg {...iconProps} width={13} height={13} fill="currentColor" stroke="none" {...props}>
+  <svg
+    {...iconProps}
+    width={13}
+    height={13}
+    fill="currentColor"
+    stroke="none"
+    {...props}
+  >
     <polygon points="13 2 3 14 11 14 9 22 21 10 13 10 13 2" />
   </svg>
 );
@@ -532,10 +552,19 @@ export default function TrainerCompilerPage() {
   const [trainerBatches, setTrainerBatches] = useState([]);
   const [loadingBatches, setLoadingBatches] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null); // problemId pending delete
+  const [usage, setUsage] = useState(null);
+  const [upgradeConfig, setUpgradeConfig] = useState(null);
+
+  const fetchUsage = () => {
+    getCodingCreateUsage()
+      .then((res) => setUsage(res.data))
+      .catch(() => setUsage(null));
+  };
 
   useEffect(() => {
     fetchProblems();
     fetchBatches();
+    fetchUsage();
   }, []);
 
   const flash = (msg, isError = false) => {
@@ -602,13 +631,19 @@ export default function TrainerCompilerPage() {
         // POST /api/v1/problems
         await createCodingProblem(formData);
         flash("Problem created!");
+        fetchUsage();
       }
       setFormData(emptyProblem);
       setEditingId(null);
       setTab("problems");
       fetchProblems();
     } catch (e) {
-      flash(e.response?.data?.message || "Save failed.", true);
+      const planError = parsePlanError(e);
+      if (planError) {
+        setUpgradeConfig({ featureLabel: planError.message });
+      } else {
+        flash(e.response?.data?.message || "Save failed.", true);
+      }
     } finally {
       setSaving(false);
     }
@@ -746,7 +781,13 @@ export default function TrainerCompilerPage() {
     return d === "EASY" ? "#dcfce7" : d === "MEDIUM" ? "#fef3c7" : "#fee2e2";
   };
   const activeBadgeBg = (active) =>
-    active ? (isDark ? "rgba(34,197,94,0.15)" : "#dcfce7") : (isDark ? "rgba(239,68,68,0.15)" : "#fee2e2");
+    active
+      ? isDark
+        ? "rgba(34,197,94,0.15)"
+        : "#dcfce7"
+      : isDark
+        ? "rgba(239,68,68,0.15)"
+        : "#fee2e2";
   const activeBadgeColor = (active) => (active ? "#22c55e" : "#ef4444");
 
   return (
@@ -777,8 +818,12 @@ export default function TrainerCompilerPage() {
       <div className="clab-header" style={T.header}>
         <div className="clab-headerLeft" style={T.headerLeft}>
           <span style={T.logo}>{"</>"}</span>
-          <span className="clab-logoText" style={T.logoText}>CodeLab</span>
-          <span className="clab-trainerBadge" style={T.trainerBadge}>Trainer</span>
+          <span className="clab-logoText" style={T.logoText}>
+            CodeLab
+          </span>
+          <span className="clab-trainerBadge" style={T.trainerBadge}>
+            Trainer
+          </span>
         </div>
         <div className="clab-tabs" style={T.tabs}>
           {[
@@ -789,7 +834,11 @@ export default function TrainerCompilerPage() {
               icon: editingId ? <IconEdit /> : <IconCreate />,
             },
             { key: "assign", label: "Assign", icon: <IconAssign /> },
-            { key: "submissions", label: "Submissions", icon: <IconSubmissions /> },
+            {
+              key: "submissions",
+              label: "Submissions",
+              icon: <IconSubmissions />,
+            },
           ].map(({ key, label, icon }) => (
             <button
               key={key}
@@ -828,6 +877,28 @@ export default function TrainerCompilerPage() {
             </button>
           </div>
 
+          {usage && (
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "6px 14px",
+                borderRadius: 20,
+                border: `1px solid ${palette.cardBorder}`,
+                background: palette.cardBg,
+                marginBottom: 16,
+                fontSize: 12,
+                fontWeight: 600,
+                color: palette.textMuted,
+              }}
+            >
+              {usage.limit === "unlimited"
+                ? "Unlimited problem creation"
+                : `${usage.used}/${usage.limit} problems created this month`}
+            </div>
+          )}
+
           {problems.length === 0 ? (
             <div style={T.empty}>
               No problems yet. Create your first problem!
@@ -845,7 +916,11 @@ export default function TrainerCompilerPage() {
                 <div key={p.id} className="clab-tableRow" style={T.tableRow}>
                   <span
                     data-label="Title"
-                    style={{ flex: 3, fontWeight: 600, color: palette.textStrong }}
+                    style={{
+                      flex: 3,
+                      fontWeight: 600,
+                      color: palette.textStrong,
+                    }}
                   >
                     {p.title}
                   </span>
@@ -1012,7 +1087,9 @@ export default function TrainerCompilerPage() {
                         <span style={T.weightBadge}>{tc.weightage}pt</span>
                       </div>
                       <div style={{ display: "flex", gap: 8, fontSize: 12 }}>
-                        <span style={{ color: palette.textFaint, minWidth: 72 }}>
+                        <span
+                          style={{ color: palette.textFaint, minWidth: 72 }}
+                        >
                           Input:
                         </span>
                         <code style={{ color: "#0ea5e9" }}>
@@ -1027,7 +1104,9 @@ export default function TrainerCompilerPage() {
                           marginTop: 3,
                         }}
                       >
-                        <span style={{ color: palette.textFaint, minWidth: 72 }}>
+                        <span
+                          style={{ color: palette.textFaint, minWidth: 72 }}
+                        >
                           Expected:
                         </span>
                         <code style={{ color: "#22c55e", fontWeight: 600 }}>
@@ -1050,7 +1129,10 @@ export default function TrainerCompilerPage() {
                 >
                   + Add Test Case
                 </div>
-                <div className="clab-tcRow" style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+                <div
+                  className="clab-tcRow"
+                  style={{ display: "flex", gap: 10, marginBottom: 10 }}
+                >
                   <textarea
                     style={T.tcInput}
                     placeholder="Input (leave empty if no input needed)"
@@ -1066,7 +1148,10 @@ export default function TrainerCompilerPage() {
                     rows={2}
                   />
                 </div>
-                <div className="clab-tcControls" style={{ display: "flex", gap: 16, alignItems: "center" }}>
+                <div
+                  className="clab-tcControls"
+                  style={{ display: "flex", gap: 16, alignItems: "center" }}
+                >
                   <label
                     style={{
                       display: "flex",
@@ -1374,7 +1459,9 @@ export default function TrainerCompilerPage() {
                         </button>
                       </div>
                       <div style={{ display: "flex", gap: 8, fontSize: 12 }}>
-                        <span style={{ color: palette.textFaint, minWidth: 72 }}>
+                        <span
+                          style={{ color: palette.textFaint, minWidth: 72 }}
+                        >
                           Input:
                         </span>
                         <code style={{ color: "#0ea5e9" }}>
@@ -1389,7 +1476,9 @@ export default function TrainerCompilerPage() {
                           marginTop: 3,
                         }}
                       >
-                        <span style={{ color: palette.textFaint, minWidth: 72 }}>
+                        <span
+                          style={{ color: palette.textFaint, minWidth: 72 }}
+                        >
                           Expected:
                         </span>
                         <code style={{ color: "#22c55e", fontWeight: 600 }}>
@@ -1401,7 +1490,10 @@ export default function TrainerCompilerPage() {
                 </div>
               )}
               <div style={T.addTCForm}>
-                <div className="clab-tcRow" style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+                <div
+                  className="clab-tcRow"
+                  style={{ display: "flex", gap: 10, marginBottom: 10 }}
+                >
                   <textarea
                     style={T.tcInput}
                     placeholder="Input (optional)"
@@ -1417,7 +1509,10 @@ export default function TrainerCompilerPage() {
                     rows={2}
                   />
                 </div>
-                <div className="clab-tcControls" style={{ display: "flex", gap: 16, alignItems: "center" }}>
+                <div
+                  className="clab-tcControls"
+                  style={{ display: "flex", gap: 16, alignItems: "center" }}
+                >
                   <label
                     style={{
                       display: "flex",
@@ -1454,7 +1549,12 @@ export default function TrainerCompilerPage() {
 
             <div
               className="clab-formActions"
-              style={{ display: "flex", gap: 12, justifyContent: "flex-end", flexWrap: "wrap" }}
+              style={{
+                display: "flex",
+                gap: 12,
+                justifyContent: "flex-end",
+                flexWrap: "wrap",
+              }}
             >
               <button
                 style={T.cancelBtn}
@@ -1616,7 +1716,9 @@ export default function TrainerCompilerPage() {
                         Batch: {a.batchId}
                       </span>
                       {a.dueDate && (
-                        <span style={{ fontSize: 12, color: palette.textFaint }}>
+                        <span
+                          style={{ fontSize: 12, color: palette.textFaint }}
+                        >
                           Due: {new Date(a.dueDate).toLocaleDateString()}
                         </span>
                       )}
@@ -1716,7 +1818,9 @@ export default function TrainerCompilerPage() {
                     </span>
                     <span
                       style={{
-                        background: isDark ? "rgba(14,165,233,0.15)" : "#e0f2fe",
+                        background: isDark
+                          ? "rgba(14,165,233,0.15)"
+                          : "#e0f2fe",
                         color: isDark ? "#38bdf8" : "#0369a1",
                         borderRadius: 6,
                         padding: "2px 10px",
@@ -1782,10 +1886,26 @@ export default function TrainerCompilerPage() {
           )}
         </div>
       )}
+      {upgradeConfig && (
+        <UpgradeModal
+          isOpen={!!upgradeConfig}
+          onClose={() => setUpgradeConfig(null)}
+          planType="individual"
+          userId={getAuthTokenUserId()}
+          currentPlan={usage?.tier || "free"}
+          availableTargetPlans={["pro", "premium"]}
+          featureLabel={upgradeConfig.featureLabel}
+          onSuccess={() => {
+            setUpgradeConfig(null);
+            fetchUsage();
+          }}
+        />
+      )}
     </div>
   );
 }
 
+/* Builds the full style map for a given palette
 /* Builds the full style map for a given palette — same shape as the
    original static style object, just parameterized by theme so the page
    follows the app-wide light/dark toggle the same way Dashboard.jsx does.
@@ -2019,7 +2139,11 @@ function buildStyles(palette) {
       marginBottom: 4,
     },
     sampleCode: { fontSize: 12, color: "#0ea5e9", fontFamily: "monospace" },
-    sampleArrow: { color: palette.sampleBoxBorder, fontWeight: 700, fontSize: 18 },
+    sampleArrow: {
+      color: palette.sampleBoxBorder,
+      fontWeight: 700,
+      fontSize: 18,
+    },
     tcItem: {
       background: palette.tcItemBg,
       border: `1px solid ${palette.tcItemBorder}`,

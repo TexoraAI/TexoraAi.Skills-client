@@ -26,6 +26,10 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+import UpgradeModal from "../components/plan/UpgradeModal";
+import UsageBadge from "../components/plan/UsageBadge"; // adjust the path to where your UsageBadge file is
+import authService from "../services/authService";
 import ReactDOM from "react-dom";
 
 import {
@@ -289,6 +293,39 @@ const ROLE_CFG = {
 };
 
 const ROLE_TO_AUTH_ROLE = { ROLE_STUDENT: "STUDENT", ROLE_TRAINER: "TRAINER" };
+
+const ORG_PLAN_ORDER = ["trial", "starter", "growth"];
+
+function getOrgIdFromToken() {
+  try {
+    const token = localStorage.getItem("lms_token");
+    if (!token) return null;
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.organizationId || payload.orgId || null;
+  } catch {
+    return null;
+  }
+}
+
+// Reads the org's real plan so the upgrade modal never assumes "trial"
+function useOrgPlan() {
+  const [plan, setPlan] = useState("trial");
+  useEffect(() => {
+    const id = getOrgIdFromToken();
+    if (!id) return;
+    authService
+      .getOrgCapacity(id)
+      .then((c) => {
+        const p = String(c?.plan || "trial").toLowerCase();
+        setPlan(ORG_PLAN_ORDER.includes(p) ? p : "trial");
+      })
+      .catch(() => {});
+  }, []);
+  return {
+    plan,
+    targets: ORG_PLAN_ORDER.slice(ORG_PLAN_ORDER.indexOf(plan) + 1),
+  };
+}
 
 // One entry per management column, in the exact order/colors of the reference design.
 const CATS = [
@@ -1120,7 +1157,7 @@ function ErrorBanner({ message }) {
   );
 }
 
-function LimitErrorBanner({ t, message, onDismiss }) {
+function LimitErrorBanner({ t, message, onDismiss, onUpgrade }) {
   if (!message) return null;
   return (
     <div
@@ -1153,10 +1190,27 @@ function LimitErrorBanner({ t, message, onDismiss }) {
           Plan Limit Reached
         </p>
         <p
-          style={{ fontSize: 12, color: t.textSub, margin: 0, lineHeight: 1.6 }}
+          style={{
+            fontSize: 12,
+            color: t.textSub,
+            margin: "0 0 10px",
+            lineHeight: 1.6,
+          }}
         >
-          {message}. Please contact your Super Admin to upgrade your plan.
+          {message}
         </p>
+        {onUpgrade && (
+          <button
+            onClick={onUpgrade}
+            className="oo-btn-solid"
+            style={{
+              background: "linear-gradient(135deg,#f43f5e,#be123c)",
+              boxShadow: "0 3px 10px rgba(244,63,94,0.3)",
+            }}
+          >
+            Upgrade Plan
+          </button>
+        )}
       </div>
       <button
         onClick={onDismiss}
@@ -1178,10 +1232,12 @@ function LimitErrorBanner({ t, message, onDismiss }) {
    PANEL / INLINE FORMS — logic unchanged from the previous implementation
 ═══════════════════════════════════════════════════════════════════════════ */
 function DepartmentForm({ t, mode, initial, onSubmitted }) {
+  const { plan: orgPlan, targets: orgTargets } = useOrgPlan();
   const [form, setForm] = useState(initial || { name: "", head: "" });
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
   const [limitError, setLimitError] = useState(null);
+  const [showUpgrade, setShowUpgrade] = useState(false);
   const [customOptions, setCustomOptions] = useState([]);
   const allOptions = [...DEPARTMENT_OPTIONS, ...customOptions];
 
@@ -1252,6 +1308,21 @@ function DepartmentForm({ t, mode, initial, onSubmitted }) {
         t={t}
         message={limitError}
         onDismiss={() => setLimitError(null)}
+        onUpgrade={() => setShowUpgrade(true)}
+      />
+      <UpgradeModal
+        isOpen={showUpgrade && orgTargets.length > 0}
+        onClose={() => setShowUpgrade(false)}
+        planType="org"
+        role="ORG_ADMIN"
+        orgId={getOrgId()}
+        currentPlan={orgPlan}
+        availableTargetPlans={orgTargets}
+        featureLabel={limitError}
+        onSuccess={() => {
+          setShowUpgrade(false);
+          setLimitError(null);
+        }}
       />
       <FormField t={t} label="Department Name *">
         <OOSelect
@@ -1304,12 +1375,25 @@ function DepartmentForm({ t, mode, initial, onSubmitted }) {
 }
 
 function BranchForm({ t, mode, initial, departments, onSubmitted }) {
+  const { plan: orgPlan, targets: orgTargets } = useOrgPlan();
   const [form, setForm] = useState(
     initial || { name: "", city: "", departmentId: "" },
   );
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [limitError, setLimitError] = useState(null);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+
+  const getOrgId = useCallback(() => {
+    try {
+      const token = localStorage.getItem("lms_token");
+      if (!token) return null;
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      return payload.organizationId || payload.orgId || null;
+    } catch {
+      return null;
+    }
+  }, []);
 
   useEffect(() => {
     setForm(initial || { name: "", city: "", departmentId: "" });
@@ -1354,6 +1438,21 @@ function BranchForm({ t, mode, initial, departments, onSubmitted }) {
         t={t}
         message={limitError}
         onDismiss={() => setLimitError(null)}
+        onUpgrade={() => setShowUpgrade(true)}
+      />
+      <UpgradeModal
+        isOpen={showUpgrade && orgTargets.length > 0}
+        onClose={() => setShowUpgrade(false)}
+        planType="org"
+        role="ORG_ADMIN"
+        orgId={getOrgId()}
+        currentPlan={orgPlan}
+        availableTargetPlans={orgTargets}
+        featureLabel={limitError}
+        onSuccess={() => {
+          setShowUpgrade(false);
+          setLimitError(null);
+        }}
       />
       <FormField t={t} label="Branch Name *">
         <OOInput
@@ -1405,10 +1504,23 @@ function BranchForm({ t, mode, initial, departments, onSubmitted }) {
 }
 
 function BatchForm({ t, branches, onSubmitted }) {
+  const { plan: orgPlan, targets: orgTargets } = useOrgPlan();
   const [form, setForm] = useState({ batchName: "", branchId: "" });
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
   const [limitError, setLimitError] = useState(null);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+
+  const getOrgId = useCallback(() => {
+    try {
+      const token = localStorage.getItem("lms_token");
+      if (!token) return null;
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      return payload.organizationId || payload.orgId || null;
+    } catch {
+      return null;
+    }
+  }, []);
 
   const handleSave = async () => {
     if (!form.batchName.trim()) {
@@ -1451,6 +1563,20 @@ function BatchForm({ t, branches, onSubmitted }) {
         t={t}
         message={limitError}
         onDismiss={() => setLimitError(null)}
+        onUpgrade={() => setShowUpgrade(true)}
+      />
+      <UpgradeModal
+        isOpen={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
+        planType="org"
+        orgId={getOrgId()}
+        currentPlan="trial"
+        availableTargetPlans={["starter", "growth"]}
+        featureLabel={limitError}
+        onSuccess={() => {
+          setShowUpgrade(false);
+          setLimitError(null);
+        }}
       />
       <FormField t={t} label="Batch Name *">
         <OOInput
@@ -1488,6 +1614,7 @@ function BatchForm({ t, branches, onSubmitted }) {
 }
 
 function UserForm({ t, mode, initial, loggedInUser, onSubmitted }) {
+  const { plan: orgPlan, targets: orgTargets } = useOrgPlan();
   const [formData, setFormData] = useState(
     initial || {
       displayName: "",
@@ -1499,7 +1626,19 @@ function UserForm({ t, mode, initial, loggedInUser, onSubmitted }) {
   const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState("");
   const [limitError, setLimitError] = useState(null);
+  const [showUpgrade, setShowUpgrade] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const getOrgId = useCallback(() => {
+    try {
+      const token = localStorage.getItem("lms_token");
+      if (!token) return null;
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      return payload.organizationId || payload.orgId || null;
+    } catch {
+      return null;
+    }
+  }, []);
 
   useEffect(() => {
     setFormData(
@@ -1599,6 +1738,21 @@ function UserForm({ t, mode, initial, loggedInUser, onSubmitted }) {
         t={t}
         message={limitError}
         onDismiss={() => setLimitError(null)}
+        onUpgrade={() => setShowUpgrade(true)}
+      />
+      <UpgradeModal
+        isOpen={showUpgrade && orgTargets.length > 0}
+        onClose={() => setShowUpgrade(false)}
+        planType="org"
+        role="ORG_ADMIN"
+        orgId={getOrgId()}
+        currentPlan={orgPlan}
+        availableTargetPlans={orgTargets}
+        featureLabel={limitError}
+        onSuccess={() => {
+          setShowUpgrade(false);
+          setLimitError(null);
+        }}
       />
       <FormField t={t} label="Full Name *">
         <OOInput
@@ -1719,6 +1873,8 @@ function ManagementColumn({
   onAdd,
   addDisabled,
   addDisabledReason,
+  usage,
+  onUpgrade,
 }) {
   const navigate = useNavigate();
   const Icon = cat.icon;
@@ -2225,6 +2381,117 @@ function ManagementColumn({
     ];
   }, [cat.id, t, page]);
 
+  const badgeC = {
+    cardBorder: t.border,
+    cardBg: t.cardBg,
+    textSub: t.textSub,
+    textPrimary: t.text,
+    accent: cat.color,
+    errorColor: "#f43f5e",
+    divider: t.pillBg,
+  };
+
+  const hintStyle = {
+    fontSize: 10.5,
+    color: t.textMuted,
+    fontFamily: FONT_FAMILY,
+  };
+
+  const renderUsage = () => {
+    if (!usage) return null;
+    let body;
+
+    if (cat.id === "departments") {
+      body = (
+        <UsageBadge
+          label="Departments"
+          used={count ?? 0}
+          limit={usage.maxDepartments ?? null}
+          c={badgeC}
+        />
+      );
+    } else if (cat.id === "branches") {
+      const limit = usage.maxBranchesPerDept ?? null;
+      body = filterVal ? (
+        <UsageBadge
+          label="Branches in this dept."
+          used={
+            items.filter((b) => String(b.departmentId) === String(filterVal))
+              .length
+          }
+          limit={limit}
+          c={badgeC}
+        />
+      ) : (
+        <span style={hintStyle}>
+          {limit != null
+            ? `Max ${limit} per department. Pick a department to see usage.`
+            : "Branches: Unlimited"}
+        </span>
+      );
+    } else if (cat.id === "batches") {
+      const limit = usage.maxBatchesPerBranch ?? null;
+      body = filterVal ? (
+        <UsageBadge
+          label="Batches in this branch"
+          used={
+            items.filter((b) => String(b.branchId) === String(filterVal)).length
+          }
+          limit={limit}
+          c={badgeC}
+        />
+      ) : (
+        <span style={hintStyle}>
+          {limit != null
+            ? `Max ${limit} per branch. Pick a branch to see usage.`
+            : "Batches: Unlimited"}
+        </span>
+      );
+    } else {
+      body = (
+        <>
+          <UsageBadge
+            label="Students"
+            used={usage.currentStudents ?? 0}
+            limit={usage.maxStudents ?? null}
+            c={badgeC}
+          />
+          <UsageBadge
+            label="Trainers"
+            used={usage.currentTrainers ?? 0}
+            limit={usage.maxTrainers ?? null}
+            c={badgeC}
+          />
+        </>
+      );
+    }
+
+    return (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 6,
+          marginBottom: 9,
+        }}
+      >
+        {body}
+        {onUpgrade && (
+          <button
+            onClick={onUpgrade}
+            className="oo-btn-solid"
+            style={{
+              background: `linear-gradient(135deg,${ACCENT_PURPLE.base},#6d28d9)`,
+              alignSelf: "flex-start",
+            }}
+          >
+            Upgrade plan for more
+          </button>
+        )}
+      </div>
+    );
+  };
+
   const searchPlaceholder =
     cat.id === "departments"
       ? "Search departments…"
@@ -2345,7 +2612,7 @@ function ManagementColumn({
           </span>
         </div>
       )}
-
+      {renderUsage()}
       {cat.id === "branches" && (
         <OOSelect
           t={t}
@@ -3094,6 +3361,8 @@ const OrganisationOverview = () => {
     users: [],
   });
   const [previewLoading, setPreviewLoading] = useState(true);
+  const [usage, setUsage] = useState(null);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   // A single active panel drives BOTH "Add" and "Edit" flows.
   // Only one form can ever be open at a time, and every form starts closed.
@@ -3150,7 +3419,14 @@ const OrganisationOverview = () => {
           userCount = res?.data?.totalElements ?? userList.length;
         }
       } catch {}
-
+      try {
+        const orgIdForUsage = getOrgIdFromToken();
+        if (orgIdForUsage) {
+          setUsage(await authService.getOrgCapacity(orgIdForUsage));
+        } else {
+          setUsage(null);
+        }
+      } catch {}
       setCounts({
         departments: deptList.length,
         branches: branchList.length,
@@ -3174,6 +3450,14 @@ const OrganisationOverview = () => {
     loadOverview();
   }, [loadOverview]);
 
+  const currentOrgPlan = ORG_PLAN_ORDER.includes(
+    String(usage?.plan || "").toLowerCase(),
+  )
+    ? String(usage.plan).toLowerCase()
+    : "trial";
+  const upgradeTargets = ORG_PLAN_ORDER.slice(
+    ORG_PLAN_ORDER.indexOf(currentOrgPlan) + 1,
+  );
   const closePanel = () => setActivePanel(null);
 
   // ── Step dependency rules ──────────────────────────────────────────────
@@ -3414,6 +3698,22 @@ const OrganisationOverview = () => {
 
   return (
     <>
+      {upgradeOpen && upgradeTargets.length > 0 && (
+        <UpgradeModal
+          isOpen={upgradeOpen}
+          onClose={() => setUpgradeOpen(false)}
+          planType="org"
+          role="ORG_ADMIN"
+          orgId={getOrgIdFromToken()}
+          currentPlan={currentOrgPlan}
+          availableTargetPlans={upgradeTargets}
+          featureLabel="Upgrade to increase your departments, branches, batches and user limits."
+          onSuccess={() => {
+            setUpgradeOpen(false);
+            loadOverview();
+          }}
+        />
+      )}
       <InjectStyles />
 
       <SplitShell
@@ -3598,6 +3898,12 @@ const OrganisationOverview = () => {
                     onAdd={() => handleQuickAdd(cat.id)}
                     addDisabled={isAddDisabled(cat.id)}
                     addDisabledReason={addDisabledReason(cat.id)}
+                    usage={usage}
+                    onUpgrade={
+                      upgradeTargets.length
+                        ? () => setUpgradeOpen(true)
+                        : undefined
+                    }
                   />
                   <HelpCard t={t} isDark={isDark} cat={cat} />
                 </div>

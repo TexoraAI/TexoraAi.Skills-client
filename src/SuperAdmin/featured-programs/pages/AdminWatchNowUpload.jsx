@@ -111,6 +111,58 @@ function parseVideoUrl(rawUrl) {
   return { type: "iframe", url };
 }
 
+/* ✅ NEW — same YouTube detection used elsewhere, reused to decide whether
+   the manual thumbnail upload is required/shown at all. */
+function isYouTubeUrl(rawUrl) {
+  if (!rawUrl) return false;
+  return /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/|youtube\.com\/embed\/)([\w-]{11})/.test(
+    rawUrl.trim(),
+  );
+}
+
+/* ✅ NEW — the backend now sometimes returns a full YouTube thumbnail URL
+   directly (already public, no need to hit our stream endpoint), and
+   sometimes returns just a filename for manually-uploaded thumbnails
+   (needs our stream endpoint to resolve to a signed S3 link). */
+/* ✅ NEW — the backend now sometimes returns a full YouTube thumbnail URL
+   directly (already public, no need to hit our stream endpoint), and
+   sometimes returns just a filename for manually-uploaded thumbnails
+   (needs our stream endpoint to resolve to a signed S3 link). */
+async function getThumbnailDisplayUrl(thumbnail) {
+  if (!thumbnail) return null;
+  return thumbnail.startsWith("http")
+    ? thumbnail
+    : await videoService.getWatchNowStreamUrl(thumbnail);
+}
+
+/* ✅ NEW — small wrapper component that resolves the (now async)
+   thumbnail URL and renders an <img>. Used anywhere we previously did
+   <img src={getThumbnailDisplayUrl(x)} /> synchronously — that broke
+   because getThumbnailDisplayUrl now returns a Promise, not a string. */
+function AdminThumb({ thumbnail, alt = "", style, className }) {
+  const [src, setSrc] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    setSrc(null);
+    getThumbnailDisplayUrl(thumbnail)
+      .then((url) => {
+        if (active) setSrc(url);
+      })
+      .catch((err) => console.error("Thumbnail resolve failed:", err));
+    return () => {
+      active = false;
+    };
+  }, [thumbnail]);
+
+  if (!src) {
+    return (
+      <div className={className} style={{ ...style, background: "#e5e7eb" }} />
+    );
+  }
+  return <img src={src} alt={alt} className={className} style={style} />;
+}
+
 function StatusBadge({ status, dark }) {
   const isPublished = status === "published";
   const cfg = isPublished
@@ -487,12 +539,22 @@ function StoryEditor({ t, initial, onCancel, onSaved }) {
     initial?.externalVideoUrl || "",
   );
   const [thumbnailFile, setThumbnailFile] = useState(null);
-  const [thumbnailPreview, setThumbnailPreview] = useState(
-    initial?.thumbnail
-      ? videoService.getWatchNowStreamUrl(initial.thumbnail)
-      : null,
-  );
+  const [thumbnailPreview, setThumbnailPreview] = useState(null);
   const [error, setError] = useState("");
+
+  // Resolve the initial (edit-mode) thumbnail asynchronously — it may be
+  // a plain filename that needs a presigned-URL lookup, or an absolute
+  // YouTube URL that resolves instantly.
+  useEffect(() => {
+    if (!initial?.thumbnail) return;
+    let active = true;
+    getThumbnailDisplayUrl(initial.thumbnail).then((url) => {
+      if (active) setThumbnailPreview(url);
+    });
+    return () => {
+      active = false;
+    };
+  }, [initial?.thumbnail]);
   const [saving, setSaving] = useState(false);
 
   const handleThumbnailChange = (file) => {
@@ -523,11 +585,25 @@ function StoryEditor({ t, initial, onCancel, onSaved }) {
     return fd;
   };
 
+  // const validate = () => {
+  //   if (!quote.trim()) return "Quote is required.";
+  //   if (!personName.trim()) return "Person name is required.";
+  //   if (!personRole.trim()) return "Person role is required.";
+  //   if (!isEdit && !thumbnailFile) return "Thumbnail is required.";
+  //   if (mode === "url" && !externalUrl.trim())
+  //     return "Paste a video URL, or switch to Upload Video File.";
+  //   if (mode === "file" && !isEdit && !videoFile)
+  //     return "Upload a video file, or switch to Paste Video URL.";
+  //   return "";
+  // };
+  const isYouTube = mode === "url" && isYouTubeUrl(externalUrl);
+
   const validate = () => {
     if (!quote.trim()) return "Quote is required.";
     if (!personName.trim()) return "Person name is required.";
     if (!personRole.trim()) return "Person role is required.";
-    if (!isEdit && !thumbnailFile) return "Thumbnail is required.";
+    if (!isYouTube && !isEdit && !thumbnailFile)
+      return "Thumbnail is required.";
     if (mode === "url" && !externalUrl.trim())
       return "Paste a video URL, or switch to Upload Video File.";
     if (mode === "file" && !isEdit && !videoFile)
@@ -661,13 +737,42 @@ function StoryEditor({ t, initial, onCancel, onSaved }) {
               t={t}
             />
           </Field>
-          <Field label="Thumbnail" required t={t}>
-            <ThumbnailField
-              preview={thumbnailPreview}
-              onChange={handleThumbnailChange}
-              t={t}
-            />
-          </Field>
+          {isYouTube ? (
+            <Field label="Thumbnail" t={t}>
+              <div
+                style={{
+                  aspectRatio: "16 / 9",
+                  borderRadius: 10,
+                  border: t.inputBorder,
+                  background: t.innerBg,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: 12,
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 11.5,
+                    color: t.textMuted,
+                    margin: 0,
+                    textAlign: "center",
+                    fontFamily: "Inter,sans-serif",
+                  }}
+                >
+                  Thumbnail will be fetched automatically from YouTube
+                </p>
+              </div>
+            </Field>
+          ) : (
+            <Field label="Thumbnail" required t={t}>
+              <ThumbnailField
+                preview={thumbnailPreview}
+                onChange={handleThumbnailChange}
+                t={t}
+              />
+            </Field>
+          )}
         </div>
       </div>
 
@@ -740,13 +845,30 @@ function StoryEditor({ t, initial, onCancel, onSaved }) {
    PREVIEW MODAL — Eye icon opens this
    ============================================================ */
 function PreviewModal({ t, item, onClose }) {
+  const [rawUrl, setRawUrl] = useState(null);
+
+  useEffect(() => {
+    if (!item) return;
+    if (item.videoFileName) {
+      let active = true;
+      videoService.getWatchNowStreamUrl(item.videoFileName).then((url) => {
+        if (active) setRawUrl(url);
+      });
+      return () => {
+        active = false;
+      };
+    } else {
+      setRawUrl(item.externalVideoUrl);
+    }
+  }, [item]);
+
   if (!item) return null;
-  const rawUrl = item.videoFileName
-    ? videoService.getWatchNowStreamUrl(item.videoFileName)
-    : item.externalVideoUrl;
-  const parsed = item.videoFileName
-    ? { type: "video", url: rawUrl }
-    : parseVideoUrl(rawUrl);
+
+  const parsed = !rawUrl
+    ? null
+    : item.videoFileName
+      ? { type: "video", url: rawUrl }
+      : parseVideoUrl(rawUrl);
 
   return (
     <div
@@ -1249,9 +1371,8 @@ export default function AdminWatchNowManagement() {
                   }}
                 >
                   <GripVertical size={14} color={t.textFaint} />
-                  <img
-                    src={videoService.getWatchNowStreamUrl(item.thumbnail)}
-                    alt=""
+                  <AdminThumb
+                    thumbnail={item.thumbnail}
                     style={{
                       width: 56,
                       height: 36,

@@ -172,12 +172,21 @@ export default function AiCompanionPage({
   };
 
   // ── Meetings → transcript started → open In-Person Notes ─────────────────
+  // ── Meetings → transcript started → open In-Person Notes ─────────────────
+  // readOnly = true when this came from "View Transcript" on a virtual/
+  // LiveKit session (Whisper-derived, no live mic capture should start).
   const handleTranscriptStart = ({
     transcriptId,
     liveSessionId,
     sessionTitle,
+    readOnly,
   }) => {
-    setPendingTranscript({ transcriptId, liveSessionId, sessionTitle });
+    setPendingTranscript({
+      transcriptId,
+      liveSessionId,
+      sessionTitle,
+      readOnly: !!readOnly,
+    });
     setActiveView("notes");
   };
 
@@ -194,6 +203,7 @@ export default function AiCompanionPage({
           initialTranscriptId={pendingTranscript?.transcriptId}
           initialSessionId={pendingTranscript?.liveSessionId}
           initialSessionTitle={pendingTranscript?.sessionTitle}
+          initialReadOnly={pendingTranscript?.readOnly}
         />
       );
     }

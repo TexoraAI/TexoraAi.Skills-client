@@ -97,6 +97,9 @@ const NODE_LIBRARY = {
         description: "Fires when session attendance is below a set %",
         icon: Users,
         color: "#f59e0b",
+        disabled: true,
+        disabledReason:
+          "Not available yet — attendance tracking and a scheduler to check it aren't wired up on the backend.",
       },
     ],
   },
@@ -671,18 +674,91 @@ function NodeConfigPanel({ node, isDark, onSave, onClose }) {
       return (
         <>
           {node.id === "c1" && (
-            <div style={{ marginBottom: 14 }}>
-              <label style={labelStyle}>Condition</label>
-              <textarea
-                value={config.condition || ""}
-                onChange={(e) =>
-                  setConfig((p) => ({ ...p, condition: e.target.value }))
-                }
-                placeholder="e.g. attendance < 70 OR session_duration > 60"
-                rows={3}
-                style={{ ...inputStyle, resize: "none" }}
-              />
-            </div>
+            <>
+              <div
+                style={{
+                  marginBottom: 10,
+                  fontSize: 10,
+                  color: textSecondary,
+                  fontFamily: "'Poppins', sans-serif",
+                  lineHeight: 1.5,
+                }}
+              >
+                Conditions can only check one field against one value right now
+                — no AND/OR, and no attendance data yet.
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <label style={labelStyle}>Field</label>
+                <select
+                  value={config.conditionField || "session_duration"}
+                  onChange={(e) => {
+                    const field = e.target.value;
+                    const op = config.conditionOperator || ">";
+                    const val =
+                      config.conditionValue !== undefined
+                        ? config.conditionValue
+                        : "";
+                    setConfig((p) => ({
+                      ...p,
+                      conditionField: field,
+                      condition: val !== "" ? `${field} ${op} ${val}` : "",
+                    }));
+                  }}
+                  style={selectStyle}
+                >
+                  <option value="session_duration">
+                    Session duration (minutes)
+                  </option>
+                  <option value="batch_id">Batch ID</option>
+                </select>
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <label style={labelStyle}>Operator</label>
+                <select
+                  value={config.conditionOperator || ">"}
+                  onChange={(e) => {
+                    const op = e.target.value;
+                    const field = config.conditionField || "session_duration";
+                    const val =
+                      config.conditionValue !== undefined
+                        ? config.conditionValue
+                        : "";
+                    setConfig((p) => ({
+                      ...p,
+                      conditionOperator: op,
+                      condition: val !== "" ? `${field} ${op} ${val}` : "",
+                    }));
+                  }}
+                  style={selectStyle}
+                >
+                  <option value=">">is greater than (&gt;)</option>
+                  <option value="<">is less than (&lt;)</option>
+                  <option value=">=">is at least (&gt;=)</option>
+                  <option value="<=">is at most (&lt;=)</option>
+                  <option value="==">equals (==)</option>
+                  <option value="!=">does not equal (!=)</option>
+                </select>
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <label style={labelStyle}>Value</label>
+                <input
+                  type="number"
+                  value={config.conditionValue ?? ""}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const field = config.conditionField || "session_duration";
+                    const op = config.conditionOperator || ">";
+                    setConfig((p) => ({
+                      ...p,
+                      conditionValue: val,
+                      condition: val !== "" ? `${field} ${op} ${val}` : "",
+                    }));
+                  }}
+                  placeholder="e.g. 30"
+                  style={inputStyle}
+                />
+              </div>
+            </>
           )}
           {node.id === "c2" && (
             <div style={{ marginBottom: 14 }}>
@@ -868,9 +944,15 @@ function NodeLibraryPanel({ isDark, onAddNode, recentNodes }) {
 
   const NodeItem = ({ node }) => {
     const Icon = node.icon;
+    const isDisabled = !!node.disabled;
     return (
       <button
-        onClick={() => onAddNode(node)}
+        onClick={() => {
+          if (isDisabled) return;
+          onAddNode(node);
+        }}
+        disabled={isDisabled}
+        title={isDisabled ? node.disabledReason : undefined}
         style={{
           width: "100%",
           display: "flex",
@@ -880,11 +962,14 @@ function NodeLibraryPanel({ isDark, onAddNode, recentNodes }) {
           border: "none",
           borderRadius: 8,
           background: "transparent",
-          cursor: "pointer",
+          cursor: isDisabled ? "not-allowed" : "pointer",
           textAlign: "left",
           transition: "all 0.12s",
+          opacity: isDisabled ? 0.45 : 1,
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.background = hoverBg)}
+        onMouseEnter={(e) => {
+          if (!isDisabled) e.currentTarget.style.background = hoverBg;
+        }}
         onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
       >
         <div
@@ -916,8 +1001,20 @@ function NodeLibraryPanel({ isDark, onAddNode, recentNodes }) {
           >
             {node.label}
           </div>
+          {isDisabled && (
+            <div
+              style={{
+                fontSize: 9,
+                color: textSecondary,
+                fontFamily: "'Poppins', sans-serif",
+                marginTop: 1,
+              }}
+            >
+              Coming soon
+            </div>
+          )}
         </div>
-        <Plus size={11} color={textSecondary} />
+        {!isDisabled && <Plus size={11} color={textSecondary} />}
       </button>
     );
   };
@@ -1200,6 +1297,12 @@ function WorkflowBuilder({ isDark, selectedTemplate, onBack, onSaved }) {
   };
 
   const handleAddNode = (nodeDef) => {
+    if (nodeDef.disabled) {
+      setError(
+        nodeDef.disabledReason || `"${nodeDef.label}" isn't available yet.`,
+      );
+      return;
+    }
     const instance = {
       ...nodeDef,
       instanceId: `node-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,

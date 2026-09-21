@@ -5,6 +5,7 @@ import { Eye, Download, Trash2, FileText, FileImage, File } from "lucide-react";
 export default function TrainerFiles() {
   const [files, setFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [previewMeta, setPreviewMeta] = useState(null); // { url, contentType, originalName }
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -47,15 +48,49 @@ export default function TrainerFiles() {
     return <File />;
   };
 
-  const previewUrl = (file) => `http://localhost:9000/api/file/view/${file.id}`;
-  const downloadUrl = (file) =>
-    `http://localhost:9000/api/file/download/${file.fileName}`;
+  // Fetches a fresh presigned S3 URL from our backend (auth'd), then hands
+  // it straight to the <iframe>/<img> — no blob fetch, no CORS involved.
+  const openPreview = async (file) => {
+    try {
+      const meta = await fileService.getViewMeta(file.id);
+      setSelectedFile(file);
+      setPreviewMeta(meta);
+    } catch (e) {
+      console.error("Preview failed", e);
+      alert("Could not open file preview.");
+    }
+  };
+
+  const closePreview = () => {
+    setSelectedFile(null);
+    setPreviewMeta(null);
+  };
+
+  // Gets a fresh presigned URL, then triggers a real browser download by
+  // navigating an anchor to it directly — this is a browser navigation,
+  // not a JS fetch, so it isn't subject to CORS either.
+  const handleDownload = async (file) => {
+    try {
+      const meta = await fileService.getDownloadMeta(file.id);
+      const a = document.createElement("a");
+      a.href = meta.url;
+      a.download = meta.originalName || file.fileName || "download";
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (e) {
+      console.error("Download failed", e);
+      alert("Could not download file.");
+    }
+  };
 
   const renderPreview = () => {
-    if (!selectedFile) return null;
+    if (!selectedFile || !previewMeta) return null;
 
     const name = selectedFile.fileName.toLowerCase();
-    const url = previewUrl(selectedFile);
+    const url = previewMeta.url;
 
     if (name.endsWith(".pdf"))
       return (
@@ -130,18 +165,18 @@ export default function TrainerFiles() {
 
             <div className="flex gap-2 mt-2">
               <button
-                onClick={() => setSelectedFile(file)}
+                onClick={() => openPreview(file)}
                 className="flex items-center gap-2 bg-blue-600 text-white px-3 py-2 rounded-xl hover:bg-blue-700"
               >
                 <Eye size={18} /> Preview
               </button>
 
-              <a
-                href={downloadUrl(file)}
+              <button
+                onClick={() => handleDownload(file)}
                 className="flex items-center gap-2 bg-green-600 text-white px-3 py-2 rounded-xl hover:bg-green-700"
               >
                 <Download size={18} /> Download
-              </a>
+              </button>
 
               <button
                 onClick={() => deleteFile(file.id)}
@@ -158,7 +193,7 @@ export default function TrainerFiles() {
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-white w-full max-w-6xl rounded-2xl shadow-xl p-5 relative">
             <button
-              onClick={() => setSelectedFile(null)}
+              onClick={closePreview}
               className="absolute right-4 top-4 text-gray-500 hover:text-black"
             >
               ✕

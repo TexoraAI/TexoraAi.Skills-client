@@ -8,7 +8,10 @@ import {
   getMyEvents,
   deleteEvent,
   restoreEvent,
+  getEventsUsage,
 } from "../../../../services/eventService";
+import UsageBadge from "../../../../components/plan/UsageBadge";
+
 const TABS = ["All Events", "Upcoming", "Ongoing", "Completed", "Cancelled"];
 
 function formatTimeRange(startTime, endTime) {
@@ -116,6 +119,14 @@ export default function Events() {
   const showToast = useToast();
   const { openEventForm } = useWorkspaceModal();
 
+  // ── Plan entitlement state (shared meeting/event/schedule counter) ──
+  const [eventsUsage, setEventsUsage] = useState(null);
+  const loadEventsUsage = () => {
+    getEventsUsage()
+      .then((res) => setEventsUsage(res.data))
+      .catch((err) => console.error("Failed to load events usage:", err));
+  };
+
   const loadEvents = () => {
     setLoading(true);
     setError(null);
@@ -126,6 +137,7 @@ export default function Events() {
         setError("Could not load events. Please try again.");
       })
       .finally(() => setLoading(false));
+    loadEventsUsage();
   };
 
   useEffect(() => {
@@ -167,12 +179,34 @@ export default function Events() {
         title="Events"
         subtitle="Create, manage and organize all your events in one place."
         actions={
-          <button
-            className="btn-primary"
-            onClick={() => openEventForm(null, loadEvents)}
-          >
-            <Plus size={15} /> Create Event
-          </button>
+          <>
+            {eventsUsage && (
+              <UsageBadge
+                used={eventsUsage.used}
+                limit={
+                  eventsUsage.limit === "unlimited" ? null : eventsUsage.limit
+                }
+                unlimited={eventsUsage.limit === "unlimited"}
+                period="month"
+                label="Meetings / Events / Schedules"
+                c={{
+                  cardBorder: "#e2e8f0",
+                  cardBg: "#f8fafc",
+                  textSub: "#64748b",
+                  textPrimary: "#0f172a",
+                  divider: "#e2e8f0",
+                  accent: "#2563eb",
+                  errorColor: "#dc2626",
+                }}
+              />
+            )}
+            <button
+              className="btn-primary"
+              onClick={() => openEventForm(null, loadEvents)}
+            >
+              <Plus size={15} /> Create Event
+            </button>
+          </>
         }
       />
 

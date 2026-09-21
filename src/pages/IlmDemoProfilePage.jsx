@@ -1,6 +1,7 @@
 // export default IlmDemoProfilePage;
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import UpgradeModal from "../components/plan/UpgradeModal";
 import {
   User,
   Mail,
@@ -42,7 +43,7 @@ import {
   Crown,
   ArrowRight,
   Minus,
-   Info,
+  Info,
   UserCog,
 } from "lucide-react";
 
@@ -133,6 +134,17 @@ const getLocalUser = () => {
    Guard every authenticated call with this check so the demo flow
    stays 100% local until a real token exists. */
 const hasAuthToken = () => !!localStorage.getItem("lms_token");
+
+const getAuthTokenUserId = () => {
+  try {
+    const token = localStorage.getItem("lms_token");
+    if (!token) return null;
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload?.userId ?? null;
+  } catch {
+    return null;
+  }
+};
 
 /* ══════════════════════════════════════════════════════════════
    AVATAR COMPONENT — UNCHANGED
@@ -996,7 +1008,13 @@ const ROLE_SWAP_OPTIONS = [
   },
 ];
 
-const SwapRoleModal = ({ currentRoleKey, remaining, onClose, onConfirm, saving }) => {
+const SwapRoleModal = ({
+  currentRoleKey,
+  remaining,
+  onClose,
+  onConfirm,
+  saving,
+}) => {
   const [selected, setSelected] = useState(
     ROLE_SWAP_OPTIONS.find((r) => r.key !== currentRoleKey)?.key || null,
   );
@@ -1031,14 +1049,27 @@ const SwapRoleModal = ({ currentRoleKey, remaining, onClose, onConfirm, saving }
         }}
       >
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+          }}
+        >
           <div>
-            <h2 style={{ fontSize: "1.05rem", fontWeight: 800, color: "#1e293b", margin: 0 }}>
+            <h2
+              style={{
+                fontSize: "1.05rem",
+                fontWeight: 800,
+                color: "#1e293b",
+                margin: 0,
+              }}
+            >
               Swap Role
             </h2>
             <p style={{ fontSize: "0.74rem", color: "#64748b", marginTop: 3 }}>
-              You can swap your role up to {MAX_ROLE_CHANGES} times. Choose a role that best
-              describes you.
+              You can swap your role up to {MAX_ROLE_CHANGES} times. Choose a
+              role that best describes you.
             </p>
           </div>
           <button
@@ -1079,14 +1110,21 @@ const SwapRoleModal = ({ currentRoleKey, remaining, onClose, onConfirm, saving }
           <Zap size={14} color="#F97316" style={{ flexShrink: 0 }} />
           <span>
             Role can be changed up to {MAX_ROLE_CHANGES} times. You have{" "}
-            <strong>{remaining}</strong> {remaining === 1 ? "change" : "changes"} remaining after
-            this swap.
+            <strong>{remaining}</strong>{" "}
+            {remaining === 1 ? "change" : "changes"} remaining after this swap.
           </span>
         </div>
 
         {/* Current role */}
         <div style={{ marginTop: 12 }}>
-          <p style={{ fontSize: "0.72rem", fontWeight: 700, color: "#334155", marginBottom: 5 }}>
+          <p
+            style={{
+              fontSize: "0.72rem",
+              fontWeight: 700,
+              color: "#334155",
+              marginBottom: 5,
+            }}
+          >
             Current Role
           </p>
           <div
@@ -1112,10 +1150,18 @@ const SwapRoleModal = ({ currentRoleKey, remaining, onClose, onConfirm, saving }
                 flexShrink: 0,
               }}
             >
-              {currentOption?.Icon && <currentOption.Icon size={16} color="#16a34a" />}
+              {currentOption?.Icon && (
+                <currentOption.Icon size={16} color="#16a34a" />
+              )}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 800, fontSize: "0.76rem", color: "#1e293b" }}>
+              <div
+                style={{
+                  fontWeight: 800,
+                  fontSize: "0.76rem",
+                  color: "#1e293b",
+                }}
+              >
                 {currentOption?.title || currentRoleKey.toUpperCase()}
               </div>
               <div style={{ fontSize: "0.68rem", color: "#64748b" }}>
@@ -1140,7 +1186,14 @@ const SwapRoleModal = ({ currentRoleKey, remaining, onClose, onConfirm, saving }
 
         {/* Select new role */}
         <div style={{ marginTop: 12 }}>
-          <p style={{ fontSize: "0.72rem", fontWeight: 700, color: "#334155", marginBottom: 6 }}>
+          <p
+            style={{
+              fontSize: "0.72rem",
+              fontWeight: 700,
+              color: "#334155",
+              marginBottom: 6,
+            }}
+          >
             Select New Role
           </p>
           <div
@@ -1166,7 +1219,9 @@ const SwapRoleModal = ({ currentRoleKey, remaining, onClose, onConfirm, saving }
                     gap: 4,
                     padding: "10px 8px",
                     borderRadius: 10,
-                    border: active ? `2px solid ${r.color}` : "1.5px solid #e2e8f0",
+                    border: active
+                      ? `2px solid ${r.color}`
+                      : "1.5px solid #e2e8f0",
                     background: active ? `${r.color}0d` : "#fff",
                     cursor: "pointer",
                     fontFamily: "inherit",
@@ -1200,10 +1255,22 @@ const SwapRoleModal = ({ currentRoleKey, remaining, onClose, onConfirm, saving }
                   >
                     <r.Icon size={16} color={r.color} />
                   </div>
-                  <div style={{ fontWeight: 800, fontSize: "0.7rem", color: "#1e293b" }}>
+                  <div
+                    style={{
+                      fontWeight: 800,
+                      fontSize: "0.7rem",
+                      color: "#1e293b",
+                    }}
+                  >
                     {r.title}
                   </div>
-                  <div style={{ fontSize: "0.6rem", color: "#64748b", lineHeight: 1.3 }}>
+                  <div
+                    style={{
+                      fontSize: "0.6rem",
+                      color: "#64748b",
+                      lineHeight: 1.3,
+                    }}
+                  >
                     {r.desc}
                   </div>
                   {isCurrent && (
@@ -1239,7 +1306,10 @@ const SwapRoleModal = ({ currentRoleKey, remaining, onClose, onConfirm, saving }
           }}
         >
           <Info size={14} style={{ flexShrink: 0 }} />
-          <span>Changing your role will update your dashboard experience and available features.</span>
+          <span>
+            Changing your role will update your dashboard experience and
+            available features.
+          </span>
         </div>
 
         {/* Actions */}
@@ -1286,7 +1356,9 @@ const SwapRoleModal = ({ currentRoleKey, remaining, onClose, onConfirm, saving }
               gap: 6,
             }}
           >
-            {saving ? "Swapping…" : (
+            {saving ? (
+              "Swapping…"
+            ) : (
               <>
                 <ArrowRight size={13} />
                 Swap Role
@@ -1774,431 +1846,7 @@ const MultiSearchableDropdown = ({
     </div>
   );
 };
-/* ══════════════════════════════════════════════════════════════
-   PROFILE INFO TAB — LOGIC MOSTLY UNCHANGED. Avatar block restyled
-   to a dashed upload box; fields restyled with inline leading
-   icons. Same state, same handlers, same API call — PLUS a new
-   editable Role field (dropdown replaces the old "Locked" badge).
 
-   FIX: the local role switch (setRoleKey via onRoleUpdate) now
-   applies regardless of whether the backend `updateMyProfile` call
-   succeeds. Previously, if that API call rejected (e.g. the backend
-   doesn't support updating `role` yet), the whole save silently fell
-   into the catch block and the local role/roleKey was NEVER updated —
-   so picking "Trainer" or "Admin" in this dropdown and saving looked
-   like it worked (toast said success... or errored) but the Details
-   tab kept showing the Student form because the underlying roleKey
-   state never actually changed.
-
-   ROLE LOCK: Role can only ever be changed ONCE per account. Once a
-   role change is saved successfully, `lms_user.roleChangeUsed` is set
-   to true (see handleSave below) and the Role field permanently
-   switches to a locked/read-only 🔒 state — the dropdown no longer
-   appears in edit mode and the view-mode row shows a Lock icon +
-   explanatory copy instead of the old editable prompt.
-══════════════════════════════════════════════════════════════ */
-// const ProfileInfoTab = ({
-//   user,
-//   accent,
-//   onProfileUpdate,
-//   returnTo,
-//   roleKey,
-//   onRoleUpdate,
-//   onProfileComplete,
-// }) => {
-//   const navigate = useNavigate();
-//   const [editing, setEditing] = useState(false);
-//   const [saving, setSaving] = useState(false);
-//   const [name, setName] = useState(user.name);
-//   const [roleLabel, setRoleLabel] = useState(user.label); // editable role
-//   const [toast, setToast] = useState(null);
-//   const [showCelebration, setShowCelebration] = useState(false); // Step 9
-//   // 🔒 One-time role-change lock. Once true, the Role field can never be
-//   // edited again for this account (see handleSave, where this flips to
-//   // true right after a successful role change is persisted).
-//   const [roleLocked, setRoleLocked] = useState(hasUsedRoleChangeFlag());
-//   const { uploadImage, removeImage, profileImage } = useAvatarContext();
-//   const fileInputRef = useRef(null);
-//   const ac = ACCENT[accent];
-
-//   useEffect(() => {
-//     if (!editing) setName(user.name);
-//   }, [user.name, editing]);
-
-//   useEffect(() => {
-//     if (!editing) setRoleLabel(user.label);
-//   }, [user.label, editing]);
-
-//   const showToast = (message, type = "success") => setToast({ message, type });
-
-//   const handleSave = async () => {
-//     if (!name.trim()) {
-//       showToast("Name cannot be empty", "error");
-//       return;
-//     }
-//     setSaving(true);
-//     try {
-//       // Backend Role enum values, distinct from the frontend's own roleKey
-//       // convention. "admin" here → TENANT_ADMIN, never ADMIN.
-//       const BACKEND_ROLE_BY_KEY = {
-//         student: "STUDENT",
-//         trainer: "TRAINER",
-//         admin: "TENANT_ADMIN",
-//       };
-//       // 🔒 If the one-time role change has already been used, the role
-//       // NEVER changes again from this form — newRoleKey just stays
-//       // whatever roleKey already is, regardless of what roleLabel holds.
-//       const newRoleKey = roleLocked
-//         ? roleKey
-//         : ROLE_KEY_BY_LABEL[roleLabel] || roleKey;
-//       const roleChanged =
-//         !roleLocked && !!roleKey && newRoleKey !== roleKey;
-
-//       // Best-effort backend sync. NOTE: swap this for your real
-//       // role-update endpoint/payload once the backend supports it.
-//       // Whether this call succeeds or fails should NOT block the
-//       // local role switch below — the actual switch is applied via
-//       // localStorage + onRoleUpdate so the demo works end-to-end even
-//       // when the backend rejects/ignores the `role` field.
-
-//       // if (hasAuthToken()) {
-//       //   try {
-//       //     await userService.updateMyProfile({
-//       //       displayName: name.trim(),
-//       //       role: newRoleKey,
-//       //     });
-//       //   } catch (apiErr) {
-//       //     console.error(
-//       //       "updateMyProfile failed — continuing with local role switch:",
-//       //       apiErr,
-//       //     );
-//       //   }
-//       // }
-//       if (hasAuthToken()) {
-//         try {
-//           await userService.updateMyProfile({
-//             displayName: name.trim(),
-//             roles: `ROLE_${BACKEND_ROLE_BY_KEY[newRoleKey] || "STUDENT"}`,
-//           });
-//         } catch (apiErr) {
-//           console.error(
-//             "updateMyProfile failed — continuing with local role switch:",
-//             apiErr,
-//           );
-//         }
-//       }
-//       if (roleChanged) {
-//         localStorage.setItem("role", newRoleKey.toUpperCase());
-//         try {
-//           const cached = JSON.parse(localStorage.getItem("lms_user") || "{}");
-//           localStorage.setItem(
-//             "lms_user",
-//             JSON.stringify({
-//               ...cached,
-//               role: newRoleKey,
-//               roleChangeUsed: true, // 🔒 permanently lock the Role field
-//             }),
-//           );
-//         } catch {
-//           localStorage.setItem(
-//             "lms_user",
-//             JSON.stringify({ role: newRoleKey, roleChangeUsed: true }),
-//           );
-//         }
-//         setRoleLocked(true); // 🔒 lock this form immediately, no reload needed
-//         if (onRoleUpdate) onRoleUpdate(newRoleKey);
-//       }
-
-//       const wasFullyComplete = (() => {
-//         const f = readCompletionFlags();
-//         return f.info && f.details;
-//       })();
-//       syncProfileInfoCompleted(true);
-//       const isFullyCompleteNow = (() => {
-//         const f = readCompletionFlags();
-//         return f.info && f.details;
-//       })();
-
-//       if (onProfileUpdate) onProfileUpdate({ name: name.trim() });
-//       setEditing(false);
-//       showToast(
-//         roleChanged
-//           ? "Profile & role updated successfully"
-//           : "Profile updated successfully",
-//       );
-//       if (returnTo) {
-//         setShowCelebration(true);
-//       } else if (onProfileComplete && !wasFullyComplete && isFullyCompleteNow) {
-//         onProfileComplete();
-//       }
-//     } catch (err) {
-//       console.error("Save failed:", err);
-//       showToast("Failed to update profile. Please try again.", "error");
-//     } finally {
-//       setSaving(false);
-//     }
-//   };
-
-//   return (
-//     <div className="space-y-5">
-//       {showCelebration && (
-//         <ProfileCompletedCelebration
-//           onContinue={() => {
-//             setShowCelebration(false);
-//             navigate(returnTo);
-//           }}
-//         />
-//       )}
-//       {toast && (
-//         <Toast
-//           message={toast.message}
-//           type={toast.type}
-//           onClose={() => setToast(null)}
-//         />
-//       )}
-//       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-//         <div className="flex items-center gap-2.5">
-//           <div
-//             className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${ac.iconBg}`}
-//           >
-//             <User className={`w-4 h-4 ${ac.text}`} />
-//           </div>
-//           <div>
-//             <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
-//               Personal Information
-//             </h3>
-//             <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 mt-0.5">
-//               Manage and update your personal details
-//             </p>
-//           </div>
-//         </div>
-//         <div className="flex gap-2">
-//           {editing ? (
-//             <>
-//               <button
-//                 onClick={() => setEditing(false)}
-//                 disabled={saving}
-//                 className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-white/70 hover:bg-gray-200 dark:hover:bg-white/20 transition-colors"
-//               >
-//                 <X className="w-3.5 h-3.5" /> Cancel
-//               </button>
-//               <button
-//                 onClick={handleSave}
-//                 disabled={saving}
-//                 className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-sm text-white ${ac.btn} shadow transition-colors disabled:opacity-60`}
-//               >
-//                 {saving ? (
-//                   <>
-//                     <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />{" "}
-//                     Saving…
-//                   </>
-//                 ) : (
-//                   <>
-//                     <Save className="w-3.5 h-3.5" /> Save Changes
-//                   </>
-//                 )}
-//               </button>
-//             </>
-//           ) : (
-//             <button
-//               onClick={() => setEditing(true)}
-//               className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-sm bg-white dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gray-700 dark:text-white/80 hover:bg-gray-50 dark:hover:bg-white/20 transition-colors"
-//             >
-//               <Edit3 className="w-3.5 h-3.5" /> Edit Profile
-//             </button>
-//           )}
-//         </div>
-//       </div>
-
-//       <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4 sm:gap-5">
-//         {/* Dashed upload box — same uploadImage / removeImage handlers as before */}
-//         <div
-//           onClick={() => fileInputRef.current?.click()}
-//           className="flex flex-col items-center justify-center gap-1.5 p-4 sm:p-5 rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/15 bg-gray-50/60 dark:bg-white/[0.02] cursor-pointer hover:border-violet-300 dark:hover:border-violet-500/40 transition-colors text-center min-h-[160px] sm:min-h-[190px]"
-//         >
-//           {profileImage ? (
-//             <Avatar
-//               initials={user.avatar}
-//               size={56}
-//               shape="rounded"
-//               className="mb-1"
-//             />
-//           ) : (
-//             <div className="w-12 h-12 rounded-full bg-violet-100 dark:bg-violet-500/20 flex items-center justify-center mb-1">
-//               <UploadCloud className="w-5 h-5 text-violet-500" />
-//             </div>
-//           )}
-//           <p className="text-sm font-semibold text-gray-800 dark:text-white">
-//             Profile Photo
-//           </p>
-//           <p className="text-xs text-gray-400 dark:text-slate-500">
-//             JPG, PNG up to 5MB
-//           </p>
-//           <button
-//             type="button"
-//             onClick={(e) => {
-//               e.stopPropagation();
-//               fileInputRef.current?.click();
-//             }}
-//             className={`mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white ${ac.btn} transition-colors`}
-//           >
-//             <Upload className="w-3 h-3" /> Upload Image
-//           </button>
-//           {profileImage && (
-//             <button
-//               type="button"
-//               onClick={(e) => {
-//                 e.stopPropagation();
-//                 removeImage();
-//               }}
-//               className="text-xs text-red-500 hover:underline mt-1.5"
-//             >
-//               Remove Photo
-//             </button>
-//           )}
-//           <input
-//             ref={fileInputRef}
-//             type="file"
-//             accept="image/jpeg,image/png"
-//             className="hidden"
-//             onChange={(e) => {
-//               const f = e.target.files?.[0];
-//               if (f && (f.type === "image/jpeg" || f.type === "image/png"))
-//                 uploadImage(f);
-//               e.target.value = "";
-//             }}
-//           />
-//         </div>
-
-//         <div className="space-y-3.5 min-w-0">
-//           <div className="space-y-1">
-//             <label className="text-xs font-semibold text-gray-500 dark:text-slate-400">
-//               Full Name
-//             </label>
-//             {editing ? (
-//               <div className="relative">
-//                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-//                 <input
-//                   type="text"
-//                   value={name}
-//                   onChange={(e) => setName(e.target.value)}
-//                   className={`w-full pl-9 pr-3 py-2 rounded-xl text-sm transition-all bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:ring-2 ${ac.ring}`}
-//                 />
-//               </div>
-//             ) : (
-//               <div className="relative">
-//                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-//                 <p className="pl-9 pr-3 py-2 rounded-xl text-sm bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-800 dark:text-white/85 truncate">
-//                   {name || "—"}
-//                 </p>
-//               </div>
-//             )}
-//           </div>
-
-//           {/* ── Role — editable ONCE ──
-//               In view mode this still looks like the old read-only row,
-//               plus a 🔒 lock icon once the one-time role change has been
-//               used. In edit mode it becomes a searchable dropdown
-//               (Student / Trainer / Admin) — but ONLY while roleLocked is
-//               still false. Once the role has been changed and saved a
-//               single time, the dropdown is replaced everywhere by a
-//               permanently locked, read-only row. */}
-//           <div className="space-y-1" id="profile-role-field">
-//             <label className="text-xs font-semibold text-gray-500 dark:text-slate-400 flex items-center gap-1.5">
-//               Role
-//               {roleLocked && <Lock className="w-3 h-3 text-gray-400" />}
-//             </label>
-//             {editing && !roleLocked ? (
-//               <div>
-//                 <SearchableDropdown
-//                   name="role"
-//                   value={roleLabel}
-//                   onChange={(e) => setRoleLabel(e.target.value)}
-//                   options={ROLE_LABELS}
-//                   placeholder="Select role"
-//                   accentRing={ac.ring}
-//                   addNewLabel="Add New Role"
-//                   disabled={saving}
-//                 />
-//                 <p className="text-xs text-gray-400 dark:text-slate-500 pl-1 mt-1">
-//                   Changing your role switches your dashboard & sidebar
-//                   experience after saving. This can only be done once.
-//                 </p>
-//               </div>
-//             ) : (
-//               <>
-//                 <div className="relative">
-//                   {roleLocked ? (
-//                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-//                   ) : (
-//                     <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-//                   )}
-//                   <p className="pl-9 pr-3 py-2 rounded-xl text-sm bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-800 dark:text-white/85">
-//                     {user.label}
-//                   </p>
-//                 </div>
-//                 <p className="text-xs text-gray-400 dark:text-slate-500 pl-1 flex items-center gap-1">
-//                   {roleLocked ? (
-//                     <>
-//                       <Lock className="w-3 h-3 shrink-0" /> Role already
-//                       changed once — now locked
-//                     </>
-//                   ) : (
-//                     `Click "Edit Profile" to change your role`
-//                   )}
-//                 </p>
-//               </>
-//             )}
-//           </div>
-
-//           <div className="space-y-1">
-//             <label className="text-xs font-semibold text-gray-500 dark:text-slate-400">
-//               Email Address
-//             </label>
-//             <div className="relative">
-//               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 shrink-0" />
-//               <p className="pl-9 pr-16 sm:pr-20 py-2 rounded-xl text-sm bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-500 dark:text-white/50 select-none truncate">
-//                 {user.email}
-//               </p>
-//               <span className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-white/40 border border-gray-200 dark:border-white/10 whitespace-nowrap">
-//                 <Lock className="w-2.5 h-2.5 shrink-0" />{" "}
-//                 <span className="hidden xs:inline">Locked</span>
-//               </span>
-//             </div>
-//             <p className="text-xs text-gray-400 dark:text-slate-500 pl-1">
-//               Email cannot be changed from this page
-//             </p>
-//           </div>
-//         </div>
-//       </div>
-
-//       {editing && (
-//         <button
-//           onClick={handleSave}
-//           disabled={saving}
-//           className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm text-white ${ac.btn} shadow transition-colors disabled:opacity-60 w-full sm:w-auto justify-center sm:justify-start`}
-//         >
-//           {saving ? (
-//             <>
-//               <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />{" "}
-//               Saving…
-//             </>
-//           ) : (
-//             <>
-//               <Save className="w-3.5 h-3.5" /> Save Changes
-//             </>
-//           )}
-//         </button>
-//       )}
-//     </div>
-//   );
-// };
-/* ══════════════════════════════════════════════════════════════
-   PROFILE INFO TAB — role editing now goes through the Swap Role
-   modal (matches Image 1). Role can be swapped up to
-   MAX_ROLE_CHANGES (3) times, tracked via roleChangeCount instead
-   of a one-time boolean flag.
-══════════════════════════════════════════════════════════════ */
 const ProfileInfoTab = ({
   user,
   accent,
@@ -2264,7 +1912,10 @@ const ProfileInfoTab = ({
             roles: `ROLE_${BACKEND_ROLE_BY_KEY[newRoleKey] || "STUDENT"}`,
           });
         } catch (apiErr) {
-          console.error("updateMyProfile failed — continuing with local role switch:", apiErr);
+          console.error(
+            "updateMyProfile failed — continuing with local role switch:",
+            apiErr,
+          );
         }
       }
 
@@ -2274,7 +1925,11 @@ const ProfileInfoTab = ({
         const cached = JSON.parse(localStorage.getItem("lms_user") || "{}");
         localStorage.setItem(
           "lms_user",
-          JSON.stringify({ ...cached, role: newRoleKey, roleChangeCount: nextCount }),
+          JSON.stringify({
+            ...cached,
+            role: newRoleKey,
+            roleChangeCount: nextCount,
+          }),
         );
       } catch {
         localStorage.setItem(
@@ -2364,11 +2019,17 @@ const ProfileInfoTab = ({
         />
       )}
       {toast && (
-        <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
       )}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${ac.iconBg}`}>
+          <div
+            className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${ac.iconBg}`}
+          >
             <User className={`w-4 h-4 ${ac.text}`} />
           </div>
           <div>
@@ -2397,7 +2058,8 @@ const ProfileInfoTab = ({
               >
                 {saving ? (
                   <>
-                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Saving…
+                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />{" "}
+                    Saving…
                   </>
                 ) : (
                   <>
@@ -2423,14 +2085,23 @@ const ProfileInfoTab = ({
           className="flex flex-col items-center justify-center gap-1.5 p-4 sm:p-5 rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/15 bg-gray-50/60 dark:bg-white/[0.02] cursor-pointer hover:border-violet-300 dark:hover:border-violet-500/40 transition-colors text-center min-h-[160px] sm:min-h-[190px]"
         >
           {profileImage ? (
-            <Avatar initials={user.avatar} size={56} shape="rounded" className="mb-1" />
+            <Avatar
+              initials={user.avatar}
+              size={56}
+              shape="rounded"
+              className="mb-1"
+            />
           ) : (
             <div className="w-12 h-12 rounded-full bg-violet-100 dark:bg-violet-500/20 flex items-center justify-center mb-1">
               <UploadCloud className="w-5 h-5 text-violet-500" />
             </div>
           )}
-          <p className="text-sm font-semibold text-gray-800 dark:text-white">Profile Photo</p>
-          <p className="text-xs text-gray-400 dark:text-slate-500">JPG, PNG up to 5MB</p>
+          <p className="text-sm font-semibold text-gray-800 dark:text-white">
+            Profile Photo
+          </p>
+          <p className="text-xs text-gray-400 dark:text-slate-500">
+            JPG, PNG up to 5MB
+          </p>
           <button
             type="button"
             onClick={(e) => {
@@ -2460,7 +2131,8 @@ const ProfileInfoTab = ({
             className="hidden"
             onChange={(e) => {
               const f = e.target.files?.[0];
-              if (f && (f.type === "image/jpeg" || f.type === "image/png")) uploadImage(f);
+              if (f && (f.type === "image/jpeg" || f.type === "image/png"))
+                uploadImage(f);
               e.target.value = "";
             }}
           />
@@ -2511,8 +2183,8 @@ const ProfileInfoTab = ({
               <p className="text-xs text-gray-400 dark:text-slate-500 flex items-center gap-1">
                 {roleLocked ? (
                   <>
-                    <Lock className="w-3 h-3 shrink-0" /> You've used all {MAX_ROLE_CHANGES} role
-                    changes — now locked
+                    <Lock className="w-3 h-3 shrink-0" /> You've used all{" "}
+                    {MAX_ROLE_CHANGES} role changes — now locked
                   </>
                 ) : (
                   `${MAX_ROLE_CHANGES - roleChangeCount} of ${MAX_ROLE_CHANGES} role changes remaining`
@@ -2528,7 +2200,11 @@ const ProfileInfoTab = ({
                     : `${ac.iconBg} ${ac.text} hover:opacity-80`
                 }`}
               >
-                {roleLocked ? <Lock className="w-3 h-3" /> : <UserCog className="w-3 h-3" />}
+                {roleLocked ? (
+                  <Lock className="w-3 h-3" />
+                ) : (
+                  <UserCog className="w-3 h-3" />
+                )}
                 Swap Role
               </button>
             </div>
@@ -2544,7 +2220,8 @@ const ProfileInfoTab = ({
                 {user.email}
               </p>
               <span className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-white/40 border border-gray-200 dark:border-white/10 whitespace-nowrap">
-                <Lock className="w-2.5 h-2.5 shrink-0" /> <span className="hidden xs:inline">Locked</span>
+                <Lock className="w-2.5 h-2.5 shrink-0" />{" "}
+                <span className="hidden xs:inline">Locked</span>
               </span>
             </div>
             <p className="text-xs text-gray-400 dark:text-slate-500 pl-1">
@@ -2562,7 +2239,8 @@ const ProfileInfoTab = ({
         >
           {saving ? (
             <>
-              <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Saving…
+              <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />{" "}
+              Saving…
             </>
           ) : (
             <>
@@ -4833,10 +4511,27 @@ const SecurityTab = ({ accent }) => {
 };
 
 /* ══════════════════════════════════════════════════════════════
-   BILLING TAB — UNCHANGED
+   BILLING TAB
+   MODIFIED: threads a role prop into UpgradeModal so the feature
+   comparison only shows features relevant to this role (the actual
+   fix for "all roles see everything"). roleKey here is
+   "student" | "trainer" | "admin" | "business" — mapped to the
+   UPPER_SNAKE role planFeatures.js expects.
 ══════════════════════════════════════════════════════════════ */
-const BillingTab = ({ user, accent }) => {
+const ROLE_KEY_TO_UPGRADE_ROLE = {
+  student: "STUDENT",
+  trainer: "TRAINER",
+  admin: "ORG_ADMIN",
+  business: "ORG_ADMIN",
+};
+
+const BillingTab = ({ user, accent, roleKey, planContext }) => {
   const ac = ACCENT[accent];
+  const { userId, organizationId, individualPlan } = planContext || {};
+  const isOrgBound = !!organizationId;
+  const [upgradeConfig, setUpgradeConfig] = useState(null);
+  const upgradeRole = ROLE_KEY_TO_UPGRADE_ROLE[roleKey] || "STUDENT";
+
   const history = [
     {
       date: "Apr 1, 2025",
@@ -4866,35 +4561,114 @@ const BillingTab = ({ user, accent }) => {
 
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-2xl p-4 sm:p-6 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-sm">
-        <div className="relative flex flex-col sm:flex-row items-start sm:justify-between gap-4">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 mb-2">
-              <Zap className={`w-4 h-4 ${ac.text}`} />
-              <span className="text-xs font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-widest">
-                Current Plan
-              </span>
-            </div>
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-              {user.plan}
-            </h3>
-            <p className="text-gray-500 dark:text-slate-400 text-sm mt-1">
-              {user.planPrice} · Billed monthly
-            </p>
-            <div className="flex items-center gap-1.5 mt-3">
-              <BadgeCheck className={`w-4 h-4 ${ac.text}`} />
-              <span className="text-xs text-gray-500 dark:text-slate-400">
-                Renews on May 1, 2025
-              </span>
-            </div>
+      {upgradeConfig && (
+        <UpgradeModal
+          isOpen={!!upgradeConfig}
+          onClose={() => setUpgradeConfig(null)}
+          planType={upgradeConfig.planType}
+          userId={userId}
+          orgId={upgradeConfig.planType === "org" ? organizationId : null}
+          currentPlan={upgradeConfig.currentPlan}
+          availableTargetPlans={upgradeConfig.availableTargetPlans}
+          featureLabel={upgradeConfig.featureLabel}
+          onSuccess={() => window.location.reload()}
+          role={upgradeRole}
+        />
+      )}
+
+      {/* ── MY PLAN — org-bound vs standalone branch ── */}
+      {(roleKey === "student" || roleKey === "trainer") && (
+        <div className="relative overflow-hidden rounded-2xl p-4 sm:p-6 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <Zap className={`w-4 h-4 ${ac.text}`} />
+            <span className="text-xs font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-widest">
+              My Plan
+            </span>
           </div>
-          <button
-            className={`px-4 py-2 rounded-xl text-sm font-medium text-white ${ac.btn} transition-colors w-full sm:w-auto shrink-0`}
-          >
-            Upgrade Plan
-          </button>
+
+          {isOrgBound ? (
+            <>
+              <p className="text-sm text-gray-700 dark:text-white/80">
+                Your organization is on the{" "}
+                <span className="font-semibold capitalize">
+                  {individualPlan || "—"}
+                </span>{" "}
+                plan.
+              </p>
+              <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">
+                Your plan is managed by your organization admin — no upgrade
+                available here.
+              </p>
+            </>
+          ) : (
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white capitalize">
+                  {individualPlan || "free"}
+                </h3>
+                <p className="text-gray-500 dark:text-slate-400 text-sm mt-1">
+                  Standalone plan
+                </p>
+              </div>
+              <button
+                disabled={!userId}
+                onClick={() =>
+                  setUpgradeConfig({
+                    planType: "individual",
+                    currentPlan: individualPlan || "free",
+                    availableTargetPlans: ["pro", "premium"],
+                    featureLabel: "Upgrade your account plan",
+                  })
+                }
+                className={`px-4 py-2 rounded-xl text-sm font-medium text-white ${ac.btn} transition-colors w-full sm:w-auto shrink-0 disabled:opacity-50`}
+              >
+                Upgrade Plan
+              </button>
+            </div>
+          )}
         </div>
-      </div>
+      )}
+
+      {(roleKey === "admin" || roleKey === "business") && (
+        <div className="rounded-2xl p-4 sm:p-6 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-sm">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Zap className={`w-4 h-4 ${ac.text}`} />
+                <span className="text-xs font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-widest">
+                  Organization Plan
+                </span>
+              </div>
+              <p className="text-sm text-gray-500 dark:text-slate-400">
+                Manage your organization's plan and see what each tier unlocks
+                for students and trainers.
+              </p>
+            </div>
+            <button
+              disabled={!organizationId}
+              onClick={() =>
+                setUpgradeConfig({
+                  planType: "org",
+                  currentPlan: "trial",
+                  availableTargetPlans: ["starter", "growth"],
+                  featureLabel: "Upgrade your organization plan",
+                })
+              }
+              className={`px-4 py-2 rounded-xl text-sm font-medium text-white ${ac.btn} transition-colors w-full sm:w-auto shrink-0 disabled:opacity-50`}
+            >
+              Upgrade Org Plan
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Resume Builder is no longer a separate plan/button — its features
+          (AI resume generations, templates) now live inside the "Compare
+          plans" comparison on the student's own My Plan upgrade modal
+          above (planFeatures.js → INDIVIDUAL_CATEGORIES → "Resume
+          Builder", audience: STUDENT). Trainers/admins never saw it as
+          useful anyway, and students no longer need a second purchase
+          flow just for it. */}
       <div className="rounded-2xl p-4 sm:p-6 shadow-sm bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-gray-900 dark:text-white">
@@ -5000,7 +4774,10 @@ const IlmDemoProfilePage = ({
   // survives a full reload, same pattern as `?view=` and `?tab=` below.
   const targetFromUrl = searchParams.get("target");
   const effectiveScrollTarget =
-    scrollTarget || (targetFromUrl === "role" || targetFromUrl === "password" ? targetFromUrl : null);
+    scrollTarget ||
+    (targetFromUrl === "role" || targetFromUrl === "password"
+      ? targetFromUrl
+      : null);
   const VALID_PROFILE_TABS = ["profile", "details", "security", "billing"];
   // Bug fix: activeTab used to be plain local state, so refreshing the
   // page while on "Details"/"Security"/"Billing" always dropped the user
@@ -5010,7 +4787,8 @@ const IlmDemoProfilePage = ({
   // tab instead of losing it.
   const [activeTab, setActiveTabState] = useState(() => {
     const tabFromUrl = searchParams.get("tab");
-    if (tabFromUrl && VALID_PROFILE_TABS.includes(tabFromUrl)) return tabFromUrl;
+    if (tabFromUrl && VALID_PROFILE_TABS.includes(tabFromUrl))
+      return tabFromUrl;
     if (effectiveScrollTarget === "password") return "security";
     if (returnTo) return "details";
     return "profile";
@@ -5065,6 +4843,13 @@ const IlmDemoProfilePage = ({
   // tab form) update without a full page reload.
   const [roleKey, setRoleKey] = useState(initialRoleKey);
 
+  // ✅ NEW — real backend identifiers needed by the My Plan / UpgradeModal
+  // flow. Populated once getMyProfile() resolves (see effect below).
+  const [planContext, setPlanContext] = useState({
+    userId: getAuthTokenUserId(),
+    organizationId: localStorage.getItem("organizationId") || null,
+    individualPlan: "free",
+  });
   // Seed from the locally-cached lms_user (set at Google-login time) so
   // the real name/email show immediately, even before — or if —
   // getMyProfile() resolves.
@@ -5124,7 +4909,9 @@ const IlmDemoProfilePage = ({
         const apiName =
           data?.displayName || lu.name || ROLE_CONFIG[roleKey].name;
         const apiEmail = data?.email || lu.email || ROLE_CONFIG[roleKey].email;
-        const apiId = data?.userId || ROLE_CONFIG[roleKey].id;
+        // Display-only ID shown in the UI (e.g. "STU-0012") — unrelated to
+        // the real numeric backend userId used for plan/payment calls.
+        const apiId = ROLE_CONFIG[roleKey].id;
         const initial = apiName.charAt(0).toUpperCase();
         setUser((prev) => ({
           ...prev,
@@ -5134,6 +4921,23 @@ const IlmDemoProfilePage = ({
           label: roleLabel,
           avatar: initial,
         }));
+
+        // ⚠️ FIX: `data.id` here is user-service's UserResponse.id, which
+        // is a DIFFERENT number than auth-service's User.id (the `userId`
+        // claim baked into the JWT). PlanUpgradeController checks the JWT's
+        // userId, so plan-upgrade calls must use that, not this one — using
+        // data.id caused every /upgrade/preview and /payments/initiate call
+        // to 403 as "not your own account" even when it was. organizationId
+        // and individualPlan still come from user-service as before; only
+        // userId is re-sourced from the token.
+        setPlanContext({
+          userId: getAuthTokenUserId(),
+          organizationId:
+            data?.organizationId ??
+            localStorage.getItem("organizationId") ??
+            null,
+          individualPlan: data?.plan ?? "free",
+        });
       })
       .catch((err) => {
         if (!cancelled) {
@@ -5207,7 +5011,12 @@ const IlmDemoProfilePage = ({
   // suppressed after the first scroll.
   const scrolledToTargetRef = useRef(null);
   useEffect(() => {
-    if (!effectiveScrollTarget || loading || scrolledToTargetRef.current === effectiveScrollTarget) return;
+    if (
+      !effectiveScrollTarget ||
+      loading ||
+      scrolledToTargetRef.current === effectiveScrollTarget
+    )
+      return;
     const idByTarget = {
       role: "profile-role-field",
       password: "profile-password-section",
@@ -5277,28 +5086,29 @@ const IlmDemoProfilePage = ({
             <div className="flex flex-col xl:flex-row gap-4 sm:gap-6 items-start">
               <div className="flex-1 min-w-0 w-full rounded-2xl shadow-sm bg-white dark:bg-white/[0.03] border border-gray-100 dark:border-white/10">
                 <div className="p-4 sm:p-5 lg:p-6">
-                 {activeTab === "profile" && (
-  <ProfileInfoTab
-    user={user}
-    accent={user.accent}
-    onProfileUpdate={handleProfileUpdate}
-    returnTo={returnTo}
-    roleKey={roleKey}
-    onRoleUpdate={handleRoleUpdate}
-    onProfileComplete={onProfileComplete}
-    swapRoleNavTarget={effectiveScrollTarget}
-    clearRoleTarget={() => {
-      setSearchParams(
-        (prev) => {
-          const next = new URLSearchParams(prev);
-          if (next.get("target") === "role") next.delete("target");
-          return next;
-        },
-        { replace: true },
-      );
-    }}
-  />
-)}
+                  {activeTab === "profile" && (
+                    <ProfileInfoTab
+                      user={user}
+                      accent={user.accent}
+                      onProfileUpdate={handleProfileUpdate}
+                      returnTo={returnTo}
+                      roleKey={roleKey}
+                      onRoleUpdate={handleRoleUpdate}
+                      onProfileComplete={onProfileComplete}
+                      swapRoleNavTarget={effectiveScrollTarget}
+                      clearRoleTarget={() => {
+                        setSearchParams(
+                          (prev) => {
+                            const next = new URLSearchParams(prev);
+                            if (next.get("target") === "role")
+                              next.delete("target");
+                            return next;
+                          },
+                          { replace: true },
+                        );
+                      }}
+                    />
+                  )}
                   {activeTab === "details" && (
                     <DetailsTab
                       accent={user.accent}
@@ -5311,7 +5121,12 @@ const IlmDemoProfilePage = ({
                     <SecurityTab accent={user.accent} />
                   )}
                   {activeTab === "billing" && (
-                    <BillingTab user={user} accent={user.accent} />
+                    <BillingTab
+                      user={user}
+                      accent={user.accent}
+                      roleKey={roleKey}
+                      planContext={planContext}
+                    />
                   )}
                 </div>
               </div>

@@ -180,6 +180,13 @@ const videoService = {
     });
   },
 
+  // ✅ NEW — true total vs visible count, so the UI can show a locked tile
+  getStudentVideoCount() {
+    return axios.get(`${API_GATEWAY}/video/student/count`, {
+      headers: getAuthHeaders(),
+    });
+  },
+
   getAllVideos(type) {
     const params = type && type !== "ALL" ? { type } : {};
     return axios.get(`${API_GATEWAY}/video`, {
@@ -200,11 +207,27 @@ const videoService = {
     });
   },
 
-  getVideoBlob(fileName) {
-    return axios.get(`${API_GATEWAY}/video/play/${fileName}`, {
+  // ✅ NEW — GET /api/video/upload-quota, used by UsageBadge + pre-upload checks
+  getUploadQuota() {
+    return axios.get(`${API_GATEWAY}/video/upload-quota`, {
       headers: getAuthHeaders(),
-      responseType: "blob",
     });
+  },
+
+  // getVideoBlob(fileName) {
+  //   return axios.get(`${API_GATEWAY}/video/play/${fileName}`, {
+  //     headers: getAuthHeaders(),
+  //     responseType: "blob",
+  //   });
+  // },
+  // Two-step: authed call for the presigned URL, then plain GET to S3.
+  // S3 natively supports range requests, so video seeking works correctly —
+  // unlike the old byte[] endpoint.
+  async getVideoBlob(videoId) {
+    const meta = await axios.get(`${API_GATEWAY}/video/play/${videoId}`, {
+      headers: getAuthHeaders(),
+    });
+    return { url: meta.data.url }; // no blob fetch needed — <video src> can hit S3 directly
   },
 
   deleteVideo(id) {
@@ -240,8 +263,15 @@ const videoService = {
     });
   },
 
-  getCourseVideoStreamUrl(fileName) {
-    return `${API_GATEWAY}/course-videos/stream/${encodeURIComponent(fileName)}`;
+  // getCourseVideoStreamUrl(fileName) {
+  //   return `${API_GATEWAY}/course-videos/stream/${encodeURIComponent(fileName)}`;
+  // },
+  async getCourseVideoPlaybackUrl(fileName) {
+    const res = await axios.get(
+      `${API_GATEWAY}/course-videos/play/${encodeURIComponent(fileName)}`,
+      { headers: getAuthHeaders() },
+    );
+    return res.data.url; // real S3 presigned URL
   },
 
   updateCourseVideo(id, newFile, courseId, moduleId, batchId) {
@@ -409,8 +439,23 @@ const videoService = {
    * Build the stream URL for a WatchNow video or thumbnail filename.
    * Used directly in <video src={...}> or <img src={...}>.
    */
-  getWatchNowStreamUrl(fileName) {
-    return `${API_GATEWAY}/v1/watch-now/stream/${encodeURIComponent(fileName)}`;
+  // getWatchNowStreamUrl(fileName) {
+  //   return `${API_GATEWAY}/v1/watch-now/stream/${encodeURIComponent(fileName)}`;
+  // },
+
+  // getWatchNowStreamUrl(fileNameOrUrl) {
+  //   if (!fileNameOrUrl) return "";
+  //   // Already an absolute URL (YouTube thumbnail, or any external link) — use as-is.
+  //   if (/^https?:\/\//i.test(fileNameOrUrl)) return fileNameOrUrl;
+  //   return `${API_GATEWAY}/v1/watch-now/stream/${encodeURIComponent(fileNameOrUrl)}`;
+  // },
+  async getWatchNowStreamUrl(fileNameOrUrl) {
+    if (!fileNameOrUrl) return "";
+    if (/^https?:\/\//i.test(fileNameOrUrl)) return fileNameOrUrl; // YouTube etc — pass through
+    const res = await axios.get(
+      `${API_GATEWAY}/v1/watch-now/stream/${encodeURIComponent(fileNameOrUrl)}`,
+    );
+    return res.data.url; // real S3 presigned URL — no redirect involved
   },
 
   // ─────────────────────────────────────────────────────────────────
@@ -521,6 +566,13 @@ const videoService = {
       dto,
       { headers: getAuthHeaders() },
     );
+  },
+
+  // ✅ NEW — GET /api/course-videos/upload-quota, storage quota for course-module videos
+  getCourseVideoUploadQuota() {
+    return axios.get(`${API_GATEWAY}/course-videos/upload-quota`, {
+      headers: getAuthHeaders(),
+    });
   },
 };
 

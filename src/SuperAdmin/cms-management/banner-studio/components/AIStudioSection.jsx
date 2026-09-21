@@ -10,10 +10,24 @@ export default function AIStudioSection({ onUseBanner }) {
   const [prompt, setPrompt] = useState(
     "A bold promo banner announcing our new AI Engineering bootcamp, designed to drive enrollments before the cohort closes.",
   );
+  const CUSTOM_VALUE = "__custom__";
+
   const [audience, setAudience] = useState("Working Professionals");
+  const [audienceCustom, setAudienceCustom] = useState("");
+
   const [theme, setTheme] = useState("AI & Machine Learning");
+  const [themeCustom, setThemeCustom] = useState("");
+
   const [bannerType, setBannerType] = useState("Course Promotion");
+  const [bannerTypeCustom, setBannerTypeCustom] = useState("");
+
   const [style, setStyle] = useState("Bold & Modern");
+  const [styleCustom, setStyleCustom] = useState("");
+
+  // Resolves whichever field to what actually gets sent to the backend —
+  // the free-typed value when "Other" is picked, otherwise the dropdown value.
+  const resolve = (value, custom) =>
+    value === CUSTOM_VALUE ? custom.trim() : value;
   const [status, setStatus] = useState("idle"); // idle | generating | generated | error
   const [result, setResult] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
@@ -25,10 +39,10 @@ export default function AIStudioSection({ onUseBanner }) {
     try {
       const { data } = await courseService.generateBannerWithAI({
         prompt,
-        audience,
-        theme,
-        bannerType,
-        style,
+        audience: resolve(audience, audienceCustom),
+        theme: resolve(theme, themeCustom),
+        bannerType: resolve(bannerType, bannerTypeCustom),
+        style: resolve(style, styleCustom),
       });
       // Backend may wrap the result ({ data: {...} }) or return it flat —
       // handle both without throwing.
@@ -86,8 +100,22 @@ export default function AIStudioSection({ onUseBanner }) {
                   <option>College Students</option>
                   <option>Career Switchers</option>
                   <option>Enterprise L&D Teams</option>
+                  <option>Freshers / Recent Graduates</option>
+                  <option>Homemakers Returning to Work</option>
+                  <option>Freelancers</option>
+                  <option value={CUSTOM_VALUE}>Other — type your own…</option>
                 </select>
+                {audience === CUSTOM_VALUE && (
+                  <input
+                    type="text"
+                    className="mt-2"
+                    placeholder="e.g. Non-tech founders learning to code"
+                    value={audienceCustom}
+                    onChange={(e) => setAudienceCustom(e.target.value)}
+                  />
+                )}
               </div>
+
               <div className="field">
                 <label>Theme</label>
                 <select
@@ -98,8 +126,23 @@ export default function AIStudioSection({ onUseBanner }) {
                   <option>Web Development</option>
                   <option>Data Science</option>
                   <option>Cloud &amp; DevOps</option>
+                  <option>Cybersecurity</option>
+                  <option>UI/UX Design</option>
+                  <option>Digital Marketing</option>
+                  <option>Product Management</option>
+                  <option value={CUSTOM_VALUE}>Other — type your own…</option>
                 </select>
+                {theme === CUSTOM_VALUE && (
+                  <input
+                    type="text"
+                    className="mt-2"
+                    placeholder="e.g. Blockchain & Web3 Development"
+                    value={themeCustom}
+                    onChange={(e) => setThemeCustom(e.target.value)}
+                  />
+                )}
               </div>
+
               <div className="field">
                 <label>Banner Type</label>
                 <select
@@ -110,8 +153,22 @@ export default function AIStudioSection({ onUseBanner }) {
                   <option>Seasonal Sale</option>
                   <option>Webinar / Event</option>
                   <option>New Launch</option>
+                  <option>Early Bird Offer</option>
+                  <option>Last Chance / Deadline</option>
+                  <option>Free Trial / Demo</option>
+                  <option value={CUSTOM_VALUE}>Other — type your own…</option>
                 </select>
+                {bannerType === CUSTOM_VALUE && (
+                  <input
+                    type="text"
+                    className="mt-2"
+                    placeholder="e.g. Alumni referral bonus announcement"
+                    value={bannerTypeCustom}
+                    onChange={(e) => setBannerTypeCustom(e.target.value)}
+                  />
+                )}
               </div>
+
               <div className="field">
                 <label>Style</label>
                 <select
@@ -122,7 +179,20 @@ export default function AIStudioSection({ onUseBanner }) {
                   <option>Minimal &amp; Clean</option>
                   <option>Playful &amp; Vibrant</option>
                   <option>Corporate &amp; Trustworthy</option>
+                  <option>Dark &amp; Premium</option>
+                  <option>Warm &amp; Friendly</option>
+                  <option>Futuristic &amp; Tech</option>
+                  <option value={CUSTOM_VALUE}>Other — type your own…</option>
                 </select>
+                {style === CUSTOM_VALUE && (
+                  <input
+                    type="text"
+                    className="mt-2"
+                    placeholder="e.g. Retro 90s neon aesthetic"
+                    value={styleCustom}
+                    onChange={(e) => setStyleCustom(e.target.value)}
+                  />
+                )}
               </div>
             </div>
             <button
@@ -182,7 +252,18 @@ export default function AIStudioSection({ onUseBanner }) {
               )}
               {status === "generated" && result && (
                 <div style={{ width: "100%" }}>
-                  <div className="mock-banner">
+                  <div
+                    className="mock-banner"
+                    style={
+                      result.desktopImageUrl
+                        ? {
+                            backgroundImage: `url(${result.desktopImageUrl})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                          }
+                        : undefined
+                    }
+                  >
                     <div className="mock-eyebrow">
                       {result.eyebrow ?? theme}
                     </div>

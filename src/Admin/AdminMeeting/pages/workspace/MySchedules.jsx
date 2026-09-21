@@ -1,70 +1,13 @@
-// import React, { useState } from "react";
-// import { Plus, CalendarClock } from "lucide-react";
-// import PageHead from "../../components/PageHead";
-// import { mySchedules } from "../../data/mockData";
-// import { useWorkspaceModal } from "../../components/modals/ModalProvider";
-
-// const TABS = ["Upcoming", "Today", "This Week", "This Month"];
-
-// export default function MySchedules() {
-//   const [tab, setTab] = useState("Upcoming");
-//   const { openScheduleForm } = useWorkspaceModal();
-
-//   return (
-//     <div className="ws-content">
-//       <PageHead
-//         title="My Schedules"
-//         subtitle="View and manage your personal schedules."
-//         actions={
-//           <button className="btn-primary" onClick={() => openScheduleForm()}>
-//             <Plus size={15} /> Add Schedule
-//           </button>
-//         }
-//       />
-
-//       <div className="tab-strip">
-//         {TABS.map((t) => (
-//           <button key={t} className={`tab ${tab === t ? "is-active" : ""}`} onClick={() => setTab(t)}>
-//             {t}
-//           </button>
-//         ))}
-//       </div>
-
-//       <section className="section-card">
-//         {mySchedules.length === 0 ? (
-//           <div className="empty-state">
-//             <CalendarClock size={30} />
-//             <h3>No schedules found</h3>
-//             <p>Your personal schedule items will appear here.</p>
-//           </div>
-//         ) : (
-//           mySchedules.map((s) => (
-//             <div className={`list-row type-${s.type.toLowerCase()}`} key={s.id}>
-//               <div className="list-row-date">
-//                 <div className="mon">{s.date.split(" ")[0].toUpperCase()}</div>
-//                 <div className="day">{s.date.split(" ")[1]}</div>
-//               </div>
-//               <div className="list-row-main">
-//                 <div className="title">{s.title}</div>
-//                 <div className="meta">
-//                   {s.time} · {s.mode}
-//                 </div>
-//               </div>
-//               <span className="badge">{s.type}</span>
-//               <span className="badge info">{s.countdown}</span>
-//             </div>
-//           ))
-//         )}
-//       </section>
-//     </div>
-//   );
-// }
 import React, { useEffect, useState } from "react";
 import { Plus, CalendarClock } from "lucide-react";
 import PageHead from "../../components/PageHead";
 import { useWorkspaceModal } from "../../components/modals/ModalProvider";
 import { useToast } from "../../components/Toast";
-import { getMySchedules } from "../../../../services/scheduleService";
+import {
+  getMySchedules,
+  getSchedulesUsage,
+} from "../../../../services/scheduleService";
+import UsageBadge from "../../../../components/plan/UsageBadge";
 
 const TABS = ["Upcoming", "Today", "This Week", "This Month"];
 
@@ -163,6 +106,14 @@ export default function MySchedules() {
   const { openScheduleForm } = useWorkspaceModal();
   const showToast = useToast();
 
+  // ── Plan entitlement state (shared meeting/event/schedule counter) ──
+  const [schedulesUsage, setSchedulesUsage] = useState(null);
+  const loadSchedulesUsage = () => {
+    getSchedulesUsage()
+      .then((res) => setSchedulesUsage(res.data))
+      .catch((err) => console.error("Failed to load schedules usage:", err));
+  };
+
   const loadSchedules = () => {
     setLoading(true);
     setError(null);
@@ -173,6 +124,7 @@ export default function MySchedules() {
         setError("Could not load schedules. Please try again.");
       })
       .finally(() => setLoading(false));
+    loadSchedulesUsage();
   };
 
   useEffect(() => {
@@ -186,12 +138,36 @@ export default function MySchedules() {
         title="My Schedules"
         subtitle="View and manage your personal schedules."
         actions={
-          <button
-            className="btn-primary"
-            onClick={() => openScheduleForm(null, loadSchedules)}
-          >
-            <Plus size={15} /> Add Schedule
-          </button>
+          <>
+            {schedulesUsage && (
+              <UsageBadge
+                used={schedulesUsage.used}
+                limit={
+                  schedulesUsage.limit === "unlimited"
+                    ? null
+                    : schedulesUsage.limit
+                }
+                unlimited={schedulesUsage.limit === "unlimited"}
+                period="month"
+                label="Meetings / Events / Schedules"
+                c={{
+                  cardBorder: "#e2e8f0",
+                  cardBg: "#f8fafc",
+                  textSub: "#64748b",
+                  textPrimary: "#0f172a",
+                  divider: "#e2e8f0",
+                  accent: "#2563eb",
+                  errorColor: "#dc2626",
+                }}
+              />
+            )}
+            <button
+              className="btn-primary"
+              onClick={() => openScheduleForm(null, loadSchedules)}
+            >
+              <Plus size={15} /> Add Schedule
+            </button>
+          </>
         }
       />
 

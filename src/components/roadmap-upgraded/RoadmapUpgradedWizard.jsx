@@ -8,6 +8,17 @@ import {
   ROLE_CONFIG,
 } from "./constants";
 import { ruAccentStyle, useRuToast } from "./RuToast";
+// FIX: these two were never imported here, even though both already exist
+// and already understand this exact backend error. planErrorHandler.js's
+// ERROR_CODE_META already has a ROADMAP_LIMIT_EXCEEDED entry
+// (planType: "individual", the right message) — it was just never called
+// from this file's generate() catch block, so the 429 from
+// RoadmapUsageLimitExceededException fell through to the plain
+// setError(...) path below instead of opening the upgrade popup.
+// ADJUST PATH: point these at wherever they actually live in your tree
+// (same place other gated features import them from).
+import { parsePlanError } from "../../services/planErrorHandler";
+import UpgradeModal from "../plan/UpgradeModal";
 import "./roadmapUpgraded.css";
 
 const BUILD_STAGES = [
@@ -17,12 +28,35 @@ const BUILD_STAGES = [
   "Finalizing",
 ];
 
+// Best-effort read of the current user id out of the stored JWT, purely as
+// a default for <UpgradeModal userId={...}/> below.
+// TODO: replace with your app's real current-user id source (an auth
+// context / useCurrentUser() hook, etc.) if one exists elsewhere in this
+// codebase — this is only a fallback so the modal has *something* to pass.
+function getUserIdFromToken() {
+  try {
+    const token = localStorage.getItem("lms_token");
+    if (!token) return null;
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.userId ?? payload.id ?? payload.sub ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Generate flow: pick domain -> path type -> target role + content sources,
  * then POST /generate. The backend call is a single synchronous request (no
  * job id / polling endpoint exists), so the "building" screen below is a
  * cosmetic progress animation that runs while the real request is in
  * flight, and completes the moment the response actually comes back.
+ *
+ * FIX: generate() now runs a failed request through parsePlanError() and,
+ * if the backend rejected it with 429 ROADMAP_LIMIT_EXCEEDED (monthly quota
+ * hit — see RoadmapUsageService.checkAndIncrement), opens <UpgradeModal>
+ * instead of just printing a plain inline error. usage.tier (fetched once
+ * on mount from GET /usage) feeds the modal's currentPlan so it can offer
+ * the right upgrade targets.
  *
  * Props:
  *   role - "student" | "trainer" | "admin" | "superadmin"
@@ -48,54 +82,28 @@ export default function RoadmapUpgradedWizard({ role }) {
   const [requestDone, setRequestDone] = useState(false);
   const timerRef = useRef(null);
 
+  // FIX: usage (for currentPlan) + upgradeModalConfig (set from
+  // parsePlanError when the quota is hit).
+  const [usage, setUsage] = useState(null);
+  const [upgradeModalConfig, setUpgradeModalConfig] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    roadmapService
+      .getUsageStatus()
+      .then((data) => !cancelled && setUsage(data))
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   function toggleSource(value) {
     setSources((prev) =>
       prev.includes(value) ? prev.filter((s) => s !== value) : [...prev, value],
     );
   }
 
-  // async function generate() {
-  //   if (!targetRole.trim()) {
-  //     setError("Tell us your target role, skill, task or certification first.");
-  //     return;
-  //   }
-  //   setError("");
-  //   setStep("building");
-  //   setPct(0);
-  //   setStageIdx(0);
-  //   setRequestDone(false);
-  //   setResultId(null);
-
-  //   // cosmetic progress ticker — caps at 90% until the real response lands
-  //   clearInterval(timerRef.current);
-  //   timerRef.current = setInterval(() => {
-  //     setPct((p) => {
-  //       const next = Math.min(p + 4, 90);
-  //       setStageIdx(Math.min(BUILD_STAGES.length - 1, Math.floor((next / 100) * BUILD_STAGES.length)));
-  //       return next;
-  //     });
-  //   }, 220);
-
-  //   try {
-  //     const roadmap = await roadmapService.generateRoadmap({
-  //       domain,
-  //       pathType,
-  //       targetRole: targetRole.trim(),
-  //       language: "English",
-  //       contentSources: sources,
-  //       fromLibrary: false,
-  //     });
-  //     clearInterval(timerRef.current);
-  //     setPct(100);
-  //     setStageIdx(BUILD_STAGES.length);
-  //     setResultId(roadmap.id);
-  //     setRequestDone(true);
-  //   } catch (err) {
-  //     clearInterval(timerRef.current);
-  //     setError(err.message || "Couldn't generate that roadmap — try again.");
-  //     setStep("form");
-  //   }
-  // }
   async function generate() {
     if (!targetRole.trim()) {
       setError("Tell us your target role, skill, task or certification first.");
@@ -142,8 +150,18 @@ export default function RoadmapUpgradedWizard({ role }) {
       pollUntilReady(shell.id);
     } catch (err) {
       clearInterval(timerRef.current);
-      setError(err.message || "Couldn't generate that roadmap — try again.");
       setStep("form");
+
+      // FIX: check for the quota-exceeded shape before falling back to a
+      // plain error string. This is the exact check the Events/Meetings
+      // page already does for MEETING_LIMIT_EXCEEDED — roadmaps just never
+      // had it.
+      const planError = parsePlanError(err);
+      if (planError) {
+        setUpgradeModalConfig(planError);
+      } else {
+        setError(err.message || "Couldn't generate that roadmap — try again.");
+      }
     }
   }
 
@@ -337,6 +355,30 @@ export default function RoadmapUpgradedWizard({ role }) {
           </button>
         </div>
       </div>
+
+      {upgradeModalConfig && (
+        <UpgradeModal
+          isOpen={!!upgradeModalConfig}
+          onClose={() => setUpgradeModalConfig(null)}
+          planType={upgradeModalConfig.planType}
+          userId={getUserIdFromToken()}
+          currentPlan={usage?.tier || "free"}
+          availableTargetPlans={["pro", "premium"].filter(
+            (p) => p !== usage?.tier,
+          )}
+          featureLabel={upgradeModalConfig.message}
+          onSuccess={() => {
+            setUpgradeModalConfig(null);
+            // Re-check quota so the badge/limit reflect the new plan
+            // immediately if the person comes back to this wizard.
+            roadmapService
+              .getUsageStatus()
+              .then(setUsage)
+              .catch(() => {});
+          }}
+        />
+      )}
+
       {ToastEl}
     </div>
   );

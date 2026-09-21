@@ -11,7 +11,11 @@ import {
   getMyMeetings,
   createInstantMeeting,
   validateMeetingJoinCode,
+  getMeetingsUsage,
 } from "../../../../services/liveSessionService";
+import { parsePlanError } from "../../../../services/planErrorHandler";
+import UsageBadge from "../../../../components/plan/UsageBadge";
+import UpgradeModal from "../../../../components/plan/UpgradeModal";
 
 // Logged-in user's display name — same approach as the old file.
 const currentUserName = (() => {
@@ -69,6 +73,21 @@ export default function InstantMeeting() {
       .catch((err) => console.error("Failed to load meetings", err));
   }, []);
 
+  // ── Plan entitlement state (shared meeting/event/schedule counter) ──
+  const [meetingsUsage, setMeetingsUsage] = useState(null);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [upgradeConfig, setUpgradeConfig] = useState(null);
+
+  const loadMeetingsUsage = () => {
+    getMeetingsUsage()
+      .then((res) => setMeetingsUsage(res.data))
+      .catch((err) => console.error("Failed to load meetings usage:", err));
+  };
+
+  useEffect(() => {
+    loadMeetingsUsage();
+  }, []);
+
   // Copy a link to the clipboard, with a fallback for older / non-secure browsers.
   const copyLink = async (link) => {
     try {
@@ -124,11 +143,19 @@ export default function InstantMeeting() {
         ].slice(0, 6),
       );
       setTitle("");
+      loadMeetingsUsage();
     } catch (err) {
-      console.error("Failed to start instant meeting", err);
-      showToast(
-        err?.response?.data?.error || "Couldn't start the meeting. Try again.",
-      );
+      const planError = parsePlanError(err);
+      if (planError) {
+        setUpgradeConfig(planError);
+        setUpgradeModalOpen(true);
+      } else {
+        console.error("Failed to start instant meeting", err);
+        showToast(
+          err?.response?.data?.error ||
+            "Couldn't start the meeting. Try again.",
+        );
+      }
     } finally {
       setStarting(false);
     }
@@ -216,6 +243,31 @@ export default function InstantMeeting() {
             <PlayCircle size={16} />{" "}
             {starting ? "Starting…" : "Start Instant Meeting"}
           </button>
+
+          {meetingsUsage && (
+            <div style={{ marginTop: 12 }}>
+              <UsageBadge
+                used={meetingsUsage.used}
+                limit={
+                  meetingsUsage.limit === "unlimited"
+                    ? null
+                    : meetingsUsage.limit
+                }
+                unlimited={meetingsUsage.limit === "unlimited"}
+                period="month"
+                label="Meetings / Events / Schedules"
+                c={{
+                  cardBorder: "rgba(255,255,255,.35)",
+                  cardBg: "rgba(255,255,255,.12)",
+                  textSub: "rgba(255,255,255,.7)",
+                  textPrimary: "#fff",
+                  divider: "rgba(255,255,255,.25)",
+                  accent: "#fff",
+                  errorColor: "#fecaca",
+                }}
+              />
+            </div>
+          )}
         </div>
 
         <div className="section-card">
@@ -397,6 +449,22 @@ export default function InstantMeeting() {
             </div>
           </div>
         </div>
+      )}
+
+      {upgradeModalOpen && upgradeConfig && (
+        <UpgradeModal
+          isOpen={upgradeModalOpen}
+          onClose={() => setUpgradeModalOpen(false)}
+          planType={upgradeConfig.planType}
+          userId={JSON.parse(localStorage.getItem("lms_user") || "{}").id}
+          currentPlan="free"
+          availableTargetPlans={["pro", "premium"]}
+          featureLabel={upgradeConfig.message}
+          onSuccess={() => {
+            setUpgradeModalOpen(false);
+            loadMeetingsUsage();
+          }}
+        />
       )}
     </div>
   );

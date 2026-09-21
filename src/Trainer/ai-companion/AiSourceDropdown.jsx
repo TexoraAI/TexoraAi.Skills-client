@@ -22,10 +22,22 @@ const SOURCES = [
 
 const DEFAULT_SELECTED = ["MEETINGS", "CHAT", "WHITEBOARD"];
 
-export default function AiSourceDropdown({ isDark, onChange }) {
+export default function AiSourceDropdown({ isDark, value, onChange }) {
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState(DEFAULT_SELECTED);
+  const [selected, setSelected] = useState(value || DEFAULT_SELECTED);
   const ref = useRef(null);
+
+  // Stay in sync when the parent auto-includes a source (e.g. a mode like
+  // Recording Summary requires RECORDINGS) so the checkbox reflects what
+  // was actually sent, even if the trainer never opened this dropdown.
+  useEffect(() => {
+    if (!value) return;
+    setSelected((prev) => {
+      const same =
+        prev.length === value.length && prev.every((id) => value.includes(id));
+      return same ? prev : value;
+    });
+  }, [value]);
 
   useEffect(() => {
     const handler = (e) => {

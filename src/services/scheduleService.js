@@ -48,3 +48,7 @@ export const getSchedulesCalendar = (month) =>
     `${API_BASE}/schedules/calendar${month ? `?month=${month}` : ""}`,
     getAuthHeader(),
   );
+
+/** GET /api/meetings/usage — schedules share the same meeting/event/schedule counter */
+export const getSchedulesUsage = () =>
+  axios.get(`${API_BASE}/meetings/usage`, getAuthHeader());

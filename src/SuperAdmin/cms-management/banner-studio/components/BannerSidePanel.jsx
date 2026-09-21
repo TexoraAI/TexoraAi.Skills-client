@@ -6,6 +6,7 @@ import React, {
   useState,
 } from "react";
 import { Icon } from "./Icons.jsx";
+import { courseService } from "../../../../services/courseService"; // adjust path if different in your tree
 
 /**
  * BannerSidePanel
@@ -14,30 +15,29 @@ import { Icon } from "./Icons.jsx";
  * (desktop/laptop/tablet-landscape) or as a full-screen drawer (phones +
  * tablet-portrait). Contains the banner create/edit form.
  *
- * IMAGE UPLOAD FIX (this version):
- * Previously, files picked in the device dropzones were only used to build a
- * local `URL.createObjectURL()` preview and were never actually sent to the
- * backend — `submit()` only forwarded the text fields. The backend entity
- * (`BannerStudio`) stores images as base64 data URLs in TEXT columns
- * (desktopImageUrl / tabletImageUrl / mobileImageUrl), so this version:
- *   1. Converts each picked File to a base64 data URL via FileReader as soon
- *      as it's selected (`fileToBase64`).
- *   2. Tracks per-device converting/error state so the user gets feedback
- *      and can't submit mid-conversion.
- *   3. When editing an existing banner, seeds `assets` from the banner's
- *      existing *ImageUrl fields so already-uploaded images show as
- *      previews and are preserved if the user doesn't replace them.
- *   4. Includes `desktopImageUrl` / `tabletImageUrl` / `mobileImageUrl` in
- *      the payload passed to `onSave`.
- *   5. Lets the user remove a picked/existing image before saving.
+ * IMAGE UPLOAD (S3-backed):
+ * Files picked in the device dropzones are uploaded to S3 immediately via
+ * courseService.uploadBannerImage(), which returns a permanent S3 key.
+ * That key — not base64, not a presigned URL — is what gets sent as
+ * desktopImageUrl/tabletImageUrl/mobileImageUrl on save.
+ *   1. On pick, upload starts right away (`handleFile`); a local blob: URL
+ *      is used for the preview while the upload is in flight.
+ *   2. Per-device converting/error state gives feedback and blocks submit
+ *      while an upload is still running.
+ *   3. When editing an existing banner, `assets` is seeded from the
+ *      banner's *ImageKey fields (permanent keys) for the round-trip value,
+ *      while *ImageUrl (presigned) is used only for the preview <img>.
+ *   4. `submit()` sends the S3 key for any newly uploaded/kept image, and
+ *      an explicit empty string for any image the user removed, so the
+ *      backend can tell "unchanged" apart from "clear this".
  */
 
 const MIN_WIDTH = 320;
 const DEFAULT_WIDTH = 420;
 const MAX_WIDTH = 650;
 
-// Keep base64 payloads reasonable — a raw file above this gets rejected
-// with a toast rather than silently bloating the request / DB row.
+// Reject an oversized file client-side rather than uploading it and
+// bloating the request.
 const MAX_IMAGE_MB = 5;
 
 const EMPTY_FORM = {
@@ -74,11 +74,25 @@ const DEVICE_SPECS = [
   },
 ];
 
-// Maps each device key to the response/request field the backend expects.
+// Maps each device key to the request field it submits, plus the two
+// response fields the backend returns for it (presigned URL for preview,
+// raw key for round-tripping on the next save).
 const DEVICE_FIELD_MAP = {
-  desktop: "desktopImageUrl",
-  tablet: "tabletImageUrl",
-  mobile: "mobileImageUrl",
+  desktop: {
+    requestField: "desktopImageUrl",
+    responseUrlField: "desktopImageUrl",
+    responseKeyField: "desktopImageKey",
+  },
+  tablet: {
+    requestField: "tabletImageUrl",
+    responseUrlField: "tabletImageUrl",
+    responseKeyField: "tabletImageKey",
+  },
+  mobile: {
+    requestField: "mobileImageUrl",
+    responseUrlField: "mobileImageUrl",
+    responseKeyField: "mobileImageKey",
+  },
 };
 
 const OPTIONS = [
@@ -128,18 +142,6 @@ function useIsDrawerMode() {
   return isDrawer;
 }
 
-// Reads a File and resolves with its base64 data URL
-// (e.g. "data:image/png;base64,iVBORw0KG...").
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = () =>
-      reject(reader.error || new Error("Failed to read file"));
-    reader.readAsDataURL(file);
-  });
-}
-
 export default function BannerSidePanel({
   isOpen,
   onClose,
@@ -150,7 +152,7 @@ export default function BannerSidePanel({
   const [opt, setOpt] = useState("upload");
   const [form, setForm] = useState(EMPTY_FORM);
   // assets[device] shape while in use:
-  //   { previewUrl, base64, converting, isExisting, name, error }
+  //   { previewUrl, key, converting, isExisting, name, error }
   const [assets, setAssets] = useState(EMPTY_ASSETS);
   const [nameTouched, setNameTouched] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -189,24 +191,27 @@ export default function BannerSidePanel({
         gradient: editingBanner.gradient || EMPTY_FORM.gradient,
       });
 
-      // Seed assets from whatever images this banner already has saved, so
-      // the dropzones show them as already-uploaded and they get preserved
-      // on save unless the user replaces or removes them.
+      // Seed assets from whatever images this banner already has saved.
+      // previewUrl uses the presigned URL (display only); key uses the
+      // permanent S3 key (what actually gets resubmitted on save).
       revokeTrackedUrls();
       const seeded = { desktop: null, tablet: null, mobile: null };
-      Object.entries(DEVICE_FIELD_MAP).forEach(([deviceKey, field]) => {
-        const existingUrl = editingBanner[field];
-        if (existingUrl) {
-          seeded[deviceKey] = {
-            previewUrl: existingUrl,
-            base64: existingUrl,
-            converting: false,
-            isExisting: true,
-            name: null,
-            error: null,
-          };
-        }
-      });
+      Object.entries(DEVICE_FIELD_MAP).forEach(
+        ([deviceKey, { responseUrlField, responseKeyField }]) => {
+          const existingKey = editingBanner[responseKeyField];
+          const existingUrl = editingBanner[responseUrlField];
+          if (existingKey) {
+            seeded[deviceKey] = {
+              previewUrl: existingUrl,
+              key: existingKey,
+              converting: false,
+              isExisting: true,
+              name: null,
+              error: null,
+            };
+          }
+        },
+      );
       setAssets(seeded);
     } else {
       setForm(EMPTY_FORM);
@@ -262,7 +267,7 @@ export default function BannerSidePanel({
         ...prev,
         [device]: {
           previewUrl,
-          base64: null,
+          key: null,
           converting: true,
           isExisting: false,
           name: file.name,
@@ -270,21 +275,23 @@ export default function BannerSidePanel({
         },
       }));
 
-      fileToBase64(file)
-        .then((base64) => {
+      courseService
+        .uploadBannerImage(file)
+        .then((res) => {
+          const key = res.data.key;
           setAssets((prev) => {
             // Bail if the user picked a different file for this device
-            // while the conversion was in flight.
+            // while the upload was in flight.
             if (!prev[device] || prev[device].previewUrl !== previewUrl)
               return prev;
             return {
               ...prev,
-              [device]: { ...prev[device], base64, converting: false },
+              [device]: { ...prev[device], key, converting: false },
             };
           });
         })
         .catch((err) => {
-          console.error("Failed to read image file", err);
+          console.error("Failed to upload banner image", err);
           setAssets((prev) => {
             if (!prev[device] || prev[device].previewUrl !== previewUrl)
               return prev;
@@ -293,11 +300,12 @@ export default function BannerSidePanel({
               [device]: {
                 ...prev[device],
                 converting: false,
-                error: "Failed to read file",
+                error: "Upload failed",
               },
             };
           });
-          if (showToast) showToast("Failed to read image file", "info");
+          if (showToast)
+            showToast("Failed to upload image — try again", "info");
         });
     },
     [showToast],
@@ -336,16 +344,29 @@ export default function BannerSidePanel({
       }
 
       if (isConverting) {
-        if (showToast)
-          showToast("Still processing an image — one sec…", "info");
+        if (showToast) showToast("Still uploading an image — one sec…", "info");
         return;
       }
 
       const imageFields = {};
-      Object.entries(DEVICE_FIELD_MAP).forEach(([deviceKey, field]) => {
-        const asset = assets[deviceKey];
-        imageFields[field] = asset && !asset.error ? asset.base64 : null;
-      });
+      Object.entries(DEVICE_FIELD_MAP).forEach(
+        ([deviceKey, { requestField, responseKeyField }]) => {
+          const asset = assets[deviceKey];
+          if (asset && asset.key && !asset.error) {
+            // New upload or kept-existing image — send the real S3 key.
+            imageFields[requestField] = asset.key;
+          } else if (
+            !asset &&
+            editingBanner &&
+            editingBanner[responseKeyField]
+          ) {
+            // Banner had an image and the user removed it — explicit clear.
+            imageFields[requestField] = "";
+          }
+          // else: nothing existed and nothing was picked (or the pick
+          // errored) — omit the field so the backend leaves it unchanged.
+        },
+      );
 
       setSaving(true);
       Promise.resolve(
@@ -357,7 +378,7 @@ export default function BannerSidePanel({
         }),
       ).finally(() => setSaving(false));
     },
-    [form, assets, isConverting, onSave, showToast],
+    [form, assets, isConverting, onSave, showToast, editingBanner],
   );
 
   const notImplemented = useCallback(
@@ -366,6 +387,24 @@ export default function BannerSidePanel({
     },
     [showToast],
   );
+
+  const goToBuilder = useCallback(() => {
+    onClose();
+    setTimeout(() => {
+      document
+        .getElementById("bs-builder-anchor")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 150);
+  }, [onClose]);
+
+  const goToAiStudio = useCallback(() => {
+    onClose();
+    setTimeout(() => {
+      document
+        .getElementById("bs-ai-studio-anchor")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 150);
+  }, [onClose]);
 
   // ---- Drag-to-resize (mouse, touch & pen via Pointer Events) ----
   // The panel is docked to the right, so the handle sits on its left edge:
@@ -702,10 +741,7 @@ export default function BannerSidePanel({
                 Design backgrounds, text, buttons and shapes visually, then
                 publish straight from the canvas.
               </p>
-              <button
-                className="btn btn-primary"
-                onClick={() => notImplemented("Banner Builder")}
-              >
+              <button className="btn btn-primary" onClick={goToBuilder}>
                 <Icon.Palette size={15} /> Open Banner Builder
               </button>
             </div>
@@ -728,10 +764,7 @@ export default function BannerSidePanel({
                 Describe the audience, theme and goal — ILM ORA's AI engine
                 writes the headline, subtext and CTA.
               </p>
-              <button
-                className="btn btn-green"
-                onClick={() => notImplemented("AI Generator")}
-              >
+              <button className="btn btn-green" onClick={goToAiStudio}>
                 <Icon.Sparkles size={15} /> Open AI Generator
               </button>
             </div>

@@ -93,6 +93,18 @@ export const getMyQuizHistory = () => API.get("/attempts/my");
 export const getQuizAttemptsByQuizId = (quizId) =>
   API.get(`/attempts/quiz/${quizId}`);
 
+/**
+ * Trainer: usage preview for quiz creation this month.
+ * GET /quizzes/usage/create -> { action, tier, used, limit, period }
+ */
+export const getQuizCreateUsage = () => API.get("/quizzes/usage/create");
+
+/**
+ * Student: usage preview for quiz attempts this month.
+ * GET /attempts/usage/attempt -> { action, tier, used, limit, period }
+ */
+export const getQuizAttemptUsage = () => API.get("/attempts/usage/attempt");
+
 /* ========================================================= */
 /* ===================== ASSIGNMENTS ======================== */
 /* ========================================================= */
@@ -123,6 +135,20 @@ export const uploadAssignmentFile = (assignmentId, file) => {
 
 export const getAssignmentFiles = (assignmentId) =>
   API.get(`/assignment-files/${assignmentId}`);
+
+/**
+ * Trainer: usage preview for assignment creation this month.
+ * GET /assignments/usage/create -> { action, tier, used, limit, period }
+ */
+export const getAssignmentCreateUsage = () =>
+  API.get("/assignments/usage/create");
+
+/**
+ * Student: usage preview for assignment submissions this month.
+ * GET /submissions/usage/submit -> { action, tier, used, limit, period }
+ */
+export const getAssignmentSubmitUsage = () =>
+  API.get("/submissions/usage/submit");
 
 export const submitAssignment = (assignmentId, file) => {
   const formData = new FormData();
@@ -401,6 +427,25 @@ export const getStudentStudyPlanById = (id) =>
 export const markStudyPlanProgress = (progressData) =>
   API.post("/v1/study-plans/progress/mark", progressData);
 
+/**
+ * Trainer: usage preview for study plan creation this month.
+ * GET /v1/study-plans/usage/create -> { action, tier, used, limit, period }
+ */
+export const getStudyPlanCreateUsage = () =>
+  API.get("/v1/study-plans/usage/create");
+
+/**
+ * Trainer: usage preview for coding problem creation this month.
+ * GET /v1/problems/usage/create -> { action, tier, used, limit, period }
+ */
+export const getCodingCreateUsage = () => API.get("/v1/problems/usage/create");
+
+/**
+ * Student: usage preview for coding solve/submit this month.
+ * GET /v1/assignments/usage/solve -> { action, tier, used, limit, period }
+ */
+export const getCodingSolveUsage = () => API.get("/v1/assignments/usage/solve");
+
 /* ========================================================= */
 /* ========= 📊 ADMIN / SUPER ADMIN REPORTS ================ */
 /* ========================================================= */
@@ -477,6 +522,17 @@ export const getAssignmentsByProblemIdSuperAdmin = (problemId) =>
 export const getStudyPlanItemsSuperAdmin = (id) =>
   API.get(`/v1/study-plans/superadmin/${id}/items`);
 
+/**
+ * Student: usage preview for playground code runs this month.
+ * GET /v1/code/usage/run -> { action, tier, used, limit, period }
+ */
+export const getPlaygroundRunUsage = () => API.get("/v1/code/usage/run");
+
+/**
+ * Student: usage preview for saved code files (all-time, not monthly).
+ * GET /v1/code-files/usage/save -> { action, tier, used, limit }
+ */
+export const getSaveFileUsage = () => API.get("/v1/code-files/usage/save");
 /* ========================================================= */
 /* ========= 🚩 ASSESSMENT FEATURE FLAGS =================== */
 /* ========================================================= */
@@ -543,6 +599,8 @@ export default {
   hasAttempted,
   getMyQuizHistory,
   getQuizAttemptsByQuizId,
+  getQuizCreateUsage,
+  getQuizAttemptUsage,
   getTrainerQuizzes,
   getStudentQuizzes,
   createAssignment,
@@ -552,6 +610,8 @@ export default {
   deleteAssignment,
   uploadAssignmentFile,
   getAssignmentFiles,
+  getAssignmentCreateUsage,
+  getAssignmentSubmitUsage,
   submitAssignment,
   getSubmissionsByAssignment,
   getStudentAssignments,
@@ -587,6 +647,8 @@ export default {
   getCodeFileById,
   updateCodeFile,
   deleteCodeFile,
+  getPlaygroundRunUsage,
+  getSaveFileUsage,
 
   // ── Study Plans ──────────────────────────────────────────
   createStudyPlan,
@@ -598,6 +660,9 @@ export default {
   getStudentStudyPlans,
   getStudentStudyPlanById,
   markStudyPlanProgress,
+  getStudyPlanCreateUsage,
+  getCodingCreateUsage,
+  getCodingSolveUsage,
 
   // ── Admin / Super Admin Reports ─────────────────────────
   getQuizAdminReport,

@@ -97,25 +97,99 @@ const fileService = {
     });
   },
 
-  // ================= DOWNLOAD =================
-  downloadFileBlob(fileName) {
-    return axios.get(`${API_GATEWAY}/file/download/${fileName}`, {
-      responseType: "blob",
+  // ✅ NEW — true total vs visible count, so the UI can show a locked tile
+  getStudentFileCount() {
+    return axios.get(`${API_GATEWAY}/file/student/count`, {
       headers: authHeader(),
     });
+  },
+
+  // ✅ NEW — GET /api/file/upload-quota, used by UsageBadge + pre-upload checks
+  getUploadQuota() {
+    return axios.get(`${API_GATEWAY}/file/upload-quota`, {
+      headers: authHeader(),
+    });
+  },
+
+  // // ================= DOWNLOAD =================
+  // downloadFileBlob(fileName) {
+  //   return axios.get(`${API_GATEWAY}/file/download/${fileName}`, {
+  //     responseType: "blob",
+  //     headers: authHeader(),
+  //   });
+  // },
+
+  // // ================= PREVIEW / VIEW =================
+  // // ✅ FIX: use arraybuffer so Blob constructor gets correct binary data
+  // // Backend returns "inline" for PDF/images → browser opens them
+  // // Backend returns "attachment" for DOCX/ZIP/PPT → browser downloads them
+  // viewFileBlob(id) {
+  //   return axios.get(`${API_GATEWAY}/file/view/${id}`, {
+  //     responseType: "arraybuffer", // ✅ was "blob" — this was the bug
+  //     headers: authHeader(),
+  //   });
+  // },
+  // ================= DOWNLOAD =================
+  // Two-step: (1) authed call to our backend for a fresh presigned URL,
+  // (2) unauthed call straight to S3 for the bytes. Don't send the
+  // Authorization header on step 2 — S3 will reject it.
+  async downloadFileBlob(id) {
+    const meta = await axios.get(`${API_GATEWAY}/file/download/${id}`, {
+      headers: authHeader(),
+    });
+    const fileRes = await axios.get(meta.data.url, {
+      responseType: "blob",
+    });
+    return {
+      data: fileRes.data,
+      headers: { "content-type": meta.data.contentType },
+      originalName: meta.data.originalName,
+    };
   },
 
   // ================= PREVIEW / VIEW =================
-  // ✅ FIX: use arraybuffer so Blob constructor gets correct binary data
-  // Backend returns "inline" for PDF/images → browser opens them
-  // Backend returns "attachment" for DOCX/ZIP/PPT → browser downloads them
-  viewFileBlob(id) {
-    return axios.get(`${API_GATEWAY}/file/view/${id}`, {
-      responseType: "arraybuffer", // ✅ was "blob" — this was the bug
+  // Same two-step pattern. Kept the arraybuffer responseType from the
+  // original fix (Blob constructor needs binary data, not text).
+  // async viewFileBlob(id) {
+  //   const meta = await axios.get(`${API_GATEWAY}/file/view/${id}`, {
+  //     headers: authHeader(),
+  //   });
+  //   const fileRes = await axios.get(meta.data.url, {
+  //     responseType: "arraybuffer",
+  //   });
+  //   return {
+  //     data: fileRes.data,
+  //     headers: { "content-type": meta.data.contentType },
+  //     originalName: meta.data.originalName,
+  //   };
+  // },
+  // ================= PREVIEW / VIEW =================
+  // Step 1 only — returns the presigned S3 URL + metadata, no bytes.
+  // Used directly by <iframe>/<img> for pdf/image/text (no CORS needed,
+  // since element `src` loads aren't subject to CORS the way axios.get
+  // to S3 is).
+  async getViewMeta(id) {
+    const meta = await axios.get(`${API_GATEWAY}/file/view/${id}`, {
       headers: authHeader(),
     });
+    return meta.data; // { url, contentType, originalName }
   },
-
+  // Same shape as getViewMeta but hits the download endpoint. Used when
+  // you want the browser to actually save the file, not just render it.
+  async getDownloadMeta(id) {
+    const meta = await axios.get(`${API_GATEWAY}/file/download/${id}`, {
+      headers: authHeader(),
+    });
+    return meta.data; // { url, contentType, originalName }
+  },
+  // For docx/xlsx/pptx, which need raw bytes for mammoth/XLSX.js/JSZip
+  // to parse. Requires the S3 bucket's CORS policy to allow this origin
+  // for GET — see notes. Kept separate from getViewMeta so pdf/image/text
+  // never has to pay the CORS cost at all.
+  async fetchViewBytes(url) {
+    const fileRes = await axios.get(url, { responseType: "arraybuffer" });
+    return fileRes.data;
+  },
   // ================= DELETE =================
   deleteFile(id) {
     return axios.delete(`${API_GATEWAY}/file/${id}`, {
@@ -142,8 +216,15 @@ const fileService = {
     });
   },
 
-  getCourseFileDownloadUrl(fileName) {
-    return `${API_GATEWAY}/course-files/download/${encodeURIComponent(fileName)}`;
+  // Returns a Promise resolving to the presigned S3 URL (was previously a
+  // plain synchronous URL builder — now async because the backend has to
+  // mint a fresh presigned URL, and the caller must NOT attach an auth
+  // header when it later fetches this URL directly).
+  async getCourseFileDownloadUrl(id) {
+    const res = await axios.get(`${API_GATEWAY}/course-files/download/${id}`, {
+      headers: authHeader(),
+    });
+    return res.data.url;
   },
 
   updateCourseFile(id, newFile, courseId, moduleId, batchId) {
@@ -260,6 +341,13 @@ const fileService = {
       dto,
       { headers: authHeader() },
     );
+  },
+
+  // ✅ NEW — GET /api/course-files/upload-quota, storage quota for course-module files
+  getCourseFileUploadQuota() {
+    return axios.get(`${API_GATEWAY}/course-files/upload-quota`, {
+      headers: authHeader(),
+    });
   },
 };
 export default fileService;

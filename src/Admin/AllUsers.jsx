@@ -19,6 +19,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import userService from "../services/userService";
 import authService from "../services/authService";
+import UpgradeModal from "../components/plan/UpgradeModal";
 
 // ─── Global Design System — single source of truth for colors, type,
 // spacing, radius, StatCard, PageContainer and Hero. This page must not
@@ -92,6 +93,18 @@ const AllUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [limitError, setLimitError] = useState(null);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+
+  const getOrgId = () => {
+    try {
+      const token = localStorage.getItem("lms_token");
+      if (!token) return null;
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      return payload.organizationId || payload.orgId || null;
+    } catch {
+      return null;
+    }
+  };
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
   const [panelOpen, setPanelOpen] = useState(false);
@@ -2018,7 +2031,7 @@ const AllUsers = () => {
 
               <button
                 onClick={() => {
-                  setLimitError(null);
+                  setShowUpgrade(true);
                 }}
                 style={{
                   padding: "9px 22px",
@@ -2039,6 +2052,20 @@ const AllUsers = () => {
           </div>
         </div>
       )}
+
+      <UpgradeModal
+        isOpen={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
+        planType="org"
+        orgId={getOrgId()}
+        currentPlan="trial"
+        availableTargetPlans={["starter", "growth"]}
+        featureLabel={limitError}
+        onSuccess={() => {
+          setShowUpgrade(false);
+          setLimitError(null);
+        }}
+      />
     </PageContainer>
   );
 };

@@ -8,11 +8,13 @@ import {
   ChevronDown,
   ChevronUp,
   Clock,
+  Code2,
   Github,
   GraduationCap,
   Heart,
   HelpCircle,
   Linkedin,
+  Lock,
   Moon,
   PlayCircle,
   Share2,
@@ -20,6 +22,7 @@ import {
   Sparkles,
   Star,
   Sun,
+  Tag,
   Target,
   Users,
   X,
@@ -41,8 +44,7 @@ export default function CourseDetailsPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { id } = useParams();
-
-    // NOTE: location.state?.course now comes from the lightweight summary DTO
+  // NOTE: location.state?.course now comes from the lightweight summary DTO
   // (homepage / related-courses), so it's missing syllabusWeeks/highlights/
   // learningOutcomes. We still show it instantly for a fast perceived load,
   // but we always fetch the full detail in the background to fill those in.
@@ -146,6 +148,29 @@ export default function CourseDetailsPage() {
             .filter((t) => t.text && t.text !== "[object Object]"),
           totalLessons: data.lessons,
           projects: data.projects,
+          // ── NEW: these were coming back fine from the API but were never
+          // picked up here, which is why they never rendered on this page ──
+          projectsList: (data.projectsList || []).map((p, i) => ({
+            id: p.id ?? i,
+            title: p.title || "",
+            description: p.description || "",
+            image: p.image || "",
+            difficulty: p.difficulty || "Beginner",
+          })),
+          faqs: (data.faqs || [])
+            .map((f) => ({ q: f.question || "", a: f.answer || "" }))
+            .filter((f) => f.q),
+          skills: data.skills || [],
+          jobRoles: data.jobRoles || [],
+          salaryRange: data.salaryRange || "",
+          hiringCompanies: data.hiringCompanies || [],
+          placementSupport: data.placementSupport || "",
+          careerAssistance: data.careerAssistance || "",
+          instructorBio: data.instructorBio || "",
+          company: data.company || "",
+          certificateTitle: data.certificateTitle || "",
+          certificateVerificationUrl: data.certificateVerificationUrl || "",
+          ogImageUrl: data.ogImageUrl || "",
           syllabusWeeks: data.syllabusWeeks || [],
           enrollmentUrl: data.enrollmentUrl || "",
           liveSessions: data.liveSessions ?? "—",
@@ -166,59 +191,7 @@ export default function CourseDetailsPage() {
      used on the homepage (courseService.getAllFeaturedPrograms) —
      no new API/service is introduced. Just filters out the current
      course and shows a few others. ── */
-  // useEffect(() => {
-  //   if (!courseData?.id) return;
-  //   async function loadRelated() {
-  //     try {
-  //       const { data } = await courseService.getAllFeaturedPrograms();
-  //       const others = (data || [])
-  //         .filter((p) => String(p.id) !== String(courseData.id))
-  //         .slice(0, 3)
-  //         //   .map((p) => ({
-  //         //     id: p.id,
-  //         //     title: p.title,
-  //         //     instructor: p.instructorRole || p.instructorName,
-  //         //     duration: `${p.durationWeeks} weeks`,
-  //         //     students: p.studentsEnrolled,
-  //         //     rating: p.rating,
-  //         //     level: p.level,
-  //         //     price: `₹${Number(p.price).toLocaleString("en-IN")}`,
-  //         //   }));
-  //         // setRelatedCourses(others);
-  //         // .map((p) => ({
-  //         //   id: p.id,
-  //         //   title: p.title,
-  //         //   instructor: p.instructorRole || p.instructorName,
-  //         //   duration: `${p.durationWeeks} weeks`,
-  //         //   students: p.studentsEnrolled,
-  //         //   rating: p.rating,
-  //         //   level: p.level,
-  //         //   price: `₹${Number(p.price).toLocaleString("en-IN")}`,
-  //         //   thumbnailUrl: p.thumbnailUrl || "",
-  //         // }));
-  //         .map((p) => ({
-  //           id: p.id,
-  //           title: p.title,
-  //           instructor: p.instructorRole || p.instructorName,
-  //           duration: `${p.durationWeeks} weeks`,
-  //           students: p.studentsEnrolled,
-  //           rating: p.rating,
-  //           level: p.level,
-  //           price: `₹${Number(p.price).toLocaleString("en-IN")}`,
-  //           thumbnailUrl: p.thumbnailUrl || "",
-  //           instructorLinkedIn: p.instructorLinkedIn || "",
-  //           videoUrl: p.videoUrl || "",
-  //         }));
-  //       setRelatedCourses(others);
-  //     } catch (err) {
-  //       console.error("Failed to load related courses", err);
-  //     } finally {
-  //       setRelatedLoading(false);
-  //     }
-  //   }
-  //   loadRelated();
-  // }, [courseData?.id]);
-   useEffect(() => {
+  useEffect(() => {
     if (!courseData?.id) return;
     async function loadRelated() {
       try {
@@ -248,10 +221,6 @@ export default function CourseDetailsPage() {
     }
     loadRelated();
   }, [courseData?.id]);
-
-
-
-
   if (loadingCourse)
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F6EDE6] dark:bg-black">
@@ -332,7 +301,9 @@ export default function CourseDetailsPage() {
           items: [],
         }));
 
-  const faqs = [
+  // Real FAQs entered in superadmin now flow through — falls back to these
+  // generic defaults only when a program has no FAQs saved yet.
+  const FALLBACK_FAQS = [
     {
       q: "How do I get access after enrolling?",
       a: "Once you enroll, you get instant access to the course dashboard, live session schedule, and all learning materials.",
@@ -350,6 +321,10 @@ export default function CourseDetailsPage() {
       a: "Yes, please reach out to our support team within the eligibility window mentioned in your enrollment confirmation for refund assistance.",
     },
   ];
+  const faqs =
+    courseData.faqs && courseData.faqs.length > 0
+      ? courseData.faqs
+      : FALLBACK_FAQS;
 
   const handleShare = async () => {
     try {
@@ -665,21 +640,45 @@ export default function CourseDetailsPage() {
               </h3>
               <div className="space-y-2.5 sm:space-y-3">
                 {moduleWeeks.map((week, index) => {
-                  const isOpen = expandedModule === index;
+                  const isLocked = index !== 0; // only the first module is open
+                  const isOpen = !isLocked && expandedModule === index;
+
+                  const handleModuleClick = () => {
+                    if (isLocked) {
+                      navigate("/login");
+                      return;
+                    }
+                    setExpandedModule(isOpen ? -1 : index);
+                  };
+
                   return (
                     <div
                       key={index}
-                      className="border border-gray-100 dark:border-gray-800 rounded-xl sm:rounded-2xl overflow-hidden bg-[#F8FAFC] dark:bg-gray-800/40 hover:border-[#F97316]/30 transition-colors"
+                      className={`border border-gray-100 dark:border-gray-800 rounded-xl sm:rounded-2xl overflow-hidden transition-colors ${
+                        isLocked
+                          ? "bg-gray-50 dark:bg-gray-800/20 opacity-75"
+                          : "bg-[#F8FAFC] dark:bg-gray-800/40 hover:border-[#F97316]/30"
+                      }`}
                     >
                       <button
                         type="button"
-                        onClick={() => setExpandedModule(isOpen ? -1 : index)}
+                        onClick={handleModuleClick}
                         className="w-full flex items-center gap-3 sm:gap-4 p-3 sm:p-4 text-left"
                       >
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#1E293B] dark:bg-[#F97316] rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                          <span className="text-white font-bold text-xs sm:text-sm">
-                            {index + 1}
-                          </span>
+                        <div
+                          className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm ${
+                            isLocked
+                              ? "bg-gray-300 dark:bg-gray-700"
+                              : "bg-[#1E293B] dark:bg-[#F97316]"
+                          }`}
+                        >
+                          {isLocked ? (
+                            <Lock size={14} className="text-white" />
+                          ) : (
+                            <span className="text-white font-bold text-xs sm:text-sm">
+                              {index + 1}
+                            </span>
+                          )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wide text-[#F97316] mb-0.5">
@@ -694,7 +693,12 @@ export default function CourseDetailsPage() {
                             {week.lessonsCount} lessons
                           </span>
                         )}
-                        {isOpen ? (
+                        {isLocked ? (
+                          <Lock
+                            size={16}
+                            className="text-gray-400 flex-shrink-0"
+                          />
+                        ) : isOpen ? (
                           <ChevronUp
                             size={18}
                             className="text-gray-400 flex-shrink-0"
@@ -727,6 +731,112 @@ export default function CourseDetailsPage() {
                 })}
               </div>
             </div>
+
+            {/* Hands-on Projects — NEW: this data was already coming from the
+                API (projectsList) but had no section to render into */}
+            {courseData.projectsList && courseData.projectsList.length > 0 && (
+              <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-[24px] p-4 sm:p-6 md:p-8 border border-gray-100 dark:border-gray-800 shadow-md">
+                <h3 className="flex items-center gap-2 font-bold text-base sm:text-lg md:text-xl text-[#1E293B] dark:text-white mb-4 sm:mb-6">
+                  <Code2 size={20} className="text-[#F97316]" />
+                  Hands-on Projects
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {courseData.projectsList.map((p) => (
+                    <div
+                      key={p.id}
+                      className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-800/50"
+                    >
+                      {p.image && (
+                        <div className="aspect-video w-full bg-gray-100 dark:bg-gray-800">
+                          <img
+                            src={p.image}
+                            alt={p.title}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                      <div className="p-3.5">
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                          <h4 className="font-semibold text-sm text-[#1E293B] dark:text-white">
+                            {p.title}
+                          </h4>
+                          <span className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                            {p.difficulty}
+                          </span>
+                        </div>
+                        {p.description && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                            {p.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Skills — NEW */}
+            {courseData.skills && courseData.skills.length > 0 && (
+              <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-[24px] p-4 sm:p-6 md:p-8 border border-gray-100 dark:border-gray-800 shadow-md">
+                <h3 className="flex items-center gap-2 font-bold text-base sm:text-lg md:text-xl text-[#1E293B] dark:text-white mb-4 sm:mb-6">
+                  <Tag size={20} className="text-[#F97316]" />
+                  Skills You'll Practice
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {courseData.skills.map((s, i) => (
+                    <span
+                      key={i}
+                      className="px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-400 border border-violet-200 dark:border-violet-500/20"
+                    >
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Certificate — NEW: certificateImageUrl was already being fetched
+                into courseData but never actually rendered anywhere */}
+            {(courseData.certificateImageUrl ||
+              courseData.certificateTitle) && (
+              <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-[24px] p-4 sm:p-6 md:p-8 border border-gray-100 dark:border-gray-800 shadow-md">
+                <h3 className="flex items-center gap-2 font-bold text-base sm:text-lg md:text-xl text-[#1E293B] dark:text-white mb-4 sm:mb-6">
+                  <Award size={20} className="text-[#F97316]" />
+                  Certificate
+                </h3>
+                <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-start">
+                  {courseData.certificateImageUrl && (
+                    <div className="w-full sm:w-56 flex-shrink-0 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 aspect-[4/3] bg-gray-50 dark:bg-gray-800">
+                      <img
+                        src={courseData.certificateImageUrl}
+                        alt={courseData.certificateTitle || "Certificate"}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div>
+                    <p className="font-semibold text-sm sm:text-base text-[#1E293B] dark:text-white mb-1.5">
+                      {courseData.certificateTitle ||
+                        "Certificate of Completion"}
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                      Awarded on successful completion of this program.
+                    </p>
+                    {courseData.certificateVerificationUrl && (
+                      <a
+                        href={courseData.certificateVerificationUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-block mt-2 text-xs sm:text-sm font-medium text-[#F97316] hover:underline"
+                      >
+                        Verify a certificate →
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Instructor */}
             {(courseData.instructorFull || courseData.instructor) && (

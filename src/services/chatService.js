@@ -168,6 +168,58 @@ export const deleteSource = (sourceId) =>
 
 export const notebookChat = ({ notebookId, message }) =>
   API.post(`/notebooks/${notebookId}/chat`, { message });
+
+/** GET /api/notebooks/{id}/chat/history — ordered array of { id, role, content, createdAt } */
+export const getChatHistory = (notebookId) =>
+  API.get(`/notebooks/${notebookId}/chat/history`);
+
+/** GET /api/notebooks/usage — { tier, used, limit, period } */
+export const getNotebookUsage = () => API.get("/notebooks/usage");
+// ── Notebook Studio ──────────────────────────────────────────────────────
+// Real, server-generated studio outputs (report, datatable, mindmap,
+// flashcards, quiz, audio, slides, video) persisted as NotebookStudioOutput
+// records. textContent is Markdown for report/datatable, a JSON string for
+// mindmap/flashcards/quiz/slides, and a raw script for audio (not for direct
+// display). downloadUrl is a presigned S3 URL (1hr) for audio/slides/video.
+
+// /** POST /api/notebooks/{id}/studio/{type}  body: { language } */
+// export const generateStudioItem = (notebookId, type, language) =>
+//   API.post(`/notebooks/${notebookId}/studio/${type}`, { language });
+
+/** POST /api/notebooks/{id}/studio/{type}  body: { language, ...extra } */
+export const generateStudioItem = (notebookId, type, language, extra = {}) =>
+  API.post(`/notebooks/${notebookId}/studio/${type}`, { language, ...extra });
+
+/** GET /api/notebooks/{id}/studio/focus-suggestions — array of 3 content-aware
+ *  topic strings, used for both Audio's and Video's focus suggestion chips */
+export const getFocusSuggestions = (notebookId) =>
+  API.get(`/notebooks/${notebookId}/studio/focus-suggestions`);
+
+/** GET /api/notebooks/{id}/studio/report-format-suggestions — array of 4 { title, description } */
+export const getReportFormatSuggestions = (notebookId) =>
+  API.get(`/notebooks/${notebookId}/studio/report-format-suggestions`);
+
+/** GET /api/notebooks/{id}/studio/topic-suggestions?type={type} — array of 3 topic strings */
+export const getTopicSuggestions = (notebookId, type) =>
+  API.get(
+    `/notebooks/${notebookId}/studio/topic-suggestions?type=${encodeURIComponent(type)}`,
+  );
+
+/** GET /api/notebooks/{id}/studio — array of studio outputs, newest first */
+export const getStudioOutputs = (notebookId) =>
+  API.get(`/notebooks/${notebookId}/studio`);
+
+/** DELETE /api/notebooks/studio/{outputId} */
+export const deleteStudioOutput = (outputId) =>
+  API.delete(`/notebooks/studio/${outputId}`);
+
+// ── Notebook Sharing ─────────────────────────────────────────────────────
+// Sends an invite only; there is deliberately no "shared with me" list yet.
+
+/** POST /api/notebooks/{id}/share  body: { email } */
+export const shareNotebook = (notebookId, email) =>
+  API.post(`/notebooks/${notebookId}/share`, { email });
+
 // ── Feedback — Super Admin (batches with NO organization) ─────────────────
 
 /** GET /api/feedback/super-admin/batches — batchIds that belong to no org */

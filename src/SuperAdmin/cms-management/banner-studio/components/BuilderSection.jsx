@@ -1,24 +1,29 @@
-import React, { useRef, useState } from 'react';
-import { Icon } from './Icons.jsx';
+import React, { useRef, useState } from "react";
+import { Icon } from "./Icons.jsx";
 
 const TOOLS = [
-  { key: 'bg', label: 'Background', icon: 'Image' },
-  { key: 'title', label: 'Text', icon: 'Type' },
-  { key: 'cta', label: 'Buttons', icon: 'Square' },
-  { key: 'shape', label: 'Shapes', icon: 'Star' },
-  { key: 'icons', label: 'Icons', icon: 'Smile' },
-  { key: 'images', label: 'Images', icon: 'Image' },
-  { key: 'ai', label: 'AI Tools', icon: 'Wand' },
+  { key: "bg", label: "Background", icon: "Image" },
+  { key: "title", label: "Text", icon: "Type" },
+  { key: "cta", label: "Buttons", icon: "Square" },
+  { key: "shape", label: "Shapes", icon: "Star" },
+  { key: "icons", label: "Icons", icon: "Smile" },
+  { key: "images", label: "Images", icon: "Image" },
+  { key: "ai", label: "AI Tools", icon: "Wand" },
 ];
 
 const BG_PRESETS = [
-  'linear-gradient(120deg,#0F172A,#1E293B 50%,#14532D)',
-  'linear-gradient(120deg,#F97316,#C2410C)',
-  'linear-gradient(120deg,#16A34A,#14532D)',
-  'linear-gradient(120deg,#1E293B,#F97316)',
+  "linear-gradient(120deg,#0F172A,#1E293B 50%,#14532D)",
+  "linear-gradient(120deg,#F97316,#C2410C)",
+  "linear-gradient(120deg,#16A34A,#14532D)",
+  "linear-gradient(120deg,#1E293B,#F97316)",
 ];
 
-const LAYER_NAMES = { title: 'Title text', cta: 'CTA button', bg: 'Background', shape: 'Background shape' };
+const LAYER_NAMES = {
+  title: "Title text",
+  cta: "CTA button",
+  bg: "Background",
+  shape: "Background shape",
+};
 
 /**
  * BuilderSection — "Design your banner" Canva-style editor.
@@ -27,11 +32,14 @@ const LAYER_NAMES = { title: 'Title text', cta: 'CTA button', bg: 'Background', 
  * animations. Purely visual/local state — nothing here is persisted to a
  * banner yet (hook up `onSave` if you want a "Save to banner" action later).
  */
-export default function BuilderSection() {
+export default function BuilderSection({ banners = [], onSaveDesign }) {
   const canvasRef = useRef(null);
 
-  const [activeTool, setActiveTool] = useState('title');
-  const [selectedLayer, setSelectedLayer] = useState('title');
+  const [targetBannerId, setTargetBannerId] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const [activeTool, setActiveTool] = useState("title");
+  const [selectedLayer, setSelectedLayer] = useState("title");
 
   const [titlePos, setTitlePos] = useState({ top: 30, left: 6 });
   const [ctaPos, setCtaPos] = useState({ top: 72, left: 6 });
@@ -40,15 +48,15 @@ export default function BuilderSection() {
   const [activeSwatch, setActiveSwatch] = useState(0);
 
   const [titleSize, setTitleSize] = useState(30);
-  const [titleWeight, setTitleWeight] = useState('700');
-  const [titleColor, setTitleColor] = useState('#ffffff');
+  const [titleWeight, setTitleWeight] = useState("700");
+  const [titleColor, setTitleColor] = useState("#ffffff");
 
   const [padding, setPadding] = useState(40);
-  const [align, setAlign] = useState('left');
+  const [align, setAlign] = useState("left");
   const [canvasRadius, setCanvasRadius] = useState(18);
   const [ctaRadius, setCtaRadius] = useState(30);
 
-  const [animation, setAnimation] = useState('none');
+  const [animation, setAnimation] = useState("none");
   const [playKey, setPlayKey] = useState(0);
 
   const selectLayer = (key, tool) => {
@@ -74,24 +82,44 @@ export default function BuilderSection() {
       });
     };
     const onUp = () => {
-      document.removeEventListener('pointermove', onMove);
-      document.removeEventListener('pointerup', onUp);
+      document.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerup", onUp);
     };
-    document.addEventListener('pointermove', onMove);
-    document.addEventListener('pointerup', onUp);
+    document.addEventListener("pointermove", onMove);
+    document.addEventListener("pointerup", onUp);
   };
 
   const handleToolClick = (key) => {
     setActiveTool(key);
-    if (key === 'title') selectLayer('title');
-    else if (key === 'cta') selectLayer('cta');
-    else if (key === 'bg') selectLayer('bg');
-    else if (key === 'shape') selectLayer('shape');
+    if (key === "title") selectLayer("title");
+    else if (key === "cta") selectLayer("cta");
+    else if (key === "bg") selectLayer("bg");
+    else if (key === "shape") selectLayer("shape");
   };
 
-  const alignMap = { left: 'flex-start', center: 'center', right: 'flex-end' };
+  const alignMap = { left: "flex-start", center: "center", right: "flex-end" };
 
-  const animClass = animation !== 'none' ? `bs-anim-${animation}` : '';
+  const animClass = animation !== "none" ? `bs-anim-${animation}` : "";
+
+  const handleSaveDesign = async () => {
+    if (!targetBannerId) return;
+    setSaving(true);
+    try {
+      await onSaveDesign?.(Number(targetBannerId), {
+        gradient: bg,
+        titleSize,
+        titleWeight,
+        titleColor,
+        canvasPadding: padding,
+        align,
+        canvasRadius,
+        ctaRadius,
+        animation,
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <section className="section">
@@ -101,11 +129,59 @@ export default function BuilderSection() {
             <Icon.Layers size={13} /> Builder
           </div>
           <h2>Design your banner</h2>
-          <div className="sub">Drag layers, tweak styles on the right — changes reflect on canvas instantly.</div>
+          <div className="sub">
+            Drag layers, tweak styles on the right — changes reflect on canvas
+            instantly.
+          </div>
         </div>
-        <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--bs-muted)' }}>
-          Editing: {LAYER_NAMES[selectedLayer] || 'Title text'}
+        {/* <div
+          style={{ fontSize: 12.5, fontWeight: 700, color: "var(--bs-muted)" }}
+        >
+          Editing: {LAYER_NAMES[selectedLayer] || "Title text"}
         </div>
+      </div> */}
+        <div
+          style={{ fontSize: 12.5, fontWeight: 700, color: "var(--bs-muted)" }}
+        >
+          Editing: {LAYER_NAMES[selectedLayer] || "Title text"}
+        </div>
+      </div>
+
+      <div
+        className="builder-save-row"
+        style={{
+          display: "flex",
+          gap: 10,
+          alignItems: "center",
+          margin: "12px 0 18px",
+        }}
+      >
+        <select
+          className="select-mini"
+          style={{ minWidth: 220 }}
+          value={targetBannerId}
+          onChange={(e) => setTargetBannerId(e.target.value)}
+        >
+          <option value="">Select a banner to apply this design to…</option>
+          {banners.map((b) => (
+            <option key={b.id} value={b.id}>
+              {b.name} ({b.status})
+            </option>
+          ))}
+        </select>
+        <button
+          className="btn btn-primary btn-sm"
+          onClick={handleSaveDesign}
+          disabled={!targetBannerId || saving}
+        >
+          {saving ? (
+            <span className="bs-spinner" />
+          ) : (
+            <>
+              <Icon.Check size={14} /> Save Design to Banner
+            </>
+          )}
+        </button>
       </div>
 
       <div className="builder-grid">
@@ -113,7 +189,7 @@ export default function BuilderSection() {
           {TOOLS.map((t) => (
             <button
               key={t.label}
-              className={`tool-btn ${activeTool === t.key ? 'active' : ''}`}
+              className={`tool-btn ${activeTool === t.key ? "active" : ""}`}
               onClick={() => handleToolClick(t.key)}
             >
               {Icon[t.icon]({ size: 19 })}
@@ -135,22 +211,39 @@ export default function BuilderSection() {
             <div className="canvas-blob" />
             <div
               key={`title-${playKey}`}
-              className={`layer layer-group ${selectedLayer === 'title' ? 'selected' : ''} ${animClass}`}
-              style={{ top: `${titlePos.top}%`, left: `${titlePos.left}%`, alignItems: alignMap[align], textAlign: align }}
-              onPointerDown={(e) => startDrag(e, 'title', titlePos, setTitlePos)}
-              onClick={() => selectLayer('title', 'title')}
+              className={`layer layer-group ${selectedLayer === "title" ? "selected" : ""} ${animClass}`}
+              style={{
+                top: `${titlePos.top}%`,
+                left: `${titlePos.left}%`,
+                alignItems: alignMap[align],
+                textAlign: align,
+              }}
+              onPointerDown={(e) =>
+                startDrag(e, "title", titlePos, setTitlePos)
+              }
+              onClick={() => selectLayer("title", "title")}
             >
-              <div className="layer-title" style={{ fontWeight: titleWeight, fontSize: titleSize, color: titleColor }}>
+              <div
+                className="layer-title"
+                style={{
+                  fontWeight: titleWeight,
+                  fontSize: titleSize,
+                  color: titleColor,
+                }}
+              >
                 Become an AI Engineer
               </div>
-              <div className="layer-subtitle">Industry-ready training with real projects, mentorship &amp; placement support</div>
+              <div className="layer-subtitle">
+                Industry-ready training with real projects, mentorship &amp;
+                placement support
+              </div>
             </div>
             <div
               key={`cta-${playKey}`}
-              className={`layer ${selectedLayer === 'cta' ? 'selected' : ''} ${animClass}`}
+              className={`layer ${selectedLayer === "cta" ? "selected" : ""} ${animClass}`}
               style={{ top: `${ctaPos.top}%`, left: `${ctaPos.left}%` }}
-              onPointerDown={(e) => startDrag(e, 'cta', ctaPos, setCtaPos)}
-              onClick={() => selectLayer('cta', 'cta')}
+              onPointerDown={(e) => startDrag(e, "cta", ctaPos, setCtaPos)}
+              onClick={() => selectLayer("cta", "cta")}
             >
               <span className="layer-cta" style={{ borderRadius: ctaRadius }}>
                 <Icon.ArrowUp size={14} /> Enroll Now
@@ -168,7 +261,7 @@ export default function BuilderSection() {
                 {BG_PRESETS.map((preset, i) => (
                   <div
                     key={preset}
-                    className={`swatch ${activeSwatch === i ? 'active' : ''}`}
+                    className={`swatch ${activeSwatch === i ? "active" : ""}`}
                     style={{ background: preset }}
                     onClick={() => {
                       setBg(preset);
@@ -187,7 +280,9 @@ export default function BuilderSection() {
                     setActiveSwatch(-1);
                   }}
                 />
-                <span style={{ fontSize: 12, color: 'var(--bs-muted)' }}>Pick a solid background</span>
+                <span style={{ fontSize: 12, color: "var(--bs-muted)" }}>
+                  Pick a solid background
+                </span>
               </div>
             </div>
           </details>
@@ -196,12 +291,25 @@ export default function BuilderSection() {
             <summary>Typography</summary>
             <div className="prop-body">
               <div className="prop-row">
-                <div className="prop-label"><span>Title size</span><span>{titleSize}px</span></div>
-                <input type="range" min="18" max="44" value={titleSize} onChange={(e) => setTitleSize(Number(e.target.value))} />
+                <div className="prop-label">
+                  <span>Title size</span>
+                  <span>{titleSize}px</span>
+                </div>
+                <input
+                  type="range"
+                  min="18"
+                  max="44"
+                  value={titleSize}
+                  onChange={(e) => setTitleSize(Number(e.target.value))}
+                />
               </div>
               <div className="prop-row">
                 <div className="prop-label">Title weight</div>
-                <select className="select-mini" value={titleWeight} onChange={(e) => setTitleWeight(e.target.value)}>
+                <select
+                  className="select-mini"
+                  value={titleWeight}
+                  onChange={(e) => setTitleWeight(e.target.value)}
+                >
                   <option value="600">Semibold</option>
                   <option value="700">Bold</option>
                   <option value="800">Extra Bold</option>
@@ -210,7 +318,11 @@ export default function BuilderSection() {
               <div className="prop-row">
                 <div className="prop-label">Title color</div>
                 <div className="color-input-row">
-                  <input type="color" value={titleColor} onChange={(e) => setTitleColor(e.target.value)} />
+                  <input
+                    type="color"
+                    value={titleColor}
+                    onChange={(e) => setTitleColor(e.target.value)}
+                  />
                 </div>
               </div>
             </div>
@@ -220,8 +332,17 @@ export default function BuilderSection() {
             <summary>Spacing</summary>
             <div className="prop-body">
               <div className="prop-row">
-                <div className="prop-label"><span>Canvas padding</span><span>{padding}px</span></div>
-                <input type="range" min="16" max="64" value={padding} onChange={(e) => setPadding(Number(e.target.value))} />
+                <div className="prop-label">
+                  <span>Canvas padding</span>
+                  <span>{padding}px</span>
+                </div>
+                <input
+                  type="range"
+                  min="16"
+                  max="64"
+                  value={padding}
+                  onChange={(e) => setPadding(Number(e.target.value))}
+                />
               </div>
             </div>
           </details>
@@ -230,13 +351,22 @@ export default function BuilderSection() {
             <summary>Alignment</summary>
             <div className="prop-body">
               <div className="align-row">
-                <button className={`align-btn ${align === 'left' ? 'active' : ''}`} onClick={() => setAlign('left')}>
+                <button
+                  className={`align-btn ${align === "left" ? "active" : ""}`}
+                  onClick={() => setAlign("left")}
+                >
                   <Icon.AlignLeft size={15} />
                 </button>
-                <button className={`align-btn ${align === 'center' ? 'active' : ''}`} onClick={() => setAlign('center')}>
+                <button
+                  className={`align-btn ${align === "center" ? "active" : ""}`}
+                  onClick={() => setAlign("center")}
+                >
                   <Icon.AlignCenter size={15} />
                 </button>
-                <button className={`align-btn ${align === 'right' ? 'active' : ''}`} onClick={() => setAlign('right')}>
+                <button
+                  className={`align-btn ${align === "right" ? "active" : ""}`}
+                  onClick={() => setAlign("right")}
+                >
                   <Icon.AlignRight size={15} />
                 </button>
               </div>
@@ -247,12 +377,30 @@ export default function BuilderSection() {
             <summary>Border Radius</summary>
             <div className="prop-body">
               <div className="prop-row">
-                <div className="prop-label"><span>Canvas corners</span><span>{canvasRadius}px</span></div>
-                <input type="range" min="0" max="36" value={canvasRadius} onChange={(e) => setCanvasRadius(Number(e.target.value))} />
+                <div className="prop-label">
+                  <span>Canvas corners</span>
+                  <span>{canvasRadius}px</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="36"
+                  value={canvasRadius}
+                  onChange={(e) => setCanvasRadius(Number(e.target.value))}
+                />
               </div>
               <div className="prop-row">
-                <div className="prop-label"><span>Button corners</span><span>{ctaRadius}px</span></div>
-                <input type="range" min="0" max="40" value={ctaRadius} onChange={(e) => setCtaRadius(Number(e.target.value))} />
+                <div className="prop-label">
+                  <span>Button corners</span>
+                  <span>{ctaRadius}px</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="40"
+                  value={ctaRadius}
+                  onChange={(e) => setCtaRadius(Number(e.target.value))}
+                />
               </div>
             </div>
           </details>
@@ -261,7 +409,11 @@ export default function BuilderSection() {
             <summary>Animations</summary>
             <div className="prop-body">
               <div className="prop-row">
-                <select className="select-mini" value={animation} onChange={(e) => setAnimation(e.target.value)}>
+                <select
+                  className="select-mini"
+                  value={animation}
+                  onChange={(e) => setAnimation(e.target.value)}
+                >
                   <option value="none">None</option>
                   <option value="fade">Fade In</option>
                   <option value="slide">Slide Up</option>
@@ -271,7 +423,7 @@ export default function BuilderSection() {
               <button
                 className="btn btn-secondary btn-sm btn-block"
                 onClick={() => setPlayKey((k) => k + 1)}
-                disabled={animation === 'none'}
+                disabled={animation === "none"}
               >
                 <Icon.Sparkles size={14} /> Preview animation
               </button>

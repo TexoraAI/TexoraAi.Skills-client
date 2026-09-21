@@ -277,6 +277,8 @@ export default function ProgramBasicInfo({
             onChange={(val) => onChange("bannerUrl", val)}
             aspect="aspect-[3/1]"
             hint="Wide banner shown on the program landing page"
+            programSlug={data.slug}
+            fieldName="banner"
           />
           <ImageUploadField
             label="Course Thumbnail"
@@ -284,6 +286,8 @@ export default function ProgramBasicInfo({
             onChange={(val) => onChange("thumbnailUrl", val)}
             aspect="aspect-video"
             hint="Shown on program cards and listings"
+            programSlug={data.slug}
+            fieldName="thumbnail"
           />
         </div>
         <div className="mt-3">
@@ -325,6 +329,8 @@ export default function ProgramBasicInfo({
               value={data.instructorPhotoUrl}
               onChange={(val) => onChange("instructorPhotoUrl", val)}
               aspect="aspect-square"
+              programSlug={data.slug}
+              fieldName="instructor-photo"
             />
           </div>
           <div className="flex-1 grid grid-cols-1 gap-2.5">

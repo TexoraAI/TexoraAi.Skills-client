@@ -23,6 +23,8 @@ import {
   deleteContact,
 } from "../../../../services/contactService";
 import auth from "../../../../auth";
+import { parsePlanError } from "../../../../services/planErrorHandler";
+import UpgradeModal from "../../../../components/plan/UpgradeModal";
 const REMINDER_MAP = {
   "No reminder": "NO_REMINDER",
   "5 minutes before": "5MIN",
@@ -62,6 +64,10 @@ export function useWorkspaceModal() {
 export function WorkspaceModalProvider({ children }) {
   const [modal, setModal] = useState(null); // { type, props }
   const showToast = useToast();
+
+  // ── Plan entitlement state ──
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [upgradeConfig, setUpgradeConfig] = useState(null);
 
   const close = useCallback(() => setModal(null), []);
 
@@ -151,6 +157,13 @@ export function WorkspaceModalProvider({ children }) {
               modal.props.onCreated?.(res.data);
             })
             .catch((err) => {
+              const planError = parsePlanError(err);
+              if (planError) {
+                close();
+                setUpgradeConfig(planError);
+                setUpgradeModalOpen(true);
+                return;
+              }
               console.error("Failed to create event:", err);
               showToast(
                 err.response?.data?.error ||
@@ -177,6 +190,13 @@ export function WorkspaceModalProvider({ children }) {
               modal.props.onCreated?.(created);
             })
             .catch((err) => {
+              const planError = parsePlanError(err);
+              if (planError) {
+                close();
+                setUpgradeConfig(planError);
+                setUpgradeModalOpen(true);
+                return;
+              }
               console.error("Failed to create schedule:", err);
               showToast(
                 err.response?.data?.error ||
@@ -217,6 +237,13 @@ export function WorkspaceModalProvider({ children }) {
               modal.props.onSent?.(res.data);
             })
             .catch((err) => {
+              const planError = parsePlanError(err);
+              if (planError) {
+                close();
+                setUpgradeConfig(planError);
+                setUpgradeModalOpen(true);
+                return;
+              }
               console.error("Failed to save/send email:", err);
               showToast(
                 err.response?.data?.error ||
@@ -304,6 +331,18 @@ export function WorkspaceModalProvider({ children }) {
     <WorkspaceModalContext.Provider value={value}>
       {children}
       {node}
+      {upgradeModalOpen && upgradeConfig && (
+        <UpgradeModal
+          isOpen={upgradeModalOpen}
+          onClose={() => setUpgradeModalOpen(false)}
+          planType={upgradeConfig.planType}
+          userId={auth.getCurrentUser()?.id}
+          currentPlan="free"
+          availableTargetPlans={["pro", "premium"]}
+          featureLabel={upgradeConfig.message}
+          onSuccess={() => setUpgradeModalOpen(false)}
+        />
+      )}
     </WorkspaceModalContext.Provider>
   );
 }

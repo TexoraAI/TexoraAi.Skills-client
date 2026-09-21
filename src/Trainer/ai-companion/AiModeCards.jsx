@@ -33,6 +33,7 @@ const MODES_BY_TAB = {
       icon: CheckSquare,
       color: "#2563eb",
       requiresSession: true,
+      requiredSources: ["MEETINGS"],
     },
     {
       mode: "DAILY_REFLECTION",
@@ -42,6 +43,7 @@ const MODES_BY_TAB = {
       icon: Sun,
       color: "#d97706",
       requiresSession: false,
+      requiredSources: ["MEETINGS"],
     },
     {
       mode: "CROSS_MEETING_ANALYST",
@@ -51,6 +53,7 @@ const MODES_BY_TAB = {
       icon: TrendingUp,
       color: "#7c3aed",
       requiresSession: false,
+      requiredSources: ["MEETINGS"],
     },
     {
       mode: "SUMMARIZER",
@@ -59,6 +62,7 @@ const MODES_BY_TAB = {
       icon: FileText,
       color: "#dc2626",
       requiresSession: true,
+      requiredSources: ["MEETINGS"],
     },
     {
       mode: "DAILY_REPORT",
@@ -68,6 +72,7 @@ const MODES_BY_TAB = {
       icon: BarChart2,
       color: "#0891b2",
       requiresSession: true,
+      requiredSources: ["MEETINGS"],
     },
     {
       mode: "TOP_5_THINGS",
@@ -77,6 +82,7 @@ const MODES_BY_TAB = {
       icon: List,
       color: "#059669",
       requiresSession: false,
+      requiredSources: ["MEETINGS"],
     },
   ],
   meeting: [
@@ -87,6 +93,7 @@ const MODES_BY_TAB = {
       icon: ClipboardList,
       color: "#2563eb",
       requiresSession: true,
+      requiredSources: ["MEETINGS"],
     },
     {
       mode: "ACTION_ITEMS",
@@ -95,6 +102,7 @@ const MODES_BY_TAB = {
       icon: CheckSquare,
       color: "#059669",
       requiresSession: true,
+      requiredSources: ["MEETINGS"],
     },
     {
       mode: "OPEN_QUESTIONS",
@@ -103,6 +111,7 @@ const MODES_BY_TAB = {
       icon: HelpCircle,
       color: "#d97706",
       requiresSession: true,
+      requiredSources: ["MEETINGS"],
     },
     {
       mode: "STUDENT_DOUBTS",
@@ -111,6 +120,7 @@ const MODES_BY_TAB = {
       icon: MessageCircle,
       color: "#7c3aed",
       requiresSession: true,
+      requiredSources: ["MEETINGS", "CHAT"],
     },
     {
       mode: "ENGAGEMENT_REPORT",
@@ -119,6 +129,7 @@ const MODES_BY_TAB = {
       icon: BarChart2,
       color: "#0891b2",
       requiresSession: true,
+      requiredSources: ["MEETINGS"],
     },
     {
       mode: "RECORDING_SUMMARY",
@@ -127,6 +138,7 @@ const MODES_BY_TAB = {
       icon: Video,
       color: "#dc2626",
       requiresSession: true,
+      requiredSources: ["RECORDINGS"],
     },
     {
       mode: "WHITEBOARD_SUMMARY",
@@ -135,6 +147,7 @@ const MODES_BY_TAB = {
       icon: Monitor,
       color: "#374151",
       requiresSession: true,
+      requiredSources: ["WHITEBOARD"],
     },
     {
       mode: "CHAT_SUMMARY",
@@ -143,6 +156,7 @@ const MODES_BY_TAB = {
       icon: Mic,
       color: "#b45309",
       requiresSession: true,
+      requiredSources: ["CHAT"],
     },
   ],
   coaching: [
@@ -154,6 +168,7 @@ const MODES_BY_TAB = {
       icon: HelpCircle,
       color: "#d97706",
       requiresSession: true,
+      requiredSources: ["MEETINGS"],
     },
     {
       mode: "COACHING",
@@ -163,6 +178,7 @@ const MODES_BY_TAB = {
       icon: Award,
       color: "#7c3aed",
       requiresSession: false,
+      requiredSources: ["MEETINGS"],
     },
     {
       mode: "LESSON_PLAN",
@@ -171,6 +187,7 @@ const MODES_BY_TAB = {
       icon: BookOpen,
       color: "#2563eb",
       requiresSession: false,
+      requiredSources: [],
     },
     {
       mode: "ASSIGNMENT_DRAFT",
@@ -179,6 +196,7 @@ const MODES_BY_TAB = {
       icon: FileEdit,
       color: "#059669",
       requiresSession: false,
+      requiredSources: [],
     },
     {
       mode: "ANNOUNCEMENT_DRAFT",
@@ -187,6 +205,7 @@ const MODES_BY_TAB = {
       icon: Megaphone,
       color: "#dc2626",
       requiresSession: false,
+      requiredSources: [],
     },
     {
       mode: "REWRITE_TEXT",
@@ -195,6 +214,7 @@ const MODES_BY_TAB = {
       icon: AlignLeft,
       color: "#0891b2",
       requiresSession: false,
+      requiredSources: [],
     },
     {
       mode: "MAKE_SHORTER",
@@ -203,6 +223,7 @@ const MODES_BY_TAB = {
       icon: Minus,
       color: "#b45309",
       requiresSession: false,
+      requiredSources: [],
     },
     {
       mode: "MAKE_LONGER",
@@ -211,6 +232,7 @@ const MODES_BY_TAB = {
       icon: Plus,
       color: "#374151",
       requiresSession: false,
+      requiredSources: [],
     },
   ],
 };

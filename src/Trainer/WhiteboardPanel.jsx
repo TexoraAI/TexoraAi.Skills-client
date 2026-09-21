@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Client } from "@stomp/stompjs";
 import {
@@ -74,12 +73,16 @@ import {
   AlignCenter,
   Presentation,
 } from "lucide-react";
-
 import {
   getWhiteboardState,
   saveWhiteboardSnapshot,
   clearWhiteboardSession,
+  getWhiteboardAccess,
+  getStandaloneWhiteboardAccess,
+  checkStandaloneWhiteboardSave,
 } from "../services/liveSessionService";
+import { parsePlanError } from "../services/planErrorHandler";
+import UpgradeModal from "../components/plan/UpgradeModal";
 
 const WS_URL =
   (import.meta.env.VITE_WS_BASE_URL || "ws://localhost:9000") + "/live-chat";
@@ -2861,6 +2864,7 @@ function CanvasWhiteboard({
   whiteboardTitle,
   selectedProject,
   onSaveStatusChange,
+  onPlanBlocked, // NEW — parent passes a callback: (planErrorConfig) => void
 }) {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
@@ -3203,7 +3207,12 @@ function CanvasWhiteboard({
   // ── PUBLISH ──────────────────────────────────────────────────────────────
   const publish = useCallback(
     (path) => {
-      if (!stompClient || !connected) return;
+      // Guard against a standalone/no-session whiteboard (e.g. "New
+      // Whiteboard" from the dashboard, which has no real backend sessionId
+      // yet) — without this, the destination string literally becomes
+      // "/app/whiteboard/undefined" and the backend throws trying to parse
+      // "undefined" as a Long.
+      if (!stompClient || !connected || !sessionId) return;
       stompClient.publish({
         destination: `/app/whiteboard/${sessionId}`,
         body: JSON.stringify({
@@ -3219,7 +3228,7 @@ function CanvasWhiteboard({
   );
 
   const publishFull = useCallback(() => {
-    if (!stompClient || !connected) return;
+    if (!stompClient || !connected || !sessionId) return;
     stompClient.publish({
       destination: `/app/whiteboard/${sessionId}`,
       body: JSON.stringify({
@@ -3256,6 +3265,12 @@ function CanvasWhiteboard({
           title: whiteboardTitle,
           project: selectedProject,
         });
+      } else {
+        // Standalone whiteboard (no live session) — still gate the save.
+        // Without this, a free-tier trainer bypasses whiteboard limits
+        // entirely just by never linking a session, since the localStorage
+        // fallback below always succeeds unconditionally otherwise.
+        await checkStandaloneWhiteboardSave();
       }
       localStorage.setItem(
         `whiteboard:${whiteboardId || sessionId || "default"}`,
@@ -3265,7 +3280,18 @@ function CanvasWhiteboard({
       setLastSavedAt(new Date());
       if (onSaveStatusChange) onSaveStatusChange("saved");
       showToast("Whiteboard saved ✓");
-    } catch {
+    } catch (err) {
+      const planError = parsePlanError(err);
+      if (planError) {
+        // Plan gate — do NOT fall back to local save. Surface the modal
+        // and leave saveStatus as "error" so the trainer knows nothing
+        // was actually persisted server-side.
+        setSaveStatus("error");
+        if (onSaveStatusChange) onSaveStatusChange("error");
+        if (onPlanBlocked) onPlanBlocked(planError);
+        showToast("Whiteboard saving isn't available on your plan", "error");
+        return;
+      }
       try {
         localStorage.setItem(
           `whiteboard:${whiteboardId || sessionId || "default"}`,
@@ -3289,6 +3315,7 @@ function CanvasWhiteboard({
     userName,
     userRole,
     onSaveStatusChange,
+    onPlanBlocked,
   ]);
 
   // ── ADD SHAPE ────────────────────────────────────────────────────────────
@@ -6386,6 +6413,34 @@ export default function WhiteboardPanel({ t, isDark, sessionId }) {
   const [dashToast, setDashToast] = useState(null);
   const fileInputRef = useRef(null);
 
+  // ── Plan entitlement state ──
+  // ── Plan entitlement state ──
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [upgradeConfig, setUpgradeConfig] = useState(null);
+  const [trainerTier, setTrainerTier] = useState(null); // "free" | "pro" | "premium"
+  const [whiteboardAvailable, setWhiteboardAvailable] = useState(true); // assume available until checked
+  const handlePlanBlocked = (planError) => {
+    setUpgradeConfig(planError);
+    setUpgradeModalOpen(true);
+  };
+
+  useEffect(() => {
+    // Resolves tier scoped to THIS session's own organizationId — the same
+    // path saveWhiteboard() checks — instead of the caller's JWT org, so
+    // the badge never disagrees with what saving actually allows. Falls
+    // back to the standalone (JWT-based) check when there's no session yet
+    // (e.g. the dashboard, before any board is tied to a live class).
+    const fetcher = sessionId
+      ? getWhiteboardAccess(sessionId)
+      : getStandaloneWhiteboardAccess();
+    fetcher
+      .then((res) => {
+        setTrainerTier(res.data?.tier || null);
+        setWhiteboardAvailable(res.data?.available !== false);
+      })
+      .catch((err) => console.error("Failed to load whiteboard access:", err));
+  }, [sessionId]);
+
   function showDashToast(msg, type = "success") {
     setDashToast({ message: msg, type });
     clearTimeout(showDashToast._t);
@@ -6588,7 +6643,20 @@ export default function WhiteboardPanel({ t, isDark, sessionId }) {
           whiteboardId={activeBoardId}
           whiteboardTitle={editorTitle}
           selectedProject={selectedProject}
+          onPlanBlocked={handlePlanBlocked}
         />
+        {upgradeModalOpen && upgradeConfig && (
+          <UpgradeModal
+            isOpen={upgradeModalOpen}
+            onClose={() => setUpgradeModalOpen(false)}
+            planType={upgradeConfig.planType}
+            userId={JSON.parse(localStorage.getItem("lms_user") || "{}").id}
+            currentPlan="free"
+            availableTargetPlans={["pro", "premium"]}
+            featureLabel={upgradeConfig.message}
+            onSuccess={() => setUpgradeModalOpen(false)}
+          />
+        )}
       </div>
     );
   }
@@ -6786,8 +6854,21 @@ export default function WhiteboardPanel({ t, isDark, sessionId }) {
             whiteboardTitle={editorTitle}
             selectedProject={selectedProject}
             onSaveStatusChange={setEditorSaveStatus}
+            onPlanBlocked={handlePlanBlocked}
           />
         </div>
+        {upgradeModalOpen && upgradeConfig && (
+          <UpgradeModal
+            isOpen={upgradeModalOpen}
+            onClose={() => setUpgradeModalOpen(false)}
+            planType={upgradeConfig.planType}
+            userId={JSON.parse(localStorage.getItem("lms_user") || "{}").id}
+            currentPlan="free"
+            availableTargetPlans={["pro", "premium"]}
+            featureLabel={upgradeConfig.message}
+            onSuccess={() => setUpgradeModalOpen(false)}
+          />
+        )}
       </div>
     );
   }
@@ -7175,6 +7256,24 @@ export default function WhiteboardPanel({ t, isDark, sessionId }) {
               {connected ? "LIVE SYNC" : "OFFLINE"}
             </span>
           </div>
+
+          {!whiteboardAvailable && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "6px 12px",
+                borderRadius: 10,
+                background: "rgba(248,113,113,0.08)",
+                border: "1px solid rgba(248,113,113,0.2)",
+              }}
+            >
+              <span style={{ fontSize: 10, fontWeight: 700, color: "#f87171" }}>
+                SAVING: PRO+ ONLY
+              </span>
+            </div>
+          )}
         </div>
         <div
           style={{
@@ -7382,7 +7481,6 @@ export default function WhiteboardPanel({ t, isDark, sessionId }) {
         style={{ display: "none" }}
         onChange={() => createNew("Imported Board")}
       />
-
       {dashToast && (
         <div
           style={{
@@ -7402,6 +7500,19 @@ export default function WhiteboardPanel({ t, isDark, sessionId }) {
         >
           {dashToast.message}
         </div>
+      )}
+
+      {upgradeModalOpen && upgradeConfig && (
+        <UpgradeModal
+          isOpen={upgradeModalOpen}
+          onClose={() => setUpgradeModalOpen(false)}
+          planType={upgradeConfig.planType}
+          userId={JSON.parse(localStorage.getItem("lms_user") || "{}").id}
+          currentPlan="free"
+          availableTargetPlans={["pro", "premium"]}
+          featureLabel={upgradeConfig.message}
+          onSuccess={() => setUpgradeModalOpen(false)}
+        />
       )}
     </div>
   );

@@ -11,6 +11,8 @@ import {
   Sparkles,
   Send,
   ChevronRight,
+  Languages,
+  RotateCcw,
 } from "lucide-react";
 import axios from "axios";
 
@@ -38,6 +40,17 @@ const api = {
       data,
       authHeaders(),
     ),
+  uploadAudioChunk: (tid, formData) =>
+    axios.post(
+      `${API_BASE}/v1/ai-companion/transcripts/${tid}/audio-chunk`,
+      formData,
+      {
+        headers: {
+          ...authHeaders().headers,
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    ),
   stopTranscript: (tid) =>
     axios.post(
       `${API_BASE}/v1/ai-companion/transcripts/${tid}/stop`,
@@ -61,16 +74,37 @@ const api = {
 };
 
 // ── Speech recognition factory ────────────────────────────────────────────────
-function createSpeechRecognition() {
+// ── Speech recognition factory ────────────────────────────────────────────────
+// Web Speech is now captions-only (fast, low-latency, never saved) — the
+// authoritative transcript comes from Whisper audio chunks instead.
+function createSpeechRecognition(langCode) {
   const SpeechRecognition =
     window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) return null;
   const rec = new SpeechRecognition();
   rec.continuous = true;
   rec.interimResults = true;
-  rec.lang = "en-US";
+  rec.lang = langCode || "en-US";
   return rec;
 }
+
+// ── Supported languages ─────────────────────────────────────────────────────
+// code: BCP-47 tag for Web Speech's rec.lang.
+// whisper: ISO-639-1 code passed to the Whisper "language" param.
+const LANGUAGES = [
+  { code: "en-US", whisper: "en", label: "English (US)" },
+  { code: "en-GB", whisper: "en", label: "English (UK)" },
+  { code: "hi-IN", whisper: "hi", label: "Hindi" },
+  { code: "es-ES", whisper: "es", label: "Spanish" },
+  { code: "fr-FR", whisper: "fr", label: "French" },
+  { code: "de-DE", whisper: "de", label: "German" },
+  { code: "te-IN", whisper: "te", label: "Telugu" },
+  { code: "ta-IN", whisper: "ta", label: "Tamil" },
+];
+
+// Rolling chunk length in seconds — each MediaRecorder cycle produces one
+// self-contained, independently-decodable webm blob of roughly this length.
+const CHUNK_SECONDS = 45;
 
 const SPEECH_SUPPORTED = !!(
   window.SpeechRecognition || window.webkitSpeechRecognition
@@ -100,6 +134,7 @@ export default function AiInPersonNotes({
   initialTranscriptId,
   initialSessionId,
   initialSessionTitle,
+  initialReadOnly,
 }) {
   // Theme
   const bg = isDark ? "#0d1117" : "#f0f4f8";
@@ -127,14 +162,157 @@ export default function AiInPersonNotes({
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
 
+  const [language, setLanguage] = useState(LANGUAGES[0]);
+  const [liveCaption, setLiveCaption] = useState(""); // last Web Speech final result — ephemeral, never saved
+  const [chunkCount, setChunkCount] = useState(0); // total chunks recorded this session, for the UI
+
   const recRef = useRef(null);
   const transcriptEndRef = useRef(null);
   const inputRef = useRef(null);
+  const mediaStreamRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const chunkTimerRef = useRef(null);
+  const chunkIndexRef = useRef(0);
+  const startEpochRef = useRef(null); // mirrors startEpoch but reachable inside closures without stale state
 
   // Auto-scroll
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [segments, interimText]);
+
+  // ── Upload one rolling audio chunk, authoritative Whisper transcript ──────
+  // Retries once on failure; a second failure marks the chunk failed
+  // locally (UI-only) without blocking the rest of the recording session.
+  const uploadChunk = useCallback(
+    async (blob, tid, index, secondAtChunkStart, attempt = 1) => {
+      const pendingId = `chunk-pending-${tid}-${index}`;
+      setSegments((prev) => [
+        ...prev,
+        {
+          id: pendingId,
+          speaker: "Speaker 1",
+          text: "",
+          time: new Date().toISOString(),
+          second: secondAtChunkStart,
+          status: "processing",
+        },
+      ]);
+
+      const formData = new FormData();
+      formData.append("file", blob, `chunk_${index}.webm`);
+      formData.append("chunkIndex", index);
+      formData.append("startedAtSecond", secondAtChunkStart);
+      formData.append("language", language.whisper);
+
+      try {
+        const res = await api.uploadAudioChunk(tid, formData);
+        const saved = res?.data;
+        setSegments((prev) =>
+          prev
+            .map((s) =>
+              s.id === pendingId
+                ? saved
+                  ? {
+                      id: saved.id,
+                      speaker: saved.speakerName || "Speaker 1",
+                      text: saved.text,
+                      time: saved.createdAt || new Date().toISOString(),
+                      second: saved.startedAtSecond ?? secondAtChunkStart,
+                      status: "done",
+                    }
+                  : null // silence — nothing came back, drop the placeholder
+                : s,
+            )
+            .filter(Boolean),
+        );
+      } catch (err) {
+        if (attempt < 2) {
+          await uploadChunk(blob, tid, index, secondAtChunkStart, attempt + 1);
+          return;
+        }
+        setSegments((prev) =>
+          prev.map((s) =>
+            s.id === pendingId ? { ...s, status: "failed", text: "" } : s,
+          ),
+        );
+      }
+    },
+    [language],
+  );
+
+  // ── Retry a failed chunk manually isn't possible — the audio blob is gone
+  // once a cycle ends. Failed rows are dismissible only. ──────────────────
+  const dismissFailedSegment = (id) => {
+    setSegments((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  // ── Rolling MediaRecorder chunk cycle ──────────────────────────────────────
+  // Each cycle stops the current recorder (flushing a complete, valid webm
+  // blob), uploads it, then starts a fresh MediaRecorder on the same stream
+  // for the next window. This avoids the "later timeslice blobs aren't
+  // independently decodable" problem of a single long-running recorder.
+  const startChunkCycle = useCallback(
+    (stream, tid) => {
+      const cycle = () => {
+        const recorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+        const localChunks = [];
+        const index = chunkIndexRef.current;
+        const secondAtStart = startEpochRef.current
+          ? Math.floor((Date.now() - startEpochRef.current) / 1000)
+          : 0;
+
+        recorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) localChunks.push(e.data);
+        };
+        recorder.onstop = () => {
+          if (localChunks.length > 0) {
+            const blob = new Blob(localChunks, { type: "audio/webm" });
+            uploadChunk(blob, tid, index, secondAtStart);
+          }
+          chunkIndexRef.current += 1;
+          setChunkCount(chunkIndexRef.current);
+        };
+
+        mediaRecorderRef.current = recorder;
+        recorder.start();
+
+        chunkTimerRef.current = setTimeout(() => {
+          if (
+            mediaRecorderRef.current === recorder &&
+            recorder.state !== "inactive"
+          ) {
+            recorder.stop();
+          }
+          if (mediaStreamRef.current) cycle(); // schedule next cycle
+        }, CHUNK_SECONDS * 1000);
+      };
+
+      cycle();
+    },
+    [uploadChunk],
+  );
+
+  const stopChunkCycle = useCallback(() => {
+    if (chunkTimerRef.current) {
+      clearTimeout(chunkTimerRef.current);
+      chunkTimerRef.current = null;
+    }
+    return new Promise((resolve) => {
+      const recorder = mediaRecorderRef.current;
+      if (recorder && recorder.state !== "inactive") {
+        recorder.onstop = (() => {
+          const original = recorder.onstop;
+          return (e) => {
+            if (typeof original === "function") original(e);
+            resolve();
+          };
+        })();
+        recorder.stop();
+      } else {
+        resolve();
+      }
+    });
+  }, []);
 
   // ── Start recording ─────────────────────────────────────────────────────────
   const handleStart = useCallback(async () => {
@@ -147,9 +325,12 @@ export default function AiInPersonNotes({
       return;
     }
 
-    // Request mic permission early
+    // Request mic permission early, and keep the stream — MediaRecorder
+    // reuses it for the Whisper chunk pipeline instead of requesting twice.
+    let stream;
     try {
-      await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStreamRef.current = stream;
     } catch {
       setError(
         "Microphone access denied. Please allow microphone and try again.",
@@ -193,44 +374,38 @@ export default function AiInPersonNotes({
 
     const epoch = Date.now();
     setStartEpoch(epoch);
+    startEpochRef.current = epoch;
+    chunkIndexRef.current = 0;
+    setChunkCount(0);
     if (!initialTranscriptId) {
       setSegments([]);
     }
     setInterimText("");
+    setLiveCaption("");
     setSummary("");
     setQaHistory([]);
     setPhase("recording");
     setActiveTab("transcript");
 
-    // Start Web Speech
-    const rec = createSpeechRecognition();
+    // Start Web Speech — captions only now, never saved to the transcript.
+    const rec = createSpeechRecognition(language.code);
     recRef.current = rec;
 
-    rec.onresult = async (event) => {
+    // Start the Whisper rolling-chunk pipeline on the same mic stream —
+    // this becomes the authoritative transcript.
+    startChunkCycle(stream, tid);
+
+    rec.onresult = (event) => {
+      // Web Speech is captions-only now: fast, low-latency, shown while
+      // listening, but never saved. The Whisper chunk pipeline (started
+      // above) is the sole source of the authoritative transcript, so
+      // nothing here calls api.addSegment or touches `segments`.
       let interim = "";
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i];
         if (result.isFinal) {
           const text = result[0].transcript.trim();
-          if (!text) continue;
-          const second = Math.floor((Date.now() - epoch) / 1000);
-          const seg = {
-            id: Date.now(),
-            speaker: "Speaker 1",
-            text,
-            time: new Date().toISOString(),
-            second,
-          };
-          setSegments((prev) => [...prev, seg]);
-          setInterimText("");
-          // Persist to backend (fire and forget)
-          api
-            .addSegment(tid, {
-              text,
-              speakerName: "Speaker 1",
-              startedAtSecond: second,
-            })
-            .catch(() => {}); // silent fail — don't disrupt UX
+          if (text) setLiveCaption(text);
         } else {
           interim += result[0].transcript;
         }
@@ -275,6 +450,7 @@ export default function AiInPersonNotes({
       .getTranscript(initialTranscriptId)
       .then((res) => {
         const existing = res?.data?.segments || [];
+        const remoteStatus = res?.data?.session?.status;
         if (Array.isArray(existing) && existing.length > 0) {
           setSegments(
             existing.map((s, i) => ({
@@ -290,15 +466,29 @@ export default function AiInPersonNotes({
         if (!initialSessionTitle && res?.data?.session?.title) {
           setSessionTitle(res.data.session.title);
         }
-      })
-      .catch(() => {})
-      .finally(() => {
-        // Begin live capture against the SAME transcriptId — handleStart
-        // sees transcriptId is already set and skips creating a new one.
+
+        // Virtual/LiveKit meetings never use this device's mic — their
+        // transcript is derived from the call recording (Whisper) and
+        // linked in asynchronously by the backend. Never start live
+        // capture for those; just show whatever's there.
+        if (initialReadOnly) {
+          setPhase(remoteStatus === "RECORDING" ? "idle" : "stopped");
+          if (remoteStatus === "COMPLETED") {
+            setActiveTab("summary");
+          }
+          return;
+        }
+
+        // In-person flow: begin live capture against the SAME transcriptId —
+        // handleStart sees transcriptId is already set and skips creating a
+        // new one.
         handleStart();
+      })
+      .catch(() => {
+        if (!initialReadOnly) handleStart();
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialTranscriptId]);
+  }, [initialTranscriptId, initialReadOnly]);
   // ── Stop recording ──────────────────────────────────────────────────────────
   const handleStop = useCallback(async () => {
     if (recRef.current) {
@@ -307,6 +497,15 @@ export default function AiInPersonNotes({
       recRef.current = null;
     }
     setInterimText("");
+    setLiveCaption("");
+
+    // Flush the in-progress chunk so the last few seconds aren't lost.
+    await stopChunkCycle();
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      mediaStreamRef.current = null;
+    }
+
     setPhase("stopped");
 
     if (transcriptId) {
@@ -325,7 +524,7 @@ export default function AiInPersonNotes({
         setSummaryLoading(false);
       }
     }
-  }, [transcriptId]);
+  }, [transcriptId, stopChunkCycle]);
 
   // ── Copy transcript ─────────────────────────────────────────────────────────
   const handleCopy = () => {
@@ -372,7 +571,9 @@ export default function AiInPersonNotes({
     }
   };
 
-  const hasTranscript = segments.length > 0;
+  const hasTranscript = segments.some(
+    (s) => s.status !== "failed" && s.status !== "processing",
+  );
   const canAsk = phase === "stopped" && hasTranscript && transcriptId;
 
   // ── Render ──────────────────────────────────────────────────────────────────
@@ -474,7 +675,6 @@ export default function AiInPersonNotes({
             </p>
           </div>
         </div>
-
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           {!SPEECH_SUPPORTED && (
             <span
@@ -488,6 +688,45 @@ export default function AiInPersonNotes({
             >
               <AlertCircle size={12} /> Browser not supported
             </span>
+          )}
+          {phase === "idle" && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+                padding: "5px 8px",
+                borderRadius: 7,
+                border: `1px solid ${border}`,
+                background: inputBg,
+              }}
+            >
+              <Languages size={12} color={textSecondary} />
+              <select
+                value={language.code}
+                onChange={(e) =>
+                  setLanguage(
+                    LANGUAGES.find((l) => l.code === e.target.value) ||
+                      LANGUAGES[0],
+                  )
+                }
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  color: textPrimary,
+                  fontSize: 11,
+                  fontFamily: "'Poppins', sans-serif",
+                  outline: "none",
+                  cursor: "pointer",
+                }}
+              >
+                {LANGUAGES.map((l) => (
+                  <option key={l.code} value={l.code}>
+                    {l.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           )}
           {phase === "idle" && (
             <button onClick={handleStart} style={btnStyle("#2563eb")}>
@@ -661,8 +900,23 @@ export default function AiInPersonNotes({
                         textPrimary={textPrimary}
                         textSecondary={textSecondary}
                         border={border}
+                        onDismissFailed={dismissFailedSegment}
                       />
                     ))}
+                    {phase === "recording" && liveCaption && (
+                      <div
+                        style={{
+                          padding: "6px 10px",
+                          borderRadius: 7,
+                          color: textSecondary,
+                          fontSize: 11,
+                          fontStyle: "italic",
+                          opacity: 0.7,
+                        }}
+                      >
+                        Live caption (not saved): {liveCaption}
+                      </div>
+                    )}
                     {interimText && (
                       <div
                         style={{
@@ -1037,7 +1291,16 @@ export default function AiInPersonNotes({
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function SegmentRow({ seg, isDark, textPrimary, textSecondary, border }) {
+function SegmentRow({
+  seg,
+  isDark,
+  textPrimary,
+  textSecondary,
+  border,
+  onDismissFailed,
+}) {
+  const isFailed = seg.status === "failed";
+  const isProcessing = seg.status === "processing";
   return (
     <div
       style={{
@@ -1045,8 +1308,12 @@ function SegmentRow({ seg, isDark, textPrimary, textSecondary, border }) {
         gap: 8,
         padding: "8px 10px",
         borderRadius: 8,
-        background: isDark ? "rgba(255,255,255,0.03)" : "#f8fafc",
-        border: `1px solid ${border}`,
+        background: isFailed
+          ? "rgba(239,68,68,0.06)"
+          : isDark
+            ? "rgba(255,255,255,0.03)"
+            : "#f8fafc",
+        border: `1px solid ${isFailed ? "rgba(239,68,68,0.3)" : border}`,
       }}
     >
       <div
@@ -1082,16 +1349,69 @@ function SegmentRow({ seg, isDark, textPrimary, textSecondary, border }) {
             {secondsToTimestamp(seg.second)}
           </span>
         </div>
-        <p
-          style={{
-            margin: 0,
-            fontSize: 12,
-            color: textPrimary,
-            lineHeight: 1.6,
-          }}
-        >
-          {seg.text}
-        </p>
+        {isProcessing ? (
+          <p
+            style={{
+              margin: 0,
+              fontSize: 12,
+              color: textSecondary,
+              lineHeight: 1.6,
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            <Loader2
+              size={11}
+              style={{ animation: "spin 1s linear infinite" }}
+            />
+            Transcribing chunk…
+          </p>
+        ) : isFailed ? (
+          <p
+            style={{
+              margin: 0,
+              fontSize: 12,
+              color: "#ef4444",
+              lineHeight: 1.6,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            Couldn't transcribe this chunk after 2 attempts.
+            {onDismissFailed && (
+              <button
+                onClick={() => onDismissFailed(seg.id)}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  color: "#ef4444",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  padding: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 3,
+                }}
+              >
+                <RotateCcw size={10} /> Dismiss
+              </button>
+            )}
+          </p>
+        ) : (
+          <p
+            style={{
+              margin: 0,
+              fontSize: 12,
+              color: textPrimary,
+              lineHeight: 1.6,
+            }}
+          >
+            {seg.text}
+          </p>
+        )}
       </div>
     </div>
   );

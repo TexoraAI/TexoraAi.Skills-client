@@ -294,6 +294,37 @@ const authService = {
       params: { email },
     });
   },
+
+  // ================= PLAN UPGRADE PREVIEW =================
+  // Part A — org-level plan upgrade preview (ADMIN/TENANT_ADMIN of that org,
+  // or SUPER_ADMIN). Returns pricing info the frontend feeds into
+  // /api/payments/initiate.
+  previewOrgUpgrade(orgId, targetPlan, durationMonths) {
+    return api
+      .get(`/organizations/${orgId}/upgrade/preview`, {
+        params: { targetPlan, durationMonths },
+      })
+      .then((res) => res.data);
+  },
+
+  // Part B — individual (standalone) plan upgrade preview. Caller can only
+  // preview their OWN price unless they're TENANT_ADMIN/SUPER_ADMIN.
+  previewIndividualUpgrade(userId, targetPlan, durationMonths) {
+    return api
+      .get(`/users/${userId}/upgrade/preview`, {
+        params: { targetPlan, durationMonths },
+      })
+      .then((res) => res.data);
+  },
+
+  // Part D — resume-plan purchase preview. Allowed even for org-bound users.
+  previewResumeUpgrade(userId, targetPlan, durationMonths) {
+    return api
+      .get(`/users/${userId}/resume-plan/upgrade/preview`, {
+        params: { targetPlan, durationMonths },
+      })
+      .then((res) => res.data);
+  },
 };
 
 export default authService;

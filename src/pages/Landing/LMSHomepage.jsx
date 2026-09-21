@@ -1,3 +1,4 @@
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
@@ -12,6 +13,7 @@ import {
   ChevronRight,
   ClipboardList,
   Clock,
+  Flame,
   GraduationCap,
   Heart,
   Lightbulb,
@@ -217,12 +219,12 @@ function MentorTestimonialCarousel({ testimonials }) {
           <ChevronLeft className="w-5 h-5 text-[#1E293B] dark:text-white group-hover:text-white transition-colors" />
         </button>
 
-        {/* Scroller */}
+                {/* Scroller */}
         <div
           ref={scrollerRef}
           onScroll={handleScroll}
           style={{ scrollSnapType: "x mandatory" }}
-          className="mentor-scroll flex items-stretch overflow-x-auto flex-1 min-w-0 gap-6"
+          className="mentor-scroll flex items-start overflow-x-auto flex-1 min-w-0 gap-6"
         >
           {testimonials.map((t, i) => {
             const isExpanded = !!expandedCards[i];
@@ -476,6 +478,9 @@ export default function LMSHomepage({ theme, toggleTheme }) {
   const [featuredPrograms, setFeaturedPrograms] = useState({});
   const [programsLoading, setProgramsLoading] = useState(true);
   const [wishlist, setWishlist] = useState(new Set());
+  // UI-only: which course-card descriptions are expanded via "Read More".
+  // Presentational state only — no data-fetching or business logic.
+  const [expandedDescriptions, setExpandedDescriptions] = useState(new Set());
 
   // ── Mentors (testimonials) — now backend-connected ──
   const [testimonials, setTestimonials] = useState([]);
@@ -526,7 +531,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
      fails or returns no programs in any category. Includes the fuller
      backend field mapping: thumbnails, banners, instructor photos,
      LinkedIn, video URL, and only shows Published programs. */
-   useEffect(() => {
+  useEffect(() => {
     async function loadPrograms() {
       try {
         const { data } = await courseService.getFeaturedProgramsSummary();
@@ -564,6 +569,20 @@ export default function LMSHomepage({ theme, toggleTheme }) {
             syllabusWeeks: [],
             enrollmentUrl: p.enrollmentUrl || "",
             liveSessions: p.liveSessions ?? "—",
+            // ── NEW: real badge flags from superadmin, plus discount pricing.
+            // Falls back to undefined/false if the backend hasn't been
+            // redeployed with the extended summary DTO yet, so this is safe
+            // to ship ahead of the backend if needed. ──
+            isFeatured: !!p.isFeatured,
+            isTrending: !!p.isTrending,
+            isBestseller: !!p.isBestseller,
+            isPopular: !!p.isPopular,
+            isRecommended: !!p.isRecommended,
+            isComingSoon: !!p.isComingSoon,
+            originalPrice: p.originalPrice
+              ? `₹${Number(p.originalPrice).toLocaleString("en-IN")}`
+              : "",
+            discountPercent: p.discountPercent || 0,
           });
         });
 
@@ -673,29 +692,6 @@ export default function LMSHomepage({ theme, toggleTheme }) {
     }
   };
 
-  // /* ── Role-based redirect (full role map, incl. SUPER_ADMIN / TENANT_ADMIN) ── */
-  // const redirectByRole = (role) => {
-  //   switch ((role || "").toUpperCase()) {
-  //     case "SUPER_ADMIN":
-  //       navigate("/superadmin", { replace: true });
-  //       break;
-  //     case "ADMIN":
-  //       navigate("/admin", { replace: true });
-  //       break;
-  //     case "TENANT_ADMIN":
-  //       navigate("/admin", { replace: true });
-  //       break;
-  //     case "BUSINESS":
-  //       navigate("/admin", { replace: true });
-  //       break;
-  //     case "TRAINER":
-  //       navigate("/trainer", { replace: true });
-  //       break;
-  //     default:
-  //       navigate("/student", { replace: true });
-  //   }
-  // };
-
   /* ── Role-based redirect ──────────────────────────────────────────────────
      Kept in sync with Login.jsx, AuthModals.jsx, and IlmOraDemoPage.jsx's
      LoginModal — every login entry point in the app must land the user on
@@ -784,7 +780,11 @@ export default function LMSHomepage({ theme, toggleTheme }) {
       }
 
       // ── BRAND NEW USER ─────────────────────────────────────────
-      const googleInfo = { name: dec.name, email: dec.email, googleCredential: res.credential };
+      const googleInfo = {
+        name: dec.name,
+        email: dec.email,
+        googleCredential: res.credential,
+      };
       sessionStorage.setItem("ilmora_google_credential", res.credential);
       sessionStorage.setItem("ilmora_google_user", JSON.stringify(googleInfo));
 
@@ -800,7 +800,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
           isGoogleUser: true,
           isNewUser: true,
           profileCompleted: false,
-        })
+        }),
       );
 
       setShowLoginModal(false);
@@ -1173,6 +1173,15 @@ export default function LMSHomepage({ theme, toggleTheme }) {
     };
   };
 
+  // UI-only toggle for the "Read More" link on course-card descriptions.
+  const toggleDescription = (id) => {
+    setExpandedDescriptions((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
   const toggleWishlist = async (id) => {
     // Not logged in → don't call the API, just prompt login
     if (!user) {
@@ -1356,15 +1365,47 @@ export default function LMSHomepage({ theme, toggleTheme }) {
         setShowLoginModal={setShowLoginModal}
       />
 
-      {/* ── Hero ──
-      <section className="pt-32 pb-24 px-6 bg-[#F6EDE6] dark:bg-black relative overflow-hidden">
-        <div className="absolute -top-32 left-[10%] w-[600px] h-[600px] bg-[#F97316]/8 dark:bg-[#F97316]/5 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute -bottom-20 right-[5%] w-[500px] h-[500px] bg-[#1E293B]/5 rounded-full blur-[120px] pointer-events-none" />
+      {/* ── Hero ── */}
+      <section className="relative pt-32 pb-24 px-6 min-h-[85vh] flex items-center overflow-hidden bg-[#1E293B]">
+        {/* Full-bleed background video — cover is fine for video */}
+        <video
+          src={heroVideo}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{
+            opacity: currentSlide === -1 ? 1 : 0,
+            transition: "opacity 0.6s ease",
+            zIndex: 0,
+            pointerEvents: currentSlide === -1 ? "auto" : "none",
+          }}
+        />
+        {/* Full-bleed background images — cover fills the section, positioned per-image to keep faces in frame */}
+        {heroImages.map((img, index) => (
+          <img
+            key={index}
+            src={img}
+            alt={`Hero Student ${index + 1}`}
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{
+              objectPosition: heroImagePositions[index] || "center top",
+              opacity: currentSlide === index ? 1 : 0,
+              transition: "opacity 0.6s ease",
+              zIndex: 0,
+              pointerEvents: currentSlide === index ? "auto" : "none",
+            }}
+          />
+        ))}
 
-        <div className="max-w-7xl mx-auto relative z-10 grid lg:grid-cols-2 gap-16 items-center">
-          <div className="text-center lg:text-left">
+        {/* Dark gradient overlay so text stays readable over any image/video */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/20 z-[1]" />
+
+        <div className="max-w-7xl mx-auto relative z-10 w-full">
+          <div className="max-w-2xl text-center lg:text-left">
             <div className="mb-8 inline-flex">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#FFF7ED] border border-[#FED7AA] text-[#F97316] text-sm font-semibold mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-[#F97316] text-sm font-semibold mb-6">
                 <Sparkles className="w-4 h-4" />
                 Learn Smarter. Grow Faster. Lead the Future.
               </div>
@@ -1372,7 +1413,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
             <h1 className="mb-6 leading-[1.1]">
               <SplitText
                 text="Empower Your"
-                className="block text-4xl md:text-5xl lg:text-7xl font-bold text-[#1E293B] dark:text-white"
+                className="block text-4xl md:text-5xl lg:text-7xl font-bold text-white"
                 splitType="chars"
                 delay={60}
                 duration={0.6}
@@ -1385,201 +1426,51 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                 duration={0.6}
               />
             </h1>
-            <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-12 max-w-2xl leading-relaxed">
-  Master in-demand skills through AI-powered learning, live
-  sessions, certifications, and expert-led programs designed for
-  students, professionals, trainers, and organizations.
-</p>
-<div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center lg:items-start">
-  <button
-    onClick={() => setShowLoginModal(true)}
-    className="flex items-center gap-2 bg-[#F97316] hover:bg-[#ea580c] text-white font-bold px-8 py-3.5 rounded-xl text-base shadow-md hover:shadow-lg transition-all hover:scale-105"
-  >
-    Get Started <ArrowRight className="w-4 h-4" />
-  </button>
-</div>
-          </div>
-
-          <div className="flex flex-col items-center gap-4">
-            <div
-              className="relative w-full max-w-lg overflow-hidden rounded-2xl shadow-2xl"
-              style={{ aspectRatio: "4/3" }}
-            >
-              <video
-                src={heroVideo}
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="absolute inset-0 w-full h-full object-cover rounded-2xl"
-                style={{
-                  opacity: currentSlide === -1 ? 1 : 0,
-                  transform: currentSlide === -1 ? "scale(1)" : "scale(0.96)",
-                  transition: "opacity 0.6s ease, transform 0.6s ease",
-                  zIndex: currentSlide === -1 ? 2 : 1,
-                  pointerEvents: currentSlide === -1 ? "auto" : "none",
-                }}
-              />
-              {heroImages.map((img, index) => (
-                <img
-                  key={index}
-                  src={img}
-                  alt={`Hero Student ${index + 1}`}
-                  className="absolute inset-0 w-full h-full object-contain drop-shadow-2xl"
-                  style={{
-                    opacity: currentSlide === index ? 1 : 0,
-                    transform:
-                      currentSlide === index ? "scale(1)" : "scale(0.96)",
-                    transition: "opacity 0.6s ease, transform 0.6s ease",
-                    zIndex: currentSlide === index ? 2 : 1,
-                    pointerEvents: currentSlide === index ? "auto" : "none",
-                  }}
-                />
-              ))}
-            </div>
-
-            <div className="flex items-center gap-2.5">
-              <button
-                onClick={() => goToSlide(-1)}
-                aria-label="Show video"
-                style={{
-                  width: currentSlide === -1 ? "28px" : "10px",
-                  height: "10px",
-                  borderRadius: "9999px",
-                  background: currentSlide === -1 ? "#22c55e" : "#CBD5E1",
-                  border: "none",
-                  cursor: "pointer",
-                  padding: 0,
-                  transition: "width 0.35s ease, background 0.35s ease",
-                }}
-              />
-              {heroImages.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => goToSlide(index)}
-                  aria-label={`Go to slide ${index + 1}`}
-                  style={{
-                    width: currentSlide === index ? "28px" : "10px",
-                    height: "10px",
-                    borderRadius: "9999px",
-                    background: currentSlide === index ? "#F97316" : "#CBD5E1",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: 0,
-                    transition: "width 0.35s ease, background 0.35s ease",
-                  }}
-                />
-              ))}
-            </div>
+            <p className="text-lg md:text-xl text-gray-200 mb-12 max-w-2xl leading-relaxed">
+              Master in-demand skills through AI-powered learning, live
+              sessions, certifications, and expert-led programs designed for
+              students, professionals, trainers, and organizations.
+            </p>
           </div>
         </div>
-      </section> */}
-      
 
-      {/* ── Hero ── */}
-<section className="relative pt-32 pb-24 px-6 min-h-[85vh] flex items-center overflow-hidden bg-[#1E293B]">
-  {/* Full-bleed background video — cover is fine for video */}
-  <video
-    src={heroVideo}
-    autoPlay
-    loop
-    muted
-    playsInline
-    className="absolute inset-0 w-full h-full object-cover"
-    style={{
-      opacity: currentSlide === -1 ? 1 : 0,
-      transition: "opacity 0.6s ease",
-      zIndex: 0,
-      pointerEvents: currentSlide === -1 ? "auto" : "none",
-    }}
-  />
-  {/* Full-bleed background images — cover fills the section, positioned per-image to keep faces in frame */}
-{heroImages.map((img, index) => (
-  <img
-    key={index}
-    src={img}
-    alt={`Hero Student ${index + 1}`}
-    className="absolute inset-0 w-full h-full object-cover"
-    style={{
-      objectPosition: heroImagePositions[index] || "center top",
-      opacity: currentSlide === index ? 1 : 0,
-      transition: "opacity 0.6s ease",
-      zIndex: 0,
-      pointerEvents: currentSlide === index ? "auto" : "none",
-    }}
-  />
-))}
-
-  {/* Dark gradient overlay so text stays readable over any image/video */}
-  <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/20 z-[1]" />
-
-  <div className="max-w-7xl mx-auto relative z-10 w-full">
-    <div className="max-w-2xl text-center lg:text-left">
-      <div className="mb-8 inline-flex">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-[#F97316] text-sm font-semibold mb-6">
-          <Sparkles className="w-4 h-4" />
-          Learn Smarter. Grow Faster. Lead the Future.
+        {/* Slide indicator dots — bottom center, over the background */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2.5">
+          <button
+            onClick={() => goToSlide(-1)}
+            aria-label="Show video"
+            style={{
+              width: currentSlide === -1 ? "28px" : "10px",
+              height: "10px",
+              borderRadius: "9999px",
+              background:
+                currentSlide === -1 ? "#22c55e" : "rgba(255,255,255,0.4)",
+              border: "none",
+              cursor: "pointer",
+              padding: 0,
+              transition: "width 0.35s ease, background 0.35s ease",
+            }}
+          />
+          {heroImages.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => goToSlide(index)}
+              aria-label={`Go to slide ${index + 1}`}
+              style={{
+                width: currentSlide === index ? "28px" : "10px",
+                height: "10px",
+                borderRadius: "9999px",
+                background:
+                  currentSlide === index ? "#F97316" : "rgba(255,255,255,0.4)",
+                border: "none",
+                cursor: "pointer",
+                padding: 0,
+                transition: "width 0.35s ease, background 0.35s ease",
+              }}
+            />
+          ))}
         </div>
-      </div>
-      <h1 className="mb-6 leading-[1.1]">
-        <SplitText
-          text="Empower Your"
-          className="block text-4xl md:text-5xl lg:text-7xl font-bold text-white"
-          splitType="chars"
-          delay={60}
-          duration={0.6}
-        />
-        <SplitText
-          text="Learning Journey"
-          className="block text-4xl md:text-5xl lg:text-7xl font-bold text-[#F97316]"
-          splitType="chars"
-          delay={60}
-          duration={0.6}
-        />
-      </h1>
-      <p className="text-lg md:text-xl text-gray-200 mb-12 max-w-2xl leading-relaxed">
-        Master in-demand skills through AI-powered learning, live
-        sessions, certifications, and expert-led programs designed for
-        students, professionals, trainers, and organizations.
-      </p>
-    </div>
-  </div>
-
-  {/* Slide indicator dots — bottom center, over the background */}
-  <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2.5">
-    <button
-      onClick={() => goToSlide(-1)}
-      aria-label="Show video"
-      style={{
-        width: currentSlide === -1 ? "28px" : "10px",
-        height: "10px",
-        borderRadius: "9999px",
-        background: currentSlide === -1 ? "#22c55e" : "rgba(255,255,255,0.4)",
-        border: "none",
-        cursor: "pointer",
-        padding: 0,
-        transition: "width 0.35s ease, background 0.35s ease",
-      }}
-    />
-    {heroImages.map((_, index) => (
-      <button
-        key={index}
-        onClick={() => goToSlide(index)}
-        aria-label={`Go to slide ${index + 1}`}
-        style={{
-          width: currentSlide === index ? "28px" : "10px",
-          height: "10px",
-          borderRadius: "9999px",
-          background: currentSlide === index ? "#F97316" : "rgba(255,255,255,0.4)",
-          border: "none",
-          cursor: "pointer",
-          padding: 0,
-          transition: "width 0.35s ease, background 0.35s ease",
-        }}
-      />
-    ))}
-  </div>
-</section>
+      </section>
       {/* ── Courses ── */}
       <section
         id="courses"
@@ -1606,32 +1497,47 @@ export default function LMSHomepage({ theme, toggleTheme }) {
             onValueChange={setActiveTab}
             className="w-full"
           >
-           
-            {Object.keys(featuredPrograms).length > 0 && (
-  <div className="mb-6 sm:mb-8 mx-auto w-fit max-w-full sm:max-w-3xl px-1 sm:px-0">
-    <div className="h-[42px] flex items-center px-1 sm:px-1.5 bg-white dark:bg-gray-900 rounded-full border border-gray-200 dark:border-gray-800 shadow-md shadow-slate-200/50 dark:shadow-none overflow-hidden">
-      <CategoryTabScroller activeKey={activeTab}>
-        <TabsList className="flex w-max items-center justify-center gap-1.5 bg-transparent mx-auto h-full">
-          {Object.keys(featuredPrograms).map((tab) => (
-            <TabsTrigger
-              key={tab}
-              value={tab}
-              className="rounded-full capitalize font-semibold text-xs sm:text-sm whitespace-nowrap px-3.5 sm:px-5 h-[34px] flex-shrink-0 flex items-center text-[#1E293B] dark:text-gray-300 transition-all duration-300 ease-out data-[state=active]:bg-[#F97316] data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-orange-500/30"
-            >
-              {tab}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </CategoryTabScroller>
-    </div>
-  </div>
-)}
+            {/* ── Category Tabs: compact carousel, scales to 10/20/50+ categories
+                 without ever wrapping to multiple rows. Arrows + drag + wheel
+                 + native swipe, active tab always auto-scrolled into view. ── */}
+            <div className="mb-6 sm:mb-8 mx-auto w-fit max-w-full sm:max-w-3xl px-1 sm:px-0">
+              <div className="h-[42px] flex items-center px-1 sm:px-1.5 bg-white dark:bg-gray-900 rounded-full border border-gray-200 dark:border-gray-800 shadow-md shadow-slate-200/50 dark:shadow-none overflow-hidden">
+                <CategoryTabScroller activeKey={activeTab}>
+                  <TabsList className="flex w-max items-center justify-center gap-1.5 bg-transparent mx-auto h-full">
+                    {Object.keys(
+                      programsLoading
+                        ? courses
+                        : featuredPrograms &&
+                            Object.values(featuredPrograms).some(
+                              (a) => a.length > 0,
+                            )
+                          ? featuredPrograms
+                          : courses,
+                    ).map((tab) => (
+                      <TabsTrigger
+                        key={tab}
+                        value={tab}
+                        className="rounded-full capitalize font-semibold text-xs sm:text-sm whitespace-nowrap px-3.5 sm:px-5 h-[34px] flex-shrink-0 flex items-center text-[#1E293B] dark:text-gray-300 transition-all duration-300 ease-out data-[state=active]:bg-[#F97316] data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-orange-500/30"
+                      >
+                        {tab}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </CategoryTabScroller>
+              </div>
+            </div>
 
             {/* Real featured programs from the backend (with hardcoded
                `courses` as the fallback while loading or if the API
                returns nothing). */}
-            {Object.entries(featuredPrograms).map(
-  ([category, categoryCourses]) => (
+            {Object.entries(
+              programsLoading
+                ? courses
+                : featuredPrograms &&
+                    Object.values(featuredPrograms).some((a) => a.length > 0)
+                  ? featuredPrograms
+                  : courses,
+            ).map(([category, categoryCourses]) => (
               <TabsContent key={category} value={category}>
                 <HorizontalCarousel
                   items={categoryCourses}
@@ -1640,22 +1546,51 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                   cardMinHeight={300}
                   renderItem={(course, idx) => {
                     const pricing = getPricing(course.price);
-                    const isBestseller = course.rating >= 4.8;
+                    // Real flags from superadmin now take priority — falls
+                    // back to the old rating guess only when a program has
+                    // none of the badge toggles set, so nothing regresses.
+                    const badgeLabel = course.isBestseller
+                      ? "Bestseller"
+                      : course.isTrending
+                        ? "Trending"
+                        : course.isFeatured
+                          ? "Featured"
+                          : course.isPopular
+                            ? "Popular"
+                            : course.isRecommended
+                              ? "Recommended"
+                              : course.rating >= 4.8
+                                ? "Bestseller"
+                                : "Featured";
                     const lessons =
                       course.totalLessons || course.modules?.length || 0;
                     const isWishlisted = wishlist.has(course.id);
+                    const isDescExpanded = expandedDescriptions.has(
+                      course.id,
+                    );
+                    // Presentational-only: pick the badge icon that matches
+                    // the same `badgeLabel` computed above — no new business
+                    // logic, just an icon lookup for the existing label.
+                    const BadgeIcon =
+                      {
+                        Bestseller: Flame,
+                        Featured: Star,
+                        Trending: TrendingUp,
+                        Popular: Zap,
+                        Recommended: Award,
+                      }[badgeLabel] || Sparkles;
 
                     return (
-                   <div
-  onClick={() =>
-    navigate(`/course-details/${course.id}`, {
-      state: { course },
-    })
-  }
-  className="group relative flex flex-col min-w-0 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-[#F97316]/50 hover:-translate-y-1 transition-all duration-300 ease-out cursor-pointer w-full h-full"
->
+                      <div
+                        onClick={() =>
+                          navigate(`/course-details/${course.id}`, {
+                            state: { course },
+                          })
+                        }
+                        className="group relative flex flex-col min-w-0 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-md hover:shadow-xl hover:shadow-slate-300/40 dark:hover:shadow-black/40 hover:-translate-y-1 transition-all duration-300 ease-out overflow-hidden cursor-pointer w-full h-full"
+                      >
                         {/* ── Thumbnail / Banner ── */}
-                        <div className="relative h-16 sm:h-20 overflow-hidden rounded-t-2xl bg-gradient-to-br from-[#1E293B] via-[#334155] to-[#F97316] flex-shrink-0">
+                        <div className="relative h-40 sm:h-44 overflow-hidden bg-gradient-to-br from-[#1E293B] via-[#334155] to-[#F97316] flex-shrink-0">
                           {course.thumbnailUrl || course.bannerUrl ? (
                             <img
                               src={course.thumbnailUrl || course.bannerUrl}
@@ -1667,7 +1602,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                               <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(circle_at_20%_20%,white,transparent_35%),radial-gradient(circle_at_80%_60%,white,transparent_30%)]" />
                               <div className="absolute inset-0 flex items-center justify-center transition-transform duration-500 ease-out group-hover:scale-110">
                                 <GraduationCap
-                                  className="w-8 h-8 sm:w-10 sm:h-10 text-white/25"
+                                  className="w-16 h-16 sm:w-20 sm:h-20 text-white/25"
                                   strokeWidth={1.25}
                                 />
                               </div>
@@ -1675,10 +1610,10 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                           )}
 
                           {/* Top badges */}
-                          <div className="absolute top-2 left-2 right-2 flex items-start justify-between gap-2">
-                            <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-wide bg-white/95 text-[#F97316] px-2 py-0.5 rounded-full shadow-sm">
-                              <Sparkles className="w-2.5 h-2.5" />
-                              {isBestseller ? "Bestseller" : "Featured"}
+                          <div className="absolute top-3 left-3 right-3 flex items-start justify-between gap-2">
+                            <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-bold uppercase tracking-wide bg-white/95 text-[#F97316] px-2.5 py-1 rounded-full shadow-sm">
+                              <BadgeIcon className="w-3 h-3 fill-current" />
+                              {badgeLabel}
                             </span>
 
                             <button
@@ -1692,10 +1627,10 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                                 e.stopPropagation();
                                 toggleWishlist(course.id);
                               }}
-                              className="flex items-center justify-center w-7 h-7 rounded-full bg-white/95 shadow-sm hover:scale-110 active:scale-95 transition-transform duration-200"
+                              className="flex items-center justify-center w-8 h-8 rounded-full bg-white/95 shadow-sm hover:scale-110 active:scale-95 transition-transform duration-200"
                             >
                               <Heart
-                                className={`w-3.5 h-3.5 transition-colors ${
+                                className={`w-4 h-4 transition-colors ${
                                   isWishlisted
                                     ? "fill-[#F97316] text-[#F97316]"
                                     : "text-[#1E293B]"
@@ -1705,9 +1640,9 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                           </div>
 
                           {/* Difficulty badge */}
-                          <div className="absolute bottom-2 left-2 right-2 max-w-[70%]">
+                          <div className="absolute bottom-3 left-3 right-3 max-w-[70%]">
                             <span
-                              className={`inline-block max-w-full truncate align-bottom text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm ${getLevelColor(course.level)} bg-white/95 dark:bg-white/95`}
+                              className={`inline-block max-w-full truncate align-bottom text-[10px] sm:text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm ${getLevelColor(course.level)} bg-white/95 dark:bg-white/95`}
                             >
                               {course.level}
                             </span>
@@ -1715,46 +1650,37 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                         </div>
 
                         {/* ── Body ── */}
-                        <div className="flex flex-col flex-1 min-w-0 p-2.5 sm:p-3 pt-2.5">
+                        <div className="flex flex-col flex-1 min-w-0 p-3 sm:p-4 pt-3">
                           <span className="text-[10px] font-bold uppercase tracking-widest text-[#F97316] mb-1 truncate">
                             {category}
                           </span>
 
-                          <h3 className="text-sm sm:text-base font-bold text-[#1E293B] dark:text-white mb-1 leading-snug line-clamp-2 min-h-[2.5em] group-hover:text-[#F97316] transition-colors">
+                          <h3 className="text-sm sm:text-base font-bold text-[#1E293B] dark:text-white mb-1.5 leading-snug line-clamp-2 min-h-[2.5em] group-hover:text-[#F97316] transition-colors">
                             {course.title}
                           </h3>
 
-                          {/* Instructor */}
-                          <div className="flex items-center gap-1.5 mb-1.5 min-w-0">
-                            {course.instructorPhotoUrl ? (
-                              <img
-                                src={course.instructorPhotoUrl}
-                                alt={course.instructorFull || course.instructor}
-                                className="w-6 h-6 rounded-full object-cover shrink-0"
-                              />
-                            ) : (
-                              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-br from-[#F97316] to-[#ea580c] text-white text-[9px] font-bold shrink-0">
-                                {getInitials(
-                                  course.instructorFull || course.instructor,
-                                )}
-                              </div>
-                            )}
-                            <div className="min-w-0 flex-1">
-                              <p className="text-xs font-semibold text-[#1E293B] dark:text-white truncate">
-                                {course.instructorFull || course.instructor}
-                              </p>
-                              <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
-                                {course.instructorTitle || course.instructor}
-                              </p>
-                            </div>
-                          </div>
-
-                          <p className="text-xs text-gray-600 dark:text-gray-300 mb-1 leading-relaxed line-clamp-2 min-h-[2.2em]">
+                          <p
+                            className={`text-xs text-gray-600 dark:text-gray-300 leading-relaxed ${
+                              isDescExpanded ? "" : "line-clamp-2 min-h-[2.2em]"
+                            }`}
+                          >
                             {course.description}
                           </p>
 
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleDescription(course.id);
+                            }}
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-[#F97316] hover:underline bg-transparent border-none p-0 mt-0.5 mb-2 self-start cursor-pointer"
+                          >
+                            {isDescExpanded ? "Show Less" : "Read More"}
+                            <ArrowRight className="w-3 h-3" />
+                          </button>
+
                           {/* Skill chips */}
-                          <div className="flex flex-wrap gap-1 mb-1.5 overflow-hidden max-h-[24px]">
+                          <div className="flex flex-wrap gap-1 mb-2 overflow-hidden max-h-[24px]">
                             <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-[#F97316]/10 text-[#F97316] border border-[#F97316]/15 whitespace-nowrap flex-shrink-0 truncate max-w-[120px]">
                               {category}
                             </span>
@@ -1770,50 +1696,43 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                           </div>
 
                           {/* Stats */}
-                          <div className="grid grid-cols-4 gap-1 text-center mb-1.5 pb-1.5 border-b border-gray-100 dark:border-gray-800">
+                          <div className="grid grid-cols-4 gap-1 text-center mb-2 pb-2 border-b border-gray-100 dark:border-gray-800">
                             <div className="flex flex-col items-center gap-0.5 min-w-0">
-                              <Star className="w-3 h-3 text-[#F97316] flex-shrink-0" />
-                              <span className="text-[10px] font-semibold text-gray-600 dark:text-gray-300 truncate w-full">
-                                {course.rating ?? "—"}
-                              </span>
-                            </div>
-                            <div className="flex flex-col items-center gap-0.5 min-w-0">
-                              <Users className="w-3 h-3 text-[#F97316] flex-shrink-0" />
-                              <span className="text-[10px] font-semibold text-gray-600 dark:text-gray-300 truncate w-full">
-                                {course.students ?? "—"}
-                              </span>
-                            </div>
-                            <div className="flex flex-col items-center gap-0.5 min-w-0">
-                              <Clock className="w-3 h-3 text-[#F97316] flex-shrink-0" />
-                              <span className="text-[10px] font-semibold text-gray-600 dark:text-gray-300 truncate w-full">
-                                {course.duration ?? "—"}
-                              </span>
-                            </div>
-                            <div className="flex flex-col items-center gap-0.5 min-w-0">
-                              <PlayCircle className="w-3 h-3 text-[#F97316] flex-shrink-0" />
-                              <span className="text-[10px] font-semibold text-gray-600 dark:text-gray-300 truncate w-full">
+                              <PlayCircle className="w-3.5 h-3.5 text-[#F97316] flex-shrink-0" />
+                              <span className="text-[10px] sm:text-xs font-semibold text-gray-700 dark:text-gray-300 truncate w-full">
                                 {lessons ?? "—"}
                               </span>
-                            </div>
-                          </div>
-
-                          {/* Pricing */}
-                          <div className="flex items-end justify-between mb-1.5 gap-2">
-                            <div className="flex items-baseline gap-1.5 min-w-0 flex-shrink">
-                              <span className="text-base sm:text-lg font-bold text-[#1E293B] dark:text-white truncate">
-                                {pricing.current ?? "—"}
+                              <span className="text-[9px] text-gray-400 dark:text-gray-500 truncate w-full">
+                                Lessons
                               </span>
-                              {pricing.discount > 0 && (
-                                <span className="text-xs text-gray-400 line-through truncate">
-                                  {pricing.original}
-                                </span>
-                              )}
                             </div>
-                            {pricing.discount > 0 && (
-                              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 dark:text-emerald-400 px-1.5 py-0.5 rounded-full border border-emerald-100 dark:border-emerald-800 whitespace-nowrap flex-shrink-0">
-                                {pricing.discount}% OFF
+                            <div className="flex flex-col items-center gap-0.5 min-w-0">
+                              <Users className="w-3.5 h-3.5 text-[#F97316] flex-shrink-0" />
+                              <span className="text-[10px] sm:text-xs font-semibold text-gray-700 dark:text-gray-300 truncate w-full">
+                                {course.students ?? "—"}
                               </span>
-                            )}
+                              <span className="text-[9px] text-gray-400 dark:text-gray-500 truncate w-full">
+                                Learners
+                              </span>
+                            </div>
+                            <div className="flex flex-col items-center gap-0.5 min-w-0">
+                              <Clock className="w-3.5 h-3.5 text-[#F97316] flex-shrink-0" />
+                              <span className="text-[10px] sm:text-xs font-semibold text-gray-700 dark:text-gray-300 truncate w-full">
+                                {course.duration ?? "—"}
+                              </span>
+                              <span className="text-[9px] text-gray-400 dark:text-gray-500 truncate w-full">
+                                Duration
+                              </span>
+                            </div>
+                            <div className="flex flex-col items-center gap-0.5 min-w-0">
+                              <Star className="w-3.5 h-3.5 text-[#F97316] flex-shrink-0" />
+                              <span className="text-[10px] sm:text-xs font-semibold text-gray-700 dark:text-gray-300 truncate w-full">
+                                {course.rating ?? "—"}
+                              </span>
+                              <span className="text-[9px] text-gray-400 dark:text-gray-500 truncate w-full">
+                                Rating
+                              </span>
+                            </div>
                           </div>
 
                           {/* CTA */}
@@ -1825,7 +1744,7 @@ export default function LMSHomepage({ theme, toggleTheme }) {
                                 state: { course },
                               });
                             }}
-                            className="mt-auto w-full flex-shrink-0 bg-gradient-to-r from-[#F97316] to-[#ea580c] hover:brightness-105 text-white py-2 rounded-lg font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all duration-300 group-hover:scale-[1.02] shadow-sm shadow-orange-500/20"
+                            className="mt-auto w-full flex-shrink-0 bg-gradient-to-r from-[#F97316] to-[#ea580c] hover:brightness-105 text-white py-2.5 rounded-lg font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all duration-300 group-hover:scale-[1.02] shadow-sm shadow-orange-500/20"
                           >
                             View Details
                             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
@@ -1870,8 +1789,8 @@ export default function LMSHomepage({ theme, toggleTheme }) {
         <div className="max-w-[1200px] mx-auto">
           <div className="text-center max-w-[900px] lg:max-w-none mx-auto mb-10 sm:mb-10 lg:mb-10">
             <h2 className="text-[32px] sm:text-[40px] md:text-[44px] lg:text-[52px] xl:text-[56px] font-bold mb-3 sm:mb-4 text-[#111827] dark:text-white leading-[1.15] lg:whitespace-nowrap">
-              What Our{" "}
-              <span className="text-[#F97316]">Learners</span> Have To Say
+              What Our <span className="text-[#F97316]">Learners</span> Have To
+              Say
             </h2>
             <div className="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-300 text-sm sm:text-base font-medium">
               <Star className="w-4 h-4 sm:w-[18px] sm:h-[18px] fill-[#F97316] text-[#F97316]" />
@@ -2311,73 +2230,3 @@ export default function LMSHomepage({ theme, toggleTheme }) {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

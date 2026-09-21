@@ -64,7 +64,11 @@ import { Plus, CalendarClock } from "lucide-react";
 import PageHead from "../../components/PageHead";
 import { useWorkspaceModal } from "../../components/modals/ModalProvider";
 import { useToast } from "../../components/Toast";
-import { getMySchedules } from "../../../../services/scheduleService";
+import {
+  getMySchedules,
+  getSchedulesUsage,
+} from "../../../../services/scheduleService";
+import UsageBadge from "../../../../components/plan/UsageBadge";
 
 const TABS = ["Upcoming", "Today", "This Week", "This Month"];
 
@@ -163,6 +167,14 @@ export default function MySchedules() {
   const { openScheduleForm } = useWorkspaceModal();
   const showToast = useToast();
 
+  // ── Plan entitlement state (shared meeting/event/schedule counter) ──
+  const [schedulesUsage, setSchedulesUsage] = useState(null);
+  const loadSchedulesUsage = () => {
+    getSchedulesUsage()
+      .then((res) => setSchedulesUsage(res.data))
+      .catch((err) => console.error("Failed to load schedules usage:", err));
+  };
+
   const loadSchedules = () => {
     setLoading(true);
     setError(null);
@@ -173,6 +185,7 @@ export default function MySchedules() {
         setError("Could not load schedules. Please try again.");
       })
       .finally(() => setLoading(false));
+    loadSchedulesUsage();
   };
 
   useEffect(() => {
@@ -186,12 +199,36 @@ export default function MySchedules() {
         title="My Schedules"
         subtitle="View and manage your personal schedules."
         actions={
-          <button
-            className="btn-primary"
-            onClick={() => openScheduleForm(null, loadSchedules)}
-          >
-            <Plus size={15} /> Add Schedule
-          </button>
+          <>
+            {schedulesUsage && (
+              <UsageBadge
+                used={schedulesUsage.used}
+                limit={
+                  schedulesUsage.limit === "unlimited"
+                    ? null
+                    : schedulesUsage.limit
+                }
+                unlimited={schedulesUsage.limit === "unlimited"}
+                period="month"
+                label="Meetings / Events / Schedules"
+                c={{
+                  cardBorder: "#e2e8f0",
+                  cardBg: "#f8fafc",
+                  textSub: "#64748b",
+                  textPrimary: "#0f172a",
+                  divider: "#e2e8f0",
+                  accent: "#2563eb",
+                  errorColor: "#dc2626",
+                }}
+              />
+            )}
+            <button
+              className="btn-primary"
+              onClick={() => openScheduleForm(null, loadSchedules)}
+            >
+              <Plus size={15} /> Add Schedule
+            </button>
+          </>
         }
       />
 

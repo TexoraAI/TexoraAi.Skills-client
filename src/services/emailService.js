@@ -9,18 +9,6 @@ const getAuthHeader = () => {
   return { headers: { Authorization: `Bearer ${token}` } };
 };
 
-// ─── EMAILS ────────────────────────────────────────────────────
-// Maps to: com.lms.live_session.controller.EmailController
-// Base path: /api/emails
-
-/** POST /api/emails/draft — save without sending */
-// export const draftEmail = (data) =>
-//   axios.post(`${API_BASE}/emails/draft`, data, getAuthHeader());
-
-// /** POST /api/emails/send */
-// export const sendEmail = (data) =>
-//   axios.post(`${API_BASE}/emails/send`, data, getAuthHeader());
-
 /** POST /api/emails/draft — save without sending (multipart, supports file attachments) */
 export const draftEmail = (formData) =>
   axios.post(`${API_BASE}/emails/draft`, formData, {
@@ -63,3 +51,7 @@ export const deleteEmail = (id) =>
 /** GET /api/emails/stats — { unread, sent, drafts } */
 export const getEmailStats = () =>
   axios.get(`${API_BASE}/emails/stats`, getAuthHeader());
+
+/** GET /api/emails/usage — email send counter (drafts excluded) */
+export const getEmailUsage = () =>
+  axios.get(`${API_BASE}/emails/usage`, getAuthHeader());

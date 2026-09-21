@@ -33,8 +33,11 @@ import {
   deleteStudyPlan,
   toggleStudyPlanActive,
   getMyProblems,
+  getStudyPlanCreateUsage,
 } from "../services/assessmentService";
 import { getTrainerBatches } from "../services/batchService";
+import UpgradeModal from "../components/plan/UpgradeModal";
+import { parsePlanError } from "../services/planErrorHandler";
 
 // Same shared light/dark token set the Dashboard page reads from — reused
 // here so this page follows the app's theme toggle exactly the same way.
@@ -87,6 +90,16 @@ const PlanIcon = ({ iconKey, ...props }) => {
   return <Cmp {...props} />;
 };
 
+const getAuthTokenUserId = () => {
+  try {
+    const token = localStorage.getItem("lms_token");
+    if (!token) return null;
+    return JSON.parse(atob(token.split(".")[1]))?.userId ?? null;
+  } catch {
+    return null;
+  }
+};
+
 const emptyPlan = {
   title: "",
   description: "",
@@ -111,6 +124,10 @@ export default function TrainerStudyPlanPage() {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [usage, setUsage] = useState(null);
+  const [upgradeConfig, setUpgradeConfig] = useState(null);
+
+  // ── light/dark theme
 
   // ── light/dark theme — identical detection pattern to the Dashboard
   // page, so this page's theme flips in sync with the rest of the app
@@ -138,10 +155,17 @@ export default function TrainerStudyPlanPage() {
   const t = isDark ? T.dark : T.light;
   const S = getStyles(t, isDark);
 
+  const fetchUsage = () => {
+    getStudyPlanCreateUsage()
+      .then((res) => setUsage(res.data))
+      .catch(() => setUsage(null));
+  };
+
   useEffect(() => {
     fetchPlans();
     fetchProblems();
     fetchBatches();
+    fetchUsage();
   }, []);
 
   const flash = (msg, isErr = false) => {
@@ -258,13 +282,19 @@ export default function TrainerStudyPlanPage() {
       } else {
         await createStudyPlan(payload);
         flash("Study plan created!");
+        fetchUsage();
       }
       setFormData(emptyPlan);
       setEditingId(null);
       setTab("plans");
       fetchPlans();
     } catch (e) {
-      flash(e.response?.data?.message || "Save failed.", true);
+      const planError = parsePlanError(e);
+      if (planError) {
+        setUpgradeConfig({ featureLabel: planError.message });
+      } else {
+        flash(e.response?.data?.message || "Save failed.", true);
+      }
     } finally {
       setSaving(false);
     }
@@ -596,7 +626,11 @@ export default function TrainerStudyPlanPage() {
 
           {plans.length === 0 ? (
             <div style={S.empty}>
-              <BookOpen size={48} color="#cbd5e1" style={{ marginBottom: 12 }} />
+              <BookOpen
+                size={48}
+                color="#cbd5e1"
+                style={{ marginBottom: 12 }}
+              />
               <div>No study plans yet. Create your first one!</div>
             </div>
           ) : (
@@ -655,10 +689,7 @@ export default function TrainerStudyPlanPage() {
                     )}
                   </div>
 
-                  <div
-                    style={S.planCardFooter}
-                    className="sp-card-footer"
-                  >
+                  <div style={S.planCardFooter} className="sp-card-footer">
                     <button
                       style={S.actBtn}
                       className="sp-act-btn"
@@ -720,6 +751,28 @@ export default function TrainerStudyPlanPage() {
             {editingId ? "Edit Study Plan" : "Create Study Plan"}
           </div>
 
+          {!editingId && usage && (
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "7px 14px",
+                borderRadius: 20,
+                border: `1px solid ${t.border}`,
+                background: t.cardBg,
+                marginBottom: 16,
+                fontSize: 12,
+                fontWeight: 600,
+                color: t.textMuted,
+              }}
+            >
+              {usage.limit === "unlimited"
+                ? "Unlimited plan creation"
+                : `${usage.used}/${usage.limit} study plans created this month`}
+            </div>
+          )}
+
           <div style={S.form}>
             {/* Basic info */}
             <div style={S.formSection}>
@@ -752,7 +805,10 @@ export default function TrainerStudyPlanPage() {
                     >
                       <option value="">-- Select Batch (optional) --</option>
                       {batches.map((b) => (
-                        <option key={b.batchId || b.id} value={b.batchId || b.id}>
+                        <option
+                          key={b.batchId || b.id}
+                          value={b.batchId || b.id}
+                        >
                           {b.batchName || b.name || b.batchId || b.id}
                         </option>
                       ))}
@@ -871,7 +927,10 @@ export default function TrainerStudyPlanPage() {
               >
                 <div style={S.formSectionTitle}>Sections & Problems</div>
                 <button style={S.addSectionBtn} onClick={addSection}>
-                  <Plus size={14} style={{ marginRight: 4, verticalAlign: -2 }} />
+                  <Plus
+                    size={14}
+                    style={{ marginRight: 4, verticalAlign: -2 }}
+                  />
                   Add Section
                 </button>
               </div>
@@ -891,7 +950,10 @@ export default function TrainerStudyPlanPage() {
                       style={S.removeSectionBtn}
                       onClick={() => removeSection(si)}
                     >
-                      <X size={12} style={{ marginRight: 3, verticalAlign: -1 }} />
+                      <X
+                        size={12}
+                        style={{ marginRight: 3, verticalAlign: -1 }}
+                      />
                       Remove
                     </button>
                   </div>
@@ -1145,6 +1207,21 @@ export default function TrainerStudyPlanPage() {
           )}
         </div>
       )}
+      {upgradeConfig && (
+        <UpgradeModal
+          isOpen={!!upgradeConfig}
+          onClose={() => setUpgradeConfig(null)}
+          planType="individual"
+          userId={getAuthTokenUserId()}
+          currentPlan={usage?.tier || "free"}
+          availableTargetPlans={["pro", "premium"]}
+          featureLabel={upgradeConfig.featureLabel}
+          onSuccess={() => {
+            setUpgradeConfig(null);
+            fetchUsage();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -1184,7 +1261,14 @@ function getStyles(t, isDark) {
       flexShrink: 0,
       width: "100%",
     },
-    headerLeft: { display: "flex", alignItems: "center", gap: 10, flexShrink: 1, minWidth: 0, marginRight: 12 },
+    headerLeft: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      flexShrink: 1,
+      minWidth: 0,
+      marginRight: 12,
+    },
     logoIcon: { flexShrink: 0 },
     logoText: {
       fontSize: "clamp(13px, 1.4vw, 16px)",
@@ -1526,7 +1610,12 @@ function getStyles(t, isDark) {
       padding: "8px 12px",
       flexWrap: "wrap",
     },
-    itemNum: { color: t.textMuted, fontSize: 12, fontWeight: 700, minWidth: 20 },
+    itemNum: {
+      color: t.textMuted,
+      fontSize: 12,
+      fontWeight: 700,
+      minWidth: 20,
+    },
     itemTitle: { flex: 1, fontSize: 13, fontWeight: 600, color: t.text },
     diffBadge: {
       fontSize: 10,
@@ -1608,8 +1697,17 @@ function getStyles(t, isDark) {
       width: "100%",
     },
     heroIcon: { fontSize: "clamp(38px, 4vw, 48px)", flexShrink: 0 },
-    heroTitle: { fontSize: "clamp(20px, 2.4vw, 24px)", fontWeight: 800, marginBottom: 6 },
-    heroDesc: { fontSize: 13, opacity: 0.85, marginBottom: 12, lineHeight: 1.5 },
+    heroTitle: {
+      fontSize: "clamp(20px, 2.4vw, 24px)",
+      fontWeight: 800,
+      marginBottom: 6,
+    },
+    heroDesc: {
+      fontSize: 13,
+      opacity: 0.85,
+      marginBottom: 12,
+      lineHeight: 1.5,
+    },
     heroMeta: { display: "flex", gap: 8, flexWrap: "wrap" },
     heroBadge: {
       fontSize: 12,
@@ -1651,7 +1749,11 @@ function getStyles(t, isDark) {
       color: t.text,
       flex: 1,
     },
-    detailSectionDesc: { fontSize: 13, color: t.textMuted, padding: "10px 18px 0" },
+    detailSectionDesc: {
+      fontSize: 13,
+      color: t.textMuted,
+      padding: "10px 18px 0",
+    },
     detailItemList: { padding: "10px 18px 18px" },
     detailItem: {
       display: "flex",
@@ -1710,6 +1812,11 @@ function getStyles(t, isDark) {
       lineHeight: 1.6,
       marginBottom: 24,
     },
-    modalActions: { display: "flex", gap: 12, justifyContent: "flex-end", flexWrap: "wrap" },
+    modalActions: {
+      display: "flex",
+      gap: 12,
+      justifyContent: "flex-end",
+      flexWrap: "wrap",
+    },
   };
 }

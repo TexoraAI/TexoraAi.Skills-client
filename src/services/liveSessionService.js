@@ -57,6 +57,15 @@ export const checkCanStart = (sessionId) =>
     `${API_BASE}/live-sessions/${sessionId}/can-start`,
     getAuthHeader(),
   );
+
+// ─── PLAN USAGE ────────────────────────────────────────────────
+
+export const getClassUsage = () =>
+  axios.get(`${API_BASE}/live-sessions/usage/classes`, getAuthHeader());
+
+export const getAiCompanionUsage = () =>
+  axios.get(`${API_BASE}/live-sessions/usage/ai-companion`, getAuthHeader());
+
 // ADD to your existing liveSessionApi.js
 
 // Resolve meeting link — returns { type: "EXTERNAL"|"CUSTOM", url }
@@ -189,12 +198,43 @@ export const markRecordingFailed = (id) =>
 
 // GET /api/v1/live-sessions/{sessionId}/whiteboard/state
 // Called by late-joiners to load current board state
+// GET /api/v1/live-sessions/{sessionId}/whiteboard/state
+// Called by late-joiners to load current board state
 export const getWhiteboardState = (sessionId) =>
   axios.get(
     `${API_BASE}/v1/live-sessions/${sessionId}/whiteboard/state`,
     getAuthHeader(),
   );
 
+// GET /api/v1/live-sessions/{sessionId}/whiteboard/access
+// Returns { tier, available } — resolved the SAME way the save endpoint
+// checks access, scoped to this specific session (not the caller's JWT org).
+export const getWhiteboardAccess = (sessionId) =>
+  axios.get(
+    `${API_BASE}/v1/live-sessions/${sessionId}/whiteboard/access`,
+    getAuthHeader(),
+  );
+
+// GET /api/v1/live-sessions/whiteboard/access-standalone
+// Same shape as getWhiteboardAccess, but for a session-less whiteboard
+// (dashboard "New Whiteboard") — resolves tier from the caller's JWT.
+export const getStandaloneWhiteboardAccess = () =>
+  axios.get(
+    `${API_BASE}/v1/live-sessions/whiteboard/access-standalone`,
+    getAuthHeader(),
+  );
+
+// POST /api/v1/live-sessions/whiteboard/check-standalone-save
+// Real save-time gate for a session-less whiteboard. Throws (403
+// WHITEBOARD_NOT_AVAILABLE) exactly like the session save endpoint —
+// call this BEFORE writing to localStorage so free tier can't bypass
+// the gate just by not having a live session behind the board.
+export const checkStandaloneWhiteboardSave = () =>
+  axios.post(
+    `${API_BASE}/v1/live-sessions/whiteboard/check-standalone-save`,
+    {},
+    getAuthHeader(),
+  );
 // POST /api/v1/live-sessions/{sessionId}/whiteboard/save
 // Trainer saves current board snapshot
 export const saveWhiteboardSnapshot = (sessionId, whiteboardEvent) =>
@@ -713,3 +753,10 @@ export const createPermanentMeeting = (data) =>
 /** GET /api/meetings/permanent/my — all permanent meetings for the logged-in user */
 export const getMyPermanentMeetings = () =>
   axios.get(`${API_BASE}/meetings/permanent/my`, getAuthHeader());
+
+/** GET /api/meetings/usage — shared meeting/event/schedule creation counter */
+export const getMeetingsUsage = () =>
+  axios.get(`${API_BASE}/meetings/usage`, getAuthHeader());
+
+// GET /api/v1/live-sessions/{sessionId}/whiteboard/state
+// Called by late-joiners to load current board state

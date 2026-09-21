@@ -46,3 +46,7 @@ export const getEventsCalendar = (month) =>
 /** PUT /api/events/{id}/restore */
 export const restoreEvent = (id) =>
   axios.put(`${API_BASE}/events/${id}/restore`, {}, getAuthHeader());
+
+/** GET /api/meetings/usage — events share the same meeting/event/schedule counter */
+export const getEventsUsage = () =>
+  axios.get(`${API_BASE}/meetings/usage`, getAuthHeader());

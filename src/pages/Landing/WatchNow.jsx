@@ -8,7 +8,7 @@ import {
 } from "react";
 import { Play, ChevronLeft, ChevronRight } from "lucide-react";
 import videoService from "../../services/videoService";
- 
+
 /* ============================================================
    UNCHANGED LOGIC — video URL parsing, source resolution, and
    the smart player. Do not touch.
@@ -34,13 +34,13 @@ function parseVideoUrl(rawUrl) {
     return { type: "video", url };
   return { type: "iframe", url };
 }
- 
-function getVideoSourceUrl(item) {
+
+async function getVideoSourceUrl(item) {
   if (item.videoFileName)
-    return videoService.getWatchNowStreamUrl(item.videoFileName);
+    return await videoService.getWatchNowStreamUrl(item.videoFileName);
   return item.externalVideoUrl || "";
 }
- 
+
 /*
   WatchNowSmartPlayer lifecycle:
   - This component is only ever mounted while its card is the single
@@ -58,9 +58,31 @@ function getVideoSourceUrl(item) {
     leave a finished player mounted.
 */
 function WatchNowSmartPlayer({ item, onEnded }) {
-  const rawUrl = getVideoSourceUrl(item);
+  const [rawUrl, setRawUrl] = useState(null);
   const videoRef = useRef(null);
- 
+
+  // Resolve the playback URL asynchronously — getVideoSourceUrl now awaits
+  // a real backend call (JSON response with a presigned S3 URL) instead of
+  // synchronously building a redirect-based URL.
+  useEffect(() => {
+    let active = true;
+    setRawUrl(null);
+    getVideoSourceUrl(item)
+      .then((url) => {
+        if (active) setRawUrl(url);
+      })
+      .catch((err) =>
+        console.error(
+          "Video URL fetch failed:",
+          err.response?.status,
+          err.response?.data || err.message,
+        ),
+      );
+    return () => {
+      active = false;
+    };
+  }, [item]);
+
   // Explicit destroy-on-unmount for uploaded/direct <video> sources.
   useEffect(() => {
     return () => {
@@ -72,9 +94,9 @@ function WatchNowSmartPlayer({ item, onEnded }) {
       }
     };
   }, []);
- 
+
   if (!rawUrl) return null;
- 
+
   if (item.videoFileName) {
     return (
       <video
@@ -88,10 +110,10 @@ function WatchNowSmartPlayer({ item, onEnded }) {
       />
     );
   }
- 
+
   const parsed = parseVideoUrl(rawUrl);
   if (!parsed) return null;
- 
+
   if (parsed.type === "video") {
     return (
       <video
@@ -105,7 +127,7 @@ function WatchNowSmartPlayer({ item, onEnded }) {
       />
     );
   }
- 
+
   const sep = parsed.url.includes("?") ? "&" : "?";
   return (
     <iframe
@@ -117,12 +139,12 @@ function WatchNowSmartPlayer({ item, onEnded }) {
     />
   );
 }
- 
+
 /* ============================================================
    CAROUSEL CONFIG
    ============================================================ */
 const GAP = 20; // px gap between cards, also used in width math
- 
+
 /*
   Breakpoint → visible-card-count map.
   NOTE: CSS width alone can't perfectly separate "iPad Pro
@@ -139,7 +161,7 @@ function getVisibleCount(width) {
   if (width >= 641) return 2; // iPad Air / iPad Mini / Android tablet
   return 1; // Phones
 }
- 
+
 function useVisibleCount() {
   const [width, setWidth] = useState(
     typeof window !== "undefined" ? window.innerWidth : 1280,
@@ -151,12 +173,64 @@ function useVisibleCount() {
   }, []);
   return { visibleCount: getVisibleCount(width), isMobile: width < 641 };
 }
- 
+
 /* ============================================================
    Single carousel card — compact version of the story slide.
    Play button / video player logic reused as-is.
    ============================================================ */
 function StoryCard({ item, isPlaying, onPlay, onEnded }) {
+  const [thumbUrl, setThumbUrl] = useState(null);
+  // UI-only: toggles whether this card's quote is fully expanded.
+  // Does not touch data-fetching or carousel logic.
+  const [isQuoteExpanded, setIsQuoteExpanded] = useState(false);
+  // Whether the quote is actually being clipped by line-clamp-3 right now.
+  // Measured from the real DOM node instead of guessing off character
+  // count, so a single long unbroken word (no spaces) that overflows
+  // still correctly shows the "Read More" button.
+  const [isQuoteClamped, setIsQuoteClamped] = useState(false);
+  const quoteRef = useRef(null);
+
+  // Resolve the thumbnail URL asynchronously — getWatchNowStreamUrl now
+  // awaits a backend call for uploaded thumbnails (JSON response with a
+  // presigned S3 URL), or resolves instantly for already-absolute URLs
+  // like YouTube auto-thumbnails.
+  useEffect(() => {
+    let active = true;
+    videoService
+      .getWatchNowStreamUrl(item.thumbnail)
+      .then((url) => {
+        if (active) setThumbUrl(url);
+      })
+      .catch((err) =>
+        console.error(
+          "Thumbnail URL fetch failed:",
+          err.response?.status,
+          err.response?.data || err.message,
+        ),
+      );
+    return () => {
+      active = false;
+    };
+  }, [item.thumbnail]);
+
+  // Detect real overflow: when collapsed, compare the rendered scrollHeight
+  // (the full text's natural height) against clientHeight (the clamped
+  // 3-line box). If content is taller than the box, it's actually being
+  // cut off, regardless of character count. Re-checks on resize since
+  // wrapping depends on the card's width.
+  useLayoutEffect(() => {
+    const checkClamp = () => {
+      const el = quoteRef.current;
+      if (!el) return;
+      if (!isQuoteExpanded) {
+        setIsQuoteClamped(el.scrollHeight > el.clientHeight + 1);
+      }
+    };
+    checkClamp();
+    window.addEventListener("resize", checkClamp);
+    return () => window.removeEventListener("resize", checkClamp);
+  }, [item.quote, isQuoteExpanded]);
+
   return (
     <div className="flex flex-col h-full rounded-2xl overflow-hidden bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl transition-shadow duration-300">
       <div className="relative w-full aspect-video bg-black">
@@ -169,12 +243,14 @@ function StoryCard({ item, isPlaying, onPlay, onEnded }) {
             className="group relative w-full h-full block"
             aria-label={`Play video from ${item.personName}`}
           >
-            <img
-              src={videoService.getWatchNowStreamUrl(item.thumbnail)}
-              alt={item.personName}
-              className="w-full h-full object-cover"
-              draggable={false}
-            />
+            {thumbUrl && (
+              <img
+                src={thumbUrl}
+                alt={item.personName}
+                className="w-full h-full object-cover"
+                draggable={false}
+              />
+            )}
             <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors flex items-center justify-center">
               <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/95 shadow-lg group-hover:scale-105 transition-transform">
                 <Play className="w-4 h-4 text-[#7c3aed]" fill="#7c3aed" />
@@ -186,11 +262,28 @@ function StoryCard({ item, isPlaying, onPlay, onEnded }) {
           </button>
         )}
       </div>
- 
+
       <div className="flex flex-col flex-1 p-4 sm:p-5">
-        <p className="text-sm sm:text-base font-semibold text-[#1E293B] dark:text-white leading-snug line-clamp-3">
+        <p
+          ref={quoteRef}
+          className={`text-sm sm:text-base font-semibold text-[#1E293B] dark:text-white leading-snug ${
+            isQuoteExpanded ? "" : "line-clamp-3"
+          }`}
+          style={{ wordBreak: "break-all", overflowWrap: "anywhere" }}
+        >
           "{item.quote}"
         </p>
+
+        {(isQuoteClamped || isQuoteExpanded) && (
+          <button
+            type="button"
+            onClick={() => setIsQuoteExpanded((prev) => !prev)}
+            className="mt-1.5 text-xs sm:text-sm font-bold text-[#F97316] hover:underline bg-transparent border-none p-0 cursor-pointer text-left w-fit"
+          >
+            {isQuoteExpanded ? "Read Less" : "Read More"}
+          </button>
+        )}
+
         <div className="mt-auto pt-3 border-t border-gray-200 dark:border-gray-800 mt-3">
           <p className="font-bold text-[#1E293B] dark:text-white text-sm">
             {item.personName}
@@ -203,7 +296,7 @@ function StoryCard({ item, isPlaying, onPlay, onEnded }) {
     </div>
   );
 }
- 
+
 /* ============================================================
    Netflix-style circular nav button
    ============================================================ */
@@ -220,7 +313,7 @@ function NavButton({ direction, onClick, className = "" }) {
     </button>
   );
 }
- 
+
 /* ============================================================
    Carousel track — infinite loop, autoplay, drag/swipe, keyboard
    ============================================================ */
@@ -231,28 +324,28 @@ function WatchNowCarousel({ stories }) {
   // at once. Setting this to null unmounts whichever player is
   // currently mounted, which stops/destroys it (see WatchNowSmartPlayer).
   const [playing, setPlaying] = useState(null);
- 
+
   const containerRef = useRef(null);
   const trackRef = useRef(null);
   const autoplayRef = useRef(null);
   const resumeTimeoutRef = useRef(null);
- 
+
   const [containerWidth, setContainerWidth] = useState(0);
   const [index, setIndex] = useState(0);
   const [transitionEnabled, setTransitionEnabled] = useState(true);
   const [dragDelta, setDragDelta] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
- 
+
   const dragState = useRef({
     dragging: false,
     startX: 0,
     startY: 0,
     axis: null,
   });
- 
+
   const isLooping = stories.length > visibleCount;
   const clonesCount = isLooping ? visibleCount : 0;
- 
+
   const trackItems = useMemo(() => {
     if (!isLooping) return stories.map((item) => ({ item, key: `${item.id}` }));
     const head = stories
@@ -264,7 +357,7 @@ function WatchNowCarousel({ stories }) {
       .map((item, i) => ({ item, key: `tail-${i}-${item.id}` }));
     return [...head, ...body, ...tail];
   }, [stories, isLooping, clonesCount]);
- 
+
   // Reset position whenever breakpoint or data changes
   useEffect(() => {
     setTransitionEnabled(false);
@@ -273,7 +366,7 @@ function WatchNowCarousel({ stories }) {
     const raf = requestAnimationFrame(() => setTransitionEnabled(true));
     return () => cancelAnimationFrame(raf);
   }, [isLooping, clonesCount, visibleCount, stories.length]);
- 
+
   // Measure container width responsively
   useLayoutEffect(() => {
     const el = containerRef.current;
@@ -284,13 +377,13 @@ function WatchNowCarousel({ stories }) {
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
- 
+
   const cardWidth =
     containerWidth > 0
       ? (containerWidth - GAP * (visibleCount - 1)) / visibleCount
       : 0;
   const step = cardWidth + GAP;
- 
+
   const goNext = useCallback(() => {
     setPlaying(null); // stop the active player before the slide changes
     setIndex((i) => i + 1);
@@ -306,19 +399,19 @@ function WatchNowCarousel({ stories }) {
     },
     [clonesCount],
   );
- 
+
   // Autoplay
   useEffect(() => {
     if (!isLooping || isHovering || dragState.current.dragging) return;
     autoplayRef.current = setInterval(goNext, 4000);
     return () => clearInterval(autoplayRef.current);
   }, [isLooping, isHovering, goNext, cardWidth]);
- 
+
   const pauseAutoplayBriefly = () => {
     clearInterval(autoplayRef.current);
     clearTimeout(resumeTimeoutRef.current);
   };
- 
+
   // Seamless loop reset after transition completes
   const handleTransitionEnd = () => {
     if (!isLooping) return;
@@ -330,21 +423,21 @@ function WatchNowCarousel({ stories }) {
       setIndex(index + stories.length);
     }
   };
- 
+
   useEffect(() => {
     if (!transitionEnabled) {
       const raf = requestAnimationFrame(() => setTransitionEnabled(true));
       return () => cancelAnimationFrame(raf);
     }
   }, [transitionEnabled]);
- 
+
   // Keyboard navigation
   const handleKeyDown = (e) => {
     if (!isLooping) return;
     if (e.key === "ArrowLeft") goPrev();
     else if (e.key === "ArrowRight") goNext();
   };
- 
+
   // Drag / swipe (pointer events cover mouse + touch)
   const onPointerDown = (e) => {
     if (!isLooping) return;
@@ -356,13 +449,13 @@ function WatchNowCarousel({ stories }) {
     };
     pauseAutoplayBriefly();
   };
- 
+
   const onPointerMove = (e) => {
     const ds = dragState.current;
     if (!ds.dragging) return;
     const dx = e.clientX - ds.startX;
     const dy = e.clientY - ds.startY;
- 
+
     if (ds.axis === null) {
       if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
       ds.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
@@ -377,7 +470,7 @@ function WatchNowCarousel({ stories }) {
       setDragDelta(dx);
     }
   };
- 
+
   const endDrag = () => {
     const ds = dragState.current;
     if (!ds.dragging) return;
@@ -390,7 +483,7 @@ function WatchNowCarousel({ stories }) {
     dragState.current.axis = null;
     resumeTimeoutRef.current = setTimeout(() => {}, 300);
   };
- 
+
   // Keyed by the trackItem's unique `key` (not item.id) so that a
   // looping carousel's head/tail clones of the same story never both
   // report as "playing" — only the exact card instance the user
@@ -399,11 +492,11 @@ function WatchNowCarousel({ stories }) {
   const handlePlay = (key) => {
     setPlaying(key);
   };
- 
+
   const resetPlaying = () => setPlaying(null);
- 
+
   const translateX = -(index * step) + dragDelta;
- 
+
   return (
     <div
       ref={containerRef}
@@ -454,7 +547,7 @@ function WatchNowCarousel({ stories }) {
           ))}
         </div>
       </div>
- 
+
       {isLooping && !isMobile && (
         <>
           <NavButton
@@ -469,7 +562,7 @@ function WatchNowCarousel({ stories }) {
           />
         </>
       )}
- 
+
       {isLooping && isMobile && (
         <div className="flex sm:hidden justify-center items-center gap-4 mt-6">
           <NavButton direction="prev" onClick={goPrev} />
@@ -479,14 +572,14 @@ function WatchNowCarousel({ stories }) {
     </div>
   );
 }
- 
+
 /* ============================================================
    Section wrapper — data fetching logic unchanged
    ============================================================ */
 export default function WatchNowSection({ id = "watch-now" }) {
   const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(true);
- 
+
   useEffect(() => {
     let active = true;
     videoService
@@ -500,7 +593,7 @@ export default function WatchNowSection({ id = "watch-now" }) {
       active = false;
     };
   }, []);
- 
+
   return (
     <section
       id={id}
@@ -521,7 +614,7 @@ export default function WatchNowSection({ id = "watch-now" }) {
             build real-world skills and grow your career.
           </p>
         </div>
- 
+
         {loading ? (
           <div className="flex justify-center py-16">
             <div className="w-6 h-6 rounded-full border-2 border-gray-200 dark:border-gray-700 border-t-[#F97316] animate-spin" />
@@ -537,42 +630,3 @@ export default function WatchNowSection({ id = "watch-now" }) {
     </section>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

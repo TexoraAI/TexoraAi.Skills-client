@@ -162,6 +162,57 @@ export default function BannerStudioPage() {
     }
   };
 
+  // Maps a BannerStudioResponseDTO (from GET) back into the shape
+  // BannerStudioRequestDTO expects for PUT — crucially using the raw
+  // *ImageKey fields (not the presigned *ImageUrl fields) so a save from
+  // the Builder never overwrites a stored image key with an expiring
+  // presigned URL.
+  const buildRequestFromBanner = (b) => ({
+    name: b.name,
+    emoji: b.emoji,
+    gradient: b.gradient,
+    eyebrow: b.eyebrow,
+    title: b.title,
+    subtitle: b.subtitle,
+    ctaText: b.ctaText,
+    ctaLink: b.ctaLink,
+    status: b.status,
+    active: b.active,
+    startDate: b.startDate,
+    startTime: b.startTime,
+    endDate: b.endDate,
+    desktopImageUrl: b.desktopImageKey || undefined,
+    tabletImageUrl: b.tabletImageKey || undefined,
+    mobileImageUrl: b.mobileImageKey || undefined,
+    titleSize: b.titleSize,
+    titleWeight: b.titleWeight,
+    titleColor: b.titleColor,
+    canvasPadding: b.canvasPadding,
+    align: b.align,
+    canvasRadius: b.canvasRadius,
+    ctaRadius: b.ctaRadius,
+    animation: b.animation,
+  });
+
+  const handleSaveBuilderDesign = async (bannerId, designData) => {
+    const target = safeBanners.find((b) => b.id === bannerId);
+    if (!target) {
+      showToast("Pick a banner first", "info");
+      return;
+    }
+    try {
+      await courseService.updateBanner(bannerId, {
+        ...buildRequestFromBanner(target),
+        ...designData,
+      });
+      showToast("Design saved to banner");
+      loadBanners();
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to save design", "info");
+    }
+  };
+
   const handleSchedule = async (id, date, time) => {
     try {
       await courseService.scheduleBanner(id, date, time);
@@ -240,8 +291,19 @@ export default function BannerStudioPage() {
             onCreate={handleCreate}
           />
 
-          {!loading && <AIStudioSection onUseBanner={handleUseAiBanner} />}
-          {!loading && <BuilderSection />}
+          {!loading && (
+            <div id="bs-ai-studio-anchor">
+              <AIStudioSection onUseBanner={handleUseAiBanner} />
+            </div>
+          )}
+          {!loading && (
+            <div id="bs-builder-anchor">
+              <BuilderSection
+                banners={safeBanners}
+                onSaveDesign={handleSaveBuilderDesign}
+              />
+            </div>
+          )}
           {!loading && <ResponsiveCheckSection />}
 
           {!loading && <AnalyticsSection banners={safeBanners} />}

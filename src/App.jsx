@@ -22,8 +22,6 @@ import StudentPanel from "./Student/StudentPanel";
 import TrainerPanel from "./Trainer/TrainerPanel";
 // import SuperAdminLayout from "./SuperAdmin/SuperAdminLayout";
 
-
-
 /* ================= SUPER ADMIN ================= */
 
 /* Layout */
@@ -31,67 +29,66 @@ import SuperAdminLayout from "./SuperAdmin/components/layout/SuperAdminLayout";
 import { AuthProvider } from "./SuperAdmin/context/AuthContext";
 import { PermissionProvider } from "./SuperAdmin/context/PermissionContext";
 import { UserManagementProvider } from "./SuperAdmin/context/UserManagementContext";
-import { ThemeProvider } from "./SuperAdmin/context/ThemeContext";
 
 /* Dashboard */
-const SuperAdminDashboard = lazyLoad(() =>
-  import("./SuperAdmin/dashboard/SuperAdminDashboard")
+const SuperAdminDashboard = lazyLoad(
+  () => import("./SuperAdmin/dashboard/SuperAdminDashboard"),
 );
 
 /* Student Control */
-const StudentControlPage = lazyLoad(() =>
-  import("./SuperAdmin/student-control/StudentControlPage")
+const StudentControlPage = lazyLoad(
+  () => import("./SuperAdmin/student-control/StudentControlPage"),
 );
 
-const StudentAnalytics = lazyLoad(() =>
-  import("./SuperAdmin/student-control/StudentAnalytics")
+const StudentAnalytics = lazyLoad(
+  () => import("./SuperAdmin/student-control/StudentAnalytics"),
 );
 
-const StudentReportsPage = lazyLoad(() =>
-  import("./SuperAdmin/student-control/StudentReports")
+const StudentReportsPage = lazyLoad(
+  () => import("./SuperAdmin/student-control/StudentReports"),
 );
 
-const StudentDetailsPage = lazyLoad(() =>
-  import("./SuperAdmin/student-control/StudentDetailsPage")
+const StudentDetailsPage = lazyLoad(
+  () => import("./SuperAdmin/student-control/StudentDetailsPage"),
 );
 
 /* Trainer Control */
-const TrainerControlPage = lazyLoad(() =>
-  import("./SuperAdmin/trainer-control/TrainerControlPage")
+const TrainerControlPage = lazyLoad(
+  () => import("./SuperAdmin/trainer-control/TrainerControlPage"),
 );
 
-const TrainerAnalytics = lazyLoad(() =>
-  import("./SuperAdmin/trainer-control/TrainerAnalytics")
+const TrainerAnalytics = lazyLoad(
+  () => import("./SuperAdmin/trainer-control/TrainerAnalytics"),
 );
 
-const TrainerReports = lazyLoad(() =>
-  import("./SuperAdmin/trainer-control/TrainerReports")
+const TrainerReports = lazyLoad(
+  () => import("./SuperAdmin/trainer-control/TrainerReports"),
 );
 
-const TrainerDetailsPage = lazyLoad(() =>
-  import("./SuperAdmin/trainer-control/TrainerDetailsPage")
+const TrainerDetailsPage = lazyLoad(
+  () => import("./SuperAdmin/trainer-control/TrainerDetailsPage"),
 );
 
-const BatchDetailsPage = lazyLoad(() =>
-  import("./SuperAdmin/batch-control/BatchDetailsPage")
+const BatchDetailsPage = lazyLoad(
+  () => import("./SuperAdmin/batch-control/BatchDetailsPage"),
 );
 
 /* Admin Control */
 
-const Onboardingdashboard = lazyLoad(() =>
-  import("./SuperAdmin/admin-control/Onboardingdashboard")
+const Onboardingdashboard = lazyLoad(
+  () => import("./SuperAdmin/admin-control/Onboardingdashboard"),
 );
 
-const AdminControlPage = lazyLoad(() =>
-  import("./SuperAdmin/admin-control/AdminControlPage")
+const AdminControlPage = lazyLoad(
+  () => import("./SuperAdmin/admin-control/AdminControlPage"),
 );
 
-const OrganizationPage = lazyLoad(() =>
-  import("./SuperAdmin/admin-control/OrganizationPage")
+const OrganizationPage = lazyLoad(
+  () => import("./SuperAdmin/admin-control/OrganizationPage"),
 );
 
-const OrganizationDetailsPage = lazyLoad(() =>
-  import("./SuperAdmin/admin-control/OrganizationDetailsPage")
+const OrganizationDetailsPage = lazyLoad(
+  () => import("./SuperAdmin/admin-control/OrganizationDetailsPage"),
 );
 const SuperAdminCourseManagement = lazyLoad(
   () => import("./SuperAdmin/admin-control/SuperAdminCourseManagement"),
@@ -112,54 +109,64 @@ const SuperAdminBatchControl = lazyLoad(
   () => import("./SuperAdmin/admin-control/SuperAdminBatchControl"),
 );
 
-const OrganizationAdminDetailsPage = lazyLoad(() =>
-  import("./SuperAdmin/admin-control/OrganizationAdminDetailsPage")
+const OrganizationAdminDetailsPage = lazyLoad(
+  () => import("./SuperAdmin/admin-control/OrganizationAdminDetailsPage"),
 );
 
 // ✅ ADD HERE 👇
-const NewOrganizationPage = lazyLoad(() =>
-  import("./SuperAdmin/admin-control/NewOrganizationPage")
+const NewOrganizationPage = lazyLoad(
+  () => import("./SuperAdmin/admin-control/NewOrganizationPage"),
 );
 
-const PendingApprovalsPage = lazyLoad(() =>
-  import("./SuperAdmin/admin-control/PendingApprovalsPage")
+const PendingApprovalsPage = lazyLoad(
+  () => import("./SuperAdmin/admin-control/PendingApprovalsPage"),
 );
 
 /* Analytics */
-const AnalyticsDashboard = lazyLoad(() =>
-  import("./SuperAdmin/analytics/AnalyticsDashboard")
+const AnalyticsDashboard = lazyLoad(
+  () => import("./SuperAdmin/analytics/AnalyticsDashboard"),
 );
 
-const FeaturedProgramsList = lazyLoad(() =>
-  import("./SuperAdmin/featured-programs/pages/FeaturedProgramsList")
+/* Audit & Monitoring */
+const AuditSection = lazyLoad(
+  () => import("./SuperAdmin/audit-monitoring/AuditSection"),
 );
 
-const AddEditProgram = lazyLoad(() =>
-  import("./SuperAdmin/featured-programs/pages/AddEditProgram")
-);
-const TopGlobalCompanies = lazyLoad(() =>
-  import("./SuperAdmin/components/layout/TopGlobalCompanies")
+const FeaturedProgramsList = lazyLoad(
+  () => import("./SuperAdmin/featured-programs/pages/FeaturedProgramsList"),
 );
 
-const MentorsManagement = lazyLoad(() =>
-  import("./SuperAdmin/featured-programs/MentorsManagement")
+const AddEditProgram = lazyLoad(
+  () => import("./SuperAdmin/featured-programs/pages/AddEditProgram"),
+);
+const TopGlobalCompanies = lazyLoad(
+  () => import("./SuperAdmin/components/layout/TopGlobalCompanies"),
 );
 
-const AdminWatchNowUpload = lazyLoad(() =>
-  import("./SuperAdmin/featured-programs/pages/AdminWatchNowUpload")
+const MentorsManagement = lazyLoad(
+  () => import("./SuperAdmin/featured-programs/MentorsManagement"),
+);
+
+const AdminWatchNowUpload = lazyLoad(
+  () => import("./SuperAdmin/featured-programs/pages/AdminWatchNowUpload"),
 );
 /* Settings */
-const GlobalSettings            = lazyLoad(()   => import("./SuperAdmin/settings/GlobalSettings"));
-const SecuritySettings          = lazyLoad(() => import("./SuperAdmin/settings/SecuritySettings"));
-const AuditLogs                 = lazyLoad(() => import("./SuperAdmin/settings/AuditLogs"));
-const SendEmail                 = lazyLoad(() => import("./SuperAdmin/settings/SendEmail"));
+const GlobalSettings = lazyLoad(
+  () => import("./SuperAdmin/settings/GlobalSettings"),
+);
+const SecuritySettings = lazyLoad(
+  () => import("./SuperAdmin/settings/SecuritySettings"),
+);
+const AuditLogs = lazyLoad(() => import("./SuperAdmin/settings/AuditLogs"));
+const SendEmail = lazyLoad(() => import("./SuperAdmin/settings/SendEmail"));
 /* Profile */
-const SuperAdminProfile         = lazyLoad(() => import("./SuperAdmin/profile/SuperAdminProfile"));
+const SuperAdminProfile = lazyLoad(
+  () => import("./SuperAdmin/profile/SuperAdminProfile"),
+);
 
 const SuperAdminMeetings = lazyLoad(
   () => import("./SuperAdmin/meetings/SuperAdminMeetings"),
 );
-
 const SuperAdminRoadmapUpgraded = lazyLoad(
   () => import("./SuperAdmin/roadmap-control/SuperAdminRoadmapUpgraded.jsx"),
 );
@@ -171,112 +178,142 @@ const SuperAdminRoadmapUpgradedDetail = lazyLoad(
   () =>
     import("./SuperAdmin/roadmap-control/SuperAdminRoadmapUpgradedDetail.jsx"),
 );
-
 /* ================= CMS MANAGEMENT ================= */
 
-
-const BannerStudioPage = lazyLoad(() =>
-  import("./SuperAdmin/cms-management/banner-studio/pages/BannerStudioPage")
+const BannerStudioPage = lazyLoad(
+  () =>
+    import("./SuperAdmin/cms-management/banner-studio/pages/BannerStudioPage"),
 );
-const PlatformOverview = lazyLoad(() =>
-  import("./SuperAdmin/cms-management/pages/PlatformOverview")
+const PlatformOverview = lazyLoad(
+  () => import("./SuperAdmin/cms-management/pages/PlatformOverview"),
 );
 /* ================= AUTH PAGES ================= */
-const ApprovalPending = lazyLoad(() => import("./pages/Auth/ApprovalPending.jsx"));
-const Login           = lazyLoad(() => import("./pages/Auth/Login.jsx"));
-const ResetPassword   = lazyLoad(() => import("./pages/Auth/ResetPassword.jsx"));
-const VerifyEmail     = lazyLoad(() => import("./pages/Auth/VerifyEmail.jsx"));
+const ApprovalPending = lazyLoad(
+  () => import("./pages/Auth/ApprovalPending.jsx"),
+);
+const Login = lazyLoad(() => import("./pages/Auth/Login.jsx"));
+const ResetPassword = lazyLoad(() => import("./pages/Auth/ResetPassword.jsx"));
+const VerifyEmail = lazyLoad(() => import("./pages/Auth/VerifyEmail.jsx"));
 
 /*===============public live-session pages =========*/
-const PublicSessionsPage            = lazyLoad(() => import("./pages/public/PublicSessionsPage"));
-const PublicBooking                 = lazyLoad(() => import("./pages/public/PublicBooking"));
-const PublicBookingConfirmation     = lazyLoad(() => import("./pages/public/PublicBookingConfirmation"));
-const PublicJoinSession             = lazyLoad(() => import("./pages/public/PublicJoinSession"));
-const PublicSessionComplete         = lazyLoad(() => import("./pages/public/PublicSessionComplete"));
+const PublicSessionsPage = lazyLoad(
+  () => import("./pages/public/PublicSessionsPage"),
+);
+const PublicBooking = lazyLoad(() => import("./pages/public/PublicBooking"));
+const PublicBookingConfirmation = lazyLoad(
+  () => import("./pages/public/PublicBookingConfirmation"),
+);
+const PublicJoinSession = lazyLoad(
+  () => import("./pages/public/PublicJoinSession"),
+);
+const PublicSessionComplete = lazyLoad(
+  () => import("./pages/public/PublicSessionComplete"),
+);
 // const IlmoraMeetingPage = lazyLoad(
 //   () => import("./pages/public/IlmoraMeeting.jsx"),
 // );
 const IlmoraMeetingPage = lazyLoad(
   () =>
-    import(
-      "./pages/public/IlmoraMeeting/src/components/IlmoraMeeting/IlmoraMeeting.jsx"
-    )
+    import("./pages/public/IlmoraMeeting/src/components/IlmoraMeeting/IlmoraMeeting.jsx"),
 );
 /* ================= LANDING ================= */
 const ProgramPlayer = lazyLoad(() => import("./pages/Landing/ProgramPlayer"));
-const CoursePreview        = lazyLoad(() => import("./pages/CoursePreview"));
-const CourseDetail         = lazyLoad(() => import("./pages/Landing/CourseDetailsPage"));
-const LMSHomepage          = lazyLoad(() => import("./pages/Landing/LMSHomepage"));
-const SyllabusPage         = lazyLoad(() => import("./pages/Landing/Syllabus.jsx"));
-const WatchNow             = lazyLoad(() => import("./pages/Landing/WatchNow"));
-const Schoolclass          = lazyLoad(() => import("./pages/Landing/Schoolclass"));
-const AllCoursesPage       = lazyLoad(() => import("./pages/Landing/AllCourses"));
-const Platforms            = lazyLoad(() => import("./pages/Landing/platforms"));
-const IlmoraMeet           = lazyLoad(() => import("./pages/Landing/ilmorameet"));
-const IlmoraTalk           = lazyLoad(() => import("./pages/Landing/IlmoraTalk"));
-const StudyAbroad          = lazyLoad(() => import("./pages/Landing/StudyAbroad"));
-const ILMORAGulf           = lazyLoad(() => import("./pages/Landing/ILMORAGulf"));
-const ResumeBuilderLanding = lazyLoad(() => import("./pages/Landing/ResumeBuilderLanding"));
-const FDEAcademy           = lazyLoad(() =>import("./pages/Landing/FDEAcademy"));
-const StudentHub           = lazyLoad(() => import("./pages/Landing/StudentHub"));
-const TrainerHub           = lazyLoad(() => import("./pages/Landing/TrainerHub"));
-const ManagerHub           = lazyLoad(() => import("./pages/Landing/ManagerHub"));
-const Workspace            = lazyLoad(() => import("./pages/Landing/Workspace"));
-const AiCompanionLanding   = lazyLoad(() => import("./pages/Landing/Aicampanion"));
-const WhiteboardLanding    = lazyLoad(() => import("./pages/Landing/Whiteboard"));
-const CodingLabLanding     = lazyLoad(() => import("./pages/Landing/CodingLabLanding"));
-const StudyPlanLanding     = lazyLoad(() => import("./pages/Landing/StudyPlanLanding"));
+const CoursePreview = lazyLoad(() => import("./pages/CoursePreview"));
+const CourseDetail = lazyLoad(
+  () => import("./pages/Landing/CourseDetailsPage"),
+);
+const LMSHomepage = lazyLoad(() => import("./pages/Landing/LMSHomepage"));
+const SyllabusPage = lazyLoad(() => import("./pages/Landing/Syllabus.jsx"));
+const WatchNow = lazyLoad(() => import("./pages/Landing/WatchNow"));
+const Schoolclass = lazyLoad(() => import("./pages/Landing/Schoolclass"));
+const AllCoursesPage = lazyLoad(() => import("./pages/Landing/AllCourses"));
+const Platforms = lazyLoad(() => import("./pages/Landing/platforms"));
+const IlmoraMeet = lazyLoad(() => import("./pages/Landing/ilmorameet"));
+const IlmoraTalk = lazyLoad(() => import("./pages/Landing/IlmoraTalk"));
+const StudyAbroad = lazyLoad(() => import("./pages/Landing/StudyAbroad"));
+const ILMORAGulf = lazyLoad(() => import("./pages/Landing/ILMORAGulf"));
+const ResumeBuilderLanding = lazyLoad(
+  () => import("./pages/Landing/ResumeBuilderLanding"),
+);
+const FDEAcademy = lazyLoad(() => import("./pages/Landing/FDEAcademy"));
+const StudentHub = lazyLoad(() => import("./pages/Landing/StudentHub"));
+const TrainerHub = lazyLoad(() => import("./pages/Landing/TrainerHub"));
+const ManagerHub = lazyLoad(() => import("./pages/Landing/ManagerHub"));
+const Workspace = lazyLoad(() => import("./pages/Landing/Workspace"));
+const AiCompanionLanding = lazyLoad(
+  () => import("./pages/Landing/Aicampanion"),
+);
+const WhiteboardLanding = lazyLoad(() => import("./pages/Landing/Whiteboard"));
+const CodingLabLanding = lazyLoad(
+  () => import("./pages/Landing/CodingLabLanding"),
+);
+const StudyPlanLanding = lazyLoad(
+  () => import("./pages/Landing/StudyPlanLanding"),
+);
 /* ================= SUBJECTS ================= */
-const Class9Subjects       = lazyLoad(() => import("./pages/Landing/Subjects/Class9Subjects"));
-const Class9Math           = lazyLoad(() => import("./pages/Landing/Subjects/Class9Math"));
-const Class9AI             = lazyLoad(() => import("./pages/Landing/Subjects/Class9AI"));
+const Class9Subjects = lazyLoad(
+  () => import("./pages/Landing/Subjects/Class9Subjects"),
+);
+const Class9Math = lazyLoad(
+  () => import("./pages/Landing/Subjects/Class9Math"),
+);
+const Class9AI = lazyLoad(() => import("./pages/Landing/Subjects/Class9AI"));
 /* ================= COMPANY ================= */
-const AboutTexoraSkills = lazyLoad(() => import("./pages/About/AboutTexoraSkills"));
-const Careers           = lazyLoad(() => import("./pages/Company/Careers"));
-const PrivacyPolicy     = lazyLoad(() => import("./pages/Company/PrivacyPolicy"));
-const TermsOfService    = lazyLoad(() => import("./pages/Company/TermsOfService"));
-const ContactUs         = lazyLoad(() => import("./pages/Company/ContactUs"));
-const Pricing           = lazyLoad(() => import("./pages/Company/Pricing"));
-const FAQ               = lazyLoad(() => import("./pages/Company/FAQ"));
-const HelpCenter        = lazyLoad(() => import("./pages/Company/HelpCenter"));
+const AboutTexoraSkills = lazyLoad(
+  () => import("./pages/About/AboutTexoraSkills"),
+);
+const Careers = lazyLoad(() => import("./pages/Company/Careers"));
+const PrivacyPolicy = lazyLoad(() => import("./pages/Company/PrivacyPolicy"));
+const TermsOfService = lazyLoad(() => import("./pages/Company/TermsOfService"));
+const ContactUs = lazyLoad(() => import("./pages/Company/ContactUs"));
+const Pricing = lazyLoad(() => import("./pages/Company/Pricing"));
+const FAQ = lazyLoad(() => import("./pages/Company/FAQ"));
+const HelpCenter = lazyLoad(() => import("./pages/Company/HelpCenter"));
 /* ================= COMMON ================= */
 const NotificationsPage = lazyLoad(() => import("./pages/NotificationsPage"));
-const ProfilePage       = lazyLoad(() => import("./pages/ProfilePage"));
+const ProfilePage = lazyLoad(() => import("./pages/ProfilePage"));
 const IlmDemoProfilePage = lazyLoad(() => import("./pages/IlmDemoProfilePage"));
-const SearchPage        = lazyLoad(() => import("./pages/SearchPage"));
+const SearchPage = lazyLoad(() => import("./pages/SearchPage"));
 
-
-const EditProfile       = lazyLoad(() => import("./pages/common/EditProfile"));
-const CallRoom          = lazyLoad(() => import("./components/live/CallRoom.jsx"));
+const EditProfile = lazyLoad(() => import("./pages/common/EditProfile"));
+const CallRoom = lazyLoad(() => import("./components/live/CallRoom.jsx"));
 
 /* ================= STUDENT ================= */
-const Assessments           = lazyLoad(() => import("./Student/Assessments.jsx"));
-const AssignmentDetail      = lazyLoad(() => import("./Student/AssignmentDetail"));
-const AttemptQuiz           = lazyLoad(() => import("./Student/AttemptQuiz.jsx"));
-const Attendance            = lazyLoad(() => import("./Student/Attendance.jsx"));
-const DashboardPage         = lazyLoad(() => import("./Student/DashboardPage.jsx"));
-const Documents             = lazyLoad(() => import("./Student/Documents.jsx"));
+const Assessments = lazyLoad(() => import("./Student/Assessments.jsx"));
+const AssignmentDetail = lazyLoad(() => import("./Student/AssignmentDetail"));
+const AttemptQuiz = lazyLoad(() => import("./Student/AttemptQuiz.jsx"));
+const Attendance = lazyLoad(() => import("./Student/Attendance.jsx"));
+const DashboardPage = lazyLoad(() => import("./Student/DashboardPage.jsx"));
+const Documents = lazyLoad(() => import("./Student/Documents.jsx"));
 // const Doubts                = lazyLoad(() => import("./Student/Doubts.jsx"));
-const LiveClasses           = lazyLoad(() => import("./Student/LiveClasses.jsx"));
-const MyCourses             = lazyLoad(() => import("./Student/MyCourses.jsx"));
-const MyQuizHistory         = lazyLoad(() => import("./Student/MyQuizHistory"));
-const RecordedClasses       = lazyLoad(() => import("./Student/RecordedClasses.jsx"));
-const Settings              = lazyLoad(() => import("./Student/Settings.jsx"));
-const StudentAssignments    = lazyLoad(() => import("./Student/StudentAssignments.jsx"));
-const StudentClassroomPage  = lazyLoad(() => import("./Student/StudentClassroomPage"));
-const StudentCourseView     = lazyLoad(() => import("./Student/StudentCourseView"));
-const TwoFactorAuth         = lazyLoad(() => import("./Student/TwoFactorAuth"));
-const UpdateEmail           = lazyLoad(() => import("./Student/UpdateEmail"));
-const Certificates          = lazyLoad(() => import("./Student/certificates.jsx"));
-const Overview              = lazyLoad(() => import("./Student/overview.jsx"));
-const VideoLectures         = lazyLoad(() => import("./Student/videolecctures.jsx"));
-const StudentNotebook       = lazyLoad(() => import("./Student/StudentNotebook.jsx"));
+const LiveClasses = lazyLoad(() => import("./Student/LiveClasses.jsx"));
+const MyCourses = lazyLoad(() => import("./Student/MyCourses.jsx"));
+const MyQuizHistory = lazyLoad(() => import("./Student/MyQuizHistory"));
+const RecordedClasses = lazyLoad(() => import("./Student/RecordedClasses.jsx"));
+const Settings = lazyLoad(() => import("./Student/Settings.jsx"));
+const StudentAssignments = lazyLoad(
+  () => import("./Student/StudentAssignments.jsx"),
+);
+const StudentClassroomPage = lazyLoad(
+  () => import("./Student/StudentClassroomPage"),
+);
+const StudentCourseView = lazyLoad(() => import("./Student/StudentCourseView"));
+const TwoFactorAuth = lazyLoad(() => import("./Student/TwoFactorAuth"));
+const UpdateEmail = lazyLoad(() => import("./Student/UpdateEmail"));
+const Certificates = lazyLoad(() => import("./Student/certificates.jsx"));
+const Overview = lazyLoad(() => import("./Student/overview.jsx"));
+const VideoLectures = lazyLoad(() => import("./Student/videolecctures.jsx"));
+const StudentNotebook = lazyLoad(() => import("./Student/StudentNotebook.jsx"));
 
-const StudentFeedback       = lazyLoad(() => import("./Student/Studentfeedback.jsx"));
-const SkillMap              = lazyLoad(() => import("./Student/SkillMap.jsx"));
-const StudentCompilerPage   = lazyLoad(() => import("./Student/StudentCompilerPage.jsx"),);
-const StudentStudyPlanPage = lazyLoad( () => import("./Student/StudentStudyPlanPage.jsx"),);
-const ResumeBuilder        = lazyLoad(() => import("./Student/ResumeBuilder.jsx"));
+const StudentFeedback = lazyLoad(() => import("./Student/Studentfeedback.jsx"));
+const SkillMap = lazyLoad(() => import("./Student/SkillMap.jsx"));
+const StudentCompilerPage = lazyLoad(
+  () => import("./Student/StudentCompilerPage.jsx"),
+);
+const StudentStudyPlanPage = lazyLoad(
+  () => import("./Student/StudentStudyPlanPage.jsx"),
+);
+const ResumeBuilder = lazyLoad(() => import("./Student/ResumeBuilder.jsx"));
 const StudentMeetings = lazyLoad(() => import("./Student/StudentMeetings.jsx"));
 
 const StudentRoadmapUpgraded = lazyLoad(
@@ -288,48 +325,72 @@ const StudentRoadmapUpgradedWizard = lazyLoad(
 const StudentRoadmapUpgradedDetail = lazyLoad(
   () => import("./Student/StudentRoadmapUpgradedDetail.jsx"),
 );
+
 /* ================= TRAINER ================= */
-const TrainerAssessments    = lazyLoad(() => import("./Trainer/Assessments"));
-const TrainerAttendance     = lazyLoad(() => import("./Trainer/Attendance"));
-const BatchReports          = lazyLoad(() => import("./Trainer/BatchReports"));
-const CreateAssignments     = lazyLoad(() => import("./Trainer/CreateAssignments"));
-const CreateQuiz            = lazyLoad(() => import("./Trainer/CreateQuiz"));
-const TrainerDashboard      = lazyLoad(() => import("./Trainer/Dashboard"));
-const DoubtsManagement      = lazyLoad(() => import("./Trainer/DoubtsManagement"));
-const EditAssignment        = lazyLoad(() => import("./Trainer/EditAssignment"));
-const EditRecordedClass     = lazyLoad(() => import("./Trainer/EditRecordedClass"));
-const MyAssignments         = lazyLoad(() => import("./Trainer/MyAssignments"));
-const MyQuizzes             = lazyLoad(() => import("./Trainer/MyQuizzes"));
-const PerformanceAnalysis   = lazyLoad(() => import("./Trainer/PerformanceAnalysis"));
-const StudentReports        = lazyLoad(() => import("./Trainer/StudentReports"));
-const TrainerBatchesPage    = lazyLoad(() => import("./Trainer/TrainerBatchesPage"));
-const TrainerClassroomPage  = lazyLoad(() => import("./Trainer/TrainerClassroomPage"));
-const CourseManagement      = lazyLoad(() => import("./Trainer/TrainerCourseManagement.jsx"));
-const CourseModules         = lazyLoad(() => import("./Trainer/TrainerCourseModules"));
-const TrainerFiles          = lazyLoad(() => import("./Trainer/TrainerFiles"));
-const TrainerSettings       = lazyLoad(() => import("./Trainer/TrainerSettings"));
-const UploadDocuments       = lazyLoad(() => import("./Trainer/UploadDocuments"));
-const UploadVideos          = lazyLoad(() => import("./Trainer/UploadVideos"));
-const ViewAssignments       = lazyLoad(() => import("./Trainer/ViewAssignments"));
-const ViewSubmissions       = lazyLoad(() => import("./Trainer/ViewSubmissions"));
-const LiveAttendanceReport  = lazyLoad(() => import("./Trainer/LiveAttendanceReport"));
-const LiveSessionControls   = lazyLoad(() => import("./Trainer/LiveSessionControls"));
-const LiveSessionHistory    = lazyLoad(() => import("./Trainer/LiveSessionHistory"));
-const RecordedClassList     = lazyLoad(() => import("./Trainer/RecordedClassList"));
-const StartLiveSession      = lazyLoad(() => import("./Trainer/StartLiveSession"));
-const TrainerLiveClasses    = lazyLoad(() => import("./Trainer/TrainerLiveClasses"));
-const UploadRecordedVideo   = lazyLoad(() => import("./Trainer/UploadRecordedVideo"));
-const TrainerFeedback       = lazyLoad(() => import("./Trainer/Trainerfeedback.jsx"));
-const TrainerSkillMap       = lazyLoad(() => import("./Trainer/TrainerSkillMap.jsx"));
-const TrainerCompilerPage   = lazyLoad(() => import("./Trainer/TrainerCompilerPage.jsx"),);
-const TrainerStudyPlanPage  = lazyLoad (() => import("./Trainer/TrainerStudyPlanPage.jsx"),);
-const WhiteboardPanel       = lazyLoad(() => import("./Trainer/WhiteboardPanel.jsx"));
+const TrainerAssessments = lazyLoad(() => import("./Trainer/Assessments"));
+const TrainerAttendance = lazyLoad(() => import("./Trainer/Attendance"));
+const BatchReports = lazyLoad(() => import("./Trainer/BatchReports"));
+const CreateAssignments = lazyLoad(() => import("./Trainer/CreateAssignments"));
+const CreateQuiz = lazyLoad(() => import("./Trainer/CreateQuiz"));
+const TrainerDashboard = lazyLoad(() => import("./Trainer/Dashboard"));
+const DoubtsManagement = lazyLoad(() => import("./Trainer/DoubtsManagement"));
+const EditAssignment = lazyLoad(() => import("./Trainer/EditAssignment"));
+const EditRecordedClass = lazyLoad(() => import("./Trainer/EditRecordedClass"));
+const MyAssignments = lazyLoad(() => import("./Trainer/MyAssignments"));
+const MyQuizzes = lazyLoad(() => import("./Trainer/MyQuizzes"));
+const PerformanceAnalysis = lazyLoad(
+  () => import("./Trainer/PerformanceAnalysis"),
+);
+const StudentReports = lazyLoad(() => import("./Trainer/StudentReports"));
+const TrainerBatchesPage = lazyLoad(
+  () => import("./Trainer/TrainerBatchesPage"),
+);
+const TrainerClassroomPage = lazyLoad(
+  () => import("./Trainer/TrainerClassroomPage"),
+);
+const CourseManagement = lazyLoad(
+  () => import("./Trainer/TrainerCourseManagement.jsx"),
+);
+const CourseModules = lazyLoad(() => import("./Trainer/TrainerCourseModules"));
+const TrainerFiles = lazyLoad(() => import("./Trainer/TrainerFiles"));
+const TrainerSettings = lazyLoad(() => import("./Trainer/TrainerSettings"));
+const UploadDocuments = lazyLoad(() => import("./Trainer/UploadDocuments"));
+const UploadVideos = lazyLoad(() => import("./Trainer/UploadVideos"));
+const ViewAssignments = lazyLoad(() => import("./Trainer/ViewAssignments"));
+const ViewSubmissions = lazyLoad(() => import("./Trainer/ViewSubmissions"));
+const LiveAttendanceReport = lazyLoad(
+  () => import("./Trainer/LiveAttendanceReport"),
+);
+const LiveSessionControls = lazyLoad(
+  () => import("./Trainer/LiveSessionControls"),
+);
+const LiveSessionHistory = lazyLoad(
+  () => import("./Trainer/LiveSessionHistory"),
+);
+const RecordedClassList = lazyLoad(() => import("./Trainer/RecordedClassList"));
+const StartLiveSession = lazyLoad(() => import("./Trainer/StartLiveSession"));
+const TrainerLiveClasses = lazyLoad(
+  () => import("./Trainer/TrainerLiveClasses"),
+);
+const UploadRecordedVideo = lazyLoad(
+  () => import("./Trainer/UploadRecordedVideo"),
+);
+const TrainerFeedback = lazyLoad(() => import("./Trainer/Trainerfeedback.jsx"));
+const TrainerSkillMap = lazyLoad(() => import("./Trainer/TrainerSkillMap.jsx"));
+const TrainerCompilerPage = lazyLoad(
+  () => import("./Trainer/TrainerCompilerPage.jsx"),
+);
+const TrainerStudyPlanPage = lazyLoad(
+  () => import("./Trainer/TrainerStudyPlanPage.jsx"),
+);
+const WhiteboardPanel = lazyLoad(() => import("./Trainer/WhiteboardPanel.jsx"));
 
 const AiCompanionPanel = lazyLoad(
   () => import("./Trainer/AiCompanionPanel.jsx"),
 );
 
 const TrainerMeetings = lazyLoad(() => import("./Trainer/TrainerMeetings.jsx"));
+
 const TrainerRoadmapUpgraded = lazyLoad(
   () => import("./Trainer/TrainerRoadmapUpgraded.jsx"),
 );
@@ -339,31 +400,40 @@ const TrainerRoadmapUpgradedWizard = lazyLoad(
 const TrainerRoadmapUpgradedDetail = lazyLoad(
   () => import("./Trainer/TrainerRoadmapUpgradedDetail.jsx"),
 );
+
 /* ================= ADMIN ================= */
-const AdminBatches              = lazyLoad(() => import("./Admin/AdminBatches"));
-const AdminDashboard            = lazyLoad(() => import("./Admin/AdminDashboard"));
-const AdminLiveSessions         = lazyLoad(() => import("./Admin/AdminLiveSessions"));
-const AdminRecordedVideos       = lazyLoad(() => import("./Admin/AdminRecordedVideos"));
+const AdminBatches = lazyLoad(() => import("./Admin/AdminBatches"));
+const AdminDashboard = lazyLoad(() => import("./Admin/AdminDashboard"));
+const AdminLiveSessions = lazyLoad(() => import("./Admin/AdminLiveSessions"));
+const AdminRecordedVideos = lazyLoad(
+  () => import("./Admin/AdminRecordedVideos"),
+);
 
-const AllCourses                = lazyLoad(() => import("./Admin/AllCourses"));
-const AllUsers                  = lazyLoad(() => import("./Admin/AllUsers"));
-const AssignTrainerPage         = lazyLoad(() => import("./Admin/AssignTrainerPage"));
-const BatchStudentsPage         = lazyLoad(() => import("./Admin/BatchStudentsPage"));
-const BatchTrainerOverviewPage  = lazyLoad(() => import("./Admin/BatchTrainerOverviewPage"));
-const Branches                  = lazyLoad(() => import("./Admin/Branches"));
-const Categories                = lazyLoad(() => import("./Admin/Categories"));
-const CertificatesAdmin         = lazyLoad(() => import("./Admin/CertificatesAdmin"));
-const DepartmentList            = lazyLoad(() => import("./Admin/DepartmentList"));
+const AllCourses = lazyLoad(() => import("./Admin/AllCourses"));
+const AllUsers = lazyLoad(() => import("./Admin/AllUsers"));
+const AssignTrainerPage = lazyLoad(() => import("./Admin/AssignTrainerPage"));
+const BatchStudentsPage = lazyLoad(() => import("./Admin/BatchStudentsPage"));
+const BatchTrainerOverviewPage = lazyLoad(
+  () => import("./Admin/BatchTrainerOverviewPage"),
+);
+const Branches = lazyLoad(() => import("./Admin/Branches"));
+const Categories = lazyLoad(() => import("./Admin/Categories"));
+const CertificatesAdmin = lazyLoad(() => import("./Admin/CertificatesAdmin"));
+const DepartmentList = lazyLoad(() => import("./Admin/DepartmentList"));
 
-const OrganisationOverview      = lazyLoad(() => import("./Admin/OrganisationOverview"));
+const OrganisationOverview = lazyLoad(
+  () => import("./Admin/OrganisationOverview"),
+);
 const AdminVideos = lazyLoad(() => import("./Admin/AdminVideos"));
 
-const OrgReports                = lazyLoad(() => import("./Admin/OrgReports"));
-const OrgSettings               = lazyLoad(() => import("./Admin/OrgSettings"));
+const OrgReports = lazyLoad(() => import("./Admin/OrgReports"));
+const OrgSettings = lazyLoad(() => import("./Admin/OrgSettings"));
 
-const UsageAnalytics            = lazyLoad(() => import("./Admin/UsageAnalytics"));
-const AdminFeedback             = lazyLoad(() => import("./Admin/Adminfeedback.jsx"));
-const AdminSkillDashboard       = lazyLoad(() => import("./Admin/AdminSkillDashboard.jsx"));
+const UsageAnalytics = lazyLoad(() => import("./Admin/UsageAnalytics"));
+const AdminFeedback = lazyLoad(() => import("./Admin/Adminfeedback.jsx"));
+const AdminSkillDashboard = lazyLoad(
+  () => import("./Admin/AdminSkillDashboard.jsx"),
+);
 
 const AdminFiles = lazyLoad(() => import("./Admin/AdminFiles"));
 const AdminAssessmentSystem = lazyLoad(
@@ -382,20 +452,34 @@ const AdminRoadmapUpgradedDetail = lazyLoad(
   () => import("./Admin/AdminRoadmapUpgradedDetail.jsx"),
 );
 /* ================= BUSINESS ================= */
-const BusinessDashboard = lazyLoad(() => import("./Business/BusinessDashboard"));
-const NewEnrollments    = lazyLoad(() => import("./Business/Enrollments/NewEnrollments.jsx"));
-const Renewals          = lazyLoad(() => import("./Business/Enrollments/Renewals.jsx"));
-const Invoices          = lazyLoad(() => import("./Business/Financial/Invoices.jsx"));
-const Payments          = lazyLoad(() => import("./Business/Financial/Payments.jsx"));
-const Applications      = lazyLoad(() => import("./Business/Hiring Manager/Applications.jsx"));
-const JobOpenings       = lazyLoad(() => import("./Business/Hiring Manager/JobOpenings.jsx"));
-const AllLeads          = lazyLoad(() => import("./Business/Lead Management/AllLeads.jsx"));
-const FollowUps         = lazyLoad(() => import("./Business/Lead Management/FollowUps.jsx"));
-const Campaigns         = lazyLoad(() => import("./Business/Marketing/Campaigns.jsx"));
-const Sources           = lazyLoad(() => import("./Business/Marketing/Sources.jsx"));
-const BusinessSettings  = lazyLoad(() => import("./Business/Settings.jsx"));
-const Performance       = lazyLoad(() => import("./Business/Team Targets/Performance.jsx"));
-const Targets           = lazyLoad(() => import("./Business/Team Targets/Targets.jsx"));
+const BusinessDashboard = lazyLoad(
+  () => import("./Business/BusinessDashboard"),
+);
+const NewEnrollments = lazyLoad(
+  () => import("./Business/Enrollments/NewEnrollments.jsx"),
+);
+const Renewals = lazyLoad(() => import("./Business/Enrollments/Renewals.jsx"));
+const Invoices = lazyLoad(() => import("./Business/Financial/Invoices.jsx"));
+const Payments = lazyLoad(() => import("./Business/Financial/Payments.jsx"));
+const Applications = lazyLoad(
+  () => import("./Business/Hiring Manager/Applications.jsx"),
+);
+const JobOpenings = lazyLoad(
+  () => import("./Business/Hiring Manager/JobOpenings.jsx"),
+);
+const AllLeads = lazyLoad(
+  () => import("./Business/Lead Management/AllLeads.jsx"),
+);
+const FollowUps = lazyLoad(
+  () => import("./Business/Lead Management/FollowUps.jsx"),
+);
+const Campaigns = lazyLoad(() => import("./Business/Marketing/Campaigns.jsx"));
+const Sources = lazyLoad(() => import("./Business/Marketing/Sources.jsx"));
+const BusinessSettings = lazyLoad(() => import("./Business/Settings.jsx"));
+const Performance = lazyLoad(
+  () => import("./Business/Team Targets/Performance.jsx"),
+);
+const Targets = lazyLoad(() => import("./Business/Team Targets/Targets.jsx"));
 
 /* ================= STUDENT DEMO ================= */
 const IlmOraDemoPage = lazyLoad(() => import("./pages/Student/IlmOraDemoPage"));
@@ -409,79 +493,74 @@ const ProtectedRoute = ({ children }) => {
 };
 
 export default function App() {
-  const [theme, setTheme] = useState(() => {
-    try {
-      return localStorage.getItem("theme") || "light";
-    } catch {
-      return "light";
-    }
-  });
+  const [theme, setTheme] = useState("light");
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   const toggleTheme = () =>
-  setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+  useEffect(() => {
+    const saved = localStorage.getItem("theme");
+    if (saved) setTheme(saved);
+  }, []);
 
- useEffect(() => {
-  document.documentElement.classList.toggle("dark", theme === "dark");
-  document.documentElement.setAttribute("data-theme", theme);
-  localStorage.setItem("theme", theme);
-}, [theme]);
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    localStorage.setItem("theme", theme);
+  }, [theme]);
 
- // ✅ Register SW always + FCM token only if already logged in
-useEffect(() => {
-seedCMSData();
-}, []);
+  // ✅ Register SW always + FCM token only if already logged in
+  useEffect(() => {
+    seedCMSData();
+  }, []);
   // SW registration — needs no auth
   useEffect(() => {
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker
-      .register("/firebase-messaging-sw.js", { scope: "/" })
-      .then((reg) => console.log("✅ FCM SW registered:", reg.scope))
-      .catch((err) => console.error("❌ FCM SW registration failed:", err));
-  }
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("/firebase-messaging-sw.js", { scope: "/" })
+        .then((reg) => console.log("✅ FCM SW registered:", reg.scope))
+        .catch((err) => console.error("❌ FCM SW registration failed:", err));
+    }
 
-  // FCM token — only if user is already authenticated (page refresh case)
-  if (
-    auth.isAuthenticated() &&
-    Notification.permission === "granted" &&
-    !localStorage.getItem("fcm_token")
-  ) {
-    import("./services/firebaseService").then(({ registerFcmToken }) => {
-      registerFcmToken().catch(console.error);
-    });
-  }
-}, []);
-    return (
-    <ThemeProvider theme={theme} toggleTheme={toggleTheme}>
-      <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
-        {/* <SEO /> */}
-        <ErrorBoundary>
-          <Suspense fallback={<LoadingSpinner />}>
-            <Routes>
-
-          {/* ================= LANDING ================= */}
+    // FCM token — only if user is already authenticated (page refresh case)
+    if (
+      auth.isAuthenticated() &&
+      Notification.permission === "granted" &&
+      !localStorage.getItem("fcm_token")
+    ) {
+      import("./services/firebaseService").then(({ registerFcmToken }) => {
+        registerFcmToken().catch(console.error);
+      });
+    }
+  }, []);
+  return (
+    <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
+      {/* <SEO /> */}
+      <ErrorBoundary>
+        <Suspense fallback={<LoadingSpinner />}>
+          <Routes>
+            {/* ================= LANDING ================= */}
             <Route
-  path="/"
-  element={
-    <LMSHomepage
-      theme={theme}
-      toggleTheme={toggleTheme}
-      setShowLoginModal={setShowLoginModal}
-    />
-  }
-/>
+              path="/"
+              element={
+                <LMSHomepage
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  setShowLoginModal={setShowLoginModal}
+                />
+              }
+            />
             <Route path="/watch-demo/:videoId" element={<WatchNow />} />
             <Route path="/course/:id" element={<CoursePreview />} />
             <Route
-  path="/workspace"
-  element={
-    <Workspace
-      theme={theme}
-      toggleTheme={toggleTheme}
-      setShowLoginModal={setShowLoginModal}
-    />
-  }
-/>
+              path="/workspace"
+              element={
+                <Workspace
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  setShowLoginModal={setShowLoginModal}
+                />
+              }
+            />
             <Route path="/course-details/:id" element={<CourseDetail />} />
             <Route
               path="/program-player/:programId"
@@ -508,250 +587,261 @@ seedCMSData();
                 />
               }
             />
-           
+
             {/* NEW */}
-<Route
-  path="/platforms"
-  element={
-    <Platforms
-      theme={theme}
-      toggleTheme={toggleTheme}
-      setShowLoginModal={setShowLoginModal}
-    />
-  }
-/>
-<Route
-  path="/ilm-ora-meet"
-  element={
-    <IlmoraMeet
-      theme={theme}
-      toggleTheme={toggleTheme}
-      setShowLoginModal={setShowLoginModal}
-    />
-  }
-/>
-<Route
-  path="/ilm-ora-talk"
-  element={
-    <IlmoraTalk
-      theme={theme}
-      toggleTheme={toggleTheme}
-      setShowLoginModal={setShowLoginModal}
-    />
-  }
-/>
-<Route
-  path="/study-abroad"
-  element={
-    <StudyAbroad
-      theme={theme}
-      toggleTheme={toggleTheme}
-      setShowLoginModal={setShowLoginModal}
-    />
-  }
-/>
-<Route
-  path="/ilm-ora-gulf"
-  element={
-    <ILMORAGulf
-      theme={theme}
-      toggleTheme={toggleTheme}
-      setShowLoginModal={setShowLoginModal}
-    />
-  }
-/>
-<Route
-  path="/resume-builder"
-  element={
-    <ResumeBuilderLanding
-      theme={theme}
-      toggleTheme={toggleTheme}
-      setShowLoginModal={setShowLoginModal}
-    />
-  }
-/>
-<Route
-  path="/student-hub"
-  element={
-    <StudentHub
-      theme={theme}
-      toggleTheme={toggleTheme}
-      setShowLoginModal={setShowLoginModal}
-    />
-  }
-/>
-<Route
-  path="/manager-hub"
-  element={
-    <ManagerHub
-      theme={theme}
-      toggleTheme={toggleTheme}
-      setShowLoginModal={setShowLoginModal}
-    />
-  }
-/>
-<Route
-  path="/trainer-hub"
-  element={
-    <TrainerHub
-      theme={theme}
-      toggleTheme={toggleTheme}
-      setShowLoginModal={setShowLoginModal}
-    />
-  }
-/>
-<Route
-  path="fde-academy"
-  element={
-    <FDEAcademy
-      theme={theme}
-      toggleTheme={toggleTheme}
-      setShowLoginModal={setShowLoginModal}
-    />
-  }
-/>
-<Route
-  path="/ai-companion"
-  element={
-    <AiCompanionLanding
-      theme={theme}
-      toggleTheme={toggleTheme}
-      setShowLoginModal={setShowLoginModal}
-    />
-  }
-/>
-<Route
-  path="/whiteboard"
-  element={
-    <WhiteboardLanding
-      theme={theme}
-      toggleTheme={toggleTheme}
-      setShowLoginModal={setShowLoginModal}
-    />
-  }
-/>
-<Route
-  path="/coding-lab"
-  element={
-    <CodingLabLanding
-      theme={theme}
-      toggleTheme={toggleTheme}
-      setShowLoginModal={setShowLoginModal}
-    />
-  }
-/>
-<Route
-  path="/study-plan"
-  element={
-    <StudyPlanLanding
-      theme={theme}
-      toggleTheme={toggleTheme}
-      setShowLoginModal={setShowLoginModal}
-    />
-  }
-/>
+            <Route
+              path="/platforms"
+              element={
+                <Platforms
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  setShowLoginModal={setShowLoginModal}
+                />
+              }
+            />
+            <Route
+              path="/ilm-ora-meet"
+              element={
+                <IlmoraMeet
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  setShowLoginModal={setShowLoginModal}
+                />
+              }
+            />
+            <Route
+              path="/ilm-ora-talk"
+              element={
+                <IlmoraTalk
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  setShowLoginModal={setShowLoginModal}
+                />
+              }
+            />
+            <Route
+              path="/study-abroad"
+              element={
+                <StudyAbroad
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  setShowLoginModal={setShowLoginModal}
+                />
+              }
+            />
+            <Route
+              path="/ilm-ora-gulf"
+              element={
+                <ILMORAGulf
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  setShowLoginModal={setShowLoginModal}
+                />
+              }
+            />
+            <Route
+              path="/resume-builder"
+              element={
+                <ResumeBuilderLanding
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  setShowLoginModal={setShowLoginModal}
+                />
+              }
+            />
+            <Route
+              path="/student-hub"
+              element={
+                <StudentHub
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  setShowLoginModal={setShowLoginModal}
+                />
+              }
+            />
+            <Route
+              path="/manager-hub"
+              element={
+                <ManagerHub
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  setShowLoginModal={setShowLoginModal}
+                />
+              }
+            />
+            <Route
+              path="/trainer-hub"
+              element={
+                <TrainerHub
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  setShowLoginModal={setShowLoginModal}
+                />
+              }
+            />
+            <Route
+              path="fde-academy"
+              element={
+                <FDEAcademy
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  setShowLoginModal={setShowLoginModal}
+                />
+              }
+            />
+            <Route
+              path="/ai-companion"
+              element={
+                <AiCompanionLanding
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  setShowLoginModal={setShowLoginModal}
+                />
+              }
+            />
+            <Route
+              path="/whiteboard"
+              element={
+                <WhiteboardLanding
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  setShowLoginModal={setShowLoginModal}
+                />
+              }
+            />
+            <Route
+              path="/coding-lab"
+              element={
+                <CodingLabLanding
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  setShowLoginModal={setShowLoginModal}
+                />
+              }
+            />
+            <Route
+              path="/study-plan"
+              element={
+                <StudyPlanLanding
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  setShowLoginModal={setShowLoginModal}
+                />
+              }
+            />
             {/* ================= CLASS 9 ================= */}
             <Route path="/school-class/9" element={<Class9Subjects />} />
             <Route path="/school-class/9/math" element={<Class9Math />} />
             <Route path="/school-class/9/ai" element={<Class9AI />} />
-              {/* ================= pages/PUBLIC ================= */}
-            <Route path="/public/book-session/:sessionId" element={<PublicBooking />} />
-            <Route path="/public/join-session/:token" element={<PublicJoinSession />} />
-            <Route path="/public/session-complete" element={<PublicSessionComplete />} />
-            <Route path="/public/booking-confirmation/:id" element={<PublicBookingConfirmation />} />
+            {/* ================= pages/PUBLIC ================= */}
+            <Route
+              path="/public/book-session/:sessionId"
+              element={<PublicBooking />}
+            />
+            <Route
+              path="/public/join-session/:token"
+              element={<PublicJoinSession />}
+            />
+            <Route
+              path="/public/session-complete"
+              element={<PublicSessionComplete />}
+            />
+            <Route
+              path="/public/booking-confirmation/:id"
+              element={<PublicBookingConfirmation />}
+            />
             <Route path="/public/sessions" element={<PublicSessionsPage />} />
-             <Route
+            <Route
               path="/workspace/:joinCode"
               element={<IlmoraMeetingPage />}
             />
             <Route
-  path="/ilmorameet/:joinCode"
-  element={<IlmoraMeetingPage />}
-/>
-            
-         
+              path="/ilmorameet/:joinCode"
+              element={<IlmoraMeetingPage />}
+            />
+
             {/* ================= COMPANY ================= */}
-<Route
-  path="/about"
-  element={
-    <AboutTexoraSkills
-      theme={theme}
-      toggleTheme={toggleTheme}
-      showLoginModal={showLoginModal}
-      setShowLoginModal={setShowLoginModal}
-    />
-  }
-/>
-<Route
-  path="/careers"
-  element={
-    <Careers
-      theme={theme}
-      toggleTheme={toggleTheme}
-      setShowLoginModal={setShowLoginModal}
-    />
-  }
-/>
-<Route
-  path="/privacy-policy"
-  element={
-    <PrivacyPolicy
-      theme={theme}
-      toggleTheme={toggleTheme}
-      setShowLoginModal={setShowLoginModal}
-    />
-  }
-/>
-<Route
-  path="/terms-of-service"
-  element={
-    <TermsOfService
-      theme={theme}
-      toggleTheme={toggleTheme}
-      setShowLoginModal={setShowLoginModal}
-    />
-  }
-/>
-<Route
-  path="/contact"
-  element={
-    <ContactUs
-      theme={theme}
-      toggleTheme={toggleTheme}
-      setShowLoginModal={setShowLoginModal}
-    />
-  }
-/>
-<Route
-  path="/pricing"
-  element={
-    <Pricing
-      theme={theme}
-      toggleTheme={toggleTheme}
-      setShowLoginModal={setShowLoginModal}
-    />
-  }
-/>
-<Route
-  path="/faq"
-  element={
-    <FAQ
-      theme={theme}
-      toggleTheme={toggleTheme}
-      setShowLoginModal={setShowLoginModal}
-    />
-  }
-/>
-<Route
-  path="/help-center"
-  element={
-    <HelpCenter
-      theme={theme}
-      toggleTheme={toggleTheme}
-      setShowLoginModal={setShowLoginModal}
-    />
-  }
-/>
+            <Route
+              path="/about"
+              element={
+                <AboutTexoraSkills
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  showLoginModal={showLoginModal}
+                  setShowLoginModal={setShowLoginModal}
+                />
+              }
+            />
+            <Route
+              path="/careers"
+              element={
+                <Careers
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  setShowLoginModal={setShowLoginModal}
+                />
+              }
+            />
+            <Route
+              path="/privacy-policy"
+              element={
+                <PrivacyPolicy
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  setShowLoginModal={setShowLoginModal}
+                />
+              }
+            />
+            <Route
+              path="/terms-of-service"
+              element={
+                <TermsOfService
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  setShowLoginModal={setShowLoginModal}
+                />
+              }
+            />
+            <Route
+              path="/contact"
+              element={
+                <ContactUs
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  setShowLoginModal={setShowLoginModal}
+                />
+              }
+            />
+            <Route
+              path="/pricing"
+              element={
+                <Pricing
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  setShowLoginModal={setShowLoginModal}
+                />
+              }
+            />
+            <Route
+              path="/faq"
+              element={
+                <FAQ
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  setShowLoginModal={setShowLoginModal}
+                />
+              }
+            />
+            <Route
+              path="/help-center"
+              element={
+                <HelpCenter
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  setShowLoginModal={setShowLoginModal}
+                />
+              }
+            />
             {/* ================= AUTH ================= */}
             <Route path="/login" element={<Login />} />
             <Route path="/reset-password" element={<ResetPassword />} />
@@ -759,24 +849,25 @@ seedCMSData();
             <Route path="/verify-email" element={<VerifyEmail />} />
 
             {/* ================= DEMO ================= */}
-            {/* <Route path="/ilm-demo" element={<IlmOraDemoPage />} /> */}
-            <Route
-  path="/ilm-demo"
-  element={
-    <ProtectedRoute>
-      <IlmOraDemoPage />
-    </ProtectedRoute>
-  }
-/>
+            <Route path="/ilm-demo" element={<IlmOraDemoPage />} />
             {/* ================= STUDENT ================= */}
-            <Route path="/student" element={<ProtectedRoute><RoleGuard allowedRoles={["STUDENT", "ADMIN"]}><StudentPanel /></RoleGuard></ProtectedRoute>}>
+            <Route
+              path="/student"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={["STUDENT", "ADMIN"]}>
+                    <StudentPanel />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            >
               <Route index element={<DashboardPage />} />
               <Route path="classroom" element={<StudentClassroomPage />} />
               <Route path="videos" element={<VideoLectures />} />
-              <Route path="notebook" element={<StudentNotebook />} /> 
+              <Route path="notebook" element={<StudentNotebook />} />
               <Route path="documents" element={<Documents />} />
               <Route path="live-classes" element={<LiveClasses />} />
-              
+
               <Route path="recorded-classes" element={<RecordedClasses />} />
               <Route path="call-room" element={<CallRoom />} />
               <Route path="courses" element={<MyCourses />} />
@@ -791,21 +882,22 @@ seedCMSData();
               <Route path="certificates" element={<Certificates />} />
               <Route path="overview" element={<Overview />} />
               <Route path="settings">
-              <Route index element={<Settings />} />
-              <Route path="2fa" element={<TwoFactorAuth />} />
-              <Route path="update-email" element={<UpdateEmail />} />
+                <Route index element={<Settings />} />
+                <Route path="2fa" element={<TwoFactorAuth />} />
+                <Route path="update-email" element={<UpdateEmail />} />
               </Route>
               <Route path="search" element={<SearchPage />} />
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="profile" element={<ProfilePage />} />
-              
+
               <Route path="edit-profile" element={<EditProfile />} />
               <Route path="feedback" element={<StudentFeedback />} />
-              <Route path="skill-map" element={<SkillMap />} /> 
+              <Route path="skill-map" element={<SkillMap />} />
               <Route path="compiler" element={<StudentCompilerPage />} />
               <Route path="study-plan" element={<StudentStudyPlanPage />} />
               <Route path="resume-builder" element={<ResumeBuilder />} />
               <Route path="workspace" element={<StudentMeetings />} />
+
               <Route
                 path="roadmap-upgraded"
                 element={<StudentRoadmapUpgraded />}
@@ -821,10 +913,22 @@ seedCMSData();
             </Route>
 
             {/* ================= TRAINER ================= */}
-            <Route path="/trainer" element={<ProtectedRoute><RoleGuard allowedRoles={["TRAINER", "ADMIN"]}><TrainerPanel /></RoleGuard></ProtectedRoute>}>
+            <Route
+              path="/trainer"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={["TRAINER", "ADMIN"]}>
+                    <TrainerPanel />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            >
               <Route index element={<TrainerDashboard />} />
               <Route path="batches" element={<TrainerBatchesPage />} />
-              <Route path="batches/:batchId/students" element={<TrainerClassroomPage />} />
+              <Route
+                path="batches/:batchId/students"
+                element={<TrainerClassroomPage />}
+              />
               <Route path="trainerfiles" element={<TrainerFiles />} />
               <Route path="upload-videos" element={<UploadVideos />} />
               <Route path="upload-docs" element={<UploadDocuments />} />
@@ -832,10 +936,16 @@ seedCMSData();
               <Route path="my-quizzes" element={<MyQuizzes />} />
               <Route path="edit-assignment/:id" element={<EditAssignment />} />
               <Route path="submissions/:id" element={<ViewSubmissions />} />
-              <Route path="create-assignments" element={<CreateAssignments />} />
+              <Route
+                path="create-assignments"
+                element={<CreateAssignments />}
+              />
               <Route path="my-assignments" element={<MyAssignments />} />
               <Route path="course-management" element={<CourseManagement />} />
-              <Route path="course/:courseId/modules" element={<CourseModules />} />
+              <Route
+                path="course/:courseId/modules"
+                element={<CourseModules />}
+              />
               <Route path="assessments" element={<TrainerAssessments />} />
               <Route path="attendance" element={<TrainerAttendance />} />
               <Route path="doubts-management" element={<DoubtsManagement />} />
@@ -845,10 +955,16 @@ seedCMSData();
               <Route path="view-assignments" element={<ViewAssignments />} />
               <Route path="live" element={<TrainerLiveClasses />} />
               <Route path="start-live" element={<StartLiveSession />} />
-              <Route path="live-controls/:id" element={<LiveSessionControls />} />
+              <Route
+                path="live-controls/:id"
+                element={<LiveSessionControls />}
+              />
               <Route path="live-history" element={<LiveSessionHistory />} />
-              <Route path="live-attendance" element={<LiveAttendanceReport />} />
-              
+              <Route
+                path="live-attendance"
+                element={<LiveAttendanceReport />}
+              />
+
               <Route path="call-room" element={<CallRoom role="trainer" />} />
               <Route path="upload-recorded" element={<UploadRecordedVideo />} />
               <Route path="recorded-list" element={<RecordedClassList />} />
@@ -857,17 +973,16 @@ seedCMSData();
               <Route path="search" element={<SearchPage />} />
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="profile" element={<ProfilePage />} />
-              
+
               <Route path="edit-profile" element={<EditProfile />} />
               <Route path="feedback" element={<TrainerFeedback />} />
               <Route path="skill-analytics" element={<TrainerSkillMap />} />
               <Route path="compiler" element={<TrainerCompilerPage />} />
               <Route path="study-plan" element={<TrainerStudyPlanPage />} />
               <Route path="ai-companion" element={<AiCompanionPanel />} />
-              <Route path="whiteboard" element={<WhiteboardPanel />} />          
+              <Route path="whiteboard" element={<WhiteboardPanel />} />
               <Route path="workspace" element={<TrainerMeetings />} />
-            
-             <Route
+              <Route
                 path="roadmap-upgraded"
                 element={<TrainerRoadmapUpgraded />}
               />
@@ -882,16 +997,37 @@ seedCMSData();
             </Route>
 
             {/* ================= ADMIN ================= */}
-            <Route path="/admin" element={<ProtectedRoute><RoleGuard allowedRoles={["ADMIN"]}><AdminPanel /></RoleGuard></ProtectedRoute>}>
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={["ADMIN"]}>
+                    <AdminPanel />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            >
               <Route index element={<AdminDashboard />} />
               <Route path="settings" element={<OrgSettings />} />
-              <Route path="organisation-overview" element={<OrganisationOverview />} />
+              <Route
+                path="organisation-overview"
+                element={<OrganisationOverview />}
+              />
               <Route path="branches" element={<Branches />} />
               <Route path="batches" element={<AdminBatches />} />
-              <Route path="batches/:batchId/assign-trainer" element={<AssignTrainerPage />} />
-              <Route path="batches/:batchId/students/:trainerEmail" element={<BatchStudentsPage />} />
-              <Route path="batches/:batchId/trainers" element={<BatchTrainerOverviewPage />} />
-              <Route path="users" element={<AllUsers />} /> 
+              <Route
+                path="batches/:batchId/assign-trainer"
+                element={<AssignTrainerPage />}
+              />
+              <Route
+                path="batches/:batchId/students/:trainerEmail"
+                element={<BatchStudentsPage />}
+              />
+              <Route
+                path="batches/:batchId/trainers"
+                element={<BatchTrainerOverviewPage />}
+              />
+              <Route path="users" element={<AllUsers />} />
               <Route path="courses" element={<AllCourses />} />
               <Route path="categories" element={<Categories />} />
               <Route path="videos" element={<AdminVideos />} />
@@ -900,7 +1036,7 @@ seedCMSData();
               <Route path="departmentlist" element={<DepartmentList />} />
               <Route path="usage" element={<UsageAnalytics />} />
               <Route path="files" element={<AdminFiles />} />
-               <Route
+              <Route
                 path="assessment-system"
                 element={<AdminAssessmentSystem />}
               />
@@ -910,13 +1046,13 @@ seedCMSData();
               <Route path="search" element={<SearchPage />} />
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="profile" element={<ProfilePage />} />
-              
+
               <Route path="edit-profile" element={<EditProfile />} />
-             
+
               <Route path="feedback-review" element={<AdminFeedback />} />
               <Route path="skill-analytics" element={<AdminSkillDashboard />} />
-               <Route path="workspace" element={<AdminMeetings />} />
-          <Route
+              <Route path="workspace" element={<AdminMeetings />} />
+              <Route
                 path="roadmap-upgraded"
                 element={<AdminRoadmapUpgraded />}
               />
@@ -932,7 +1068,16 @@ seedCMSData();
             </Route>
 
             {/* ================= BUSINESS ================= */}
-            <Route path="/business" element={<ProtectedRoute><RoleGuard allowedRoles={["BUSINESS", "ADMIN"]}><BusinessPanel /></RoleGuard></ProtectedRoute>}>
+            <Route
+              path="/business"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={["BUSINESS", "ADMIN"]}>
+                    <BusinessPanel />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            >
               <Route index element={<BusinessDashboard />} />
               <Route path="jobs" element={<JobOpenings />} />
               <Route path="applications" element={<Applications />} />
@@ -950,17 +1095,17 @@ seedCMSData();
               <Route path="search" element={<SearchPage />} />
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="profile" element={<ProfilePage />} />
-              
+
               <Route path="edit-profile" element={<EditProfile />} />
             </Route>
- {/* ================= SUPER ADMIN ================= */}
- <Route
+            {/* ================= SUPER ADMIN ================= */}
+            <Route
               path="/superadmin"
               element={
                 <ProtectedRoute>
                   <AuthProvider>
-                  <RoleGuard allowedRoles={["SUPER_ADMIN"]}>
-                        <SaasProvider>
+                    <RoleGuard allowedRoles={["SUPER_ADMIN"]}>
+                      <SaasProvider>
                         <UserManagementProvider>
                           <PermissionProvider>
                             <SuperAdminLayout />
@@ -980,25 +1125,36 @@ seedCMSData();
               <Route path="students" element={<StudentControlPage />} />
               <Route path="student-analytics" element={<StudentAnalytics />} />
               <Route path="student-reports" element={<StudentReportsPage />} />
-              <Route path="students/:studentId" element={<StudentDetailsPage />} />
+              <Route
+                path="students/:studentId"
+                element={<StudentDetailsPage />}
+              />
 
               {/* ================= TRAINER CONTROL ================= */}
               <Route path="trainers" element={<TrainerControlPage />} />
               <Route path="trainer-analytics" element={<TrainerAnalytics />} />
               <Route path="trainer-reports" element={<TrainerReports />} />
-              <Route path="trainers/:trainerId" element={<TrainerDetailsPage />} />
-              
+              <Route
+                path="trainers/:trainerId"
+                element={<TrainerDetailsPage />}
+              />
+
               {/* ================= ADMIN CONTROL ================= */}
-<Route path="admins" element={<AdminControlPage />} />
-{/* ================= ONBOARDING ================= */}
-<Route path="onboarding" element={<Onboardingdashboard />} />
+              <Route path="admins" element={<AdminControlPage />} />
+              {/* ================= ONBOARDING ================= */}
+              <Route path="onboarding" element={<Onboardingdashboard />} />
 
-
-<Route path="pending-approvals" element={<PendingApprovalsPage />} />
-<Route path="batch-control" element={<SuperAdminBatchControl />}/>
- <Route path="courses" element={<SuperAdminCourseManagement />} />
- <Route path="feedback-review" element={<SuperAdminFeedback />} />
-  <Route
+              <Route
+                path="pending-approvals"
+                element={<PendingApprovalsPage />}
+              />
+              <Route
+                path="batch-control"
+                element={<SuperAdminBatchControl />}
+              />
+              <Route path="courses" element={<SuperAdminCourseManagement />} />
+              <Route path="feedback-review" element={<SuperAdminFeedback />} />
+              <Route
                 path="attendance-review"
                 element={<SuperAdminAttendance />}
               />
@@ -1006,18 +1162,39 @@ seedCMSData();
                 path="assessment-system"
                 element={<SuperAdminAssessmentSystem />}
               />
-{/* Organizations — static 'new' MUST be before dynamic :orgId */}
-<Route path="organizations" element={<OrganizationPage />} />
-<Route path="organizations/new" element={<NewOrganizationPage />} />
-<Route path="organizations/:orgId" element={<OrganizationDetailsPage />} />
-<Route path="organizations/:orgId/admins" element={<OrganizationDetailsPage defaultTab="admins" />} />
-<Route path="organizations/:orgId/trainers" element={<OrganizationDetailsPage defaultTab="trainers" />} />
-<Route path="organizations/:orgId/batches" element={<OrganizationDetailsPage defaultTab="batches" />} />
-<Route path="organizations/:orgId/students" element={<OrganizationDetailsPage defaultTab="students" />} />
-<Route path="organizations/:orgId/admins/:adminId" element={<OrganizationAdminDetailsPage />} />
+              {/* Organizations — static 'new' MUST be before dynamic :orgId */}
+              <Route path="organizations" element={<OrganizationPage />} />
+              <Route
+                path="organizations/new"
+                element={<NewOrganizationPage />}
+              />
+              <Route
+                path="organizations/:orgId"
+                element={<OrganizationDetailsPage />}
+              />
+              <Route
+                path="organizations/:orgId/admins"
+                element={<OrganizationDetailsPage defaultTab="admins" />}
+              />
+              <Route
+                path="organizations/:orgId/trainers"
+                element={<OrganizationDetailsPage defaultTab="trainers" />}
+              />
+              <Route
+                path="organizations/:orgId/batches"
+                element={<OrganizationDetailsPage defaultTab="batches" />}
+              />
+              <Route
+                path="organizations/:orgId/students"
+                element={<OrganizationDetailsPage defaultTab="students" />}
+              />
+              <Route
+                path="organizations/:orgId/admins/:adminId"
+                element={<OrganizationAdminDetailsPage />}
+              />
 
-<Route path="batches/:batchId" element={<BatchDetailsPage />} />
- <Route
+              <Route path="batches/:batchId" element={<BatchDetailsPage />} />
+              <Route
                 path="roadmap-upgraded"
                 element={<SuperAdminRoadmapUpgraded />}
               />
@@ -1029,39 +1206,37 @@ seedCMSData();
                 path="roadmap-upgraded/:id"
                 element={<SuperAdminRoadmapUpgradedDetail />}
               />
-{/* ================= FEATURED PROGRAMS ================= */}
+              {/* ================= FEATURED PROGRAMS ================= */}
 
-<Route
-  path="featured-programs"
-  element={<FeaturedProgramsList />}
-/>
+              <Route
+                path="featured-programs"
+                element={<FeaturedProgramsList />}
+              />
 
-<Route
-  path="featured-programs/add"
-  element={<AddEditProgram />}
-/>
+              <Route
+                path="featured-programs/add"
+                element={<AddEditProgram />}
+              />
 
-<Route
-  path="featured-programs/edit/:id"
-  element={<AddEditProgram />}
-/>
-<Route
-  path="top-global-companies"
-  element={<TopGlobalCompanies />}
-/>
+              <Route
+                path="featured-programs/edit/:id"
+                element={<AddEditProgram />}
+              />
+              <Route
+                path="top-global-companies"
+                element={<TopGlobalCompanies />}
+              />
 
-<Route
-  path="mentors"
-  element={<MentorsManagement />}
-/>
+              <Route path="mentors" element={<MentorsManagement />} />
 
-<Route
-  path="upload-watch-now"
-  element={<AdminWatchNowUpload />}
-/>
+              <Route
+                path="upload-watch-now"
+                element={<AdminWatchNowUpload />}
+              />
               {/* ================= ANALYTICS ================= */}
               <Route path="analytics" element={<AnalyticsDashboard />} />
-              
+              {/* ================= AUDIT & MONITORING ================= */}
+              <Route path="audit-monitoring" element={<AuditSection />} />
 
               {/* ================= SETTINGS ================= */}
               <Route path="global-settings" element={<GlobalSettings />} />
@@ -1074,15 +1249,11 @@ seedCMSData();
 
               {/* ================= CMS MANAGEMENT ================= */}
 
-
-<Route
-  path="cms/banner-studio"
-  element={<BannerStudioPage />}
-/>
-<Route
-  path="cms/platform-overview"
-  element={<PlatformOverview />}
-/>
+              <Route path="cms/banner-studio" element={<BannerStudioPage />} />
+              <Route
+                path="cms/platform-overview"
+                element={<PlatformOverview />}
+              />
               {/* ================= COMMON ================= */}
               <Route path="search" element={<SearchPage />} />
               <Route path="notifications" element={<NotificationsPage />} />
@@ -1092,7 +1263,6 @@ seedCMSData();
             {/* ================= FALLBACK ================= */}
             {/* <Route path="*" element={<Navigate to="/superadmin" replace />} /> */}
             <Route path="*" element={<Navigate to="/login" replace />} />
-
           </Routes>
         </Suspense>
       </ErrorBoundary>
@@ -1110,54 +1280,5 @@ seedCMSData();
         onOpenLogin={() => setShowLoginModal(true)}
       />
     </GoogleOAuthProvider>
-    </ThemeProvider>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

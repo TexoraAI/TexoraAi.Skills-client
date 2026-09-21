@@ -18,6 +18,14 @@
 // backend no longer exists in the new zip - this is the only roadmap
 // controller present now. Do not merge the two; the old endpoints, DTOs and
 // mappers (toApiNodeType, backendGraphToFlow, etc.) are gone.
+//
+// FIX (this pass): added getUsageStatus() below. Every other controller
+// endpoint had a matching method here except GET /usage - which is why the
+// dashboard could never show a "X / Y this month" badge: there was no code
+// path that ever fetched that data in the first place, regardless of any
+// UI work. See RoadmapUpgradedDashboard.jsx for the corresponding fetch +
+// <UsageBadge> render, and RoadmapUpgradedWizard.jsx for the
+// ROADMAP_LIMIT_EXCEEDED -> <UpgradeModal> wiring on the generate() call.
 // ---------------------------------------------------------------------------
 
 import axios from "axios";
@@ -52,6 +60,10 @@ http.interceptors.response.use(
     // ResponseStatusException on the backend serializes {status, error,
     // message, ...}; surface .message on the JS Error the same way the old
     // service did, so existing catch(err) => toast(err.message) code works.
+    // NOTE: this only rewrites err.message - err.response.data (which
+    // still contains the raw "error" code, e.g. "ROADMAP_LIMIT_EXCEEDED")
+    // is left untouched, which is exactly what planErrorHandler.js's
+    // parsePlanError() reads to decide whether to open <UpgradeModal>.
     //
     // NOTE: for blob-response calls (getResourcePdfBlob below), a failed
     // request's err.response.data is itself a Blob, not a parsed JSON
@@ -127,6 +139,13 @@ const roadmapService = {
   //   contentSources: string[],  // subset of ALL_CONTENT_SOURCES; empty/omitted = all four
   //   fromLibrary: boolean,      // true = try to reuse a cached LIBRARY/READY syllabus for this targetRole first
   // }
+  //
+  // Can reject with a 429 whose body is
+  // { error: "ROADMAP_LIMIT_EXCEEDED", tier, currentCount, maxAllowed, period, message }
+  // (see RoadmapUsageLimitExceededException / GlobalExceptionHandler) -
+  // callers should run the caught error through planErrorHandler.js's
+  // parsePlanError() and, if it returns non-null, open <UpgradeModal>
+  // instead of showing a plain error string. See RoadmapUpgradedWizard.jsx.
   // -------------------------------------------------------------------------
   async generateRoadmap({
     domain,
@@ -153,6 +172,23 @@ const roadmapService = {
   // role can own roadmaps, ownership is just "who generated it").
   async getMyRoadmaps() {
     const res = await http.get("/my");
+    return res.data;
+  },
+
+  // -------------------------------------------------------------------------
+  // FIX: this method was missing entirely, even though the backend has had
+  // GET /api/roadmap-upgraded/usage (RoadmapUpgradedController.getUsageStatus
+  // -> RoadmapUsageService.getUsageStatus) all along. Without this method,
+  // no component could ever render a usage badge for roadmaps, regardless
+  // of any UI work - the data simply never left the network layer.
+  //
+  // -> { tier: "free"|"pro"|"premium", used: number,
+  //      limit: number | "unlimited", period: "YYYY-MM" }
+  // Read-only preview, not gated itself - safe to call on every dashboard
+  // mount to drive a "X / Y this month" badge next to "Generate roadmap".
+  // -------------------------------------------------------------------------
+  async getUsageStatus() {
+    const res = await http.get("/usage");
     return res.data;
   },
 

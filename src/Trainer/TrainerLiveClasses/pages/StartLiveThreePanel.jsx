@@ -1,8 +1,47 @@
 import { useState, useEffect } from "react";
-import { Video, Calendar, Clock, Users, Radio, ChevronDown, ChevronRight, X, CheckCircle2, Bell, MessageSquare, Save, Copy, Zap, ExternalLink, Globe, RefreshCw, Link, Layers, Settings, Rocket, Send } from "lucide-react";
-import { createLiveSession, startLiveSessionWithToken, getTrainerCalendar } from "@/services/liveSessionService";
+import {
+  Video,
+  Calendar,
+  Clock,
+  Users,
+  Radio,
+  ChevronDown,
+  ChevronRight,
+  X,
+  CheckCircle2,
+  Bell,
+  MessageSquare,
+  Save,
+  Copy,
+  Zap,
+  ExternalLink,
+  Globe,
+  RefreshCw,
+  Link,
+  Layers,
+  Settings,
+  Rocket,
+  Send,
+} from "lucide-react";
+
+import {
+  createLiveSession,
+  startLiveSessionWithToken,
+  getTrainerCalendar,
+  getClassUsage,
+} from "@/services/liveSessionService";
 import { getTrainerBatches } from "@/services/batchService";
-import { unwrapBatches, getBatchId, getBatchName, zonedDateTimeToUTC, DEFAULT_TIMEZONE, genRoomId } from "../data/utils";
+import { parsePlanError } from "@/services/planErrorHandler";
+import UsageBadge from "@/components/plan/UsageBadge";
+import UpgradeModal from "@/components/plan/UpgradeModal";
+import {
+  unwrapBatches,
+  getBatchId,
+  getBatchName,
+  zonedDateTimeToUTC,
+  DEFAULT_TIMEZONE,
+  genRoomId,
+} from "../data/utils";
 import ThreePanelLayout from "../components/ThreePanelLayout";
 import MiniCalendar from "../components/MiniCalendar";
 import PanelSectionHeader from "../components/PanelSectionHeader";
@@ -11,7 +50,13 @@ import CompactLabel from "../components/CompactLabel";
 import TimezoneSelect from "../components/TimezoneSelect";
 import { FONT_FAMILY, FONT_WEIGHT } from "../data/theme";
 
-export default function StartLiveThreePanel({ t, isDark, navigate, isMobile, isTablet }) {
+export default function StartLiveThreePanel({
+  t,
+  isDark,
+  navigate,
+  isMobile,
+  isTablet,
+}) {
   const [currentStep, setCurrentStep] = useState(1);
   const [sessionEvents, setSessionEvents] = useState([]);
   const [batches, setBatches] = useState([]);
@@ -22,21 +67,20 @@ export default function StartLiveThreePanel({ t, isDark, navigate, isMobile, isT
   const [error, setError] = useState(null);
   const [shortScheduleWarning, setShortScheduleWarning] = useState(null);
 
-  // const [form, setForm] = useState({
-  //   title: "",
-  //   description: "",
-  //   batchId: "",
-  //   date: "",
-  //   time: "",
-  //   duration: "",
-  //   chat: true,
-  //   recording: true,
-  //   notifications: true,
-  //   isPublished: false, // ADD
-  //   mode: "",
-  //   meetingLink: "",
-  //   roomId: genRoomId(),
-  // });
+  // ── Plan entitlement state ──
+  const [classUsage, setClassUsage] = useState(null); // { used, limit, period }
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [upgradeConfig, setUpgradeConfig] = useState(null);
+
+  const loadClassUsage = async () => {
+    try {
+      const res = await getClassUsage();
+      setClassUsage(res.data);
+    } catch (err) {
+      console.error("Failed to load class usage:", err);
+    }
+  };
+
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -69,26 +113,11 @@ export default function StartLiveThreePanel({ t, isDark, navigate, isMobile, isT
       }
     })();
   }, []);
-  // ✅ Load existing sessions into calendar on mount
-  // useEffect(() => {
-  //   (async () => {
-  //     try {
-  //       const now = new Date();
-  //       const from = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
-  //       const to = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-31`;
-  //       const res = await getTrainerCalendar(from, to);
-  //       const data = Array.isArray(res.data) ? res.data : [];
-  //       setSessionEvents(
-  //         data.map((s) => ({
-  //           date: s.scheduledDate,
-  //           title: s.title,
-  //         })),
-  //       );
-  //     } catch (err) {
-  //       console.error("Calendar load failed", err);
-  //     }
-  //   })();
-  // }, []);
+
+  useEffect(() => {
+    loadClassUsage();
+  }, []);
+
   const loadCalendarEvents = async (year, month) => {
     try {
       const from = `${year}-${String(month + 1).padStart(2, "0")}-01`;
@@ -140,25 +169,7 @@ export default function StartLiveThreePanel({ t, isDark, navigate, isMobile, isT
     form.scheduleMode === "now"
       ? form.title.trim()
       : form.title.trim() && form.date && form.time;
-  // const buildPayload = (status) => ({
-  //   title: form.title,
-  //   description: form.description,
-  //   // ✅ batchId is optional — null if not selected (global session)
-  //   ...(form.batchId ? { batchId: Number(form.batchId) } : {}),
-  //   scheduledDate: form.date,
-  //   scheduledTime: form.time,
-  //   duration: Number(form.duration),
-  //   chatEnabled: form.chat,
-  //   autoRecord: form.recording,
-  //   notifyStudents: form.notifications,
-  //   isPublished: form.isPublished,
-  //   // ✅ meetingType maps to backend field
-  //   meetingType: form.mode === "external" ? "EXTERNAL" : "CUSTOM",
-  //   ...(status ? { status } : {}),
-  //   ...(form.mode === "external"
-  //     ? { externalMeetingUrl: form.meetingLink }
-  //     : {}),
-  // });
+
   const buildPayload = (status) => {
     // ✅ "Start Now" — use this instant's date/time in the chosen timezone
     let scheduledDate = form.date;
@@ -203,67 +214,7 @@ export default function StartLiveThreePanel({ t, isDark, navigate, isMobile, isT
         : {}),
     };
   };
-  // const handleGoLive = async () => {
-  //   setError(null);
-  //   setShortScheduleWarning(null);
-  //   if (!form.title.trim()) {
-  //     setError("Session title is required.");
-  //     setCurrentStep(1);
-  //     return;
-  //   }
 
-  //   if (!form.date) {
-  //     setError("Please select a date.");
-  //     setCurrentStep(1);
-  //     return;
-  //   }
-  //   if (!form.time) {
-  //     setError("Please select a time.");
-  //     setCurrentStep(1);
-  //     return;
-  //   }
-  //   if (!form.duration) {
-  //     setError("Please select a duration.");
-  //     setCurrentStep(1);
-  //     return;
-  //   }
-
-  //   const scheduledDateTime = new Date(`${form.date}T${form.time}`);
-  //   const now = new Date();
-  //   if (scheduledDateTime <= now) {
-  //     setError("Scheduled date and time must be in the future.");
-  //     setCurrentStep(1);
-  //     return;
-  //   }
-
-  //   const diffMin = (scheduledDateTime - now) / (1000 * 60);
-  //   if (diffMin < 30) {
-  //     setShortScheduleWarning(
-  //       `⚡ Session starts in ${Math.ceil(diffMin)} min. Students will get an immediate notification instead of a 15-min reminder.`,
-  //     );
-  //   }
-
-  //   try {
-  //     setSubmitting(true);
-  //     const res = await createLiveSession(buildPayload());
-  //     navigate(`/trainer/session-scheduled/${res.data.id}`, {
-  //       state: {
-  //         scheduledDate: form.date,
-  //         scheduledTime: form.time,
-  //         title: form.title,
-  //         duration: form.duration,
-  //       },
-  //     });
-  //   } catch (err) {
-  //     console.error(err);
-  //     setError(
-  //       err?.response?.data?.error ||
-  //         "Failed to create session. Please try again.",
-  //     );
-  //   } finally {
-  //     setSubmitting(false);
-  //   }
-  // };
   const handleGoLive = async () => {
     setError(null);
     setShortScheduleWarning(null);
@@ -283,6 +234,7 @@ export default function StartLiveThreePanel({ t, isDark, navigate, isMobile, isT
       try {
         setSubmitting(true);
         const res = await createLiveSession(buildPayload());
+        loadClassUsage();
         const liveRes = await startLiveSessionWithToken(res.data.id);
         const { room, token } = liveRes.data;
         if (!token) {
@@ -304,11 +256,17 @@ export default function StartLiveThreePanel({ t, isDark, navigate, isMobile, isT
           state: { room, token, startedAt },
         });
       } catch (err) {
-        console.error(err);
-        setError(
-          err?.response?.data?.error ||
-            "Failed to start session. Please try again.",
-        );
+        const planError = parsePlanError(err);
+        if (planError) {
+          setUpgradeConfig(planError);
+          setUpgradeModalOpen(true);
+        } else {
+          console.error(err);
+          setError(
+            err?.response?.data?.error ||
+              "Failed to start session. Please try again.",
+          );
+        }
       } finally {
         setSubmitting(false);
       }
@@ -338,10 +296,10 @@ export default function StartLiveThreePanel({ t, isDark, navigate, isMobile, isT
       setCurrentStep(1);
       return;
     }
-
     try {
       setSubmitting(true);
       const res = await createLiveSession(buildPayload());
+      loadClassUsage();
       navigate(`/trainer/session-scheduled/${res.data.id}`, {
         state: {
           scheduledDate: form.date,
@@ -352,11 +310,17 @@ export default function StartLiveThreePanel({ t, isDark, navigate, isMobile, isT
         },
       });
     } catch (err) {
-      console.error(err);
-      setError(
-        err?.response?.data?.error ||
-          "Failed to create session. Please try again.",
-      );
+      const planError = parsePlanError(err);
+      if (planError) {
+        setUpgradeConfig(planError);
+        setUpgradeModalOpen(true);
+      } else {
+        console.error(err);
+        setError(
+          err?.response?.data?.error ||
+            "Failed to create session. Please try again.",
+        );
+      }
     } finally {
       setSubmitting(false);
     }
@@ -371,6 +335,7 @@ export default function StartLiveThreePanel({ t, isDark, navigate, isMobile, isT
     try {
       setPublishing(true);
       await createLiveSession(buildPayload("SCHEDULED"));
+      loadClassUsage();
       if (form.date)
         setSessionEvents((prev) => [
           ...prev,
@@ -379,8 +344,14 @@ export default function StartLiveThreePanel({ t, isDark, navigate, isMobile, isT
       setPublishDone(true);
       setTimeout(() => setPublishDone(false), 3500);
     } catch (err) {
-      console.error(err);
-      setError(err?.response?.data?.error || "Failed to schedule session.");
+      const planError = parsePlanError(err);
+      if (planError) {
+        setUpgradeConfig(planError);
+        setUpgradeModalOpen(true);
+      } else {
+        console.error(err);
+        setError(err?.response?.data?.error || "Failed to schedule session.");
+      }
     } finally {
       setPublishing(false);
     }
@@ -517,6 +488,25 @@ export default function StartLiveThreePanel({ t, isDark, navigate, isMobile, isT
 
         <div style={{ margin: "8px 0", borderTop: `1px solid ${t.border}` }} />
 
+        {classUsage && (
+          <UsageBadge
+            used={classUsage.used}
+            limit={classUsage.limit === "unlimited" ? null : classUsage.limit}
+            unlimited={classUsage.limit === "unlimited"}
+            period="month"
+            label="Live classes"
+            c={{
+              cardBorder: t.border,
+              cardBg: t.pillBg,
+              textSub: t.textSub,
+              textPrimary: t.text,
+              divider: t.dividerBg,
+              accent: "#22c55e",
+              errorColor: "#ef4444",
+            }}
+          />
+        )}
+
         {[
           { label: "Title", val: form.title || "—", color: "#22c55e" },
           { label: "Batch", val: batchLabel || "—", color: "#22d3ee" },
@@ -648,30 +638,7 @@ export default function StartLiveThreePanel({ t, isDark, navigate, isMobile, isT
             </div>
           </div>
         )}
-        {/* <button
-          onClick={handlePublish}
-          disabled={publishing}
-          style={{
-            width: "100%",
-            padding: "7px 0",
-            borderRadius: 7,
-            border: `1px solid ${t.border}`,
-            background: "transparent",
-            color: t.textSub,
-            fontSize: 10,
-            fontWeight: FONT_WEIGHT.semibold,
-            cursor: publishing ? "not-allowed" : "pointer",
-            fontFamily: FONT_FAMILY,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 5,
-            transition: "all 0.18s",
-          }}
-        >
-          <Send size={11} />
-          {publishing ? "Scheduling…" : "Schedule for Later"}
-        </button> */}
+
         {form.scheduleMode !== "now" && (
           <button
             onClick={handlePublish}
@@ -1058,61 +1025,7 @@ export default function StartLiveThreePanel({ t, isDark, navigate, isMobile, isT
                 />
               </div>
             </div>
-            {/* <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr 1fr",
-                gap: 8,
-              }}
-            >
-              <div>
-                <CompactLabel t={t}>Date *</CompactLabel>
-                <input
-                  type="date"
-                  className="sls-input"
-                  value={form.date}
-                  onChange={(e) => upd("date", e.target.value)}
-                />
-              </div>
-              <div>
-                <CompactLabel t={t}>Time *</CompactLabel>
-                <input
-                  type="time"
-                  className="sls-input"
-                  value={form.time}
-                  onChange={(e) => upd("time", e.target.value)}
-                />
-              </div>
-              <div>
-                <CompactLabel t={t}>Duration</CompactLabel>
-                <div style={{ position: "relative" }}>
-                  <select
-                    className="sls-input"
-                    value={form.duration}
-                    onChange={(e) => upd("duration", e.target.value)}
-                    style={{ cursor: "pointer", paddingRight: 30 }}
-                  >
-                    <option value="">Select...</option>
-                    {durations.map((d) => (
-                      <option key={d} value={d}>
-                        {d} min
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown
-                    size={11}
-                    color={t.textMuted}
-                    style={{
-                      position: "absolute",
-                      right: 10,
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      pointerEvents: "none",
-                    }}
-                  />
-                </div>
-              </div>
-            </div> */}
+
             {form.scheduleMode === "schedule" && (
               <div
                 style={{
@@ -1823,29 +1736,7 @@ export default function StartLiveThreePanel({ t, isDark, navigate, isMobile, isT
                 </>
               )}
             </button>
-            {/* <button
-              onClick={handlePublish}
-              disabled={publishing}
-              style={{
-                width: "100%",
-                padding: "9px 0",
-                borderRadius: 9,
-                border: `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "#e2e8f0"}`,
-                background: "transparent",
-                color: t.textSub,
-                fontSize: 11,
-                fontWeight: FONT_WEIGHT.semibold,
-                cursor: publishing ? "not-allowed" : "pointer",
-                fontFamily: FONT_FAMILY,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 6,
-              }}
-            >
-              <Send size={12} />
-              {publishing ? "Scheduling…" : "Schedule for Later (Publish)"}
-            </button> */}
+
             {form.scheduleMode !== "now" && (
               <button
                 onClick={handlePublish}
@@ -1887,13 +1778,6 @@ export default function StartLiveThreePanel({ t, isDark, navigate, isMobile, isT
         t={t}
       />
       <div className="panel-scroll">
-        {/* <MiniCalendar
-          t={t}
-          isDark={isDark}
-          selectedDate={form.date}
-          onSelectDate={(dateStr) => upd("date", dateStr)}
-          sessionEvents={sessionEvents}
-        /> */}
         <MiniCalendar
           t={t}
           isDark={isDark}
@@ -2055,20 +1939,37 @@ export default function StartLiveThreePanel({ t, isDark, navigate, isMobile, isT
   );
 
   return (
-    <ThreePanelLayout
-      t={t}
-      isDark={isDark}
-      left={LeftPanel}
-      center={CenterPanel}
-      right={RightPanel}
-      defaultLeftW={210}
-      defaultRightW={250}
-      minLeft={170}
-      maxLeft={300}
-      minRight={200}
-      maxRight={340}
-      isMobile={isMobile}
-      isTablet={isTablet}
-    />
+    <>
+      <ThreePanelLayout
+        t={t}
+        isDark={isDark}
+        left={LeftPanel}
+        center={CenterPanel}
+        right={RightPanel}
+        defaultLeftW={210}
+        defaultRightW={250}
+        minLeft={170}
+        maxLeft={300}
+        minRight={200}
+        maxRight={340}
+        isMobile={isMobile}
+        isTablet={isTablet}
+      />
+      {upgradeModalOpen && upgradeConfig && (
+        <UpgradeModal
+          isOpen={upgradeModalOpen}
+          onClose={() => setUpgradeModalOpen(false)}
+          planType={upgradeConfig.planType}
+          userId={JSON.parse(localStorage.getItem("lms_user") || "{}").id}
+          currentPlan="free"
+          availableTargetPlans={["pro", "premium"]}
+          featureLabel={upgradeConfig.message}
+          onSuccess={() => {
+            setUpgradeModalOpen(false);
+            loadClassUsage();
+          }}
+        />
+      )}
+    </>
   );
 }

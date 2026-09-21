@@ -22,6 +22,7 @@ import {
   getTrainerCalendar,
   startAiTranscript,
   sendAiCompanionMessage,
+  getTranscriptByLiveSession,
 } from "../../services/liveSessionService";
 
 // ─── Helpers (unchanged from working version) ─────────────────────────────────
@@ -262,6 +263,7 @@ export default function AiMeetings({ isDark, onNavigate, onTranscriptStart }) {
           sessionTitle: session
             ? getSessionTitle(session)
             : "In-person transcript",
+          readOnly: false,
         });
       } else if (onNavigate) {
         onNavigate("notes");
@@ -269,6 +271,45 @@ export default function AiMeetings({ isDark, onNavigate, onTranscriptStart }) {
     } catch (err) {
       console.error("Failed to start transcript:", err);
       alert("Failed to start transcription. Please try again.");
+    } finally {
+      setTranscribing(null);
+    }
+  };
+
+  // Virtual/LiveKit sessions: never touch the mic. Look up the
+  // Whisper-derived transcript (linked once the call recording finishes
+  // processing) and open it read-only, or tell the trainer it isn't ready.
+  const handleViewVirtualTranscript = async (session) => {
+    const key = session.id || "session";
+    setTranscribing(key);
+    try {
+      const res = await getTranscriptByLiveSession(session.id);
+      const transcriptId = res?.data?.session?.id || res?.data?.id || null;
+      if (!transcriptId) {
+        alert(
+          "Transcript isn't ready yet. It's generated automatically once the call recording finishes processing.",
+        );
+        return;
+      }
+      if (onTranscriptStart) {
+        onTranscriptStart({
+          transcriptId,
+          liveSessionId: session.id,
+          sessionTitle: getSessionTitle(session),
+          readOnly: true,
+        });
+      } else if (onNavigate) {
+        onNavigate("notes");
+      }
+    } catch (err) {
+      if (err?.response?.status === 404) {
+        alert(
+          "Transcript isn't ready yet. It's generated automatically once the call recording finishes processing.",
+        );
+      } else {
+        console.error("Failed to load transcript:", err);
+        alert("Failed to load transcript. Please try again.");
+      }
     } finally {
       setTranscribing(null);
     }
@@ -478,6 +519,12 @@ export default function AiMeetings({ isDark, onNavigate, onTranscriptStart }) {
     const key = session?.id || idx;
     const isTx = transcribing === (session?.id || "session");
     const isSelected = selectedSession?.id === session?.id;
+    // Virtual/LiveKit sessions can't be transcribed via this device's mic —
+    // their transcript comes from the call recording once processed.
+    const isVirtual = !!mode && mode !== "CUSTOM";
+    // In-person transcription only works off this device's mic; scheduled
+    // sessions with a non-CUSTOM meetingType are virtual/LiveKit calls where
+    // the mic can't hear other participants, so gate the button off.
 
     const statusColor =
       status?.toLowerCase() === "live" || status?.toLowerCase() === "ongoing"
@@ -635,9 +682,15 @@ export default function AiMeetings({ isDark, onNavigate, onTranscriptStart }) {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              handleStartTranscribing(session);
+              if (isVirtual) handleViewVirtualTranscript(session);
+              else handleStartTranscribing(session);
             }}
             disabled={!!isTx}
+            title={
+              isVirtual
+                ? "Virtual sessions are transcribed from the call recording, not this device's mic."
+                : undefined
+            }
             style={{
               display: "flex",
               alignItems: "center",
@@ -672,7 +725,13 @@ export default function AiMeetings({ isDark, onNavigate, onTranscriptStart }) {
             ) : (
               <Mic size={11} />
             )}
-            {isTx ? "Starting…" : "Start Transcribing"}
+            {isTx
+              ? isVirtual
+                ? "Checking…"
+                : "Starting…"
+              : isVirtual
+                ? "View Transcript"
+                : "Start Transcribing"}
           </button>
 
           {joinUrl ? (
@@ -726,6 +785,22 @@ export default function AiMeetings({ isDark, onNavigate, onTranscriptStart }) {
             </button>
           )}
         </div>
+
+        {isVirtual && (
+          <div
+            style={{
+              marginTop: 8,
+              fontSize: 10.5,
+              color: textMuted,
+              fontFamily: "'Poppins', sans-serif",
+              lineHeight: 1.5,
+            }}
+          >
+            Live transcription captures your device's microphone, so it only
+            works for in-person sessions. Use "Start in-person transcription"
+            for a standalone note-taking session instead.
+          </div>
+        )}
       </div>
     );
   };

@@ -33,7 +33,9 @@ export default function AnnouncementBanner() {
       setCurrentBannerIndex(0);
       return;
     }
-    courseService.registerBannerView(activeBanners[currentBannerIndex].id).catch(() => {});
+    courseService
+      .registerBannerView(activeBanners[currentBannerIndex].id)
+      .catch(() => {});
   }, [activeBanners, currentBannerIndex]);
 
   /* ── Auto-slide the banner carousel when there is more than one active banner ── */
@@ -48,8 +50,7 @@ export default function AnnouncementBanner() {
   if (activeBanners.length === 0) return null;
 
   const bannerCount = activeBanners.length;
-  const safeIndex =
-    currentBannerIndex < bannerCount ? currentBannerIndex : 0;
+  const safeIndex = currentBannerIndex < bannerCount ? currentBannerIndex : 0;
 
   const goToPrevBanner = (e) => {
     e.stopPropagation();
@@ -135,26 +136,56 @@ export default function AnnouncementBanner() {
                     />
                   </picture>
                 ) : (
-                  // ── No image uploaded — fall back to the text-only gradient strip ──
+                  // ── No image uploaded — fall back to the styled gradient strip,
+                  // driven by whatever the Builder / AI generation saved ──
                   <div
-                    className="flex items-center justify-between gap-4 py-4 px-4 sm:px-6 text-white"
-                    style={{ background: banner.gradient || "#1E293B" }}
+                    className="flex items-center justify-between gap-4"
+                    style={{
+                      background: banner.gradient || "#1E293B",
+                      padding: banner.canvasPadding ?? 24,
+                      borderRadius: banner.canvasRadius ?? 0,
+                      color: "#fff",
+                    }}
                   >
-                    <div>
+                    <div
+                      style={{
+                        textAlign: banner.align || "left",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems:
+                          {
+                            left: "flex-start",
+                            center: "center",
+                            right: "flex-end",
+                          }[banner.align] || "flex-start",
+                      }}
+                    >
                       {banner.eyebrow && (
                         <p className="text-xs uppercase tracking-widest opacity-80">
                           {banner.eyebrow}
                         </p>
                       )}
-                      <p className="text-lg font-bold">
+                      <p
+                        style={{
+                          fontSize: banner.titleSize ?? 20,
+                          fontWeight: banner.titleWeight ?? "700",
+                          color: banner.titleColor ?? "#ffffff",
+                          lineHeight: 1.25,
+                        }}
+                      >
                         {banner.emoji} {banner.title || banner.name}
                       </p>
                       {banner.subtitle && (
-                        <p className="text-sm opacity-90">{banner.subtitle}</p>
+                        <p className="text-sm opacity-90 mt-1">
+                          {banner.subtitle}
+                        </p>
                       )}
                     </div>
                     {banner.ctaText && (
-                      <span className="flex-shrink-0 bg-white/15 hover:bg-white/25 transition px-4 py-2 rounded-lg text-sm font-semibold">
+                      <span
+                        className="flex-shrink-0 bg-white/15 hover:bg-white/25 transition px-4 py-2 text-sm font-semibold"
+                        style={{ borderRadius: banner.ctaRadius ?? 8 }}
+                      >
                         {banner.ctaText}
                       </span>
                     )}
@@ -197,9 +228,7 @@ export default function AnnouncementBanner() {
                   }}
                   aria-label={`Go to banner ${idx + 1}`}
                   className={`h-1.5 rounded-full transition-all ${
-                    idx === safeIndex
-                      ? "w-5 bg-white"
-                      : "w-1.5 bg-white/50"
+                    idx === safeIndex ? "w-5 bg-white" : "w-1.5 bg-white/50"
                   }`}
                 />
               ))}
@@ -210,59 +239,3 @@ export default function AnnouncementBanner() {
     </section>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

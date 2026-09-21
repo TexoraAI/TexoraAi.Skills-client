@@ -35,6 +35,13 @@ export const courseService = {
     });
   },
 
+  // ✅ NEW — true total vs visible count, so the UI can show a locked tile
+  getStudentCourseCount() {
+    return axios.get(`${API}/courses/student/count`, {
+      headers: authHeader(),
+    });
+  },
+
   deleteCourse(id) {
     return axios.delete(`${API}/courses/${id}`, {
       headers: authHeader(),
@@ -171,6 +178,29 @@ export const courseService = {
     });
   },
 
+  // POST /api/course/v1/featurecourse/superadmin/upload-image  (SUPER_ADMIN)
+  // Uploads a single image to S3 (banner, thumbnail, instructor photo,
+  // certificate image, OG image, or a project image) and returns { url, key }.
+  // `slug` groups the image under images/featured-program-images/{slug}/ in S3;
+  // `field` just labels the filename (e.g. "banner", "project-image").
+  uploadFeaturedProgramImage(file, slug, field) {
+    const formData = new FormData();
+    formData.append("file", file);
+    if (slug) formData.append("slug", slug);
+    if (field) formData.append("field", field);
+    return axios.post(
+      `${API}/course/v1/featurecourse/superadmin/upload-image`,
+      formData,
+      {
+        headers: {
+          ...authHeader(),
+          // Do NOT set Content-Type manually — the browser sets
+          // multipart/form-data; boundary=... automatically.
+        },
+      },
+    );
+  },
+
   // POST /api/course/v1/featurecourse/superadmin  (SUPER_ADMIN)
   createFeaturedProgram(data) {
     return axios.post(`${API}/course/v1/featurecourse/superadmin`, data, {
@@ -249,7 +279,17 @@ export const courseService = {
       headers: authHeader(),
     });
   },
-
+  // POST /api/v1/mentor-feedback/upload-image  (SUPER_ADMIN, multipart "file")
+  uploadMentorImage(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+    return axios.post(`${API}/v1/mentor-feedback/upload-image`, formData, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("lms_token")}`,
+        // no Content-Type — browser sets multipart boundary automatically
+      },
+    });
+  },
   // POST /api/v1/mentor-feedback  (SUPER_ADMIN)
   createMentorFeedback(data) {
     return axios.post(`${API}/v1/mentor-feedback`, data, {
@@ -354,6 +394,16 @@ export const courseService = {
     });
   },
 
+  uploadBannerImage(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    return axios.post(`${API}/banners/upload-image`, formData, {
+      headers: {
+        ...authHeader(),
+      },
+    });
+  },
   // ===================== CMS LANDING HUBS ENDPOINTS =====================
   // GET /api/v1/cmslandinghubs/{pageKey}  (SUPER_ADMIN)
   getCmsPage(pageKey) {
@@ -700,9 +750,28 @@ export const courseService = {
     );
   },
 
-
-    // GET /api/course/v1/featurecourse/summary  (public — lightweight, homepage only)
+  // GET /api/course/v1/featurecourse/summary  (public — lightweight, homepage only)
   getFeaturedProgramsSummary() {
     return axios.get(`${API}/course/v1/featurecourse/summary`);
+  },
+
+  // ✅ NEW — trainer's course-creation quota, for the usage pill
+  getCourseUsage() {
+    return axios.get(`${API}/courses/usage/create`, {
+      headers: authHeader(),
+    });
+  },
+
+  // ✅ NEW — module-count usage for a specific course (quota pill)
+  getModuleUsage(courseId) {
+    return axios.get(`${API}/content/usage/${courseId}`, {
+      headers: authHeader(),
+    });
+  },
+  // ✅ NEW — student's plan summary: course visibility cap + modules-per-course cap
+  getStudentPlanSummary() {
+    return axios.get(`${API}/courses/student/plan-summary`, {
+      headers: authHeader(),
+    });
   },
 };

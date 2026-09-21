@@ -29,6 +29,7 @@ import SuperAdminLayout from "./SuperAdmin/components/layout/SuperAdminLayout";
 import { AuthProvider } from "./SuperAdmin/context/AuthContext";
 import { PermissionProvider } from "./SuperAdmin/context/PermissionContext";
 import { UserManagementProvider } from "./SuperAdmin/context/UserManagementContext";
+import { ThemeProvider } from "./SuperAdmin/context/ThemeContext";
 
 /* Dashboard */
 const SuperAdminDashboard = lazyLoad(
@@ -1100,23 +1101,25 @@ export default function App() {
             </Route>
             {/* ================= SUPER ADMIN ================= */}
             <Route
-              path="/superadmin"
-              element={
-                <ProtectedRoute>
-                  <AuthProvider>
-                    <RoleGuard allowedRoles={["SUPER_ADMIN"]}>
-                      <SaasProvider>
-                        <UserManagementProvider>
-                          <PermissionProvider>
-                            <SuperAdminLayout />
-                          </PermissionProvider>
-                        </UserManagementProvider>
-                      </SaasProvider>
-                    </RoleGuard>
-                  </AuthProvider>
-                </ProtectedRoute>
-              }
-            >
+  path="/superadmin"
+  element={
+    <ProtectedRoute>
+      <AuthProvider>
+        <RoleGuard allowedRoles={["SUPER_ADMIN"]}>
+          <SaasProvider>
+            <UserManagementProvider>
+              <PermissionProvider>
+                <ThemeProvider theme={theme} toggleTheme={toggleTheme}>
+                  <SuperAdminLayout />
+                </ThemeProvider>
+              </PermissionProvider>
+            </UserManagementProvider>
+          </SaasProvider>
+        </RoleGuard>
+      </AuthProvider>
+    </ProtectedRoute>
+  }
+>
               {/* Dashboard */}
               <Route index element={<SuperAdminDashboard />} />
               <Route path="workspace" element={<SuperAdminMeetings />} />

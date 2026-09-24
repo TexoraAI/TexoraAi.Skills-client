@@ -46,6 +46,8 @@ import {
   refreshHostToken,
   refreshGuestToken,
 } from "@/services/liveSessionService";
+
+import { texoraValidateJoinCode } from "@/services/texoraMeetingService";
 import { AudioPermissionAlert } from "./components/AudioPermissionAlert";
 import { Btn } from "./components/Btn";
 import { EmojiFloaters } from "./components/EmojiFloaters";
@@ -875,10 +877,40 @@ export function MeetingRoom({
   }, [liveCaptions.length]);
 
   /* ── everyone: poll meeting status so guests learn the host ended it ── */
+
+  /*curren working code for ilmora and added for texora i erros comes use this old code */
+
+  /* ── everyone: poll meeting status so guests learn the host ended it ── */
+  // useEffect(() => {
+  //   statusPollRef.current = setInterval(async () => {
+  //     try {
+  //       const res = await getMeetingByJoinCode(joinCode);
+  //       if (res?.data?.meetingStatus === "ENDED") {
+  //         clearInterval(statusPollRef.current);
+  //         setEndedToast(true);
+  //         setTimeout(() => onEndedRemotely(), 2500);
+  //       }
+  //     } catch (_) {}
+  //   }, MEETING_STATUS_POLL_MS);
+  //   return () => clearInterval(statusPollRef.current);
+  // }, [joinCode, onEndedRemotely]);
+
   /* ── everyone: poll meeting status so guests learn the host ended it ── */
   useEffect(() => {
+    const isTexora = joinCode?.startsWith("tx");
     statusPollRef.current = setInterval(async () => {
       try {
+        // NEW — Texora meetings poll their own validate endpoint instead
+        // of the regular one, since they live in a separate table.
+        if (isTexora) {
+          const res = await texoraValidateJoinCode(joinCode);
+          if (res?.data?.valid === false) {
+            clearInterval(statusPollRef.current);
+            setEndedToast(true);
+            setTimeout(() => onEndedRemotely(), 2500);
+          }
+          return;
+        }
         const res = await getMeetingByJoinCode(joinCode);
         if (res?.data?.meetingStatus === "ENDED") {
           clearInterval(statusPollRef.current);
@@ -1721,7 +1753,7 @@ export function MeetingRoom({
         </div>
       )}
 
-            {/* ── main area ── */}
+      {/* ── main area ── */}
       <div style={S.mainArea} className="im-mainarea">
         <RemoteAudioRenderer participants={participants} />
         <div style={S.stageColumn} className="im-stagecolumn">

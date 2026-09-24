@@ -36,6 +36,10 @@ import {
   joinMeetingAsHost,
   requestToJoin,
 } from "@/services/liveSessionService";
+import {
+  texoraValidateJoinCode,
+  texoraGenerateToken,
+} from "@/services/texoraMeetingService";
 import { MeetingRoom } from "./MeetingRoom";
 import { DeniedScreen } from "./components/DeniedScreen";
 import { LobbyScreen } from "./components/LobbyScreen";
@@ -65,9 +69,89 @@ export default function IlmoraMeeting() {
   const lobbyPollRef = useRef(null);
 
   /* ── 1. resolve the meeting from the joinCode ──────────────────── */
+
+  /*
+  old workung code with correct an existing code 
+
+  */
+  // const loadMeeting = useCallback(async () => {
+  //   setPhase("loading");
+  //   setLoadError(null);
+  //   try {
+  //     const res = await getMeetingByJoinCode(joinCode);
+  //     const info = res?.data;
+  //     if (!info) throw new Error("Meeting not found");
+  //     setMeetingInfo(info);
+
+  //     // FIX: DTO field is meetingStatus, not status
+  //     if (info.meetingStatus === "ENDED") {
+  //       setPhase("ended");
+  //       return;
+  //     }
+
+  //     if (info.isHost) {
+  //       // Host: fetch a token directly, no lobby.
+  //       // FIX: token endpoint is keyed by numeric id, not joinCode.
+  //       const hostRes = await joinMeetingAsHost(info.id);
+  //       setConnectPayload({ ...hostRes.data, isHost: true });
+  //       setPhase("in-meeting");
+  //     } else {
+  //       setPhase("prejoin");
+  //     }
+  //   } catch (err) {
+  //     console.error("Failed to resolve meeting:", err);
+  //     setLoadError(
+  //       err?.response?.status === 404
+  //         ? "This meeting link is invalid or has expired."
+  //         : "We couldn't load this meeting. Please check your connection and try again.",
+  //     );
+  //     setPhase("error");
+  //   }
+  // }, [joinCode]);
+
+  /* ── 1. resolve the meeting from the joinCode ──────────────────── */
+  const isTexoraMeeting = joinCode?.startsWith("tx");
+
   const loadMeeting = useCallback(async () => {
     setPhase("loading");
     setLoadError(null);
+
+    // NEW — Texora meetings branch off entirely here. Everything below
+    // this block is completely untouched original logic for regular
+    // meetings.
+    if (isTexoraMeeting) {
+      try {
+        const validateRes = await texoraValidateJoinCode(joinCode);
+        const info = validateRes?.data;
+        if (!info?.valid) {
+          setLoadError(
+            info?.message || "This meeting link is invalid or has expired.",
+          );
+          setPhase("error");
+          return;
+        }
+        // Texora meetings have no lobby/host — everyone is auto-admitted
+        // directly. Skip prejoin/lobby phases entirely.
+        const tokenRes = await texoraGenerateToken(joinCode, null, null, null);
+        setMeetingInfo({
+          id: info.meetingId,
+          title: info.topic,
+          meetingStatus: info.status,
+          isHost: false,
+        });
+        setConnectPayload({ ...tokenRes.data, isHost: false });
+        setPhase("in-meeting");
+      } catch (err) {
+        console.error("Failed to resolve Texora meeting:", err);
+        setLoadError(
+          err?.response?.data?.message ||
+            "We couldn't load this meeting. Please try again.",
+        );
+        setPhase("error");
+      }
+      return;
+    }
+
     try {
       const res = await getMeetingByJoinCode(joinCode);
       const info = res?.data;
@@ -98,7 +182,7 @@ export default function IlmoraMeeting() {
       );
       setPhase("error");
     }
-  }, [joinCode]);
+  }, [joinCode, isTexoraMeeting]);
 
   useEffect(() => {
     loadMeeting();

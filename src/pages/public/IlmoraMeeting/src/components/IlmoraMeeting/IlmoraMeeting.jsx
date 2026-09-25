@@ -130,9 +130,30 @@ export default function IlmoraMeeting() {
           setPhase("error");
           return;
         }
+
+        // NEW — stable per-browser identity, persisted so a reload/reconnect
+        // by the same person is recognized as the same participant instead
+        // of counting as a brand-new join every time.
+        const identityKey = `texora_identity_${joinCode}`;
+        let identity = localStorage.getItem(identityKey);
+        if (!identity) {
+          identity = crypto.randomUUID();
+          localStorage.setItem(identityKey, identity);
+        }
+
+        // NEW — use the real name Texora already sent in `context` on
+        // create, no name prompt needed. Falls back to "Guest" only if
+        // Texora never sent a name.
+        const displayName = info.candidateName || "Guest";
+
         // Texora meetings have no lobby/host — everyone is auto-admitted
         // directly. Skip prejoin/lobby phases entirely.
-        const tokenRes = await texoraGenerateToken(joinCode, null, null, null);
+        const tokenRes = await texoraGenerateToken(
+          joinCode,
+          identity,
+          displayName,
+          null,
+        );
         setMeetingInfo({
           id: info.meetingId,
           title: info.topic,

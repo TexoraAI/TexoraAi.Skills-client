@@ -27,7 +27,7 @@
    ════════════════════════════════════════════════════════════════ */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { AlertTriangle, Loader2, PhoneOff } from "lucide-react";
 import {
   getGuestToken,
@@ -53,6 +53,10 @@ import { LOBBY_POLL_MS } from "./constants";
 export default function IlmoraMeeting() {
   const { joinCode } = useParams();
   const navigate = useNavigate();
+
+  const [searchParams] = useSearchParams();
+  const urlRole = searchParams.get("role");
+  const urlName = searchParams.get("name");
 
   // phase: 'loading' | 'error' | 'prejoin' | 'lobby' | 'denied' | 'ended' | 'in-meeting'
   const [phase, setPhase] = useState("loading");
@@ -144,21 +148,26 @@ export default function IlmoraMeeting() {
         // NEW — use the real name Texora already sent in `context` on
         // create, no name prompt needed. Falls back to "Guest" only if
         // Texora never sent a name.
-        const displayName = info.candidateName || "Guest";
+        const isInterviewer = urlRole === "interviewer";
+        const displayName = isInterviewer
+          ? urlName || "Interviewer"
+          : info.candidateName || "Guest";
+        const role = isInterviewer ? "interviewer" : "candidate";
+        const interviewers = info.interviewers || [];
 
-        // Texora meetings have no lobby/host — everyone is auto-admitted
-        // directly. Skip prejoin/lobby phases entirely.
         const tokenRes = await texoraGenerateToken(
           joinCode,
           identity,
           displayName,
-          null,
+          role,
         );
         setMeetingInfo({
           id: info.meetingId,
           title: info.topic,
           meetingStatus: info.status,
           isHost: false,
+          candidateName: displayName, // already have this
+          interviewers: interviewers, // ← ADD THIS
         });
         setConnectPayload({ ...tokenRes.data, isHost: false });
         setPhase("in-meeting");

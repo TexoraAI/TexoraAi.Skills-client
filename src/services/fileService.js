@@ -301,10 +301,13 @@ const fileService = {
    * @param {File} file
    * @param {Function} onProgress optional (0-100)
    */
-  uploadFeaturedSessionFile(sessionId, file, onProgress) {
+  // ✅ CHANGED — courseSlug param added so the file lands in
+  // featured-courses/{slug}/files/ on S3 instead of a flat folder.
+  uploadFeaturedSessionFile(sessionId, file, courseSlug, onProgress) {
     const formData = new FormData();
     formData.append("sessionId", sessionId);
     formData.append("file", file);
+    if (courseSlug) formData.append("courseSlug", courseSlug);
     return axios.post(`${API_GATEWAY}/featured-files/upload`, formData, {
       headers: { ...authHeader(), "Content-Type": "multipart/form-data" },
       onUploadProgress: onProgress
@@ -316,14 +319,14 @@ const fileService = {
   },
 
   /**
-   * Build the download URL for a featured session file. Requires auth per
-   * FeaturedSessionFileController — verify header/cookie handling before
-   * using this raw in an <a href> or <iframe src> in ProgramPlayer.jsx.
+   * ✅ CHANGED — was /download/{fileName} (local-disk, required auth).
+   * Now points at /stream/{fileName}, which 302-redirects to a fresh
+   * presigned S3 URL — no auth header needed, works directly in an
+   * <iframe src="..."> the same way video's /stream endpoint does.
    */
-  getFeaturedSessionFileDownloadUrl(fileName) {
-    return `${API_GATEWAY}/featured-files/download/${encodeURIComponent(fileName)}`;
+  getFeaturedSessionFileStreamUrl(fileName) {
+    return `${API_GATEWAY}/featured-files/stream/${encodeURIComponent(fileName)}`;
   },
-
   // ================= ADMIN — PER-USER-IN-ORG (org admin only) =================
   // organizationId is NOT sent from the client — the backend derives it from
   // the caller's own JWT (SecurityUtils.getCurrentOrganizationId()), so an

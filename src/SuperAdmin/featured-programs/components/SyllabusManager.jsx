@@ -42,7 +42,7 @@ let clientIdCounter = 0;
 const makeClientId = (prefix) =>
   `${prefix}-${Date.now()}-${(clientIdCounter += 1)}`;
 
-const ManualSyllabusBuilder = ({ weeks, onChange }) => {
+const ManualSyllabusBuilder = ({ weeks, onChange, courseSlug }) => {
   const addWeek = () => {
     onChange([
       ...weeks,
@@ -379,6 +379,7 @@ const ManualSyllabusBuilder = ({ weeks, onChange }) => {
           title: form.title,
           description: form.description,
           thumbnail: form.thumbnailFile,
+          courseSlug,
         },
         (pct) => {
           setVideoState((prev) => ({
@@ -422,6 +423,7 @@ const ManualSyllabusBuilder = ({ weeks, onChange }) => {
           title: form.title,
           description: form.description,
           thumbnail: form.thumbnailFile || undefined,
+          courseSlug,
         },
       );
       setSessionVideoField(weekId, modId, sess.id, {
@@ -478,6 +480,7 @@ const ManualSyllabusBuilder = ({ weeks, onChange }) => {
       const { data } = await fileService.uploadFeaturedSessionFile(
         sessId,
         file,
+        courseSlug,
         (pct) => {
           setFileState((prev) => ({
             ...prev,
@@ -1319,6 +1322,7 @@ const SyllabusPreview = ({ generatedData }) => {
 export default function SyllabusManager({
   syllabusData,
   onChange,
+  courseSlug,
   displaySettings,
   onDisplaySettingsChange,
 }) {
@@ -1443,6 +1447,7 @@ export default function SyllabusManager({
         <ManualSyllabusBuilder
           weeks={data.weeks || []}
           onChange={(weeks) => emit({ weeks })}
+          courseSlug={courseSlug}
         />
       )}
 

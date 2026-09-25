@@ -1120,6 +1120,7 @@ export default function AddEditProgram({
                 <SyllabusManager
                   syllabusData={formData.syllabus}
                   onChange={(v) => updateField("syllabus", v)}
+                  courseSlug={formData.slug}
                   displaySettings={{
                     showOnHomepage: formData.showOnHomepage,
                     isFeatured: formData.isFeatured,
